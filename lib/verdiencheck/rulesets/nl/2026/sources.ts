@@ -24,6 +24,42 @@ export const SRC_ROW = {
     'https://www.belastingdienst.nl/wps/wcm/connect/nl/werk-en-inkomen/content/wat-zijn-inkomsten-uit-overig-werk',
 } as const;
 
+export const SRC_ZAKELIJKE_KOSTEN = {
+  officialSource: 'Belastingdienst — Zakelijke kosten',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/winst/inkomstenbelasting/inkomstenbelasting_voor_ondernemers/zakelijke_kosten',
+} as const;
+
+export const SRC_AFSCHRIJVING = {
+  officialSource: 'Belastingdienst — Wat is afschrijven?',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/winst/inkomstenbelasting/inkomstenbelasting_voor_ondernemers/afschrijving/',
+} as const;
+
+export const SRC_BEDRIJFSMIDDELEN = {
+  officialSource: 'Belastingdienst — Investeren in bedrijfsmiddelen',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/winst/inkomstenbelasting/inkomstenbelasting_voor_ondernemers/investeren_in_bedrijfsmiddelen',
+} as const;
+
+export const SRC_ZAKELIJK_OF_PRIVE = {
+  officialSource: 'Belastingdienst — Zakelijk of privé?',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/winst/inkomstenbelasting/inkomstenbelasting_voor_ondernemers/zakelijke_kosten/zakelijk_of_prive',
+} as const;
+
+export const SRC_AFTREKBARE_KOSTEN_OVERZICHT = {
+  officialSource: 'Belastingdienst — Overzicht mogelijk aftrekbare zakelijke kosten',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/winst/inkomstenbelasting/inkomstenbelasting_voor_ondernemers/zakelijke_kosten/overzicht-mogelijk-aftrekbare-zakelijke-kosten',
+} as const;
+
+export const SRC_BEPERKT_AFTREKBARE_2026 = {
+  officialSource: 'Belastingdienst — Drempel beperkt aftrekbare kosten 2026',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/winst/inkomstenbelasting/veranderingen-inkomstenbelasting-2026/drempel-beperkt-aftrekbare-kosten-2026',
+} as const;
+
 export const SRC_ZVW_2026 = {
   officialSource: 'Belastingdienst / FisIn — Inkomensafhankelijke bijdrage Zvw 2026',
   officialSourceUrl:

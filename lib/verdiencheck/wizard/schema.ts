@@ -23,7 +23,12 @@ import type {
   FoodSafetyPlanStatus,
   PackagingMode,
 } from '../domain/food-activity';
-import type { ScenarioPresetEuro } from '../domain/money';
+import { centsToPlainEuroInput, type ScenarioPresetEuro } from '../domain/money';
+import {
+  helperFeedsCertifiedEngine,
+  mapRevenueAndAllowableCosts,
+  type ScenarioInputMode,
+} from '../domain/revenue-cost-helper';
 import type { AgeTaxRegime2026 } from '../domain/income-bases';
 import type { AowBirthCohort2026, AowMonth2026, SingleOlderPersonsCreditEligibility } from '../domain/aow';
 import type {
@@ -197,6 +202,10 @@ export type WizardState = {
   midYearHouseholdChange: boolean | null;
   scenarioPreset: ScenarioPresetEuro | 'custom' | null;
   customScenarioEuro: string;
+  scenarioInputMode: ScenarioInputMode;
+  helperRevenueEuro: string;
+  helperCostsEuro: string;
+  helperCostsUnknown: boolean;
 };
 
 export const EMPTY_WIZARD_STATE: WizardState = {
@@ -288,6 +297,10 @@ export const EMPTY_WIZARD_STATE: WizardState = {
   midYearHouseholdChange: false,
   scenarioPreset: null,
   customScenarioEuro: '',
+  scenarioInputMode: 'RESULT',
+  helperRevenueEuro: '',
+  helperCostsEuro: '',
+  helperCostsUnknown: false,
 };
 
 export function parseWizardChildAges(raw: string): number[] {
@@ -353,6 +366,8 @@ const FINANCIAL_EURO_KEYS = [
   'bareRentEuro',
   'housingChildAssessmentEuro',
   'customScenarioEuro',
+  'helperRevenueEuro',
+  'helperCostsEuro',
 ] as const;
 
 export function clearFinancialDepth(state: WizardState): WizardState {
@@ -392,6 +407,8 @@ export function clearFinancialDepth(state: WizardState): WizardState {
   next.otherIncomeEuro = '';
   next.advancedAccuracyRequested = false;
   next.scenarioPreset = null;
+  next.scenarioInputMode = 'RESULT';
+  next.helperCostsUnknown = false;
   next.hasOtherBusinessTurnover = null;
   next.vatRegistrationStatus = null;
   next.korParticipating = null;
@@ -541,6 +558,36 @@ export function wantsFinancialDetailQuestions(state: WizardState): boolean {
 
 export function hasEnteredEstimatedCosts(state: WizardState): boolean {
   return state.estimatedCostsEuro.trim() !== '';
+}
+
+export function applyRevenueCostHelperFields(
+  state: WizardState,
+  patch: Partial<
+    Pick<WizardState, 'helperRevenueEuro' | 'helperCostsEuro' | 'helperCostsUnknown'>
+  >,
+): WizardState {
+  const next: WizardState = {
+    ...state,
+    ...patch,
+    scenarioInputMode: 'REVENUE_COST',
+  };
+  const mapped = mapRevenueAndAllowableCosts({
+    revenueEuro: next.helperRevenueEuro,
+    costsEuro: next.helperCostsEuro,
+    costsUnknown: next.helperCostsUnknown,
+  });
+  if (helperFeedsCertifiedEngine(mapped)) {
+    next.scenarioPreset = 'custom';
+    next.customScenarioEuro = centsToPlainEuroInput(mapped.resultCents);
+  } else {
+    next.scenarioPreset = 'custom';
+    next.customScenarioEuro = '';
+  }
+  return next;
+}
+
+export function applyDirectResultMode(state: WizardState): WizardState {
+  return { ...state, scenarioInputMode: 'RESULT' };
 }
 
 export function wizardHasInProgressAnswers(state: WizardState): boolean {

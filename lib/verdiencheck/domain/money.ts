@@ -71,3 +71,14 @@ export const SCENARIO_PRESET_CENTS: readonly Cents[] = SCENARIO_PRESET_EUROS.map
 export function scenarioPresetToCents(euro: ScenarioPresetEuro): Cents {
   return euro * 100;
 }
+
+/** Parseable euro string for wizard inputs. Not a display format. */
+export function centsToPlainEuroInput(cents: Cents): string {
+  assertCents(cents, 'cents');
+  const sign = cents < 0 ? '-' : '';
+  const abs = Math.abs(cents);
+  const whole = Math.floor(abs / 100);
+  const frac = abs % 100;
+  if (frac === 0) return `${sign}${whole}`;
+  return `${sign}${whole}.${frac.toString().padStart(2, '0')}`;
+}

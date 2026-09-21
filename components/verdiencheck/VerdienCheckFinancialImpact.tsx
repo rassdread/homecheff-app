@@ -12,6 +12,10 @@ import type { VerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
 import type { ScenarioComparisonRow } from '@/lib/verdiencheck/wizard/scenario-comparison';
 import { VERDIENCHECK_STEP_HEADING_ID } from '@/lib/verdiencheck/wizard/active-step-focus';
 import type { WizardState } from '@/lib/verdiencheck/wizard/schema';
+import VerdienCheckCostAdvantage, {
+  helperChainFromState,
+} from '@/components/verdiencheck/VerdienCheckCostAdvantage';
+import type { ScenarioInputMode } from '@/lib/verdiencheck/domain/revenue-cost-helper';
 
 function whole(cents: number): string {
   return formatCentsAsWholeEuroDisplay(cents);
@@ -41,10 +45,19 @@ export default function VerdienCheckFinancialImpact(props: {
   route: PersonalVerdienRoute;
   scenarioPreset: WizardState['scenarioPreset'];
   customScenarioEuro: string;
+  scenarioInputMode: ScenarioInputMode;
+  helperRevenueEuro: string;
+  helperCostsEuro: string;
+  helperCostsUnknown: boolean;
   comparison: ScenarioComparisonRow[] | null;
   onSelectPreset: (euro: ScenarioPresetEuro) => void;
   onSelectCustom: () => void;
   onCustomChange: (value: string) => void;
+  onSelectResultMode: () => void;
+  onSelectHelperMode: () => void;
+  onHelperRevenueChange: (value: string) => void;
+  onHelperCostsChange: (value: string) => void;
+  onHelperCostsUnknown: (unknown: boolean) => void;
 }) {
   const { copy, route } = props;
   const impact = route.financialImpact;
@@ -54,9 +67,19 @@ export default function VerdienCheckFinancialImpact(props: {
   const extra = sim.extraResultCents ?? impact.extraResultCents;
   const net = known(sim.netExtraCents);
   const month = known(sim.monthlyApproxCents);
+  const helperChain = helperChainFromState({
+    scenarioInputMode: props.scenarioInputMode,
+    helperRevenueEuro: props.helperRevenueEuro,
+    helperCostsEuro: props.helperCostsEuro,
+    helperCostsUnknown: props.helperCostsUnknown,
+  });
+  const helperActive = props.scenarioInputMode === 'REVENUE_COST';
   const exact = impact.status === 'EXACT' && net != null;
   const awaitingCustom =
-    props.scenarioPreset === 'custom' && (extra == null || extra === 0);
+    !helperActive &&
+    props.scenarioPreset === 'custom' &&
+    (extra == null || extra === 0);
+  const awaitingHelper = helperActive && helperChain == null;
 
   const tax = known(sim.taxDeltaCents);
   const includedAllowances = sim.allowances.filter((line) => line.included);
@@ -70,54 +93,98 @@ export default function VerdienCheckFinancialImpact(props: {
       className="space-y-4 rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm"
     >
       <p className="text-sm leading-relaxed text-stone-600">{copy.scenarioSwitchHint}</p>
-      <div className="flex flex-wrap gap-2">
-        {SCENARIO_PRESET_EUROS.map((euroAmount) => (
-          <button
-            key={euroAmount}
-            type="button"
-            aria-pressed={props.scenarioPreset === euroAmount}
-            onClick={() => props.onSelectPreset(euroAmount)}
-            className={`min-h-11 rounded-xl border px-3 py-2 text-base ${
-              props.scenarioPreset === euroAmount
-                ? 'border-emerald-700 bg-emerald-50 font-medium text-emerald-950'
-                : 'border-gray-200 bg-white text-gray-800'
-            }`}
-          >
-            €{euroAmount.toLocaleString('nl-NL')}
-          </button>
-        ))}
-        <button
-          type="button"
-          aria-pressed={props.scenarioPreset === 'custom'}
-          onClick={props.onSelectCustom}
-          className={`min-h-11 rounded-xl border px-3 py-2 text-base ${
-            props.scenarioPreset === 'custom'
-              ? 'border-emerald-700 bg-emerald-50 font-medium text-emerald-950'
-              : 'border-gray-200 bg-white text-gray-800'
-          }`}
-        >
-          {copy.customAmount}
-        </button>
-      </div>
-      {props.scenarioPreset === 'custom' ? (
-        <input
-          inputMode="decimal"
-          value={props.customScenarioEuro}
-          onChange={(e) => props.onCustomChange(e.target.value)}
-          className="min-h-12 w-full rounded-xl border border-gray-200 px-4 py-3 text-lg"
-          placeholder="€"
-        />
+      <VerdienCheckCostAdvantage
+        copy={copy}
+        mode={props.scenarioInputMode}
+        helperRevenueEuro={props.helperRevenueEuro}
+        helperCostsEuro={props.helperCostsEuro}
+        helperCostsUnknown={props.helperCostsUnknown}
+        onSelectResultMode={props.onSelectResultMode}
+        onSelectHelperMode={props.onSelectHelperMode}
+        onHelperRevenueChange={props.onHelperRevenueChange}
+        onHelperCostsChange={props.onHelperCostsChange}
+        onHelperCostsUnknown={props.onHelperCostsUnknown}
+      />
+      {!helperActive ? (
+        <>
+          <p className="text-sm leading-relaxed text-stone-600">{copy.scenarioResultHint}</p>
+          <div className="flex flex-wrap gap-2">
+            {SCENARIO_PRESET_EUROS.map((euroAmount) => (
+              <button
+                key={euroAmount}
+                type="button"
+                aria-pressed={props.scenarioPreset === euroAmount}
+                onClick={() => props.onSelectPreset(euroAmount)}
+                className={`min-h-11 rounded-xl border px-3 py-2 text-base ${
+                  props.scenarioPreset === euroAmount
+                    ? 'border-emerald-700 bg-emerald-50 font-medium text-emerald-950'
+                    : 'border-gray-200 bg-white text-gray-800'
+                }`}
+              >
+                €{euroAmount.toLocaleString('nl-NL')}
+              </button>
+            ))}
+            <button
+              type="button"
+              aria-pressed={props.scenarioPreset === 'custom'}
+              onClick={props.onSelectCustom}
+              className={`min-h-11 rounded-xl border px-3 py-2 text-base ${
+                props.scenarioPreset === 'custom'
+                  ? 'border-emerald-700 bg-emerald-50 font-medium text-emerald-950'
+                  : 'border-gray-200 bg-white text-gray-800'
+              }`}
+            >
+              {copy.customAmount}
+            </button>
+          </div>
+          {props.scenarioPreset === 'custom' ? (
+            <input
+              inputMode="decimal"
+              value={props.customScenarioEuro}
+              onChange={(e) => props.onCustomChange(e.target.value)}
+              className="min-h-12 w-full rounded-xl border border-gray-200 px-4 py-3 text-lg"
+              placeholder="€"
+            />
+          ) : null}
+        </>
       ) : null}
 
-      {awaitingCustom ? (
+      {awaitingCustom || awaitingHelper ? (
         <p className="text-base leading-relaxed text-stone-700">
-          Vul een extra resultaat in. Je huidige situatie blijft staan.
+          {helperActive ? copy.helperAwaiting : 'Vul een extra resultaat in. Je huidige situatie blijft staan.'}
         </p>
       ) : exact && extra != null ? (
         <div className="space-y-2">
-          <p className="text-xl font-semibold leading-snug text-stone-900">
-            Met €{whole(extra)} extra resultaat houd je naar schatting €{whole(net)} extra over.
-          </p>
+          {helperChain ? (
+            <div className="space-y-2 rounded-xl border border-stone-100 bg-stone-50 p-3">
+              <p className="text-sm font-medium text-stone-800">{copy.fromSaleToKeptTitle}</p>
+              <ul className="space-y-1 text-sm">
+                <li className="flex justify-between gap-4">
+                  <span>{copy.helperRevenueLabel}</span>
+                  <span>€{whole(helperChain.revenueCents)}</span>
+                </li>
+                <li className="flex justify-between gap-4">
+                  <span>{copy.helperCostsLabel}</span>
+                  <span>− €{whole(helperChain.costsCents)}</span>
+                </li>
+                <li className="flex justify-between gap-4 font-medium text-stone-800">
+                  <span>{copy.helperResultLabel}</span>
+                  <span>€{whole(helperChain.resultCents)}</span>
+                </li>
+              </ul>
+            </div>
+          ) : null}
+          <p className="text-lg font-semibold leading-snug text-stone-900">{copy.moneyResultTitle}</p>
+          {helperChain ? (
+            <p className="text-xl font-semibold leading-snug text-stone-900">
+              {copy.helperProgressLead} €{whole(helperChain.revenueCents)} {copy.helperProgressMid} €
+              {whole(net)} {copy.helperProgressEnd}
+            </p>
+          ) : (
+            <p className="text-xl font-semibold leading-snug text-stone-900">
+              Met €{whole(extra)} extra resultaat houd je naar schatting €{whole(net)} extra over.
+            </p>
+          )}
           {month != null ? (
             <p className="text-base text-stone-700">
               Dat is ongeveer €{whole(month)} per maand extra.

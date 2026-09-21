@@ -60,8 +60,10 @@ import { verdienCheckProgressBucket } from '@/lib/verdiencheck/privacy/analytics
 import {
   EMPTY_WIZARD_STATE,
   applyActivityChoice,
+  applyDirectResultMode,
   applyGrowthStartChoice,
   applyMoneyDepthChoice,
+  applyRevenueCostHelperFields,
   applySituationGroup,
   applyUwvBenefitUnknown,
   firstMoneyStep,
@@ -78,6 +80,10 @@ import {
   type TaxResidenceChoice,
 } from '@/lib/verdiencheck/wizard/schema';
 import { wizardStateToBenefitFacts, wizardStateToBusinessFacts, wizardStateToCalculatorInput, wizardStateToFoodFacts } from '@/lib/verdiencheck/wizard/to-calculator-input';
+import {
+  helperFeedsCertifiedEngine,
+  mapRevenueAndAllowableCosts,
+} from '@/lib/verdiencheck/domain/revenue-cost-helper';
 import { compareScenarioPresets } from '@/lib/verdiencheck/wizard/scenario-comparison';
 import {
   positionVerdienCheckActiveStep,
@@ -94,6 +100,7 @@ import type {
   ChildcareProviderEligibility,
   ParentWorkStudyStatus,
 } from '@/lib/verdiencheck/domain/childcare';
+import VerdienCheckCostAdvantage from './VerdienCheckCostAdvantage';
 import VerdienCheckDisclaimer from './VerdienCheckDisclaimer';
 import VerdienCheckFinancialImpact from './VerdienCheckFinancialImpact';
 import VerdienCheckLaterSection from './VerdienCheckLaterSection';
@@ -341,6 +348,14 @@ export default function VerdienCheckWizard(props: {
         return;
       }
       setCurrentIncomeError(false);
+    }
+    if (step === 'scenario' && state.scenarioInputMode === 'REVENUE_COST') {
+      const mapped = mapRevenueAndAllowableCosts({
+        revenueEuro: state.helperRevenueEuro,
+        costsEuro: state.helperCostsEuro,
+        costsUnknown: state.helperCostsUnknown,
+      });
+      if (!helperFeedsCertifiedEngine(mapped)) return;
     }
     const n = nextStep(state, step);
     if (n) {
@@ -1927,45 +1942,74 @@ export default function VerdienCheckWizard(props: {
           {step === 'scenario' && (
             <div className="space-y-3">
               <p className="text-base leading-relaxed text-gray-700">{copy.extraResultExplain}</p>
-              {SCENARIO_PRESET_EUROS.map((euro) => (
-                <ChoiceButton
-                  key={euro}
-                  selected={state.scenarioPreset === euro}
-                  onClick={() => {
-                    const next = { ...state, scenarioPreset: euro };
-                    const n = nextStep(next, 'scenario');
-                    setState(markMoneyDepthCompleted(next, 'scenario', n));
-                    if (n) setStep(n);
-                  }}
-                >
-                  €{euro.toLocaleString('nl-NL')}
-                </ChoiceButton>
-              ))}
-              <ChoiceButton
-                selected={state.scenarioPreset === 'custom'}
-                onClick={() => setState({ ...state, scenarioPreset: 'custom' })}
-              >
-                {copy.customAmount}
-              </ChoiceButton>
-              {state.scenarioPreset === 'custom' && (
+              <VerdienCheckCostAdvantage
+                copy={copy}
+                mode={state.scenarioInputMode}
+                helperRevenueEuro={state.helperRevenueEuro}
+                helperCostsEuro={state.helperCostsEuro}
+                helperCostsUnknown={state.helperCostsUnknown}
+                onSelectResultMode={() => setState(applyDirectResultMode(state))}
+                onSelectHelperMode={() => setState(applyRevenueCostHelperFields(state, {}))}
+                onHelperRevenueChange={(value) =>
+                  setState(applyRevenueCostHelperFields(state, { helperRevenueEuro: value }))
+                }
+                onHelperCostsChange={(value) =>
+                  setState(applyRevenueCostHelperFields(state, { helperCostsEuro: value }))
+                }
+                onHelperCostsUnknown={(unknown) =>
+                  setState(applyRevenueCostHelperFields(state, { helperCostsUnknown: unknown }))
+                }
+              />
+              {state.scenarioInputMode !== 'REVENUE_COST' ? (
                 <>
-                  <input
-                    inputMode="decimal"
-                    value={state.customScenarioEuro}
-                    onChange={(e) =>
-                      setState({ ...state, customScenarioEuro: e.target.value })
+                  <p className="text-sm leading-relaxed text-stone-600">{copy.scenarioResultHint}</p>
+                  {SCENARIO_PRESET_EUROS.map((euro) => (
+                    <ChoiceButton
+                      key={euro}
+                      selected={state.scenarioPreset === euro}
+                      onClick={() => {
+                        const next = { ...applyDirectResultMode(state), scenarioPreset: euro };
+                        const n = nextStep(next, 'scenario');
+                        setState(markMoneyDepthCompleted(next, 'scenario', n));
+                        if (n) setStep(n);
+                      }}
+                    >
+                      €{euro.toLocaleString('nl-NL')}
+                    </ChoiceButton>
+                  ))}
+                  <ChoiceButton
+                    selected={state.scenarioPreset === 'custom'}
+                    onClick={() =>
+                      setState({ ...applyDirectResultMode(state), scenarioPreset: 'custom' })
                     }
-                    className={FIELD}
-                    placeholder="€"
-                  />
-                  <button
-                    type="button"
-                    className={NEXT_BTN}
-                    onClick={goNext}
                   >
-                    {copy.next}
-                  </button>
+                    {copy.customAmount}
+                  </ChoiceButton>
+                  {state.scenarioPreset === 'custom' && (
+                    <>
+                      <input
+                        inputMode="decimal"
+                        value={state.customScenarioEuro}
+                        onChange={(e) =>
+                          setState({
+                            ...applyDirectResultMode(state),
+                            customScenarioEuro: e.target.value,
+                            scenarioPreset: 'custom',
+                          })
+                        }
+                        className={FIELD}
+                        placeholder="€"
+                      />
+                      <button type="button" className={NEXT_BTN} onClick={goNext}>
+                        {copy.next}
+                      </button>
+                    </>
+                  )}
                 </>
+              ) : (
+                <button type="button" className={NEXT_BTN} onClick={goNext}>
+                  {copy.next}
+                </button>
               )}
             </div>
           )}
@@ -1982,13 +2026,34 @@ export default function VerdienCheckWizard(props: {
                   route={personalRoute}
                   scenarioPreset={state.scenarioPreset}
                   customScenarioEuro={state.customScenarioEuro}
+                  scenarioInputMode={state.scenarioInputMode}
+                  helperRevenueEuro={state.helperRevenueEuro}
+                  helperCostsEuro={state.helperCostsEuro}
+                  helperCostsUnknown={state.helperCostsUnknown}
                   comparison={scenarioComparison}
                   onSelectPreset={(euro: ScenarioPresetEuro) =>
-                    setState({ ...state, scenarioPreset: euro })
+                    setState({ ...applyDirectResultMode(state), scenarioPreset: euro })
                   }
-                  onSelectCustom={() => setState({ ...state, scenarioPreset: 'custom' })}
+                  onSelectCustom={() =>
+                    setState({ ...applyDirectResultMode(state), scenarioPreset: 'custom' })
+                  }
                   onCustomChange={(value) =>
-                    setState({ ...state, customScenarioEuro: value, scenarioPreset: 'custom' })
+                    setState({
+                      ...applyDirectResultMode(state),
+                      customScenarioEuro: value,
+                      scenarioPreset: 'custom',
+                    })
+                  }
+                  onSelectResultMode={() => setState(applyDirectResultMode(state))}
+                  onSelectHelperMode={() => setState(applyRevenueCostHelperFields(state, {}))}
+                  onHelperRevenueChange={(value) =>
+                    setState(applyRevenueCostHelperFields(state, { helperRevenueEuro: value }))
+                  }
+                  onHelperCostsChange={(value) =>
+                    setState(applyRevenueCostHelperFields(state, { helperCostsEuro: value }))
+                  }
+                  onHelperCostsUnknown={(unknown) =>
+                    setState(applyRevenueCostHelperFields(state, { helperCostsUnknown: unknown }))
                   }
                 />
               ) : (

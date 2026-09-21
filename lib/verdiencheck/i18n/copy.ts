@@ -92,6 +92,40 @@ export type VerdienCheckCopy = {
   advancedAccuracy: string;
   advancedAccuracyExplain: string;
   extraResultExplain: string;
+  scenarioResultHint: string;
+  costsCountTitle: string;
+  costsCountBody: string;
+  costsCountEngine: string;
+  costsAreRealExpenses: string;
+  receiptsNote: string;
+  whatIsResultTitle: string;
+  whatIsResultBody: string;
+  resultExampleCaption: string;
+  knowMyResult: string;
+  calculateFromRevenueCosts: string;
+  helperRevenueLabel: string;
+  helperCostsLabel: string;
+  helperCostsUnknown: string;
+  helperResultLabel: string;
+  helperUnknownCostsNote: string;
+  helperNegativeNote: string;
+  helperZeroNote: string;
+  helperInvestmentNote: string;
+  helperCostExamples: string;
+  helperPartialCostsNote: string;
+  helperAwaiting: string;
+  fromSaleToKeptTitle: string;
+  helperProgressLead: string;
+  helperProgressMid: string;
+  helperProgressEnd: string;
+  moreExplanation: string;
+  exampleRevenueLabel: string;
+  exampleCostsLabel: string;
+  exampleResultLabel: string;
+  exampleRevenueAmount: string;
+  exampleCostsAmount: string;
+  exampleResultAmount: string;
+  officialSellingThought: string;
   moneyResultTitle: string;
   monthlyFromYearNote: string;
   baselineEstablished: string;
@@ -229,6 +263,51 @@ const NL: VerdienCheckCopy = {
     'Dit zijn bedragen van je jaaropgave of aangifte. Ze maken de schatting preciezer. Je hoeft ze niet in te vullen.',
   extraResultExplain:
     'Kies hoeveel extra resultaat je wilt toetsen. Resultaat is wat overblijft nadat relevante kosten eraf zijn — niet je omzet.',
+  scenarioResultHint: 'Dit is je extra resultaat nadat relevante kosten eraf zijn.',
+  costsCountTitle: 'Je kosten tellen ook mee',
+  costsCountBody:
+    'Officieel verkopen betekent niet automatisch dat je belasting betaalt over alles wat binnenkomt. Aftrekbare zakelijke kosten kunnen je resultaat verlagen.',
+  costsCountEngine:
+    'VerdienCheck rekent daarom met resultaat na kosten, niet simpelweg met je totale verkoopbedrag.',
+  costsAreRealExpenses:
+    'Kosten verlagen je belastbare resultaat, maar het blijven natuurlijk uitgaven die je daadwerkelijk hebt gemaakt.',
+  receiptsNote: 'Bewaar bewijs van zakelijke kosten, zoals bonnetjes en facturen.',
+  whatIsResultTitle: 'Wat is resultaat?',
+  whatIsResultBody:
+    'Misschien denk je dat je belasting betaalt over alles wat je verkoopt. Dat is niet automatisch zo. Je betaalt niet automatisch belasting over alles wat een klant aan je betaalt. Over het fiscaal relevante resultaat berekenen we daarna wat belasting en toeslagen doen.',
+  resultExampleCaption: 'Voorbeeld, geen persoonlijke berekening:',
+  knowMyResult: 'Ik weet mijn resultaat',
+  calculateFromRevenueCosts: 'Bereken uit omzet en kosten',
+  helperRevenueLabel: 'Verwachte extra omzet',
+  helperCostsLabel: 'Relevante aftrekbare kosten',
+  helperCostsUnknown: 'Ik weet mijn kosten niet',
+  helperResultLabel: 'Geschat extra resultaat',
+  helperUnknownCostsNote:
+    'Je kosten zijn niet bekend. We nemen ze niet als €0 mee. Vul kosten in, of kies een resultaat als je dat wel weet.',
+  helperNegativeNote:
+    'Je opgegeven kosten zijn hoger dan je omzet. Je extra resultaat is daardoor negatief. We rekenen dit nog niet door als extra vooruitgang.',
+  helperZeroNote: 'Je extra resultaat is €0. We rekenen dit niet als extra vooruitgang.',
+  helperInvestmentNote:
+    'Heb je grotere aankopen gedaan voor je werkzaamheden? Die kunnen fiscaal anders worden behandeld, bijvoorbeeld via afschrijving. Zet die niet als volledige aftrek in dit veld. Bekijk de uitleg of gebruik Nauwkeuriger rekenen.',
+  helperCostExamples:
+    'Denk bijvoorbeeld aan kosten die je zakelijk maakt voor wat je verkoopt, zoals ingrediënten of materialen, verpakking, verzending, of andere aantoonbare zakelijke kosten. Of en hoeveel je fiscaal mag aftrekken hangt af van het soort kosten en jouw situatie.',
+  helperPartialCostsNote:
+    'Sommige kosten zijn gedeeltelijk aftrekbaar of moeten over meerdere jaren worden verdeeld. Niet alle kosten zijn aftrekbaar.',
+  helperAwaiting: 'Vul omzet en relevante aftrekbare kosten in. Je huidige situatie blijft staan.',
+  fromSaleToKeptTitle: 'Van verkoop naar wat je extra overhoudt',
+  helperProgressLead: 'Van',
+  helperProgressMid:
+    'extra verkoop houd je, na je opgegeven kosten, geschatte belasting en veranderingen in toeslagen, ongeveer',
+  helperProgressEnd: 'extra over.',
+  moreExplanation: 'Meer uitleg',
+  exampleRevenueLabel: 'Verkoop / omzet',
+  exampleCostsLabel: 'Aftrekbare kosten',
+  exampleResultLabel: 'Resultaat',
+  exampleRevenueAmount: '€10.000',
+  exampleCostsAmount: '− €4.000',
+  exampleResultAmount: '€6.000',
+  officialSellingThought:
+    'Officieel verkopen betekent niet dat belasting over al je omzet wordt berekend.',
   moneyResultTitle: 'Je gaat erop vooruit',
   monthlyFromYearNote:
     'Gemiddeld is dat het jaarbedrag gedeeld door 12. Dat is niet het moment waarop belasting wordt verrekend.',
@@ -762,6 +841,51 @@ const EN: VerdienCheckCopy = {
     'These figures come from your annual statement or tax return. They make the estimate more precise. You do not have to fill them in.',
   extraResultExplain:
     'Choose how much extra result you want to test. Result is what remains after relevant costs — not turnover.',
+  scenarioResultHint: 'This is your extra result after relevant costs.',
+  costsCountTitle: 'Your costs count too',
+  costsCountBody:
+    'Selling officially does not automatically mean you pay tax on everything that comes in. Allowable business costs can lower your result.',
+  costsCountEngine:
+    'VerdienCheck therefore works with result after costs, not simply with your total sales amount.',
+  costsAreRealExpenses:
+    'Costs lower your taxable result, but they remain real expenses you actually made.',
+  receiptsNote: 'Keep proof of business costs, such as receipts and invoices.',
+  whatIsResultTitle: 'What is result?',
+  whatIsResultBody:
+    'You might think you pay tax on everything you sell. That is not automatic. You do not automatically pay tax on everything a customer pays you. We then calculate what tax and allowances do to the fiscally relevant result.',
+  resultExampleCaption: 'Example only, not your personal calculation:',
+  knowMyResult: 'I know my result',
+  calculateFromRevenueCosts: 'Calculate from sales and costs',
+  helperRevenueLabel: 'Expected extra sales',
+  helperCostsLabel: 'Relevant allowable costs',
+  helperCostsUnknown: 'I do not know my costs',
+  helperResultLabel: 'Estimated extra result',
+  helperUnknownCostsNote:
+    'Your costs are not known. We do not treat them as €0. Enter costs, or choose a result if you know it.',
+  helperNegativeNote:
+    'Your entered costs are higher than your sales. Your extra result is therefore negative. We do not yet run this as extra progress.',
+  helperZeroNote: 'Your extra result is €0. We do not count this as extra progress.',
+  helperInvestmentNote:
+    'Did you make larger purchases for this work? Those can be treated differently for tax, for example through depreciation. Do not enter them here as a full deduction. See the explanation or use a more precise calculation.',
+  helperCostExamples:
+    'Think of costs you make for what you sell, such as ingredients or materials, packaging, shipping, or other demonstrable business costs. Whether and how much you may deduct depends on the type of cost and your situation.',
+  helperPartialCostsNote:
+    'Some costs are only partly deductible or must be spread over several years. Not all costs are deductible.',
+  helperAwaiting: 'Enter sales and relevant allowable costs. Your current situation stays.',
+  fromSaleToKeptTitle: 'From sales to what you keep extra',
+  helperProgressLead: 'From',
+  helperProgressMid:
+    'extra sales you keep, after the costs you entered, estimated tax and changes in allowances, about',
+  helperProgressEnd: 'extra.',
+  moreExplanation: 'More explanation',
+  exampleRevenueLabel: 'Sales / turnover',
+  exampleCostsLabel: 'Allowable costs',
+  exampleResultLabel: 'Result',
+  exampleRevenueAmount: '€10,000',
+  exampleCostsAmount: '− €4,000',
+  exampleResultAmount: '€6,000',
+  officialSellingThought:
+    'Selling officially does not mean tax is calculated on all of your turnover.',
   moneyResultTitle: 'You come out ahead',
   monthlyFromYearNote:
     'On average that is the yearly amount divided by 12. That is not when tax is actually settled.',

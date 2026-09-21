@@ -51,6 +51,8 @@
     "test:verdiencheck-usability": "npx tsx scripts/test-verdiencheck-usability.ts",
     "test:verdiencheck-quick-check": "npx tsx scripts/test-verdiencheck-quick-check.ts",
     "test:verdiencheck-confidence-first": "npx tsx scripts/test-verdiencheck-confidence-first.ts",
+    "test:verdiencheck-live-net-simulator": "npx tsx scripts/test-verdiencheck-live-net-simulator.ts",
+    "test:verdiencheck-cost-advantage": "npx tsx scripts/test-verdiencheck-cost-advantage.ts",
     "validate:verdiencheck-public-copy": "npx tsx scripts/validate-verdiencheck-public-copy.ts",
     "validate:trust-1-marketplace-integrity": "npx tsx scripts/validate-trust-1-marketplace-integrity.ts",
     "probe:legal-1-seller-classification": "node scripts/probe-legal-1-seller-classification.mjs",

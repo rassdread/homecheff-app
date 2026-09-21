@@ -13,6 +13,10 @@ import {
   parseEuroInputToCents,
   scenarioPresetToCents,
 } from '../domain/money';
+import {
+  helperFeedsCertifiedEngine,
+  mapRevenueAndAllowableCosts,
+} from '../domain/revenue-cost-helper';
 import type { BusinessGuidanceFacts } from '../guidance/types';
 import type { TriState } from '../domain/tri-state';
 import {
@@ -178,12 +182,21 @@ export function wizardStateToCalculatorInput(state: WizardState): CalculatorInpu
   const turnoverCents = annualizeEuro(state.estimatedTurnoverEuro, period) ?? 0;
   const costsCents = annualizeEuro(state.estimatedCostsEuro, period) ?? 0;
   const liveResult = commercialResultCents(turnoverCents, costsCents);
+  const helperMapped = mapRevenueAndAllowableCosts({
+    revenueEuro: state.helperRevenueEuro,
+    costsEuro: state.helperCostsEuro,
+    costsUnknown: state.helperCostsUnknown,
+  });
   const scenarioCents =
-    state.scenarioPreset === 'custom'
-      ? parseEuroInputToCents(state.customScenarioEuro) ?? liveResult
-      : state.scenarioPreset
-        ? scenarioPresetToCents(state.scenarioPreset)
-        : liveResult;
+    state.scenarioInputMode === 'REVENUE_COST'
+      ? helperFeedsCertifiedEngine(helperMapped)
+        ? helperMapped.resultCents
+        : 0
+      : state.scenarioPreset === 'custom'
+        ? parseEuroInputToCents(state.customScenarioEuro) ?? 0
+        : state.scenarioPreset
+          ? scenarioPresetToCents(state.scenarioPreset)
+          : liveResult;
   const bases = deriveIncomeBasesFromUserFacts(state);
   const assessmentCents = bases.baselineAssessmentIncomeCents;
   const children = buildChildren(state);
