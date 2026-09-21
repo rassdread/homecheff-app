@@ -55,7 +55,8 @@ export default function VerdienCheckFinancialImpact(props: {
   const net = known(sim.netExtraCents);
   const month = known(sim.monthlyApproxCents);
   const exact = impact.status === 'EXACT' && net != null;
-  if (!exact && (extra == null || extra === 0)) return null;
+  const awaitingCustom =
+    props.scenarioPreset === 'custom' && (extra == null || extra === 0);
 
   const tax = known(sim.taxDeltaCents);
   const includedAllowances = sim.allowances.filter((line) => line.included);
@@ -108,7 +109,11 @@ export default function VerdienCheckFinancialImpact(props: {
         />
       ) : null}
 
-      {exact && extra != null ? (
+      {awaitingCustom ? (
+        <p className="text-base leading-relaxed text-stone-700">
+          Vul een extra resultaat in. Je huidige situatie blijft staan.
+        </p>
+      ) : exact && extra != null ? (
         <div className="space-y-2">
           <p className="text-xl font-semibold leading-snug text-stone-900">
             Met €{whole(extra)} extra resultaat houd je naar schatting €{whole(net)} extra over.

@@ -383,6 +383,11 @@ assert.equal(isBenefitSituation(bijstandState), true);
 assert.match(impactSrc, /houd je naar schatting/);
 assert.match(impactSrc, /Bekijk de berekening|viewCalculation/);
 assert.doesNotMatch(impactSrc, /Je verliest je zorgtoeslag|WINST/);
+assert.match(impactSrc, /awaitingCustom/);
+assert.doesNotMatch(
+  impactSrc,
+  /if \(!exact && \(extra == null \|\| extra === 0\)\) return null/,
+);
 assert.doesNotMatch(wizardSrc, /onSelectPreset[\s\S]{0,180}currentIncomeEuro:\s*''/);
 assert.match(financialSrc, /netFromEngine: true/);
 
