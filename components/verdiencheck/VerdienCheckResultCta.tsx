@@ -57,8 +57,8 @@ export default function VerdienCheckResultCta(props: {
   const showDiscover = showSellBlock && mode === 'DISCOVER';
   const showAffiliate = showSellBlock && mode === 'AFFILIATE';
   const showShare =
-    Boolean(props.includeShare) ||
-    (showNav && props.completed && !showListingSell && !showDiscover && !showAffiliate);
+    props.includeShare ??
+    (showNav && Boolean(props.completed) && !showListingSell && !showDiscover && !showAffiliate);
   const promptKey = listingCtaPromptKey(props.activity);
   const listingPrompt = props.copy[promptKey] || props.copy.keepOverviewPrompt;
   const sellLabel = isGuest ? props.copy.placeFirstOffer : props.copy.placeNewOffer;
