@@ -78,6 +78,7 @@ import type { MissingRequirement } from '@/lib/account-requirements';
 import AccountRequirementsInlineAlert from '@/components/account/AccountRequirementsInlineAlert';
 import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { getProfileHrefAfterProductSave } from '@/lib/profileProductTab';
+import { trackVerdienCheckListingPublishedIfPending } from '@/lib/verdiencheck/activation-handoff';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   clearPx4aItemFormDraft,
@@ -944,8 +945,10 @@ export default function MarketplaceOfferForm({
                     marketplaceCategory === 'ARTISTIC_SERVICE'
                   ? 'DESIGNER'
                   : 'CHEFF';
+        trackVerdienCheckListingPublishedIfPending();
         window.location.href = getProfileHrefAfterProductSave(savedCategory, {
           added: true,
+          item: data.product.id,
         });
       }
     } catch {

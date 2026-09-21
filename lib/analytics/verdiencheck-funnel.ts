@@ -19,7 +19,10 @@ import {
   inspectVerdienCheckAnalyticsPayload,
   sanitizeVerdienCheckEntryPoint,
   type VerdienCheckAction,
+  type VerdienCheckAuthenticated,
+  type VerdienCheckCtaId,
   type VerdienCheckEntryPoint,
+  type VerdienCheckFunnelStage,
   type VerdienCheckProgressBucket,
 } from '@/lib/verdiencheck/privacy/analytics-guard';
 
@@ -45,6 +48,11 @@ export const VERDIENCHECK_FUNNEL_EVENTS = {
   startSellingClicked: 'verdiencheck_start_selling_clicked',
   wizardRenderError: 'verdiencheck_wizard_render_error',
   calculatorFailed: 'verdiencheck_calculator_failed',
+  scenarioCompleted: 'verdiencheck_scenario_completed',
+  homecheffCtaClicked: 'verdiencheck_homecheff_cta_clicked',
+  signupCompleted: 'verdiencheck_signup_completed',
+  firstListingStarted: 'verdiencheck_first_listing_started',
+  firstListingPublished: 'verdiencheck_first_listing_published',
 } as const;
 
 export type VerdienCheckFunnelEventName =
@@ -58,6 +66,9 @@ export type VerdienCheckFunnelPayload = {
   action?: VerdienCheckAction;
   error_code?: 'WIZARD_RENDER' | 'CALCULATOR_FAILED';
   component?: 'VerdienCheckWizard' | 'VerdienCheckCalculator';
+  authenticated?: VerdienCheckAuthenticated;
+  cta_id?: VerdienCheckCtaId;
+  funnel_stage?: VerdienCheckFunnelStage;
 };
 
 export type VerdienCheckFunnelSink = (
@@ -76,6 +87,11 @@ type OccurrenceDedup = {
   detailsOpened: boolean;
   calculatorFailed: boolean;
   wizardRenderError: boolean;
+  scenarioCompleted: boolean;
+  homecheffCtaClicked: boolean;
+  signupCompleted: boolean;
+  firstListingStarted: boolean;
+  firstListingPublished: boolean;
   progress: Set<string>;
 };
 
@@ -91,6 +107,11 @@ function emptyOccurrence(): OccurrenceDedup {
     detailsOpened: false,
     calculatorFailed: false,
     wizardRenderError: false,
+    scenarioCompleted: false,
+    homecheffCtaClicked: false,
+    signupCompleted: false,
+    firstListingStarted: false,
+    firstListingPublished: false,
     progress: new Set(),
   };
 }
@@ -129,6 +150,9 @@ function compactPayload(input: VerdienCheckFunnelPayload): Record<string, string
   if (input.action) out.action = input.action;
   if (input.error_code) out.error_code = input.error_code;
   if (input.component) out.component = input.component;
+  if (input.authenticated) out.authenticated = input.authenticated;
+  if (input.cta_id) out.cta_id = input.cta_id;
+  if (input.funnel_stage) out.funnel_stage = input.funnel_stage;
   return out;
 }
 
@@ -192,6 +216,31 @@ function shouldEmit(eventName: VerdienCheckFunnelEventName, payload: VerdienChec
   if (eventName === VERDIENCHECK_FUNNEL_EVENTS.wizardRenderError) {
     if (occurrence.wizardRenderError) return false;
     occurrence.wizardRenderError = true;
+    return true;
+  }
+  if (eventName === VERDIENCHECK_FUNNEL_EVENTS.scenarioCompleted) {
+    if (occurrence.scenarioCompleted) return false;
+    occurrence.scenarioCompleted = true;
+    return true;
+  }
+  if (eventName === VERDIENCHECK_FUNNEL_EVENTS.homecheffCtaClicked) {
+    if (occurrence.homecheffCtaClicked) return false;
+    occurrence.homecheffCtaClicked = true;
+    return true;
+  }
+  if (eventName === VERDIENCHECK_FUNNEL_EVENTS.signupCompleted) {
+    if (occurrence.signupCompleted) return false;
+    occurrence.signupCompleted = true;
+    return true;
+  }
+  if (eventName === VERDIENCHECK_FUNNEL_EVENTS.firstListingStarted) {
+    if (occurrence.firstListingStarted) return false;
+    occurrence.firstListingStarted = true;
+    return true;
+  }
+  if (eventName === VERDIENCHECK_FUNNEL_EVENTS.firstListingPublished) {
+    if (occurrence.firstListingPublished) return false;
+    occurrence.firstListingPublished = true;
     return true;
   }
   return true;

@@ -223,6 +223,44 @@ assert.equal(
   trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.restartClicked, { entry_point: 'faq' }),
   true,
 );
+assert.equal(
+  trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.scenarioCompleted, {
+    entry_point: 'faq',
+    funnel_stage: 'scenario',
+  }),
+  true,
+);
+assert.equal(
+  trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.homecheffCtaClicked, {
+    entry_point: 'faq',
+    action: 'START_SELLING',
+    authenticated: 'no',
+    cta_id: 'sell_primary',
+    funnel_stage: 'result',
+  }),
+  true,
+);
+assert.equal(
+  inspectVerdienCheckAnalyticsPayload({
+    income: 100,
+  }).ok,
+  false,
+);
+assert.equal(
+  inspectVerdienCheckAnalyticsPayload({
+    authenticated: 'yes',
+    cta_id: 'share',
+    funnel_stage: 'result',
+  }).ok,
+  true,
+);
+assert.equal(
+  inspectVerdienCheckAnalyticsPayload({
+    funnel_stage: 'baseline',
+    omzet: 10000,
+  }).ok,
+  false,
+);
 
 assert.equal(
   trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.viewed, {
@@ -283,7 +321,7 @@ assert.doesNotMatch(wizard, /benefitType/);
 assert.doesNotMatch(wizard, /console\.log/);
 
 const cta = read('components/verdiencheck/VerdienCheckResultCta.tsx');
-assert.match(cta, /copy\.sellViaHomecheff|copy\.startSelling/);
+assert.match(cta, /copy\.placeFirstOffer|copy\.startSelling|copy\.sellViaHomecheff/);
 assert.match(cta, /\/sell\/new/);
 assert.match(cta, /useGuestAuthGate/);
 assert.match(cta, /SIGN_UP/);

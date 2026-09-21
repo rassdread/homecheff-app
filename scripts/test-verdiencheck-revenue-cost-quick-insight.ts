@@ -229,7 +229,7 @@ assert.match(impactSrc, /growthSellingMessage/);
 
 const ctaSrc = read('components/verdiencheck/VerdienCheckResultCta.tsx');
 assert.match(ctaSrc, /keepOverviewPrompt/);
-assert.match(ctaSrc, /sellViaHomecheff/);
+assert.match(ctaSrc, /placeFirstOffer/);
 assert.doesNotMatch(ctaSrc, /via HomeCheff mag je kosten|HomeCheff maakt kosten aftrekbaar/);
 
 assert.match(nl.quickInsightTitle, /Wat houd je écht over/);

@@ -52,7 +52,8 @@ import {
   type FollowChangedDetail,
   patchMakerFansCount,
 } from '@/lib/follow/follow-state-store';
-import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
+import ShareButton from '@/components/ui/ShareButton';
+import { sanitizeProfileItemId } from '@/lib/profileProductTab';
 
 type PersistedProfileV2 = {
   activeTab?: string;
@@ -423,6 +424,22 @@ export default function ProfileV2Client({
         }
       : null;
 
+  const publishedItemId = sanitizeProfileItemId(searchParamString(searchParams?.item));
+  const listingShareBanner =
+    viewerIsOwner && openNewProducts && publishedItemId ? (
+      <div
+        data-profile-listing-share=""
+        className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3"
+      >
+        <p className="mb-2 text-sm font-medium text-emerald-950">Deel je aanbod</p>
+        <ShareButton
+          url={`/product/${publishedItemId}`}
+          title={user.username || 'HomeCheff'}
+          surface="profile"
+        />
+      </div>
+    ) : null;
+
   return (
     <>
     <ProfileV2Shell
@@ -444,6 +461,7 @@ export default function ProfileV2Client({
       avatarPreviewUrl={avatarPreviewUrl}
       ownerSidepanel={ownerSidepanel}
     >
+      {listingShareBanner}
       {activeTab === 'overview' ? <ProfileV2OverviewPanel {...panelProps} onStatsUpdate={fetchStats} /> : null}
       {activeTab === 'aanbod' ? <ProfileV2AanbodPanel {...panelProps} onStatsUpdate={fetchStats} /> : null}
       {activeTab === 'inspiratie' ? <ProfileV2InspiratiePanel {...panelProps} onStatsUpdate={fetchStats} /> : null}

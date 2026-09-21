@@ -469,10 +469,25 @@ export default function VerdienCheckWizard(props: {
       if (state.moneyDepthCompleted) {
         trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.moneyCompleted, {
           entry_point: entryPoint,
+          funnel_stage: 'baseline',
+        });
+      }
+      if (state.moneyDepthCompleted && extraResultChosen) {
+        trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.scenarioCompleted, {
+          entry_point: entryPoint,
+          funnel_stage: 'scenario',
         });
       }
     }
-  }, [hydrated, step, stepIndex, progress.length, entryPoint, state.moneyDepthCompleted]);
+  }, [
+    hydrated,
+    step,
+    stepIndex,
+    progress.length,
+    entryPoint,
+    state.moneyDepthCompleted,
+    extraResultChosen,
+  ]);
 
   function requestRestart() {
     setRestartOpen(true);
@@ -551,7 +566,7 @@ export default function VerdienCheckWizard(props: {
           <div className="mt-3 space-y-2 text-base leading-relaxed text-gray-700">
             <p>{copy.intro}</p>
             <p>{copy.introReassurance}</p>
-            <p>{copy.introGrowth}</p>
+            <p className="text-sm text-stone-600">{copy.introNoAccount}</p>
             <VerdienCheckQuickInsight
               copy={copy}
               onStart={() => headingRef.current?.focus()}
@@ -2310,6 +2325,9 @@ export default function VerdienCheckWizard(props: {
                   ctaMode={resultCtaMode}
                   onRestart={requestRestart}
                   variant="sell"
+                  activity={state.activityChoice}
+                  moneyCompleted={Boolean(state.moneyDepthCompleted && extraResultChosen)}
+                  includeShare={step === 'result'}
                 />
               ) : null}
               <VerdienCheckResultCta
@@ -2320,6 +2338,11 @@ export default function VerdienCheckWizard(props: {
                 onRestart={requestRestart}
                 variant="nav"
                 completed={step === 'result'}
+                includeShare={
+                  step === 'result' &&
+                  personalRoute.proceedSemantics !== 'READY_TO_PROCEED' &&
+                  personalRoute.proceedSemantics !== 'PROCEED_AFTER_ACTION'
+                }
               />
             </div>
           )}

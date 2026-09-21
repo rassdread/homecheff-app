@@ -318,7 +318,7 @@ const hundredSales = routeFrom(
 assert.notEqual(hundredSales.proceedSemantics, 'INSUFFICIENT_CONTEXT');
 
 const nl = getVerdienCheckCopy('nl');
-assert.match(nl.intro, /bijverdienen/);
+assert.match(nl.intro, /écht overhouden/);
 assert.match(nl.quickCheckDone, /Dat was je snelle VerdienCheck/);
 assert.match(nl.moneyYes, /Bereken mijn geld/);
 assert.equal(nl.steps.uwvBenefit?.options?.UNKNOWN, 'Ik weet het niet');

@@ -10,7 +10,11 @@ import type { VerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
 
 function mapShareAnalytics(event: string, extra?: Record<string, unknown>) {
   if (event === 'opportunity_share_intent') {
-    trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.share);
+    trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.share, {
+      action: 'SHARE',
+      cta_id: 'share',
+      funnel_stage: 'result',
+    });
   }
   if (event === 'opportunity_share_link_copied') {
     trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.shareCopy);

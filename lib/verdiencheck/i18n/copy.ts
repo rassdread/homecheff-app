@@ -155,6 +155,24 @@ export type VerdienCheckCopy = {
   keepRecordsEarn: string;
   keepOverviewPrompt: string;
   sellViaHomecheff: string;
+  placeFirstOffer: string;
+  placeNewOffer: string;
+  beginSelling: string;
+  introNoAccount: string;
+  ctaPromptFood: string;
+  ctaPromptGarden: string;
+  ctaPromptMake: string;
+  ctaPromptService: string;
+  ctaPromptDefault: string;
+  growthBeginSmall: string;
+  growthStepOffer: string;
+  growthStepCustomer: string;
+  growthStepReviews: string;
+  growthStepRepeat: string;
+  growthStepName: string;
+  growthStepProfessional: string;
+  growthWhenSalesGrow: string;
+  affiliateDiscoverLink: string;
   growthSellingMessage: string;
   moreExplanation: string;
   exampleRevenueLabel: string;
@@ -220,10 +238,9 @@ export type VerdienCheckCopy = {
 const NL: VerdienCheckCopy = {
   pageTitle: 'Verdienen zonder verrassingen',
   chromeTitle: 'VerdienCheck',
-  intro:
-    'Wil je iets bijverdienen? Ontdek in een paar eenvoudige vragen wat dat voor jou betekent.',
+  intro: 'Wat zou jij écht overhouden als je iets gaat verkopen?',
   introReassurance:
-    'Je hoeft niet vooraf alles over belasting, KVK of andere regels te weten. De VerdienCheck laat eerst zien wat voor jou nú belangrijk is.',
+    'Bereken wat kosten, belasting en toeslagen betekenen voor jouw situatie.',
   introGrowth:
     'Ga je daarna via HomeCheff verder? Dan helpen we je tijdens het opbouwen stap voor stap te begrijpen wat later relevant wordt. Wij doen je belastingaangifte of inschrijvingen niet voor je.',
   disclaimer:
@@ -373,7 +390,7 @@ const NL: VerdienCheckCopy = {
     'Over dat resultaat berekent VerdienCheck wat belasting, Zvw en veranderingen in je toeslagen voor jouw situatie betekenen.',
   quickInsightThenNet:
     'Daarna zie je wat je werkelijk extra overhoudt per maand en per jaar.',
-  startForMySituation: 'Bereken het voor mijn situatie',
+  startForMySituation: 'Bereken wat ik overhoud',
   kostenInfoLabel: 'Uitleg over omzet, kosten en resultaat',
   kostenInfoBody:
     'Omzet is wat je van klanten ontvangt. Kosten zijn uitgaven die je maakt om die inkomsten te verdienen. Alleen kosten die volgens de regels aftrekbaar zijn, kunnen je fiscale resultaat verlagen. Sommige grotere aankopen worden niet altijd volledig in één jaar afgetrokken.',
@@ -412,10 +429,29 @@ const NL: VerdienCheckCopy = {
     'Netjes verkopen betekent niet dat alles wat binnenkomt automatisch je resultaat is.',
   keepRecordsEarn:
     'Je relevante kosten tellen mee. Daarna laat VerdienCheck zien wat belasting en toeslagen met jouw resultaat doen.',
-  keepOverviewPrompt: 'Wil je je verkopen, kosten en resultaat overzichtelijk houden?',
+  keepOverviewPrompt: 'Wil je ontdekken of mensen willen kopen wat jij maakt of kunt?',
   sellViaHomecheff: 'Verkoop via HomeCheff',
+  placeFirstOffer: 'Plaats mijn eerste aanbod',
+  placeNewOffer: 'Plaats een nieuw aanbod',
+  beginSelling: 'Begin met verkopen',
+  introNoAccount: 'Geen account nodig.',
+  ctaPromptFood: 'Klaar om te ontdekken of mensen jouw eten willen bestellen?',
+  ctaPromptGarden: 'Maak van wat je kweekt je eerste verkoop.',
+  ctaPromptMake: 'Ontdek of mensen willen kopen wat jij maakt.',
+  ctaPromptService: 'Zet je talent om in extra inkomen.',
+  ctaPromptDefault: 'Wil je ontdekken of mensen willen kopen wat jij maakt of kunt?',
+  growthBeginSmall: 'Begin klein. Groei als het aanslaat.',
+  growthStepOffer: 'Eerste aanbod',
+  growthStepCustomer: 'Eerste klant',
+  growthStepReviews: 'Reviews',
+  growthStepRepeat: 'Terugkerende klanten',
+  growthStepName: 'Eigen naam opbouwen',
+  growthStepProfessional: 'Professioneler verkopen',
+  growthWhenSalesGrow:
+    'Groeit je verkoop? HomeCheff laat zien welke volgende stappen relevant kunnen worden.',
+  affiliateDiscoverLink: 'Bekijk hoe je met HomeCheff kunt verdienen als affiliate',
   growthSellingMessage:
-    'Begin je klein en groeit je verkoop? VerdienCheck laat ook zien welke volgende stappen bij jouw situatie relevant kunnen worden.',
+    'Begin klein. Groei als het aanslaat. Groeit je verkoop? HomeCheff laat zien welke volgende stappen relevant kunnen worden.',
   moreExplanation: 'Meer uitleg',
   exampleRevenueLabel: 'Verkocht',
   exampleCostsLabel: 'Relevante aftrekbare kosten',
@@ -475,12 +511,11 @@ const NL: VerdienCheckCopy = {
   netInputAowNote:
     'In het jaar dat je AOW krijgt, kunnen we netto niet betrouwbaar terugrekenen. Vul bruto in.',
   extraTaxReserveTitle: 'Extra belasting en bijdragen',
-  shareAction: 'Deel de VerdienCheck',
+  shareAction: 'Deel VerdienCheck',
   shareTitle: 'VerdienCheck | HomeCheff',
   shareMessage:
     'Wat houd je echt extra over als je bijverdient? Bereken het met de HomeCheff VerdienCheck.',
-  shareAfterResult:
-    'Ken je iemand die ook wil weten wat extra verdienen ongeveer oplevert?',
+  shareAfterResult: 'Ken je iemand die wil weten wat die écht zou overhouden?',
   steps: {
     jurisdiction: {
       title: 'Woon je in Nederland?',
@@ -901,10 +936,8 @@ const NL: VerdienCheckCopy = {
 const EN: VerdienCheckCopy = {
   pageTitle: 'Earn without surprises',
   chromeTitle: 'VerdienCheck',
-  intro:
-    'Want to earn something extra? Find out in a few simple questions what that means for you.',
-  introReassurance:
-    'You do not need to know everything about tax, KVK or other rules first. VerdienCheck first shows what matters for you now.',
+  intro: 'What would you actually keep if you started selling?',
+  introReassurance: 'See what costs, tax and allowances mean for your situation.',
   introGrowth:
     'If you then continue through HomeCheff, we help you understand later steps as your activity grows. We do not file your taxes or register you with authorities.',
   disclaimer:
@@ -1055,7 +1088,7 @@ const EN: VerdienCheckCopy = {
     'On that result, VerdienCheck calculates what tax, Zvw and changes in your allowances mean for your situation.',
   quickInsightThenNet:
     'Then you see what you actually keep extra per month and per year.',
-  startForMySituation: 'Calculate it for my situation',
+  startForMySituation: 'Calculate what I would keep',
   kostenInfoLabel: 'Explanation of sales, costs and result',
   kostenInfoBody:
     'Turnover is what you receive from customers. Costs are expenses you make to earn that income. Only costs that are deductible under the rules can lower your fiscal result. Some larger purchases are not always fully deducted in one year.',
@@ -1094,10 +1127,29 @@ const EN: VerdienCheckCopy = {
     'Selling properly does not mean that everything that comes in is automatically your result.',
   keepRecordsEarn:
     'Your relevant costs count. Then VerdienCheck shows what tax and allowances do with your result.',
-  keepOverviewPrompt: 'Want to keep your sales, costs and result clearly organised?',
+  keepOverviewPrompt: 'Want to find out whether people would buy what you make or can do?',
   sellViaHomecheff: 'Sell via HomeCheff',
+  placeFirstOffer: 'Place my first listing',
+  placeNewOffer: 'Place a new listing',
+  beginSelling: 'Start selling',
+  introNoAccount: 'No account needed.',
+  ctaPromptFood: 'Ready to find out whether people want to order your food?',
+  ctaPromptGarden: 'Turn what you grow into your first sale.',
+  ctaPromptMake: 'Find out whether people want to buy what you make.',
+  ctaPromptService: 'Turn your talent into extra income.',
+  ctaPromptDefault: 'Want to find out whether people would buy what you make or can do?',
+  growthBeginSmall: 'Start small. Grow if it takes off.',
+  growthStepOffer: 'First listing',
+  growthStepCustomer: 'First customer',
+  growthStepReviews: 'Reviews',
+  growthStepRepeat: 'Returning customers',
+  growthStepName: 'Build your own name',
+  growthStepProfessional: 'Sell more professionally',
+  growthWhenSalesGrow:
+    'If your sales grow, HomeCheff shows which next steps may become relevant.',
+  affiliateDiscoverLink: 'See how you can earn with HomeCheff as an affiliate',
   growthSellingMessage:
-    'Starting small and growing your sales? VerdienCheck also shows which next steps may become relevant for your situation.',
+    'Start small. Grow if it takes off. If your sales grow, HomeCheff shows which next steps may become relevant.',
   moreExplanation: 'More explanation',
   exampleRevenueLabel: 'Sold',
   exampleCostsLabel: 'Relevant allowable costs',
@@ -1161,8 +1213,7 @@ const EN: VerdienCheckCopy = {
   shareTitle: 'VerdienCheck | HomeCheff',
   shareMessage:
     'What do you actually keep extra if you earn on the side? Work it out with the HomeCheff VerdienCheck.',
-  shareAfterResult:
-    'Know someone who also wants to see what extra earning would roughly mean?',
+  shareAfterResult: 'Know someone who wants to see what they would actually keep?',
   steps: {
     jurisdiction: {
       title: 'Do you live in the Netherlands?',

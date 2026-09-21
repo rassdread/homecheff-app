@@ -118,7 +118,7 @@ assert.equal(
     activity: 'MAKE',
     semantics: handmadeRoute.proceedSemantics,
   }),
-  'DISCOVER',
+  'SELL_PRIMARY',
 );
 assert.equal(
   resolveResultCtaMode({
@@ -265,8 +265,8 @@ assert.equal(questionsBeforeFirstResult(other).length, 4);
 assert.deepEqual(applyActivityChoice('OTHER'), ['PRODUCT']);
 
 const nl = getVerdienCheckCopy('nl');
-assert.match(nl.intro, /bijverdienen/);
-assert.match(nl.introReassurance, /niet vooraf alles/);
+assert.match(nl.intro, /écht overhouden/);
+assert.match(nl.introReassurance, /kosten, belasting en toeslagen/);
 assert.match(nl.introGrowth, /aangifte of inschrijvingen niet/);
 assert.doesNotMatch(nl.intro + nl.introGrowth, /belastingvrij|garant|voldoen we automatisch/);
 assert.equal(nl.steps.activity.title, 'Waarmee wil je iets bijverdienen?');
@@ -284,7 +284,7 @@ assert.ok(FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS.includes('benefittype'));
 
 const wizardSrc = fs.readFileSync(path.join(ROOT, 'components/verdiencheck/VerdienCheckWizard.tsx'), 'utf8');
 assert.match(wizardSrc, /copy\.introReassurance/);
-assert.match(wizardSrc, /copy\.introGrowth/);
+assert.match(wizardSrc, /copy\.introNoAccount/);
 assert.match(wizardSrc, /AFFILIATE/);
 assert.doesNotMatch(wizardSrc, /prisma/);
 

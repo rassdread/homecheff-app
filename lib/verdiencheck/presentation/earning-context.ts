@@ -51,13 +51,19 @@ export function resolveResultCtaMode(input: {
       ? 'AFFILIATE'
       : 'NONE';
   }
-  if (input.intent === 'HOMECHEFF_SELLER') {
+  if (input.intent === 'HOMECHEFF_SELLER' || input.intent === 'GENERAL') {
     if (input.semantics === 'READY_TO_PROCEED') return 'SELL_PRIMARY';
     if (input.semantics === 'PROCEED_AFTER_ACTION') return 'SELL_SECONDARY';
-    return 'NONE';
-  }
-  if (input.semantics === 'READY_TO_PROCEED' || input.semantics === 'PROCEED_AFTER_ACTION') {
-    return 'DISCOVER';
   }
   return 'NONE';
+}
+
+export function listingCtaPromptKey(
+  activity: ActivityChoice | null | undefined,
+): 'ctaPromptFood' | 'ctaPromptGarden' | 'ctaPromptMake' | 'ctaPromptService' | 'ctaPromptDefault' {
+  if (activity === 'FOOD') return 'ctaPromptFood';
+  if (activity === 'GARDEN') return 'ctaPromptGarden';
+  if (activity === 'MAKE') return 'ctaPromptMake';
+  if (activity === 'SERVICE') return 'ctaPromptService';
+  return 'ctaPromptDefault';
 }

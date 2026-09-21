@@ -41,7 +41,16 @@ type ProfileHrefOpts = {
   openForm?: boolean;
   /** Open inspiratie manager edit form for dish id */
   edit?: string;
+  /** Public listing id for optional post-publish share (not financial). */
+  item?: string;
 };
+
+const SAFE_ITEM_ID = /^[a-zA-Z0-9_-]{8,64}$/;
+
+export function sanitizeProfileItemId(raw: string | null | undefined): string | null {
+  const value = String(raw ?? '').trim();
+  return SAFE_ITEM_ID.test(value) ? value : null;
+}
 
 export function buildProfileV2Href(opts: {
   tab: 'aanbod' | 'inspiratie' | 'overview' | 'community' | 'vertrouwen';
@@ -51,6 +60,7 @@ export function buildProfileV2Href(opts: {
   openForm?: boolean;
   vertical?: string;
   edit?: string;
+  item?: string;
 }): string {
   const params = new URLSearchParams();
   params.set('tab', opts.tab);
@@ -66,6 +76,8 @@ export function buildProfileV2Href(opts: {
   if (opts.added) params.set('added', '1');
   if (opts.openForm) params.set('openForm', 'true');
   if (opts.edit) params.set('edit', opts.edit);
+  const item = sanitizeProfileItemId(opts.item);
+  if (item) params.set('item', item);
   return `/profile?${params.toString()}`;
 }
 
@@ -77,6 +89,7 @@ export function getProfileHrefAfterProductSave(
     tab: 'aanbod',
     aanbodFilter: categoryToAanbodFilter(category),
     added: opts?.added,
+    item: opts?.item,
   });
 }
 

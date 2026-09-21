@@ -11,6 +11,9 @@ export const VERDIENCHECK_ALLOWED_ANALYTICS_KEYS = [
   'action',
   'error_code',
   'component',
+  'authenticated',
+  'cta_id',
+  'funnel_stage',
 ] as const;
 
 export const VERDIENCHECK_ENTRY_POINTS = [
@@ -36,8 +39,29 @@ export const VERDIENCHECK_ACTIONS = [
   'START_SELLING',
   'RETURN_TO_HOMECHEFF',
   'LEARN_MORE',
+  'SHARE',
 ] as const;
 export type VerdienCheckAction = (typeof VERDIENCHECK_ACTIONS)[number];
+
+export const VERDIENCHECK_AUTHENTICATED_VALUES = ['yes', 'no'] as const;
+export type VerdienCheckAuthenticated = (typeof VERDIENCHECK_AUTHENTICATED_VALUES)[number];
+
+export const VERDIENCHECK_CTA_IDS = [
+  'sell_primary',
+  'sell_secondary',
+  'share',
+  'affiliate',
+] as const;
+export type VerdienCheckCtaId = (typeof VERDIENCHECK_CTA_IDS)[number];
+
+export const VERDIENCHECK_FUNNEL_STAGES = [
+  'landing',
+  'started',
+  'baseline',
+  'scenario',
+  'result',
+] as const;
+export type VerdienCheckFunnelStage = (typeof VERDIENCHECK_FUNNEL_STAGES)[number];
 
 export const VERDIENCHECK_ERROR_CODES = [
   'WIZARD_RENDER',
@@ -127,6 +151,9 @@ const BUCKET_SET = new Set<string>(VERDIENCHECK_PROGRESS_BUCKETS);
 const ACTION_SET = new Set<string>(VERDIENCHECK_ACTIONS);
 const ERROR_CODE_SET = new Set<string>(VERDIENCHECK_ERROR_CODES);
 const COMPONENT_SET = new Set<string>(VERDIENCHECK_ERROR_COMPONENTS);
+const AUTHENTICATED_SET = new Set<string>(VERDIENCHECK_AUTHENTICATED_VALUES);
+const CTA_ID_SET = new Set<string>(VERDIENCHECK_CTA_IDS);
+const FUNNEL_STAGE_SET = new Set<string>(VERDIENCHECK_FUNNEL_STAGES);
 
 export function sanitizeVerdienCheckEntryPoint(raw: string | null | undefined): VerdienCheckEntryPoint {
   const value = String(raw ?? '').trim().toLowerCase();
@@ -188,6 +215,15 @@ function keyAllowedForValue(key: string, value: unknown): string | null {
       return key;
     }
     return null;
+  }
+  if (key === 'authenticated') {
+    return typeof value === 'string' && AUTHENTICATED_SET.has(value) ? null : 'authenticated';
+  }
+  if (key === 'cta_id') {
+    return typeof value === 'string' && CTA_ID_SET.has(value) ? null : 'cta_id';
+  }
+  if (key === 'funnel_stage') {
+    return typeof value === 'string' && FUNNEL_STAGE_SET.has(value) ? null : 'funnel_stage';
   }
   return key;
 }

@@ -40,6 +40,7 @@ import {
   sanitizePostAuthRelativeUrl,
 } from "@/lib/auth/post-auth-redirect";
 import { consumeAndResolvePostAuthUrl } from "@/lib/onboarding/pending-intent";
+import { trackVerdienCheckSignupCompletedIfPending } from "@/lib/verdiencheck/activation-handoff";
 import { HC_PENDING_EMAIL_VERIFICATION_STORAGE_KEY } from "@/lib/email-verification-prompt-storage";
 import { PolicyAgreementTermsLabel } from "@/components/legal/PolicyAgreementTermsLabel";
 import RegisterSocialRedirect from "@/components/auth/RegisterSocialRedirect";
@@ -864,6 +865,7 @@ function RegisterPageContent() {
           hasDelivery: false,
           isBusiness: false,
         });
+        trackVerdienCheckSignupCompletedIfPending();
       } catch (gaError) {
         console.error('Failed to track registration in GA:', gaError);
         // Don't fail registration if GA tracking fails

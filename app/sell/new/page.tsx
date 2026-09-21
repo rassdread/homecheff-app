@@ -25,6 +25,7 @@ import {
 import { legacyVerticalToMarketplaceCategory } from "@/lib/marketplace/listing-taxonomy";
 import { savePendingIntent } from "@/lib/onboarding/pending-intent";
 import { saveDraft, clearDraft, restoreDraft } from "@/lib/onboarding/draft-ecosphere";
+import { trackVerdienCheckListingStartedIfPending } from "@/lib/verdiencheck/activation-handoff";
 
 type Phase =
   | "wizard-1"
@@ -204,6 +205,11 @@ function HomeCheffProductNieuwPageContent() {
   }, [status, router, searchParams]);
 
   useEffect(() => {
+    if (status !== "authenticated") return;
+    trackVerdienCheckListingStartedIfPending();
+  }, [status]);
+
+  useEffect(() => {
     if (!session?.user) {
       setUserRoles([]);
       setRolesLoaded(true);
@@ -301,7 +307,10 @@ function HomeCheffProductNieuwPageContent() {
   }
 
   const handleSave = (product: { id?: string } | null) => {
-    window.location.href = getProfileHrefAfterProductSave(category, { added: Boolean(product?.id) });
+    window.location.href = getProfileHrefAfterProductSave(category, {
+      added: Boolean(product?.id),
+      item: product?.id,
+    });
   };
 
   const handleCancel = () => {

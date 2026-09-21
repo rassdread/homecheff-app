@@ -140,7 +140,7 @@ assert.match(String(seo.description), /extra verdienen/);
 assert.doesNotMatch(JSON.stringify(seo), /ref=REF/);
 assert.doesNotMatch(JSON.stringify(seo), /3200|partnerIncome|scenario/);
 
-assert.match(nl.shareAction, /Deel de VerdienCheck/);
+assert.match(nl.shareAction, /Deel VerdienCheck/);
 assert.doesNotMatch(nl.shareMessage, /€\s*\d/);
 assert.match(nl.shareAfterResult, /Ken je iemand/);
 
