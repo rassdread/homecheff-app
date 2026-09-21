@@ -119,7 +119,16 @@ export default function VerdienCheckBaselineCard(props: {
           <span>
             {incomeIsNetEstimate
               ? props.copy.estimatedGrossIncomeLabel
-              : props.copy.grossIncomeLabel}
+              : baseline?.contractualGrossCents == null &&
+                  baseline?.fiscalWageCents != null &&
+                  baseline.fiscalWageCents === incomeAnnual
+                ? props.copy.fiscalIncomeLabel
+                : baseline?.contractualGrossCents == null &&
+                    baseline?.fiscalWageCents == null &&
+                    baseline?.assessmentIncomeCents != null &&
+                    baseline.assessmentIncomeCents === incomeAnnual
+                  ? props.copy.assessmentIncomeLabel
+                  : props.copy.grossIncomeLabel}
             {incomeIsNetEstimate ? (
               <span
                 data-verdiencheck-estimate=""
