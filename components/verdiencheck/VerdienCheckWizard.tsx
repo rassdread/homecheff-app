@@ -2165,6 +2165,7 @@ export default function VerdienCheckWizard(props: {
                 <VerdienCheckBaselineCard
                   copy={copy}
                   route={personalRoute}
+                  showHeading={extraResultChosen}
                   incomeAnnualCents={
                     calculatorInput?.baselineGrossEmploymentIncomeCents ??
                     calculatorInput?.baselineBox1TaxableIncomeCents ??

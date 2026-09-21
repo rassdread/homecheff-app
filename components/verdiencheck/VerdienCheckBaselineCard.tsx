@@ -6,6 +6,7 @@ import type { PersonalVerdienRoute } from '@/lib/verdiencheck/personal-route';
 import { PERSONAL_ROUTE_COPY } from '@/lib/verdiencheck/personal-route/copy';
 import type { SimulatorAllowanceId } from '@/lib/verdiencheck/personal-route/types';
 import type { VerdienCheckCopy } from '@/lib/verdiencheck/i18n/copy';
+import { VERDIENCHECK_STEP_HEADING_ID } from '@/lib/verdiencheck/wizard/active-step-focus';
 
 function whole(cents: number): string {
   return formatCentsAsWholeEuroDisplay(cents);
@@ -33,18 +34,24 @@ export default function VerdienCheckBaselineCard(props: {
   incomeAnnualCents: number | null;
   incomeIsNetEstimate: boolean;
   incomeUnknownReason: string | null;
+  /** When the page h1 already is this title, omit the duplicate card heading. */
+  showHeading?: boolean;
 }) {
   const baseline = props.route.financialImpact.baseline;
   const lines = baseline?.allowances ?? [];
+  const showHeading = props.showHeading !== false;
+  const headingId = showHeading ? 'verdiencheck-baseline-title' : VERDIENCHECK_STEP_HEADING_ID;
 
   return (
     <section
-      aria-labelledby="verdiencheck-baseline-title"
+      aria-labelledby={headingId}
       className="space-y-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
     >
-      <h2 id="verdiencheck-baseline-title" className="text-lg font-semibold text-gray-900">
-        {props.copy.situationNowTitle}
-      </h2>
+      {showHeading ? (
+        <h2 id="verdiencheck-baseline-title" className="text-lg font-semibold text-gray-900">
+          {props.copy.situationNowTitle}
+        </h2>
+      ) : null}
       <p className="text-sm leading-relaxed text-stone-600">{props.copy.estimatedEntitlement}</p>
 
       <div className="space-y-2">

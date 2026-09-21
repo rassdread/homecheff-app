@@ -235,6 +235,7 @@ assert.ok(mapped?.allowances.includes('HEALTHCARE'));
 assert.equal(mapped?.housingTenure, 'DOES_NOT_RENT');
 
 assert.match(wizardSrc, /VerdienCheckBaselineCard/);
+assert.match(wizardSrc, /showHeading=\{extraResultChosen\}/);
 assert.match(wizardSrc, /viewExtraScenarioCta/);
 assert.match(wizardSrc, /scenarioLayerRequested/);
 assert.match(wizardSrc, /currentIncomeBasis/);
