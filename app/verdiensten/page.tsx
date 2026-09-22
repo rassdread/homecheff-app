@@ -19,6 +19,7 @@ import {
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import OperationsShell from '@/components/operations/OperationsShell';
+import SellerExpensePanel from '@/components/seller/SellerExpensePanel';
 
 interface CombinedEarnings {
   seller?: {
@@ -397,6 +398,11 @@ function VerdienstenContent() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Phase 8C: costs the seller administered, and what they leave over. */}
+          {roles.isSeller && (
+            <SellerExpensePanel year={earnings.seller?.year ?? new Date().getFullYear()} />
           )}
 
           {/* Delivery Earnings */}

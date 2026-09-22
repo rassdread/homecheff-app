@@ -1,0 +1,93 @@
+BEGIN
+--- financial tables BEFORE ---
+    table_name     | columns 
+-------------------+---------
+ Transaction       |      11
+ Refund            |       5
+ RefundSettlement  |      14
+ Payout            |       7
+ Order             |      47
+ OrderItem         |       7
+ DisputeSettlement |      21
+(7 rows)
+
+        t         | count 
+------------------+-------
+ Transaction      |     7
+ Refund           |     1
+ RefundSettlement |     1
+ Payout           |     7
+ Order            |    36
+(5 rows)
+
+--- applying migration (first run) ---
+DO
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+DO
+--- applying migration (second run, must be a no-op) ---
+DO
+NOTICE:  relation "SellerExpense" already exists, skipping
+CREATE TABLE
+NOTICE:  relation "SellerExpense_sellerUserId_taxYear_deletedAt_idx" already exists, skipping
+CREATE INDEX
+NOTICE:  relation "SellerExpense_sellerUserId_expenseDate_idx" already exists, skipping
+CREATE INDEX
+NOTICE:  relation "SellerExpense_deletedAt_idx" already exists, skipping
+CREATE INDEX
+DO
+--- SellerExpense structure ---
+    column_name     |          data_type          | is_nullable |              column_default               
+--------------------+-----------------------------+-------------+-------------------------------------------
+ id                 | text                        | NO          | 
+ sellerUserId       | text                        | NO          | 
+ expenseDate        | timestamp without time zone | NO          | 
+ amountCents        | integer                     | NO          | 
+ currency           | text                        | NO          | 'EUR'::text
+ category           | USER-DEFINED                | NO          | 
+ businessUseBp      | integer                     | YES         | 
+ fiscalTreatment    | USER-DEFINED                | NO          | 'UNKNOWN'::"SellerExpenseFiscalTreatment"
+ source             | USER-DEFINED                | NO          | 'USER_PROVIDED'::"SellerExpenseSource"
+ confirmationStatus | USER-DEFINED                | NO          | 'DRAFT'::"SellerExpenseConfirmation"
+ taxYear            | integer                     | NO          | 
+ merchantName       | text                        | YES         | 
+ description        | text                        | YES         | 
+ notes              | text                        | YES         | 
+ createdAt          | timestamp without time zone | NO          | CURRENT_TIMESTAMP
+ updatedAt          | timestamp without time zone | NO          | 
+ deletedAt          | timestamp without time zone | YES         | 
+(17 rows)
+
+                    indexname                     
+--------------------------------------------------
+ SellerExpense_deletedAt_idx
+ SellerExpense_pkey
+ SellerExpense_sellerUserId_expenseDate_idx
+ SellerExpense_sellerUserId_taxYear_deletedAt_idx
+(4 rows)
+
+             conname             | confdeltype 
+---------------------------------+-------------
+ SellerExpense_sellerUserId_fkey | c
+(1 row)
+
+--- financial tables AFTER (must be identical) ---
+        t         | count 
+------------------+-------
+ Transaction      |     7
+ Refund           |     1
+ RefundSettlement |     1
+ Payout           |     7
+ Order            |    36
+(5 rows)
+
+--- ROLLING BACK ---
+ROLLBACK
+--- SellerExpense must NOT exist after rollback ---
+ seller_expense_tables_remaining 
+---------------------------------
+                               0
+(1 row)
+

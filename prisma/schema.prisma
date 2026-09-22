@@ -155,6 +155,7 @@ model User {
   orders                                 Order[]                   @relation("UserOrders")
   Payout                                 Payout[]
   paymentEscrows                         PaymentEscrow[]           @relation("PaymentEscrowSeller")
+  sellerExpenses                         SellerExpense[]           @relation("SellerExpenseOwner")
   productReviewsAsBuyer                  ProductReview[]           @relation("ProductReviewBuyer")
   pushTokens                             PushToken[]
   notificationPushOutbox                 NotificationPushOutbox[]
@@ -1296,6 +1297,84 @@ model Payout {
   destinationConnectAccountId String?
   User                        User        @relation(fields: [toUserId], references: [id], onDelete: Cascade)
   Transaction                 Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+}
+
+/// PHASE 8C — a business expense the seller administered themselves.
+///
+/// Four values are kept apart on purpose and must not be collapsed:
+/// amountCents (what was paid), businessUseBp (the share that relates to the
+/// activity), fiscalTreatment (how that share must be treated) and the
+/// deductible amount — which is NOT stored, because it is a derived consequence
+/// of the treatment and is recomputed by lib/finance/seller-expense.ts. Storing
+/// it would let a stale number outlive the rule that produced it.
+///
+/// Nothing here is verified by HomeCheff. source stays USER_PROVIDED.
+model SellerExpense {
+  id                 String                       @id @default(uuid())
+  /// Owner. Server-derived from the session; never accepted from a client.
+  sellerUserId       String
+  /// Date of the spend. Drives taxYear; stored at UTC midnight.
+  expenseDate        DateTime
+  /// ACTUAL SPEND, as paid, including VAT the seller could not reclaim.
+  /// HomeCheff does not know the seller's VAT position and does not split it.
+  amountCents        Int
+  currency           String                       @default("EUR")
+  category           SellerExpenseCategory
+  /// BUSINESS SHARE in basis points, 10000 = 100.00%. Null means not stated,
+  /// which resolves to fully business. A seller's estimate, not an agreed fact.
+  businessUseBp      Int?
+  fiscalTreatment    SellerExpenseFiscalTreatment @default(UNKNOWN)
+  source             SellerExpenseSource          @default(USER_PROVIDED)
+  confirmationStatus SellerExpenseConfirmation    @default(DRAFT)
+  /// Denormalised UTC year of expenseDate. Recomputed on every write so a date
+  /// edit across a year boundary reclassifies explicitly rather than silently.
+  taxYear            Int
+  merchantName       String?
+  description        String?
+  notes              String?
+  createdAt          DateTime                     @default(now())
+  updatedAt          DateTime                     @updatedAt
+  /// Soft delete: a closed tax year must stay reproducible after a seller
+  /// removes a row. Deleted rows never enter any total.
+  deletedAt          DateTime?
+
+  seller User @relation("SellerExpenseOwner", fields: [sellerUserId], references: [id], onDelete: Cascade)
+
+  @@index([sellerUserId, taxYear, deletedAt])
+  @@index([sellerUserId, expenseDate])
+  @@index([deletedAt])
+}
+
+enum SellerExpenseCategory {
+  MATERIALS
+  PACKAGING
+  PLATFORM
+  DELIVERY
+  EQUIPMENT
+  MARKETING
+  OTHER
+}
+
+enum SellerExpenseFiscalTreatment {
+  UNKNOWN
+  ORDINARY_EXPENSE
+  INVESTMENT
+  NON_DEDUCTIBLE
+  LIMITED_DEDUCTIBLE
+}
+
+enum SellerExpenseSource {
+  USER_PROVIDED
+  RECEIPT_CONFIRMED
+  AI_SUGGESTED
+  IMPORTED
+  PLATFORM_DERIVED
+}
+
+enum SellerExpenseConfirmation {
+  DRAFT
+  CONFIRMED
+  NEEDS_REVIEW
 }
 
 /// A row here means exactly one thing: SELLER_CONSIDERATION_REFUND — the gross
