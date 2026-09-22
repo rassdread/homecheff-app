@@ -1,0 +1,70 @@
+{
+  "certMarker": "HC_8C_CERT_DO_NOT_KEEP",
+  "year": 2026,
+  "sellerA": "1c52c7cc-3403-4624-bde1-1731caa3b159",
+  "sellerB": "c54bbbcf-1323-4539-8e30-c2a6b7f95662",
+  "ordersCreated": 0,
+  "transactionsCreated": 0,
+  "stripeObjectsCreated": 0,
+  "fiscalResult": {
+    "grossSalesCents": 0,
+    "platformFeeCents": 0,
+    "sellerNetProceedsCents": 0,
+    "sellerDeductibleCostCents": 13300,
+    "partialResultCents": -13300,
+    "unresolvedCostCents": 105000,
+    "investmentCostCents": 100000,
+    "completeness": "PARTIAL_COSTS_UNRESOLVED",
+    "notices": [
+      {
+        "code": "COSTS_NEED_CLASSIFICATION",
+        "amountCents": 5000
+      },
+      {
+        "code": "INVESTMENT_NEEDS_DEPRECIATION",
+        "amountCents": 100000
+      },
+      {
+        "code": "EXTERNAL_REVENUE_NOT_INCLUDED",
+        "amountCents": null
+      }
+    ]
+  },
+  "cleanup": {
+    "created": 4,
+    "removed": 4,
+    "residue": 0,
+    "tableRows": 0
+  },
+  "checks": [
+    "  PASS  PRODUCTION_CREATE",
+    "  PASS  PRODUCTION_READ",
+    "  PASS  PRODUCTION_ROUNDING",
+    "  PASS  PRODUCTION_INVESTMENT",
+    "  PASS  PRODUCTION_UNKNOWN",
+    "  PASS  PRODUCTION_YEAR_ACTUAL_SPEND",
+    "  PASS  PRODUCTION_YEAR_DEDUCTIBLE_EXCLUDES_UNRESOLVED",
+    "  PASS  PRODUCTION_YEAR_UNKNOWN_SURFACED",
+    "  PASS  PRODUCTION_YEAR_INVESTMENT_SURFACED",
+    "  PASS  PRODUCTION_YEAR_NEEDS_CLASSIFICATION",
+    "  PASS  PRODUCTION_SALES_UNCHANGED_BY_EXPENSES",
+    "  PASS  PRODUCTION_RESULT_IS_PROCEEDS_MINUS_CONFIRMED",
+    "  PASS  PRODUCTION_PLATFORM_FEE_NOT_DOUBLE_COUNTED",
+    "  PASS  PRODUCTION_EDIT",
+    "  PASS  PRODUCTION_YEAR_BOUNDARY_MOVE",
+    "  PASS  PRODUCTION_CROSS_OWNER_READ_BLOCKED",
+    "  PASS  PRODUCTION_CROSS_OWNER_EDIT_BLOCKED",
+    "  PASS  PRODUCTION_CROSS_OWNER_DELETE_BLOCKED",
+    "  PASS  PRODUCTION_CROSS_OWNER_LEFT_ROW_UNTOUCHED",
+    "  PASS  PRODUCTION_CROSS_OWNER_TOTALS_ISOLATED",
+    "  PASS  PRODUCTION_SOFT_DELETE_LEAVES_TOTALS",
+    "  PASS  PRODUCTION_SOFT_DELETE_KEEPS_TOMBSTONE",
+    "  PASS  PRODUCTION_SOFT_DELETE_HIDDEN_FROM_LIST",
+    "  PASS  PRODUCTION_DELETE_CLEANUP",
+    "  PASS  PRODUCTION_CLEANUP_VERIFIED_NO_RESIDUE",
+    "  PASS  PRODUCTION_TABLE_EMPTY_AFTER_CERT",
+    "  PASS  PRODUCTION_FINANCIAL_YEAR_UNTOUCHED"
+  ],
+  "failures": 0,
+  "verdict": "PRODUCTION_CERTIFIED"
+}

@@ -478,7 +478,9 @@ function ExpenseDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4 overflow-y-auto"
+      // z-[100] matches the app's modal convention and clears the bottom
+      // navigation at z-[65], which otherwise covers the foot of the sheet.
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4 overflow-y-auto"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

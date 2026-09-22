@@ -1,0 +1,103 @@
+{
+  "host": "https://homecheff.eu",
+  "viewports": {
+    "desktop_1280x900": {
+      "overflow": 0,
+      "dialogOverflow": 0
+    },
+    "mobile_390x844": {
+      "overflow": 0,
+      "dialogOverflow": 0
+    },
+    "landscape_844x390": {
+      "overflow": 0,
+      "dialogOverflow": 0
+    },
+    "zoom_200": {
+      "overflow": 0,
+      "dialogOverflow": 0
+    }
+  },
+  "seller": "1c52c7cc-3403-4624-bde1-1731caa3b159",
+  "createApiCalls": [
+    {
+      "method": "POST",
+      "status": 201
+    },
+    {
+      "method": "DELETE",
+      "status": 200
+    }
+  ],
+  "createFormErrors": [],
+  "checks": [
+    "  PASS  desktop_1280x900_PANEL_RENDERS",
+    "  PASS  desktop_1280x900_NO_HORIZONTAL_OVERFLOW",
+    "  PASS  desktop_1280x900_NO_FALSE_TAX_CLAIM",
+    "  PASS  desktop_1280x900_DISCLOSES_INCOMPLETENESS",
+    "  PASS  desktop_1280x900_DIALOG_SEMANTICS",
+    "  PASS  desktop_1280x900_DIALOG_LABELLED",
+    "  PASS  desktop_1280x900_LABEL_hc-exp-what",
+    "  PASS  desktop_1280x900_LABEL_hc-exp-amount",
+    "  PASS  desktop_1280x900_LABEL_hc-exp-date",
+    "  PASS  desktop_1280x900_LABEL_hc-exp-category",
+    "  PASS  desktop_1280x900_DIALOG_NO_OVERFLOW",
+    "  PASS  desktop_1280x900_SAVE_REACHABLE",
+    "  PASS  desktop_1280x900_ESCAPE_CLOSES_DIALOG",
+    "  PASS  mobile_390x844_PANEL_RENDERS",
+    "  PASS  mobile_390x844_NO_HORIZONTAL_OVERFLOW",
+    "  PASS  mobile_390x844_NO_FALSE_TAX_CLAIM",
+    "  PASS  mobile_390x844_DISCLOSES_INCOMPLETENESS",
+    "  PASS  mobile_390x844_DIALOG_SEMANTICS",
+    "  PASS  mobile_390x844_DIALOG_LABELLED",
+    "  PASS  mobile_390x844_LABEL_hc-exp-what",
+    "  PASS  mobile_390x844_LABEL_hc-exp-amount",
+    "  PASS  mobile_390x844_LABEL_hc-exp-date",
+    "  PASS  mobile_390x844_LABEL_hc-exp-category",
+    "  PASS  mobile_390x844_DIALOG_NO_OVERFLOW",
+    "  PASS  mobile_390x844_SAVE_REACHABLE",
+    "  PASS  mobile_390x844_ESCAPE_CLOSES_DIALOG",
+    "  PASS  landscape_844x390_PANEL_RENDERS",
+    "  PASS  landscape_844x390_NO_HORIZONTAL_OVERFLOW",
+    "  PASS  landscape_844x390_NO_FALSE_TAX_CLAIM",
+    "  PASS  landscape_844x390_DISCLOSES_INCOMPLETENESS",
+    "  PASS  landscape_844x390_DIALOG_SEMANTICS",
+    "  PASS  landscape_844x390_DIALOG_LABELLED",
+    "  PASS  landscape_844x390_LABEL_hc-exp-what",
+    "  PASS  landscape_844x390_LABEL_hc-exp-amount",
+    "  PASS  landscape_844x390_LABEL_hc-exp-date",
+    "  PASS  landscape_844x390_LABEL_hc-exp-category",
+    "  PASS  landscape_844x390_DIALOG_NO_OVERFLOW",
+    "  PASS  landscape_844x390_SAVE_REACHABLE",
+    "  PASS  landscape_844x390_ESCAPE_CLOSES_DIALOG",
+    "  PASS  zoom_200_PANEL_RENDERS",
+    "  PASS  zoom_200_NO_HORIZONTAL_OVERFLOW",
+    "  PASS  zoom_200_NO_FALSE_TAX_CLAIM",
+    "  PASS  zoom_200_DISCLOSES_INCOMPLETENESS",
+    "  PASS  zoom_200_DIALOG_SEMANTICS",
+    "  PASS  zoom_200_DIALOG_LABELLED",
+    "  PASS  zoom_200_LABEL_hc-exp-what",
+    "  PASS  zoom_200_LABEL_hc-exp-amount",
+    "  PASS  zoom_200_LABEL_hc-exp-date",
+    "  PASS  zoom_200_LABEL_hc-exp-category",
+    "  PASS  zoom_200_DIALOG_NO_OVERFLOW",
+    "  PASS  zoom_200_SAVE_REACHABLE",
+    "  PASS  zoom_200_ESCAPE_CLOSES_DIALOG",
+    "  PASS  UI_SAVE_BUTTON_IS_IN_DIALOG",
+    "  PASS  UI_CREATE_NO_FORM_ERROR",
+    "  PASS  UI_CREATE_API_ACCEPTED",
+    "  PASS  UI_CREATE_PERSISTED",
+    "  PASS  UI_CREATE_EXACT_CENTS",
+    "  PASS  UI_CREATE_YEAR_FROM_DATE",
+    "  PASS  UI_CREATE_CATEGORY",
+    "  PASS  UI_CREATE_SOURCE_IS_USER_PROVIDED",
+    "  PASS  UI_CREATE_CONFIRMED",
+    "  PASS  UI_ROW_VISIBLE_IN_PANEL",
+    "  PASS  UI_DELETE_SOFT_DELETES",
+    "  PASS  UI_CLEANUP_REMOVED",
+    "  PASS  UI_CLEANUP_VERIFIED",
+    "  PASS  UI_CLEANUP_TABLE_EMPTY"
+  ],
+  "failures": 0,
+  "verdict": "UI_CERTIFIED"
+}
