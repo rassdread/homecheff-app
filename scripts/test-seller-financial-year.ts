@@ -659,6 +659,34 @@ function pass(name: string) {
   pass('NO_FISCAL_LOGIC_IN_FINANCE_LAYER');
 }
 
+// -------------------------------- INCOMPLETE TOTALS ARE DISCLOSED IN THE UI
+{
+  // §16: a total the derivation knows is incomplete must not be presented as a
+  // confident figure. Both seller money surfaces gate a notice on completeness.
+  for (const file of [
+    'app/verdiensten/page.tsx',
+    'app/verkoper/dashboard/page-client.tsx',
+  ]) {
+    const src = fs.readFileSync(path.join(process.cwd(), file), 'utf8');
+    assert.ok(
+      src.includes("completeness !== 'COMPLETE'"),
+      `${file} must disclose incomplete financial figures`,
+    );
+    assert.ok(
+      src.includes('earningsPage.incompleteNotice'),
+      `${file} must render the incompleteness notice`,
+    );
+  }
+  for (const locale of ['public/i18n/nl.json', 'public/i18n/en.json']) {
+    const copy = JSON.parse(
+      fs.readFileSync(path.join(process.cwd(), locale), 'utf8'),
+    );
+    assert.ok(copy.earningsPage.incompleteNotice, `${locale} incompleteNotice`);
+    assert.ok(copy.earningsPage.refunds, `${locale} refunds`);
+  }
+  pass('INCOMPLETENESS_DISCLOSED');
+}
+
 // ------------------------------------------------- TRANSACTION ID PARSING
 {
   assert.equal(

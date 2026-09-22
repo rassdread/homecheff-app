@@ -3483,6 +3483,7 @@
     "grossRevenue": "Bruto Omzet",
     "platformFee": "Platform Fee",
     "refunds": "terugbetalingen",
+    "incompleteNotice": "Deze cijfers zijn mogelijk onvolledig. Controleer je bestellingen en terugbetalingen.",
     "netEarned": "Netto Verdiend",
     "totalEarnedLabel": "Totaal Verdiend",
     "officiallyPaidOut": "Officieel uitbetaald",

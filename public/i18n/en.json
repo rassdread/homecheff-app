@@ -3105,6 +3105,7 @@
     "grossRevenue": "Gross Revenue",
     "platformFee": "Platform Fee",
     "refunds": "refunds",
+    "incompleteNotice": "These figures may be incomplete. Please review your orders and refunds.",
     "netEarned": "Net Earned",
     "totalEarnedLabel": "Total Earned",
     "officiallyPaidOut": "Officially paid out",

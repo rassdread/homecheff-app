@@ -348,6 +348,15 @@ function VerdienstenContent() {
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
+              {earnings.seller.completeness &&
+              earnings.seller.completeness !== 'COMPLETE' ? (
+                <p
+                  role="status"
+                  className="mb-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800"
+                >
+                  {t('earningsPage.incompleteNotice')}
+                </p>
+              ) : null}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">

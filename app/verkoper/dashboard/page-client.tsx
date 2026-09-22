@@ -65,6 +65,7 @@ interface DashboardStats {
     netProceedsCents: number;
     completeness: string;
   };
+
   totalOrders: number;
   totalCustomers: number;
   averageRating: number;
@@ -712,6 +713,15 @@ export default function SellerDashboardClient() {
                 </span>
               ) : null}
             </h2>
+            {stats.financialYear &&
+            stats.financialYear.completeness !== 'COMPLETE' ? (
+              <p
+                role="status"
+                className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800"
+              >
+                {t('earningsPage.incompleteNotice')}
+              </p>
+            ) : null}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               {/* Bruto Omzet */}
               <div className="bg-white rounded-lg p-4 sm:p-5 shadow-sm">
