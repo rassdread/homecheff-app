@@ -303,10 +303,15 @@ trading, so 2025 is legitimately zero.
 
 ```
 STARTING_SHA        = fb8dc070
-COMMIT_SHA          = 890f2d3d (runtime) / see git log for certification artifacts
-DEPLOYMENT_ID       = dpl_3XxgAAkmiK2pBjmx3Yt1tuSrDBpd
-DEPLOYED_SHA_MATCH  = YES (git-sourced production deployment, no CLI upload of a
-                      dirty tree)
+COMMIT_SHA          = 890f2d3d — last commit in this phase that changes runtime
+                      code. Later commits add only docs/audits/** and
+                      scripts/certify-*, neither of which enters the bundle.
+DEPLOYMENT_ID       = dpl_3XxgAAkmiK2pBjmx3Yt1tuSrDBpd — the deployment the §35
+                      run certified.
+DEPLOYED_SHA_MATCH  = YES. Git-sourced deployment built from 890f2d3d; no CLI
+                      upload of a working tree (the repo also carries unrelated
+                      geo/feed work in progress, which a CLI deploy would have
+                      swept in and which is untouched by this phase).
 
 CANONICAL_SOURCE       = lib/finance/seller-financial-year.ts (pure)
                          + lib/finance/seller-financial-year.server.ts (loader)
