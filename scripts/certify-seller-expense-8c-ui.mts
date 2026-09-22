@@ -35,6 +35,13 @@ const requireFromApp = createRequire(path.join(process.cwd(), 'package.json'));
 const HOST = process.env.PROD_URL || 'https://homecheff.eu';
 const OUT = 'docs/audits/seller-expense-8c/ui-cert';
 const CERT_MARKER = 'HC_8C_UI_CERT_DO_NOT_KEEP';
+/** Matches the marker wherever it ended up, so cleanup can never miss a row. */
+const CERT_ROWS = {
+  OR: [
+    { description: { contains: CERT_MARKER } },
+    { notes: { contains: CERT_MARKER } },
+  ],
+};
 
 const { prisma } = await import('../lib/prisma');
 // HomeCheff deliberately uses an unprefixed cookie name so native minting and
@@ -255,11 +262,10 @@ async function main() {
     await page.getByRole('button', { name: /Kosten toevoegen/i }).first().click();
     const formDialog = page.getByRole('dialog');
     await formDialog.waitFor({ state: 'visible', timeout: 15_000 });
-    await page.fill('#hc-exp-what', 'UI CERT verpakking');
+    await page.fill('#hc-exp-what', `UI CERT verpakking ${CERT_MARKER}`);
     await page.fill('#hc-exp-amount', '12,34');
     await page.fill('#hc-exp-date', '2026-05-20');
     await page.selectOption('#hc-exp-category', 'PACKAGING');
-    await page.fill('#hc-exp-notes', CERT_MARKER);
     await page.selectOption('#hc-exp-treatment', 'ORDINARY_EXPENSE');
     // Scope to the dialog: /verdiensten carries other checkboxes and buttons,
     // and an unscoped locator silently clicked one of them.
@@ -292,7 +298,7 @@ async function main() {
     );
 
     const created = await prisma.sellerExpense.findFirst({
-      where: { notes: CERT_MARKER },
+      where: CERT_ROWS,
       select: { id: true, amountCents: true, taxYear: true, category: true, source: true, confirmationStatus: true },
     });
     check('UI_CREATE_PERSISTED', !!created);
@@ -322,7 +328,7 @@ async function main() {
     await page.waitForTimeout(3000);
 
     const afterUiDelete = await prisma.sellerExpense.findFirst({
-      where: { notes: CERT_MARKER },
+      where: CERT_ROWS,
       select: { deletedAt: true },
     });
     check('UI_DELETE_SOFT_DELETES', afterUiDelete?.deletedAt != null);
@@ -332,8 +338,8 @@ async function main() {
   } finally {
     await browser.close();
     // Cleanup: hard delete everything this run created, then verify.
-    const removed = await prisma.sellerExpense.deleteMany({ where: { notes: CERT_MARKER } });
-    const residue = await prisma.sellerExpense.count({ where: { notes: CERT_MARKER } });
+    const removed = await prisma.sellerExpense.deleteMany({ where: CERT_ROWS });
+    const residue = await prisma.sellerExpense.count({ where: CERT_ROWS });
     const total = await prisma.sellerExpense.count();
     check('UI_CLEANUP_REMOVED', removed.count >= 1);
     check('UI_CLEANUP_VERIFIED', residue === 0);
