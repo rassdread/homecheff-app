@@ -181,11 +181,16 @@ async function answerStep(page: Page, trail: string[], salaryEuro: string): Prom
     }
   }
 
-  const amount = page.locator('input[inputmode="decimal"]').first();
-  if ((await amount.count()) && (await amount.inputValue()) === '') {
-    await amount.fill(salaryEuro);
-    trail.push(`salary=${salaryEuro}`);
-    await clickExact(page, 'Per maand');
+  // Only the income step gets the salary. Other steps also have empty decimal
+  // inputs (pension, other deductions) and must stay empty, or the persona
+  // silently acquires a EUR 2.646/month deduction and a negative bank net.
+  if (/Wat verdien je nu ongeveer/i.test(state.text)) {
+    const amount = page.locator('input[inputmode="decimal"]').first();
+    if ((await amount.count()) && (await amount.inputValue()) === '') {
+      await amount.fill(salaryEuro);
+      trail.push(`salary=${salaryEuro}`);
+      await clickExact(page, 'Per maand');
+    }
   }
 
   const holiday = page.locator('[data-verdiencheck-holiday-pay]');

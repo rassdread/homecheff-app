@@ -47,7 +47,10 @@ const JS_BASELINE = `(function () {
     return el ? el.innerText.replace(/\\s+/g, ' ').trim() : null;
   };
   var root = document.querySelector('main') || document.body;
+  var pay = document.querySelector('[data-verdiencheck-payslip]');
   return {
+    payslip: pay ? pay.innerText.replace(/\\n+/g, ' | ') : null,
+    bankNet: pick('[data-verdiencheck-bank-net]'),
     car: pick('[data-verdiencheck-company-car]'),
     carDetails: pick('[data-verdiencheck-company-car-details]'),
     carNone: pick('[data-verdiencheck-company-car-none]'),
@@ -116,6 +119,8 @@ async function runPersona(name: string, setup: CarSetup) {
   await page.screenshot({ path: join(OUT, `prod-${name}-result.png`), fullPage: true });
 
   const baseline = (await page.evaluate(JS_BASELINE)) as {
+    payslip: string | null;
+    bankNet: string | null;
     car: string | null;
     carDetails: string | null;
     carNone: string | null;
@@ -128,13 +133,15 @@ async function runPersona(name: string, setup: CarSetup) {
   return {
     name,
     reached: true,
+    payslip: baseline.payslip,
+    bankNet: baseline.bankNet,
     car: baseline.car,
     carDetails: baseline.carDetails,
     carNone: baseline.carNone,
     carPartial: baseline.carPartial,
     carUnknown: baseline.carUnknown,
     grossIncome: amountAfter(baseline.text, /^Bruto inkomen$/i),
-    fiscalIncome: amountAfter(baseline.text, /geschat jaarinkomen|Geschat fiscaal inkomen/i),
+    fiscalIncome: amountAfter(baseline.text, /^Geschat fiscaal inkomen$/i),
     incomeTax: amountAfter(baseline.text, /Geschatte inkomstenbelasting/i),
     healthcareAllowance: amountAfter(baseline.text, /^Zorgtoeslag$/i),
   };
