@@ -71,12 +71,26 @@ export default function VerdienCheckBaselineCard(props: {
   const showHolidayAmount = (baseline?.holidayPayCents ?? 0) > 0;
   const showHolidayIncluded =
     !showHolidayAmount && baseline?.holidayPayIncluded === true && incomeAnnual != null;
+  const extraPayCents = baseline?.employmentExtrasCents ?? 0;
+  const showExtraPayAmount = extraPayCents > 0;
+  const extraPayHasDetail =
+    [
+      baseline?.thirteenthMonthCents ?? 0,
+      baseline?.bonusCommissionCents ?? 0,
+      baseline?.overtimeOtherPayCents ?? 0,
+    ].filter((cents) => cents > 0).length > 0;
+  // UNKNOWN extra pay is not a factual €0, so the card says it was left out.
+  const extraPayUnknown =
+    !showExtraPayAmount &&
+    baseline?.employmentExtrasStatus === 'UNKNOWN' &&
+    incomeAnnual != null;
   const ownerHome = baseline?.ownerHome ?? null;
   const ownerActive =
     ownerHome != null &&
     (ownerHome.status === 'COMPLETE' || ownerHome.status === 'PARTIAL');
   const [housingInfoOpen, setHousingInfoOpen] = useState(false);
   const [payslipOpen, setPayslipOpen] = useState(false);
+  const [extraPayOpen, setExtraPayOpen] = useState(false);
   const pensionStatus = baseline?.pensionStatus ?? null;
   const pensionKnown =
     pensionStatus === 'AMOUNT' || baseline?.pensionExplicitZero === true;
@@ -301,6 +315,59 @@ export default function VerdienCheckBaselineCard(props: {
             <span>{props.copy.holidayPayAmountLabel}</span>
             <span>{props.copy.holidayPayIncludedShort}</span>
           </div>
+        ) : null}
+        {showExtraPayAmount ? (
+          <div data-verdiencheck-extra-pay="" className="space-y-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm text-stone-700">
+              <span>{props.copy.extraPayLabel}</span>
+              <span className="tabular-nums">
+                €{whole(extraPayCents)} {props.copy.extraPayPerYear}
+              </span>
+            </div>
+            {extraPayHasDetail ? (
+              <>
+                <button
+                  type="button"
+                  className="text-sm font-medium text-emerald-800 underline-offset-2 hover:underline"
+                  aria-expanded={extraPayOpen}
+                  onClick={() => setExtraPayOpen((open) => !open)}
+                >
+                  {props.copy.viewExtraPayBreakdown}
+                </button>
+                {extraPayOpen ? (
+                  <div
+                    data-verdiencheck-extra-pay-details=""
+                    className="space-y-1 rounded-xl bg-stone-50 p-3"
+                  >
+                    {(
+                      [
+                        [props.copy.thirteenthMonthLabel, baseline?.thirteenthMonthCents ?? 0],
+                        [props.copy.bonusCommissionRowLabel, baseline?.bonusCommissionCents ?? 0],
+                        [props.copy.overtimeOtherPayRowLabel, baseline?.overtimeOtherPayCents ?? 0],
+                      ] as const
+                    )
+                      .filter(([, cents]) => cents > 0)
+                      .map(([label, cents]) => (
+                        <div
+                          key={label}
+                          className="flex justify-between gap-4 text-sm text-stone-700"
+                        >
+                          <span>{label}</span>
+                          <span className="tabular-nums">€{whole(cents)}</span>
+                        </div>
+                      ))}
+                    <p className="pt-1 text-sm leading-relaxed text-stone-600">
+                      {props.copy.extraPaySpecialRateNote}
+                    </p>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
+          </div>
+        ) : extraPayUnknown ? (
+          <p data-verdiencheck-extra-pay-unknown="" className="text-sm text-stone-700">
+            {props.copy.extraPayNotIncluded}
+          </p>
         ) : null}
         {baseline?.payrollUsed || baseline?.payrollTaxCredit != null ? (
           <div

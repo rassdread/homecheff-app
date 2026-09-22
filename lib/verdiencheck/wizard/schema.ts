@@ -69,6 +69,7 @@ export const WIZARD_STEP_IDS = [
   'partnerInsurance',
   'currentIncome',
   'payslipDeductions',
+  'employmentExtras',
   'incomeBases',
   'partnerIncome',
   'rentsHome',
@@ -142,6 +143,11 @@ export type WizardState = {
   pensionDeductionStatus: 'NONE' | 'AMOUNT' | 'UNKNOWN' | null;
   pensionDeductionEuro: string;
   otherPayslipDeductionEuro: string;
+  extraPayStatus: 'NONE' | 'PROVIDED' | 'UNKNOWN' | null;
+  thirteenthMonthMode: 'ONE_MONTH' | 'AMOUNT' | 'NONE' | null;
+  thirteenthMonthEuro: string;
+  bonusCommissionEuro: string;
+  overtimeOtherPayEuro: string;
   dutchHealthInsurance: boolean | 'UNKNOWN' | null;
   housingTenure: HousingTenure | null;
   rentsHome: boolean | 'UNKNOWN' | null;
@@ -259,6 +265,11 @@ export const EMPTY_WIZARD_STATE: WizardState = {
   pensionDeductionStatus: null,
   pensionDeductionEuro: '',
   otherPayslipDeductionEuro: '',
+  extraPayStatus: null,
+  thirteenthMonthMode: null,
+  thirteenthMonthEuro: '',
+  bonusCommissionEuro: '',
+  overtimeOtherPayEuro: '',
   dutchHealthInsurance: null,
   housingTenure: null,
   rentsHome: null,
@@ -418,6 +429,9 @@ const FINANCIAL_EURO_KEYS = [
   'customScenarioEuro',
   'helperRevenueEuro',
   'helperCostsEuro',
+  'thirteenthMonthEuro',
+  'bonusCommissionEuro',
+  'overtimeOtherPayEuro',
 ] as const;
 
 export function clearFinancialDepth(state: WizardState): WizardState {
@@ -464,6 +478,8 @@ export function clearFinancialDepth(state: WizardState): WizardState {
   next.pensionDeductionStatus = null;
   next.pensionDeductionEuro = '';
   next.otherPayslipDeductionEuro = '';
+  next.extraPayStatus = null;
+  next.thirteenthMonthMode = null;
   next.dutchHealthInsurance = null;
   next.housingTenure = null;
   next.rentsHome = null;
@@ -858,6 +874,16 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
       s.payslipAccuracyRequested &&
       !s.currentIncomeUnknown &&
       s.currentIncomePeriod === 'MONTH' &&
+      s.ageTaxRegime === 'BELOW_AOW_2026' &&
+      s.hasOtherIncome === false &&
+      (s.situationGroup === 'EMPLOYEE' || s.situationGroup === 'NONE'),
+  },
+  {
+    id: 'employmentExtras',
+    visible: (s) =>
+      moneyLayerVisible(s) &&
+      s.payslipAccuracyRequested &&
+      !s.currentIncomeUnknown &&
       s.ageTaxRegime === 'BELOW_AOW_2026' &&
       s.hasOtherIncome === false &&
       (s.situationGroup === 'EMPLOYEE' || s.situationGroup === 'NONE'),

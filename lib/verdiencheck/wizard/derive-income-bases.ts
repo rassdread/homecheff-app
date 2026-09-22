@@ -32,12 +32,18 @@ import {
   type PayslipPensionStatus,
 } from '../rulesets/nl/2026/employee-payslip';
 import {
+  annualEmploymentExtrasCents,
+  thirteenthMonthFromContractualMonth,
+  type EmploymentExtraPayResult,
+  type EmploymentExtraPayStatus,
+} from '../rulesets/nl/2026/employment-extras';
+import {
   PAYROLL_FORWARD_MODEL,
   PAYROLL_INVERSE_MODEL,
   resolvePayrollTaxCredit,
   type PayrollTaxCreditChoice,
 } from '../rulesets/nl/2026/payroll-white-monthly';
-import { reconstructAnnualWithHolidayPay, shouldAskHolidayPay } from './holiday-pay';
+import { hasAdvancedFiscalIncome, reconstructAnnualWithHolidayPay, shouldAskHolidayPay } from './holiday-pay';
 import type { WizardState } from './schema';
 
 export type IncomeBaseDerivation =
@@ -143,6 +149,13 @@ export type DerivedIncomeBases = {
   netToGrossConfidence: 'ESTIMATE' | 'NONE' | null;
   holidayPayUnresolved: boolean;
   holidayPayCents: number | null;
+  /**
+   * Taxable employment pay beside the regular salary (13th month, bonus,
+   * commission, taxable overtime). Null when not asked, not supplied or
+   * unknown — never a factual zero.
+   */
+  employmentExtrasCents: number | null;
+  employmentExtras: EmploymentExtraPayResult;
   /** Summary of the derivation path. Per-basis truth lives in `basisProvenance`. */
   incomeSourcePrecedence: IncomeSourcePrecedence;
   basisProvenance: IncomeBasesProvenance;
@@ -229,6 +242,92 @@ export function wizardPayslipInputs(state: WizardState): {
     otherBankDeductionCents: other ?? 0,
     netKind,
   };
+}
+
+/**
+ * Employment extras are annual gross amounts from the payslip/contract, so they
+ * are never reconstructed from a net figure and never carry a pension
+ * deduction. They are skipped when the user supplied annual fiscal facts,
+ * because a known jaaropgave already contains them.
+ */
+export function wizardEmploymentExtras(
+  state: WizardState,
+  options?: { contractualGrossMonthlyCents?: number | null },
+): EmploymentExtraPayResult {
+  if (hasAdvancedFiscalIncome(state) || state.currentIncomeUnknown) {
+    return annualEmploymentExtrasCents({ status: 'NOT_SUPPLIED' });
+  }
+  const status: EmploymentExtraPayStatus =
+    state.extraPayStatus === 'NONE' ||
+    state.extraPayStatus === 'PROVIDED' ||
+    state.extraPayStatus === 'UNKNOWN'
+      ? state.extraPayStatus
+      : 'NOT_SUPPLIED';
+  if (status !== 'PROVIDED') return annualEmploymentExtrasCents({ status });
+
+  let thirteenth: number | null = null;
+  if (state.thirteenthMonthMode === 'ONE_MONTH') {
+    const gross = contractualGrossMonthlyForExtras(
+      state,
+      options?.contractualGrossMonthlyCents ?? null,
+    );
+    thirteenth = gross == null ? null : thirteenthMonthFromContractualMonth(gross);
+  } else if (state.thirteenthMonthMode === 'AMOUNT') {
+    thirteenth = parseEuroInputToCents(state.thirteenthMonthEuro);
+  } else if (state.thirteenthMonthMode === 'NONE') {
+    thirteenth = 0;
+  }
+  return annualEmploymentExtrasCents({
+    status,
+    thirteenthMonthAnnualCents: thirteenth,
+    bonusCommissionAnnualCents: parseEuroInputToCents(state.bonusCommissionEuro),
+    overtimeOtherAnnualCents: parseEuroInputToCents(state.overtimeOtherPayEuro),
+  });
+}
+
+export function shouldOfferEmploymentExtras(state: WizardState): boolean {
+  if (state.currentIncomeUnknown) return false;
+  if (hasAdvancedFiscalIncome(state)) return false;
+  if (state.ageTaxRegime !== 'BELOW_AOW_2026') return false;
+  if (state.hasOtherIncome !== false) return false;
+  return state.situationGroup === 'EMPLOYEE' || state.situationGroup === 'NONE';
+}
+
+function contractualGrossMonthlyForExtras(
+  state: WizardState,
+  override: number | null,
+): number | null {
+  if (override != null) return override;
+  if (state.currentIncomeBasis !== 'NET') {
+    const annual = annualizeWizardEuro(state.currentIncomeEuro, state.currentIncomePeriod);
+    return annual == null ? null : Math.round(annual / 12);
+  }
+  const payroll = payrollFromCurrentIncome(state);
+  return payroll.used ? payroll.estimatedGrossMonthlyCents : null;
+}
+
+export function thirteenthMonthHelperAvailable(state: WizardState): boolean {
+  return contractualGrossMonthlyForExtras(state, null) != null;
+}
+
+/** A "Ja" answer needs at least one component we can actually use. */
+export function employmentExtrasEntryValid(state: WizardState): boolean {
+  const amountInvalid = (raw: string) =>
+    raw.trim() !== '' && parseEuroInputToCents(raw) == null;
+  if (amountInvalid(state.bonusCommissionEuro)) return false;
+  if (amountInvalid(state.overtimeOtherPayEuro)) return false;
+  if (state.thirteenthMonthMode === 'AMOUNT' && parseEuroInputToCents(state.thirteenthMonthEuro) == null) {
+    return false;
+  }
+  const thirteenthKnown =
+    state.thirteenthMonthMode === 'NONE' ||
+    state.thirteenthMonthMode === 'AMOUNT' ||
+    (state.thirteenthMonthMode === 'ONE_MONTH' && thirteenthMonthHelperAvailable(state));
+  return (
+    thirteenthKnown ||
+    state.bonusCommissionEuro.trim() !== '' ||
+    state.overtimeOtherPayEuro.trim() !== ''
+  );
 }
 
 function unusedOwnerHome(): OwnerOccupiedHomeResult {
@@ -469,6 +568,8 @@ function emptyBases(derivation: IncomeBaseDerivation, payroll?: PayrollSnapshot)
     netToGrossConfidence: derivation === 'NET_UNRESOLVED' ? 'NONE' : null,
     holidayPayUnresolved: false,
     holidayPayCents: null,
+    employmentExtrasCents: null,
+    employmentExtras: annualEmploymentExtrasCents({ status: 'NOT_SUPPLIED' }),
     incomeSourcePrecedence: 'UNKNOWN',
     basisProvenance: unknownProvenance(),
     payroll: payroll ?? unusedPayroll(derivation === 'UNKNOWN' ? 'UNKNOWN' : derivation),
@@ -530,16 +631,21 @@ function deriveEmployeeEstimate(input: {
   state: WizardState;
   reconstructionStatus: string;
   payroll: PayrollSnapshot;
+  employmentExtras: EmploymentExtraPayResult;
 }): DerivedIncomeBases {
-  const annual = input.reconstructedAnnual;
   const estimateKind: IncomeAmountProvenanceKind = input.netEstimate ? 'ESTIMATE' : 'DERIVED';
   const payrollUsed = input.payroll.used;
+  // Taxable extras are annual employment wage (Handboek Loonheffingen 2026,
+  // kolom 3 → kolom 14), so they join the salary before the pension aftrekpost.
+  const extras = input.employmentExtras;
+  const annual = input.reconstructedAnnual + extras.totalAnnualCents;
   const pensionAdj = annualPensionFiscalAdjustmentCents({
     pensionStatus: input.payroll.pensionStatus,
     employeePensionCents: input.payroll.employeePensionCents,
   });
   const fiscal = Math.max(0, annual - pensionAdj.cents);
-  const fiscalKind: IncomeAmountProvenanceKind = pensionAdj.estimate ? 'ESTIMATE' : estimateKind;
+  const fiscalKind: IncomeAmountProvenanceKind =
+    pensionAdj.estimate || extras.unknown ? 'ESTIMATE' : estimateKind;
   const grossSource: IncomeBasisSource = input.netEstimate
     ? payrollUsed
       ? 'PAYROLL_WHITE_MONTHLY_2026'
@@ -575,6 +681,8 @@ function deriveEmployeeEstimate(input: {
     netToGrossConfidence: input.netEstimate ? 'ESTIMATE' : null,
     holidayPayUnresolved: false,
     holidayPayCents: input.holidayCents || null,
+    employmentExtrasCents: extras.provided || extras.explicitNone ? extras.totalAnnualCents : null,
+    employmentExtras: extras,
     incomeSourcePrecedence: holidayPrecedence(
       input.state,
       { status: input.reconstructionStatus, holidayCents: input.holidayCents },
@@ -683,6 +791,10 @@ function deriveIncomeBasesCore(state: WizardState): DerivedIncomeBases {
       netToGrossConfidence: payroll.used ? 'ESTIMATE' : null,
       holidayPayUnresolved: false,
       holidayPayCents: null,
+      // A known jaaropgave already contains 13th month, bonus and overtime.
+      // Adding the extra-pay fields again would double count them.
+      employmentExtrasCents: null,
+      employmentExtras: annualEmploymentExtrasCents({ status: 'NOT_SUPPLIED' }),
       incomeSourcePrecedence: advancedSummaryPrecedence({
         gross: advancedGross,
         box1: advancedBox1,
@@ -764,6 +876,9 @@ function deriveIncomeBasesCore(state: WizardState): DerivedIncomeBases {
       state,
       reconstructionStatus: reconstructed.status,
       payroll: methodFallback ? { ...payroll, used: false, fallbackReason: payroll.fallbackReason ?? 'IB_CREDITS_FALLBACK' } : payroll,
+      employmentExtras: wizardEmploymentExtras(state, {
+        contractualGrossMonthlyCents: Math.round(contractual / 12),
+      }),
     });
   }
 
@@ -786,6 +901,7 @@ function deriveIncomeBasesCore(state: WizardState): DerivedIncomeBases {
       state,
       reconstructionStatus: reconstructed.status,
       payroll,
+      employmentExtras: wizardEmploymentExtras(state),
     });
   }
 

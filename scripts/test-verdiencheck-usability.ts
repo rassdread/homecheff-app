@@ -104,6 +104,7 @@ const QUESTION_AUDIT: Record<string, Class> = {
   rowAssumption: 'MINOR_FRICTION',
   currentIncome: 'CLEAR',
   payslipDeductions: 'CLEAR',
+  employmentExtras: 'CLEAR',
   incomeBases: 'CONFUSING',
   assets: 'CLEAR',
   scenario: 'CLEAR',

@@ -87,9 +87,12 @@ import {
 } from '@/lib/verdiencheck/wizard/schema';
 import {
   deriveIncomeBasesFromUserFacts,
+  employmentExtrasEntryValid,
   shouldAskNetDepositKind,
   shouldAskPayrollTaxCredit,
+  shouldOfferEmploymentExtras,
   shouldOfferPayslipAccuracy,
+  thirteenthMonthHelperAvailable,
 } from '@/lib/verdiencheck/wizard/derive-income-bases';
 import { parseHolidayPercent, shouldAskHolidayPay } from '@/lib/verdiencheck/wizard/holiday-pay';
 import { wizardStateToBenefitFacts, wizardStateToBusinessFacts, wizardStateToCalculatorInput, wizardStateToFoodFacts } from '@/lib/verdiencheck/wizard/to-calculator-input';
@@ -373,6 +376,11 @@ export default function VerdienCheckWizard(props: {
       contractualGrossCents: derivedIncomeBases.contractualGrossEmploymentIncomeCents,
       holidayPayCents: derivedIncomeBases.holidayPayCents,
       holidayPayIncluded: state.holidayPayIncluded === 'YES',
+      employmentExtrasCents: derivedIncomeBases.employmentExtrasCents,
+      employmentExtrasStatus: derivedIncomeBases.employmentExtras.status,
+      thirteenthMonthCents: derivedIncomeBases.employmentExtras.thirteenthMonthAnnualCents,
+      bonusCommissionCents: derivedIncomeBases.employmentExtras.bonusCommissionAnnualCents,
+      overtimeOtherPayCents: derivedIncomeBases.employmentExtras.overtimeOtherAnnualCents,
       fiscalWageCents: derivedIncomeBases.fiscalWageCents,
       assessmentIncomeCents: derivedIncomeBases.baselineAssessmentIncomeCents,
       enteredNetMonthlyCents,
@@ -459,6 +467,14 @@ export default function VerdienCheckWizard(props: {
         return;
       }
       if (state.moneyDepthCompleted) {
+        setStep(shouldOfferEmploymentExtras(state) ? 'employmentExtras' : 'result');
+        return;
+      }
+    }
+    if (step === 'employmentExtras') {
+      if (state.extraPayStatus == null) return;
+      if (state.extraPayStatus === 'PROVIDED' && !employmentExtrasEntryValid(state)) return;
+      if (state.moneyDepthCompleted) {
         setStep('result');
         return;
       }
@@ -487,6 +503,10 @@ export default function VerdienCheckWizard(props: {
   function goBack() {
     if (step === 'payslipDeductions' && state.moneyDepthCompleted) {
       setStep('result');
+      return;
+    }
+    if (step === 'employmentExtras' && state.moneyDepthCompleted) {
+      setStep(shouldOfferPayslipAccuracy(state) ? 'payslipDeductions' : 'result');
       return;
     }
     const p = previousStep(state, step);
@@ -2203,6 +2223,117 @@ export default function VerdienCheckWizard(props: {
             </div>
           )}
 
+          {step === 'employmentExtras' && (
+            <div className="space-y-4" data-verdiencheck-extra-pay="">
+              <p className="text-base font-medium text-gray-900">{copy.extraPayQuestion}</p>
+              {(
+                [
+                  ['NONE', copy.extraPayNone],
+                  ['PROVIDED', copy.extraPayYes],
+                  ['UNKNOWN', copy.extraPayUnknown],
+                ] as const
+              ).map(([key, label]) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.extraPayStatus === key}
+                  onClick={() =>
+                    setState({
+                      ...state,
+                      extraPayStatus: key,
+                      thirteenthMonthMode: key === 'PROVIDED' ? state.thirteenthMonthMode : null,
+                      thirteenthMonthEuro: key === 'PROVIDED' ? state.thirteenthMonthEuro : '',
+                      bonusCommissionEuro: key === 'PROVIDED' ? state.bonusCommissionEuro : '',
+                      overtimeOtherPayEuro: key === 'PROVIDED' ? state.overtimeOtherPayEuro : '',
+                    })
+                  }
+                >
+                  {label}
+                </ChoiceButton>
+              ))}
+              {state.extraPayStatus === 'PROVIDED' ? (
+                <div className="space-y-4" data-verdiencheck-extra-pay-details="">
+                  <p className="text-sm leading-relaxed text-gray-600">{copy.extraPayGrossHint}</p>
+                  <p className="text-base text-gray-700">{copy.thirteenthMonthQuestion}</p>
+                  {(
+                    [
+                      ...(thirteenthMonthHelperAvailable(state)
+                        ? ([['ONE_MONTH', copy.thirteenthMonthOneMonth]] as const)
+                        : []),
+                      ['AMOUNT', copy.thirteenthMonthAmount],
+                      ['NONE', copy.thirteenthMonthNone],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <ChoiceButton
+                      key={key}
+                      selected={state.thirteenthMonthMode === key}
+                      onClick={() =>
+                        setState({
+                          ...state,
+                          thirteenthMonthMode: key,
+                          thirteenthMonthEuro: key === 'AMOUNT' ? state.thirteenthMonthEuro : '',
+                        })
+                      }
+                    >
+                      {label}
+                    </ChoiceButton>
+                  ))}
+                  {state.thirteenthMonthMode === 'AMOUNT' ? (
+                    <label className="block">
+                      <span className="text-base text-gray-700">
+                        {copy.thirteenthMonthAmountAsk}
+                      </span>
+                      <input
+                        inputMode="decimal"
+                        value={state.thirteenthMonthEuro}
+                        onChange={(e) =>
+                          setState({ ...state, thirteenthMonthEuro: e.target.value })
+                        }
+                        className={`mt-1 ${FIELD}`}
+                        placeholder="€"
+                        aria-label={copy.thirteenthMonthAmountAsk}
+                      />
+                    </label>
+                  ) : null}
+                  <label className="block">
+                    <span className="text-base text-gray-700">{copy.bonusCommissionLabel}</span>
+                    <input
+                      inputMode="decimal"
+                      value={state.bonusCommissionEuro}
+                      onChange={(e) =>
+                        setState({ ...state, bonusCommissionEuro: e.target.value })
+                      }
+                      className={`mt-1 ${FIELD}`}
+                      placeholder="€"
+                      aria-label={copy.bonusCommissionLabel}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-base text-gray-700">{copy.overtimeOtherPayLabel}</span>
+                    <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                      {copy.overtimeOtherPayHelp}
+                    </p>
+                    <input
+                      inputMode="decimal"
+                      value={state.overtimeOtherPayEuro}
+                      onChange={(e) =>
+                        setState({ ...state, overtimeOtherPayEuro: e.target.value })
+                      }
+                      className={`mt-1 ${FIELD}`}
+                      placeholder="€"
+                      aria-label={copy.overtimeOtherPayLabel}
+                    />
+                  </label>
+                  <p className="text-sm leading-relaxed text-gray-600">
+                    {copy.extraPaySpecialRateNote}
+                  </p>
+                </div>
+              ) : null}
+              <button type="button" className={NEXT_BTN} onClick={goNext}>
+                {copy.next}
+              </button>
+            </div>
+          )}
+
           {step === 'amounts' && (
             <div className="space-y-4">
               <p className="text-base leading-relaxed text-gray-700">{copy.moneyExplain}</p>
@@ -2546,13 +2677,20 @@ export default function VerdienCheckWizard(props: {
                   route={personalRoute}
                   showHeading={extraResultChosen}
                   onRequestPayslipAccuracy={
-                    shouldOfferPayslipAccuracy(state) &&
-                    state.pensionDeductionStatus !== 'NONE' &&
-                    state.pensionDeductionStatus !== 'AMOUNT'
+                    (shouldOfferPayslipAccuracy(state) &&
+                      state.pensionDeductionStatus !== 'NONE' &&
+                      state.pensionDeductionStatus !== 'AMOUNT') ||
+                    (shouldOfferEmploymentExtras(state) && state.extraPayStatus == null)
                       ? () => {
                           const next = { ...state, payslipAccuracyRequested: true };
                           setState(next);
-                          setStep('payslipDeductions');
+                          setStep(
+                            shouldOfferPayslipAccuracy(next) &&
+                              next.pensionDeductionStatus !== 'NONE' &&
+                              next.pensionDeductionStatus !== 'AMOUNT'
+                              ? 'payslipDeductions'
+                              : 'employmentExtras',
+                          );
                         }
                       : undefined
                   }

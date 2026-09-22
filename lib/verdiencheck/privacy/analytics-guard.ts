@@ -168,6 +168,17 @@ export const FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS = [
   'bank_net',
   'banknet',
   'payroll_deduction',
+  'bonus',
+  'commission',
+  'commissie',
+  'overtime',
+  'overwerk',
+  'thirteenth',
+  '13th',
+  'dertiende',
+  'eindejaarsuitkering',
+  'extra_wage',
+  'extra_pay',
 ] as const;
 
 const FORBIDDEN_VALUE_TOKENS = [

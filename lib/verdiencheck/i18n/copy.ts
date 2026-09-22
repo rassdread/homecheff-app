@@ -304,6 +304,28 @@ export type VerdienCheckCopy = {
   payslipBankNetLabel: string;
   pensionNotIncluded: string;
   pensionNotIncludedInfo: string;
+  extraPayQuestion: string;
+  extraPayNone: string;
+  extraPayYes: string;
+  extraPayUnknown: string;
+  extraPayTitle: string;
+  extraPayGrossHint: string;
+  thirteenthMonthQuestion: string;
+  thirteenthMonthOneMonth: string;
+  thirteenthMonthAmount: string;
+  thirteenthMonthNone: string;
+  thirteenthMonthAmountAsk: string;
+  bonusCommissionLabel: string;
+  overtimeOtherPayLabel: string;
+  overtimeOtherPayHelp: string;
+  extraPaySpecialRateNote: string;
+  extraPayLabel: string;
+  extraPayPerYear: string;
+  viewExtraPayBreakdown: string;
+  thirteenthMonthLabel: string;
+  bonusCommissionRowLabel: string;
+  overtimeOtherPayRowLabel: string;
+  extraPayNotIncluded: string;
   housingHeading: string;
   housingOwnerLabel: string;
   housingRentLabel: string;
@@ -697,6 +719,29 @@ const NL: VerdienCheckCopy = {
   pensionNotIncluded: 'Pensioen niet meegenomen',
   pensionNotIncludedInfo:
     'Je werkelijke storting kan lager zijn door bijvoorbeeld pensioen of andere inhoudingen op je loonstrook.',
+  extraPayQuestion: 'Krijg je naast je gewone salaris nog ander belastbaar loon?',
+  extraPayNone: 'Nee',
+  extraPayYes: 'Ja',
+  extraPayUnknown: 'Weet ik niet',
+  extraPayTitle: 'Extra loon',
+  extraPayGrossHint: 'Vul het bruto bedrag in vóór loonheffing.',
+  thirteenthMonthQuestion: '13e maand of eindejaarsuitkering',
+  thirteenthMonthOneMonth: 'Ongeveer één bruto maandsalaris',
+  thirteenthMonthAmount: 'Ander bedrag',
+  thirteenthMonthNone: 'Heb ik niet',
+  thirteenthMonthAmountAsk: 'Hoeveel is je 13e maand bruto per jaar?',
+  bonusCommissionLabel: 'Bonus of commissie per jaar',
+  overtimeOtherPayLabel: 'Overwerk of ander extra loon per jaar',
+  overtimeOtherPayHelp: 'Bijvoorbeeld belast overwerk of andere extra loonbetalingen.',
+  extraPaySpecialRateNote:
+    'Je werkgever kan hier bij uitbetaling een bijzonder loonheffingstarief op toepassen. Voor VerdienCheck telt uiteindelijk je totale inkomen over het jaar.',
+  extraPayLabel: 'Extra loon',
+  extraPayPerYear: '/ jaar',
+  viewExtraPayBreakdown: 'Bekijk extra loon',
+  thirteenthMonthLabel: '13e maand',
+  bonusCommissionRowLabel: 'Bonus / commissie',
+  overtimeOtherPayRowLabel: 'Overig belastbaar loon',
+  extraPayNotIncluded: 'Extra loon niet meegenomen',
   housingHeading: 'Wonen',
   housingOwnerLabel: 'Koopwoning',
   housingRentLabel: 'Huur',
@@ -1139,6 +1184,15 @@ const NL: VerdienCheckCopy = {
         UNKNOWN: 'Weet ik niet',
       },
     },
+    employmentExtras: {
+      title: 'Extra loon',
+      help: 'Vakantiegeld vul je hierboven in. Vul hier alleen loon in dat je náást je gewone salaris krijgt, bruto per jaar.',
+      options: {
+        NONE: 'Nee',
+        PROVIDED: 'Ja',
+        UNKNOWN: 'Weet ik niet',
+      },
+    },
     amounts: { title: 'Wat denk je ongeveer te verkopen dit jaar?' },
     otherVatTurnover: {
       title: 'Verkoop je hetzelfde ook buiten HomeCheff?',
@@ -1532,6 +1586,29 @@ const EN: VerdienCheckCopy = {
   pensionNotIncluded: 'Pension not included',
   pensionNotIncludedInfo:
     'Your actual deposit can be lower because of pension or other deductions on your payslip.',
+  extraPayQuestion: 'Do you receive taxable pay on top of your regular salary?',
+  extraPayNone: 'No',
+  extraPayYes: 'Yes',
+  extraPayUnknown: 'I don’t know',
+  extraPayTitle: 'Extra pay',
+  extraPayGrossHint: 'Enter the gross amount before payroll tax.',
+  thirteenthMonthQuestion: '13th month or end-of-year payment',
+  thirteenthMonthOneMonth: 'About one gross month',
+  thirteenthMonthAmount: 'A different amount',
+  thirteenthMonthNone: 'I don’t have one',
+  thirteenthMonthAmountAsk: 'How much is your 13th month, gross per year?',
+  bonusCommissionLabel: 'Bonus or commission per year',
+  overtimeOtherPayLabel: 'Overtime or other extra pay per year',
+  overtimeOtherPayHelp: 'For example taxable overtime or other extra wage payments.',
+  extraPaySpecialRateNote:
+    'Your employer may withhold at a special payroll tax rate when it is paid. For VerdienCheck what counts in the end is your total income for the year.',
+  extraPayLabel: 'Extra pay',
+  extraPayPerYear: '/ year',
+  viewExtraPayBreakdown: 'View extra pay',
+  thirteenthMonthLabel: '13th month',
+  bonusCommissionRowLabel: 'Bonus / commission',
+  overtimeOtherPayRowLabel: 'Other taxable pay',
+  extraPayNotIncluded: 'Extra pay not included',
   housingHeading: 'Housing',
   housingOwnerLabel: 'Owner-occupied home',
   housingRentLabel: 'Rent',
@@ -1963,6 +2040,15 @@ const EN: VerdienCheckCopy = {
       options: {
         NONE: 'None',
         AMOUNT: 'Amount from my payslip',
+        UNKNOWN: 'I don’t know',
+      },
+    },
+    employmentExtras: {
+      title: 'Extra pay',
+      help: 'Holiday allowance belongs in the question above. Only enter pay you receive on top of your regular salary, gross per year.',
+      options: {
+        NONE: 'No',
+        PROVIDED: 'Yes',
         UNKNOWN: 'I don’t know',
       },
     },

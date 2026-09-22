@@ -74,7 +74,7 @@ function employee(partial: Partial<WizardState> = {}): WizardState {
   return applyMoneyDepthChoice({ ...next, ...partial, taxResidence: 'NL' }, 'YES');
 }
 
-assert.equal(NL_2026_PACK.version, '2026.8-pension-bank-net');
+assert.equal(NL_2026_PACK.version, '2026.9-employment-extras');
 assert.equal(NL_2026_MODULE_STATUS.ownerOccupiedHome, 'CERTIFIED_FOR_OWNER_OCCUPIED_HOME_V1');
 assert.equal(WOZ_VALUE_DATE, '2025-01-01');
 assert.equal(HILLEN_2026_NUMERATOR, 71_867);

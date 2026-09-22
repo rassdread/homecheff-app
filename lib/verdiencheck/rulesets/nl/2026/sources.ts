@@ -419,6 +419,16 @@ export const SRC_PENSION_PAYROLL_2026 = {
   verifiedAt: '2026-09-22',
 } as const;
 
+export const SRC_EMPLOYMENT_EXTRAS_2026 = {
+  officialSource:
+    'Belastingdienst — Handboek Loonheffingen 2026 (maart): §11.2.3 kolom 3 loon uit tegenwoordige dienstbetrekking (provisie, overwerkloon, tantièmes, gratificaties), §11.2.9 kolom 14 loon voor de loonbelasting, §9.3.6 tabellen voor bijzondere beloningen',
+  officialSourceUrl:
+    'https://download.belastingdienst.nl/belastingdienst/docs/handboek-loonheffingen-lh0221t61fd.pdf',
+  publication: 'Handboek Loonheffingen 2026, uitgave maart 2026, §9.3.6 en §11.2.3/11.2.9',
+  effectiveFrom: '2026-01-01',
+  verifiedAt: '2026-09-22',
+} as const;
+
 export const SRC_TOETSINGSINKOMEN_2026 = {
   officialSource:
     'Dienst Toeslagen — Toetsingsinkomen is verzamelinkomen (aangifte) of belastbaar loon (geen aangifte)',

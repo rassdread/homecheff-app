@@ -82,6 +82,11 @@ export type BaselinePresentationFacts = {
   contractualGrossCents: number | null;
   holidayPayCents: number | null;
   holidayPayIncluded: boolean | null;
+  employmentExtrasCents?: number | null;
+  employmentExtrasStatus?: 'NONE' | 'PROVIDED' | 'UNKNOWN' | 'NOT_SUPPLIED' | null;
+  thirteenthMonthCents?: number | null;
+  bonusCommissionCents?: number | null;
+  overtimeOtherPayCents?: number | null;
   fiscalWageCents: number | null;
   assessmentIncomeCents: number | null;
   enteredNetMonthlyCents: number | null;
@@ -114,6 +119,11 @@ export type CurrentBaselineView = {
   contractualGrossCents: number | null;
   holidayPayCents: number | null;
   holidayPayIncluded: boolean | null;
+  employmentExtrasCents: number | null;
+  employmentExtrasStatus: 'NONE' | 'PROVIDED' | 'UNKNOWN' | 'NOT_SUPPLIED' | null;
+  thirteenthMonthCents: number | null;
+  bonusCommissionCents: number | null;
+  overtimeOtherPayCents: number | null;
   fiscalWageCents: number | null;
   assessmentIncomeCents: number | null;
   enteredNetMonthlyCents: number | null;

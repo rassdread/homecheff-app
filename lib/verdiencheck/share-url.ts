@@ -45,6 +45,16 @@ const FINANCIAL_QUERY_KEYS = [
   'bank_net',
   'banknet',
   'payroll_deduction',
+  'bonus',
+  'commission',
+  'commissie',
+  'overtime',
+  'overwerk',
+  'thirteenth',
+  'dertiende',
+  'eindejaarsuitkering',
+  'extra_wage',
+  'extra_pay',
 ] as const;
 
 export function canonicalVerdienCheckUrl(origin = MAIN_DOMAIN): string {

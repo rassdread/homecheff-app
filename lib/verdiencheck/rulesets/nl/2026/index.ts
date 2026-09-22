@@ -12,7 +12,7 @@ export const NL_2026_PACK: RulePack = freezeRulePack({
   id: 'NL-2026',
   jurisdiction: 'NL' satisfies TaxJurisdiction,
   year: 2026,
-  version: '2026.8-pension-bank-net',
+  version: '2026.9-employment-extras',
   status: 'DRAFT',
   effectiveFrom: NL_2026_EFFECTIVE.effectiveFrom,
   effectiveUntil: NL_2026_EFFECTIVE.effectiveUntil,
