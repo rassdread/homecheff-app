@@ -1298,9 +1298,17 @@ model Payout {
   Transaction                 Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
 }
 
+/// A row here means exactly one thing: SELLER_CONSIDERATION_REFUND — the gross
+/// consideration reversed on one seller leg. Never the buyer refund (which also
+/// carries the processing surcharge, shipping and delivery the platform bears)
+/// and never a Stripe transfer reversal (which moves the seller's net).
+/// Buyer refunds live in RefundSettlement.buyerRefundCents + the Stripe refund;
+/// transfer reversals live in Payout + Stripe + settlement resultJson.
 model Refund {
   id            String      @id
   transactionId String
+  /// SELLER_CONSIDERATION_REFUND in cents. Must not exceed the linked
+  /// Transaction.amountCents cumulatively across all rows for that leg.
   amountCents   Int
   createdAt     DateTime    @default(now())
   providerRef   String?

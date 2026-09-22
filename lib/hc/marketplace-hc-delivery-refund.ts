@@ -89,8 +89,6 @@ async function reverseProviderPayout(args: {
         deliveryOrderId: args.deliveryOrderId,
       },
       description: `HC delivery refund provider principal ${args.deliveryOrderId}`,
-      transactionId: txnId,
-      persistRefundRow: true,
     });
 
     if (rev.status === 'FAILED') {
@@ -112,6 +110,24 @@ async function reverseProviderPayout(args: {
           where: { id: txnId },
           data: { status: 'REFUNDED', updatedAt: new Date() },
         });
+      }
+      if (txn) {
+        // The courier's consideration reversed on this leg — the same amount the
+        // ledger-only branch records. Deliberately not the transfer reversal
+        // mirror this branch used to rely on: a Refund row states consideration,
+        // and the reversal itself stays authoritative in Stripe and Payout.
+        await tx.refund
+          .create({
+            data: {
+              id: `refund_delivery_${args.deliveryOrderId}`,
+              transactionId: txnId,
+              amountCents: clawbackCents,
+              providerRef: rev.reversalId ?? 'stripe_reversal_done',
+            },
+          })
+          .catch(() => {
+            /* idempotent */
+          });
       }
       await tx.deliveryProfile.updateMany({
         where: { userId: args.providerUserId },

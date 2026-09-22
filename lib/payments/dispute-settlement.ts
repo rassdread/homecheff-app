@@ -433,10 +433,6 @@ export async function executeDisputeRecipientRecovery(args: {
       continue;
     }
 
-    const txnId = (
-      await loadSellerTransferLegsForOrder(args.plan.orderId!)
-    ).find((l) => l.productId === leg.productId)?.transactionId;
-
     const result = await reverseRecipientTransfer({
       stripe: args.stripe,
       transferId: leg.transferId,
@@ -450,7 +446,6 @@ export async function executeDisputeRecipientRecovery(args: {
         source: 'DISPUTE',
         homecheff_app: 'true',
       },
-      transactionId: txnId,
     });
 
     sellerReversals.push({

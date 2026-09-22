@@ -538,12 +538,17 @@ export async function POST(req: NextRequest) {
       
       if (transferId) {
         try {
-          // Idempotency check: prevent duplicate refund creation
-          const existingRefund = await prisma.refund.findFirst({
-            where: { providerRef: transferReversal.id }
+          // Idempotency marker is the notification we already sent for this
+          // reversal, not a Refund row. A transfer reversal is a settlement
+          // event, so it must not produce a seller-consideration Refund row —
+          // that is what double-counted the seller's refunds. Stripe redelivers
+          // webhooks, so this lookup has to be durable and reversal-specific.
+          const alreadyNotified = await prisma.notification.findFirst({
+            where: { payload: { path: ['refundId'], equals: transferReversal.id } },
+            select: { id: true },
           });
-          
-          if (existingRefund) {
+
+          if (alreadyNotified) {
             console.log(`⏭️ Transfer reversal ${transferReversal.id} already processed, skipping`);
             return new NextResponse("ok", { status: 200 });
           }
@@ -558,17 +563,7 @@ export async function POST(req: NextRequest) {
           });
 
           if (payout) {
-            // Create a refund record for the reversed transfer
-            await prisma.refund.create({
-              data: {
-                id: `refund_reversal_${transferReversal.id}_${Date.now()}`,
-                transactionId: payout.transactionId,
-                amountCents: transferReversal.amount,
-                providerRef: transferReversal.id,
-              }
-            });
-
-            console.log(`✅ Transfer reversal processed for payout ${payout.id}, refund record created`);
+            console.log(`✅ Transfer reversal processed for payout ${payout.id}`);
             
             // Notify seller/deliverer about the reversal
             try {

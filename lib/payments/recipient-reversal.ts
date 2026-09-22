@@ -144,6 +144,9 @@ export async function loadAlreadyReversedCents(args: {
     args.productId,
   );
 
+  // Legacy only: rows written before reversals stopped being mirrored into
+  // Refund. Kept so historical capacity still reads correctly; nothing writes
+  // these any more.
   const reversalRefunds = await prisma.refund.findMany({
     where: {
       transactionId: args.transactionId,
@@ -255,6 +258,12 @@ export type ReverseTransferResult = {
 
 /**
  * Idempotent Stripe transfer reversal.
+ *
+ * Deliberately writes no Refund row. A transfer reversal is a settlement event
+ * that moves the seller's *net*; a Refund row means gross seller consideration.
+ * Recording the reversal as a refund double-counted the same economic event and
+ * understated it by the commission. The reversal stays authoritative in Stripe,
+ * in Payout, and in RefundSettlement/DisputeSettlement resultJson.
  */
 export async function reverseRecipientTransfer(args: {
   stripe: Stripe;
@@ -263,8 +272,6 @@ export async function reverseRecipientTransfer(args: {
   idempotencyKey: string;
   metadata: Record<string, string>;
   description?: string;
-  transactionId?: string;
-  persistRefundRow?: boolean;
 }): Promise<ReverseTransferResult> {
   if (args.amountCents <= 0) {
     return { status: 'SKIPPED_ZERO', reversalId: null, amountCents: 0 };
@@ -280,21 +287,6 @@ export async function reverseRecipientTransfer(args: {
       },
       { idempotencyKey: args.idempotencyKey },
     );
-
-    if (args.persistRefundRow !== false && args.transactionId) {
-      await prisma.refund
-        .create({
-          data: {
-            id: `refund_trr_${args.transactionId}_${reversal.id}`,
-            transactionId: args.transactionId,
-            amountCents: args.amountCents,
-            providerRef: reversal.id,
-          },
-        })
-        .catch(() => {
-          /* duplicate row ok */
-        });
-    }
 
     return {
       status: 'SUCCEEDED',

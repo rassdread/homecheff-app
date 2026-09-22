@@ -112,6 +112,47 @@ export type SellerReversalLegPlan = {
   status: 'PLANNED' | 'SKIPPED_NO_TRANSFER' | 'SKIPPED_ZERO';
 };
 
+/** One Refund row to persist: a seller-consideration reversal on one leg. */
+export type SellerConsiderationRefundRow = {
+  id: string;
+  transactionId: string;
+  amountCents: number;
+  providerRef: string;
+};
+
+/**
+ * Decide the Refund rows for an executed buyer refund.
+ *
+ * A Refund row on a seller Transaction means the gross seller consideration
+ * reversed on that leg — never the buyer refund. The two differ by every
+ * buyer-level component (processing surcharge, shipping, delivery) that the
+ * platform bears and the seller never received, and having one seller leg does
+ * not make them equal. Recording 127c of buyer refund against a 100c seller leg
+ * is what produced REFUND_EXCEEDS_SALE in production.
+ *
+ * Buyer figures stay authoritative in RefundSettlement.buyerRefundCents and in
+ * the Stripe refund carried here as providerRef.
+ */
+export function sellerConsiderationRefundRows(
+  legs: Array<Pick<
+    SellerReversalLegPlan,
+    'productId' | 'transactionId' | 'sellerConsiderationRefundCents'
+  >>,
+  stripeRefundId: string,
+): SellerConsiderationRefundRow[] {
+  const rows: SellerConsiderationRefundRow[] = [];
+  for (const leg of legs) {
+    if (leg.sellerConsiderationRefundCents <= 0) continue;
+    rows.push({
+      id: `refund_buyer_${leg.productId}_${stripeRefundId}`,
+      transactionId: leg.transactionId,
+      amountCents: leg.sellerConsiderationRefundCents,
+      providerRef: stripeRefundId,
+    });
+  }
+  return rows;
+}
+
 export type CourierReversalLegPlan = {
   kind: 'COURIER';
   transactionId: string | null;
@@ -900,7 +941,6 @@ export async function executeRefundSettlement(
         refund_settlement: settlementId,
         source: 'REFUND',
       },
-      transactionId: leg.transactionId,
     });
 
     if (rev.status === 'FAILED') {
@@ -1000,19 +1040,8 @@ export async function executeRefundSettlement(
       );
       stripeRefundId = refund.id;
 
-      // Persist Refund rows on seller transactions (compatibility)
-      for (const leg of plan.sellerLegs) {
-        await prisma.refund.create({
-          data: {
-            id: `refund_buyer_${leg.productId}_${refund.id}`,
-            transactionId: leg.transactionId,
-            amountCents:
-              plan.sellerLegs.length === 1
-                ? plan.buyerRefundCents
-                : leg.sellerConsiderationRefundCents,
-            providerRef: refund.id,
-          },
-        });
+      for (const row of sellerConsiderationRefundRows(plan.sellerLegs, refund.id)) {
+        await prisma.refund.create({ data: row });
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

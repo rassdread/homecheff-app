@@ -1,0 +1,209 @@
+{
+  "readOnly": true,
+  "stripeMutations": 0,
+  "refundSettlements": [
+    {
+      "status": "COMPLETED",
+      "mode": "FULL_BUYER_GROSS",
+      "reason": "APPROVE_E1_REFUND_REVERSAL_TEST controlled live",
+      "buyerRefundCents": 127,
+      "createdAt": "2026-08-16T17:08:11.743Z",
+      "executedAt": "2026-08-16T17:09:02.182Z",
+      "planSummary": {
+        "originalBuyerGrossCents": 127,
+        "originalBuyerSurchargeCents": 27,
+        "priorBuyerRefundedCents": 0,
+        "buyerRefundCents": 127,
+        "stripeFeeRefundTreatment": "NOT_RETURNED_PER_STRIPE_DOCS",
+        "sellerLegs": [
+          {
+            "kind": "SELLER",
+            "productId": "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+            "sellerUserId": "7647bf21-e9ab-4e3a-af83-eeec23e24dcb",
+            "transactionId": "txn_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+            "payoutId": "payout_seller_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+            "transferId": "tr_3U55jB2KvmKfeN9t1L9OEvJn",
+            "sellerGrossCents": 100,
+            "platformFeeCents": 12,
+            "sellerNetCents": 88,
+            "sellerConsiderationRefundCents": 100,
+            "transferReversalCents": 88,
+            "alreadyReversedCents": 0,
+            "remainingAfterCents": 0,
+            "idempotencyKey": "hc_tr_rev_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17_tr_3U55jB2KvmKfeN9t1L9OEvJn_88_p0",
+            "status": "PLANNED"
+          }
+        ],
+        "courierLeg": null,
+        "affiliateLeg": {
+          "kind": "AFFILIATE",
+          "treatment": "NONE",
+          "estimatedReversalCents": 0,
+          "note": "Affiliate commission is funded from HomeCheff platform fee (not seller net). Reversal is ledger-only unless a separate Connect transfer exists.",
+          "status": "SKIPPED_ZERO"
+        },
+        "reconciliation": {
+          "ORIGINAL_BUYER_GROSS": 127,
+          "ORIGINAL_STRIPE_FEE_EST": 27,
+          "ORIGINAL_SELLER_GROSS": 100,
+          "ORIGINAL_PLATFORM_FEE": 12,
+          "ORIGINAL_SELLER_TRANSFER": 88,
+          "ORIGINAL_AFFILIATE": 0,
+          "ORIGINAL_COURIER": 0,
+          "BUYER_REFUND": 127,
+          "SELLER_REVERSAL": 88,
+          "AFFILIATE_REVERSAL": 0,
+          "COURIER_REVERSAL": 0,
+          "PLATFORM_REFUND_COST": 39,
+          "REMAINING_SELLER_ENTITLEMENT": 0,
+          "UNRECONCILED": 0
+        },
+        "warnings": [],
+        "policyFlags": [
+          "BUYER_SURCHARGE_POLICY_FROM_CODE: admin/mode-driven; FULL_BUYER_GROSS refunds remaining buyer gross including surcharge; SELLER_CONSIDERATION excludes surcharge unless override",
+          "BUYER_SURCHARGE_POLICY_FROM_TERMS: POLICY_REQUIRED / AMBIGUOUS",
+          "STRIPE_PROCESSING_FEE: NOT_RETURNED_PER_STRIPE_DOCS (docs.stripe.com/refunds)",
+          "PLATFORM_FEE_ON_SELLER: retained by platform unless buyer refund exceeds recovered reversals",
+          "AFFILIATE: funded from platform fee share; ledger proportional reversal via processCommissionReversal",
+          "COURIER: POLICY_REQUIRED for performed vs not-performed delivery; engine supports allocation when includeCourierCents set",
+          "INVENTORY: not auto-restored by refund engine",
+          "DISPUTES: chargeback after transfer remains open P0 — same economic exposure; not solved by this engine alone"
+        ]
+      },
+      "resultSummary": {
+        "sellerReversals": [
+          {
+            "productId": "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+            "transferId": "tr_3U55jB2KvmKfeN9t1L9OEvJn",
+            "reversalId": "trr_1U57Xc2KvmKfeN9tbtOtO8Je",
+            "amountCents": 88,
+            "status": "SUCCEEDED"
+          }
+        ],
+        "courierReversal": null,
+        "affiliate": {
+          "status": "SKIPPED"
+        },
+        "stripeRefundId": "pyr_1U57Xd2KvmKfeN9t8Vgi1CuS",
+        "errors": [],
+        "recoveredFinalize": true,
+        "note": "Finalize after persist:false left EXECUTING; Stripe already correct"
+      }
+    }
+  ],
+  "stripe": {
+    "session": {
+      "id": "cs_live_b1nk3VYigeiF2dwMTDV4knrfPyJn9oqgB146ATA8vcAK6mfhNn4ZTZs69l",
+      "amountTotal": 127,
+      "amountSubtotal": 127,
+      "currency": "eur",
+      "paymentStatus": "paid",
+      "totalDetails": {
+        "amount_discount": 0,
+        "amount_shipping": 0,
+        "amount_tax": 0
+      },
+      "metadataKeys": [
+        "address",
+        "amountPaidCents",
+        "buyerId",
+        "communityOrderId",
+        "deliveryDate",
+        "deliveryFeeCents",
+        "deliveryMode",
+        "deliveryTime",
+        "enableSmsNotification",
+        "items_compact_1",
+        "notes",
+        "pickupDate",
+        "productsTotalCents",
+        "smsNotificationCostCents",
+        "stripeFeeCents",
+        "subtotalCents"
+      ]
+    },
+    "paymentIntent": {
+      "id": "pi_3U55jB2KvmKfeN9t1qgoZzLL",
+      "amount": 127,
+      "amountReceived": 127,
+      "currency": "eur",
+      "status": "succeeded"
+    },
+    "charge": {
+      "id": "py_3U55jB2KvmKfeN9t1Qr93icB",
+      "amount": 127,
+      "amountRefunded": 127,
+      "refunded": true,
+      "currency": "eur",
+      "applicationFeeAmount": null,
+      "transferGroup": "order_b7df063b-a305-4129-a63f-3418bb6846df",
+      "onBehalfOf": null,
+      "sourceTransfer": null
+    },
+    "balanceTransaction": {
+      "id": "txn_3U55jB2KvmKfeN9t1jc7vGJ8",
+      "amount": 127,
+      "fee": 29,
+      "net": 98,
+      "feeDetails": [
+        {
+          "amount": 29,
+          "application": null,
+          "currency": "eur",
+          "description": "Stripe processing fees",
+          "type": "stripe_fee"
+        }
+      ]
+    },
+    "refunds": [
+      {
+        "id": "pyr_1U57Xd2KvmKfeN9t8Vgi1CuS",
+        "amount": 127,
+        "currency": "eur",
+        "status": "succeeded",
+        "reason": "requested_by_customer",
+        "created": "2026-08-16T17:08:13.000Z",
+        "metadata": {
+          "mode": "FULL_BUYER_GROSS",
+          "orderId": "b7df063b-a305-4129-a63f-3418bb6846df",
+          "refund_settlement": "rset_b7df063b-a305-4129-a63f-3418bb6846df_1786900091742"
+        }
+      }
+    ],
+    "transfer": {
+      "id": "tr_3U55jB2KvmKfeN9t1L9OEvJn",
+      "amount": 88,
+      "amountReversed": 88,
+      "reversed": true,
+      "currency": "eur",
+      "destinationPresent": true,
+      "transferGroup": "order_b7df063b-a305-4129-a63f-3418bb6846df"
+    },
+    "transferReversals": [
+      {
+        "id": "trr_1U57Xc2KvmKfeN9tbtOtO8Je",
+        "amount": 88,
+        "currency": "eur",
+        "created": "2026-08-16T17:08:12.000Z",
+        "metadata": {
+          "homecheff_app": "true",
+          "orderId": "b7df063b-a305-4129-a63f-3418bb6846df",
+          "productId": "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+          "refund_settlement": "rset_b7df063b-a305-4129-a63f-3418bb6846df_1786900091742"
+        }
+      }
+    ]
+  },
+  "arithmetic": {
+    "orderTotalAmountCents": 127,
+    "itemSubtotalCents": 100,
+    "buyerSideResidualCents": 27,
+    "stripeChargeAmount": 127,
+    "stripeRefundTotal": 127,
+    "stripeTransferAmount": 88,
+    "stripeTransferReversalTotal": 88,
+    "dbRefundRowsSumCents": 215,
+    "dbRefundRowsSumEqualsBuyerPlusReversal": true,
+    "expectedSellerConsiderationRefundCents": 100
+  }
+}

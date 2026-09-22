@@ -1,0 +1,129 @@
+{
+  "readOnly": true,
+  "writes": 0,
+  "systemic": {
+    "totalTransactionsScanned": 7,
+    "totalRefundExceedsSaleCases": 1,
+    "yearsAffected": [
+      2026
+    ],
+    "sellersAffected": 1,
+    "totalExcessCents": 115,
+    "cases": [
+      {
+        "transaction": "txn_b7df…#45b034a0",
+        "transactionIdShape": "txn_<uuid>_<uuid>",
+        "sellerConsiderationCents": 100,
+        "refundTotalCents": 215,
+        "refundRows": 2,
+        "status": "REFUNDED",
+        "year": 2026
+      }
+    ]
+  },
+  "refundPopulation": {
+    "transactionsWithAnyRefund": 1,
+    "refundRowsTotal": 2
+  },
+  "details": [
+    {
+      "transaction": {
+        "id": "txn_b7df…#45b034a0",
+        "idShape": "txn_<uuid>_<uuid>",
+        "orderId": "b7df063b…#959a5662",
+        "productId": "fcc5ff2a…#64ea1434",
+        "seller": "7647bf21…#c6b10c40",
+        "buyer": "c54bbbcf…#7ce1a159",
+        "amountCents": 100,
+        "platformFeeBps": 1200,
+        "platformFeeCents": 12,
+        "status": "REFUNDED",
+        "provider": "STRIPE",
+        "providerRefShape": "cs_…",
+        "providerRef": "cs_live_b1nk3VYigeiF2dwMTDV4knrfPyJn9oqgB146ATA8vcAK6mfhNn4ZTZs69l",
+        "createdAt": "2026-08-16T16:14:01.120Z",
+        "reservationId": null,
+        "payouts": [
+          {
+            "amountCents": 88,
+            "createdAt": "2026-08-16T16:14:01.159Z",
+            "destination": null,
+            "providerRef": "tr_3U55jB2KvmKfeN9t1L9OEvJn"
+          }
+        ]
+      },
+      "refunds": [
+        {
+          "id": "refund_t…#8d6a9fdf",
+          "idShape": "refund_trr_<uuid>_trr_1U57Xc2KvmKfeN9tbtOtO8Je",
+          "amountCents": 88,
+          "createdAt": "2026-08-16T17:08:12.927Z",
+          "providerRef": "trr_1U57Xc2KvmKfeN9tbtOtO8Je",
+          "providerRefShape": "trr_…"
+        },
+        {
+          "id": "refund_b…#37314e1d",
+          "idShape": "refund_buyer_<uuid>_pyr_1U57Xd2KvmKfeN9t8Vgi1CuS",
+          "amountCents": 127,
+          "createdAt": "2026-08-16T17:08:14.322Z",
+          "providerRef": "pyr_1U57Xd2KvmKfeN9t8Vgi1CuS",
+          "providerRefShape": "pyr_…"
+        }
+      ],
+      "refundTotalCents": 215,
+      "order": {
+        "id": "b7df063b…#959a5662",
+        "status": "REFUNDED",
+        "totalAmount": 127,
+        "deliveryMode": "PICKUP",
+        "paymentMethod": "EUR_STRIPE",
+        "createdAt": "2026-08-16T16:13:57.561Z",
+        "updatedAt": "2026-08-16T17:08:14.420Z",
+        "stripeSessionIdShape": "cs_live_…",
+        "stripeSessionId": "cs_live_b1nk3VYigeiF2dwMTDV4knrfPyJn9oqgB146ATA8vcAK6mfhNn4ZTZs69l",
+        "platformFeeCollected": false,
+        "paymentHeld": false,
+        "payoutScheduled": false,
+        "payoutTrigger": null,
+        "shipping": {
+          "shippingCostCents": null,
+          "shippingLabelCostCents": null,
+          "shippingQuotedCents": null,
+          "shippingBuyerChargedCents": null,
+          "shippingActualCostCents": null,
+          "currency": null,
+          "carrier": null,
+          "method": null,
+          "status": null,
+          "quoteSnapshot": null,
+          "labels": []
+        },
+        "hc": {
+          "feeSnapshot": null,
+          "capturedHc": null,
+          "paymentPhase": null,
+          "exposures": []
+        },
+        "deliveryOrder": null,
+        "escrow": [],
+        "items": [
+          {
+            "id": "20d14683…#77e8d069",
+            "productId": "fcc5ff2a…#64ea1434",
+            "quantity": 1,
+            "priceCents": 100,
+            "lineTotalCents": 100,
+            "productTitle": "HomeCheff Design Studio",
+            "productPriceCents": 0,
+            "productCategory": "DESIGNER",
+            "productDelivery": "PICKUP",
+            "productSellerUser": "7647bf21…#c6b10c40",
+            "isTheLegUnderAudit": true
+          }
+        ],
+        "itemSubtotalCents": 100
+      },
+      "siblingTransactionsOnSameOrder": []
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "readOnly": true,
+  "writes": 0,
+  "transactionsTotal": 7,
+  "transactionsWithRefunds": 1,
+  "refundExceedsSaleCases": 1,
+  "yearsAffected": [
+    2026
+  ],
+  "sellersAffected": 1,
+  "totalExcessCents": 115,
+  "perTransaction": [
+    {
+      "year": 2026,
+      "sellerConsiderationCents": 100,
+      "sellerNetCents": 88,
+      "refundTotalCents": 215,
+      "exceedsConsideration": true,
+      "excessCents": 115,
+      "writePaths": [
+        {
+          "path": "RECIPIENT_REVERSAL (seller net)",
+          "amountCents": 88,
+          "scope": "EQUALS_SELLER_NET"
+        },
+        {
+          "path": "REFUND_SETTLEMENT (buyer total on single leg)",
+          "amountCents": 127,
+          "scope": "NEITHER (buyer-level or partial)"
+        }
+      ]
+    }
+  ],
+  "refundSettlements": {
+    "total": 1,
+    "completed": 1,
+    "singleSellerLeg": 1,
+    "singleLegWhereBuyerDiffersFromConsideration": 1,
+    "shapes": [
+      {
+        "status": "COMPLETED",
+        "mode": "FULL_BUYER_GROSS",
+        "sellerLegCount": 1,
+        "sellerConsiderationRefundCents": 100,
+        "buyerRefundCents": 127,
+        "hitsSingleLegBranch": true,
+        "branchWouldMisstate": true
+      }
+    ]
+  }
+}
