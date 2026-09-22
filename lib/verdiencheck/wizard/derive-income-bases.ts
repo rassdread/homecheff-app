@@ -38,6 +38,16 @@ import {
   type EmploymentExtraPayStatus,
 } from '../rulesets/nl/2026/employment-extras';
 import {
+  calculateCompanyCarAddition2026,
+  companyCarOwnContributionMonthlyCents,
+  type CompanyCarCategory,
+  type CompanyCarOwnContributionStatus,
+  type CompanyCarPrivateUse,
+  type CompanyCarResult,
+  type CompanyCarStatus,
+  type CompanyCarYearMonth,
+} from '../rulesets/nl/2026/company-car';
+import {
   PAYROLL_FORWARD_MODEL,
   PAYROLL_INVERSE_MODEL,
   resolvePayrollTaxCredit,
@@ -120,6 +130,8 @@ export type PayrollSnapshot = {
   pensionStatus: PayslipPensionStatus;
   pensionExplicitZero: boolean;
   otherBankDeductionCents: number;
+  companyCarAdditionCents: number;
+  companyCarOwnContributionCents: number;
   employeeZvwCents: number;
   differenceCents: number | null;
   iterations: number | null;
@@ -156,6 +168,12 @@ export type DerivedIncomeBases = {
    */
   employmentExtrasCents: number | null;
   employmentExtras: EmploymentExtraPayResult;
+  /**
+   * Annual taxable bijtelling privégebruik auto after the qualifying own
+   * contribution. It raises the fiscal wage only — it is never cash salary.
+   */
+  companyCarTaxableAnnualCents: number | null;
+  companyCar: CompanyCarResult;
   /** Summary of the derivation path. Per-basis truth lives in `basisProvenance`. */
   incomeSourcePrecedence: IncomeSourcePrecedence;
   basisProvenance: IncomeBasesProvenance;
@@ -199,6 +217,8 @@ function unusedPayroll(reason: string | null, eligible = false): PayrollSnapshot
     pensionStatus: 'NOT_SUPPLIED',
     pensionExplicitZero: false,
     otherBankDeductionCents: 0,
+    companyCarAdditionCents: 0,
+    companyCarOwnContributionCents: 0,
     employeeZvwCents: 0,
     differenceCents: null,
     iterations: null,
@@ -283,6 +303,124 @@ export function wizardEmploymentExtras(
     bonusCommissionAnnualCents: parseEuroInputToCents(state.bonusCommissionEuro),
     overtimeOtherAnnualCents: parseEuroInputToCents(state.overtimeOtherPayEuro),
   });
+}
+
+function companyCarYearMonth(rawYear: string, rawMonth: string): CompanyCarYearMonth | null {
+  const year = Number.parseInt(rawYear.trim(), 10);
+  const month = Number.parseInt(rawMonth.trim(), 10);
+  if (!Number.isInteger(year) || !Number.isInteger(month)) return null;
+  return { year, month };
+}
+
+/**
+ * The bijtelling is a taxable benefit on top of the contractual wage. It is
+ * skipped when the user supplied annual fiscal facts, because a known
+ * jaaropgave already contains kolom 4.
+ */
+export function wizardCompanyCar(state: WizardState): CompanyCarResult {
+  if (hasAdvancedFiscalIncome(state) || state.currentIncomeUnknown) {
+    return calculateCompanyCarAddition2026({ status: 'NOT_SUPPLIED' });
+  }
+  const status: CompanyCarStatus =
+    state.companyCarStatus === 'NONE' ||
+    state.companyCarStatus === 'PROVIDED' ||
+    state.companyCarStatus === 'UNKNOWN'
+      ? state.companyCarStatus
+      : 'NOT_SUPPLIED';
+  if (status !== 'PROVIDED') return calculateCompanyCarAddition2026({ status });
+
+  const privateUse: CompanyCarPrivateUse = state.companyCarPrivateUse ?? 'UNKNOWN';
+  const category: CompanyCarCategory = state.companyCarCategory ?? 'UNKNOWN';
+  const ownStatus: CompanyCarOwnContributionStatus =
+    state.companyCarOwnContributionStatus === 'NONE' ||
+    state.companyCarOwnContributionStatus === 'AMOUNT' ||
+    state.companyCarOwnContributionStatus === 'UNKNOWN'
+      ? state.companyCarOwnContributionStatus
+      : 'NOT_SUPPLIED';
+  const value = parseEuroInputToCents(state.companyCarValueEuro);
+  return calculateCompanyCarAddition2026({
+    status,
+    privateUse,
+    vehicleCategory: category,
+    firstAdmission: companyCarYearMonth(
+      state.companyCarFirstAdmissionYear,
+      state.companyCarFirstAdmissionMonth,
+    ),
+    firstRegistrationNl: companyCarYearMonth(
+      state.companyCarFirstRegistrationYear,
+      state.companyCarFirstRegistrationMonth,
+    ),
+    catalogueValueCents: value,
+    marketValueCents: value,
+    availableSince2025:
+      state.companyCarAvailableSince2025 === 'YES'
+        ? true
+        : state.companyCarAvailableSince2025 === 'NO'
+          ? false
+          : null,
+    ownContributionStatus: ownStatus,
+    ownContributionAnnualCents: parseEuroInputToCents(state.companyCarOwnContributionEuro),
+  });
+}
+
+export function shouldOfferCompanyCar(state: WizardState): boolean {
+  return shouldOfferEmploymentExtras(state);
+}
+
+/** True when the youngtimer route applies, so the market value is asked instead. */
+export function companyCarUsesMarketValue(state: WizardState): boolean {
+  const year = Number.parseInt(state.companyCarFirstAdmissionYear.trim(), 10);
+  if (!Number.isInteger(year)) return false;
+  if (year < 2010) return true;
+  return year === 2010 && state.companyCarAvailableSince2025 === 'YES';
+}
+
+/** The datum 1e tenaamstelling only matters before 2017 and for youngtimers. */
+export function companyCarNeedsRegistrationDate(state: WizardState): boolean {
+  const year = Number.parseInt(state.companyCarFirstAdmissionYear.trim(), 10);
+  if (!Number.isInteger(year)) return false;
+  const zeroEmission =
+    state.companyCarCategory === 'ZERO_EMISSION' ||
+    state.companyCarCategory === 'HYDROGEN' ||
+    state.companyCarCategory === 'QUALIFYING_SOLAR';
+  if (!zeroEmission) return false;
+  return year < 2017;
+}
+
+export function companyCarAsksTransitionalYoungtimer(state: WizardState): boolean {
+  return Number.parseInt(state.companyCarFirstAdmissionYear.trim(), 10) === 2010;
+}
+
+/** A "Ja" answer needs enough facts to apply an official 2026 rule. */
+export function companyCarEntryValid(state: WizardState): boolean {
+  if (state.companyCarStatus !== 'PROVIDED') return true;
+  if (state.companyCarPrivateUse == null) return false;
+  if (state.companyCarPrivateUse !== 'OVER_500') return true;
+  if (state.companyCarCategory == null) return false;
+  if (companyCarYearMonth(state.companyCarFirstAdmissionYear, state.companyCarFirstAdmissionMonth) == null) {
+    return false;
+  }
+  if (
+    companyCarNeedsRegistrationDate(state) &&
+    companyCarYearMonth(
+      state.companyCarFirstRegistrationYear,
+      state.companyCarFirstRegistrationMonth,
+    ) == null
+  ) {
+    return false;
+  }
+  if (companyCarAsksTransitionalYoungtimer(state) && state.companyCarAvailableSince2025 == null) {
+    return false;
+  }
+  if (parseEuroInputToCents(state.companyCarValueEuro) == null) return false;
+  if (state.companyCarOwnContributionStatus == null) return false;
+  if (
+    state.companyCarOwnContributionStatus === 'AMOUNT' &&
+    parseEuroInputToCents(state.companyCarOwnContributionEuro) == null
+  ) {
+    return false;
+  }
+  return true;
 }
 
 export function shouldOfferEmploymentExtras(state: WizardState): boolean {
@@ -457,6 +595,9 @@ function computePayrollSnapshot(
 
   const assumptionsCredit: PayrollSnapshot['payrollTaxCreditChoice'] = resolved.choice;
   const payslip = wizardPayslipInputs(state);
+  const car = wizardCompanyCar(state);
+  const carMonthly = car.taxableAdditionMonthlyCents ?? 0;
+  const carOwnMonthly = companyCarOwnContributionMonthlyCents(car);
   if (basis === 'GROSS') {
     const forward = calculateEmployeePayslip2026({
       contractualGrossMonthlyCents: monthlyCents,
@@ -464,6 +605,8 @@ function computePayrollSnapshot(
       pensionStatus: payslip.pensionStatus,
       employeePensionCents: payslip.employeePensionCents,
       otherBankDeductionCents: payslip.otherBankDeductionCents,
+      companyCarAdditionCents: carMonthly,
+      companyCarOwnContributionCents: carOwnMonthly,
     });
     if (forward.status !== 'OK') {
       return {
@@ -492,6 +635,8 @@ function computePayrollSnapshot(
       pensionStatus: forward.pensionStatus,
       pensionExplicitZero: forward.pensionExplicitZero,
       otherBankDeductionCents: forward.otherBankDeductionCents,
+      companyCarAdditionCents: forward.companyCarAdditionCents,
+      companyCarOwnContributionCents: forward.companyCarOwnContributionCents,
       employeeZvwCents: 0,
       differenceCents: 0,
       iterations: null,
@@ -507,6 +652,8 @@ function computePayrollSnapshot(
     pensionStatus: payslip.pensionStatus,
     employeePensionCents: payslip.employeePensionCents,
     otherBankDeductionCents: payslip.otherBankDeductionCents,
+    companyCarAdditionCents: carMonthly,
+    companyCarOwnContributionCents: carOwnMonthly,
   });
   if (inverted.status !== 'OK') {
     return {
@@ -535,6 +682,8 @@ function computePayrollSnapshot(
     pensionStatus: inverted.pensionStatus,
     pensionExplicitZero: payslip.pensionStatus === 'NONE',
     otherBankDeductionCents: inverted.otherBankDeductionCents,
+    companyCarAdditionCents: inverted.companyCarAdditionCents,
+    companyCarOwnContributionCents: inverted.companyCarOwnContributionCents,
     employeeZvwCents: 0,
     differenceCents: inverted.differenceCents,
     iterations: inverted.iterations,
@@ -570,6 +719,8 @@ function emptyBases(derivation: IncomeBaseDerivation, payroll?: PayrollSnapshot)
     holidayPayCents: null,
     employmentExtrasCents: null,
     employmentExtras: annualEmploymentExtrasCents({ status: 'NOT_SUPPLIED' }),
+    companyCarTaxableAnnualCents: null,
+    companyCar: calculateCompanyCarAddition2026({ status: 'NOT_SUPPLIED' }),
     incomeSourcePrecedence: 'UNKNOWN',
     basisProvenance: unknownProvenance(),
     payroll: payroll ?? unusedPayroll(derivation === 'UNKNOWN' ? 'UNKNOWN' : derivation),
@@ -632,6 +783,7 @@ function deriveEmployeeEstimate(input: {
   reconstructionStatus: string;
   payroll: PayrollSnapshot;
   employmentExtras: EmploymentExtraPayResult;
+  companyCar: CompanyCarResult;
 }): DerivedIncomeBases {
   const estimateKind: IncomeAmountProvenanceKind = input.netEstimate ? 'ESTIMATE' : 'DERIVED';
   const payrollUsed = input.payroll.used;
@@ -639,13 +791,20 @@ function deriveEmployeeEstimate(input: {
   // kolom 3 → kolom 14), so they join the salary before the pension aftrekpost.
   const extras = input.employmentExtras;
   const annual = input.reconstructedAnnual + extras.totalAnnualCents;
+  // The bijtelling is loon anders dan in geld (kolom 4). It belongs to the
+  // fiscal wage but never to the cash wage, so it is added here and not to
+  // `annual`, which drives the gross-salary presentation.
+  const car = input.companyCar;
+  const carAnnual = car.taxableAdditionAnnualCents ?? 0;
   const pensionAdj = annualPensionFiscalAdjustmentCents({
     pensionStatus: input.payroll.pensionStatus,
     employeePensionCents: input.payroll.employeePensionCents,
   });
-  const fiscal = Math.max(0, annual - pensionAdj.cents);
+  const fiscal = Math.max(0, annual + carAnnual - pensionAdj.cents);
   const fiscalKind: IncomeAmountProvenanceKind =
-    pensionAdj.estimate || extras.unknown ? 'ESTIMATE' : estimateKind;
+    pensionAdj.estimate || extras.unknown || car.unknown || car.ownContributionUnknown
+      ? 'ESTIMATE'
+      : estimateKind;
   const grossSource: IncomeBasisSource = input.netEstimate
     ? payrollUsed
       ? 'PAYROLL_WHITE_MONTHLY_2026'
@@ -683,6 +842,8 @@ function deriveEmployeeEstimate(input: {
     holidayPayCents: input.holidayCents || null,
     employmentExtrasCents: extras.provided || extras.explicitNone ? extras.totalAnnualCents : null,
     employmentExtras: extras,
+    companyCarTaxableAnnualCents: car.taxableAdditionAnnualCents,
+    companyCar: car,
     incomeSourcePrecedence: holidayPrecedence(
       input.state,
       { status: input.reconstructionStatus, holidayCents: input.holidayCents },
@@ -791,10 +952,13 @@ function deriveIncomeBasesCore(state: WizardState): DerivedIncomeBases {
       netToGrossConfidence: payroll.used ? 'ESTIMATE' : null,
       holidayPayUnresolved: false,
       holidayPayCents: null,
-      // A known jaaropgave already contains 13th month, bonus and overtime.
-      // Adding the extra-pay fields again would double count them.
+      // A known jaaropgave already contains 13th month, bonus, overtime and
+      // the bijtelling in kolom 4. Adding those fields again would double
+      // count them.
       employmentExtrasCents: null,
       employmentExtras: annualEmploymentExtrasCents({ status: 'NOT_SUPPLIED' }),
+      companyCarTaxableAnnualCents: null,
+      companyCar: calculateCompanyCarAddition2026({ status: 'NOT_SUPPLIED' }),
       incomeSourcePrecedence: advancedSummaryPrecedence({
         gross: advancedGross,
         box1: advancedBox1,
@@ -879,6 +1043,7 @@ function deriveIncomeBasesCore(state: WizardState): DerivedIncomeBases {
       employmentExtras: wizardEmploymentExtras(state, {
         contractualGrossMonthlyCents: Math.round(contractual / 12),
       }),
+      companyCar: wizardCompanyCar(state),
     });
   }
 
@@ -902,6 +1067,7 @@ function deriveIncomeBasesCore(state: WizardState): DerivedIncomeBases {
       reconstructionStatus: reconstructed.status,
       payroll,
       employmentExtras: wizardEmploymentExtras(state),
+      companyCar: wizardCompanyCar(state),
     });
   }
 

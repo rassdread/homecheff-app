@@ -75,7 +75,7 @@ function withExtras(partial: Partial<WizardState> = {}): WizardState {
   return employee({ payslipAccuracyRequested: true, extraPayStatus: 'PROVIDED', ...partial });
 }
 
-assert.equal(NL_2026_PACK.version, '2026.9-employment-extras');
+assert.equal(NL_2026_PACK.version, '2026.10-company-car');
 assert.equal(NL_2026_MODULE_STATUS.employmentExtras, 'CERTIFIED_FOR_EXTRA_EMPLOYMENT_PAY_V1');
 assert.equal(SRC_EMPLOYMENT_EXTRAS_2026.officialSourceUrl.includes('handboek-loonheffingen'), true);
 assert.match(SRC_EMPLOYMENT_EXTRAS_2026.officialSource, /bijzondere beloningen/);

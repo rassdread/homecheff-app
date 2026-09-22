@@ -45,6 +45,7 @@ export const NL_2026_MODULE_STATUS = {
   ownerOccupiedHome: 'CERTIFIED_FOR_OWNER_OCCUPIED_HOME_V1',
   employeePayslip: 'CERTIFIED_FOR_PENSION_BANK_NET_V1',
   employmentExtras: 'CERTIFIED_FOR_EXTRA_EMPLOYMENT_PAY_V1',
+  companyCar: 'CERTIFIED_FOR_COMPANY_CAR_BIJTELLING_V1',
 } as const;
 
 export type Nl2026ModuleId = keyof typeof NL_2026_MODULE_STATUS;

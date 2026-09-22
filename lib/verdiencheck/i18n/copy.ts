@@ -326,6 +326,58 @@ export type VerdienCheckCopy = {
   bonusCommissionRowLabel: string;
   overtimeOtherPayRowLabel: string;
   extraPayNotIncluded: string;
+  companyCarTitle: string;
+  companyCarQuestion: string;
+  companyCarNone: string;
+  companyCarYes: string;
+  companyCarUnknown: string;
+  companyCarPrivateUseQuestion: string;
+  companyCarPrivateUseOver: string;
+  companyCarPrivateUseUnder: string;
+  companyCarPrivateUseUnknown: string;
+  companyCarPrivateUseEvidenceNote: string;
+  companyCarCategoryQuestion: string;
+  companyCarCategoryCombustion: string;
+  companyCarCategoryElectric: string;
+  companyCarCategoryHydrogen: string;
+  companyCarCategorySolar: string;
+  companyCarCategoryUnknown: string;
+  companyCarFirstAdmissionLabel: string;
+  companyCarFirstAdmissionHelp: string;
+  companyCarFirstRegistrationLabel: string;
+  companyCarFirstRegistrationHelp: string;
+  companyCarYearLabel: string;
+  companyCarMonthLabel: string;
+  companyCarCatalogueValueLabel: string;
+  companyCarCatalogueValueHelp: string;
+  companyCarMarketValueLabel: string;
+  companyCarMarketValueHelp: string;
+  companyCarSince2025Question: string;
+  companyCarSince2025Yes: string;
+  companyCarSince2025No: string;
+  companyCarSince2025Unknown: string;
+  companyCarOwnContributionQuestion: string;
+  companyCarOwnContributionNone: string;
+  companyCarOwnContributionAmount: string;
+  companyCarOwnContributionUnknownOption: string;
+  companyCarOwnContributionAmountAsk: string;
+  companyCarOwnContributionHelp: string;
+  companyCarLabel: string;
+  companyCarTaxablePerMonth: string;
+  companyCarNotIncluded: string;
+  companyCarNoAddition: string;
+  companyCarPartial: string;
+  viewCompanyCarBreakdown: string;
+  companyCarValuationLabel: string;
+  companyCarGrossAdditionLabel: string;
+  companyCarOwnContributionRowLabel: string;
+  companyCarTaxableAdditionLabel: string;
+  companyCarWhyTitle: string;
+  companyCarWhyBody: string;
+  payslipCompanyCarLabel: string;
+  payslipCompanyCarOwnContributionLabel: string;
+  payslipCashGrossLabel: string;
+  payslipTaxableWageLabel: string;
   housingHeading: string;
   housingOwnerLabel: string;
   housingRentLabel: string;
@@ -742,6 +794,65 @@ const NL: VerdienCheckCopy = {
   bonusCommissionRowLabel: 'Bonus / commissie',
   overtimeOtherPayRowLabel: 'Overig belastbaar loon',
   extraPayNotIncluded: 'Extra loon niet meegenomen',
+  companyCarTitle: 'Auto van de zaak',
+  companyCarQuestion: 'Heb je een auto van de zaak die je ook privé kunt gebruiken?',
+  companyCarNone: 'Nee',
+  companyCarYes: 'Ja',
+  companyCarUnknown: 'Weet ik niet',
+  companyCarPrivateUseQuestion: 'Rijd je meer dan 500 km per jaar privé met deze auto?',
+  companyCarPrivateUseOver: 'Ja',
+  companyCarPrivateUseUnder: 'Nee, en ik kan dit aantonen',
+  companyCarPrivateUseUnknown: 'Weet ik niet',
+  companyCarPrivateUseEvidenceNote:
+    'De Belastingdienst laat de bijtelling alleen weg bij maximaal 500 privékilometers per kalenderjaar met een sluitende rittenregistratie, ander bewijs of een "Verklaring geen privégebruik auto".',
+  companyCarCategoryQuestion: 'Wat voor auto is het?',
+  companyCarCategoryCombustion: 'Benzine, diesel, hybride of overig',
+  companyCarCategoryElectric: 'Volledig elektrisch',
+  companyCarCategoryHydrogen: 'Waterstof',
+  companyCarCategorySolar: 'Zonnecelauto',
+  companyCarCategoryUnknown: 'Weet ik niet',
+  companyCarFirstAdmissionLabel: 'Datum eerste toelating',
+  companyCarFirstAdmissionHelp:
+    'De datum waarop de auto voor het eerst op de weg is toegelaten. Je vindt die op het kentekenbewijs en op rdw.nl.',
+  companyCarFirstRegistrationLabel: 'Datum eerste tenaamstelling',
+  companyCarFirstRegistrationHelp:
+    'De datum waarop het kenteken voor het eerst in Nederland op naam is gezet. Die bepaalt het percentage voor auto’s van vóór 2017.',
+  companyCarYearLabel: 'Jaar',
+  companyCarMonthLabel: 'Maand',
+  companyCarCatalogueValueLabel: 'Cataloguswaarde van de auto',
+  companyCarCatalogueValueHelp:
+    'De Nederlandse catalogusprijs inclusief btw en bpm op de datum eerste toelating. Dit is dus niet de aanschafprijs, de huidige waarde of het leasebedrag. Je vindt de catalogusprijs in de database van de RDW.',
+  companyCarMarketValueLabel: 'Geschatte waarde in het economisch verkeer',
+  companyCarMarketValueHelp:
+    'Voor een auto ouder dan 16 jaar rekent de Belastingdienst met de waarde in het economisch verkeer in plaats van de cataloguswaarde. Denk aan veiling-, taxatie- of verzekeringswaarde.',
+  companyCarSince2025Question: 'Had je deze auto in 2025 al van je werkgever?',
+  companyCarSince2025Yes: 'Ja',
+  companyCarSince2025No: 'Nee',
+  companyCarSince2025Unknown: 'Weet ik niet',
+  companyCarOwnContributionQuestion: 'Betaal je zelf een bijdrage voor privégebruik van de auto?',
+  companyCarOwnContributionNone: 'Nee',
+  companyCarOwnContributionAmount: 'Ja',
+  companyCarOwnContributionUnknownOption: 'Weet ik niet',
+  companyCarOwnContributionAmountAsk: 'Hoeveel betaal je per jaar voor privégebruik?',
+  companyCarOwnContributionHelp:
+    'Het gaat om de bijdrage voor privégebruik die je werkgever op je nettoloon inhoudt. Die verlaagt de belastbare bijtelling. Betalingen aan anderen, bijvoorbeeld de wasstraat, tellen niet mee.',
+  companyCarLabel: 'Auto van de zaak',
+  companyCarTaxablePerMonth: 'belastbaar / maand',
+  companyCarNotIncluded: 'Auto van de zaak niet meegenomen',
+  companyCarNoAddition: 'Geen bijtelling (maximaal 500 km privé, aantoonbaar)',
+  companyCarPartial: 'Bijtelling nog niet te berekenen',
+  viewCompanyCarBreakdown: 'Bekijk bijtelling',
+  companyCarValuationLabel: 'Grondslag',
+  companyCarGrossAdditionLabel: 'Waarde privégebruik',
+  companyCarOwnContributionRowLabel: 'Eigen bijdrage privégebruik auto',
+  companyCarTaxableAdditionLabel: 'Belastbare bijtelling',
+  companyCarWhyTitle: 'Waarom telt een auto van de zaak mee?',
+  companyCarWhyBody:
+    'Als je een auto van de zaak ook privé gebruikt, kan een bedrag voor privégebruik bij je belastbare loon worden opgeteld. Je ontvangt dat bedrag niet op je rekening, maar het kan wel je belasting en je toetsingsinkomen voor toeslagen beïnvloeden.',
+  payslipCompanyCarLabel: 'Bijtelling auto',
+  payslipCompanyCarOwnContributionLabel: 'Eigen bijdrage auto',
+  payslipCashGrossLabel: 'Cash bruto',
+  payslipTaxableWageLabel: 'Loon voor loonheffing',
   housingHeading: 'Wonen',
   housingOwnerLabel: 'Koopwoning',
   housingRentLabel: 'Huur',
@@ -1193,6 +1304,15 @@ const NL: VerdienCheckCopy = {
         UNKNOWN: 'Weet ik niet',
       },
     },
+    companyCar: {
+      title: 'Auto van de zaak',
+      help: 'Een auto van de zaak die je privé gebruikt telt mee als belastbaar loon. Je krijgt het bedrag niet op je rekening.',
+      options: {
+        NONE: 'Nee',
+        PROVIDED: 'Ja',
+        UNKNOWN: 'Weet ik niet',
+      },
+    },
     amounts: { title: 'Wat denk je ongeveer te verkopen dit jaar?' },
     otherVatTurnover: {
       title: 'Verkoop je hetzelfde ook buiten HomeCheff?',
@@ -1609,6 +1729,65 @@ const EN: VerdienCheckCopy = {
   bonusCommissionRowLabel: 'Bonus / commission',
   overtimeOtherPayRowLabel: 'Other taxable pay',
   extraPayNotIncluded: 'Extra pay not included',
+  companyCarTitle: 'Company car',
+  companyCarQuestion: 'Do you have a company car that you may also use privately?',
+  companyCarNone: 'No',
+  companyCarYes: 'Yes',
+  companyCarUnknown: 'I don’t know',
+  companyCarPrivateUseQuestion: 'Do you drive more than 500 private kilometres a year in this car?',
+  companyCarPrivateUseOver: 'Yes',
+  companyCarPrivateUseUnder: 'No, and I can prove it',
+  companyCarPrivateUseUnknown: 'I don’t know',
+  companyCarPrivateUseEvidenceNote:
+    'The Tax Administration only leaves out the addition for at most 500 private kilometres per calendar year with a complete trip registration, other evidence, or a "Verklaring geen privégebruik auto".',
+  companyCarCategoryQuestion: 'What kind of car is it?',
+  companyCarCategoryCombustion: 'Petrol, diesel, hybrid or other',
+  companyCarCategoryElectric: 'Fully electric',
+  companyCarCategoryHydrogen: 'Hydrogen',
+  companyCarCategorySolar: 'Integrated solar-cell car',
+  companyCarCategoryUnknown: 'I don’t know',
+  companyCarFirstAdmissionLabel: 'Date of first admission',
+  companyCarFirstAdmissionHelp:
+    'The date the car was first admitted to the road. You find it on the vehicle registration and on rdw.nl.',
+  companyCarFirstRegistrationLabel: 'Date of first Dutch registration',
+  companyCarFirstRegistrationHelp:
+    'The date the registration was first put in a name in the Netherlands. It sets the percentage for cars admitted before 2017.',
+  companyCarYearLabel: 'Year',
+  companyCarMonthLabel: 'Month',
+  companyCarCatalogueValueLabel: 'Catalogue value of the car',
+  companyCarCatalogueValueHelp:
+    'The Dutch catalogue price including VAT and bpm on the date of first admission. So not the purchase price, the current value or the lease amount. You can look it up in the RDW database.',
+  companyCarMarketValueLabel: 'Estimated market value',
+  companyCarMarketValueHelp:
+    'For a car older than 16 years the Tax Administration uses the market value instead of the catalogue value. Think of auction, appraisal or insurance value.',
+  companyCarSince2025Question: 'Did your employer already provide this car to you in 2025?',
+  companyCarSince2025Yes: 'Yes',
+  companyCarSince2025No: 'No',
+  companyCarSince2025Unknown: 'I don’t know',
+  companyCarOwnContributionQuestion: 'Do you pay a contribution for private use of the car?',
+  companyCarOwnContributionNone: 'No',
+  companyCarOwnContributionAmount: 'Yes',
+  companyCarOwnContributionUnknownOption: 'I don’t know',
+  companyCarOwnContributionAmountAsk: 'How much do you pay per year for private use?',
+  companyCarOwnContributionHelp:
+    'This is the contribution for private use that your employer withholds from your net pay. It lowers the taxable addition. Payments to third parties, such as a car wash, do not count.',
+  companyCarLabel: 'Company car',
+  companyCarTaxablePerMonth: 'taxable / month',
+  companyCarNotIncluded: 'Company car not included',
+  companyCarNoAddition: 'No addition (at most 500 private km, evidenced)',
+  companyCarPartial: 'Addition cannot be calculated yet',
+  viewCompanyCarBreakdown: 'View addition',
+  companyCarValuationLabel: 'Basis',
+  companyCarGrossAdditionLabel: 'Value of private use',
+  companyCarOwnContributionRowLabel: 'Own contribution for private use',
+  companyCarTaxableAdditionLabel: 'Taxable addition',
+  companyCarWhyTitle: 'Why does a company car count?',
+  companyCarWhyBody:
+    'If you also use a company car privately, an amount for that private use can be added to your taxable wage. You do not receive that amount in your account, but it can affect your tax and the income used for allowances.',
+  payslipCompanyCarLabel: 'Car addition',
+  payslipCompanyCarOwnContributionLabel: 'Own contribution car',
+  payslipCashGrossLabel: 'Cash gross',
+  payslipTaxableWageLabel: 'Wage for payroll tax',
   housingHeading: 'Housing',
   housingOwnerLabel: 'Owner-occupied home',
   housingRentLabel: 'Rent',
@@ -2046,6 +2225,15 @@ const EN: VerdienCheckCopy = {
     employmentExtras: {
       title: 'Extra pay',
       help: 'Holiday allowance belongs in the question above. Only enter pay you receive on top of your regular salary, gross per year.',
+      options: {
+        NONE: 'No',
+        PROVIDED: 'Yes',
+        UNKNOWN: 'I don’t know',
+      },
+    },
+    companyCar: {
+      title: 'Company car',
+      help: 'A company car you also use privately counts as taxable wage. You do not receive that amount in your account.',
       options: {
         NONE: 'No',
         PROVIDED: 'Yes',

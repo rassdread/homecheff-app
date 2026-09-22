@@ -484,7 +484,7 @@ assert.equal(NL_2026_MODULE_STATUS.foodSafetyGuidance, 'CERTIFIED');
 assert.equal(NL_2026_MODULE_STATUS.allergenGuidance, 'CERTIFIED');
 assert.equal(NL_2026_MODULE_STATUS.prepackedLabelGuidance, 'PARTIAL');
 assert.equal(NL_2026_MODULE_STATUS.animalOriginRecognitionGuidance, 'CERTIFIED_FOR_REVIEW_ONLY');
-assert.equal(NL_2026_PACK.version, '2026.9-employment-extras');
+assert.equal(NL_2026_PACK.version, '2026.10-company-car');
 assert.equal(NL_2026_PACK.status, 'DRAFT');
 
 const faq = fs.readFileSync(

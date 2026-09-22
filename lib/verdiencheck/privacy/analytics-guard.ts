@@ -179,6 +179,22 @@ export const FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS = [
   'eindejaarsuitkering',
   'extra_wage',
   'extra_pay',
+  'company_car',
+  'companycar',
+  'auto_van_de_zaak',
+  'autovandezaak',
+  'bijtelling',
+  'car_value',
+  'catalogue',
+  'catalogus',
+  'cataloguswaarde',
+  'youngtimer',
+  'vehicle_value',
+  'own_contribution',
+  'eigen_bijdrage',
+  'eigen_bijdrage_auto',
+  'kenteken',
+  'leasebedrag',
 ] as const;
 
 const FORBIDDEN_VALUE_TOKENS = [

@@ -87,6 +87,22 @@ export type BaselinePresentationFacts = {
   thirteenthMonthCents?: number | null;
   bonusCommissionCents?: number | null;
   overtimeOtherPayCents?: number | null;
+  companyCarTaxableAnnualCents?: number | null;
+  companyCarTaxableMonthlyCents?: number | null;
+  companyCarStatus?: 'NONE' | 'PROVIDED' | 'UNKNOWN' | 'NOT_SUPPLIED' | null;
+  companyCarResolution?:
+    | 'NO_CAR'
+    | 'NO_ADDITION'
+    | 'CALCULATED'
+    | 'PARTIAL'
+    | 'UNKNOWN'
+    | 'NOT_SUPPLIED'
+    | null;
+  companyCarGrossAdditionCents?: number | null;
+  companyCarOwnContributionCents?: number | null;
+  companyCarOwnContributionUnknown?: boolean;
+  payrollCompanyCarAdditionCents?: number | null;
+  payrollCompanyCarOwnContributionCents?: number | null;
   fiscalWageCents: number | null;
   assessmentIncomeCents: number | null;
   enteredNetMonthlyCents: number | null;
@@ -124,6 +140,22 @@ export type CurrentBaselineView = {
   thirteenthMonthCents: number | null;
   bonusCommissionCents: number | null;
   overtimeOtherPayCents: number | null;
+  companyCarTaxableAnnualCents: number | null;
+  companyCarTaxableMonthlyCents: number | null;
+  companyCarStatus: 'NONE' | 'PROVIDED' | 'UNKNOWN' | 'NOT_SUPPLIED' | null;
+  companyCarResolution:
+    | 'NO_CAR'
+    | 'NO_ADDITION'
+    | 'CALCULATED'
+    | 'PARTIAL'
+    | 'UNKNOWN'
+    | 'NOT_SUPPLIED'
+    | null;
+  companyCarGrossAdditionCents: number | null;
+  companyCarOwnContributionCents: number | null;
+  companyCarOwnContributionUnknown: boolean;
+  payrollCompanyCarAdditionCents: number | null;
+  payrollCompanyCarOwnContributionCents: number | null;
   fiscalWageCents: number | null;
   assessmentIncomeCents: number | null;
   enteredNetMonthlyCents: number | null;

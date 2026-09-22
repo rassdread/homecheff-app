@@ -86,10 +86,15 @@ import {
   type TaxResidenceChoice,
 } from '@/lib/verdiencheck/wizard/schema';
 import {
+  companyCarAsksTransitionalYoungtimer,
+  companyCarEntryValid,
+  companyCarNeedsRegistrationDate,
+  companyCarUsesMarketValue,
   deriveIncomeBasesFromUserFacts,
   employmentExtrasEntryValid,
   shouldAskNetDepositKind,
   shouldAskPayrollTaxCredit,
+  shouldOfferCompanyCar,
   shouldOfferEmploymentExtras,
   shouldOfferPayslipAccuracy,
   thirteenthMonthHelperAvailable,
@@ -381,6 +386,14 @@ export default function VerdienCheckWizard(props: {
       thirteenthMonthCents: derivedIncomeBases.employmentExtras.thirteenthMonthAnnualCents,
       bonusCommissionCents: derivedIncomeBases.employmentExtras.bonusCommissionAnnualCents,
       overtimeOtherPayCents: derivedIncomeBases.employmentExtras.overtimeOtherAnnualCents,
+      companyCarTaxableAnnualCents: derivedIncomeBases.companyCarTaxableAnnualCents,
+      companyCarTaxableMonthlyCents: derivedIncomeBases.companyCar.taxableAdditionMonthlyCents,
+      companyCarStatus: derivedIncomeBases.companyCar.status,
+      companyCarResolution: derivedIncomeBases.companyCar.resolution,
+      companyCarGrossAdditionCents:
+        derivedIncomeBases.companyCar.grossAdditionBeforeOwnContributionCents,
+      companyCarOwnContributionCents: derivedIncomeBases.companyCar.ownContributionAppliedCents,
+      companyCarOwnContributionUnknown: derivedIncomeBases.companyCar.ownContributionUnknown,
       fiscalWageCents: derivedIncomeBases.fiscalWageCents,
       assessmentIncomeCents: derivedIncomeBases.baselineAssessmentIncomeCents,
       enteredNetMonthlyCents,
@@ -393,6 +406,9 @@ export default function VerdienCheckWizard(props: {
       pensionStatus: derivedIncomeBases.payroll.pensionStatus,
       pensionExplicitZero: derivedIncomeBases.payroll.pensionExplicitZero,
       otherBankDeductionCents: derivedIncomeBases.payroll.otherBankDeductionCents,
+      payrollCompanyCarAdditionCents: derivedIncomeBases.payroll.companyCarAdditionCents,
+      payrollCompanyCarOwnContributionCents:
+        derivedIncomeBases.payroll.companyCarOwnContributionCents,
       payrollUsed: derivedIncomeBases.payroll.used,
       payrollTaxCredit: derivedIncomeBases.payroll.payrollTaxCreditChoice,
       payrollTaxCreditAssumed: derivedIncomeBases.payroll.payrollTaxCreditAssumed,
@@ -475,6 +491,14 @@ export default function VerdienCheckWizard(props: {
       if (state.extraPayStatus == null) return;
       if (state.extraPayStatus === 'PROVIDED' && !employmentExtrasEntryValid(state)) return;
       if (state.moneyDepthCompleted) {
+        setStep(shouldOfferCompanyCar(state) ? 'companyCar' : 'result');
+        return;
+      }
+    }
+    if (step === 'companyCar') {
+      if (state.companyCarStatus == null) return;
+      if (!companyCarEntryValid(state)) return;
+      if (state.moneyDepthCompleted) {
         setStep('result');
         return;
       }
@@ -507,6 +531,10 @@ export default function VerdienCheckWizard(props: {
     }
     if (step === 'employmentExtras' && state.moneyDepthCompleted) {
       setStep(shouldOfferPayslipAccuracy(state) ? 'payslipDeductions' : 'result');
+      return;
+    }
+    if (step === 'companyCar' && state.moneyDepthCompleted) {
+      setStep(shouldOfferEmploymentExtras(state) ? 'employmentExtras' : 'result');
       return;
     }
     const p = previousStep(state, step);
@@ -2334,6 +2362,271 @@ export default function VerdienCheckWizard(props: {
             </div>
           )}
 
+          {step === 'companyCar' && (
+            <div className="space-y-4" data-verdiencheck-company-car="">
+              <p className="text-base font-medium text-gray-900">{copy.companyCarQuestion}</p>
+              {(
+                [
+                  ['NONE', copy.companyCarNone],
+                  ['PROVIDED', copy.companyCarYes],
+                  ['UNKNOWN', copy.companyCarUnknown],
+                ] as const
+              ).map(([key, label]) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.companyCarStatus === key}
+                  onClick={() =>
+                    setState(
+                      key === 'PROVIDED'
+                        ? { ...state, companyCarStatus: key }
+                        : {
+                            ...state,
+                            companyCarStatus: key,
+                            companyCarPrivateUse: null,
+                            companyCarCategory: null,
+                            companyCarFirstAdmissionYear: '',
+                            companyCarFirstAdmissionMonth: '',
+                            companyCarFirstRegistrationYear: '',
+                            companyCarFirstRegistrationMonth: '',
+                            companyCarValueEuro: '',
+                            companyCarAvailableSince2025: null,
+                            companyCarOwnContributionStatus: null,
+                            companyCarOwnContributionEuro: '',
+                          },
+                    )
+                  }
+                >
+                  {label}
+                </ChoiceButton>
+              ))}
+              {state.companyCarStatus === 'PROVIDED' ? (
+                <div className="space-y-4" data-verdiencheck-company-car-details="">
+                  <p className="text-base text-gray-700">{copy.companyCarPrivateUseQuestion}</p>
+                  {(
+                    [
+                      ['OVER_500', copy.companyCarPrivateUseOver],
+                      ['AT_OR_BELOW_500_WITH_EVIDENCE', copy.companyCarPrivateUseUnder],
+                      ['UNKNOWN', copy.companyCarPrivateUseUnknown],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <ChoiceButton
+                      key={key}
+                      selected={state.companyCarPrivateUse === key}
+                      onClick={() => setState({ ...state, companyCarPrivateUse: key })}
+                    >
+                      {label}
+                    </ChoiceButton>
+                  ))}
+                  <p className="text-sm leading-relaxed text-gray-600">
+                    {copy.companyCarPrivateUseEvidenceNote}
+                  </p>
+                  {state.companyCarPrivateUse === 'OVER_500' ? (
+                    <div className="space-y-4">
+                      <p className="text-base text-gray-700">{copy.companyCarCategoryQuestion}</p>
+                      {(
+                        [
+                          ['COMBUSTION_OR_OTHER', copy.companyCarCategoryCombustion],
+                          ['ZERO_EMISSION', copy.companyCarCategoryElectric],
+                          ['HYDROGEN', copy.companyCarCategoryHydrogen],
+                          ['QUALIFYING_SOLAR', copy.companyCarCategorySolar],
+                          ['UNKNOWN', copy.companyCarCategoryUnknown],
+                        ] as const
+                      ).map(([key, label]) => (
+                        <ChoiceButton
+                          key={key}
+                          selected={state.companyCarCategory === key}
+                          onClick={() => setState({ ...state, companyCarCategory: key })}
+                        >
+                          {label}
+                        </ChoiceButton>
+                      ))}
+                      {state.companyCarCategory != null && state.companyCarCategory !== 'UNKNOWN' ? (
+                        <div className="space-y-4">
+                          <fieldset className="space-y-1">
+                            <legend className="text-base text-gray-700">
+                              {copy.companyCarFirstAdmissionLabel}
+                            </legend>
+                            <p className="text-sm leading-relaxed text-gray-600">
+                              {copy.companyCarFirstAdmissionHelp}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              <input
+                                inputMode="numeric"
+                                value={state.companyCarFirstAdmissionYear}
+                                onChange={(e) =>
+                                  setState({
+                                    ...state,
+                                    companyCarFirstAdmissionYear: e.target.value,
+                                  })
+                                }
+                                className={`${FIELD} min-w-0 flex-1`}
+                                placeholder={copy.companyCarYearLabel}
+                                aria-label={`${copy.companyCarFirstAdmissionLabel} — ${copy.companyCarYearLabel}`}
+                              />
+                              <input
+                                inputMode="numeric"
+                                value={state.companyCarFirstAdmissionMonth}
+                                onChange={(e) =>
+                                  setState({
+                                    ...state,
+                                    companyCarFirstAdmissionMonth: e.target.value,
+                                  })
+                                }
+                                className={`${FIELD} min-w-0 flex-1`}
+                                placeholder={copy.companyCarMonthLabel}
+                                aria-label={`${copy.companyCarFirstAdmissionLabel} — ${copy.companyCarMonthLabel}`}
+                              />
+                            </div>
+                          </fieldset>
+                          {companyCarAsksTransitionalYoungtimer(state) ? (
+                            <div className="space-y-2">
+                              <p className="text-base text-gray-700">
+                                {copy.companyCarSince2025Question}
+                              </p>
+                              {(
+                                [
+                                  ['YES', copy.companyCarSince2025Yes],
+                                  ['NO', copy.companyCarSince2025No],
+                                  ['UNKNOWN', copy.companyCarSince2025Unknown],
+                                ] as const
+                              ).map(([key, label]) => (
+                                <ChoiceButton
+                                  key={key}
+                                  selected={state.companyCarAvailableSince2025 === key}
+                                  onClick={() =>
+                                    setState({ ...state, companyCarAvailableSince2025: key })
+                                  }
+                                >
+                                  {label}
+                                </ChoiceButton>
+                              ))}
+                            </div>
+                          ) : null}
+                          {companyCarNeedsRegistrationDate(state) ? (
+                            <fieldset className="space-y-1">
+                              <legend className="text-base text-gray-700">
+                                {copy.companyCarFirstRegistrationLabel}
+                              </legend>
+                              <p className="text-sm leading-relaxed text-gray-600">
+                                {copy.companyCarFirstRegistrationHelp}
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                <input
+                                  inputMode="numeric"
+                                  value={state.companyCarFirstRegistrationYear}
+                                  onChange={(e) =>
+                                    setState({
+                                      ...state,
+                                      companyCarFirstRegistrationYear: e.target.value,
+                                    })
+                                  }
+                                  className={`${FIELD} min-w-0 flex-1`}
+                                  placeholder={copy.companyCarYearLabel}
+                                  aria-label={`${copy.companyCarFirstRegistrationLabel} — ${copy.companyCarYearLabel}`}
+                                />
+                                <input
+                                  inputMode="numeric"
+                                  value={state.companyCarFirstRegistrationMonth}
+                                  onChange={(e) =>
+                                    setState({
+                                      ...state,
+                                      companyCarFirstRegistrationMonth: e.target.value,
+                                    })
+                                  }
+                                  className={`${FIELD} min-w-0 flex-1`}
+                                  placeholder={copy.companyCarMonthLabel}
+                                  aria-label={`${copy.companyCarFirstRegistrationLabel} — ${copy.companyCarMonthLabel}`}
+                                />
+                              </div>
+                            </fieldset>
+                          ) : null}
+                          <label className="block">
+                            <span className="text-base text-gray-700">
+                              {companyCarUsesMarketValue(state)
+                                ? copy.companyCarMarketValueLabel
+                                : copy.companyCarCatalogueValueLabel}
+                            </span>
+                            <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                              {companyCarUsesMarketValue(state)
+                                ? copy.companyCarMarketValueHelp
+                                : copy.companyCarCatalogueValueHelp}
+                            </p>
+                            <input
+                              inputMode="decimal"
+                              value={state.companyCarValueEuro}
+                              onChange={(e) =>
+                                setState({ ...state, companyCarValueEuro: e.target.value })
+                              }
+                              className={`mt-1 ${FIELD}`}
+                              placeholder="€"
+                              aria-label={
+                                companyCarUsesMarketValue(state)
+                                  ? copy.companyCarMarketValueLabel
+                                  : copy.companyCarCatalogueValueLabel
+                              }
+                            />
+                          </label>
+                          <p className="text-base text-gray-700">
+                            {copy.companyCarOwnContributionQuestion}
+                          </p>
+                          {(
+                            [
+                              ['NONE', copy.companyCarOwnContributionNone],
+                              ['AMOUNT', copy.companyCarOwnContributionAmount],
+                              ['UNKNOWN', copy.companyCarOwnContributionUnknownOption],
+                            ] as const
+                          ).map(([key, label]) => (
+                            <ChoiceButton
+                              key={key}
+                              selected={state.companyCarOwnContributionStatus === key}
+                              onClick={() =>
+                                setState({
+                                  ...state,
+                                  companyCarOwnContributionStatus: key,
+                                  companyCarOwnContributionEuro:
+                                    key === 'AMOUNT' ? state.companyCarOwnContributionEuro : '',
+                                })
+                              }
+                            >
+                              {label}
+                            </ChoiceButton>
+                          ))}
+                          {state.companyCarOwnContributionStatus === 'AMOUNT' ? (
+                            <label className="block">
+                              <span className="text-base text-gray-700">
+                                {copy.companyCarOwnContributionAmountAsk}
+                              </span>
+                              <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                                {copy.companyCarOwnContributionHelp}
+                              </p>
+                              <input
+                                inputMode="decimal"
+                                value={state.companyCarOwnContributionEuro}
+                                onChange={(e) =>
+                                  setState({
+                                    ...state,
+                                    companyCarOwnContributionEuro: e.target.value,
+                                  })
+                                }
+                                className={`mt-1 ${FIELD}`}
+                                placeholder="€"
+                                aria-label={copy.companyCarOwnContributionAmountAsk}
+                              />
+                            </label>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  <p className="text-sm leading-relaxed text-gray-600">{copy.companyCarWhyBody}</p>
+                </div>
+              ) : null}
+              <button type="button" className={NEXT_BTN} onClick={goNext}>
+                {copy.next}
+              </button>
+            </div>
+          )}
+
           {step === 'amounts' && (
             <div className="space-y-4">
               <p className="text-base leading-relaxed text-gray-700">{copy.moneyExplain}</p>
@@ -2680,7 +2973,8 @@ export default function VerdienCheckWizard(props: {
                     (shouldOfferPayslipAccuracy(state) &&
                       state.pensionDeductionStatus !== 'NONE' &&
                       state.pensionDeductionStatus !== 'AMOUNT') ||
-                    (shouldOfferEmploymentExtras(state) && state.extraPayStatus == null)
+                    (shouldOfferEmploymentExtras(state) && state.extraPayStatus == null) ||
+                    (shouldOfferCompanyCar(state) && state.companyCarStatus == null)
                       ? () => {
                           const next = { ...state, payslipAccuracyRequested: true };
                           setState(next);
@@ -2689,7 +2983,9 @@ export default function VerdienCheckWizard(props: {
                               next.pensionDeductionStatus !== 'NONE' &&
                               next.pensionDeductionStatus !== 'AMOUNT'
                               ? 'payslipDeductions'
-                              : 'employmentExtras',
+                              : shouldOfferEmploymentExtras(next) && next.extraPayStatus == null
+                                ? 'employmentExtras'
+                                : 'companyCar',
                           );
                         }
                       : undefined

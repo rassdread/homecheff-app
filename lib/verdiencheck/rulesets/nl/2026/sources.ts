@@ -429,6 +429,33 @@ export const SRC_EMPLOYMENT_EXTRAS_2026 = {
   verifiedAt: '2026-09-22',
 } as const;
 
+export const SRC_COMPANY_CAR_2026 = {
+  officialSource:
+    'Belastingdienst — Handboek Loonheffingen 2026 (maart): §23.3.1 regeling privégebruik auto, §23.3.2 grondslag (cataloguswaarde incl. bpm en btw), §23.3.3 algemene percentages 22%/25%/35%, §23.3.4 auto’s zonder CO2-uitstoot en 60-maandentermijn, §23.3.5 geen korting meer bij beperkte CO2-uitstoot, §23.3.7 eigen bijdrage privégebruik, §23.3.15 geen bijtelling bij maximaal 500 km, §23.3.20 auto’s ouder dan 16 jaar, §23.3.22 gevolgen voor loongerelateerde regelingen, §11.2.4 kolom 4 loon anders dan in geld',
+  officialSourceUrl:
+    'https://download.belastingdienst.nl/belastingdienst/docs/handboek-loonheffingen-lh0221t61fd.pdf',
+  publication: 'Handboek Loonheffingen 2026, uitgave maart 2026, §23.3 en §11.2.4',
+  effectiveFrom: '2026-01-01',
+  verifiedAt: '2026-09-22',
+} as const;
+
+export const SRC_COMPANY_CAR_RATES_2026 = {
+  officialSource:
+    'Belastingdienst — Bijtelling privégebruik auto 2026: 18% en 22%, 18% zonder cap voor waterstof- en zonnecelauto’s, 18% tot € 30.000 cataloguswaarde voor overige nulemissie-auto’s',
+  officialSourceUrl:
+    'https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/winst/inkomstenbelasting/veranderingen-inkomstenbelasting-2026/bijtelling-privegebruik-auto-2026',
+  effectiveFrom: '2026-01-01',
+  verifiedAt: '2026-09-22',
+} as const;
+
+export const SRC_ARBEIDSINKOMEN_WET_IB = {
+  officialSource:
+    'Wet inkomstenbelasting 2001, artikel 8.1 lid 1 onderdeel e: arbeidsinkomen is het gezamenlijke bedrag van hetgeen met tegenwoordige arbeid is genoten als winst, loon en resultaat',
+  officialSourceUrl: 'https://wetten.overheid.nl/jci1.3:c:BWBR0011353&hoofdstuk=8&artikel=8.1',
+  effectiveFrom: '2026-01-01',
+  verifiedAt: '2026-09-22',
+} as const;
+
 export const SRC_TOETSINGSINKOMEN_2026 = {
   officialSource:
     'Dienst Toeslagen — Toetsingsinkomen is verzamelinkomen (aangifte) of belastbaar loon (geen aangifte)',

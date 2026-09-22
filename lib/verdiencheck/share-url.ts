@@ -55,6 +55,18 @@ const FINANCIAL_QUERY_KEYS = [
   'eindejaarsuitkering',
   'extra_wage',
   'extra_pay',
+  'company_car',
+  'companycar',
+  'autovandezaak',
+  'bijtelling',
+  'car_value',
+  'catalogus',
+  'cataloguswaarde',
+  'youngtimer',
+  'vehicle_value',
+  'own_contribution',
+  'eigen_bijdrage',
+  'kenteken',
 ] as const;
 
 export function canonicalVerdienCheckUrl(origin = MAIN_DOMAIN): string {

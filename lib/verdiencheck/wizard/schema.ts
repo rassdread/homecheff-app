@@ -70,6 +70,7 @@ export const WIZARD_STEP_IDS = [
   'currentIncome',
   'payslipDeductions',
   'employmentExtras',
+  'companyCar',
   'incomeBases',
   'partnerIncome',
   'rentsHome',
@@ -148,6 +149,24 @@ export type WizardState = {
   thirteenthMonthEuro: string;
   bonusCommissionEuro: string;
   overtimeOtherPayEuro: string;
+  companyCarStatus: 'NONE' | 'PROVIDED' | 'UNKNOWN' | null;
+  companyCarPrivateUse: 'OVER_500' | 'AT_OR_BELOW_500_WITH_EVIDENCE' | 'UNKNOWN' | null;
+  companyCarCategory:
+    | 'COMBUSTION_OR_OTHER'
+    | 'ZERO_EMISSION'
+    | 'HYDROGEN'
+    | 'QUALIFYING_SOLAR'
+    | 'UNKNOWN'
+    | null;
+  companyCarFirstAdmissionYear: string;
+  companyCarFirstAdmissionMonth: string;
+  companyCarFirstRegistrationYear: string;
+  companyCarFirstRegistrationMonth: string;
+  /** Cataloguswaarde, or waarde in het economisch verkeer on the youngtimer route. */
+  companyCarValueEuro: string;
+  companyCarAvailableSince2025: 'YES' | 'NO' | 'UNKNOWN' | null;
+  companyCarOwnContributionStatus: 'NONE' | 'AMOUNT' | 'UNKNOWN' | null;
+  companyCarOwnContributionEuro: string;
   dutchHealthInsurance: boolean | 'UNKNOWN' | null;
   housingTenure: HousingTenure | null;
   rentsHome: boolean | 'UNKNOWN' | null;
@@ -270,6 +289,17 @@ export const EMPTY_WIZARD_STATE: WizardState = {
   thirteenthMonthEuro: '',
   bonusCommissionEuro: '',
   overtimeOtherPayEuro: '',
+  companyCarStatus: null,
+  companyCarPrivateUse: null,
+  companyCarCategory: null,
+  companyCarFirstAdmissionYear: '',
+  companyCarFirstAdmissionMonth: '',
+  companyCarFirstRegistrationYear: '',
+  companyCarFirstRegistrationMonth: '',
+  companyCarValueEuro: '',
+  companyCarAvailableSince2025: null,
+  companyCarOwnContributionStatus: null,
+  companyCarOwnContributionEuro: '',
   dutchHealthInsurance: null,
   housingTenure: null,
   rentsHome: null,
@@ -432,6 +462,8 @@ const FINANCIAL_EURO_KEYS = [
   'thirteenthMonthEuro',
   'bonusCommissionEuro',
   'overtimeOtherPayEuro',
+  'companyCarValueEuro',
+  'companyCarOwnContributionEuro',
 ] as const;
 
 export function clearFinancialDepth(state: WizardState): WizardState {
@@ -480,6 +512,15 @@ export function clearFinancialDepth(state: WizardState): WizardState {
   next.otherPayslipDeductionEuro = '';
   next.extraPayStatus = null;
   next.thirteenthMonthMode = null;
+  next.companyCarStatus = null;
+  next.companyCarPrivateUse = null;
+  next.companyCarCategory = null;
+  next.companyCarFirstAdmissionYear = '';
+  next.companyCarFirstAdmissionMonth = '';
+  next.companyCarFirstRegistrationYear = '';
+  next.companyCarFirstRegistrationMonth = '';
+  next.companyCarAvailableSince2025 = null;
+  next.companyCarOwnContributionStatus = null;
   next.dutchHealthInsurance = null;
   next.housingTenure = null;
   next.rentsHome = null;
@@ -880,6 +921,16 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
   },
   {
     id: 'employmentExtras',
+    visible: (s) =>
+      moneyLayerVisible(s) &&
+      s.payslipAccuracyRequested &&
+      !s.currentIncomeUnknown &&
+      s.ageTaxRegime === 'BELOW_AOW_2026' &&
+      s.hasOtherIncome === false &&
+      (s.situationGroup === 'EMPLOYEE' || s.situationGroup === 'NONE'),
+  },
+  {
+    id: 'companyCar',
     visible: (s) =>
       moneyLayerVisible(s) &&
       s.payslipAccuracyRequested &&

@@ -105,6 +105,7 @@ const QUESTION_AUDIT: Record<string, Class> = {
   currentIncome: 'CLEAR',
   payslipDeductions: 'CLEAR',
   employmentExtras: 'CLEAR',
+  companyCar: 'CLEAR',
   incomeBases: 'CONFUSING',
   assets: 'CLEAR',
   scenario: 'CLEAR',

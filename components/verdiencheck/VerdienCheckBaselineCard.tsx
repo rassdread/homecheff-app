@@ -84,6 +84,24 @@ export default function VerdienCheckBaselineCard(props: {
     !showExtraPayAmount &&
     baseline?.employmentExtrasStatus === 'UNKNOWN' &&
     incomeAnnual != null;
+  // The bijtelling is shown as a taxable addition per month, never folded into
+  // the gross salary the employee actually receives.
+  const companyCarAnnualCents = baseline?.companyCarTaxableAnnualCents ?? 0;
+  const companyCarMonthlyCents = baseline?.companyCarTaxableMonthlyCents ?? 0;
+  const showCompanyCarAmount = companyCarAnnualCents > 0 && companyCarMonthlyCents > 0;
+  const companyCarNoAddition =
+    !showCompanyCarAmount &&
+    baseline?.companyCarResolution === 'NO_ADDITION' &&
+    incomeAnnual != null;
+  const companyCarPartial =
+    !showCompanyCarAmount &&
+    baseline?.companyCarResolution === 'PARTIAL' &&
+    incomeAnnual != null;
+  // UNKNOWN car status is not a factual €0 either.
+  const companyCarUnknown =
+    !showCompanyCarAmount &&
+    baseline?.companyCarStatus === 'UNKNOWN' &&
+    incomeAnnual != null;
   const ownerHome = baseline?.ownerHome ?? null;
   const ownerActive =
     ownerHome != null &&
@@ -91,6 +109,7 @@ export default function VerdienCheckBaselineCard(props: {
   const [housingInfoOpen, setHousingInfoOpen] = useState(false);
   const [payslipOpen, setPayslipOpen] = useState(false);
   const [extraPayOpen, setExtraPayOpen] = useState(false);
+  const [companyCarOpen, setCompanyCarOpen] = useState(false);
   const pensionStatus = baseline?.pensionStatus ?? null;
   const pensionKnown =
     pensionStatus === 'AMOUNT' || baseline?.pensionExplicitZero === true;
@@ -241,11 +260,27 @@ export default function VerdienCheckBaselineCard(props: {
                     <span>{props.copy.pensionNotIncluded}</span>
                   </div>
                 )}
+                {(baseline?.payrollCompanyCarAdditionCents ?? 0) > 0 ? (
+                  <div className="flex justify-between gap-4">
+                    <span>{props.copy.payslipCompanyCarLabel}</span>
+                    <span className="tabular-nums">
+                      + €{whole(baseline?.payrollCompanyCarAdditionCents ?? 0)}
+                    </span>
+                  </div>
+                ) : null}
                 {(baseline?.otherBankDeductionCents ?? 0) > 0 ? (
                   <div className="flex justify-between gap-4">
                     <span>{props.copy.payslipOtherDeductionsLabel}</span>
                     <span className="tabular-nums">
                       − €{whole(baseline?.otherBankDeductionCents ?? 0)}
+                    </span>
+                  </div>
+                ) : null}
+                {(baseline?.payrollCompanyCarOwnContributionCents ?? 0) > 0 ? (
+                  <div className="flex justify-between gap-4">
+                    <span>{props.copy.payslipCompanyCarOwnContributionLabel}</span>
+                    <span className="tabular-nums">
+                      − €{whole(baseline?.payrollCompanyCarOwnContributionCents ?? 0)}
                     </span>
                   </div>
                 ) : null}
@@ -367,6 +402,68 @@ export default function VerdienCheckBaselineCard(props: {
         ) : extraPayUnknown ? (
           <p data-verdiencheck-extra-pay-unknown="" className="text-sm text-stone-700">
             {props.copy.extraPayNotIncluded}
+          </p>
+        ) : null}
+        {showCompanyCarAmount ? (
+          <div data-verdiencheck-company-car="" className="space-y-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm text-stone-700">
+              <span>{props.copy.companyCarLabel}</span>
+              <span className="tabular-nums">
+                + €{whole(companyCarMonthlyCents)} {props.copy.companyCarTaxablePerMonth}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="text-sm font-medium text-emerald-800 underline-offset-2 hover:underline"
+              aria-expanded={companyCarOpen}
+              onClick={() => setCompanyCarOpen((open) => !open)}
+            >
+              {props.copy.viewCompanyCarBreakdown}
+            </button>
+            {companyCarOpen ? (
+              <div
+                data-verdiencheck-company-car-details=""
+                className="space-y-1 rounded-xl bg-stone-50 p-3"
+              >
+                {(baseline?.companyCarGrossAdditionCents ?? 0) > 0 ? (
+                  <div className="flex justify-between gap-4 text-sm text-stone-700">
+                    <span>{props.copy.companyCarGrossAdditionLabel}</span>
+                    <span className="tabular-nums">
+                      €{whole(baseline?.companyCarGrossAdditionCents ?? 0)}
+                    </span>
+                  </div>
+                ) : null}
+                {(baseline?.companyCarOwnContributionCents ?? 0) > 0 ? (
+                  <div className="flex justify-between gap-4 text-sm text-stone-700">
+                    <span>{props.copy.companyCarOwnContributionRowLabel}</span>
+                    <span className="tabular-nums">
+                      − €{whole(baseline?.companyCarOwnContributionCents ?? 0)}
+                    </span>
+                  </div>
+                ) : null}
+                <div className="flex justify-between gap-4 text-sm font-medium text-stone-800">
+                  <span>{props.copy.companyCarTaxableAdditionLabel}</span>
+                  <span className="tabular-nums">
+                    €{whole(companyCarAnnualCents)} {props.copy.extraPayPerYear}
+                  </span>
+                </div>
+                <p className="pt-1 text-sm leading-relaxed text-stone-600">
+                  {props.copy.companyCarWhyBody}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        ) : companyCarNoAddition ? (
+          <p data-verdiencheck-company-car-none="" className="text-sm text-stone-700">
+            {props.copy.companyCarNoAddition}
+          </p>
+        ) : companyCarPartial ? (
+          <p data-verdiencheck-company-car-partial="" className="text-sm text-stone-700">
+            {props.copy.companyCarPartial}
+          </p>
+        ) : companyCarUnknown ? (
+          <p data-verdiencheck-company-car-unknown="" className="text-sm text-stone-700">
+            {props.copy.companyCarNotIncluded}
           </p>
         ) : null}
         {baseline?.payrollUsed || baseline?.payrollTaxCredit != null ? (

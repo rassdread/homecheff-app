@@ -10,10 +10,16 @@
  * Other generic payslip deductions default to BANK_ONLY: they lower the
  * amount paid out, not tabelloon / fiscal wage.
  *
+ * The bijtelling privégebruik auto works the other way round (§11.2.4 kolom 4,
+ * §23.3.1): it raises tabelloon without being paid in cash, so the withholding
+ * grows while the deposit only drops by the extra tax. An own contribution for
+ * private use is withheld from net pay (§23.3.7), so it lowers the deposit and
+ * the taxable addition — two different ledgers, never the same euro twice.
+ *
  * This module does not replace the certified table or the annual Box 1 engine.
  */
 
-import { SRC_PENSION_PAYROLL_2026 } from './sources';
+import { SRC_COMPANY_CAR_2026, SRC_PENSION_PAYROLL_2026 } from './sources';
 import {
   calculateEmployeePayroll2026,
   invertEmployeePayrollNet2026,
@@ -27,6 +33,7 @@ export const EMPLOYEE_PAYSLIP_2026_ID = 'NL-2026-EMPLOYEE-PAYSLIP-V1' as const;
 
 export const EMPLOYEE_PAYSLIP_2026_SOURCES = {
   pensionPayroll: SRC_PENSION_PAYROLL_2026,
+  companyCar: SRC_COMPANY_CAR_2026,
 } as const;
 
 export type PayslipPensionStatus = 'NONE' | 'AMOUNT' | 'UNKNOWN' | 'NOT_SUPPLIED';
@@ -39,7 +46,10 @@ export type PayslipAssumption =
   | 'OTHER_DEDUCTION_BANK_ONLY'
   | 'BANK_NET_INVERSE_VIA_TABELLOON'
   | 'ANNUAL_PENSION_FISCAL_ESTIMATE_MONTHLY_TIMES_12'
-  | 'HOLIDAY_PENSION_TREATMENT_UNKNOWN';
+  | 'HOLIDAY_PENSION_TREATMENT_UNKNOWN'
+  | 'COMPANY_CAR_ADDITION_RAISES_TABELLOON'
+  | 'COMPANY_CAR_ADDITION_NOT_PAID_IN_CASH'
+  | 'COMPANY_CAR_OWN_CONTRIBUTION_WITHHELD_FROM_NET';
 
 export type PayslipForwardOk = {
   status: 'OK';
@@ -48,6 +58,8 @@ export type PayslipForwardOk = {
   pensionStatus: PayslipPensionStatus;
   pensionExplicitZero: boolean;
   otherBankDeductionCents: number;
+  companyCarAdditionCents: number;
+  companyCarOwnContributionCents: number;
   tabelloonInputCents: number;
   tabelloonCents: number;
   withheldPayrollTaxCents: number;
@@ -67,6 +79,8 @@ export type PayslipInverseOk = {
   employeePensionCents: number | null;
   pensionStatus: PayslipPensionStatus;
   otherBankDeductionCents: number;
+  companyCarAdditionCents: number;
+  companyCarOwnContributionCents: number;
   tabelloonInputCents: number;
   tabelloonCents: number;
   withheldPayrollTaxCents: number;
@@ -102,10 +116,16 @@ export function calculateEmployeePayslip2026(input: {
   pensionStatus: PayslipPensionStatus;
   employeePensionCents: number | null;
   otherBankDeductionCents?: number;
+  /** Taxable addition after the qualifying own contribution, per month. */
+  companyCarAdditionCents?: number;
+  /** Own contribution for private use withheld from net pay, per month. */
+  companyCarOwnContributionCents?: number;
 }): PayslipForwardResult {
   const method = PAYROLL_FORWARD_MODEL;
   const gross = input.contractualGrossMonthlyCents;
   const other = Math.max(0, input.otherBankDeductionCents ?? 0);
+  const car = Math.max(0, input.companyCarAdditionCents ?? 0);
+  const carOwn = Math.max(0, input.companyCarOwnContributionCents ?? 0);
   if (!Number.isInteger(gross) || gross < 0) {
     return { status: 'UNRESOLVED', reason: 'INVALID_GROSS', method, confidence: 'NONE' };
   }
@@ -113,15 +133,16 @@ export function calculateEmployeePayslip2026(input: {
   if (pension.reduces && pension.cents > gross) {
     return { status: 'UNRESOLVED', reason: 'PENSION_EXCEEDS_GROSS', method, confidence: 'NONE' };
   }
-  const tabelloonInput = gross - (pension.reduces ? pension.cents : 0);
+  const tabelloonInput = gross + car - (pension.reduces ? pension.cents : 0);
   const table = calculateEmployeePayroll2026({
     grossMonthlyCents: tabelloonInput,
     payrollTaxCredit: input.payrollTaxCredit,
   });
   if (table.status !== 'OK') return table;
 
-  const statutoryNet = table.statutoryNetMonthlyCents;
-  const bankNet = statutoryNet - other;
+  // The addition is taxed but never paid out, so it leaves the deposit again.
+  const statutoryNet = table.statutoryNetMonthlyCents - car;
+  const bankNet = statutoryNet - other - carOwn;
   const assumptions: PayslipAssumption[] = [...table.assumptions];
   if (pension.reduces && pension.cents > 0) {
     assumptions.push('EMPLOYEE_PENSION_REDUCES_TABELLOON');
@@ -129,6 +150,11 @@ export function calculateEmployeePayslip2026(input: {
     assumptions.push('PENSION_NOT_SUPPLIED_STANDARD_TABLE');
   }
   if (other > 0) assumptions.push('OTHER_DEDUCTION_BANK_ONLY');
+  if (car > 0) {
+    assumptions.push('COMPANY_CAR_ADDITION_RAISES_TABELLOON');
+    assumptions.push('COMPANY_CAR_ADDITION_NOT_PAID_IN_CASH');
+  }
+  if (carOwn > 0) assumptions.push('COMPANY_CAR_OWN_CONTRIBUTION_WITHHELD_FROM_NET');
 
   return {
     status: 'OK',
@@ -140,6 +166,8 @@ export function calculateEmployeePayslip2026(input: {
     pensionStatus: input.pensionStatus,
     pensionExplicitZero: input.pensionStatus === 'NONE',
     otherBankDeductionCents: other,
+    companyCarAdditionCents: car,
+    companyCarOwnContributionCents: carOwn,
     tabelloonInputCents: tabelloonInput,
     tabelloonCents: table.tabelloonCents,
     withheldPayrollTaxCents: table.withheldPayrollTaxCents,
@@ -159,16 +187,21 @@ export function invertEmployeePayslipNet2026(input: {
   pensionStatus: PayslipPensionStatus;
   employeePensionCents: number | null;
   otherBankDeductionCents?: number;
+  companyCarAdditionCents?: number;
+  companyCarOwnContributionCents?: number;
 }): PayslipInverseResult {
   const method = PAYROLL_INVERSE_MODEL;
   const other = Math.max(0, input.otherBankDeductionCents ?? 0);
+  const car = Math.max(0, input.companyCarAdditionCents ?? 0);
+  const carOwn = Math.max(0, input.companyCarOwnContributionCents ?? 0);
   const pension = pensionForTabelloon(input);
   const useBankInverse =
-    input.netKind === 'BANK_NET' && (pension.reduces || other > 0);
+    input.netKind === 'BANK_NET' && (pension.reduces || other > 0 || car > 0 || carOwn > 0);
 
-  const targetStatutory = useBankInverse
-    ? input.targetNetMonthlyCents + other
-    : input.targetNetMonthlyCents;
+  // Forward: bankNet = tableNet(tabelloon) − car − other − ownContribution, so
+  // the same canonical function is inverted rather than a second formula.
+  const targetStatutory =
+    input.targetNetMonthlyCents + car + (useBankInverse ? other + carOwn : 0);
 
   const inverted = invertEmployeePayrollNet2026({
     targetStatutoryNetMonthlyCents: targetStatutory,
@@ -177,13 +210,15 @@ export function invertEmployeePayslipNet2026(input: {
   if (inverted.status !== 'OK') return inverted;
 
   const tabelloonInput = inverted.estimatedGrossMonthlyCents;
-  const gross = useBankInverse ? tabelloonInput + pension.cents : tabelloonInput;
+  const gross = tabelloonInput - car + (useBankInverse ? pension.cents : 0);
   const forward = calculateEmployeePayslip2026({
     contractualGrossMonthlyCents: gross,
     payrollTaxCredit: input.payrollTaxCredit,
     pensionStatus: input.pensionStatus,
     employeePensionCents: input.employeePensionCents,
     otherBankDeductionCents: other,
+    companyCarAdditionCents: car,
+    companyCarOwnContributionCents: carOwn,
   });
   if (forward.status !== 'OK') return forward;
 
@@ -202,6 +237,8 @@ export function invertEmployeePayslipNet2026(input: {
     employeePensionCents: forward.employeePensionCents,
     pensionStatus: input.pensionStatus,
     otherBankDeductionCents: other,
+    companyCarAdditionCents: car,
+    companyCarOwnContributionCents: carOwn,
     tabelloonInputCents: forward.tabelloonInputCents,
     tabelloonCents: forward.tabelloonCents,
     withheldPayrollTaxCents: forward.withheldPayrollTaxCents,

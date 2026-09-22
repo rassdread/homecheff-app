@@ -72,7 +72,7 @@ function employee(partial: Partial<WizardState> = {}): WizardState {
   return applyMoneyDepthChoice({ ...next, ...partial, taxResidence: 'NL' }, 'YES');
 }
 
-assert.equal(NL_2026_PACK.version, '2026.9-employment-extras');
+assert.equal(NL_2026_PACK.version, '2026.10-company-car');
 assert.equal(NL_2026_MODULE_STATUS.employeePayslip, 'CERTIFIED_FOR_PENSION_BANK_NET_V1');
 assert.equal(NL_2026_MODULE_STATUS.payrollWhiteMonthly, 'CERTIFIED_FOR_STANDARD_WHITE_MONTHLY');
 assert.equal(SRC_PENSION_PAYROLL_2026.officialSourceUrl.includes('handboek-loonheffingen'), true);
