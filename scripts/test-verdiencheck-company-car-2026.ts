@@ -726,6 +726,8 @@ assert.match(nl.companyCarOwnContributionHelp, /nettoloon/);
 assert.match(nl.companyCarWhyBody, /Je ontvangt dat bedrag niet op je rekening/);
 assert.equal(nl.companyCarWhyTitle, 'Waarom telt een auto van de zaak mee?');
 assert.equal(nl.companyCarNotIncluded, 'Auto van de zaak niet meegenomen');
+assert.match(nl.companyCarIncomplete, /Weet ik niet/);
+assert.ok(en.companyCarIncomplete.length > 0);
 assert.ok(en.companyCarQuestion.length > 0);
 assert.equal(nl.steps.companyCar?.title, 'Auto van de zaak');
 // Never framed as a fine or a fee.
@@ -747,6 +749,9 @@ assert.match(cardSrc, /viewCompanyCarBreakdown/);
 assert.match(cardSrc, /companyCarNotIncluded/);
 assert.match(cardSrc, /payslipCompanyCarLabel/);
 assert.doesNotMatch(cardSrc, /Bijtelling €0/);
+// An incomplete car form must say so instead of silently ignoring "Verder".
+assert.match(wizardSrc, /setCompanyCarError\(true\)/);
+assert.match(wizardSrc, /copy\.companyCarIncomplete/);
 // No percentages or caps inside React components.
 for (const src of [wizardSrc, cardSrc]) {
   assert.doesNotMatch(src, /\b(0\.22|0\.18|2200|1800)\b/);

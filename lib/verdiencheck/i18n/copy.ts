@@ -374,6 +374,7 @@ export type VerdienCheckCopy = {
   companyCarTaxableAdditionLabel: string;
   companyCarWhyTitle: string;
   companyCarWhyBody: string;
+  companyCarIncomplete: string;
   payslipCompanyCarLabel: string;
   payslipCompanyCarOwnContributionLabel: string;
   payslipCashGrossLabel: string;
@@ -849,6 +850,8 @@ const NL: VerdienCheckCopy = {
   companyCarWhyTitle: 'Waarom telt een auto van de zaak mee?',
   companyCarWhyBody:
     'Als je een auto van de zaak ook privé gebruikt, kan een bedrag voor privégebruik bij je belastbare loon worden opgeteld. Je ontvangt dat bedrag niet op je rekening, maar het kan wel je belasting en je toetsingsinkomen voor toeslagen beïnvloeden.',
+  companyCarIncomplete:
+    'Vul de vragen over de auto nog even af, dan kunnen we de bijtelling berekenen. Weet je iets niet zeker, kies dan "Weet ik niet".',
   payslipCompanyCarLabel: 'Bijtelling auto',
   payslipCompanyCarOwnContributionLabel: 'Eigen bijdrage auto',
   payslipCashGrossLabel: 'Cash bruto',
@@ -1784,6 +1787,8 @@ const EN: VerdienCheckCopy = {
   companyCarWhyTitle: 'Why does a company car count?',
   companyCarWhyBody:
     'If you also use a company car privately, an amount for that private use can be added to your taxable wage. You do not receive that amount in your account, but it can affect your tax and the income used for allowances.',
+  companyCarIncomplete:
+    'Please finish the questions about the car so we can calculate the addition. If you are unsure about something, choose "I do not know".',
   payslipCompanyCarLabel: 'Car addition',
   payslipCompanyCarOwnContributionLabel: 'Own contribution car',
   payslipCashGrossLabel: 'Cash gross',

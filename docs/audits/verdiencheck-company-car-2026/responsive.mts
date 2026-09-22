@@ -359,8 +359,8 @@ async function expandCompanyCar(page: Page): Promise<number> {
   const values: readonly (readonly [RegExp, string])[] = [
     [/^Cataloguswaarde/i, '30000'],
     [/^Hoeveel betaal/i, '600'],
-    [/^Jaar$/i, '2022'],
-    [/^Maand$/i, '3'],
+    [/toelating.*Jaar$/i, '2022'],
+    [/toelating.*Maand$/i, '3'],
   ];
   const inputs = page.locator('[data-verdiencheck-company-car] input');
   for (let i = 0; i < (await inputs.count()); i += 1) {

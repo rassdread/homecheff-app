@@ -1,0 +1,70 @@
+{
+  "base": "http://localhost:3000",
+  "results": [
+    {
+      "name": "p1-no-car",
+      "reached": true,
+      "car": null,
+      "carDetails": null,
+      "carNone": null,
+      "carPartial": null,
+      "carUnknown": null,
+      "grossIncome": "€34.292 / jaar",
+      "fiscalIncome": "€-246 / maand",
+      "incomeTax": "€3.971 / jaar",
+      "healthcareAllowance": "€77 / maand"
+    },
+    {
+      "name": "p2-standard-car",
+      "reached": true,
+      "car": "Auto van de zaak + €550 belastbaar / maand Bekijk bijtelling Waarde privégebruik €6.600 Belastbare bijtelling €6.600 / jaar Als je een auto van de zaak ook privé gebruikt, kan een bedrag voor privégebruik bij je belastbare loon worden opgeteld. Je ontvangt dat bedrag niet op je rekening, maar het kan wel je belasting en je toetsingsinkomen voor toeslagen beïnvloeden.",
+      "carDetails": "Waarde privégebruik €6.600 Belastbare bijtelling €6.600 / jaar Als je een auto van de zaak ook privé gebruikt, kan een bedrag voor privégebruik bij je belastbare loon worden opgeteld. Je ontvangt dat bedrag niet op je rekening, maar het kan wel je belasting en je toetsingsinkomen voor toeslagen beïnvloeden.",
+      "carNone": null,
+      "carPartial": null,
+      "carUnknown": null,
+      "grossIncome": "€34.292 / jaar",
+      "fiscalIncome": "€-466 / maand",
+      "incomeTax": "€6.661 / jaar",
+      "healthcareAllowance": "€0 / maand"
+    },
+    {
+      "name": "p3-ev",
+      "reached": true,
+      "car": "Auto van de zaak + €1.458 belastbaar / maand Bekijk bijtelling Waarde privégebruik €17.500 Belastbare bijtelling €17.500 / jaar Als je een auto van de zaak ook privé gebruikt, kan een bedrag voor privégebruik bij je belastbare loon worden opgeteld. Je ontvangt dat bedrag niet op je rekening, maar het kan wel je belasting en je toetsingsinkomen voor toeslagen beïnvloeden.",
+      "carDetails": "Waarde privégebruik €17.500 Belastbare bijtelling €17.500 / jaar Als je een auto van de zaak ook privé gebruikt, kan een bedrag voor privégebruik bij je belastbare loon worden opgeteld. Je ontvangt dat bedrag niet op je rekening, maar het kan wel je belasting en je toetsingsinkomen voor toeslagen beïnvloeden.",
+      "carNone": null,
+      "carPartial": null,
+      "carUnknown": null,
+      "grossIncome": "€34.292 / jaar",
+      "fiscalIncome": "€-873 / maand",
+      "incomeTax": "€11.764 / jaar",
+      "healthcareAllowance": "€0 / maand"
+    },
+    {
+      "name": "p4-own-contribution",
+      "reached": true,
+      "car": "Auto van de zaak + €500 belastbaar / maand Bekijk bijtelling Waarde privégebruik €6.600 Eigen bijdrage privégebruik auto − €600 Belastbare bijtelling €6.000 / jaar Als je een auto van de zaak ook privé gebruikt, kan een bedrag voor privégebruik bij je belastbare loon worden opgeteld. Je ontvangt dat bedrag niet op je rekening, maar het kan wel je belasting en je toetsingsinkomen voor toeslagen beïnvloeden.",
+      "carDetails": "Waarde privégebruik €6.600 Eigen bijdrage privégebruik auto − €600 Belastbare bijtelling €6.000 / jaar Als je een auto van de zaak ook privé gebruikt, kan een bedrag voor privégebruik bij je belastbare loon worden opgeteld. Je ontvangt dat bedrag niet op je rekening, maar het kan wel je belasting en je toetsingsinkomen voor toeslagen beïnvloeden.",
+      "carNone": null,
+      "carPartial": null,
+      "carUnknown": null,
+      "grossIncome": "€34.292 / jaar",
+      "fiscalIncome": "€-497 / maand",
+      "incomeTax": "€6.409 / jaar",
+      "healthcareAllowance": "€8 / maand"
+    },
+    {
+      "name": "p10-unknown",
+      "reached": true,
+      "car": null,
+      "carDetails": null,
+      "carNone": null,
+      "carPartial": null,
+      "carUnknown": "Auto van de zaak niet meegenomen",
+      "grossIncome": "€34.292 / jaar",
+      "fiscalIncome": "€-246 / maand",
+      "incomeTax": "€3.971 / jaar",
+      "healthcareAllowance": "€77 / maand"
+    }
+  ]
+}

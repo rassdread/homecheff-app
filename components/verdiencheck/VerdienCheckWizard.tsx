@@ -232,6 +232,7 @@ export default function VerdienCheckWizard(props: {
   const [showResumeHint, setShowResumeHint] = useState(false);
   const [currentIncomeError, setCurrentIncomeError] = useState(false);
   const [holidayPayError, setHolidayPayError] = useState(false);
+  const [companyCarError, setCompanyCarError] = useState(false);
   const activeStepRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const invalidRef = useRef<HTMLParagraphElement>(null);
@@ -496,8 +497,11 @@ export default function VerdienCheckWizard(props: {
       }
     }
     if (step === 'companyCar') {
-      if (state.companyCarStatus == null) return;
-      if (!companyCarEntryValid(state)) return;
+      if (state.companyCarStatus == null || !companyCarEntryValid(state)) {
+        setCompanyCarError(true);
+        return;
+      }
+      setCompanyCarError(false);
       if (state.moneyDepthCompleted) {
         setStep('result');
         return;
@@ -2620,6 +2624,11 @@ export default function VerdienCheckWizard(props: {
                   ) : null}
                   <p className="text-sm leading-relaxed text-gray-600">{copy.companyCarWhyBody}</p>
                 </div>
+              ) : null}
+              {companyCarError && !companyCarEntryValid(state) ? (
+                <p role="alert" className="text-sm text-red-700">
+                  {copy.companyCarIncomplete}
+                </p>
               ) : null}
               <button type="button" className={NEXT_BTN} onClick={goNext}>
                 {copy.next}
