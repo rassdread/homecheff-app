@@ -242,3 +242,128 @@ upload changes, no VAT, no external revenue, no tax deductibility. Platform fee
 is exposed as a financial fact ("HomeCheff charged €X"), never as a deduction.
 `VERDIENCHECK_PERSISTENCE_ENABLED` and `VERDIENCHECK_RECEIPT_VAULT_ENABLED`
 remain false with no implementation behind them.
+
+---
+
+## 8. §35 PRODUCTION CERTIFICATION
+
+`scripts/certify-seller-financial-year-8b.mts` against `https://homecheff.eu`.
+Artifacts: `certification/report.json` and four full-page screenshots.
+
+The run is **read-only**. It creates no user, order, transaction or refund —
+§35 forbids manufacturing financial history, and a fabricated seller would only
+certify a code path rather than production data. It mints a 15-minute NextAuth
+cookie for two sellers that already exist (the certification pattern used
+throughout `scripts/certify-*`), issues `GET`s, and reconciles every figure
+against `deriveSellerFinancialYear` run locally against the same database.
+
+**Subject 1 — seller with sales** (`7647bf21…`, the only production seller with
+2026 transactions):
+
+| Concept | Derivation | `/api/earnings/combined` | `/api/seller/earnings` | `/api/seller/dashboard/stats` | `/verdiensten` | Dashboard |
+|---|---|---|---|---|---|---|
+| Gross sales 2026 | 5813 | 5813 | 5813 | 5813 | € 58,13 | € 58,13 |
+| Refunds | 215 | 215 | 215 | 215 | -€ 2,15 | — |
+| Net sales | 5598 | 5598 | 5598 | 5598 | — | — |
+| Platform fees | 657 | — | 657 | 657 | € 6,57 | € 6,57 |
+| Net proceeds | 4941 | — | 4941 | 4941 | € 49,41 | € 49,41 |
+| Transactions | 9 | — | 9 | — | 9 bestellingen | — |
+| Completeness | `DATA_INCONSISTENCY` | same | same | same | notice shown | notice shown |
+
+**Subject 2 — seller with no sales** (`72582f0c…`): every figure zero,
+`COMPLETE`, both surfaces render without the notice and without error.
+
+The live run also produced the cleanest possible evidence for §8. The dashboard
+shows **11,3% HomeCheff fee** next to the money block while the same page's
+plan section shows the seller's current tier of **12%**. The 11,3% is the blend
+of the rates actually snapshotted on the nine sales. A build that recalculated
+history from the current tier could not produce that number.
+
+```
+AUTHENTICATED_PRODUCTION_SESSION   = PASS
+API_MATCHES_CANONICAL_DERIVATION   = PASS (18/18 field comparisons, both sellers)
+CROSS_API_CONSISTENCY              = PASS (the three endpoints agree with each other)
+YEAR_SCOPED                        = PASS (2026 and 2025 both derived)
+IDEMPOTENT_AGAINST_PRODUCTION_DATA = PASS (byte-identical on repeat)
+NO_PENDING_LEAKAGE                 = PASS (0 pending legs recognised)
+SURFACES_SHOW_CANONICAL_AMOUNTS    = PASS (gross, fee and net matched on both pages)
+INCOMPLETENESS_DISCLOSED           = PASS (shown when not COMPLETE, absent when COMPLETE)
+NO_PRODUCTION_MUTATION             = PASS (0 writes)
+```
+
+Refund behaviour was certified from the refund already present in production
+(215c across multiple rows on one leg), not from a refund created for the
+occasion. Historical-year selection is not yet a UI control, so the 2025 path
+is certified at the derivation and API layer only; both sellers predate 2026
+trading, so 2025 is legitimately zero.
+
+---
+
+## 9. §36 FINAL REPORT
+
+```
+STARTING_SHA        = fb8dc070
+COMMIT_SHA          = 890f2d3d (runtime) / see git log for certification artifacts
+DEPLOYMENT_ID       = dpl_3XxgAAkmiK2pBjmx3Yt1tuSrDBpd
+DEPLOYED_SHA_MATCH  = YES (git-sourced production deployment, no CLI upload of a
+                      dirty tree)
+
+CANONICAL_SOURCE       = lib/finance/seller-financial-year.ts (pure)
+                         + lib/finance/seller-financial-year.server.ts (loader)
+REVENUE_RECOGNITION    = payment success, evidenced by the settlement Transaction
+REFUND_MODEL           = dated reversal event; the sale is never rewritten
+CROSS_YEAR_REFUND_MODEL= booked in the refund year, sale year carried as
+                         provenance, sale year exposes the later-year total
+PLATFORM_FEE_HISTORY   = Transaction.platformFeeBps snapshot, proportional
+                         release on refund, capped cumulatively per leg
+SHIPPING_MODEL         = excluded from seller sales in every fulfilment mode;
+                         courier earnings reported as a separate activity
+CURRENCY_MODEL         = EUR asserted; anything else ⇒ UNSUPPORTED_SOURCE,
+                         never silently summed, no FX invented
+
+PRODUCT_ORDERS     = COVERED
+DISH_ORDERS        = COVERED (a sellable dish is a Product; Dish is content)
+SERVICE_ORDERS     = COVERED (same OrderItem → Product path)
+ON_REQUEST_ORDERS  = COVERED (accepted proposal writes a Product-backed order)
+
+FINANCIAL_YEAR_DERIVATION = PASS
+EVENT_PROVENANCE          = PASS
+COMPLETENESS              = PASS
+IDEMPOTENCY               = PASS
+NO_1000_CAP               = PASS
+
+DAC7_SHARED_SOURCE        = PASS (shared year bounds and fee primitives;
+                            equivalence fixture prevents drift)
+DAC7_REPORTABILITY_SEPARATE = PASS (thresholds and reportability stay in
+                            lib/compliance; the finance layer has a test
+                            forbidding them)
+
+VERDIENSTEN      = MIGRATED + CERTIFIED IN PRODUCTION
+SELLER_DASHBOARD = MIGRATED + CERTIFIED IN PRODUCTION
+EARNINGS_APIS    = CONSOLIDATED + CERTIFIED IN PRODUCTION
+
+VERDIENCHECK_ZERO_PERSISTENCE = PRESERVED (both flags still false, no
+                                implementation added)
+RECEIPT_STORAGE_UNCHANGED     = YES
+PRIVACY                       = PASS (no analytics events, no financial values
+                                in URLs or share payloads)
+
+P0_REMAINING = none
+P1_REMAINING = one production leg carries 215c of refunds against 100c of seller
+               consideration. Disclosed as DATA_INCONSISTENCY, needs a data
+               investigation rather than a code change.
+P2_REMAINING = chargebacks are indistinguishable from refunds in the source
+               model; the webhook's delivery transaction id embeds Date.now().
+
+BLOCKERS = none
+
+NEXT_PHASE = 8C — decide whether these derived facts become a persistent ledger,
+             and only then approach fiscal classification.
+
+FINAL_DECISION = HOMECHEFF_SELLER_FINANCIAL_YEAR_PRODUCTION_CERTIFIED
+```
+
+The certification is scoped honestly: it certifies that the figures HomeCheff
+shows a seller are the figures the canonical derivation computes, that they are
+year-scoped, idempotent and free of pending leakage, and that the one known data
+problem is disclosed rather than absorbed into a confident total.

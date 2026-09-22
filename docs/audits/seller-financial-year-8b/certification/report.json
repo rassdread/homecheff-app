@@ -1,0 +1,192 @@
+{
+  "phase": "8B",
+  "section": "35_PRODUCTION_CERTIFICATION",
+  "host": "https://homecheff.eu",
+  "year": 2026,
+  "readOnly": true,
+  "mutationsPerformed": 0,
+  "sellers": {
+    "SELLER_WITH_SALES": {
+      "sellerId": "7647bf21…#c6b10c40",
+      "emailHost": "gmail.com",
+      "derived": {
+        "year": 2026,
+        "currency": "EUR",
+        "grossSalesCents": 5813,
+        "refundCents": 215,
+        "netSalesCents": 5598,
+        "platformFeesCents": 657,
+        "netProceedsCents": 4941,
+        "transactionCount": 9,
+        "completeness": "DATA_INCONSISTENCY",
+        "warningCodes": [
+          "REFUND_EXCEEDS_SALE"
+        ]
+      },
+      "priorYear": {
+        "year": 2025,
+        "grossSalesCents": 0,
+        "netSalesCents": 0,
+        "completeness": "COMPLETE"
+      },
+      "idempotent": true,
+      "apiStatuses": {
+        "combined": 200,
+        "sellerEarnings": 200,
+        "dashboardStats": 200,
+        "exportCsv": 200
+      },
+      "apiAgreement": {
+        "COMBINED_YEAR": true,
+        "COMBINED_BASIS": true,
+        "COMBINED_GROSS": true,
+        "COMBINED_REFUND": true,
+        "COMBINED_NET": true,
+        "COMBINED_COMPLETENESS": true,
+        "SELLER_EARNINGS_YEAR": true,
+        "SELLER_EARNINGS_GROSS": true,
+        "SELLER_EARNINGS_REFUND": true,
+        "SELLER_EARNINGS_FEES": true,
+        "SELLER_EARNINGS_NET_PROCEEDS": true,
+        "SELLER_EARNINGS_COUNT": true,
+        "SELLER_EARNINGS_COMPLETENESS": true,
+        "DASHBOARD_YEAR": true,
+        "DASHBOARD_GROSS": true,
+        "DASHBOARD_REFUND": true,
+        "DASHBOARD_NET": true,
+        "DASHBOARD_COMPLETENESS": true
+      },
+      "crossApiConsistent": true,
+      "pendingLeak": {
+        "pendingSaleLegsInDerivation": 0,
+        "pendingOrdersInYear": 0,
+        "recognisedGrossCents": 5813
+      },
+      "surfaces": {
+        "verdiensten": {
+          "screenshot": "seller_with_sales-verdiensten.png",
+          "showsYear": true,
+          "showsGross": true,
+          "showsPlatformFee": true,
+          "showsNetProceeds": true,
+          "showsRefund": true,
+          "noticeExpected": true,
+          "noticeShown": true
+        },
+        "dashboard": {
+          "screenshot": "seller_with_sales-dashboard.png",
+          "showsYear": true,
+          "showsGross": true,
+          "showsPlatformFee": true,
+          "showsNetProceeds": true,
+          "showsBlendedFeeRate": true,
+          "noticeExpected": true,
+          "noticeShown": true
+        }
+      },
+      "platformFeeSnapshot": {
+        "blendedEffectivePercent": 11.3,
+        "currentPlanPercentFromApi": 12,
+        "differsFromCurrentPlan": true
+      },
+      "surfaceShowsYear": true,
+      "exportCsvIsFinancialYearScoped": true
+    },
+    "SELLER_NO_SALES": {
+      "sellerId": "72582f0c…#54af435b",
+      "emailHost": "gmail.com",
+      "derived": {
+        "year": 2026,
+        "currency": "EUR",
+        "grossSalesCents": 0,
+        "refundCents": 0,
+        "netSalesCents": 0,
+        "platformFeesCents": 0,
+        "netProceedsCents": 0,
+        "transactionCount": 0,
+        "completeness": "COMPLETE",
+        "warningCodes": []
+      },
+      "priorYear": {
+        "year": 2025,
+        "grossSalesCents": 0,
+        "netSalesCents": 0,
+        "completeness": "COMPLETE"
+      },
+      "idempotent": true,
+      "apiStatuses": {
+        "combined": 200,
+        "sellerEarnings": 200,
+        "dashboardStats": 200,
+        "exportCsv": 200
+      },
+      "apiAgreement": {
+        "COMBINED_YEAR": true,
+        "COMBINED_BASIS": true,
+        "COMBINED_GROSS": true,
+        "COMBINED_REFUND": true,
+        "COMBINED_NET": true,
+        "COMBINED_COMPLETENESS": true,
+        "SELLER_EARNINGS_YEAR": true,
+        "SELLER_EARNINGS_GROSS": true,
+        "SELLER_EARNINGS_REFUND": true,
+        "SELLER_EARNINGS_FEES": true,
+        "SELLER_EARNINGS_NET_PROCEEDS": true,
+        "SELLER_EARNINGS_COUNT": true,
+        "SELLER_EARNINGS_COMPLETENESS": true,
+        "DASHBOARD_YEAR": true,
+        "DASHBOARD_GROSS": true,
+        "DASHBOARD_REFUND": true,
+        "DASHBOARD_NET": true,
+        "DASHBOARD_COMPLETENESS": true
+      },
+      "crossApiConsistent": true,
+      "pendingLeak": {
+        "pendingSaleLegsInDerivation": 0,
+        "pendingOrdersInYear": 0,
+        "recognisedGrossCents": 0
+      },
+      "surfaces": {
+        "verdiensten": {
+          "screenshot": "seller_no_sales-verdiensten.png",
+          "showsYear": true,
+          "showsGross": true,
+          "showsPlatformFee": true,
+          "showsNetProceeds": true,
+          "showsRefund": null,
+          "noticeExpected": false,
+          "noticeShown": false
+        },
+        "dashboard": {
+          "screenshot": "seller_no_sales-dashboard.png",
+          "showsYear": true,
+          "showsGross": true,
+          "showsPlatformFee": true,
+          "showsNetProceeds": true,
+          "showsBlendedFeeRate": null,
+          "noticeExpected": false,
+          "noticeShown": false
+        }
+      },
+      "platformFeeSnapshot": {
+        "blendedEffectivePercent": null,
+        "currentPlanPercentFromApi": 12,
+        "differsFromCurrentPlan": false
+      },
+      "surfaceShowsYear": true,
+      "exportCsvIsFinancialYearScoped": true
+    }
+  },
+  "checks": {
+    "AUTHENTICATED_PRODUCTION_SESSION": "PASS",
+    "API_MATCHES_CANONICAL_DERIVATION": "PASS",
+    "CROSS_API_CONSISTENCY": "PASS",
+    "YEAR_SCOPED": "PASS",
+    "IDEMPOTENT_AGAINST_PRODUCTION_DATA": "PASS",
+    "NO_PENDING_LEAKAGE": "PASS",
+    "SURFACES_SHOW_CANONICAL_AMOUNTS": "PASS",
+    "INCOMPLETENESS_DISCLOSED": "PASS",
+    "NO_PRODUCTION_MUTATION": "PASS"
+  },
+  "verdict": "HOMECHEFF_SELLER_FINANCIAL_YEAR_PRODUCTION_CERTIFIED"
+}
