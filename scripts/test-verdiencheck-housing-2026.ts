@@ -311,12 +311,13 @@ const knownAssess = deriveIncomeBasesFromUserFacts(
     deductibleMortgageInterestEuro: '5000',
     advancedAccuracyRequested: true,
     baselineAssessmentEuro: '35000',
-    amountEntryPeriod: 'YEAR',
+    amountEntryPeriod: 'MONTH',
   }),
 );
 assert.equal(knownAssess.baselineAssessmentIncomeCents, euro(35_000));
 assert.equal(knownAssess.basisProvenance.assessment.kind, 'USER_PROVIDED');
 assert.equal(knownAssess.ownerHome.applyToAssessment, false);
+assert.notEqual(knownAssess.baselineAssessmentIncomeCents, euro(35_000) * 12);
 
 const knownBoth = deriveIncomeBasesFromUserFacts(
   employee({

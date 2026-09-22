@@ -546,13 +546,14 @@ export function deriveIncomeBasesFromUserFacts(state: WizardState): DerivedIncom
 }
 
 function deriveIncomeBasesCore(state: WizardState): DerivedIncomeBases {
-  const period = state.amountEntryPeriod;
-  const advancedGross = annualizeWizardEuro(state.baselineGrossEmploymentEuro, period);
-  const advancedBox1 = annualizeWizardEuro(state.baselineBox1Euro, period);
-  const advancedAggregate = annualizeWizardEuro(state.baselineAggregateEuro, period);
-  const advancedArbeids = annualizeWizardEuro(state.baselineArbeidsinkomenEuro, period);
-  const advancedAssessment = annualizeWizardEuro(state.baselineAssessmentEuro, period);
-  const advancedZvw = annualizeWizardEuro(state.baselineZvwUsedEuro, period);
+  // Jaaropgave / aangifte fields are annual. Do not reuse amountEntryPeriod
+  // (scenario turnover month/year) — that would ×12 a known toetsingsinkomen.
+  const advancedGross = annualizeWizardEuro(state.baselineGrossEmploymentEuro, 'YEAR');
+  const advancedBox1 = annualizeWizardEuro(state.baselineBox1Euro, 'YEAR');
+  const advancedAggregate = annualizeWizardEuro(state.baselineAggregateEuro, 'YEAR');
+  const advancedArbeids = annualizeWizardEuro(state.baselineArbeidsinkomenEuro, 'YEAR');
+  const advancedAssessment = annualizeWizardEuro(state.baselineAssessmentEuro, 'YEAR');
+  const advancedZvw = annualizeWizardEuro(state.baselineZvwUsedEuro, 'YEAR');
   const hasAdvanced =
     advancedGross != null ||
     advancedBox1 != null ||
