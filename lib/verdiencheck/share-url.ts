@@ -38,6 +38,13 @@ const FINANCIAL_QUERY_KEYS = [
   'result',
   'bedrag',
   'amount',
+  'pension',
+  'pensioen',
+  'deduction',
+  'inhouding',
+  'bank_net',
+  'banknet',
+  'payroll_deduction',
 ] as const;
 
 export function canonicalVerdienCheckUrl(origin = MAIN_DOMAIN): string {

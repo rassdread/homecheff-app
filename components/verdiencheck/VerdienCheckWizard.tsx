@@ -85,7 +85,12 @@ import {
   type WizardStepId,
   type TaxResidenceChoice,
 } from '@/lib/verdiencheck/wizard/schema';
-import { deriveIncomeBasesFromUserFacts, shouldAskPayrollTaxCredit } from '@/lib/verdiencheck/wizard/derive-income-bases';
+import {
+  deriveIncomeBasesFromUserFacts,
+  shouldAskNetDepositKind,
+  shouldAskPayrollTaxCredit,
+  shouldOfferPayslipAccuracy,
+} from '@/lib/verdiencheck/wizard/derive-income-bases';
 import { parseHolidayPercent, shouldAskHolidayPay } from '@/lib/verdiencheck/wizard/holiday-pay';
 import { wizardStateToBenefitFacts, wizardStateToBusinessFacts, wizardStateToCalculatorInput, wizardStateToFoodFacts } from '@/lib/verdiencheck/wizard/to-calculator-input';
 import {
@@ -374,6 +379,12 @@ export default function VerdienCheckWizard(props: {
       enteredGrossMonthlyCents,
       estimatedGrossMonthlyCents: derivedIncomeBases.payroll.estimatedGrossMonthlyCents,
       statutoryNetMonthlyCents: derivedIncomeBases.payroll.statutoryNetMonthlyCents,
+      bankNetMonthlyCents: derivedIncomeBases.payroll.bankNetMonthlyCents,
+      withheldPayrollTaxCents: derivedIncomeBases.payroll.withheldPayrollTaxCents,
+      employeePensionCents: derivedIncomeBases.payroll.employeePensionCents,
+      pensionStatus: derivedIncomeBases.payroll.pensionStatus,
+      pensionExplicitZero: derivedIncomeBases.payroll.pensionExplicitZero,
+      otherBankDeductionCents: derivedIncomeBases.payroll.otherBankDeductionCents,
       payrollUsed: derivedIncomeBases.payroll.used,
       payrollTaxCredit: derivedIncomeBases.payroll.payrollTaxCreditChoice,
       payrollTaxCreditAssumed: derivedIncomeBases.payroll.payrollTaxCreditAssumed,
@@ -440,6 +451,18 @@ export default function VerdienCheckWizard(props: {
       setCurrentIncomeError(false);
       setHolidayPayError(false);
     }
+    if (step === 'payslipDeductions') {
+      if (
+        state.pensionDeductionStatus === 'AMOUNT' &&
+        parseEuroInputToCents(state.pensionDeductionEuro) == null
+      ) {
+        return;
+      }
+      if (state.moneyDepthCompleted) {
+        setStep('result');
+        return;
+      }
+    }
     if (step === 'scenario' && state.scenarioInputMode === 'REVENUE_COST') {
       const mapped = mapRevenueAndAllowableCosts({
         revenueEuro: state.helperRevenueEuro,
@@ -462,6 +485,10 @@ export default function VerdienCheckWizard(props: {
   }
 
   function goBack() {
+    if (step === 'payslipDeductions' && state.moneyDepthCompleted) {
+      setStep('result');
+      return;
+    }
     const p = previousStep(state, step);
     if (p) setStep(p);
   }
@@ -1966,6 +1993,26 @@ export default function VerdienCheckWizard(props: {
               state.ageTaxRegime !== 'REACHES_AOW_IN_2026' ? (
                 <p className="text-sm leading-relaxed text-gray-600">{copy.netInputEstimateNote}</p>
               ) : null}
+              {shouldAskNetDepositKind(state) && !state.currentIncomeUnknown ? (
+                <div className="space-y-2">
+                  <p className="text-base font-medium text-gray-900">{copy.netDepositKindQuestion}</p>
+                  {(
+                    [
+                      ['BANK_NET', copy.netDepositKindYes],
+                      ['STATUTORY_NET', copy.netDepositKindNo],
+                      ['UNKNOWN', copy.netDepositKindUnknown],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <ChoiceButton
+                      key={key}
+                      selected={state.netDepositKind === key}
+                      onClick={() => setState({ ...state, netDepositKind: key })}
+                    >
+                      {label}
+                    </ChoiceButton>
+                  ))}
+                </div>
+              ) : null}
               {shouldAskPayrollTaxCredit(state) && !state.currentIncomeUnknown ? (
                 <div className="space-y-2">
                   <p className="text-base font-medium text-gray-900">{copy.payrollTaxCreditQuestion}</p>
@@ -2087,6 +2134,69 @@ export default function VerdienCheckWizard(props: {
               {state.advancedAccuracyRequested ? (
                 <p className="text-sm leading-relaxed text-gray-600">{copy.advancedAccuracyExplain}</p>
               ) : null}
+              <button type="button" className={NEXT_BTN} onClick={goNext}>
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'payslipDeductions' && (
+            <div className="space-y-4">
+              <p className="text-base font-medium text-gray-900">{copy.pensionDeductionQuestion}</p>
+              {(
+                [
+                  ['NONE', copy.pensionDeductionNone],
+                  ['AMOUNT', copy.pensionDeductionAmount],
+                  ['UNKNOWN', copy.pensionDeductionUnknown],
+                ] as const
+              ).map(([key, label]) => (
+                <ChoiceButton
+                  key={key}
+                  selected={state.pensionDeductionStatus === key}
+                  onClick={() =>
+                    setState({
+                      ...state,
+                      pensionDeductionStatus: key,
+                      pensionDeductionEuro: key === 'AMOUNT' ? state.pensionDeductionEuro : '',
+                    })
+                  }
+                >
+                  {label}
+                </ChoiceButton>
+              ))}
+              {state.pensionDeductionStatus === 'AMOUNT' ? (
+                <label className="block">
+                  <span className="text-base text-gray-700">{copy.pensionDeductionAmountAsk}</span>
+                  <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                    {copy.pensionDeductionAmountHint}
+                  </p>
+                  <input
+                    inputMode="decimal"
+                    value={state.pensionDeductionEuro}
+                    onChange={(e) => setState({ ...state, pensionDeductionEuro: e.target.value })}
+                    className={`mt-1 ${FIELD}`}
+                    placeholder="€"
+                    aria-label={copy.pensionDeductionAmountAsk}
+                  />
+                </label>
+              ) : null}
+              <label className="block">
+                <span className="text-base text-gray-700">{copy.otherPayslipDeductionLabel}</span>
+                <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                  {copy.otherPayslipDeductionHelp}
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                  {copy.otherPayslipDeductionCompanyCarNote}
+                </p>
+                <input
+                  inputMode="decimal"
+                  value={state.otherPayslipDeductionEuro}
+                  onChange={(e) => setState({ ...state, otherPayslipDeductionEuro: e.target.value })}
+                  className={`mt-1 ${FIELD}`}
+                  placeholder="€"
+                  aria-label={copy.otherPayslipDeductionLabel}
+                />
+              </label>
               <button type="button" className={NEXT_BTN} onClick={goNext}>
                 {copy.next}
               </button>
@@ -2435,6 +2545,17 @@ export default function VerdienCheckWizard(props: {
                   copy={copy}
                   route={personalRoute}
                   showHeading={extraResultChosen}
+                  onRequestPayslipAccuracy={
+                    shouldOfferPayslipAccuracy(state) &&
+                    state.pensionDeductionStatus !== 'NONE' &&
+                    state.pensionDeductionStatus !== 'AMOUNT'
+                      ? () => {
+                          const next = { ...state, payslipAccuracyRequested: true };
+                          setState(next);
+                          setStep('payslipDeductions');
+                        }
+                      : undefined
+                  }
                   incomeAnnualCents={
                     calculatorInput?.baselineGrossEmploymentIncomeCents ??
                     calculatorInput?.baselineBox1TaxableIncomeCents ??

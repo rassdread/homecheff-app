@@ -54,6 +54,7 @@ export default function VerdienCheckBaselineCard(props: {
   incomeUnknownReason: string | null;
   /** When the page h1 already is this title, omit the duplicate card heading. */
   showHeading?: boolean;
+  onRequestPayslipAccuracy?: () => void;
 }) {
   const baseline = props.route.financialImpact.baseline;
   const lines = baseline?.allowances ?? [];
@@ -75,6 +76,16 @@ export default function VerdienCheckBaselineCard(props: {
     ownerHome != null &&
     (ownerHome.status === 'COMPLETE' || ownerHome.status === 'PARTIAL');
   const [housingInfoOpen, setHousingInfoOpen] = useState(false);
+  const [payslipOpen, setPayslipOpen] = useState(false);
+  const pensionStatus = baseline?.pensionStatus ?? null;
+  const pensionKnown =
+    pensionStatus === 'AMOUNT' || baseline?.pensionExplicitZero === true;
+  const bankNet = baseline?.bankNetMonthlyCents ?? baseline?.statutoryNetMonthlyCents ?? null;
+  const showPayslipNet =
+    !incomeIsNetEstimate &&
+    baseline?.payrollUsed &&
+    bankNet != null &&
+    baseline.enteredNetMonthlyCents == null;
 
   return (
     <section
@@ -140,23 +151,105 @@ export default function VerdienCheckBaselineCard(props: {
             </span>
           </div>
         ) : null}
-        {!incomeIsNetEstimate &&
-        baseline?.payrollUsed &&
-        baseline.statutoryNetMonthlyCents != null &&
-        baseline.enteredNetMonthlyCents == null ? (
-          <div className="flex justify-between gap-4 text-base text-stone-800">
-            <span>
-              {props.copy.statutoryNetEstimateLabel}
-              <span
-                data-verdiencheck-estimate=""
-                className="ml-2 text-xs font-normal uppercase tracking-wide text-amber-800"
-              >
-                {props.copy.estimateLabel}
+        {showPayslipNet ? (
+          <div data-verdiencheck-payslip="" className="space-y-2">
+            <div className="flex justify-between gap-4 text-base text-stone-800">
+              <span>
+                {pensionKnown ? props.copy.bankNetEstimateLabel : props.copy.statutoryNetEstimateLabel}
+                <span
+                  data-verdiencheck-estimate=""
+                  className="ml-2 text-xs font-normal uppercase tracking-wide text-amber-800"
+                >
+                  {props.copy.estimateLabel}
+                </span>
               </span>
-            </span>
-            <span className="text-right font-medium tabular-nums">
-              €{whole(baseline.statutoryNetMonthlyCents)} {props.copy.perMonthShort}
-            </span>
+              <span
+                data-verdiencheck-bank-net=""
+                className="text-right font-medium tabular-nums"
+              >
+                €{whole(bankNet ?? 0)} {props.copy.perMonthShort}
+              </span>
+            </div>
+            {pensionKnown ? null : (
+              <p className="text-sm leading-relaxed text-stone-600">
+                {props.copy.statutoryNetEstimateInfo}
+              </p>
+            )}
+            {!pensionKnown ? (
+              <p data-verdiencheck-pension-unknown="" className="text-sm text-stone-700">
+                {props.copy.pensionNotIncluded}
+              </p>
+            ) : null}
+            <button
+              type="button"
+              className="text-sm font-medium text-emerald-800 underline-offset-2 hover:underline"
+              onClick={() => setPayslipOpen((open) => !open)}
+            >
+              {props.copy.viewPayslipBreakdown}
+            </button>
+            {payslipOpen ? (
+              <div data-verdiencheck-payslip-details="" className="space-y-1 text-sm text-stone-700">
+                {baseline?.enteredGrossMonthlyCents != null ||
+                baseline?.estimatedGrossMonthlyCents != null ? (
+                  <div className="flex justify-between gap-4">
+                    <span>{props.copy.payslipGrossLabel}</span>
+                    <span className="tabular-nums">
+                      €
+                      {whole(
+                        baseline.enteredGrossMonthlyCents ??
+                          baseline.estimatedGrossMonthlyCents ??
+                          0,
+                      )}
+                    </span>
+                  </div>
+                ) : null}
+                {baseline?.withheldPayrollTaxCents != null ? (
+                  <div className="flex justify-between gap-4">
+                    <span>{props.copy.payslipWithholdingLabel}</span>
+                    <span className="tabular-nums">
+                      − €{whole(baseline.withheldPayrollTaxCents)}
+                    </span>
+                  </div>
+                ) : null}
+                {baseline?.pensionExplicitZero ? (
+                  <div className="flex justify-between gap-4">
+                    <span>{props.copy.payslipPensionLabel}</span>
+                    <span className="tabular-nums">€0</span>
+                  </div>
+                ) : pensionStatus === 'AMOUNT' && baseline?.employeePensionCents != null ? (
+                  <div className="flex justify-between gap-4">
+                    <span>{props.copy.payslipPensionLabel}</span>
+                    <span className="tabular-nums">− €{whole(baseline.employeePensionCents)}</span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between gap-4">
+                    <span>{props.copy.payslipPensionLabel}</span>
+                    <span>{props.copy.pensionNotIncluded}</span>
+                  </div>
+                )}
+                {(baseline?.otherBankDeductionCents ?? 0) > 0 ? (
+                  <div className="flex justify-between gap-4">
+                    <span>{props.copy.payslipOtherDeductionsLabel}</span>
+                    <span className="tabular-nums">
+                      − €{whole(baseline?.otherBankDeductionCents ?? 0)}
+                    </span>
+                  </div>
+                ) : null}
+                <div className="flex justify-between gap-4 font-medium text-stone-800">
+                  <span>{props.copy.payslipBankNetLabel}</span>
+                  <span className="tabular-nums">€{whole(bankNet ?? 0)}</span>
+                </div>
+              </div>
+            ) : null}
+            {props.onRequestPayslipAccuracy ? (
+              <button
+                type="button"
+                className="text-sm font-medium text-emerald-800 underline-offset-2 hover:underline"
+                onClick={props.onRequestPayslipAccuracy}
+              >
+                {props.copy.payslipAccuracyCta}
+              </button>
+            ) : null}
           </div>
         ) : null}
         {!(incomeIsNetEstimate && baseline?.estimatedGrossMonthlyCents != null) ? (

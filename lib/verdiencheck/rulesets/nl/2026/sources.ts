@@ -409,6 +409,16 @@ export const SRC_AFTREKBARE_KOSTEN_EW = {
   verifiedAt: '2026-09-22',
 } as const;
 
+export const SRC_PENSION_PAYROLL_2026 = {
+  officialSource:
+    'Belastingdienst — Handboek Loonheffingen 2026 (maart): kolom 7 aftrekposten voor alle heffingen, werknemersdeel pensioenpremie',
+  officialSourceUrl:
+    'https://download.belastingdienst.nl/belastingdienst/docs/handboek-loonheffingen-lh0221t61fd.pdf',
+  publication: 'Handboek Loonheffingen 2026, uitgave maart 2026, §11.2.6 kolom 7',
+  effectiveFrom: '2026-01-01',
+  verifiedAt: '2026-09-22',
+} as const;
+
 export const SRC_TOETSINGSINKOMEN_2026 = {
   officialSource:
     'Dienst Toeslagen — Toetsingsinkomen is verzamelinkomen (aangifte) of belastbaar loon (geen aangifte)',

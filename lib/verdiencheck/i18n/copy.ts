@@ -279,6 +279,31 @@ export type VerdienCheckCopy = {
   payrollTaxCreditAssumedYes: string;
   payrollNetBeforeDeductionsNote: string;
   statutoryNetEstimateLabel: string;
+  statutoryNetEstimateInfo: string;
+  payslipAccuracyCta: string;
+  payslipAccuracyTitle: string;
+  pensionDeductionQuestion: string;
+  pensionDeductionNone: string;
+  pensionDeductionAmount: string;
+  pensionDeductionUnknown: string;
+  pensionDeductionAmountAsk: string;
+  pensionDeductionAmountHint: string;
+  otherPayslipDeductionLabel: string;
+  otherPayslipDeductionHelp: string;
+  otherPayslipDeductionCompanyCarNote: string;
+  netDepositKindQuestion: string;
+  netDepositKindYes: string;
+  netDepositKindNo: string;
+  netDepositKindUnknown: string;
+  bankNetEstimateLabel: string;
+  viewPayslipBreakdown: string;
+  payslipGrossLabel: string;
+  payslipWithholdingLabel: string;
+  payslipPensionLabel: string;
+  payslipOtherDeductionsLabel: string;
+  payslipBankNetLabel: string;
+  pensionNotIncluded: string;
+  pensionNotIncludedInfo: string;
   housingHeading: string;
   housingOwnerLabel: string;
   housingRentLabel: string;
@@ -643,6 +668,35 @@ const NL: VerdienCheckCopy = {
   payrollNetBeforeDeductionsNote:
     'Gebruik het nettoloon vóór eventuele persoonlijke inhoudingen zoals pensioen of een eigen bijdrage voor een auto, als je dat bedrag weet.',
   statutoryNetEstimateLabel: 'Geschat netto volgens standaard loonberekening',
+  statutoryNetEstimateInfo:
+    'Je werkelijke storting kan lager zijn door bijvoorbeeld pensioen of andere inhoudingen op je loonstrook.',
+  payslipAccuracyCta: 'Maak mijn loonstrook nauwkeuriger',
+  payslipAccuracyTitle: 'Maak mijn loonstrook nauwkeuriger',
+  pensionDeductionQuestion: 'Pensioeninhouding',
+  pensionDeductionNone: 'Geen',
+  pensionDeductionAmount: 'Bedrag van mijn loonstrook',
+  pensionDeductionUnknown: 'Weet ik niet',
+  pensionDeductionAmountAsk: 'Hoeveel wordt er per maand voor pensioen ingehouden?',
+  pensionDeductionAmountHint: 'Gebruik bij voorkeur het werknemersdeel dat op je loonstrook staat.',
+  otherPayslipDeductionLabel: 'Overige inhoudingen op je loonstrook',
+  otherPayslipDeductionHelp:
+    'Bijvoorbeeld collectieve verzekering of vakbondscontributie. Dit verlaagt wat op je rekening binnenkomt, niet automatisch je fiscale loon.',
+  otherPayslipDeductionCompanyCarNote:
+    'Eigen bijdrage auto van de zaak voegen we apart toe wanneer je die optie gebruikt.',
+  netDepositKindQuestion: 'Is dit ongeveer wat er op je rekening wordt gestort?',
+  netDepositKindYes: 'Ja',
+  netDepositKindNo: 'Nee / dit is netto vóór inhoudingen',
+  netDepositKindUnknown: 'Weet ik niet',
+  bankNetEstimateLabel: 'Geschat op je rekening',
+  viewPayslipBreakdown: 'Bekijk loonberekening',
+  payslipGrossLabel: 'Bruto loon',
+  payslipWithholdingLabel: 'Loonheffing',
+  payslipPensionLabel: 'Pensioen werknemersdeel',
+  payslipOtherDeductionsLabel: 'Overige inhoudingen',
+  payslipBankNetLabel: 'Geschat op je rekening',
+  pensionNotIncluded: 'Pensioen niet meegenomen',
+  pensionNotIncludedInfo:
+    'Je werkelijke storting kan lager zijn door bijvoorbeeld pensioen of andere inhoudingen op je loonstrook.',
   housingHeading: 'Wonen',
   housingOwnerLabel: 'Koopwoning',
   housingRentLabel: 'Huur',
@@ -1076,6 +1130,15 @@ const NL: VerdienCheckCopy = {
         UNKNOWN: 'Weet ik niet',
       },
     },
+    payslipDeductions: {
+      title: 'Maak mijn loonstrook nauwkeuriger',
+      help: 'Gebruik bij voorkeur het werknemersdeel dat op je loonstrook staat. Werkgeverspremie pensioen vragen we hier niet, omdat die niet van je storting afgaat.',
+      options: {
+        NONE: 'Geen',
+        AMOUNT: 'Bedrag van mijn loonstrook',
+        UNKNOWN: 'Weet ik niet',
+      },
+    },
     amounts: { title: 'Wat denk je ongeveer te verkopen dit jaar?' },
     otherVatTurnover: {
       title: 'Verkoop je hetzelfde ook buiten HomeCheff?',
@@ -1440,6 +1503,35 @@ const EN: VerdienCheckCopy = {
   payrollNetBeforeDeductionsNote:
     'Use net pay before personal deductions such as pension or a company-car contribution if you know that amount.',
   statutoryNetEstimateLabel: 'Estimated net according to standard payroll calculation',
+  statutoryNetEstimateInfo:
+    'Your actual deposit can be lower because of pension or other deductions on your payslip.',
+  payslipAccuracyCta: 'Make my payslip more accurate',
+  payslipAccuracyTitle: 'Make my payslip more accurate',
+  pensionDeductionQuestion: 'Pension deduction',
+  pensionDeductionNone: 'None',
+  pensionDeductionAmount: 'Amount from my payslip',
+  pensionDeductionUnknown: 'I don’t know',
+  pensionDeductionAmountAsk: 'How much is withheld for pension each month?',
+  pensionDeductionAmountHint: 'Preferably use the employee share shown on your payslip.',
+  otherPayslipDeductionLabel: 'Other deductions on your payslip',
+  otherPayslipDeductionHelp:
+    'For example collective insurance or a union contribution. This lowers what is deposited, not automatically your fiscal wage.',
+  otherPayslipDeductionCompanyCarNote:
+    'A company-car own contribution is added separately when you use that option.',
+  netDepositKindQuestion: 'Is this roughly what is deposited into your account?',
+  netDepositKindYes: 'Yes',
+  netDepositKindNo: 'No / this is net before deductions',
+  netDepositKindUnknown: 'I don’t know',
+  bankNetEstimateLabel: 'Estimated bank deposit',
+  viewPayslipBreakdown: 'View payroll calculation',
+  payslipGrossLabel: 'Gross pay',
+  payslipWithholdingLabel: 'Payroll tax',
+  payslipPensionLabel: 'Employee pension share',
+  payslipOtherDeductionsLabel: 'Other deductions',
+  payslipBankNetLabel: 'Estimated bank deposit',
+  pensionNotIncluded: 'Pension not included',
+  pensionNotIncludedInfo:
+    'Your actual deposit can be lower because of pension or other deductions on your payslip.',
   housingHeading: 'Housing',
   housingOwnerLabel: 'Owner-occupied home',
   housingRentLabel: 'Rent',
@@ -1862,6 +1954,15 @@ const EN: VerdienCheckCopy = {
       options: {
         NO: 'No',
         YES: 'Yes',
+        UNKNOWN: 'I don’t know',
+      },
+    },
+    payslipDeductions: {
+      title: 'Make my payslip more accurate',
+      help: 'Preferably use the employee share shown on your payslip. We do not ask for the employer pension contribution here, because it is not taken from your bank deposit.',
+      options: {
+        NONE: 'None',
+        AMOUNT: 'Amount from my payslip',
         UNKNOWN: 'I don’t know',
       },
     },

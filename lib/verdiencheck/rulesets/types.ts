@@ -15,6 +15,7 @@ export type RulePackModuleStatus =
   | 'CERTIFIED_FOR_REVIEW_ONLY'
   | 'CERTIFIED_FOR_STANDARD_WHITE_MONTHLY'
   | 'CERTIFIED_FOR_OWNER_OCCUPIED_HOME_V1'
+  | 'CERTIFIED_FOR_PENSION_BANK_NET_V1'
   | 'PARTIAL';
 
 export type RuleParameter = {

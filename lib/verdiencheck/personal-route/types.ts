@@ -88,6 +88,12 @@ export type BaselinePresentationFacts = {
   enteredGrossMonthlyCents?: number | null;
   estimatedGrossMonthlyCents?: number | null;
   statutoryNetMonthlyCents?: number | null;
+  bankNetMonthlyCents?: number | null;
+  withheldPayrollTaxCents?: number | null;
+  employeePensionCents?: number | null;
+  pensionStatus?: 'NONE' | 'AMOUNT' | 'UNKNOWN' | 'NOT_SUPPLIED' | null;
+  pensionExplicitZero?: boolean;
+  otherBankDeductionCents?: number | null;
   payrollUsed?: boolean;
   payrollTaxCredit?: 'YES' | 'NO' | 'UNKNOWN' | null;
   payrollTaxCreditAssumed?: boolean;
@@ -114,6 +120,12 @@ export type CurrentBaselineView = {
   enteredGrossMonthlyCents: number | null;
   estimatedGrossMonthlyCents: number | null;
   statutoryNetMonthlyCents: number | null;
+  bankNetMonthlyCents: number | null;
+  withheldPayrollTaxCents: number | null;
+  employeePensionCents: number | null;
+  pensionStatus: 'NONE' | 'AMOUNT' | 'UNKNOWN' | 'NOT_SUPPLIED' | null;
+  pensionExplicitZero: boolean;
+  otherBankDeductionCents: number;
   payrollUsed: boolean;
   payrollTaxCredit: 'YES' | 'NO' | 'UNKNOWN' | null;
   payrollTaxCreditAssumed: boolean;

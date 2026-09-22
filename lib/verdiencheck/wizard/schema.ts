@@ -68,6 +68,7 @@ export const WIZARD_STEP_IDS = [
   'partner',
   'partnerInsurance',
   'currentIncome',
+  'payslipDeductions',
   'incomeBases',
   'partnerIncome',
   'rentsHome',
@@ -136,6 +137,11 @@ export type WizardState = {
   holidayPayPercentMode: 'STATUTORY_8' | 'CUSTOM' | null;
   holidayPayCustomPercent: string;
   payrollTaxCredit: 'YES' | 'NO' | 'UNKNOWN' | null;
+  netDepositKind: 'BANK_NET' | 'STATUTORY_NET' | 'UNKNOWN' | null;
+  payslipAccuracyRequested: boolean;
+  pensionDeductionStatus: 'NONE' | 'AMOUNT' | 'UNKNOWN' | null;
+  pensionDeductionEuro: string;
+  otherPayslipDeductionEuro: string;
   dutchHealthInsurance: boolean | 'UNKNOWN' | null;
   housingTenure: HousingTenure | null;
   rentsHome: boolean | 'UNKNOWN' | null;
@@ -248,6 +254,11 @@ export const EMPTY_WIZARD_STATE: WizardState = {
   holidayPayPercentMode: null,
   holidayPayCustomPercent: '',
   payrollTaxCredit: null,
+  netDepositKind: null,
+  payslipAccuracyRequested: false,
+  pensionDeductionStatus: null,
+  pensionDeductionEuro: '',
+  otherPayslipDeductionEuro: '',
   dutchHealthInsurance: null,
   housingTenure: null,
   rentsHome: null,
@@ -448,6 +459,11 @@ export function clearFinancialDepth(state: WizardState): WizardState {
   next.holidayPayPercentMode = null;
   next.holidayPayCustomPercent = '';
   next.payrollTaxCredit = null;
+  next.netDepositKind = null;
+  next.payslipAccuracyRequested = false;
+  next.pensionDeductionStatus = null;
+  next.pensionDeductionEuro = '';
+  next.otherPayslipDeductionEuro = '';
   next.dutchHealthInsurance = null;
   next.housingTenure = null;
   next.rentsHome = null;
@@ -834,6 +850,17 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
   {
     id: 'currentIncome',
     visible: (s) => moneyLayerVisible(s),
+  },
+  {
+    id: 'payslipDeductions',
+    visible: (s) =>
+      moneyLayerVisible(s) &&
+      s.payslipAccuracyRequested &&
+      !s.currentIncomeUnknown &&
+      s.currentIncomePeriod === 'MONTH' &&
+      s.ageTaxRegime === 'BELOW_AOW_2026' &&
+      s.hasOtherIncome === false &&
+      (s.situationGroup === 'EMPLOYEE' || s.situationGroup === 'NONE'),
   },
   {
     id: 'incomeBases',

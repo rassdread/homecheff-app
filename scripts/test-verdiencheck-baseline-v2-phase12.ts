@@ -382,6 +382,13 @@ for (const key of [
   'withholding',
   'loon',
   'net',
+  'pension',
+  'pensioen',
+  'deduction',
+  'inhouding',
+  'bank_net',
+  'banknet',
+  'payroll_deduction',
 ] as const) {
   assert.ok((FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS as readonly string[]).includes(key), key);
   assert.equal(inspectVerdienCheckAnalyticsPayload({ [key]: 1 }).ok, false);

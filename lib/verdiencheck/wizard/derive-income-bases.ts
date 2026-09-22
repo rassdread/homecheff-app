@@ -25,8 +25,13 @@ import {
   type OwnerOccupiedHomeResult,
 } from '../rulesets/nl/2026/owner-occupied-home';
 import {
-  calculateEmployeePayroll2026,
-  invertEmployeePayrollNet2026,
+  annualPensionFiscalAdjustmentCents,
+  calculateEmployeePayslip2026,
+  invertEmployeePayslipNet2026,
+  type PayslipNetKind,
+  type PayslipPensionStatus,
+} from '../rulesets/nl/2026/employee-payslip';
+import {
   PAYROLL_FORWARD_MODEL,
   PAYROLL_INVERSE_MODEL,
   resolvePayrollTaxCredit,
@@ -102,13 +107,18 @@ export type PayrollSnapshot = {
   payrollTaxCreditAssumed: boolean;
   estimatedGrossMonthlyCents: number | null;
   statutoryNetMonthlyCents: number | null;
+  bankNetMonthlyCents: number | null;
   withheldPayrollTaxCents: number | null;
   tabelloonCents: number | null;
+  employeePensionCents: number | null;
+  pensionStatus: PayslipPensionStatus;
+  pensionExplicitZero: boolean;
+  otherBankDeductionCents: number;
   employeeZvwCents: number;
   differenceCents: number | null;
   iterations: number | null;
   method: typeof PAYROLL_FORWARD_MODEL | typeof PAYROLL_INVERSE_MODEL | null;
-  provenance: 'ESTIMATE' | 'NONE';
+  provenance: 'ESTIMATE' | 'DERIVED' | 'NONE';
 };
 
 export type DerivedIncomeBases = {
@@ -169,13 +179,55 @@ function unusedPayroll(reason: string | null, eligible = false): PayrollSnapshot
     payrollTaxCreditAssumed: resolved.assumed,
     estimatedGrossMonthlyCents: null,
     statutoryNetMonthlyCents: null,
+    bankNetMonthlyCents: null,
     withheldPayrollTaxCents: null,
     tabelloonCents: null,
+    employeePensionCents: null,
+    pensionStatus: 'NOT_SUPPLIED',
+    pensionExplicitZero: false,
+    otherBankDeductionCents: 0,
     employeeZvwCents: 0,
     differenceCents: null,
     iterations: null,
     method: null,
     provenance: 'NONE',
+  };
+}
+
+export function wizardPayslipInputs(state: WizardState): {
+  pensionStatus: PayslipPensionStatus;
+  employeePensionCents: number | null;
+  otherBankDeductionCents: number;
+  netKind: PayslipNetKind;
+} {
+  let pensionStatus: PayslipPensionStatus = 'NOT_SUPPLIED';
+  let employeePensionCents: number | null = null;
+  if (state.pensionDeductionStatus === 'NONE') {
+    pensionStatus = 'NONE';
+    employeePensionCents = 0;
+  } else if (state.pensionDeductionStatus === 'UNKNOWN') {
+    pensionStatus = 'UNKNOWN';
+  } else if (state.pensionDeductionStatus === 'AMOUNT') {
+    const cents = parseEuroInputToCents(state.pensionDeductionEuro);
+    if (cents == null) {
+      pensionStatus = 'UNKNOWN';
+    } else {
+      pensionStatus = 'AMOUNT';
+      employeePensionCents = cents;
+    }
+  }
+  const other = parseEuroInputToCents(state.otherPayslipDeductionEuro);
+  const netKind: PayslipNetKind =
+    state.netDepositKind === 'BANK_NET' ||
+    state.netDepositKind === 'STATUTORY_NET' ||
+    state.netDepositKind === 'UNKNOWN'
+      ? state.netDepositKind
+      : 'UNKNOWN';
+  return {
+    pensionStatus,
+    employeePensionCents,
+    otherBankDeductionCents: other ?? 0,
+    netKind,
   };
 }
 
@@ -265,6 +317,14 @@ export function shouldAskPayrollTaxCredit(state: WizardState): boolean {
   return state.situationGroup === 'EMPLOYEE' || state.situationGroup === 'NONE';
 }
 
+export function shouldOfferPayslipAccuracy(state: WizardState): boolean {
+  return payrollWhiteMonthlyEligible(state).ok;
+}
+
+export function shouldAskNetDepositKind(state: WizardState): boolean {
+  return shouldAskPayrollTaxCredit(state) && state.currentIncomeBasis === 'NET';
+}
+
 export function payrollWhiteMonthlyEligible(state: WizardState): {
   ok: boolean;
   reason: string | null;
@@ -297,10 +357,14 @@ function computePayrollSnapshot(
   }
 
   const assumptionsCredit: PayrollSnapshot['payrollTaxCreditChoice'] = resolved.choice;
+  const payslip = wizardPayslipInputs(state);
   if (basis === 'GROSS') {
-    const forward = calculateEmployeePayroll2026({
-      grossMonthlyCents: monthlyCents,
+    const forward = calculateEmployeePayslip2026({
+      contractualGrossMonthlyCents: monthlyCents,
       payrollTaxCredit: resolved.applied,
+      pensionStatus: payslip.pensionStatus,
+      employeePensionCents: payslip.employeePensionCents,
+      otherBankDeductionCents: payslip.otherBankDeductionCents,
     });
     if (forward.status !== 'OK') {
       return {
@@ -308,6 +372,9 @@ function computePayrollSnapshot(
         payrollTaxCreditChoice: assumptionsCredit,
         payrollTaxCreditApplied: resolved.applied,
         payrollTaxCreditAssumed: resolved.assumed,
+        pensionStatus: payslip.pensionStatus,
+        employeePensionCents: payslip.employeePensionCents,
+        otherBankDeductionCents: payslip.otherBankDeductionCents,
       };
     }
     return {
@@ -319,19 +386,28 @@ function computePayrollSnapshot(
       payrollTaxCreditAssumed: resolved.assumed,
       estimatedGrossMonthlyCents: monthlyCents,
       statutoryNetMonthlyCents: forward.statutoryNetMonthlyCents,
+      bankNetMonthlyCents: forward.bankNetMonthlyCents,
       withheldPayrollTaxCents: forward.withheldPayrollTaxCents,
       tabelloonCents: forward.tabelloonCents,
-      employeeZvwCents: forward.employeeZvwCents,
+      employeePensionCents: forward.employeePensionCents,
+      pensionStatus: forward.pensionStatus,
+      pensionExplicitZero: forward.pensionExplicitZero,
+      otherBankDeductionCents: forward.otherBankDeductionCents,
+      employeeZvwCents: 0,
       differenceCents: 0,
       iterations: null,
       method: PAYROLL_FORWARD_MODEL,
-      provenance: 'ESTIMATE',
+      provenance: forward.provenance,
     };
   }
 
-  const inverted = invertEmployeePayrollNet2026({
-    targetStatutoryNetMonthlyCents: monthlyCents,
+  const inverted = invertEmployeePayslipNet2026({
+    targetNetMonthlyCents: monthlyCents,
+    netKind: payslip.netKind,
     payrollTaxCredit: resolved.applied,
+    pensionStatus: payslip.pensionStatus,
+    employeePensionCents: payslip.employeePensionCents,
+    otherBankDeductionCents: payslip.otherBankDeductionCents,
   });
   if (inverted.status !== 'OK') {
     return {
@@ -339,6 +415,9 @@ function computePayrollSnapshot(
       payrollTaxCreditChoice: assumptionsCredit,
       payrollTaxCreditApplied: resolved.applied,
       payrollTaxCreditAssumed: resolved.assumed,
+      pensionStatus: payslip.pensionStatus,
+      employeePensionCents: payslip.employeePensionCents,
+      otherBankDeductionCents: payslip.otherBankDeductionCents,
     };
   }
   return {
@@ -349,10 +428,15 @@ function computePayrollSnapshot(
     payrollTaxCreditApplied: resolved.applied,
     payrollTaxCreditAssumed: resolved.assumed,
     estimatedGrossMonthlyCents: inverted.estimatedGrossMonthlyCents,
-    statutoryNetMonthlyCents: inverted.calculatedNetAtSolutionCents,
+    statutoryNetMonthlyCents: inverted.statutoryNetMonthlyCents,
+    bankNetMonthlyCents: inverted.bankNetMonthlyCents,
     withheldPayrollTaxCents: inverted.withheldPayrollTaxCents,
     tabelloonCents: inverted.tabelloonCents,
-    employeeZvwCents: inverted.employeeZvwCents,
+    employeePensionCents: inverted.employeePensionCents,
+    pensionStatus: inverted.pensionStatus,
+    pensionExplicitZero: payslip.pensionStatus === 'NONE',
+    otherBankDeductionCents: inverted.otherBankDeductionCents,
+    employeeZvwCents: 0,
     differenceCents: inverted.differenceCents,
     iterations: inverted.iterations,
     method: PAYROLL_INVERSE_MODEL,
@@ -450,6 +534,12 @@ function deriveEmployeeEstimate(input: {
   const annual = input.reconstructedAnnual;
   const estimateKind: IncomeAmountProvenanceKind = input.netEstimate ? 'ESTIMATE' : 'DERIVED';
   const payrollUsed = input.payroll.used;
+  const pensionAdj = annualPensionFiscalAdjustmentCents({
+    pensionStatus: input.payroll.pensionStatus,
+    employeePensionCents: input.payroll.employeePensionCents,
+  });
+  const fiscal = Math.max(0, annual - pensionAdj.cents);
+  const fiscalKind: IncomeAmountProvenanceKind = pensionAdj.estimate ? 'ESTIMATE' : estimateKind;
   const grossSource: IncomeBasisSource = input.netEstimate
     ? payrollUsed
       ? 'PAYROLL_WHITE_MONTHLY_2026'
@@ -469,14 +559,14 @@ function deriveEmployeeEstimate(input: {
       : null;
   return {
     contractualGrossEmploymentIncomeCents: input.contractualCents,
-    fiscalWageCents: annual,
+    fiscalWageCents: fiscal,
     baselineGrossEmploymentIncomeCents: annual,
-    baselineBox1TaxableIncomeCents: annual,
-    baselineAggregateIncomeCents: annual,
+    baselineBox1TaxableIncomeCents: fiscal,
+    baselineAggregateIncomeCents: fiscal,
     baselineArbeidsinkomenCents: annual,
-    baselineAssessmentIncomeCents: annual,
-    householdAssessmentIncomeCents: householdAssessment(annual, input.state),
-    baselineZvwContributionIncomeAlreadyUsedCents: annual,
+    baselineAssessmentIncomeCents: fiscal,
+    householdAssessmentIncomeCents: householdAssessment(fiscal, input.state),
+    baselineZvwContributionIncomeAlreadyUsedCents: fiscal,
     derivation: input.derivation,
     netToGrossMethod: method,
     netToGrossConfidence: input.netEstimate ? 'ESTIMATE' : null,
@@ -490,12 +580,12 @@ function deriveEmployeeEstimate(input: {
     ),
     basisProvenance: {
       contractualGross: prov(input.netEstimate ? 'ESTIMATE' : 'USER_PROVIDED', grossSource),
-      fiscalWage: prov(estimateKind, fiscalSource),
-      box1: prov(estimateKind, 'DERIVED_FROM_FISCAL_WAGE'),
-      aggregate: prov(estimateKind, 'DERIVED_FROM_FISCAL_WAGE'),
+      fiscalWage: prov(fiscalKind, fiscalSource),
+      box1: prov(fiscalKind, 'DERIVED_FROM_FISCAL_WAGE'),
+      aggregate: prov(fiscalKind, 'DERIVED_FROM_FISCAL_WAGE'),
       arbeidsinkomen: prov(estimateKind, 'DERIVED_FROM_GROSS_EMPLOYMENT'),
-      assessment: prov(estimateKind, 'DERIVED_FROM_FISCAL_WAGE'),
-      zvwUsed: prov('DERIVED', 'DERIVED_FROM_FISCAL_WAGE'),
+      assessment: prov(fiscalKind, 'DERIVED_FROM_FISCAL_WAGE'),
+      zvwUsed: prov(pensionAdj.estimate ? 'ESTIMATE' : 'DERIVED', 'DERIVED_FROM_FISCAL_WAGE'),
     },
     payroll: input.payroll,
     ownerHome: unusedOwnerHome(),

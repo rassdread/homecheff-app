@@ -43,6 +43,7 @@ export const NL_2026_MODULE_STATUS = {
   fearReductionUx: 'CERTIFIED',
   payrollWhiteMonthly: 'CERTIFIED_FOR_STANDARD_WHITE_MONTHLY',
   ownerOccupiedHome: 'CERTIFIED_FOR_OWNER_OCCUPIED_HOME_V1',
+  employeePayslip: 'CERTIFIED_FOR_PENSION_BANK_NET_V1',
 } as const;
 
 export type Nl2026ModuleId = keyof typeof NL_2026_MODULE_STATUS;

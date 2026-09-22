@@ -63,6 +63,7 @@
     "test:verdiencheck-baseline-v2-phase12": "npx tsx scripts/test-verdiencheck-baseline-v2-phase12.ts",
     "test:verdiencheck-official-payroll-2026": "npx tsx scripts/test-verdiencheck-official-payroll-2026.ts",
     "test:verdiencheck-housing-2026": "npx tsx scripts/test-verdiencheck-housing-2026.ts",
+    "test:verdiencheck-pension-bank-net-2026": "npx tsx scripts/test-verdiencheck-pension-bank-net-2026.ts",
     "test:verdiencheck-mobile-bottom-nav-pad": "npx tsx scripts/test-verdiencheck-mobile-bottom-nav-pad.ts",
     "validate:verdiencheck-public-copy": "npx tsx scripts/validate-verdiencheck-public-copy.ts",
     "validate:trust-1-marketplace-integrity": "npx tsx scripts/validate-trust-1-marketplace-integrity.ts",

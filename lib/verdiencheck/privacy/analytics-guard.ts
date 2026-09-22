@@ -161,6 +161,13 @@ export const FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS = [
   'eigenwoning',
   'eigenwoningforfait',
   'housing_value',
+  'pension',
+  'pensioen',
+  'deduction',
+  'inhouding',
+  'bank_net',
+  'banknet',
+  'payroll_deduction',
 ] as const;
 
 const FORBIDDEN_VALUE_TOKENS = [
