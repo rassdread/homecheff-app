@@ -405,6 +405,7 @@ assert.match(wizardSrc, /payslipDeductions/);
 assert.match(wizardSrc, /netDepositKind/);
 assert.doesNotMatch(wizardSrc, /Ik weet alleen het percentage/);
 assert.match(cardSrc, /pensionNotIncluded/);
+assert.match(cardSrc, /incomeIsNetEstimate && baseline\?\.payrollUsed && !pensionKnown/);
 assert.match(cardSrc, /viewPayslipBreakdown/);
 assert.match(cardSrc, /payslipWithholdingLabel/);
 assert.doesNotMatch(cardSrc, /Pensioen €0/);

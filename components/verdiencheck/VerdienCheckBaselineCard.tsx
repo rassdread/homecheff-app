@@ -343,6 +343,17 @@ export default function VerdienCheckBaselineCard(props: {
             </span>
           </div>
         ) : null}
+        {incomeIsNetEstimate && baseline?.payrollUsed && !pensionKnown ? (
+          <p data-verdiencheck-pension-unknown="" className="text-sm text-stone-700">
+            {props.copy.pensionNotIncluded}
+          </p>
+        ) : null}
+        {incomeIsNetEstimate && pensionStatus === 'AMOUNT' && baseline?.employeePensionCents != null ? (
+          <div className="flex justify-between gap-4 text-sm text-stone-700">
+            <span>{props.copy.payslipPensionLabel}</span>
+            <span className="tabular-nums">− €{whole(baseline.employeePensionCents)}</span>
+          </div>
+        ) : null}
         {incomeIsNetEstimate ? (
           <p className="text-sm leading-relaxed text-stone-600">{props.copy.netToGrossPayslipNote}</p>
         ) : null}
