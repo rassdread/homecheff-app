@@ -1,0 +1,23 @@
+{
+  "readOnly": true,
+  "writes": 0,
+  "scannedTransactions": 7,
+  "transactionsWithRefunds": 1,
+  "refundRows": 1,
+  "REFUND_EXCEEDS_SALE_CASES": 0,
+  "duplicateTransferReversalRefundRows": 0,
+  "webhookReversalRefundRows": 0,
+  "buyerLevelLeakageRows": 0,
+  "duplicateProviderRefPerTransaction": 0,
+  "yearsAffected": [],
+  "sellersAffected": 0,
+  "rows": [
+    {
+      "idShape": "refund_buyer_<uuid>_pyr_1U57Xd2KvmKfeN9t8Vgi1CuS",
+      "amountCents": 100,
+      "legGrossCents": 100,
+      "providerRefKind": "pyr",
+      "scope": "EQUALS_SELLER_GROSS"
+    }
+  ]
+}

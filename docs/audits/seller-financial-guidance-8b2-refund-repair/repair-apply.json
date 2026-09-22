@@ -1,0 +1,57 @@
+{
+  "phase": "8B.2",
+  "section": "13_CONTROLLED_DATA_REPAIR",
+  "mode": "APPLY",
+  "orderId": "b7df063b-a305-4129-a63f-3418bb6846df",
+  "transactionId": "txn_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+  "guards": {},
+  "aborted": false,
+  "before": {
+    "order": {
+      "id": "b7df063b-a305-4129-a63f-3418bb6846df",
+      "totalAmount": 127,
+      "status": "REFUNDED"
+    },
+    "transaction": {
+      "id": "txn_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+      "sellerId": "7647bf21-e9ab-4e3a-af83-eeec23e24dcb",
+      "amountCents": 100,
+      "platformFeeBps": 1200,
+      "status": "REFUNDED"
+    },
+    "refunds": [
+      {
+        "id": "refund_buyer_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17_pyr_1U57Xd2KvmKfeN9t8Vgi1CuS",
+        "transactionId": "txn_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+        "amountCents": 100,
+        "createdAt": "2026-08-16T17:08:14.322Z",
+        "providerRef": "pyr_1U57Xd2KvmKfeN9t8Vgi1CuS"
+      }
+    ],
+    "refundTotalCents": 100,
+    "settlement": {
+      "reason": "APPROVE_E1_REFUND_REVERSAL_TEST controlled live",
+      "buyerRefundCents": 127,
+      "stripeRefundId": "pyr_1U57Xd2KvmKfeN9t8Vgi1CuS",
+      "planSellerLeg": {
+        "kind": "SELLER",
+        "productId": "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+        "sellerUserId": "7647bf21-e9ab-4e3a-af83-eeec23e24dcb",
+        "transactionId": "txn_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+        "payoutId": "payout_seller_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+        "transferId": "tr_3U55jB2KvmKfeN9t1L9OEvJn",
+        "sellerGrossCents": 100,
+        "platformFeeCents": 12,
+        "sellerNetCents": 88,
+        "sellerConsiderationRefundCents": 100,
+        "transferReversalCents": 88,
+        "alreadyReversedCents": 0,
+        "remainingAfterCents": 0,
+        "idempotencyKey": "hc_tr_rev_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17_tr_3U55jB2KvmKfeN9t1L9OEvJn_88_p0",
+        "status": "PLANNED"
+      }
+    }
+  },
+  "alreadyRepaired": true,
+  "outcome": "NO_OP_ALREADY_REPAIRED"
+}

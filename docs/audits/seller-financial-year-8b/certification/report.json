@@ -13,15 +13,13 @@
         "year": 2026,
         "currency": "EUR",
         "grossSalesCents": 5813,
-        "refundCents": 215,
-        "netSalesCents": 5598,
+        "refundCents": 100,
+        "netSalesCents": 5713,
         "platformFeesCents": 657,
-        "netProceedsCents": 4941,
+        "netProceedsCents": 5056,
         "transactionCount": 9,
-        "completeness": "DATA_INCONSISTENCY",
-        "warningCodes": [
-          "REFUND_EXCEEDS_SALE"
-        ]
+        "completeness": "COMPLETE",
+        "warningCodes": []
       },
       "priorYear": {
         "year": 2025,
@@ -70,8 +68,8 @@
           "showsPlatformFee": true,
           "showsNetProceeds": true,
           "showsRefund": true,
-          "noticeExpected": true,
-          "noticeShown": true
+          "noticeExpected": false,
+          "noticeShown": false
         },
         "dashboard": {
           "screenshot": "seller_with_sales-dashboard.png",
@@ -80,8 +78,8 @@
           "showsPlatformFee": true,
           "showsNetProceeds": true,
           "showsBlendedFeeRate": true,
-          "noticeExpected": true,
-          "noticeShown": true
+          "noticeExpected": false,
+          "noticeShown": false
         }
       },
       "platformFeeSnapshot": {

@@ -1,0 +1,190 @@
+{
+  "phase": "8B.2",
+  "section": "13_CONTROLLED_DATA_REPAIR",
+  "mode": "VERIFY_ONLY",
+  "orderId": "b7df063b-a305-4129-a63f-3418bb6846df",
+  "transactionId": "txn_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+  "guards": {
+    "order_exists": {
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    "order_totalAmount": {
+      "expected": 127,
+      "actual": 127,
+      "ok": true
+    },
+    "transaction_exists": {
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    "transaction_seller": {
+      "expected": "7647bf21-e9ab-4e3a-af83-eeec23e24dcb",
+      "actual": "7647bf21-e9ab-4e3a-af83-eeec23e24dcb",
+      "ok": true
+    },
+    "transaction_amountCents": {
+      "expected": 100,
+      "actual": 100,
+      "ok": true
+    },
+    "transaction_platformFeeBps": {
+      "expected": 1200,
+      "actual": 1200,
+      "ok": true
+    },
+    "transaction_status": {
+      "expected": "REFUNDED",
+      "actual": "REFUNDED",
+      "ok": true
+    },
+    "refund_row_count": {
+      "expected": 2,
+      "actual": 2,
+      "ok": true
+    },
+    "reversal_mirror_present": {
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    "reversal_mirror_amount": {
+      "expected": 88,
+      "actual": 88,
+      "ok": true
+    },
+    "reversal_mirror_providerRef": {
+      "expected": "trr_1U57Xc2KvmKfeN9tbtOtO8Je",
+      "actual": "trr_1U57Xc2KvmKfeN9tbtOtO8Je",
+      "ok": true
+    },
+    "buyer_scoped_present": {
+      "expected": true,
+      "actual": true,
+      "ok": true
+    },
+    "buyer_scoped_amount_before": {
+      "expected": 127,
+      "actual": 127,
+      "ok": true
+    },
+    "buyer_scoped_providerRef": {
+      "expected": "pyr_1U57Xd2KvmKfeN9t8Vgi1CuS",
+      "actual": "pyr_1U57Xd2KvmKfeN9t8Vgi1CuS",
+      "ok": true
+    },
+    "settlement_reason": {
+      "expected": "APPROVE_E1_REFUND_REVERSAL_TEST controlled live",
+      "actual": "APPROVE_E1_REFUND_REVERSAL_TEST controlled live",
+      "ok": true
+    },
+    "settlement_buyerRefundCents": {
+      "expected": 127,
+      "actual": 127,
+      "ok": true
+    },
+    "plan_sellerConsiderationRefundCents": {
+      "expected": 100,
+      "actual": 100,
+      "ok": true
+    },
+    "plan_transferReversalCents": {
+      "expected": 88,
+      "actual": 88,
+      "ok": true
+    },
+    "stripe_charge_amount": {
+      "expected": 127,
+      "actual": 127,
+      "ok": true
+    },
+    "stripe_refund_total": {
+      "expected": 127,
+      "actual": 127,
+      "ok": true
+    },
+    "stripe_transfer_amount": {
+      "expected": 88,
+      "actual": 88,
+      "ok": true
+    },
+    "stripe_transfer_reversal_total": {
+      "expected": 88,
+      "actual": 88,
+      "ok": true
+    }
+  },
+  "aborted": false,
+  "before": {
+    "order": {
+      "id": "b7df063b-a305-4129-a63f-3418bb6846df",
+      "totalAmount": 127,
+      "status": "REFUNDED"
+    },
+    "transaction": {
+      "id": "txn_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+      "sellerId": "7647bf21-e9ab-4e3a-af83-eeec23e24dcb",
+      "amountCents": 100,
+      "platformFeeBps": 1200,
+      "status": "REFUNDED"
+    },
+    "refunds": [
+      {
+        "id": "refund_trr_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17_trr_1U57Xc2KvmKfeN9tbtOtO8Je",
+        "transactionId": "txn_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+        "amountCents": 88,
+        "createdAt": "2026-08-16T17:08:12.927Z",
+        "providerRef": "trr_1U57Xc2KvmKfeN9tbtOtO8Je"
+      },
+      {
+        "id": "refund_buyer_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17_pyr_1U57Xd2KvmKfeN9t8Vgi1CuS",
+        "transactionId": "txn_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+        "amountCents": 127,
+        "createdAt": "2026-08-16T17:08:14.322Z",
+        "providerRef": "pyr_1U57Xd2KvmKfeN9t8Vgi1CuS"
+      }
+    ],
+    "refundTotalCents": 215,
+    "settlement": {
+      "reason": "APPROVE_E1_REFUND_REVERSAL_TEST controlled live",
+      "buyerRefundCents": 127,
+      "stripeRefundId": "pyr_1U57Xd2KvmKfeN9t8Vgi1CuS",
+      "planSellerLeg": {
+        "kind": "SELLER",
+        "productId": "fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+        "sellerUserId": "7647bf21-e9ab-4e3a-af83-eeec23e24dcb",
+        "transactionId": "txn_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+        "payoutId": "payout_seller_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17",
+        "transferId": "tr_3U55jB2KvmKfeN9t1L9OEvJn",
+        "sellerGrossCents": 100,
+        "platformFeeCents": 12,
+        "sellerNetCents": 88,
+        "sellerConsiderationRefundCents": 100,
+        "transferReversalCents": 88,
+        "alreadyReversedCents": 0,
+        "remainingAfterCents": 0,
+        "idempotencyKey": "hc_tr_rev_b7df063b-a305-4129-a63f-3418bb6846df_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17_tr_3U55jB2KvmKfeN9t1L9OEvJn_88_p0",
+        "status": "PLANNED"
+      }
+    }
+  },
+  "stripeBefore": {
+    "chargeId": "py_3U55jB2KvmKfeN9t1Qr93icB",
+    "chargeAmount": 127,
+    "refundIds": [
+      "pyr_1U57Xd2KvmKfeN9t8Vgi1CuS"
+    ],
+    "transferId": "tr_3U55jB2KvmKfeN9t1L9OEvJn",
+    "transferAmount": 88,
+    "reversalIds": [
+      "trr_1U57Xc2KvmKfeN9tbtOtO8Je"
+    ]
+  },
+  "outcome": "VERIFY_ONLY_ALL_GUARDS_PASS",
+  "wouldDo": [
+    "DELETE Refund id=refund_trr_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17_trr_1U57Xc2KvmKfeN9tbtOtO8Je (88c transfer-reversal mirror)",
+    "UPDATE Refund id=refund_buyer_fcc5ff2a-651a-4983-9d17-b3f1acf7ca17_pyr_1U57Xd2KvmKfeN9t8Vgi1CuS amountCents 127 -> 100"
+  ]
+}
