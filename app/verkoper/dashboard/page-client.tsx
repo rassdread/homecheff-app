@@ -55,6 +55,16 @@ interface DashboardStats {
   platformFee?: number;
   platformFeePercentage?: number;
   netEarnings?: number;
+  /** Canonical calendar-year accounting figures (Phase 8B). */
+  financialYear?: {
+    year: number;
+    grossSalesCents: number;
+    refundCents: number;
+    netSalesCents: number;
+    platformFeesCents: number;
+    netProceedsCents: number;
+    completeness: string;
+  };
   totalOrders: number;
   totalCustomers: number;
   averageRating: number;
@@ -95,6 +105,21 @@ type DashboardHomeCache = {
   recentOrders: RecentOrder[];
   topProducts: TopProduct[];
 };
+
+/**
+ * The year's commission is a blend of the rates actually charged per sale, so
+ * showing the seller's current plan rate next to it would not reconcile.
+ */
+function effectiveFeePercentLabel(stats: {
+  platformFeePercentage?: number;
+  financialYear?: { grossSalesCents: number; platformFeesCents: number };
+}): string {
+  const fy = stats.financialYear;
+  if (fy && fy.grossSalesCents > 0) {
+    return `${((fy.platformFeesCents / fy.grossSalesCents) * 100).toFixed(1)}%`;
+  }
+  return stats.platformFeePercentage ? `${stats.platformFeePercentage}%` : '12%';
+}
 
 export default function SellerDashboardClient() {
   const router = useRouter();
@@ -681,12 +706,19 @@ export default function SellerDashboardClient() {
             <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-emerald-600 flex-shrink-0" />
               <span>{t('seller.financialOverview')}</span>
+              {stats.financialYear ? (
+                <span className="text-xs font-medium text-gray-500 tabular-nums">
+                  {stats.financialYear.year}
+                </span>
+              ) : null}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               {/* Bruto Omzet */}
               <div className="bg-white rounded-lg p-4 sm:p-5 shadow-sm">
                 <p className="text-xs sm:text-sm font-medium text-gray-600 mb-2">{t('seller.grossRevenue')}</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900 break-words">{formatCurrency(stats.totalRevenue)}</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
+                  {formatCurrency(stats.financialYear?.grossSalesCents ?? stats.totalRevenue)}
+                </p>
                 <div className={`flex items-center text-xs mt-2 ${stats.revenueChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {stats.revenueChange >= 0 ? (
                     <TrendingUp className="w-3 h-3 mr-1 flex-shrink-0" />
@@ -702,7 +734,7 @@ export default function SellerDashboardClient() {
                 <p className="text-xs sm:text-sm font-medium text-gray-600 mb-2">{t('seller.platformCosts')}</p>
                 <p className="text-xl sm:text-2xl font-bold text-orange-600 break-words">{formatCurrency(stats.platformFee || 0)}</p>
                 <p className="text-xs text-gray-500 mt-2 break-words">
-                  {stats.platformFeePercentage ? `${stats.platformFeePercentage}%` : '12%'} {t('seller.homecheffFee')}
+                  {effectiveFeePercentLabel(stats)} {t('seller.homecheffFee')}
                   {stats.platformFeePercentage && stats.platformFeePercentage < 12 && (
                     <span className="ml-1 text-emerald-600 font-medium">✓ {t('seller.withSubscription')}</span>
                   )}

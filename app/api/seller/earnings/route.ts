@@ -5,8 +5,19 @@ import { stripe, matchesCurrentMode, STRIPE_SESSION_ID_PREFIX } from '@/lib/stri
 import { getSellerRequestablePayout } from '@/lib/sellerPayouts';
 import { getCombinedRequestablePayout } from '@/lib/combinedPayouts';
 import { getBusinessVisibilityProfile } from '@/lib/business/visibility-profile';
+import { deriveSellerFinancialYear } from '@/lib/finance/seller-financial-year.server';
 
 export const dynamic = 'force-dynamic';
+
+/** Financial figures are calendar-year scoped; ?year= selects a past year. */
+function requestedYear(req: NextRequest): number {
+  const raw = new URL(req.url).searchParams.get('year');
+  const parsed = raw ? Number.parseInt(raw, 10) : Number.NaN;
+  if (!Number.isFinite(parsed) || parsed < 2000 || parsed > 2200) {
+    return new Date().getUTCFullYear();
+  }
+  return parsed;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -71,70 +82,25 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 });
     }
 
-    // Get orders with limited data for calculations (much faster)
-    // We only need items data, not full order objects
-    // IMPORTANT: Only include orders that match current Stripe mode (test/live)
-    const allOrders = await prisma.order.findMany({
-      where: {
-        stripeSessionId: { not: null, startsWith: STRIPE_SESSION_ID_PREFIX },
-        NOT: {
-          orderNumber: {
-            startsWith: 'SUB-'
-          }
-        },
-        items: {
-          some: {
-            Product: {
-              sellerId: sellerProfile.id
-            }
-          }
-        }
-      },
-      select: {
-        id: true,
-        createdAt: true,
-        status: true,
-        stripeSessionId: true,
-        items: {
-          where: {
-            Product: {
-              sellerId: sellerProfile.id
-            }
-          },
-          select: {
-            priceCents: true,
-            quantity: true
-          }
-        }
-      },
-      take: 1000 // Limit to prevent loading too much data
-    });
+    // Phase 8B: financial figures come from the canonical year derivation.
+    // Settled payment facts only — no PENDING checkouts, no transaction cap,
+    // and commission from the settlement-time snapshot rather than the
+    // seller's current plan.
+    const year = requestedYear(req);
+    const financial = await deriveSellerFinancialYear(user.id, year);
+    const ordersCount = financial.transactionCount;
+    const totalEarnings = financial.sellerGrossSalesCents;
+    const platformFee = financial.netPlatformFeesCents;
+    const netEarnings = financial.sellerNetProceedsCents;
 
-    // Filter orders to only include those matching current Stripe mode (test/live)
-    const orders = allOrders.filter(order => 
-      order.stripeSessionId && matchesCurrentMode(order.stripeSessionId)
-    );
-    
-    const ordersCount = orders.length;
-
-    // Calculate total earnings from order items (items already filtered by query)
-    const totalEarnings = orders.reduce((sum, order) => {
-      return sum + order.items.reduce((itemSum, item) => {
-        return itemSum + (item.priceCents * item.quantity);
-      }, 0);
-    }, 0);
-
+    // Payout requests price against the seller's live plan, which is a
+    // different question from what commission was historically charged.
     const visibility = getBusinessVisibilityProfile({
       subscriptionId: sellerProfile?.subscriptionId,
       subscriptionValidUntil: sellerProfile?.subscriptionValidUntil,
       Subscription: sellerProfile?.Subscription,
     });
     const platformFeePercentage = visibility.commissionPercent;
-    
-    const platformFee = Math.round((totalEarnings * platformFeePercentage) / 100);
-    
-    // Net earnings (what seller should receive = gross - platform fees)
-    const netEarnings = totalEarnings - platformFee;
 
     // Gecombineerd aanvraagbaar (verkoop + bezorging) als gebruiker ook bezorger is
     const hasDeliveryProfile = await prisma.deliveryProfile.findUnique({
@@ -199,6 +165,7 @@ export async function GET(req: NextRequest) {
           Order: {
             stripeSessionId: { not: null, startsWith: STRIPE_SESSION_ID_PREFIX },
             NOT: { orderNumber: { startsWith: 'SUB-' } },
+            status: { notIn: ['PENDING', 'CANCELLED', 'REFUNDED'] },
             createdAt: { gte: today }
           }
         },
@@ -211,6 +178,7 @@ export async function GET(req: NextRequest) {
           Order: {
             stripeSessionId: { not: null, startsWith: STRIPE_SESSION_ID_PREFIX },
             NOT: { orderNumber: { startsWith: 'SUB-' } },
+            status: { notIn: ['PENDING', 'CANCELLED', 'REFUNDED'] },
             createdAt: { gte: weekAgo }
           }
         },
@@ -223,6 +191,7 @@ export async function GET(req: NextRequest) {
           Order: {
             stripeSessionId: { not: null, startsWith: STRIPE_SESSION_ID_PREFIX },
             NOT: { orderNumber: { startsWith: 'SUB-' } },
+            status: { notIn: ['PENDING', 'CANCELLED', 'REFUNDED'] },
             createdAt: { gte: monthStart }
           }
         },
@@ -371,6 +340,22 @@ export async function GET(req: NextRequest) {
       platformFee,
       platformFeePercentage,
       netEarnings,
+      // Canonical, year-scoped financial facts. The fields above are derived
+      // from this; todayEarnings/weekEarnings/monthEarnings below remain
+      // commercial activity indicators, not accounting figures.
+      financialYear: {
+        year: financial.year,
+        basis: 'CALENDAR_YEAR',
+        currency: financial.currency,
+        grossSalesCents: financial.sellerGrossSalesCents,
+        refundCents: financial.refundCents,
+        netSalesCents: financial.netSalesCents,
+        platformFeesCents: financial.netPlatformFeesCents,
+        netProceedsCents: financial.sellerNetProceedsCents,
+        transactionCount: financial.transactionCount,
+        completeness: financial.completeness,
+        warningCodes: financial.warnings.map((w) => w.code),
+      },
       stripeConnected,
       stripeAccountId: user.stripeConnectAccountId,
       stripeBalanceAvailableCents: stripeBalanceAvailableCents ?? undefined,

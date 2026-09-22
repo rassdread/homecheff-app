@@ -12,6 +12,7 @@ import { CommissionLedgerStatus } from "@prisma/client";
 import { matchesCurrentMode } from "@/lib/stripe";
 import { DELIVERY_DELIVERER_PERCENT } from "@/lib/fees";
 import { getBusinessVisibilityProfile } from "@/lib/business/visibility-profile";
+import { deriveSellerFinancialYear } from "@/lib/finance/seller-financial-year.server";
 
 export const dynamic = 'force-dynamic';
 
@@ -120,20 +121,25 @@ export async function GET(req: NextRequest) {
         order.stripeSessionId && matchesCurrentMode(order.stripeSessionId)
       );
 
-      const totalEarnings = orders.reduce((sum, order) => {
-        return sum + order.items.reduce((itemSum, item) => {
-          return itemSum + (item.priceCents * item.quantity);
-        }, 0);
-      }, 0);
+      // An exported statement is the figure most likely to reach an
+      // accountant, so the money comes from the canonical calendar-year
+      // derivation (Phase 8B) rather than a lifetime order sum. The order
+      // list below remains a lifetime activity log.
+      const financial = await deriveSellerFinancialYear(
+        user.id,
+        new Date().getUTCFullYear(),
+      );
+      const totalEarnings = financial.sellerGrossSalesCents;
+      const platformFee = financial.netPlatformFeesCents;
+      const netEarnings = financial.sellerNetProceedsCents;
 
+      // Retained for the payout view, which prices against the live plan.
       const visibility = getBusinessVisibilityProfile({
         subscriptionId: sellerProfile.subscriptionId,
         subscriptionValidUntil: sellerProfile.subscriptionValidUntil,
         Subscription: sellerProfile.Subscription,
       });
       const platformFeePercentage = visibility.feePercent;
-      const platformFee = Math.round((totalEarnings * platformFeePercentage) / 100);
-      const netEarnings = totalEarnings - platformFee;
 
       const payouts = await prisma.payout.findMany({
         where: {
@@ -156,7 +162,12 @@ export async function GET(req: NextRequest) {
         netEarnings,
         availablePayout,
         paidPayout,
-        totalOrders: orders.length,
+        financialYear: financial.year,
+        financialBasis: 'CALENDAR_YEAR',
+        refundCents: financial.refundCents,
+        netSalesCents: financial.netSalesCents,
+        completeness: financial.completeness,
+        totalOrders: financial.transactionCount,
         orders: orders.map(order => ({
           orderNumber: order.orderNumber,
           date: order.createdAt,

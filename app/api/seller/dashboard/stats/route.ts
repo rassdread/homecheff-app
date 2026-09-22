@@ -11,6 +11,7 @@ import {
   grossSellerItemCents,
   sellerCommercialOrderWhere,
 } from '@/lib/orders/seller-commercial-metrics';
+import { deriveSellerFinancialYear } from '@/lib/finance/seller-financial-year.server';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,14 +118,34 @@ export async function GET(request: Request) {
     });
     const platformFeePercentage = visibility.feePercent;
 
-    const platformFee = Math.round((currentStats.totalRevenue * platformFeePercentage) / 100);
-    const netEarnings = currentStats.totalRevenue - platformFee;
+    // Money figures are accounting, not analytics, so they come from the
+    // canonical calendar-year derivation (Phase 8B). Everything else on this
+    // route stays a rolling-period commercial performance indicator.
+    const financial = await deriveSellerFinancialYear(
+      user.id,
+      new Date().getUTCFullYear(),
+    );
+    const platformFee = financial.netPlatformFeesCents;
+    const netEarnings = financial.sellerNetProceedsCents;
 
     return NextResponse.json({
+      /** Rolling-period commercial analytics — NOT a fiscal year figure. */
       totalRevenue: currentStats.totalRevenue,
       platformFee,
       platformFeePercentage,
       netEarnings,
+      financialYear: {
+        year: financial.year,
+        basis: 'CALENDAR_YEAR',
+        currency: financial.currency,
+        grossSalesCents: financial.sellerGrossSalesCents,
+        refundCents: financial.refundCents,
+        netSalesCents: financial.netSalesCents,
+        platformFeesCents: financial.netPlatformFeesCents,
+        netProceedsCents: financial.sellerNetProceedsCents,
+        transactionCount: financial.transactionCount,
+        completeness: financial.completeness,
+      },
       businessPlan: visibility.plan,
       analyticsLevel: visibility.analyticsLevel,
       analyticsMetrics: analyticsMetricsForLevel(visibility.analyticsLevel),

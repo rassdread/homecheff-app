@@ -1,6 +1,20 @@
 /**
  * LEGAL-4A — derive DAC7 year money events from existing Order/Transaction/Refund.
  * CommunityOrder without payment is excluded.
+ *
+ * ARCHITECTURE BOUNDARY (Phase 8B)
+ * DAC7 reportability is a platform *reporting* obligation. It does NOT
+ * determine income-tax liability, entrepreneur status, VAT status or the
+ * deductibility of any cost. This module therefore owns thresholds,
+ * reportability and activity classification only; the underlying transaction
+ * facts and money maths live in lib/finance/seller-financial-year.ts, which is
+ * deliberately free of any fiscal conclusion.
+ *
+ * Refund attribution differs from the financial derivation on purpose. DAC7
+ * reports consideration *for* a reporting year, so a refund reduces the year of
+ * the original sale. The financial derivation books a refund in the year it
+ * occurred and keeps the sale year as provenance. Both are correct for their
+ * own question; neither may be substituted for the other.
  */
 
 import { prisma } from '@/lib/prisma';
@@ -14,13 +28,13 @@ import {
   type Dac7GoodsYearTotals,
 } from '@/lib/compliance/dac7-threshold';
 import { reconcileRefundState } from '@/lib/compliance/refund-reconciliation';
+import { utcYearBounds } from '@/lib/finance/seller-financial-year';
 
-function yearBounds(year: number): { start: Date; end: Date } {
-  return {
-    start: new Date(Date.UTC(year, 0, 1, 0, 0, 0)),
-    end: new Date(Date.UTC(year + 1, 0, 1, 0, 0, 0)),
-  };
-}
+/** Shared with the canonical financial derivation so year edges cannot drift. */
+const yearBounds = utcYearBounds;
+
+/** Paged to completion: a truncated compliance total is a reporting defect. */
+const PAGE_SIZE = 500;
 
 export type SellerDac7YearDerive = {
   sellerUserId: string;
@@ -49,46 +63,79 @@ export async function deriveSellerDac7Year(
 ): Promise<SellerDac7YearDerive> {
   const { start, end } = yearBounds(year);
 
-  const orderItems = await prisma.orderItem.findMany({
-    where: {
-      Product: { seller: { userId: sellerUserId } },
-      Order: {
-        createdAt: { gte: start, lt: end },
-        stripeSessionId: { not: null },
-        status: { notIn: ['CANCELLED', 'PENDING'] },
-      },
-    },
-    select: {
-      quantity: true,
-      priceCents: true,
-      Product: {
-        select: {
-          marketplaceCategory: true,
-          category: true,
-          priceModel: true,
-          barterOpenness: true,
+  const orderItems: Array<{
+    quantity: number;
+    priceCents: number;
+    Product: {
+      marketplaceCategory: string | null;
+      category: string;
+      priceModel: string;
+      barterOpenness: string | null;
+    };
+    Order: { id: string; status: string };
+  }> = [];
+  for (let cursor: string | null = null; ; ) {
+    const page = await prisma.orderItem.findMany({
+      where: {
+        Product: { seller: { userId: sellerUserId } },
+        Order: {
+          createdAt: { gte: start, lt: end },
+          stripeSessionId: { not: null },
+          status: { notIn: ['CANCELLED', 'PENDING'] },
         },
       },
-      Order: { select: { id: true, status: true } },
-    },
-    take: 5000,
-  });
+      select: {
+        id: true,
+        quantity: true,
+        priceCents: true,
+        Product: {
+          select: {
+            marketplaceCategory: true,
+            category: true,
+            priceModel: true,
+            barterOpenness: true,
+          },
+        },
+        Order: { select: { id: true, status: true } },
+      },
+      orderBy: { id: 'asc' },
+      take: PAGE_SIZE,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+    });
+    orderItems.push(...(page as unknown as typeof orderItems));
+    if (page.length < PAGE_SIZE) break;
+    cursor = page[page.length - 1].id;
+  }
 
-  const transactions = await prisma.transaction.findMany({
-    where: {
-      sellerId: sellerUserId,
-      createdAt: { gte: start, lt: end },
-      status: { in: ['CAPTURED', 'REFUNDED'] },
-    },
-    select: {
-      id: true,
-      amountCents: true,
-      platformFeeBps: true,
-      status: true,
-      Refund: { select: { amountCents: true } },
-    },
-    take: 5000,
-  });
+  const transactions: Array<{
+    id: string;
+    amountCents: number;
+    platformFeeBps: number;
+    status: string;
+    Refund: Array<{ amountCents: number }>;
+  }> = [];
+  for (let cursor: string | null = null; ; ) {
+    const page = await prisma.transaction.findMany({
+      where: {
+        sellerId: sellerUserId,
+        createdAt: { gte: start, lt: end },
+        status: { in: ['CAPTURED', 'REFUNDED'] },
+      },
+      select: {
+        id: true,
+        amountCents: true,
+        platformFeeBps: true,
+        status: true,
+        Refund: { select: { amountCents: true } },
+      },
+      orderBy: { id: 'asc' },
+      take: PAGE_SIZE,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+    });
+    transactions.push(...page);
+    if (page.length < PAGE_SIZE) break;
+    cursor = page[page.length - 1].id;
+  }
 
   let goodsCount = 0;
   let goodsGross = 0;

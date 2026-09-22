@@ -29,6 +29,13 @@ interface CombinedEarnings {
     platformFee: number;
     netEarnings: number;
     totalOrders: number;
+    /** Phase 8B: seller figures are calendar-year scoped, never lifetime. */
+    year?: number;
+    basis?: string;
+    grossSalesCents?: number;
+    refundCents?: number;
+    netSalesCents?: number;
+    completeness?: string;
   };
   delivery?: {
     totalEarnings: number;
@@ -343,10 +350,23 @@ function VerdienstenContent() {
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">{t('earningsPage.grossRevenue')}</p>
+                  <p className="text-sm text-gray-600">
+                    {t('earningsPage.grossRevenue')}
+                    {earnings.seller.year ? (
+                      <span className="ml-1 text-gray-400 tabular-nums">
+                        {earnings.seller.year}
+                      </span>
+                    ) : null}
+                  </p>
                   <p className="text-lg font-semibold text-gray-900">
                     {formatCurrency(earnings.seller.totalEarnings)}
                   </p>
+                  {earnings.seller.refundCents ? (
+                    <p className="text-xs text-gray-500">
+                      -{formatCurrency(earnings.seller.refundCents)}{' '}
+                      {t('earningsPage.refunds')}
+                    </p>
+                  ) : null}
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">{t('earningsPage.platformFee')}</p>

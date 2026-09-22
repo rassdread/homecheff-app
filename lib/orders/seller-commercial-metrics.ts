@@ -1,9 +1,14 @@
 /**
- * Canonical seller commercial Order metrics (omzet / order counts).
+ * Seller COMMERCIAL ANALYTICS over Orders — activity indicators, not accounting.
  *
- * Shared SoT for:
+ * These are period-scoped performance metrics (how busy was the shop). They are
+ * NOT a financial year figure and must never be displayed as revenue, omzet or
+ * income. Seller money comes from deriveSellerFinancialYear
+ * (lib/finance/seller-financial-year.server.ts), which recognises settled
+ * payments, books refunds and uses the settlement-time commission snapshot.
+ *
+ * Used by:
  * - /api/seller/dashboard/stats (getStatsForPeriod)
- * - /api/earnings/combined (seller totalEarnings / totalOrders)
  *
  * Rules:
  * - Only Stripe-paid commercial Orders for this sellerProfile
@@ -12,7 +17,6 @@
  * - Respect current Stripe mode (cs_test_ vs cs_live_)
  * - Does NOT include CommunityOrder / Agreement / DeliveryRequest deals
  */
-import type { PrismaClient } from '@prisma/client';
 import { matchesCurrentMode, STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
 
 export const SELLER_COMMERCIAL_EXCLUDED_STATUSES = [
@@ -65,30 +69,10 @@ export function filterOrdersByStripeMode<
   );
 }
 
-/**
- * All-time seller commercial gross + order count (current Stripe mode).
+/*
+ * getSellerCommercialLifetimeMetrics was removed in Phase 8B. It summed order
+ * items lifetime with take: 1000 and was displayed as an accounting figure.
+ * Seller money now comes from deriveSellerFinancialYear in
+ * lib/finance/seller-financial-year.server.ts. The helpers above remain for
+ * period-scoped commercial analytics only.
  */
-export async function getSellerCommercialLifetimeMetrics(
-  prisma: PrismaClient,
-  sellerProfileId: string,
-): Promise<{ totalEarningsCents: number; totalOrders: number }> {
-  const allOrders = await prisma.order.findMany({
-    where: sellerCommercialOrderWhere(sellerProfileId),
-    select: {
-      id: true,
-      status: true,
-      stripeSessionId: true,
-      items: {
-        where: { Product: { sellerId: sellerProfileId } },
-        select: { priceCents: true, quantity: true },
-      },
-    },
-    take: 1000,
-  });
-
-  const orders = filterOrdersByStripeMode(allOrders);
-  return {
-    totalEarningsCents: grossSellerItemCents(orders),
-    totalOrders: orders.length,
-  };
-}

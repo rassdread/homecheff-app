@@ -13,9 +13,22 @@ import { matchesCurrentMode } from "@/lib/stripe";
 import { getSellerRequestablePayout } from "@/lib/sellerPayouts";
 import { DELIVERY_DELIVERER_PERCENT } from "@/lib/fees";
 import { getBusinessVisibilityProfile } from "@/lib/business/visibility-profile";
-import { getSellerCommercialLifetimeMetrics } from "@/lib/orders/seller-commercial-metrics";
+import { deriveSellerFinancialYear } from "@/lib/finance/seller-financial-year.server";
 
 export const dynamic = 'force-dynamic';
+
+/**
+ * Financial figures are always calendar-year scoped. Defaults to the current
+ * year; ?year= lets a seller look back without the number changing shape.
+ */
+function requestedYear(req: NextRequest): number {
+  const raw = new URL(req.url).searchParams.get('year');
+  const parsed = raw ? Number.parseInt(raw, 10) : Number.NaN;
+  if (!Number.isFinite(parsed) || parsed < 2000 || parsed > 2200) {
+    return new Date().getUTCFullYear();
+  }
+  return parsed;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -55,6 +68,13 @@ export async function GET(req: NextRequest) {
         platformFee: number;
         netEarnings: number;
         totalOrders: number;
+        /** Phase 8B: canonical year-scoped financial facts. */
+        year: number;
+        basis: 'CALENDAR_YEAR';
+        grossSalesCents: number;
+        refundCents: number;
+        netSalesCents: number;
+        completeness: string;
       };
       delivery?: {
         totalEarnings: number;
@@ -71,23 +91,27 @@ export async function GET(req: NextRequest) {
       };
     } = {};
 
-    // Calculate seller earnings (omzet SoT shared with /api/seller/dashboard/stats)
+    // Seller financial figures come from the canonical year derivation
+    // (Phase 8B). Commission is the settlement-time snapshot, never the
+    // seller's current tier, so upgrading a plan cannot rewrite history.
     if (user.SellerProfile) {
       const sellerProfile = user.SellerProfile;
 
-      const { totalEarningsCents, totalOrders } =
-        await getSellerCommercialLifetimeMetrics(prisma, sellerProfile.id);
-      const totalEarnings = totalEarningsCents;
+      const year = requestedYear(req);
+      const financial = await deriveSellerFinancialYear(user.id, year);
+      const totalEarnings = financial.sellerGrossSalesCents;
+      const totalOrders = financial.transactionCount;
+      const platformFee = financial.netPlatformFeesCents;
+      const netEarnings = financial.sellerNetProceedsCents;
 
-      // Calculate platform fee
+      // Still needed for the payout request path, which prices against the
+      // seller's live plan rather than historical transactions.
       const visibility = getBusinessVisibilityProfile({
         subscriptionId: sellerProfile.subscriptionId,
         subscriptionValidUntil: sellerProfile.subscriptionValidUntil,
         Subscription: sellerProfile.Subscription,
       });
       const platformFeePercentage = visibility.commissionPercent;
-      const platformFee = Math.round((totalEarnings * platformFeePercentage) / 100);
-      const netEarnings = totalEarnings - platformFee;
 
       // Officieel aanvraagbaar bedrag (zelfde logica als payout-request) → geen mismatch met UI
       const { requestableCents } = await getSellerRequestablePayout(
@@ -119,7 +143,13 @@ export async function GET(req: NextRequest) {
         paidPayout,
         platformFee,
         netEarnings,
-        totalOrders
+        totalOrders,
+        year,
+        basis: 'CALENDAR_YEAR',
+        grossSalesCents: financial.sellerGrossSalesCents,
+        refundCents: financial.refundCents,
+        netSalesCents: financial.netSalesCents,
+        completeness: financial.completeness,
       };
     }
 
