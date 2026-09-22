@@ -148,6 +148,11 @@ assert.equal(B.payroll.bankNetMonthlyCents, knownPension.bankNetMonthlyCents);
 assert.equal(B.contractualGrossEmploymentIncomeCents, BASE_SALARY_CENTS);
 assert.equal(B.fiscalWageCents, ANNUAL_INCL_8_CENTS - PENSION * 12);
 assert.equal(B.baselineAssessmentIncomeCents, B.fiscalWageCents);
+// Arbeidsinkomen is taxable wage from current employment, so it follows the
+// pension-adjusted fiscal wage instead of the contractual gross.
+assert.equal(B.baselineArbeidsinkomenCents, B.fiscalWageCents);
+assert.equal(B.basisProvenance.arbeidsinkomen.kind, 'ESTIMATE');
+assert.equal(A.baselineArbeidsinkomenCents, A.fiscalWageCents);
 assert.equal(B.basisProvenance.fiscalWage.kind, 'ESTIMATE');
 assert.notEqual(B.fiscalWageCents, A.fiscalWageCents);
 

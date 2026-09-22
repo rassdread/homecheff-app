@@ -563,7 +563,10 @@ function deriveEmployeeEstimate(input: {
     baselineGrossEmploymentIncomeCents: annual,
     baselineBox1TaxableIncomeCents: fiscal,
     baselineAggregateIncomeCents: fiscal,
-    baselineArbeidsinkomenCents: annual,
+    // Arbeidsinkomen is taxable wage from current employment (art. 8.1 Wet IB
+    // 2001). Employee pension reduces the taxable wage, so this basis follows
+    // the fiscal wage, not the contractual gross.
+    baselineArbeidsinkomenCents: fiscal,
     baselineAssessmentIncomeCents: fiscal,
     householdAssessmentIncomeCents: householdAssessment(fiscal, input.state),
     baselineZvwContributionIncomeAlreadyUsedCents: fiscal,
@@ -583,7 +586,7 @@ function deriveEmployeeEstimate(input: {
       fiscalWage: prov(fiscalKind, fiscalSource),
       box1: prov(fiscalKind, 'DERIVED_FROM_FISCAL_WAGE'),
       aggregate: prov(fiscalKind, 'DERIVED_FROM_FISCAL_WAGE'),
-      arbeidsinkomen: prov(estimateKind, 'DERIVED_FROM_GROSS_EMPLOYMENT'),
+      arbeidsinkomen: prov(fiscalKind, 'DERIVED_FROM_GROSS_EMPLOYMENT'),
       assessment: prov(fiscalKind, 'DERIVED_FROM_FISCAL_WAGE'),
       zvwUsed: prov(pensionAdj.estimate ? 'ESTIMATE' : 'DERIVED', 'DERIVED_FROM_FISCAL_WAGE'),
     },
