@@ -897,100 +897,178 @@ function payrollFromCurrentIncome(state: WizardState): PayrollSnapshot {
 }
 
 /**
- * Advanced jaaropgave fields win per basis. Known assessment never overwrites
- * Box 1. Known fiscal wage never overwrites independently known assessment.
- * Holiday pay is never added on top of advanced fiscal fields.
- * Payroll may still estimate contractual monthly gross/net without replacing
- * stronger annual fiscal/assessment facts.
+ * Advanced jaaropgave fields win per filled basis. A filled assessment never
+ * replaces Box 1. A filled fiscal wage never replaces an independently filled
+ * assessment. Holiday pay is never added on top of an explicit fiscal wage.
+ *
+ * One filled jaaropgave field must not erase the salary-derived bases for the
+ * fields the user left empty. Otherwise tax, Zvw and toeslagen all become
+ * "not yet calculable" and a new HomeCheff result cannot change the outcome.
  */
 export function deriveIncomeBasesFromUserFacts(state: WizardState): DerivedIncomeBases {
-  return applyOwnerHome(deriveIncomeBasesCore(state), state);
+  const advanced = readAdvancedAnnual(state);
+  const underlying = deriveCurrentIncomeBases(withoutAdvancedAnnual(state));
+  const merged = advanced.hasAny ? overlayAdvancedIncome(underlying, advanced, state) : underlying;
+  return applyOwnerHome(merged, state);
 }
 
-function deriveIncomeBasesCore(state: WizardState): DerivedIncomeBases {
+type AdvancedAnnual = {
+  gross: number | null;
+  box1: number | null;
+  aggregate: number | null;
+  arbeids: number | null;
+  assessment: number | null;
+  zvw: number | null;
+  hasAny: boolean;
+};
+
+function withoutAdvancedAnnual(state: WizardState): WizardState {
+  return {
+    ...state,
+    baselineGrossEmploymentEuro: '',
+    baselineBox1Euro: '',
+    baselineAggregateEuro: '',
+    baselineArbeidsinkomenEuro: '',
+    baselineAssessmentEuro: '',
+    baselineZvwUsedEuro: '',
+  };
+}
+
+function readAdvancedAnnual(state: WizardState): AdvancedAnnual {
   // Jaaropgave / aangifte fields are annual. Do not reuse amountEntryPeriod
   // (scenario turnover month/year) — that would ×12 a known toetsingsinkomen.
-  const advancedGross = annualizeWizardEuro(state.baselineGrossEmploymentEuro, 'YEAR');
-  const advancedBox1 = annualizeWizardEuro(state.baselineBox1Euro, 'YEAR');
-  const advancedAggregate = annualizeWizardEuro(state.baselineAggregateEuro, 'YEAR');
-  const advancedArbeids = annualizeWizardEuro(state.baselineArbeidsinkomenEuro, 'YEAR');
-  const advancedAssessment = annualizeWizardEuro(state.baselineAssessmentEuro, 'YEAR');
-  const advancedZvw = annualizeWizardEuro(state.baselineZvwUsedEuro, 'YEAR');
-  const hasAdvanced =
-    advancedGross != null ||
-    advancedBox1 != null ||
-    advancedAggregate != null ||
-    advancedArbeids != null ||
-    advancedAssessment != null ||
-    advancedZvw != null;
+  const gross = annualizeWizardEuro(state.baselineGrossEmploymentEuro, 'YEAR');
+  const box1 = annualizeWizardEuro(state.baselineBox1Euro, 'YEAR');
+  const aggregate = annualizeWizardEuro(state.baselineAggregateEuro, 'YEAR');
+  const arbeids = annualizeWizardEuro(state.baselineArbeidsinkomenEuro, 'YEAR');
+  const assessment = annualizeWizardEuro(state.baselineAssessmentEuro, 'YEAR');
+  const zvw = annualizeWizardEuro(state.baselineZvwUsedEuro, 'YEAR');
+  return {
+    gross,
+    box1,
+    aggregate,
+    arbeids,
+    assessment,
+    zvw,
+    hasAny:
+      gross != null ||
+      box1 != null ||
+      aggregate != null ||
+      arbeids != null ||
+      assessment != null ||
+      zvw != null,
+  };
+}
 
-  const payroll = payrollFromCurrentIncome(state);
+function overlayAdvancedIncome(
+  base: DerivedIncomeBases,
+  advanced: AdvancedAnnual,
+  state: WizardState,
+): DerivedIncomeBases {
+  const explicitFiscal = advanced.box1 != null || advanced.gross != null;
+  if (!explicitFiscal) {
+    const assessment = advanced.assessment ?? base.baselineAssessmentIncomeCents;
+    return {
+      ...base,
+      derivation: 'ADVANCED',
+      baselineAggregateIncomeCents: advanced.aggregate ?? base.baselineAggregateIncomeCents,
+      baselineArbeidsinkomenCents: advanced.arbeids ?? base.baselineArbeidsinkomenCents,
+      baselineAssessmentIncomeCents: assessment,
+      householdAssessmentIncomeCents: householdAssessment(assessment, state),
+      baselineZvwContributionIncomeAlreadyUsedCents:
+        advanced.zvw ?? base.baselineZvwContributionIncomeAlreadyUsedCents,
+      incomeSourcePrecedence: advancedSummaryPrecedence({
+        gross: advanced.gross,
+        box1: advanced.box1,
+        aggregate: advanced.aggregate,
+        arbeids: advanced.arbeids,
+        assessment: advanced.assessment,
+      }),
+      basisProvenance: {
+        ...base.basisProvenance,
+        aggregate:
+          advanced.aggregate != null
+            ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE')
+            : base.basisProvenance.aggregate,
+        arbeidsinkomen:
+          advanced.arbeids != null
+            ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE')
+            : base.basisProvenance.arbeidsinkomen,
+        assessment:
+          advanced.assessment != null
+            ? prov('USER_PROVIDED', 'KNOWN_ASSESSMENT_INCOME')
+            : base.basisProvenance.assessment,
+        zvwUsed:
+          advanced.zvw != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : base.basisProvenance.zvwUsed,
+      },
+    };
+  }
+
+  const fiscalWage = advanced.box1 ?? advanced.gross;
+  const payroll = base.payroll;
   const payrollContractualAnnual =
     payroll.used && payroll.estimatedGrossMonthlyCents != null
       ? payroll.estimatedGrossMonthlyCents * 12
       : null;
-
-  if (hasAdvanced) {
-    const fiscalWage = advancedBox1 ?? advancedGross;
-    const contractual = advancedGross ?? payrollContractualAnnual;
-    return {
-      contractualGrossEmploymentIncomeCents: contractual,
-      fiscalWageCents: fiscalWage,
-      baselineGrossEmploymentIncomeCents: advancedGross,
-      baselineBox1TaxableIncomeCents: advancedBox1,
-      baselineAggregateIncomeCents: advancedAggregate,
-      baselineArbeidsinkomenCents: advancedArbeids,
-      baselineAssessmentIncomeCents: advancedAssessment,
-      householdAssessmentIncomeCents: householdAssessment(advancedAssessment, state),
-      baselineZvwContributionIncomeAlreadyUsedCents: advancedZvw,
-      derivation: 'ADVANCED',
-      netToGrossMethod: payroll.used
-        ? payroll.method === PAYROLL_INVERSE_MODEL
-          ? 'WHITE_MONTHLY_TABLE_2026_INVERSE'
-          : 'WHITE_MONTHLY_TABLE_2026_FORWARD'
-        : null,
-      netToGrossConfidence: payroll.used ? 'ESTIMATE' : null,
-      holidayPayUnresolved: false,
-      holidayPayCents: null,
-      // A known jaaropgave already contains 13th month, bonus, overtime and
-      // the bijtelling in kolom 4. Adding those fields again would double
-      // count them.
-      employmentExtrasCents: null,
-      employmentExtras: annualEmploymentExtrasCents({ status: 'NOT_SUPPLIED' }),
-      companyCarTaxableAnnualCents: null,
-      companyCar: calculateCompanyCarAddition2026({ status: 'NOT_SUPPLIED' }),
-      incomeSourcePrecedence: advancedSummaryPrecedence({
-        gross: advancedGross,
-        box1: advancedBox1,
-        aggregate: advancedAggregate,
-        arbeids: advancedArbeids,
-        assessment: advancedAssessment,
-      }),
-      basisProvenance: {
-        contractualGross:
-          advancedGross != null
-            ? prov('USER_PROVIDED', 'KNOWN_GROSS_EMPLOYMENT')
-            : payrollContractualAnnual != null
-              ? prov('ESTIMATE', 'PAYROLL_WHITE_MONTHLY_2026')
-              : UNKNOWN_PROV,
-        fiscalWage:
-          fiscalWage != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
-        box1: advancedBox1 != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
-        aggregate:
-          advancedAggregate != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
-        arbeidsinkomen:
-          advancedArbeids != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
-        assessment:
-          advancedAssessment != null
-            ? prov('USER_PROVIDED', 'KNOWN_ASSESSMENT_INCOME')
+  const contractual = advanced.gross ?? payrollContractualAnnual;
+  return {
+    contractualGrossEmploymentIncomeCents: contractual,
+    fiscalWageCents: fiscalWage,
+    baselineGrossEmploymentIncomeCents: advanced.gross,
+    baselineBox1TaxableIncomeCents: advanced.box1,
+    baselineAggregateIncomeCents: advanced.aggregate,
+    baselineArbeidsinkomenCents: advanced.arbeids,
+    baselineAssessmentIncomeCents: advanced.assessment,
+    householdAssessmentIncomeCents: householdAssessment(advanced.assessment, state),
+    baselineZvwContributionIncomeAlreadyUsedCents: advanced.zvw,
+    derivation: 'ADVANCED',
+    netToGrossMethod: payroll.used
+      ? payroll.method === PAYROLL_INVERSE_MODEL
+        ? 'WHITE_MONTHLY_TABLE_2026_INVERSE'
+        : 'WHITE_MONTHLY_TABLE_2026_FORWARD'
+      : null,
+    netToGrossConfidence: payroll.used ? 'ESTIMATE' : null,
+    holidayPayUnresolved: false,
+    holidayPayCents: null,
+    // A known jaaropgave already contains 13th month, bonus, overtime and
+    // the bijtelling in kolom 4. Adding those fields again would double count them.
+    employmentExtrasCents: null,
+    employmentExtras: annualEmploymentExtrasCents({ status: 'NOT_SUPPLIED' }),
+    companyCarTaxableAnnualCents: null,
+    companyCar: calculateCompanyCarAddition2026({ status: 'NOT_SUPPLIED' }),
+    incomeSourcePrecedence: advancedSummaryPrecedence({
+      gross: advanced.gross,
+      box1: advanced.box1,
+      aggregate: advanced.aggregate,
+      arbeids: advanced.arbeids,
+      assessment: advanced.assessment,
+    }),
+    basisProvenance: {
+      contractualGross:
+        advanced.gross != null
+          ? prov('USER_PROVIDED', 'KNOWN_GROSS_EMPLOYMENT')
+          : payrollContractualAnnual != null
+            ? prov('ESTIMATE', 'PAYROLL_WHITE_MONTHLY_2026')
             : UNKNOWN_PROV,
-        zvwUsed:
-          advancedZvw != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
-      },
-      payroll,
-      ownerHome: unusedOwnerHome(),
-    };
-  }
+      fiscalWage: fiscalWage != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
+      box1: advanced.box1 != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
+      aggregate:
+        advanced.aggregate != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
+      arbeidsinkomen:
+        advanced.arbeids != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
+      assessment:
+        advanced.assessment != null
+          ? prov('USER_PROVIDED', 'KNOWN_ASSESSMENT_INCOME')
+          : UNKNOWN_PROV,
+      zvwUsed: advanced.zvw != null ? prov('USER_PROVIDED', 'KNOWN_FISCAL_WAGE') : UNKNOWN_PROV,
+    },
+    payroll,
+    ownerHome: unusedOwnerHome(),
+  };
+}
+
+function deriveCurrentIncomeBases(state: WizardState): DerivedIncomeBases {
+  const payroll = payrollFromCurrentIncome(state);
 
   if (state.currentIncomeUnknown) {
     return emptyBases('UNKNOWN');

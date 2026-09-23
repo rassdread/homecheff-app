@@ -73,6 +73,7 @@ export const WIZARD_STEP_IDS = [
   'companyCar',
   'incomeBases',
   'partnerIncome',
+  'toeslagen',
   'rentsHome',
   'housingRent',
   'housingHousehold',
@@ -949,6 +950,10 @@ export const WIZARD_SCHEMA: readonly StepDefinition[] = [
       moneyLayerVisible(s) &&
       shouldAskPartnerQuestions(s) &&
       s.hasPartner === true,
+  },
+  {
+    id: 'toeslagen',
+    visible: (s) => moneyLayerVisible(s) && shouldAskPartnerQuestions(s),
   },
   {
     id: 'rentsHome',

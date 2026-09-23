@@ -69,6 +69,7 @@ export default function VerdienCheckFinancialImpact(props: {
   onHelperCostsChange: (value: string) => void;
   onHelperCostsUnknown: (unknown: boolean) => void;
   growthTitles?: readonly string[];
+  onCompleteMissingData?: () => void;
 }) {
   const { copy, route } = props;
   const impact = route.financialImpact;
@@ -293,6 +294,15 @@ export default function VerdienCheckFinancialImpact(props: {
               </span>
             </div>
           </div>
+          {props.onCompleteMissingData && !exact ? (
+            <button
+              type="button"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-base font-medium text-white"
+              onClick={props.onCompleteMissingData}
+            >
+              {copy.completeMissingData}
+            </button>
+          ) : null}
           {exact && net != null ? (
             <>
           <p className="text-lg font-semibold leading-snug text-stone-900">{copy.fromSaleToKeptTitle}</p>

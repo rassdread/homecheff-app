@@ -94,6 +94,54 @@ function missingHits(missing: readonly string[], keys: readonly string[]): boole
   );
 }
 
+function allowanceNeedsInputReason(
+  id: SimulatorAllowanceId,
+  missing: readonly string[],
+): string | null {
+  const has = (key: string) =>
+    missing.includes(key) || missing.some((item) => item === key || item.startsWith(`${key}:`) || item.includes(key));
+  if (id === 'HEALTHCARE') {
+    if (has('healthcareAssetsEligibility')) {
+      return 'Zorgtoeslag is nog niet te berekenen. Vul in of je spaargeld laag genoeg is.';
+    }
+    if (has('userHealthcareInsuranceStatus')) {
+      return 'Zorgtoeslag is nog niet te berekenen. Vul in of je een Nederlandse zorgverzekering hebt.';
+    }
+    if (has('partnerContext.hasPartner')) {
+      return 'Zorgtoeslag is nog niet te berekenen. Vul in of je een toeslagpartner hebt.';
+    }
+    if (has('partnerHealthcareInsuranceStatus') || has('partnerAssessmentIncomeCents')) {
+      return 'Zorgtoeslag is nog niet te berekenen. Gegevens van je toeslagpartner ontbreken.';
+    }
+    if (has('baselineAssessmentIncomeCents')) {
+      return 'Zorgtoeslag is nog niet te berekenen. Je toetsingsinkomen is nog niet bekend.';
+    }
+    return 'Zorgtoeslag is nog niet te berekenen. Vul de ontbrekende gegevens aan.';
+  }
+  if (id === 'RENT') {
+    if (has('bareRentCentsPerMonth')) {
+      return 'Huurtoeslag is nog niet te berekenen. Vul de kale huur in.';
+    }
+    if (has('housingHousehold') || missing.some((item) => item.startsWith('housing:'))) {
+      return 'Huurtoeslag is nog niet te berekenen. Vul je huishouden voor de huur in.';
+    }
+    if (has('baselineAssessmentIncomeCents')) {
+      return 'Huurtoeslag is nog niet te berekenen. Je toetsingsinkomen is nog niet bekend.';
+    }
+    return 'Huurtoeslag is nog niet te berekenen. Vul de ontbrekende huurgegevens aan.';
+  }
+  if (id === 'CHILD_BUDGET') {
+    if (has('childBudgetHousehold') || missing.some((item) => item.startsWith('childBudget:'))) {
+      return 'Kindgebonden budget is nog niet te berekenen. Gegevens over je kinderen of spaargeld ontbreken.';
+    }
+    return 'Kindgebonden budget is nog niet te berekenen. Vul de ontbrekende gegevens aan.';
+  }
+  if (has('childcareHousehold') || missing.some((item) => item.startsWith('childcare:'))) {
+    return 'Kinderopvangtoeslag is nog niet te berekenen. Opvanggegevens ontbreken.';
+  }
+  return 'Kinderopvangtoeslag is nog niet te berekenen. Vul de ontbrekende gegevens aan.';
+}
+
 function emptyAllowanceLine(id: SimulatorAllowanceId): SimulatorAllowanceLine {
   return {
     id,
@@ -149,7 +197,7 @@ function buildAllowanceLine(
       unchanged: false,
       unknown: true,
       notApplicable: false,
-      excludedReason: meta.excludedMissing,
+      excludedReason: allowanceNeedsInputReason(meta.id, missing) ?? meta.excludedMissing,
     };
   }
 

@@ -55,6 +55,7 @@ export default function VerdienCheckBaselineCard(props: {
   /** When the page h1 already is this title, omit the duplicate card heading. */
   showHeading?: boolean;
   onRequestPayslipAccuracy?: () => void;
+  onCompleteMissingData?: () => void;
 }) {
   const baseline = props.route.financialImpact.baseline;
   const lines = baseline?.allowances ?? [];
@@ -650,6 +651,16 @@ export default function VerdienCheckBaselineCard(props: {
           </div>
         ) : lines.some((line) => line.unknown && !line.notApplicable) ? (
           <p className="text-sm text-stone-600">{props.copy.allowanceTotalIncomplete}</p>
+        ) : null}
+        {props.onCompleteMissingData &&
+        (taxAnnual == null || lines.some((line) => line.unknown && !line.notApplicable)) ? (
+          <button
+            type="button"
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-base font-medium text-white"
+            onClick={props.onCompleteMissingData}
+          >
+            {props.copy.completeMissingData}
+          </button>
         ) : null}
         {baseline?.showZvwEmployerNote ? (
           <p data-verdiencheck-zvw-note="" className="text-sm leading-relaxed text-stone-600">

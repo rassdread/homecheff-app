@@ -222,10 +222,16 @@ const E = deriveIncomeBasesFromUserFacts(
 );
 assert.equal(E.incomeSourcePrecedence, 'KNOWN_ASSESSMENT_INCOME');
 assert.equal(E.baselineAssessmentIncomeCents, 3_500_000);
-assert.equal(E.baselineBox1TaxableIncomeCents, null);
-assert.equal(E.fiscalWageCents, null);
+const salaryOnly = deriveIncomeBasesFromUserFacts(
+  employee({
+    holidayPayIncluded: 'NO',
+  }),
+);
+assert.equal(E.baselineBox1TaxableIncomeCents, salaryOnly.baselineBox1TaxableIncomeCents);
+assert.equal(E.fiscalWageCents, salaryOnly.fiscalWageCents);
+assert.notEqual(E.baselineBox1TaxableIncomeCents, E.baselineAssessmentIncomeCents);
 assert.equal(E.basisProvenance.assessment.source, 'KNOWN_ASSESSMENT_INCOME');
-assert.equal(E.basisProvenance.box1.kind, 'UNKNOWN');
+assert.notEqual(E.basisProvenance.box1.kind, 'UNKNOWN');
 
 // F — BOTH KNOWN coexist independently
 const F = deriveIncomeBasesFromUserFacts(

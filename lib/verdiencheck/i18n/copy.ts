@@ -233,6 +233,7 @@ export type VerdienCheckCopy = {
   situationNowTitle: string;
   viewExtraScenarioCta: string;
   notYetCalculable: string;
+  completeMissingData: string;
   estimatedEntitlement: string;
   extraTaxAndContributions: string;
   extraIncomeTax: string;
@@ -689,6 +690,7 @@ const NL: VerdienCheckCopy = {
   situationNowTitle: 'Dit is je situatie nu',
   viewExtraScenarioCta: 'Bekijk wat extra verdienen doet',
   notYetCalculable: 'Nog niet te berekenen',
+  completeMissingData: 'Gegevens aanvullen',
   estimatedEntitlement: 'Geschat recht volgens je ingevulde situatie',
   extraTaxAndContributions: 'Extra belasting en bijdragen',
   extraIncomeTax: 'Extra inkomstenbelasting',
@@ -1045,6 +1047,10 @@ const NL: VerdienCheckCopy = {
         NONE: 'Geen',
         UNKNOWN: 'Weet ik niet',
       },
+    },
+    toeslagen: {
+      title: 'Toeslagen',
+      help: 'Wil je weten wat extra inkomen doet met je toeslagen? We vragen alleen wat voor jouw situatie nodig kan zijn. Je hoeft nu geen toeslag te ontvangen. We rekenen of je er recht op kunt hebben, en wat een extra resultaat daarmee doet.',
     },
     partner: {
       title: 'Heb je een toeslagpartner?',
@@ -1626,6 +1632,7 @@ const EN: VerdienCheckCopy = {
   situationNowTitle: 'This is your situation now',
   viewExtraScenarioCta: 'See what extra earning does',
   notYetCalculable: 'Not yet calculable',
+  completeMissingData: 'Add the missing details',
   estimatedEntitlement: 'Estimated entitlement based on the situation you entered',
   extraTaxAndContributions: 'Extra tax and contributions',
   extraIncomeTax: 'Extra income tax',
@@ -1982,6 +1989,10 @@ const EN: VerdienCheckCopy = {
         NONE: 'None',
         UNKNOWN: 'I don’t know',
       },
+    },
+    toeslagen: {
+      title: 'Allowances',
+      help: 'Want to see what extra income does to your allowances? We only ask what can matter for your situation. You do not need to receive an allowance now. We estimate whether you could be entitled, and what an extra result does to that.',
     },
     partner: {
       title: 'Do you have an allowance partner?',

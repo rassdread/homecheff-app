@@ -72,6 +72,7 @@ const QUESTION_AUDIT: Record<string, Class> = {
   partner: 'MINOR_FRICTION',
   partnerInsurance: 'CLEAR',
   partnerIncome: 'MINOR_FRICTION',
+  toeslagen: 'CLEAR',
   rentsHome: 'CLEAR',
   housingRent: 'CLEAR',
   housingHousehold: 'CLEAR',

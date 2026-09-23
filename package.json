@@ -67,6 +67,7 @@
     "test:verdiencheck-employment-extras-2026": "npx tsx scripts/test-verdiencheck-employment-extras-2026.ts",
     "test:verdiencheck-company-car-2026": "npx tsx scripts/test-verdiencheck-company-car-2026.ts",
     "test:verdiencheck-mobile-bottom-nav-pad": "npx tsx scripts/test-verdiencheck-mobile-bottom-nav-pad.ts",
+    "test:verdiencheck-toeslagen-live-scenario": "npx tsx scripts/test-verdiencheck-toeslagen-live-scenario.ts",
     "validate:verdiencheck-public-copy": "npx tsx scripts/validate-verdiencheck-public-copy.ts",
     "validate:trust-1-marketplace-integrity": "npx tsx scripts/validate-trust-1-marketplace-integrity.ts",
     "probe:legal-1-seller-classification": "node scripts/probe-legal-1-seller-classification.mjs",

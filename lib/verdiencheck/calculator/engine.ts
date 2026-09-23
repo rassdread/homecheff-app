@@ -373,7 +373,6 @@ export function runCalculator(input: CalculatorInput): CalculatorResult {
       } else if (
         healthcareAssets === 'ELIGIBLE' &&
         assessA != null &&
-        canTax &&
         rowCents != null &&
         partnerAssessKnown &&
         (hasPartner === false ||

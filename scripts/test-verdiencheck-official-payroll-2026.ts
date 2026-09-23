@@ -293,7 +293,8 @@ const E = deriveIncomeBasesFromUserFacts(
 );
 assert.equal(E.derivation, 'ADVANCED');
 assert.equal(E.baselineAssessmentIncomeCents, 3_500_000);
-assert.equal(E.baselineBox1TaxableIncomeCents, null);
+assert.notEqual(E.baselineBox1TaxableIncomeCents, null);
+assert.notEqual(E.baselineBox1TaxableIncomeCents, E.baselineAssessmentIncomeCents);
 assert.equal(E.payroll.used, true);
 
 const F_STATE = employee({

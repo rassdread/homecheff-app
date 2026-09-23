@@ -106,6 +106,7 @@ import {
   mapRevenueAndAllowableCosts,
 } from '@/lib/verdiencheck/domain/revenue-cost-helper';
 import { compareScenarioPresets } from '@/lib/verdiencheck/wizard/scenario-comparison';
+import { resolveVerdienCheckMissingStep } from '@/lib/verdiencheck/wizard/missing-input-target';
 import {
   positionVerdienCheckActiveStep,
   VERDIENCHECK_ACTIVE_STEP_ID,
@@ -433,6 +434,23 @@ export default function VerdienCheckWizard(props: {
         derivedIncomeBases.derivation === 'NET_EMPLOYMENT_ESTIMATE',
     },
   });
+  const missingInputStep = resolveVerdienCheckMissingStep(
+    {
+      advancedAccuracyRequested: state.advancedAccuracyRequested,
+      currentIncomeUnknown: state.currentIncomeUnknown,
+      holidayPayUnresolved: derivedIncomeBases.holidayPayUnresolved,
+    },
+    personalRoute.unknowns,
+  );
+  const offerMissingData =
+    missingInputStep != null && personalRoute.financialImpact.status !== 'EXACT';
+  function completeMissingData() {
+    if (!missingInputStep) return;
+    if (!state.moneyDepthRequested) {
+      setState(applyMoneyDepthChoice(state, 'YES'));
+    }
+    setStep(missingInputStep);
+  }
   const resultCtaMode = resolveResultCtaMode({
     intent: earningIntentFromEntry(entryPoint),
     activity: state.activityChoice,
@@ -1218,6 +1236,17 @@ export default function VerdienCheckWizard(props: {
                 className={NEXT_BTN}
                 onClick={goNext}
               >
+                {copy.next}
+              </button>
+            </div>
+          )}
+
+          {step === 'toeslagen' && (
+            <div className="space-y-3">
+              <p className="text-base leading-relaxed text-gray-700">
+                {copy.steps.toeslagen?.help}
+              </p>
+              <button type="button" className={NEXT_BTN} onClick={goNext}>
                 {copy.next}
               </button>
             </div>
@@ -3018,6 +3047,7 @@ export default function VerdienCheckWizard(props: {
                           ? copy.netInputEstimateNote
                           : null
                   }
+                  onCompleteMissingData={offerMissingData ? completeMissingData : undefined}
                 />
               ) : null}
               {state.moneyDepthCompleted && !isBenefitSituation(state) && !state.scenarioLayerRequested ? (
@@ -3074,6 +3104,7 @@ export default function VerdienCheckWizard(props: {
                     ...personalRoute.soon.map((card) => card.title),
                     ...personalRoute.later.map((card) => card.title),
                   ]}
+                  onCompleteMissingData={offerMissingData ? completeMissingData : undefined}
                 />
               ) : !state.moneyDepthCompleted ? (
                 <VerdienCheckResultSummary route={personalRoute} omitHeadline />

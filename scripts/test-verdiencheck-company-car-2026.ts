@@ -637,7 +637,16 @@ const knownAssessment = deriveIncomeBasesFromUserFacts(
   withCar({ baselineAssessmentEuro: '35000' }),
 );
 assert.equal(knownAssessment.baselineAssessmentIncomeCents, euro(35_000));
-assert.equal(knownAssessment.companyCarTaxableAnnualCents, null);
+assert.notEqual(knownAssessment.companyCarTaxableAnnualCents, null);
+assert.notEqual(
+  knownAssessment.baselineAssessmentIncomeCents,
+  knownAssessment.fiscalWageCents,
+);
+const carWithoutAssessment = deriveIncomeBasesFromUserFacts(withCar({}));
+assert.equal(
+  knownAssessment.companyCarTaxableAnnualCents,
+  carWithoutAssessment.companyCarTaxableAnnualCents,
+);
 
 // ========================================================= allowance persona
 function healthcareAllowanceAnnual(state: WizardState): number | null {

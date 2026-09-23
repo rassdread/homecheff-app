@@ -270,7 +270,8 @@ const H = deriveIncomeBasesFromUserFacts(
   }),
 );
 assert.equal(H.baselineAssessmentIncomeCents, euro(35000));
-assert.equal(H.employmentExtrasCents, null);
+assert.equal(H.employmentExtrasCents, euro(5000));
+assert.notEqual(H.fiscalWageCents, H.baselineAssessmentIncomeCents);
 assert.equal(H.basisProvenance.assessment.source, 'KNOWN_ASSESSMENT_INCOME');
 
 // ------------------------------------------------------- I. allowance effect
