@@ -62,13 +62,75 @@ export const PUBLIC_MARKETPLACE_MIN_PAYOUT_EUR = MIN_PAYOUT_AMOUNT_CENTS / 100;
 
 export const PUBLIC_DELIVERY_PLATFORM_FEE_PERCENT = 12;
 
-/** Growth monthly prices ex-VAT — homecheff-leads PLAN_CARD_COPY. */
+/**
+ * Certified customer contracts. Marketplace projection of the central billing
+ * entitlements in homecheff-leads (GROWTH_STARTER_PERIODIC_ENTITLEMENT_HC and
+ * STUDIO_HC_PLAN_MAPPINGS.studio_creator). Affiliate capacity is a different
+ * concept and is not defined here.
+ */
+export const PUBLIC_GROWTH_STARTER_CUSTOMER_PRICE_EUR = 47;
+export const PUBLIC_GROWTH_STARTER_CUSTOMER_ENTITLEMENT_HC = 2500;
+export const PUBLIC_STUDIO_CREATOR_CUSTOMER_PRICE_EUR = 15;
+export const PUBLIC_STUDIO_CREATOR_CUSTOMER_ENTITLEMENT_HC = 900;
+
+/**
+ * Affiliate reserve / capacity ladder. This is what the V2 commission formula
+ * subtracts. It is not the HC a paying customer receives.
+ */
+export const PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC = {
+  starter: 750,
+  pro: 2800,
+  business: 10000,
+  enterprise: 18000,
+} as const;
+
+/**
+ * Growth plans. monthlyEurExVat is the V2 commission base (ex VAT).
+ * customerPriceEur is what the customer is charged when that price is certified;
+ * null keeps the ex-VAT display for plans this contract does not restate.
+ * customerEntitlementHc and affiliateCapacityHc are different fields on purpose.
+ */
 export const PUBLIC_GROWTH_PLANS = [
-  { key: 'free', monthlyEurExVat: 0, monthlyHc: 0, monthlyLeadQuota: 0 },
-  { key: 'starter', monthlyEurExVat: 39, monthlyHc: 750, monthlyLeadQuota: 175 },
-  { key: 'pro', monthlyEurExVat: 79, monthlyHc: 2800, monthlyLeadQuota: 850 },
-  { key: 'business', monthlyEurExVat: 199, monthlyHc: 10000, monthlyLeadQuota: 3200 },
-  { key: 'enterprise', monthlyEurExVat: 399, monthlyHc: 18000, monthlyLeadQuota: 5500 },
+  {
+    key: 'free',
+    monthlyEurExVat: 0,
+    customerPriceEur: null,
+    customerEntitlementHc: 0,
+    affiliateCapacityHc: 0,
+    monthlyLeadQuota: 0,
+  },
+  {
+    key: 'starter',
+    monthlyEurExVat: 39,
+    customerPriceEur: PUBLIC_GROWTH_STARTER_CUSTOMER_PRICE_EUR,
+    customerEntitlementHc: PUBLIC_GROWTH_STARTER_CUSTOMER_ENTITLEMENT_HC,
+    affiliateCapacityHc: PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC.starter,
+    monthlyLeadQuota: 175,
+  },
+  {
+    key: 'pro',
+    monthlyEurExVat: 79,
+    customerPriceEur: null,
+    customerEntitlementHc: PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC.pro,
+    affiliateCapacityHc: PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC.pro,
+    monthlyLeadQuota: 850,
+  },
+  {
+    key: 'business',
+    monthlyEurExVat: 199,
+    customerPriceEur: null,
+    customerEntitlementHc: PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC.business,
+    affiliateCapacityHc: PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC.business,
+    monthlyLeadQuota: 3200,
+  },
+  {
+    key: 'enterprise',
+    monthlyEurExVat: 399,
+    customerPriceEur: null,
+    customerEntitlementHc: PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC.enterprise,
+    affiliateCapacityHc: PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC.enterprise,
+    monthlyLeadQuota: 5500,
+  },
 ] as const;
 
 /** 1 HC = €0.01 face — Growth V2 affiliate reserve. */
@@ -82,7 +144,12 @@ export const PUBLIC_GROWTH_ROLLOVER_MULTIPLIER = 3 as const;
 
 /** Studio — live studio.homecheff.eu/api/billing/catalog CURRENT_NL_B2C. */
 export const PUBLIC_STUDIO_PLANS = [
-  { key: 'creator', monthlyEur: 15, yearlyEur: 150, monthlyHc: 900 },
+  {
+    key: 'creator',
+    monthlyEur: PUBLIC_STUDIO_CREATOR_CUSTOMER_PRICE_EUR,
+    yearlyEur: 150,
+    monthlyHc: PUBLIC_STUDIO_CREATOR_CUSTOMER_ENTITLEMENT_HC,
+  },
   { key: 'pro', monthlyEur: 29, yearlyEur: 290, monthlyHc: 1800 },
   { key: 'studio', monthlyEur: 79, yearlyEur: 790, monthlyHc: 5000 },
 ] as const;
@@ -183,14 +250,23 @@ export function formatPublicPercentEn(pct: number): string {
 
 /**
  * Growth LIVE V2 residual-HC economics (homecheff-leads):
- * COMMISSIONABLE = max(0, NET_EX_VAT − INCLUDED_HC × €0.01)
+ * COMMISSIONABLE = max(0, NET_EX_VAT − AFFILIATE_CAPACITY_HC × €0.01)
  * Affiliate = 50% of that residual; MAIN/SUB = 10%/40% of same residual.
+ * AFFILIATE_CAPACITY_HC is not the customer entitlement. For Growth Starter
+ * those are 750 and 2500.
  * Lead quotas remain separate (175/850/3200/5500) and are NOT HC/3.
  */
 export type GrowthPlanEconomics = {
   key: (typeof PUBLIC_GROWTH_PLANS)[number]['key'];
   label: string;
+  /** Certified customer price when known; otherwise null and the card shows ex VAT. */
+  customerPriceEur: number | null;
   priceEurExVat: number;
+  /** HC the paying customer receives. */
+  customerEntitlementHc: number;
+  /** HC the affiliate formula reserves. A different concept. */
+  affiliateCapacityHc: number;
+  /** Alias of customerEntitlementHc, used by the "HC included" card line. */
   includedHc: number;
   monthlyLeadQuota: number;
   hcReserveEur: number;
@@ -237,7 +313,7 @@ export function buildGrowthPlanEconomics(): GrowthPlanEconomics[] {
   return PUBLIC_GROWTH_PLANS.filter((p) => p.key !== 'free').map((p) => {
     const priceEurExVat = p.monthlyEurExVat;
     const netCents = Math.round(priceEurExVat * 100);
-    const snap = growthV2AffiliateCommissionCents(netCents, p.monthlyHc);
+    const snap = growthV2AffiliateCommissionCents(netCents, p.affiliateCapacityHc);
     const hcReserveEur = snap.hcReserveCents / 100;
     const commissionableBaseEur = snap.commissionableCents / 100;
     const affiliateCommissionEur = snap.affiliateCommissionCents / 100;
@@ -248,8 +324,11 @@ export function buildGrowthPlanEconomics(): GrowthPlanEconomics[] {
     return {
       key: p.key,
       label: GROWTH_PLAN_LABELS[p.key as keyof typeof GROWTH_PLAN_LABELS],
+      customerPriceEur: p.customerPriceEur,
       priceEurExVat,
-      includedHc: p.monthlyHc,
+      customerEntitlementHc: p.customerEntitlementHc,
+      affiliateCapacityHc: p.affiliateCapacityHc,
+      includedHc: p.customerEntitlementHc,
       monthlyLeadQuota: p.monthlyLeadQuota,
       hcReserveEur,
       commissionableBaseEur,
@@ -375,7 +454,7 @@ export const PUBLIC_STUDIO_PLAN_ECONOMICS = buildStudioPlanEconomics();
 
 export const PUBLIC_COMMISSION_BASE = {
   growth:
-    'GROWTH_V2_RESIDUAL_HC = max(0, NET_EX_VAT − INCLUDED_HC×€0.01); affiliate 50% of residual',
+    'GROWTH_V2_RESIDUAL_HC = max(0, NET_EX_VAT − AFFILIATE_CAPACITY_HC×€0.01); affiliate 50% of residual; capacity is not the customer entitlement',
   studio:
     'STUDIO_ELIGIBLE_RESIDUAL = net_ex_VAT − Stripe_estimate − Model_A_HC_treasury_coverage',
 } as const;

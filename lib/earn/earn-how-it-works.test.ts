@@ -160,7 +160,9 @@ describe('how-it-works dedicated page', () => {
     assert.match(earnHowItWorksNl.growth.planCards[1].commission, /25,50/);
     assert.match(earnHowItWorksNl.growth.planCards[2].commission, /49,50/);
     assert.match(earnHowItWorksNl.growth.planCards[3].commission, /109,50/);
-    assert.match(earnHowItWorksNl.growth.planCards[0].includedCredits!, /750/);
+    assert.match(earnHowItWorksNl.growth.planCards[0].includedCredits!, /2\.500/);
+    assert.match(earnHowItWorksNl.growth.planCards[0].hcReserve!, /7,50/);
+    assert.match(earnHowItWorksNl.growth.planCards[0].price, /47,00/);
     assert.match(earnHowItWorksNl.growth.planCards[0].leadQuota!, /175/);
     assert.match(earnHowItWorksNl.studio.planCards[0].commission, /1,70/);
     assert.match(earnHowItWorksNl.studio.basisBody, /niet over de volledige abonnementsprijs/i);
@@ -213,7 +215,11 @@ describe('economics SoT drift protection', () => {
       [0, 39, 79, 199, 399],
     );
     assert.deepEqual(
-      PUBLIC_GROWTH_PLANS.map((p) => p.monthlyHc),
+      PUBLIC_GROWTH_PLANS.map((p) => p.customerEntitlementHc),
+      [0, 2500, 2800, 10000, 18000],
+    );
+    assert.deepEqual(
+      PUBLIC_GROWTH_PLANS.map((p) => p.affiliateCapacityHc),
       [0, 750, 2800, 10000, 18000],
     );
     assert.deepEqual(
@@ -226,8 +232,11 @@ describe('economics SoT drift protection', () => {
     // Lead quota is NOT HC/3 (starter 175 ≠ 250).
     const starter = PUBLIC_GROWTH_PLANS.find((p) => p.key === 'starter')!;
     assert.equal(starter.monthlyLeadQuota, 175);
-    assert.equal(starter.monthlyHc, 750);
-    assert.notEqual(starter.monthlyLeadQuota, Math.floor(starter.monthlyHc / 3));
+    assert.equal(starter.customerEntitlementHc, 2500);
+    assert.equal(starter.affiliateCapacityHc, 750);
+    assert.equal(starter.customerPriceEur, 47);
+    assert.notEqual(starter.customerEntitlementHc, starter.affiliateCapacityHc);
+    assert.notEqual(starter.monthlyLeadQuota, Math.floor(starter.affiliateCapacityHc / 3));
   });
 
   it('growthV2AffiliateCommissionCents matches cent-exact V2 table', () => {
@@ -247,25 +256,27 @@ describe('economics SoT drift protection', () => {
 
   it('Growth plan economics match V2 residual-HC payout at cent level', () => {
     const expected = [
-      { key: 'starter', price: 39, hc: 750, leads: 175, commission: 15.75 },
-      { key: 'pro', price: 79, hc: 2800, leads: 850, commission: 25.5 },
-      { key: 'business', price: 199, hc: 10000, leads: 3200, commission: 49.5 },
-      { key: 'enterprise', price: 399, hc: 18000, leads: 5500, commission: 109.5 },
+      { key: 'starter', price: 39, customerHc: 2500, reserveHc: 750, leads: 175, commission: 15.75 },
+      { key: 'pro', price: 79, customerHc: 2800, reserveHc: 2800, leads: 850, commission: 25.5 },
+      { key: 'business', price: 199, customerHc: 10000, reserveHc: 10000, leads: 3200, commission: 49.5 },
+      { key: 'enterprise', price: 399, customerHc: 18000, reserveHc: 18000, leads: 5500, commission: 109.5 },
     ];
     assert.equal(PUBLIC_GROWTH_PLAN_ECONOMICS.length, expected.length);
     for (const row of expected) {
       const eco = PUBLIC_GROWTH_PLAN_ECONOMICS.find((p) => p.key === row.key)!;
       assert.equal(eco.priceEurExVat, row.price);
-      assert.equal(eco.includedHc, row.hc);
+      assert.equal(eco.customerEntitlementHc, row.customerHc);
+      assert.equal(eco.includedHc, row.customerHc);
+      assert.equal(eco.affiliateCapacityHc, row.reserveHc);
       assert.equal(eco.monthlyLeadQuota, row.leads);
-      assert.equal(eco.hcReserveEur, row.hc / 100);
-      assert.equal(eco.commissionableBaseEur, (row.price * 100 - row.hc) / 100);
+      assert.equal(eco.hcReserveEur, row.reserveHc / 100);
+      assert.equal(eco.commissionableBaseEur, (row.price * 100 - row.reserveHc) / 100);
       assert.equal(eco.directVariableCostEur, eco.hcReserveEur);
       assert.equal(eco.affiliateCommissionEur, row.commission);
       assert.equal(eco.calculationVersion, 'GROWTH_AFFILIATE_V2_RESIDUAL_HC');
       const snap = growthV2AffiliateCommissionCents(
         Math.round(row.price * 100),
-        row.hc,
+        row.reserveHc,
       );
       assert.equal(eco.affiliateCommissionEur, snap.affiliateCommissionCents / 100);
     }
@@ -314,7 +325,13 @@ describe('economics SoT drift protection', () => {
       assert.match(card.availableMargin, new RegExp(formatPublicEurNl(eco.commissionableBaseEur)));
       assert.match(card.hcReserve!, new RegExp(formatPublicEurNl(eco.hcReserveEur)));
       assert.match(card.leadQuota!, new RegExp(eco.monthlyLeadQuota.toLocaleString('nl-NL')));
-      assert.match(card.includedCredits!, new RegExp(eco.includedHc.toLocaleString('nl-NL')));
+      assert.match(card.includedCredits!, new RegExp(eco.customerEntitlementHc.toLocaleString('nl-NL')));
+      if (eco.key === 'starter') {
+        assert.match(card.price, /47,00/);
+        assert.equal(eco.customerEntitlementHc, 2500);
+        assert.equal(eco.affiliateCapacityHc, 750);
+        assert.equal(eco.affiliateCommissionEur, 15.75);
+      }
     }
     for (const eco of PUBLIC_STUDIO_PLAN_ECONOMICS) {
       const card = nl.studio.planCards.find((c) => c.key === eco.key)!;

@@ -12,8 +12,11 @@ import {
   PUBLIC_GROWTH_COMMISSION_MONTHS,
   PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT,
   PUBLIC_GROWTH_HC_CROSS_PLATFORM_CLAIM,
+  PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC,
   PUBLIC_GROWTH_PLAN_ECONOMICS,
   PUBLIC_GROWTH_PLANS,
+  PUBLIC_GROWTH_STARTER_CUSTOMER_ENTITLEMENT_HC,
+  PUBLIC_GROWTH_STARTER_CUSTOMER_PRICE_EUR,
   PUBLIC_LEDGER_PENDING_DAYS,
   PUBLIC_MAIN_PERCENT_OF_ELIGIBLE,
   PUBLIC_MARKETPLACE_MIN_PAYOUT_EUR,
@@ -67,8 +70,10 @@ function growthPlanCardsNl(): EarnPlanEconomicsCard[] {
   return PUBLIC_GROWTH_PLAN_ECONOMICS.map((p) => ({
     key: p.key,
     name: `Growth ${p.label}`,
-    price: `€${formatPublicEurNl(p.priceEurExVat)} / maand ex. btw`,
-    includedCredits: `${p.includedHc.toLocaleString('nl-NL')} HC inbegrepen`,
+    price: p.customerPriceEur
+      ? `€${formatPublicEurNl(p.customerPriceEur)} / maand`
+      : `€${formatPublicEurNl(p.priceEurExVat)} / maand ex. btw`,
+    includedCredits: `${p.customerEntitlementHc.toLocaleString('nl-NL')} HC inbegrepen`,
     leadQuota: `${p.monthlyLeadQuota.toLocaleString('nl-NL')} leads / maand (apart van HC)`,
     hcReserve: `€${formatPublicEurNl(p.hcReserveEur)} HC-reserve (face value)`,
     availableMargin: `€${formatPublicEurNl(p.commissionableBaseEur)}`,
@@ -84,8 +89,10 @@ function growthPlanCardsEn(): EarnPlanEconomicsCard[] {
   return PUBLIC_GROWTH_PLAN_ECONOMICS.map((p) => ({
     key: p.key,
     name: `Growth ${p.label}`,
-    price: `€${formatPublicEurEn(p.priceEurExVat)} / month ex VAT`,
-    includedCredits: `${p.includedHc.toLocaleString('en-GB')} HC included`,
+    price: p.customerPriceEur
+      ? `€${formatPublicEurEn(p.customerPriceEur)} / month`
+      : `€${formatPublicEurEn(p.priceEurExVat)} / month ex VAT`,
+    includedCredits: `${p.customerEntitlementHc.toLocaleString('en-GB')} HC included`,
     leadQuota: `${p.monthlyLeadQuota.toLocaleString('en-GB')} leads / month (separate from HC)`,
     hcReserve: `€${formatPublicEurEn(p.hcReserveEur)} HC reserve (face value)`,
     availableMargin: `€${formatPublicEurEn(p.commissionableBaseEur)}`,
@@ -215,7 +222,7 @@ export const earnHowItWorksNl = {
     free: `Free: €${PUBLIC_GROWTH_PLANS[0].monthlyEurExVat}`,
     basisTitle: 'Waarover wordt Growth-commissie berekend?',
     basisBody:
-      `Growth-abonnementen bevatten HC die binnen het HomeCheff-ecosysteem gebruikt kunnen worden. Daarom reserveren we eerst de volledige waarde van de inbegrepen HC (1 HC = €0,01) van de abonnementsprijs exclusief btw. Van het resterende abonnementsbedrag — de deelbare marge — ontvang je ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliatecommissie. De volledige abonnementsprijs is dus niet de commissiegrondslag. Inbegrepen HC en maandelijkse leadquota zijn aparte rechten: HC is geen leadquota. ${growthHcScopeNl}`,
+      `Growth-abonnementen bevatten HC die binnen het HomeCheff-ecosysteem gebruikt kunnen worden. Wat de klant krijgt (de klant-entitlement) en de HC-reserve in de commissieformule zijn twee verschillende getallen. Voor Growth Starter is dat ${PUBLIC_GROWTH_STARTER_CUSTOMER_ENTITLEMENT_HC.toLocaleString('nl-NL')} HC bij €${PUBLIC_GROWTH_STARTER_CUSTOMER_PRICE_EUR} per maand, terwijl de affiliate-reserve ${PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC.starter.toLocaleString('nl-NL')} HC is. We trekken de face value van die reserve (1 HC = €0,01) af van de abonnementsprijs exclusief btw. Van het resterende abonnementsbedrag — de deelbare marge — ontvang je ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliatecommissie. De volledige abonnementsprijs is dus niet de commissiegrondslag. Inbegrepen HC en maandelijkse leadquota zijn aparte rechten: HC is geen leadquota. ${growthHcScopeNl}`,
     notOfVat:
       'Commissie wordt niet berekend over btw. Credit packs vallen niet onder affiliate-commissie.',
     flowPrice: 'Abonnementsprijs ex. btw',
@@ -443,7 +450,7 @@ export const earnHowItWorksEn = {
     free: `Free: €${PUBLIC_GROWTH_PLANS[0].monthlyEurExVat}`,
     basisTitle: 'What is Growth commission calculated on?',
     basisBody:
-      `Growth subscriptions include HC that can be used across the HomeCheff ecosystem. That is why we reserve the full face value of included HC first (1 HC = €0.01) from the subscription price excluding VAT. Of the remaining subscription amount — the distributable margin — you receive ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliate commission. The full subscription price is therefore not the commission base. Included HC and monthly lead quota are separate entitlements: HC is not lead quota. ${growthHcScopeEn}`,
+      `Growth subscriptions include HC that can be used across the HomeCheff ecosystem. What the customer receives (the customer entitlement) and the HC reserve in the commission formula are two different numbers. For Growth Starter that is ${PUBLIC_GROWTH_STARTER_CUSTOMER_ENTITLEMENT_HC.toLocaleString('en-GB')} HC at €${PUBLIC_GROWTH_STARTER_CUSTOMER_PRICE_EUR} per month, while the affiliate reserve is ${PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC.starter.toLocaleString('en-GB')} HC. We deduct the face value of that reserve (1 HC = €0.01) from the subscription price excluding VAT. Of the remaining subscription amount — the distributable margin — you receive ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliate commission. The full subscription price is therefore not the commission base. Included HC and monthly lead quota are separate entitlements: HC is not lead quota. ${growthHcScopeEn}`,
     notOfVat:
       'Commission is not calculated on VAT. Credit packs are not commissionable.',
     flowPrice: 'Subscription price ex VAT',
