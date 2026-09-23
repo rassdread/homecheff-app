@@ -1,0 +1,13 @@
+{
+  "BASE": "https://homecheff.eu/verdiencheck",
+  "kgbResult": {
+    "at1000": "Kindgebonden budget €5.996 €5.996 €0",
+    "at5000": "Kindgebonden budget €5.996 €5.870 − €126",
+    "changed": true
+  },
+  "kotResult": {
+    "at1000": "Kinderopvangtoeslag €13.522 €13.522 €0",
+    "at5000": "Kinderopvangtoeslag €13.522 €13.306 − €216",
+    "unknown": false
+  }
+}

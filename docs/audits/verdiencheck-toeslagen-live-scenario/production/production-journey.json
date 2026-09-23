@@ -1,0 +1,217 @@
+{
+  "BASE": "https://homecheff.eu/verdiencheck",
+  "JOURNEY_1": {
+    "questions": [
+      "Woon je in Nederland?",
+      "Waarmee wil je iets bijverdienen?",
+      "Hoe wil je beginnen?",
+      "Welke situatie past het beste bij jou?",
+      "Je kunt beginnen.",
+      "Krijg je in 2026 AOW?",
+      "Heb je een Nederlandse zorgverzekering?",
+      "Heb je een toeslagpartner?",
+      "Wat verdien je nu ongeveer?",
+      "Toeslagen",
+      "Hoe woon je?",
+      "Heb je kinderen?",
+      "Is je spaargeld laag genoeg voor zorgtoeslag?",
+      "Dit is je situatie nu"
+    ],
+    "toeslagenHelp": "Vragen over je geld\n\nDeel VerdienCheck\nToeslagen\n\nEerst je situatie nu. Daarna kun je zelf bedragen proberen en direct zien hoeveel je ongeveer extra overhoudt.\n\nWil je weten wat extra inkomen doet met je toeslagen? We vragen alleen wat voor jouw situatie nodig kan zijn. Je hoeft nu geen toeslag te ontvangen. We rekenen of je er recht op kunt hebben, en wat een extra resultaat daarmee doet.\n\nVerder\nWat betekent dit?\nTerug\n\nDit is een schatting en persoonlijke uitleg op basis van wat je hebt ingevuld. Jij blijft verantwoordelijk voor wat je doorgeeft en regelt. Schatting voor 2026.",
+    "verderHitDesktop": {
+      "ok": true,
+      "text": "Verder",
+      "tag": "BUTTON",
+      "blockedByNav": false,
+      "top": 318.59375,
+      "height": 52,
+      "x": 640,
+      "y": 336.59375
+    },
+    "extra0": {
+      "baseline": "Dit is je situatie nu Geschat recht volgens je ingevulde situatie JE HUIDIGE FINANCIËLE BASIS €26.400 geschat jaarinkomen INKOMEN Geschat netto volgens standaard loonberekeningSCHATTING €2.117 / maand Je werkelijke storting kan lager zijn door bijvoorbeeld pensioen of andere inhoudingen op je loonstrook. Pensioen niet meegenomen Bekijk loonberekeningMaak mijn loonstrook nauwkeuriger Bruto inkomen €26.400 / jaar €2.200 / maand Vakantiegeld meegeteld Loonheffingskorting Ja WONEN Anders BELASTING & TOESLAGEN Geschatte inkomstenbelasting Dit is geschatte jaarlijkse inkomstenbelasting, geen loonheffing van je loonstrook. €1.012 / jaar Zorgtoeslag €129 / maand Huurtoeslag Niet van toepassing Kindgebonden budget Niet van toepassing Kinderopvangtoeslag Niet van toepassing Totaal toeslagen €129 / maand €1.550 / jaar Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Meer uitleg",
+      "delta": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €1.012 €0 Zvw €0 €0 €0 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.550 €0",
+      "chain": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €1.012 €0 Zvw €0 €0 €0 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.550 €0 Extra resultaat vóór belasting €0 / jaar Extra belasting/Zvw − €0 / jaar Toeslagenverandering €0 / jaar Je houdt extra over €0 / jaar €0 / maand Van verkoop naar wat je extra overhoudt Resultaat vóór belasting €0 ↓ Belasting + Zvw − €0 Verandering toeslagen €0 ↓ Werkelijk extra over €0 / jaar €0 / maand Je gaat erop vooruit Met €0 extra resultaat houd je naar schatting €0 extra over. Belasting en veranderingen in je toeslagen zijn hierin meegenomen. Toeslagen Toeslagen Nu Met extra Zorgtoeslag €129 / maand €129 / maand Toeslagenverandering €0 / maand Wat houd je extra over? €0 / jaar €0 / maand Extra belasting en bijdragen Extra inkomstenbelasting €0 Zvw-bijdrage €0 Totaal €0 Zet hiervoor ongeveer €0 opzij.",
+      "unknown": 0
+    },
+    "extra500": {
+      "baseline": "Dit is je situatie nu Geschat recht volgens je ingevulde situatie JE HUIDIGE FINANCIËLE BASIS €26.400 geschat jaarinkomen INKOMEN Geschat netto volgens standaard loonberekeningSCHATTING €2.117 / maand Je werkelijke storting kan lager zijn door bijvoorbeeld pensioen of andere inhoudingen op je loonstrook. Pensioen niet meegenomen Bekijk loonberekeningMaak mijn loonstrook nauwkeuriger Bruto inkomen €26.400 / jaar €2.200 / maand Vakantiegeld meegeteld Loonheffingskorting Ja WONEN Anders BELASTING & TOESLAGEN Geschatte inkomstenbelasting Dit is geschatte jaarlijkse inkomstenbelasting, geen loonheffing van je loonstrook. €1.012 / jaar Zorgtoeslag €129 / maand Huurtoeslag Niet van toepassing Kindgebonden budget Niet van toepassing Kinderopvangtoeslag Niet van toepassing Totaal toeslagen €129 / maand €1.550 / jaar Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Meer uitleg",
+      "delta": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €1.181 + €169 Zvw €0 €24 + €24 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.550 €0",
+      "chain": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €1.181 + €169 Zvw €0 €24 + €24 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.550 €0 Extra resultaat vóór belasting €500 / jaar Extra belasting/Zvw − €193 / jaar Toeslagenverandering €0 / jaar Je houdt extra over €307 / jaar €26 / maand Van verkoop naar wat je extra overhoudt Resultaat vóór belasting €500 ↓ Belasting + Zvw − €193 Verandering toeslagen €0 ↓ Werkelijk extra over €307 / jaar €26 / maand Je gaat erop vooruit Met €500 extra resultaat houd je naar schatting €307 extra over. Belasting en veranderingen in je toeslagen zijn hierin meegenomen. Van iedere €100 extra resultaat houd je in dit scenario ongeveer €61 extra over. Toeslagen Toeslagen Nu Met extra Zorgtoeslag €129 / maand €129 / maand Toeslagenverandering €0 / maand Wat houd je extra over? €307 / jaar €26 / maand Extra belasting en bijdragen Extra inkomstenbelasting €169 Zvw-bijdrage €24 Totaal €193 Zet hiervoor ongeveer €193 opzij.",
+      "unknown": 0
+    },
+    "extra1000": {
+      "baseline": "Dit is je situatie nu Geschat recht volgens je ingevulde situatie JE HUIDIGE FINANCIËLE BASIS €26.400 geschat jaarinkomen INKOMEN Geschat netto volgens standaard loonberekeningSCHATTING €2.117 / maand Je werkelijke storting kan lager zijn door bijvoorbeeld pensioen of andere inhoudingen op je loonstrook. Pensioen niet meegenomen Bekijk loonberekeningMaak mijn loonstrook nauwkeuriger Bruto inkomen €26.400 / jaar €2.200 / maand Vakantiegeld meegeteld Loonheffingskorting Ja WONEN Anders BELASTING & TOESLAGEN Geschatte inkomstenbelasting Dit is geschatte jaarlijkse inkomstenbelasting, geen loonheffing van je loonstrook. €1.012 / jaar Zorgtoeslag €129 / maand Huurtoeslag Niet van toepassing Kindgebonden budget Niet van toepassing Kinderopvangtoeslag Niet van toepassing Totaal toeslagen €129 / maand €1.550 / jaar Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Meer uitleg",
+      "delta": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €1.350 + €338 Zvw €0 €49 + €49 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.550 €0",
+      "chain": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €1.350 + €338 Zvw €0 €49 + €49 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.550 €0 Extra resultaat vóór belasting €1.000 / jaar Extra belasting/Zvw − €387 / jaar Toeslagenverandering €0 / jaar Je houdt extra over €614 / jaar €51 / maand Van verkoop naar wat je extra overhoudt Resultaat vóór belasting €1.000 ↓ Belasting + Zvw − €387 Verandering toeslagen €0 ↓ Werkelijk extra over €614 / jaar €51 / maand Je gaat erop vooruit Met €1.000 extra resultaat houd je naar schatting €614 extra over. Belasting en veranderingen in je toeslagen zijn hierin meegenomen. Van iedere €100 extra resultaat houd je in dit scenario ongeveer €61 extra over. Toeslagen Toeslagen Nu Met extra Zorgtoeslag €129 / maand €129 / maand Toeslagenverandering €0 / maand Wat houd je extra over? €614 / jaar €51 / maand Extra belasting en bijdragen Extra inkomstenbelasting €338 Zvw-bijdrage €49 Totaal €387 Zet hiervoor ongeveer €387 opzij.",
+      "unknown": 0
+    },
+    "extra2500": {
+      "baseline": "Dit is je situatie nu Geschat recht volgens je ingevulde situatie JE HUIDIGE FINANCIËLE BASIS €26.400 geschat jaarinkomen INKOMEN Geschat netto volgens standaard loonberekeningSCHATTING €2.117 / maand Je werkelijke storting kan lager zijn door bijvoorbeeld pensioen of andere inhoudingen op je loonstrook. Pensioen niet meegenomen Bekijk loonberekeningMaak mijn loonstrook nauwkeuriger Bruto inkomen €26.400 / jaar €2.200 / maand Vakantiegeld meegeteld Loonheffingskorting Ja WONEN Anders BELASTING & TOESLAGEN Geschatte inkomstenbelasting Dit is geschatte jaarlijkse inkomstenbelasting, geen loonheffing van je loonstrook. €1.012 / jaar Zorgtoeslag €129 / maand Huurtoeslag Niet van toepassing Kindgebonden budget Niet van toepassing Kinderopvangtoeslag Niet van toepassing Totaal toeslagen €129 / maand €1.550 / jaar Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Meer uitleg",
+      "delta": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €1.857 + €845 Zvw €0 €121 + €121 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.550 €0",
+      "chain": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €1.857 + €845 Zvw €0 €121 + €121 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.550 €0 Extra resultaat vóór belasting €2.500 / jaar Extra belasting/Zvw − €966 / jaar Toeslagenverandering €0 / jaar Je houdt extra over €1.534 / jaar €128 / maand Van verkoop naar wat je extra overhoudt Resultaat vóór belasting €2.500 ↓ Belasting + Zvw − €966 Verandering toeslagen €0 ↓ Werkelijk extra over €1.534 / jaar €128 / maand Je gaat erop vooruit Met €2.500 extra resultaat houd je naar schatting €1.534 extra over. Belasting en veranderingen in je toeslagen zijn hierin meegenomen. Van iedere €100 extra resultaat houd je in dit scenario ongeveer €61 extra over. Toeslagen Toeslagen Nu Met extra Zorgtoeslag €129 / maand €129 / maand Toeslagenverandering €0 / maand Wat houd je extra over? €1.534 / jaar €128 / maand Extra belasting en bijdragen Extra inkomstenbelasting €845 Zvw-bijdrage €121 Totaal €966 Zet hiervoor ongeveer €966 opzij.",
+      "unknown": 0
+    },
+    "extra5000": {
+      "baseline": "Dit is je situatie nu Geschat recht volgens je ingevulde situatie JE HUIDIGE FINANCIËLE BASIS €26.400 geschat jaarinkomen INKOMEN Geschat netto volgens standaard loonberekeningSCHATTING €2.117 / maand Je werkelijke storting kan lager zijn door bijvoorbeeld pensioen of andere inhoudingen op je loonstrook. Pensioen niet meegenomen Bekijk loonberekeningMaak mijn loonstrook nauwkeuriger Bruto inkomen €26.400 / jaar €2.200 / maand Vakantiegeld meegeteld Loonheffingskorting Ja WONEN Anders BELASTING & TOESLAGEN Geschatte inkomstenbelasting Dit is geschatte jaarlijkse inkomstenbelasting, geen loonheffing van je loonstrook. €1.012 / jaar Zorgtoeslag €129 / maand Huurtoeslag Niet van toepassing Kindgebonden budget Niet van toepassing Kinderopvangtoeslag Niet van toepassing Totaal toeslagen €129 / maand €1.550 / jaar Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Meer uitleg",
+      "delta": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €2.809 + €1.796 Zvw €0 €243 + €243 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.322 − €228",
+      "chain": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €2.809 + €1.796 Zvw €0 €243 + €243 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.322 − €228 Extra resultaat vóór belasting €5.000 / jaar Extra belasting/Zvw − €2.039 / jaar Toeslagenverandering − €228 / jaar Je houdt extra over €2.733 / jaar €228 / maand Van verkoop naar wat je extra overhoudt Resultaat vóór belasting €5.000 ↓ Belasting + Zvw − €2.039 Verandering toeslagen − €228 ↓ Werkelijk extra over €2.733 / jaar €228 / maand Je gaat erop vooruit Met €5.000 extra resultaat houd je naar schatting €2.733 extra over. Belasting en veranderingen in je toeslagen zijn hierin meegenomen. Van iedere €100 extra resultaat houd je in dit scenario ongeveer €55 extra over. Toeslagen Toeslagen Nu Met extra Zorgtoeslag €129 / maand €110 / maand Toeslagenverandering − €19 / maand Wat houd je extra over? €2.733 / jaar €228 / maand Extra belasting en bijdragen Extra inkomstenbelasting €1.796 Zvw-bijdrage €243 Totaal €2.039 Zet hiervoor ongeveer €2.039 opzij.",
+      "unknown": 0
+    },
+    "extra10000": {
+      "baseline": "Dit is je situatie nu Geschat recht volgens je ingevulde situatie JE HUIDIGE FINANCIËLE BASIS €26.400 geschat jaarinkomen INKOMEN Geschat netto volgens standaard loonberekeningSCHATTING €2.117 / maand Je werkelijke storting kan lager zijn door bijvoorbeeld pensioen of andere inhoudingen op je loonstrook. Pensioen niet meegenomen Bekijk loonberekeningMaak mijn loonstrook nauwkeuriger Bruto inkomen €26.400 / jaar €2.200 / maand Vakantiegeld meegeteld Loonheffingskorting Ja WONEN Anders BELASTING & TOESLAGEN Geschatte inkomstenbelasting Dit is geschatte jaarlijkse inkomstenbelasting, geen loonheffing van je loonstrook. €1.012 / jaar Zorgtoeslag €129 / maand Huurtoeslag Niet van toepassing Kindgebonden budget Niet van toepassing Kinderopvangtoeslag Niet van toepassing Totaal toeslagen €129 / maand €1.550 / jaar Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Meer uitleg",
+      "delta": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €4.819 + €3.806 Zvw €0 €485 + €485 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €635 − €915",
+      "chain": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €4.819 + €3.806 Zvw €0 €485 + €485 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €635 − €915 Extra resultaat vóór belasting €10.000 / jaar Extra belasting/Zvw − €4.291 / jaar Toeslagenverandering − €915 / jaar Je houdt extra over €4.794 / jaar €399 / maand Van verkoop naar wat je extra overhoudt Resultaat vóór belasting €10.000 ↓ Belasting + Zvw − €4.291 Verandering toeslagen − €915 ↓ Werkelijk extra over €4.794 / jaar €399 / maand Je gaat erop vooruit Met €10.000 extra resultaat houd je naar schatting €4.794 extra over. Belasting en veranderingen in je toeslagen zijn hierin meegenomen. Van iedere €100 extra resultaat houd je in dit scenario ongeveer €48 extra over. Toeslagen Toeslagen Nu Met extra Zorgtoeslag €129 / maand €53 / maand Toeslagenverandering − €76 / maand Wat houd je extra over? €4.794 / jaar €399 / maand Extra belasting en bijdragen Extra inkomstenbelasting €3.806 Zvw-bijdrage €485 Totaal €4.291 Zet hiervoor ongeveer €4.291 opzij.",
+      "unknown": 0
+    },
+    "extra7321": {
+      "baseline": "Dit is je situatie nu Geschat recht volgens je ingevulde situatie JE HUIDIGE FINANCIËLE BASIS €26.400 geschat jaarinkomen INKOMEN Geschat netto volgens standaard loonberekeningSCHATTING €2.117 / maand Je werkelijke storting kan lager zijn door bijvoorbeeld pensioen of andere inhoudingen op je loonstrook. Pensioen niet meegenomen Bekijk loonberekeningMaak mijn loonstrook nauwkeuriger Bruto inkomen €26.400 / jaar €2.200 / maand Vakantiegeld meegeteld Loonheffingskorting Ja WONEN Anders BELASTING & TOESLAGEN Geschatte inkomstenbelasting Dit is geschatte jaarlijkse inkomstenbelasting, geen loonheffing van je loonstrook. €1.012 / jaar Zorgtoeslag €129 / maand Huurtoeslag Niet van toepassing Kindgebonden budget Niet van toepassing Kinderopvangtoeslag Niet van toepassing Totaal toeslagen €129 / maand €1.550 / jaar Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Meer uitleg",
+      "delta": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €3.742 + €2.729 Zvw €0 €355 + €355 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.003 − €547",
+      "chain": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €1.012 €3.742 + €2.729 Zvw €0 €355 + €355 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.003 − €547 Extra resultaat vóór belasting €7.321 / jaar Extra belasting/Zvw − €3.085 / jaar Toeslagenverandering − €547 / jaar Je houdt extra over €3.689 / jaar €307 / maand Van verkoop naar wat je extra overhoudt Resultaat vóór belasting €7.321 ↓ Belasting + Zvw − €3.085 Verandering toeslagen − €547 ↓ Werkelijk extra over €3.689 / jaar €307 / maand Je gaat erop vooruit Met €7.321 extra resultaat houd je naar schatting €3.689 extra over. Belasting en veranderingen in je toeslagen zijn hierin meegenomen. Van iedere €100 extra resultaat houd je in dit scenario ongeveer €50 extra over. Toeslagen Toeslagen Nu Met extra Zorgtoeslag €129 / maand €84 / maand Toeslagenverandering − €46 / maand Wat houd je extra over? €3.689 / jaar €307 / maand Extra belasting en bijdragen Extra inkomstenbelasting €2.729 Zvw-bijdrage €355 Totaal €3.085 Zet hiervoor ongeveer €3.085 opzij.",
+      "unknown": 0
+    },
+    "changed": true,
+    "baselineStable": true,
+    "unknownAt1000": 0
+  },
+  "RESTART_CLEARED": true,
+  "JOURNEY_HT_MOBILE": {
+    "questions": [
+      "Woon je in Nederland?",
+      "Waarmee wil je iets bijverdienen?",
+      "Hoe wil je beginnen?",
+      "Welke situatie past het beste bij jou?",
+      "Je kunt beginnen.",
+      "Krijg je in 2026 AOW?",
+      "Heb je een Nederlandse zorgverzekering?",
+      "Wat is de kale huur per maand?",
+      "Hoe ziet je huishouden voor de huurtoeslag eruit?",
+      "Is je spaargeld laag genoeg voor huurtoeslag?",
+      "Blijft deze huishoudsituatie het hele jaar hetzelfde?"
+    ],
+    "housingNext": "Is je spaargeld laag genoeg voor huurtoeslag?",
+    "toeslagenHit": {
+      "ok": true,
+      "text": "Verder",
+      "tag": "BUTTON",
+      "blockedByNav": false,
+      "top": 301.59375,
+      "height": 52,
+      "x": 195,
+      "y": 319.59375
+    },
+    "presetHit": {
+      "ok": true,
+      "text": "€5.000",
+      "tag": "BUTTON",
+      "blockedByNav": false,
+      "top": 355.03125,
+      "height": 42,
+      "x": 309.9921875,
+      "y": 373.03125
+    },
+    "ht1000unknown": 0,
+    "htChanged": true,
+    "ht1000": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €623 €671 + €47 Zvw €0 €49 + €49 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.550 €0 Huurtoeslag €5.122 €5.122 €0",
+    "ht5000": "Wat verandert? Wat verandert? Nu Met extra Verschil Inkomstenbelasting €623 €1.080 + €457 Zvw €0 €243 + €243 Bij de meeste werknemers betaalt de werkgever de werkgeversheffing Zvw. Daarom staat hier geen aparte werknemersbijdrage. Zorgtoeslag €1.550 €1.550 €0 Huurtoeslag €5.122 €4.265 − €857"
+  },
+  "JOURNEY_3": {
+    "beforeUnknown": 1,
+    "ctaHit": {
+      "ok": true,
+      "text": "Gegevens aanvullen",
+      "tag": "BUTTON",
+      "blockedByNav": false,
+      "top": 852.4375,
+      "height": 48,
+      "x": 640,
+      "y": 870.4375
+    },
+    "landedOnAssets": true,
+    "afterUnknown": 0,
+    "afterHasDelta": true
+  },
+  "JOURNEY_2": {
+    "unknownCount": 0,
+    "text": "Dit is je situatie nu Geschat recht volgens je ingevulde situatie JE HUIDIGE FINANCIËLE BASIS €48.000 geschat jaarinkomen INKOMEN Geschat netto volgens standaard loonberekeningSCHATTING €3.181 / maand Je werkelijke storting kan lager zijn door bijvoorbeeld pensioen of andere inhoudingen op je loonstrook. Pensioen niet meegenomen Bekijk loonberekeningMaak mijn loonstrook nauwkeuriger Bruto inkomen €48.000 / jaar €4.000 / maand Vakantiegeld meegeteld Loonheffingskorting Ja WONEN Anders BELASTING & TOESLAGEN Geschatte inkomstenbelasting Dit is geschatte jaarlijkse inkomstenbelasting, geen loonheffing van je loonstrook. €9.850 / jaar Zorgtoeslag €0 / maand Huurtoeslag Niet van toepassing Kindgebonden budget Niet van toepassing Kinderopvangtoeslag Niet van toepassing Totaal toeslagen €0 / maand"
+  },
+  "LANDSCAPE_HIT": {
+    "ok": true,
+    "text": "Iets verkopen",
+    "tag": "BUTTON",
+    "blockedByNav": false,
+    "top": 151.59375,
+    "height": 54,
+    "x": 422,
+    "y": 169.59375
+  },
+  "ZOOM_200_HIT": {
+    "ok": true,
+    "text": "Ja, in Nederland",
+    "tag": "BUTTON",
+    "blockedByNav": false,
+    "top": 395.6875,
+    "height": 108,
+    "x": 640,
+    "y": 413.6875
+  },
+  "FINANCIAL_REQUESTS": [],
+  "shots": [
+    {
+      "name": "A-toeslagen-question-desktop",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/A-toeslagen-question-desktop.png"
+    },
+    {
+      "name": "B-baseline-result",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/B-baseline-result.png"
+    },
+    {
+      "name": "C-extra-1000-desktop",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/C-extra-1000-desktop.png"
+    },
+    {
+      "name": "B-baseline-visible-in-1000",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/B-baseline-visible-in-1000.png"
+    },
+    {
+      "name": "D-extra-5000-desktop",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/D-extra-5000-desktop.png"
+    },
+    {
+      "name": "F-allowance-delta-5000",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/F-allowance-delta-5000.png"
+    },
+    {
+      "name": "G-net-retained-5000",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/G-net-retained-5000.png"
+    },
+    {
+      "name": "E-custom-7321-desktop",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/E-custom-7321-desktop.png"
+    },
+    {
+      "name": "J-mobile-390-toeslagen",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/J-mobile-390-toeslagen.png"
+    },
+    {
+      "name": "J-mobile-390-result",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/J-mobile-390-result.png"
+    },
+    {
+      "name": "I-gegevens-aanvullen",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/I-gegevens-aanvullen.png"
+    },
+    {
+      "name": "H-no-toeslagen",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/H-no-toeslagen.png"
+    },
+    {
+      "name": "landscape-844x390",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/landscape-844x390.png"
+    },
+    {
+      "name": "zoom-200-first-question",
+      "file": "docs/audits/verdiencheck-toeslagen-live-scenario/production/zoom-200-first-question.png"
+    }
+  ]
+}

@@ -13,7 +13,7 @@ import { chromium, type Locator, type Page } from 'playwright';
 const BASE = process.env.VC_BASE ?? 'http://127.0.0.1:3000/verdiencheck';
 const OUT = path.join(
   process.cwd(),
-  'docs/audits/verdiencheck-toeslagen-live-scenario',
+  process.env.VC_OUT ?? 'docs/audits/verdiencheck-toeslagen-live-scenario',
 );
 const STEP = '#verdiencheck-active-step';
 const HEADING = '#verdiencheck-step-heading';
