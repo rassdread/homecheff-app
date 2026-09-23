@@ -18,7 +18,8 @@
     "path": "affiliate.growth.modelBullet1",
     "op": "set",
     "before": "Transacties: tot 25% van de HomeCheff-fee per kant; tot 50% als jij koper én verkoper aanbrengt.",
-    "after": "Bestellingen: de affiliatepool is maximaal 50% van de HomeCheff-platformfee, nooit van het hele orderbedrag. Heb jij de koper of de verkoper aangebracht, dan krijg je 25% van die fee. Heb je allebei aangebracht, dan de volle 50%."
+    "after": "Bestellingen: de affiliatepool is maximaal 50% van de HomeCheff-platformfee, nooit van het hele orderbedrag. Hangt er één affiliate aan de bestelling, omdat jij de koper, de verkoper of allebei hebt aangebracht, dan kan die de hele pool krijgen. Hebben koper en verkoper elk een andere affiliate, dan krijgt ieder 25% van de fee.",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
   },
   {
     "lang": "nl",
@@ -67,14 +68,16 @@
     "path": "affiliate.growth.statUser",
     "op": "set",
     "before": "25% / zijde",
-    "after": "25% van de fee per kant"
+    "after": "Tot 50% van de fee",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
   },
   {
     "lang": "nl",
     "path": "affiliate.growth.statBoth",
     "op": "set",
     "before": "50% duo",
-    "after": "50% bij koper én verkoper"
+    "after": "25% + 25% bij twee affiliates",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
   },
   {
     "lang": "nl",
@@ -137,7 +140,8 @@
     "path": "affiliate.growth.faq2A",
     "op": "set",
     "before": "Tot 25% van de HomeCheff-fee per transactiekant (koper of verkoper), tot 50% als je beide kanten aanbrengt. Voor zakelijke abonnementen tot 50% van het abonnementsbedrag, tot twaalf maanden per bedrijf, zolang het abonnement actief is — zie ook de tariefvoorbeelden op deze pagina.",
-    "after": "Bij bestellingen krijg je 25% van de HomeCheff-fee voor de kant die jij hebt aangebracht (koper of verkoper), en 50% als je beide kanten hebt aangebracht. Bij zakelijke abonnementen krijg je 50% van de deelbare marge na HC-reserve, maximaal twaalf maanden per bedrijf en alleen zolang het abonnement loopt. De rekenvoorbeelden op deze pagina laten zien wat dat per abonnement is."
+    "after": "Bij bestellingen is de affiliatepool maximaal 50% van de HomeCheff-fee. Ben jij de enige affiliate op de bestelling, omdat jij de koper, de verkoper of allebei hebt aangebracht, dan kun je die hele pool krijgen. Hebben koper en verkoper elk een andere affiliate, dan krijgt ieder 25% van de fee. Bij zakelijke abonnementen krijg je 50% van de deelbare marge na HC-reserve, maximaal twaalf maanden per bedrijf en alleen zolang het abonnement loopt. De rekenvoorbeelden op deze pagina laten zien wat dat per abonnement is.",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
   },
   {
     "lang": "nl",
@@ -172,7 +176,8 @@
     "path": "faq.affiliate.2.answer",
     "op": "set",
     "before": "Je verdient via twee sporen:\n\n• Transacties: tot 25% van de HomeCheff-fee per zijde (koper of verkoper), tot 50% als je beide zijden aanbrengt.\n• Zakelijke abonnementen: tot 50% van het abonnementsbedrag per maand, binnen het standaardmodel tot 12 maanden per actief aangebracht bedrijf.\n\nExacte percentages en voorwaarden staan in je affiliate-overeenkomst.",
-    "after": "Je verdient op twee manieren:\n\n• Bestellingen: 25% van de HomeCheff-fee voor de kant die jij hebt aangebracht (koper of verkoper), 50% als je beide kanten hebt aangebracht.\n• Zakelijke abonnementen: 50% van de deelbare marge na HC-reserve, elke maand zolang het abonnement loopt, maximaal 12 maanden per aangebracht bedrijf.\n\nDe exacte percentages en voorwaarden staan in je affiliate-overeenkomst."
+    "after": "Je verdient op twee manieren:\n\n• Bestellingen: de affiliatepool is maximaal 50% van de HomeCheff-fee. Ben jij de enige affiliate op de bestelling (koper, verkoper of allebei door jou aangebracht), dan kun je de hele pool krijgen. Hebben koper en verkoper elk een andere affiliate, dan krijgt ieder 25% van de fee.\n• Zakelijke abonnementen: 50% van de deelbare marge na HC-reserve, elke maand zolang het abonnement loopt, maximaal 12 maanden per aangebracht bedrijf.\n\nDe exacte percentages en voorwaarden staan in je affiliate-overeenkomst.",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
   },
   {
     "lang": "nl",
@@ -473,7 +478,8 @@
     "path": "affiliate.growth.modelBullet1",
     "op": "set",
     "before": "Transactions: up to 25% of the HomeCheff fee per side; up to 50% if you refer both buyer and seller.",
-    "after": "Orders: the affiliate pool is at most 50% of the HomeCheff platform fee, never of the full order value. If you referred the buyer or the seller, you get 25% of that fee. If you referred both, you get the full 50%."
+    "after": "Orders: the affiliate pool is at most 50% of the HomeCheff platform fee, never of the full order value. If one affiliate is linked to the order, because you referred the buyer, the seller or both, that affiliate can receive the whole pool. If buyer and seller each have a different affiliate, each gets 25% of the fee.",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
   },
   {
     "lang": "en",
@@ -522,14 +528,16 @@
     "path": "affiliate.growth.statUser",
     "op": "set",
     "before": "25% / side",
-    "after": "25% of the fee per side"
+    "after": "Up to 50% of the fee",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
   },
   {
     "lang": "en",
     "path": "affiliate.growth.statBoth",
     "op": "set",
     "before": "50% both sides",
-    "after": "50% for buyer and seller"
+    "after": "25% + 25% with two affiliates",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
   },
   {
     "lang": "en",
@@ -585,7 +593,8 @@
     "path": "affiliate.growth.faq2A",
     "op": "set",
     "before": "Up to 25% of the HomeCheff fee per referred transaction side (buyer or seller), up to 50% if you refer both sides. For business subscriptions, up to 50% of the subscription amount for up to twelve months per business while active — see the examples on this page.",
-    "after": "On orders you get 25% of the HomeCheff fee for the side you referred (buyer or seller), and 50% if you referred both sides. On business subscriptions you get 50% of the distributable margin after the HC reserve, for up to twelve months per business and only while the subscription runs. The worked examples on this page show what that comes to per plan."
+    "after": "On orders the affiliate pool is at most 50% of the HomeCheff fee. If you are the only affiliate on the order, because you referred the buyer, the seller or both, you can receive the whole pool. If buyer and seller each have a different affiliate, each gets 25% of the fee. On business subscriptions you get 50% of the distributable margin after the HC reserve, for up to twelve months per business and only while the subscription runs. The worked examples on this page show what that comes to per plan.",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
   },
   {
     "lang": "en",
@@ -627,7 +636,8 @@
     "path": "faq.affiliate.2.answer",
     "op": "set",
     "before": "You earn through two tracks:\n\n• Transactions: up to 25% of the HomeCheff fee per side (buyer or seller), up to 50% when you refer both sides.\n• Business subscriptions: up to 50% of subscription value per month, in the standard model up to 12 months per active referred business.\n\nExact percentages and conditions are defined in your affiliate agreement.",
-    "after": "You earn in two ways:\n\n• Orders: 25% of the HomeCheff fee for the side you referred (buyer or seller), 50% if you referred both sides.\n• Business subscriptions: 50% of the distributable margin after the HC reserve, every month while the subscription runs, for up to 12 months per referred business.\n\nExact percentages and conditions are set out in your affiliate agreement."
+    "after": "You earn in two ways:\n\n• Orders: the affiliate pool is at most 50% of the HomeCheff fee. If you are the only affiliate on the order (you referred the buyer, the seller or both), you can receive the whole pool. If buyer and seller each have a different affiliate, each gets 25% of the fee.\n• Business subscriptions: 50% of the distributable margin after the HC reserve, every month while the subscription runs, for up to 12 months per referred business.\n\nExact percentages and conditions are set out in your affiliate agreement.",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
   },
   {
     "lang": "en",
@@ -908,5 +918,85 @@
     "op": "replace-substring",
     "before": "• Weekly payouts (ledger; Connect when the payout batch is available)",
     "after": "• Payouts go through Stripe Connect once you have completed onboarding"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.usersCommissionDesc",
+    "op": "set",
+    "before": "25% van de HomeCheff fee per transactie (koper of verkoper), 50% als je beide aanbrengt (25% + 25%)",
+    "after": "De pool is maximaal 50% van de HomeCheff-fee per bestelling. Eén affiliate op de bestelling kan de hele pool krijgen; bij twee verschillende affiliates krijgt ieder 25%.",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.buyerBringingDesc",
+    "op": "set",
+    "before": "25% van de HomeCheff fee per transactie die de koper doet",
+    "after": "tot 50% van de HomeCheff-fee op bestellingen van die koper (25% als de verkoper een andere affiliate heeft)",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.sellerBringingDesc",
+    "op": "set",
+    "before": "25% van de HomeCheff fee per transactie die de verkoper doet",
+    "after": "tot 50% van de HomeCheff-fee op bestellingen bij die verkoper (25% als de koper een andere affiliate heeft)",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.bothBringingDesc",
+    "op": "set",
+    "before": "50% van de HomeCheff fee (25% + 25%) per transactie",
+    "after": "50% van de HomeCheff-fee per bestelling, één keer uitgekeerd",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.bothSidesDesc",
+    "op": "set",
+    "before": "Als zowel de koper als de verkoper door jou zijn aangebracht, krijg je 50% commissie (25% + 25%)! Dit verdubbelt je inkomsten per transactie.",
+    "after": "Heb jij zowel de koper als de verkoper aangebracht, dan krijg je de volledige pool: 50% van de HomeCheff-fee, één keer per bestelling.",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.usersCommissionDesc",
+    "op": "set",
+    "before": "25% of HomeCheff fee per transaction (buyer or seller), 50% if you bring both (25% + 25%)",
+    "after": "The pool is at most 50% of the HomeCheff fee per order. One affiliate on the order can receive the whole pool; with two different affiliates, each gets 25%.",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.buyerBringingDesc",
+    "op": "set",
+    "before": "25% of HomeCheff fee per transaction the buyer makes",
+    "after": "up to 50% of the HomeCheff fee on that buyer's orders (25% if the seller has a different affiliate)",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.sellerBringingDesc",
+    "op": "set",
+    "before": "25% of HomeCheff fee per transaction the seller makes",
+    "after": "up to 50% of the HomeCheff fee on orders from that seller (25% if the buyer has a different affiliate)",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.bothBringingDesc",
+    "op": "set",
+    "before": "50% of HomeCheff fee (25% + 25%) per transaction",
+    "after": "50% of the HomeCheff fee per order, paid once",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.bothSidesDesc",
+    "op": "set",
+    "before": "If both the buyer and seller are referred by you, you get 50% commission (25% + 25%)! This doubles your income per transaction.",
+    "after": "If you referred both the buyer and the seller, you receive the full pool: 50% of the HomeCheff fee, once per order.",
+    "note": "pool model corrected to allocator (single affiliate = full pool; two different = 25%+25%)"
   }
 ]

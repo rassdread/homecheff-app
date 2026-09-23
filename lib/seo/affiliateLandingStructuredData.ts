@@ -9,7 +9,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'How much commission can I earn?',
-            a: 'Up to 25% of the HomeCheff fee per transaction for each referred buyer or seller, and up to 50% when you refer both sides of a transaction. For referred business subscriptions, you earn 50% of the distributable margin after the HC reserve for up to 12 months per business, within the program rules.',
+            a: 'On orders the affiliate pool is at most 50% of the HomeCheff fee. If you are the only affiliate on the order, because you referred the buyer, the seller or both, you can receive the whole pool. If buyer and seller each have a different affiliate, each gets 25% of the fee. For referred business subscriptions, you earn 50% of the distributable margin after the HC reserve for up to 12 months per business, within the program rules.',
           },
           {
             q: 'How long does commission run?',
@@ -17,7 +17,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'What happens after 12 months?',
-            a: 'The first twelve months are guaranteed under the current commission model per active referred business subscription. After that, the partnership may be extended or expanded through future incentives, performance milestones, and community goals — without a promise of lifetime payouts. HomeCheff may change rates or terms with notice as set out in your agreement.',
+            a: 'The standard affiliate window runs for up to twelve months per active referred business subscription. After that, the partnership may be extended or expanded through future incentives, performance milestones, and community goals — without a promise of lifetime payouts. HomeCheff may change rates or terms with notice as set out in your agreement.',
           },
           {
             q: 'Can partnership models expand over time?',
@@ -63,7 +63,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'Hoeveel commissie kan ik verdienen?',
-            a: 'Tot 25% van de HomeCheff-fee per transactie per aangebrachte koper of verkoper, en tot 50% als je beide kanten van een transactie aanbrengt. Voor zakelijke abonnementen is dat 50% van de deelbare marge na HC-reserve, tot twaalf maanden per bedrijf, volgens programmaregels.',
+            a: 'Bij bestellingen is de affiliatepool maximaal 50% van de HomeCheff-fee. Ben jij de enige affiliate op de bestelling, omdat jij de koper, de verkoper of allebei hebt aangebracht, dan kun je die hele pool krijgen. Hebben koper en verkoper elk een andere affiliate, dan krijgt ieder 25% van de fee. Voor zakelijke abonnementen is dat 50% van de deelbare marge na HC-reserve, tot twaalf maanden per bedrijf, volgens programmaregels.',
           },
           {
             q: 'Hoe lang loopt commissie?',
@@ -71,7 +71,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'Wat gebeurt er na 12 maanden?',
-            a: 'De eerste twaalf maanden zijn gegarandeerd binnen het huidige commissiemodel per actief aangebracht bedrijfsabonnement. Daarna kan de samenwerking verlengd of uitgebreid worden met toekomstige incentives, prestaties en community-doelen — zonder belofte op lifetime-uitbetalingen. Tarieven of voorwaarden kunnen wijzigen met kennisgeving zoals in je overeenkomst.',
+            a: 'Het standaard affiliate-venster loopt tot twaalf maanden per actief aangebracht bedrijfsabonnement. Daarna kan de samenwerking verlengd of uitgebreid worden met toekomstige incentives, prestaties en community-doelen — zonder belofte op lifetime-uitbetalingen. Tarieven of voorwaarden kunnen wijzigen met kennisgeving zoals in je overeenkomst.',
           },
           {
             q: 'Kunnen samenwerkingen later uitbreiden?',
