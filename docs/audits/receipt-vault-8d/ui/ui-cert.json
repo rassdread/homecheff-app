@@ -1,6 +1,6 @@
 {
   "host": "https://homecheff.eu",
-  "expenseId": "01d27938-95ba-4021-bb5b-1c98c594ec54",
+  "expenseId": "2df19c3c-f28e-40bf-b24b-920022525d90",
   "viewports": {
     "desktop_1280x900": {
       "overflow": 0,
@@ -31,14 +31,7 @@
     "  PASS  desktop_1280x900_NO_HORIZONTAL_OVERFLOW",
     "  PASS  desktop_1280x900_UPLOAD_ANNOUNCED",
     "  PASS  desktop_1280x900_NO_REFETCH_LOOP",
-    "  PASS  desktop_1280x900_VIEWER_MODAL",
-    "  PASS  desktop_1280x900_VIEWER_LABELLED",
-    "  PASS  desktop_1280x900_VIEWER_FOCUS_ON_CLOSE",
-    "  PASS  desktop_1280x900_VIEWER_CLOSE_NOT_COVERED",
-    "  FAIL  desktop_1280x900_VIEWER_IMAGE_LOADED — {\"w\":0,\"h\":0,\"done\":false} content responses: []",
-    "  PASS  desktop_1280x900_NO_STORAGE_URL_IN_PAGE",
-    "  PASS  desktop_1280x900_NO_SECRET_IN_LOCATION",
-    "  PASS  desktop_1280x900_VIEWER_ESC_CLOSES",
+    "  FAIL  desktop_1280x900_VIEWER_AVAILABLE — no Bekijken button",
     "  PASS  mobile_390x844_EXPENSE_ROW_VISIBLE",
     "  PASS  mobile_390x844_ADD_CONTROL_VISIBLE",
     "  PASS  mobile_390x844_ADD_NOT_COVERED_AFTER_FOCUS",

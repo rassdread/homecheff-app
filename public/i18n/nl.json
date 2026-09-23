@@ -11132,6 +11132,8 @@
     "evidenceErrorEXPENSE_NOT_FOUND": "Deze uitgave bestaat niet meer.",
     "evidenceErrorSTORAGE_FAILED": "Opslaan is niet gelukt. Probeer het opnieuw.",
     "evidenceErrorGENERIC": "Toevoegen is niet gelukt. Probeer het opnieuw.",
-    "evidenceStripped": "Van foto’s halen we locatie- en apparaatgegevens weg. Wil je een bon als officiële scan gebruiken voor je eigen administratie? Bewaar dan zelf het origineel."
+    "evidenceStripped": "Van foto’s halen we locatie- en apparaatgegevens weg. Wil je een bon als officiële scan gebruiken voor je eigen administratie? Bewaar dan zelf het origineel.",
+    "evidenceViewerLoading": "Bewijsstuk laden…",
+    "evidenceViewerFailed": "Het bewijsstuk kon niet worden getoond."
   }
 }

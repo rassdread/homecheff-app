@@ -291,6 +291,7 @@ export default function ExpenseEvidencePanel({
 function EvidenceViewer({ item, onClose }: { item: Evidence; onClose: () => void }) {
   const { t } = useTranslation();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -333,12 +334,28 @@ function EvidenceViewer({ item, onClose }: { item: Evidence; onClose: () => void
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
-        <div className="flex-1 overflow-auto bg-gray-50 p-3">
+        <div className="flex min-h-[8rem] flex-1 items-center justify-center overflow-auto bg-gray-50 p-3">
+          {state === 'loading' ? (
+            <p className="flex items-center gap-2 text-sm text-gray-500" role="status">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              {t('sellerExpenses.evidenceViewerLoading') || '…'}
+            </p>
+          ) : null}
+          {state === 'error' ? (
+            <p role="alert" className="text-center text-sm text-gray-700">
+              {t('sellerExpenses.evidenceViewerFailed')}{' '}
+              <a href={contentUrl(item.id)} className="font-medium text-emerald-700 underline">
+                {t('sellerExpenses.evidenceDownload')}
+              </a>
+            </p>
+          ) : null}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={contentUrl(item.id)}
             alt={item.originalFilename || t('sellerExpenses.evidenceViewerTitle')}
-            className="mx-auto h-auto max-w-full"
+            onLoad={() => setState('ready')}
+            onError={() => setState('error')}
+            className={`mx-auto h-auto max-w-full ${state === 'ready' ? '' : 'hidden'}`}
           />
         </div>
       </div>

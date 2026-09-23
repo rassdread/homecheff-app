@@ -11132,6 +11132,8 @@
     "evidenceErrorEXPENSE_NOT_FOUND": "This expense no longer exists.",
     "evidenceErrorSTORAGE_FAILED": "Storing failed. Please try again.",
     "evidenceErrorGENERIC": "Upload failed. Please try again.",
-    "evidenceStripped": "We strip location and device data from photos. If you need a receipt as an official scan for your own records, keep the original yourself."
+    "evidenceStripped": "We strip location and device data from photos. If you need a receipt as an official scan for your own records, keep the original yourself.",
+    "evidenceViewerLoading": "Loading evidence…",
+    "evidenceViewerFailed": "This evidence could not be displayed."
   }
 }

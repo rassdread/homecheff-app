@@ -18,7 +18,7 @@ import {
   downloadFilenameFor,
   evidenceDeliveryHeaders,
 } from '@/lib/finance/evidence/evidence-policy';
-import { evidenceOwnerId } from '@/lib/finance/evidence/evidence-request';
+import { evidenceReaderId } from '@/lib/finance/evidence/evidence-request';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -29,11 +29,11 @@ const NOT_FOUND_HEADERS = {
 } as const;
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ evidenceId: string }> },
 ) {
   try {
-    const ownerUserId = await evidenceOwnerId();
+    const ownerUserId = await evidenceReaderId(req);
     if (!ownerUserId) {
       return new NextResponse('Not found', { status: 404, headers: NOT_FOUND_HEADERS });
     }

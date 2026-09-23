@@ -276,6 +276,27 @@ async function main() {
           )
           .then((h) => h.jsonValue() as Promise<{ w: number; h: number; done: boolean }>)
           .catch(() => ({ w: 0, h: 0, done: false }));
+        if (!(dims.w > 0 && dims.h > 0)) {
+          const diag = await page.evaluate(() => {
+            const overlay = document.querySelector('[data-hc-evidence-viewer]');
+            const imgs = Array.from(document.querySelectorAll('img'));
+            return {
+              overlayPresent: !!overlay,
+              overlayImgs: overlay ? overlay.querySelectorAll('img').length : 0,
+              evidenceImgs: imgs
+                .filter((i) => (i.getAttribute('src') ?? '').includes('/api/seller/evidence/'))
+                .map((i) => ({
+                  src: i.getAttribute('src'),
+                  complete: (i as HTMLImageElement).complete,
+                  w: (i as HTMLImageElement).naturalWidth,
+                  currentSrc: (i as HTMLImageElement).currentSrc?.slice(-60) ?? '',
+                })),
+              dialogs: document.querySelectorAll('[role="dialog"]').length,
+            };
+          });
+          console.log(`  [diag ${vp.name}]`, JSON.stringify(diag));
+          await page.screenshot({ path: path.join(OUT, `${vp.name}-viewer-FAIL.png`) });
+        }
         check(
           `${vp.name}_VIEWER_IMAGE_LOADED`,
           dims.w > 0 && dims.h > 0,
