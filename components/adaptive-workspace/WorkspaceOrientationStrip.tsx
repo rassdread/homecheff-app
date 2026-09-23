@@ -24,6 +24,7 @@ import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/Workspa
 import LandscapeWorkBarCommands from '@/components/adaptive-workspace/LandscapeWorkBarCommands';
 import { resolveOrientationExplanation } from '@/lib/adaptive-workspace-react/resolve-orientation-explanation';
 import HomeHeroCollapsible from '@/components/home/HomeHeroCollapsible';
+import HomeIntentNav from '@/components/home/HomeIntentNav';
 import HomeValueExplainerDialog from '@/components/home/HomeValueExplainerDialog';
 
 const GuestSalesInfoPanel = dynamic(
@@ -283,6 +284,9 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
             ) : null}
           </div>
         )}
+        <div className="px-3 pb-2 sm:px-4">
+          <HomeIntentNav />
+        </div>
       </div>
       </HomeHeroCollapsible>
       {guestBottomNavPanelEl}
