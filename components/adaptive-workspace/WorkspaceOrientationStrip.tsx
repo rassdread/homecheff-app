@@ -25,6 +25,8 @@ import LandscapeWorkBarCommands from '@/components/adaptive-workspace/LandscapeW
 import { resolveOrientationExplanation } from '@/lib/adaptive-workspace-react/resolve-orientation-explanation';
 import HomeHeroCollapsible from '@/components/home/HomeHeroCollapsible';
 import HomeIntentNav from '@/components/home/HomeIntentNav';
+import { isVlaardingenPlace } from '@/lib/home/hero-geo-context';
+import { useHeroGeoContext } from '@/lib/home/use-hero-geo-context';
 import HomeValueExplainerDialog from '@/components/home/HomeValueExplainerDialog';
 
 const GuestSalesInfoPanel = dynamic(
@@ -71,8 +73,11 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
   const singleBar = workToolbar;
   const isGuest = status !== 'loading' && !session?.user;
 
-  const whereLabel = t('homePhase1.orientationTitle');
-  const identityLabel = t('homePhase1.orientationIdentity');
+  const heroGeo = useHeroGeoContext();
+  const whereLabel = heroGeo.city
+    ? t('homePhase1.orientationTitleInCity', { city: heroGeo.city })
+    : t('homePhase1.orientationTitle');
+  const identityLabel = t('homePhase1.orientationIdentityGeneric');
   const actionsSecondary = t('homePhase1.orientationActionSecondary');
 
   const primaryBody =
@@ -80,11 +85,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
       ? t('homePhase1.orientationExplainUltra')
       : level === 'compact_complete'
         ? t('homePhase1.orientationExplainCompactPrimary')
-        : level === 'standard_complete'
-          ? t('homePhase1.orientationExplainStandard')
-          : level === 'expanded'
-            ? t('homePhase1.orientationExplainExpanded')
-            : t('homePhase1.orientationExplainRich');
+        : t('homePhase1.orientationExplainSupport');
 
   // Model B: secondary / support / keyword strip out of primary fold.
   // Value-exchange hint only on rich (wide desktop) — not first-screen chrome.
@@ -169,6 +170,8 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
                 </p>
               ) : null}
               <h1
+                data-testid="home-hero-title"
+                data-hero-city={heroGeo.city ?? ''}
                 data-wx-orientation-title=""
                 className={cn(
                   'font-bold tracking-tight text-white',
@@ -189,6 +192,11 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
               >
                 {whereLabel}
               </h1>
+              {heroGeo.showOriginNote ? (
+                <p data-testid="home-origin-note" className="mt-1 text-[10px] leading-snug text-white/70 sm:text-[11px]">
+                  {t('homePhase1.orientationOrigin')}
+                </p>
+              ) : null}
 
               {explain.showBody && !workToolbar && !explain.singleLine ? (
                 <p
@@ -224,9 +232,11 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
                   className="mt-1.5 flex flex-wrap gap-1.5"
                   aria-label={t('homePhase1.orientationLocalLaunchNote')}
                 >
-                  <span className="rounded-md bg-white/15 px-2 py-0.5 text-[10px] font-medium text-emerald-50 sm:text-[11px]">
-                    {t('homePhase1.orientationLocalLaunchNote')}
-                  </span>
+                  {isVlaardingenPlace(heroGeo.city) ? (
+                    <span className="rounded-md bg-white/15 px-2 py-0.5 text-[10px] font-medium text-emerald-50 sm:text-[11px]">
+                      {t('homePhase1.orientationLocalLaunchNote')}
+                    </span>
+                  ) : null}
                   <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/90 sm:text-[11px]">
                     {t('homePhase1.orientationTrustCategories')}
                   </span>

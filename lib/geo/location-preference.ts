@@ -163,6 +163,7 @@ export function saveLocationPreference(
       label: pref.label ?? pref.place ?? null,
     };
     window.localStorage.setItem(STORAGE_KEY_V2, JSON.stringify(next));
+    window.dispatchEvent(new Event('hc-location-pref-changed'));
   } catch {
     /* quota / private mode */
   }
@@ -190,6 +191,7 @@ export function clearLocationPreference(): void {
   try {
     window.localStorage.removeItem(STORAGE_KEY_V2);
     window.localStorage.removeItem(STORAGE_KEY_V1);
+    window.dispatchEvent(new Event('hc-location-pref-changed'));
   } catch {
     /* ignore */
   }

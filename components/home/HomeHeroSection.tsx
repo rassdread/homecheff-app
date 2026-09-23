@@ -10,6 +10,7 @@ import { useGuestBottomNavPanel } from '@/hooks/useGuestBottomNavPanel';
 import HomepageEcosystemNavLinks from '@/components/home/HomepageEcosystemNavLinks';
 import HomeHeroCollapsible from '@/components/home/HomeHeroCollapsible';
 import HomeIntentNav from '@/components/home/HomeIntentNav';
+import { useHeroGeoContext } from '@/lib/home/use-hero-geo-context';
 
 const ctaPrimaryClass = cn(
   'inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2',
@@ -29,6 +30,7 @@ export default function HomeHeroSection() {
   const { openCreateFlow } = useCreateFlow();
   const { handleGuestCreateClick, guestBottomNavPanelEl } = useGuestBottomNavPanel();
 
+  const heroGeo = useHeroGeoContext();
   const isGuest = status !== 'loading' && !session?.user;
   const isEn = language === 'en';
   const seoEverybodyEats = isEn ? 'Everybody Eats.' : 'Everybody Eats. Iedereen eet mee.';
@@ -58,7 +60,7 @@ export default function HomeHeroSection() {
           {/* Row 1 — identity + ecosystem navigation */}
           <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <p className="text-[11px] sm:text-xs font-semibold text-white/95 tracking-tight">
-              HomeCheff — {t('homePhase1.orientationIdentity')}
+              HomeCheff — {t('homePhase1.orientationIdentityGeneric')}
             </p>
             <HomepageEcosystemNavLinks tone="onHero" className="sm:justify-end" />
           </div>
@@ -69,7 +71,9 @@ export default function HomeHeroSection() {
               id="home-compact-header-title"
               className="text-sm sm:text-base xl:text-lg font-extrabold text-white leading-snug tracking-tight line-clamp-2"
             >
-              {t('homePhase1.orientationExplainUltra')}
+              {heroGeo.city
+                ? t('homePhase1.orientationTitleInCity', { city: heroGeo.city })
+                : t('homePhase1.orientationTitle')}
             </h1>
             <p className="mt-0.5 text-[11px] sm:text-xs text-white/85 line-clamp-2 leading-snug max-w-3xl">
               {t('homeCompactHeader.supportLine')}
