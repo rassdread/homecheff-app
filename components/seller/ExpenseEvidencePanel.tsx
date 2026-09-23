@@ -334,13 +334,12 @@ function EvidenceViewer({ item, onClose }: { item: Evidence; onClose: () => void
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
-        <div className="flex min-h-[8rem] flex-1 items-center justify-center overflow-auto bg-gray-50 p-3">
-          {state === 'loading' ? (
-            <p className="flex items-center gap-2 text-sm text-gray-500" role="status">
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              {t('sellerExpenses.evidenceViewerLoading') || '…'}
-            </p>
-          ) : null}
+        <div className="relative flex min-h-[8rem] flex-1 items-center justify-center overflow-auto bg-gray-50 p-3">
+          {/*
+            The image stays in the layout in every state. Hiding it until it
+            loads deadlocks: a display:none image is not fetched, so the load
+            event that would reveal it never fires.
+          */}
           {state === 'error' ? (
             <p role="alert" className="text-center text-sm text-gray-700">
               {t('sellerExpenses.evidenceViewerFailed')}{' '}
@@ -348,15 +347,27 @@ function EvidenceViewer({ item, onClose }: { item: Evidence; onClose: () => void
                 {t('sellerExpenses.evidenceDownload')}
               </a>
             </p>
-          ) : null}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={contentUrl(item.id)}
-            alt={item.originalFilename || t('sellerExpenses.evidenceViewerTitle')}
-            onLoad={() => setState('ready')}
-            onError={() => setState('error')}
-            className={`mx-auto h-auto max-w-full ${state === 'ready' ? '' : 'hidden'}`}
-          />
+          ) : (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={contentUrl(item.id)}
+                alt={item.originalFilename || t('sellerExpenses.evidenceViewerTitle')}
+                onLoad={() => setState('ready')}
+                onError={() => setState('error')}
+                className="mx-auto h-auto max-w-full"
+              />
+              {state === 'loading' ? (
+                <p
+                  role="status"
+                  className="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 text-sm text-gray-500"
+                >
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  {t('sellerExpenses.evidenceViewerLoading')}
+                </p>
+              ) : null}
+            </>
+          )}
         </div>
       </div>
     </div>
