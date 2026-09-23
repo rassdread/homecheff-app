@@ -1,0 +1,26 @@
+{
+  "/": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/",
+    "title": "HomeCheff — Ecosystem for local entrepreneurship",
+    "description": "HomeCheff® — ecosystem for local entrepreneurship, creation and earning. Marketplace, Studio, Growth and Affiliate/Partners in one system. CREATE → SELL → GROW → PROMOTE → EARN.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/",
+    "h1": [
+      ""
+    ],
+    "h2": [],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service"
+    ],
+    "jsonLdHash": "5571229de4a7",
+    "internalLinks": 3
+  }
+}

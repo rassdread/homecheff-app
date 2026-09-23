@@ -1,0 +1,62 @@
+[
+  {
+    "size": "1440x900",
+    "triggerCount": 1,
+    "triggerVisible": true,
+    "triggerText": "What can HomeCheff do for me?",
+    "primaryVisible": true,
+    "docOverflowX": 0,
+    "heroToggleVisible": true,
+    "dialogOpenByKeyboard": true,
+    "dialogTitle": "Make something of what you're good at",
+    "dialogText": "Make something of what you're good at\n\nEveryone is good at something. Maybe you enjoy cooking for more people than just your household, your tree gives you more apples every autumn than you can eat, or friends keep asking about the jewellery, pottery or illustrations you make.\n\nIt might be something else entirely. You fix bikes, help people with their gardens, tutor, or know a lot about sourdough and like explaining it. On HomeCheff you put that online so people near you can find you.\n\nYou decide what you offer, when it suits you and what you charge. You can start by seeing whether anyone's interested, sell something now and then, or let it grow into something bigger over time. What you get out of it depends on what you do and how much time you put in.\n\nStart offering\nSee what you can offer",
+    "focusInDialogOnOpen": true,
+    "focusTrapped": true,
+    "exploreHref": "/careers",
+    "dialogOverflowX": {
+      "left": 464,
+      "right": 976,
+      "vw": 1440,
+      "scrollH": 607,
+      "clientH": 607
+    },
+    "closedByEscape": true,
+    "focusReturnedToTrigger": true,
+    "reopenedByClick": true,
+    "closedByButton": true,
+    "afterStartUrl": "https://homecheff.eu/",
+    "afterStartDialogs": [
+      "✨\nShare what you make or offer\n\nPost a meal, garden product, creation or inspira"
+    ]
+  },
+  {
+    "size": "390x844",
+    "triggerCount": 1,
+    "triggerVisible": true,
+    "triggerText": "What can HomeCheff do for me?",
+    "primaryVisible": true,
+    "docOverflowX": 0,
+    "heroToggleVisible": true,
+    "dialogOpenByKeyboard": true,
+    "dialogTitle": "Make something of what you're good at",
+    "dialogText": "Make something of what you're good at\n\nEveryone is good at something. Maybe you enjoy cooking for more people than just your household, your tree gives you more apples every autumn than you can eat, or friends keep asking about the jewellery, pottery or illustrations you make.\n\nIt might be something else entirely. You fix bikes, help people with their gardens, tutor, or know a lot about sourdough and like explaining it. On HomeCheff you put that online so people near you can find you.\n\nYou decide what you offer, when it suits you and what you charge. You can start by seeing whether anyone's interested, sell something now and then, or let it grow into something bigger over time. What you get out of it depends on what you do and how much time you put in.\n\nStart offering\nSee what you can offer",
+    "focusInDialogOnOpen": true,
+    "focusTrapped": true,
+    "exploreHref": "/careers",
+    "dialogOverflowX": {
+      "left": 0,
+      "right": 390,
+      "vw": 390,
+      "scrollH": 658,
+      "clientH": 658
+    },
+    "closedByEscape": true,
+    "focusReturnedToTrigger": true,
+    "reopenedByClick": true,
+    "closedByButton": true,
+    "afterStartUrl": "https://homecheff.eu/",
+    "afterStartDialogs": [
+      "➕\nShare what you make or offer\n\nPost a meal, garden product, creation or inspira"
+    ]
+  }
+]

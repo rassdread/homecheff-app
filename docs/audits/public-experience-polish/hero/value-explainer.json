@@ -1,0 +1,71 @@
+[
+  {
+    "size": "1440x900",
+    "triggerCount": 1,
+    "triggerVisible": true,
+    "triggerText": "Wat kan HomeCheff voor mij betekenen?",
+    "primaryVisible": true,
+    "docOverflowX": 0,
+    "heroToggleVisible": true,
+    "dialogOpenByKeyboard": true,
+    "dialogTitle": "Maak iets van waar jij goed in bent",
+    "dialogText": "Maak iets van waar jij goed in bent\n\nIedereen is ergens goed in. Misschien kook je graag voor meer mensen dan je eigen huishouden, heb je elk najaar meer appels dan je op kunt, of vragen vrienden steeds naar de sieraden, het keramiek of de illustraties die je maakt.\n\nHet kan ook iets heel anders zijn. Je repareert fietsen, helpt iemand met de tuin, geeft bijles of weet veel van zuurdesem en legt dat graag uit. Op HomeCheff zet je dat online, zodat mensen bij jou in de buurt je kunnen vinden.\n\nJij bepaalt wat je aanbiedt, wanneer het jou uitkomt en wat je ervoor vraagt. Je kunt eerst kijken of er belangstelling is, af en toe iets verkopen of het rustig laten uitgroeien tot meer. Wat het oplevert, hangt af van wat je doet en hoeveel tijd je erin steekt.\n\nStart met aanbieden\nBekijk wat je kunt aanbieden",
+    "focusInDialogOnOpen": true,
+    "focusTrapped": true,
+    "exploreHref": "/werken-bij",
+    "dialogOverflowX": {
+      "left": 464,
+      "right": 976,
+      "vw": 1440,
+      "scrollH": 551,
+      "clientH": 551
+    },
+    "closedByEscape": true,
+    "focusReturnedToTrigger": true,
+    "reopenedByClick": true,
+    "closedByButton": true,
+    "afterStartUrl": "https://homecheff.eu/",
+    "afterStartDialogs": [
+      "✨\nDeel wat jij maakt of aanbiedt\n\nPlaats een maaltijd, tuinproduct, creatie of i"
+    ]
+  },
+  {
+    "size": "390x844",
+    "triggerCount": 1,
+    "triggerVisible": true,
+    "triggerText": "Wat kan HomeCheff voor mij betekenen?",
+    "primaryVisible": true,
+    "docOverflowX": 0,
+    "heroToggleVisible": true,
+    "dialogOpenByKeyboard": true,
+    "dialogTitle": "Maak iets van waar jij goed in bent",
+    "dialogText": "Maak iets van waar jij goed in bent\n\nIedereen is ergens goed in. Misschien kook je graag voor meer mensen dan je eigen huishouden, heb je elk najaar meer appels dan je op kunt, of vragen vrienden steeds naar de sieraden, het keramiek of de illustraties die je maakt.\n\nHet kan ook iets heel anders zijn. Je repareert fietsen, helpt iemand met de tuin, geeft bijles of weet veel van zuurdesem en legt dat graag uit. Op HomeCheff zet je dat online, zodat mensen bij jou in de buurt je kunnen vinden.\n\nJij bepaalt wat je aanbiedt, wanneer het jou uitkomt en wat je ervoor vraagt. Je kunt eerst kijken of er belangstelling is, af en toe iets verkopen of het rustig laten uitgroeien tot meer. Wat het oplevert, hangt af van wat je doet en hoeveel tijd je erin steekt.\n\nStart met aanbieden\nBekijk wat je kunt aanbieden",
+    "focusInDialogOnOpen": true,
+    "focusTrapped": true,
+    "exploreHref": "/werken-bij",
+    "dialogOverflowX": {
+      "left": 0,
+      "right": 390,
+      "vw": 390,
+      "scrollH": 658,
+      "clientH": 658
+    },
+    "closedByEscape": true,
+    "focusReturnedToTrigger": true,
+    "reopenedByClick": true,
+    "closedByButton": true,
+    "afterStartUrl": "https://homecheff.eu/",
+    "afterStartDialogs": [
+      "➕\nDeel wat jij maakt of aanbiedt\n\nPlaats een maaltijd, tuinproduct, creatie of i"
+    ]
+  },
+  {
+    "size": "844x390",
+    "triggerCount": 0,
+    "triggerVisible": false,
+    "triggerText": null,
+    "primaryVisible": false,
+    "docOverflowX": 0,
+    "heroToggleVisible": true
+  }
+]

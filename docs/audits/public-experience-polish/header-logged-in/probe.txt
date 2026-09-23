@@ -1,0 +1,63 @@
+== 1920x1080 row={"scrollWidth":1472,"clientWidth":1472}
+   Home                               455   541 hit
+   Werken bij HomeCheff               545   733 hit
+   Dashboard                          737   854 hit
+   Berichten                          858   965 hit
+   Reputatie                          967  1075 hit
+   Verkoop of deel                   1077  1231 hit
+   🇳🇱                              1295  1348 hit
+   Ontdek HomeCheff                  1354  1526 hit
+                                     1532  1572 hit
+   5                                 1576  1620 hit
+                                     1624  1696 hit
+== 1536x864 row={"scrollWidth":1472,"clientWidth":1472}
+   Home                               263   349 hit
+   Werken bij HomeCheff               353   541 hit
+   Dashboard                          545   662 hit
+   Berichten                          666   773 hit
+   Reputatie                          775   883 hit
+   Verkoop of deel                    885  1039 hit
+   🇳🇱                              1103  1156 hit
+   Ontdek HomeCheff                  1162  1334 hit
+                                     1340  1380 hit
+   5                                 1384  1428 hit
+                                     1432  1504 hit
+== 1440x900 row={"scrollWidth":1216,"clientWidth":1216}
+   Home                               343   423 hit
+   Werken bij HomeCheff               427   609 hit
+   Dashboard                          613   724 hit
+   Berichten                          728   829 hit
+   Reputatie                          831   933 hit
+   Verkoop of deel                    935  1089 hit
+   🇳🇱                              1105  1158 hit
+                                     1164  1204 hit
+   5                                 1208  1252 hit
+                                     1256  1328 hit
+== 1366x768 row={"scrollWidth":1216,"clientWidth":1216}
+   Home                               306   386 hit
+   Werken bij HomeCheff               390   572 hit
+   Dashboard                          576   687 hit
+   Berichten                          691   792 hit
+   Reputatie                          794   896 hit
+   Verkoop of deel                    898  1052 hit
+   🇳🇱                              1068  1121 hit
+                                     1127  1167 hit
+   5                                 1171  1215 hit
+                                     1219  1291 hit
+== 1280x900 row={"scrollWidth":1216,"clientWidth":1216}
+   Home                               263   343 hit
+   Werken bij HomeCheff               347   529 hit
+   Dashboard                          533   644 hit
+   Berichten                          648   749 hit
+   Reputatie                          751   853 hit
+   Verkoop of deel                    855  1009 hit
+   🇳🇱                              1025  1078 hit
+                                     1084  1124 hit
+   5                                 1128  1172 hit
+                                     1176  1248 hit
+== 1024x768 row={"scrollWidth":976,"clientWidth":976}
+   Verkoop of deel                    813   950 hit
+   Menu                               956  1000 hit
+== 844x390 row={"scrollWidth":0,"clientWidth":0}
+== 390x844 row={"scrollWidth":366,"clientWidth":366}
+   Menu                               334   378 hit

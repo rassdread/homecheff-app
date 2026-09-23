@@ -1,0 +1,458 @@
+{
+  "1920x1080": {
+    "vw": 1920,
+    "row": {
+      "scrollWidth": 1472,
+      "clientWidth": 1472
+    },
+    "items": [
+      {
+        "text": "Home",
+        "x": 455,
+        "r": 541,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Werken bij HomeCheff",
+        "x": 545,
+        "r": 733,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Dashboard",
+        "x": 737,
+        "r": 854,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Berichten",
+        "x": 858,
+        "r": 965,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Reputatie",
+        "x": 967,
+        "r": 1075,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Verkoop of deel",
+        "x": 1077,
+        "r": 1231,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "🇳🇱",
+        "x": 1295,
+        "r": 1348,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Ontdek HomeCheff",
+        "x": 1354,
+        "r": 1526,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "",
+        "x": 1532,
+        "r": 1572,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "5",
+        "x": 1576,
+        "r": 1620,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "",
+        "x": 1624,
+        "r": 1696,
+        "inViewport": true,
+        "hit": true
+      }
+    ]
+  },
+  "1536x864": {
+    "vw": 1536,
+    "row": {
+      "scrollWidth": 1472,
+      "clientWidth": 1472
+    },
+    "items": [
+      {
+        "text": "Home",
+        "x": 263,
+        "r": 349,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Werken bij HomeCheff",
+        "x": 353,
+        "r": 541,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Dashboard",
+        "x": 545,
+        "r": 662,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Berichten",
+        "x": 666,
+        "r": 773,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Reputatie",
+        "x": 775,
+        "r": 883,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Verkoop of deel",
+        "x": 885,
+        "r": 1039,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "🇳🇱",
+        "x": 1103,
+        "r": 1156,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Ontdek HomeCheff",
+        "x": 1162,
+        "r": 1334,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "",
+        "x": 1340,
+        "r": 1380,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "5",
+        "x": 1384,
+        "r": 1428,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "",
+        "x": 1432,
+        "r": 1504,
+        "inViewport": true,
+        "hit": true
+      }
+    ]
+  },
+  "1440x900": {
+    "vw": 1440,
+    "row": {
+      "scrollWidth": 1216,
+      "clientWidth": 1216
+    },
+    "items": [
+      {
+        "text": "Home",
+        "x": 343,
+        "r": 423,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Werken bij HomeCheff",
+        "x": 427,
+        "r": 609,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Dashboard",
+        "x": 613,
+        "r": 724,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Berichten",
+        "x": 728,
+        "r": 829,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Reputatie",
+        "x": 831,
+        "r": 933,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Verkoop of deel",
+        "x": 935,
+        "r": 1089,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "🇳🇱",
+        "x": 1105,
+        "r": 1158,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "",
+        "x": 1164,
+        "r": 1204,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "5",
+        "x": 1208,
+        "r": 1252,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "",
+        "x": 1256,
+        "r": 1328,
+        "inViewport": true,
+        "hit": true
+      }
+    ]
+  },
+  "1366x768": {
+    "vw": 1366,
+    "row": {
+      "scrollWidth": 1216,
+      "clientWidth": 1216
+    },
+    "items": [
+      {
+        "text": "Home",
+        "x": 306,
+        "r": 386,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Werken bij HomeCheff",
+        "x": 390,
+        "r": 572,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Dashboard",
+        "x": 576,
+        "r": 687,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Berichten",
+        "x": 691,
+        "r": 792,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Reputatie",
+        "x": 794,
+        "r": 896,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Verkoop of deel",
+        "x": 898,
+        "r": 1052,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "🇳🇱",
+        "x": 1068,
+        "r": 1121,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "",
+        "x": 1127,
+        "r": 1167,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "5",
+        "x": 1171,
+        "r": 1215,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "",
+        "x": 1219,
+        "r": 1291,
+        "inViewport": true,
+        "hit": true
+      }
+    ]
+  },
+  "1280x900": {
+    "vw": 1280,
+    "row": {
+      "scrollWidth": 1216,
+      "clientWidth": 1216
+    },
+    "items": [
+      {
+        "text": "Home",
+        "x": 263,
+        "r": 343,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Werken bij HomeCheff",
+        "x": 347,
+        "r": 529,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Dashboard",
+        "x": 533,
+        "r": 644,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Berichten",
+        "x": 648,
+        "r": 749,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Reputatie",
+        "x": 751,
+        "r": 853,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Verkoop of deel",
+        "x": 855,
+        "r": 1009,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "🇳🇱",
+        "x": 1025,
+        "r": 1078,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "",
+        "x": 1084,
+        "r": 1124,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "5",
+        "x": 1128,
+        "r": 1172,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "",
+        "x": 1176,
+        "r": 1248,
+        "inViewport": true,
+        "hit": true
+      }
+    ]
+  },
+  "1024x768": {
+    "vw": 1024,
+    "row": {
+      "scrollWidth": 976,
+      "clientWidth": 976
+    },
+    "items": [
+      {
+        "text": "Verkoop of deel",
+        "x": 813,
+        "r": 950,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Menu",
+        "x": 956,
+        "r": 1000,
+        "inViewport": true,
+        "hit": true
+      }
+    ]
+  },
+  "844x390": {
+    "vw": 844,
+    "row": {
+      "scrollWidth": 0,
+      "clientWidth": 0
+    },
+    "items": []
+  },
+  "390x844": {
+    "vw": 390,
+    "row": {
+      "scrollWidth": 366,
+      "clientWidth": 366
+    },
+    "items": [
+      {
+        "text": "Menu",
+        "x": 334,
+        "r": 378,
+        "inViewport": true,
+        "hit": true
+      }
+    ]
+  }
+}

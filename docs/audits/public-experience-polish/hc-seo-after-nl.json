@@ -1,0 +1,153 @@
+{
+  "/": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/",
+    "title": "HomeCheff — Ecosysteem voor lokaal ondernemerschap",
+    "description": "HomeCheff® — ecosysteem voor lokaal ondernemerschap, creatie en verdienen. Marketplace, Studio, Growth en Affiliate/Partners in één systeem. CREATE → SELL → GROW → PROMOTE → EARN.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/",
+    "h1": [
+      ""
+    ],
+    "h2": [],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service"
+    ],
+    "jsonLdHash": "d7174cb23294",
+    "internalLinks": 3
+  },
+  "/werken-bij": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/werken-bij",
+    "title": "Verdien met HomeCheff — Verkoop, bezorg, promoot of werk mee | HomeCheff",
+    "description": "Ontdek hoe je meedoet met HomeCheff: verkoop wat je maakt, bezorg lokaal, word affiliate of Affiliate Company, ontdek Studio en Growth, of bekijk echte vacatures bij HomeCheff.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/werken-bij/",
+    "h1": [
+      "Verdien met HomeCheff"
+    ],
+    "h2": [
+      "Ik wil…",
+      "Mogelijkheden",
+      "Bezorgen via HomeCheff",
+      "Werken bij HomeCheff (intern)"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service"
+    ],
+    "jsonLdHash": "d7174cb23294",
+    "internalLinks": 10
+  },
+  "/hoe-homecheff-werkt": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/hoe-homecheff-werkt",
+    "title": "Hoe HomeCheff werkt | Eén ecosysteem voor lokaal vakmanschap | HomeCheff",
+    "description": "Ontdek hoe Dorpsplein, Gezocht, checkout, ruil, HCP, Business DNA, affiliate en bezorging samenhangen op HomeCheff — eten is één categorie.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/hoe-homecheff-werkt/",
+    "h1": [
+      ""
+    ],
+    "h2": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "FAQPage",
+      "WebPage"
+    ],
+    "jsonLdHash": "4c292fec909f",
+    "internalLinks": 11
+  },
+  "/faq": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/faq",
+    "title": "Veelgestelde Vragen (FAQ) - HomeCheff | HomeCheff",
+    "description": "Antwoorden over HomeCheff: HomeCheff is een ecosysteem voor lokaal ondernemerschap, creatie en verdienen. Het verbindt Marketplace, HomeCheff Studio, HomeCheff Growth en Affiliate/Partners in één systeem. Mensen en bedrijven kunnen er maken, aanbieden en verkopen, content creëren, klanten vinden, promoten en verdienen. Fees, uitbetalingen, ruil, buurthulp en vertrouwen.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/faq/",
+    "h1": [
+      ""
+    ],
+    "h2": [
+      "Wat houd je écht over?",
+      "",
+      ""
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service"
+    ],
+    "jsonLdHash": "d7174cb23294",
+    "internalLinks": 6
+  },
+  "/wat-is-homecheff": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/wat-is-homecheff",
+    "title": "Wat is HomeCheff? | Ecosysteem voor lokaal ondernemerschap | HomeCheff",
+    "description": "HomeCheff is een ecosysteem voor lokaal ondernemerschap, creatie en verdienen. Het verbindt Marketplace, HomeCheff Studio, HomeCheff Growth en Affiliate/Partners in één systeem. Mensen en bedrijven kunnen er maken, aanbieden en verkopen, content creëren, klanten vinden, promoten en verdienen.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/wat-is-homecheff/",
+    "h1": [
+      ""
+    ],
+    "h2": [
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "FAQPage",
+      "WebPage"
+    ],
+    "jsonLdHash": "baafcf351306",
+    "internalLinks": 19
+  }
+}

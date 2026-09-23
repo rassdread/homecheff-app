@@ -1,0 +1,47 @@
+== 1920x1080 row={"scrollWidth":1472,"clientWidth":1472}
+   Home                               455   541 hit
+   Werken bij HomeCheff               545   733 hit
+   Verkoop of deel                    737   891 hit
+   🇳🇱                              1260  1313 hit
+   Ontdek HomeCheff                  1319  1491 hit
+   Inloggen                          1497  1583 hit
+   Aanmelden                         1589  1696 hit
+== 1536x864 row={"scrollWidth":1472,"clientWidth":1472}
+   Home                               263   349 hit
+   Werken bij HomeCheff               353   541 hit
+   Verkoop of deel                    545   699 hit
+   🇳🇱                              1068  1121 hit
+   Ontdek HomeCheff                  1127  1299 hit
+   Inloggen                          1305  1391 hit
+   Aanmelden                         1397  1504 hit
+== 1440x900 row={"scrollWidth":1216,"clientWidth":1216}
+   Home                               343   423 hit
+   Werken bij HomeCheff               427   609 hit
+   Verkoop of deel                    613   767 hit
+   🇳🇱                              1070  1123 hit
+   Inloggen                          1129  1215 hit
+   Aanmelden                         1221  1328 hit
+== 1366x768 row={"scrollWidth":1216,"clientWidth":1216}
+   Home                               306   386 hit
+   Werken bij HomeCheff               390   572 hit
+   Verkoop of deel                    576   730 hit
+   🇳🇱                              1033  1086 hit
+   Inloggen                          1092  1178 hit
+   Aanmelden                         1184  1291 hit
+== 1280x900 row={"scrollWidth":1216,"clientWidth":1216}
+   Home                               263   343 hit
+   Werken bij HomeCheff               347   529 hit
+   Verkoop of deel                    533   687 hit
+   🇳🇱                               990  1043 hit
+   Inloggen                          1049  1135 hit
+   Aanmelden                         1141  1248 hit
+== 1024x768 row={"scrollWidth":976,"clientWidth":976}
+   Verkoop of deel                    641   778 hit
+   Inloggen                           784   854 hit
+   Aanmelden                          860   950 hit
+   Menu                               956  1000 hit
+== 844x390 row={"scrollWidth":0,"clientWidth":0}
+== 390x844 row={"scrollWidth":366,"clientWidth":366}
+   Inloggen                           175   241 hit
+   Aanmelden                          245   330 hit
+   Menu                               334   378 hit

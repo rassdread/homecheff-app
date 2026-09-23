@@ -1,0 +1,33 @@
+{
+  "960x540": {
+    "vw": 960,
+    "row": {
+      "scrollWidth": 920,
+      "clientWidth": 920
+    },
+    "items": [
+      {
+        "text": "Verkoop of deel",
+        "x": 753,
+        "r": 890,
+        "inViewport": true,
+        "hit": true
+      },
+      {
+        "text": "Menu",
+        "x": 896,
+        "r": 940,
+        "inViewport": true,
+        "hit": true
+      }
+    ]
+  },
+  "720x450": {
+    "vw": 720,
+    "row": {
+      "scrollWidth": 0,
+      "clientWidth": 0
+    },
+    "items": []
+  }
+}
