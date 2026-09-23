@@ -11,6 +11,7 @@
 import { randomUUID } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
+import { purgeDueEvidence } from '@/lib/finance/evidence/evidence.server';
 import type { Prisma } from '@prisma/client';
 
 export const ACCOUNT_DELETION_CONFIRM_NL = 'VERWIJDEREN';
@@ -174,6 +175,18 @@ export async function performUserAccountDeletion(
 
     await tx.conversationParticipant.deleteMany({ where: { userId } });
 
+    // --- PHASE 8D — private financial evidence: queue every receipt for purge ---
+    // The Dutch bewaarplicht binds the entrepreneur, not a platform holding a
+    // convenience copy, so HomeCheff has no retention claim of its own over
+    // these documents once the account is gone. Only the status change happens
+    // inside the transaction; the objects themselves are removed after it
+    // commits, because that talks to the network. A row left in PENDING_PURGE
+    // is already unreadable and is retried by the sweeper.
+    await tx.sellerFinancialEvidence.updateMany({
+      where: { ownerUserId: userId, status: { in: ['UPLOADING', 'STORED', 'MISSING'] } },
+      data: { status: 'PENDING_PURGE', deletedAt, purgeAfter: deletedAt },
+    });
+
     // --- Delivery profile: deactivate + strip address ---
     await tx.deliveryProfile.updateMany({
       where: { userId },
@@ -280,6 +293,18 @@ export async function performUserAccountDeletion(
       },
     });
   });
+
+  // Objects are destroyed after the transaction commits. Failures here leave
+  // the rows in PENDING_PURGE for the sweeper; they never leave a receipt
+  // readable, because readability stopped at the status change above.
+  try {
+    await purgeDueEvidence({ ownerUserId: userId, limit: 1000 });
+  } catch (err) {
+    console.warn(
+      '[account-deletion] evidence purge deferred to sweeper',
+      err instanceof Error ? err.name : 'unknown',
+    );
+  }
 
   return {
     ok: true,

@@ -14,6 +14,7 @@ import {
   listSellerExpenses,
 } from '@/lib/finance/seller-expense.server';
 import { validateExpenseWrite } from '@/lib/finance/seller-expense-input';
+import { evidenceCountsByExpense } from '@/lib/finance/evidence/evidence.server';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,6 +49,14 @@ export async function GET(req: NextRequest) {
       deriveSellerFiscalResult(sellerUserId, year),
     ]);
 
+    // PHASE 8D — how many documents are attached, and nothing more. The count
+    // is presentational: it is not an input to expenseYear or fiscalResult,
+    // both of which are computed above without reference to it.
+    const evidenceCounts = await evidenceCountsByExpense(
+      sellerUserId,
+      expenses.map((e) => e.id),
+    );
+
     return NextResponse.json({
       year,
       expenses: expenses.map((e) => ({
@@ -68,6 +77,7 @@ export async function GET(req: NextRequest) {
         notes: e.notes,
         createdAt: e.createdAt.toISOString(),
         updatedAt: e.updatedAt.toISOString(),
+        evidenceCount: evidenceCounts[e.id] ?? 0,
       })),
       expenseYear,
       fiscalResult,

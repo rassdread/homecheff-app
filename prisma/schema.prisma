@@ -156,6 +156,7 @@ model User {
   Payout                                 Payout[]
   paymentEscrows                         PaymentEscrow[]           @relation("PaymentEscrowSeller")
   sellerExpenses                         SellerExpense[]           @relation("SellerExpenseOwner")
+  sellerFinancialEvidence                SellerFinancialEvidence[] @relation("SellerEvidenceOwner")
   productReviewsAsBuyer                  ProductReview[]           @relation("ProductReviewBuyer")
   pushTokens                             PushToken[]
   notificationPushOutbox                 NotificationPushOutbox[]
@@ -1338,7 +1339,10 @@ model SellerExpense {
   /// removes a row. Deleted rows never enter any total.
   deletedAt          DateTime?
 
-  seller User @relation("SellerExpenseOwner", fields: [sellerUserId], references: [id], onDelete: Cascade)
+  seller   User                      @relation("SellerExpenseOwner", fields: [sellerUserId], references: [id], onDelete: Cascade)
+  /// PHASE 8D — attached private evidence. Many per expense: a receipt can be a
+  /// front and a back, or an invoice several pages.
+  evidence SellerFinancialEvidence[] @relation("SellerExpenseEvidence")
 
   @@index([sellerUserId, taxYear, deletedAt])
   @@index([sellerUserId, expenseDate])
@@ -1375,6 +1379,88 @@ enum SellerExpenseConfirmation {
   DRAFT
   CONFIRMED
   NEEDS_REVIEW
+}
+
+/// PHASE 8D — private financial evidence (a receipt or invoice) belonging to a
+/// seller, optionally attached to a SellerExpense.
+///
+/// The bytes live in a dedicated PRIVATE blob store. This row holds metadata
+/// and an opaque object key; it deliberately stores NO url, because a private
+/// object url would still be a permanent identifier for a financial document.
+/// Delivery goes through an authenticated route that matches ownerUserId
+/// against the session and streams the bytes.
+///
+/// Evidence is an EVIDENCE fact only. The presence of a row here never changes
+/// fiscalTreatment, businessUseBp, amountCents or the deductible resolution on
+/// the linked expense; Phase 8C remains the sole authority on those.
+model SellerFinancialEvidence {
+  id               String               @id @default(uuid())
+  /// Owner. Server-derived from the session; never accepted from a client.
+  /// This column is the authorization check for read, link, replace and delete.
+  ownerUserId      String
+  kind             SellerEvidenceKind   @default(RECEIPT)
+  /// UPLOADING -> STORED -> PENDING_PURGE -> PURGED, plus MISSING. The row is
+  /// written before any bytes are sent, so a stored object without a row
+  /// pointing at it cannot arise.
+  status           SellerEvidenceStatus @default(UPLOADING)
+
+  /// Opaque key in the private store. Carries no user id, expense id, filename
+  /// or extension, so the key alone identifies nothing about the document.
+  objectKey        String               @unique
+  /// Which private store holds the object, so a later store migration can tell
+  /// already-written objects apart.
+  storeNamespace   String               @default("receipt-vault")
+
+  /// Sanitised original name, kept for display and download only. Never used to
+  /// address the object.
+  originalFilename String?
+  mimeType         String
+  sizeBytes        Int
+  /// SHA-256 over the bytes AS STORED (after metadata stripping). Used for
+  /// integrity and for warning the same owner about a duplicate. Never matched
+  /// across owners, which would leak that someone else holds the same document.
+  sha256           String
+  metadataStripped Boolean              @default(false)
+
+  /// Optional link to the expense this supports. Nullable and separate on
+  /// purpose: removing evidence must leave the expense and its amounts intact.
+  linkedExpenseId  String?
+
+  uploadedAt       DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  /// Set the moment deletion is requested. Readability stops here, before the
+  /// object itself has been removed.
+  deletedAt        DateTime?
+  /// Purge bookkeeping, so an object deletion that fails is retried instead of
+  /// being forgotten with the bytes still in storage.
+  purgeAfter       DateTime?
+  purgedAt         DateTime?
+  purgeAttempts    Int                  @default(0)
+  /// Opaque failure label (an error name). Never a url, key or file content.
+  lastPurgeError   String?
+
+  owner         User           @relation("SellerEvidenceOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  linkedExpense SellerExpense? @relation("SellerExpenseEvidence", fields: [linkedExpenseId], references: [id], onDelete: SetNull)
+
+  @@index([ownerUserId, status])
+  @@index([linkedExpenseId, status])
+  @@index([ownerUserId, sha256])
+  @@index([status, purgeAfter])
+}
+
+enum SellerEvidenceKind {
+  RECEIPT
+  INVOICE
+  OTHER_SUPPORTING_DOCUMENT
+}
+
+enum SellerEvidenceStatus {
+  UPLOADING
+  STORED
+  PENDING_PURGE
+  PURGED
+  MISSING
 }
 
 /// A row here means exactly one thing: SELLER_CONSIDERATION_REFUND — the gross

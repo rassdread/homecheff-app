@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { deleteVaultObjectsByKey } from '@/lib/finance/evidence/evidence.server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,6 +34,17 @@ export async function POST(req: NextRequest) {
     if (userIds.includes((session.user as any).id)) {
       return NextResponse.json({ error: 'Cannot delete yourself' }, { status: 400 });
     }
+
+    // PHASE 8D — read the private evidence object keys while the rows still
+    // exist. The transaction below hard-deletes the users, which cascades these
+    // rows away; without this list the stored receipts would be unreachable and
+    // undeletable.
+    const evidenceObjectKeys = (
+      await prisma.sellerFinancialEvidence.findMany({
+        where: { ownerUserId: { in: userIds } },
+        select: { objectKey: true },
+      })
+    ).map((row) => row.objectKey);
 
     // Delete users with proper cascade handling
     // Use a longer timeout for bulk operations
@@ -411,6 +423,13 @@ export async function POST(req: NextRequest) {
     }, {
       timeout: 30000, // 30 second timeout for bulk operations
     });
+
+    // PHASE 8D — this route hard-deletes the User rows, so SellerFinancialEvidence
+    // cascades away with them and the metadata that names each stored object is
+    // gone. The keys are therefore collected before the transaction and the
+    // objects destroyed here, otherwise every receipt those sellers uploaded
+    // would stay in private storage with nothing left pointing at it.
+    await deleteVaultObjectsByKey(evidenceObjectKeys);
 
     return NextResponse.json({ success: true, deletedCount: userIds.length });
   } catch (error: any) {

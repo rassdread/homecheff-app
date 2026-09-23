@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { validateExpenseWrite } from '@/lib/finance/seller-expense-input';
+import { markExpenseEvidenceForPurge } from '@/lib/finance/evidence/evidence.server';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,7 +79,14 @@ export async function DELETE(
       return NextResponse.json({ error: 'Expense not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ id: expenseId, deleted: true });
+    // PHASE 8D — the expense tombstone stays readable for reproducibility, but
+    // the receipt behind it does not. Attached evidence becomes unreachable
+    // immediately and its objects are removed, so tombstoning an expense can
+    // never leave a financial document sitting in storage with nothing
+    // pointing at it.
+    const purgedEvidence = await markExpenseEvidenceForPurge(sellerUserId, expenseId);
+
+    return NextResponse.json({ id: expenseId, deleted: true, evidenceRemoved: purgedEvidence });
   } catch (error) {
     console.error('seller expense DELETE failed:', error);
     return NextResponse.json({ error: 'Failed to delete expense' }, { status: 500 });

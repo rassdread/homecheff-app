@@ -13,8 +13,9 @@
  * any amount we could not classify is named rather than quietly dropped.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Plus, Pencil, Trash2, X, AlertTriangle, Receipt } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, AlertTriangle, Receipt, Paperclip } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import ExpenseEvidencePanel from '@/components/seller/ExpenseEvidencePanel';
 import {
   EXPENSE_CATEGORIES,
   FULL_BUSINESS_USE_BP,
@@ -43,6 +44,8 @@ type ExpenseRow = {
   merchantName: string | null;
   description: string | null;
   notes: string | null;
+  /** PHASE 8D — attached private evidence. Presentational only. */
+  evidenceCount?: number;
 };
 
 type FiscalResult = {
@@ -198,7 +201,6 @@ export default function SellerExpensePanel({ year }: { year: number }) {
               ))}
             </ul>
           )}
-          <p className="mt-3 text-xs text-gray-400">{t('sellerExpenses.receiptLater')}</p>
         </div>
       ) : null}
 
@@ -267,6 +269,9 @@ function ExpenseListItem({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Seeded from the list response so the badge is right before the row is
+  // expanded, then kept live by the evidence panel itself.
+  const [evidenceCount, setEvidenceCount] = useState(row.evidenceCount ?? 0);
 
   const remove = async () => {
     if (!window.confirm(t('sellerExpenses.formDeleteConfirm'))) return;
@@ -303,6 +308,18 @@ function ExpenseListItem({
         <span className="hidden sm:inline text-xs text-gray-500">
           {t(`sellerExpenses.category${row.category}`)}
         </span>
+        {evidenceCount > 0 ? (
+          <span
+            className="inline-flex items-center gap-1 text-xs text-gray-500"
+            title={t('sellerExpenses.evidenceCount', { count: String(evidenceCount) })}
+          >
+            <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
+            <span className="tabular-nums">{evidenceCount}</span>
+            <span className="sr-only">
+              {t('sellerExpenses.evidenceCount', { count: String(evidenceCount) })}
+            </span>
+          </span>
+        ) : null}
         <span className="text-sm font-semibold tabular-nums text-gray-900">{eur(row.amountCents)}</span>
         <span
           className={
@@ -352,6 +369,10 @@ function ExpenseListItem({
           {row.notes ? <Detail label={t('sellerExpenses.formNotes')}>{row.notes}</Detail> : null}
         </dl>
       ) : null}
+
+      {/* PHASE 8D — the receipt drawer. Mounted only when the row is expanded,
+          so opening the list does not fetch evidence for every expense. */}
+      {open ? <ExpenseEvidencePanel expenseId={row.id} onCountChange={setEvidenceCount} /> : null}
     </li>
   );
 }

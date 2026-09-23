@@ -37,6 +37,10 @@
 		{
 			"path": "/api/cron/shipping-sync",
 			"schedule": "*/10 * * * *"
+		},
+		{
+			"path": "/api/cron/evidence-purge",
+			"schedule": "*/30 * * * *"
 		}
 	],
 	"headers": [
