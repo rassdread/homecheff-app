@@ -1,6 +1,6 @@
 {
   "host": "https://homecheff.eu",
-  "expenseId": "2df19c3c-f28e-40bf-b24b-920022525d90",
+  "expenseId": "d1dab1cc-d7d4-47fc-8205-f05991266039",
   "viewports": {
     "desktop_1280x900": {
       "overflow": 0,
@@ -31,7 +31,14 @@
     "  PASS  desktop_1280x900_NO_HORIZONTAL_OVERFLOW",
     "  PASS  desktop_1280x900_UPLOAD_ANNOUNCED",
     "  PASS  desktop_1280x900_NO_REFETCH_LOOP",
-    "  FAIL  desktop_1280x900_VIEWER_AVAILABLE — no Bekijken button",
+    "  PASS  desktop_1280x900_VIEWER_MODAL",
+    "  PASS  desktop_1280x900_VIEWER_LABELLED",
+    "  PASS  desktop_1280x900_VIEWER_FOCUS_ON_CLOSE",
+    "  PASS  desktop_1280x900_VIEWER_CLOSE_NOT_COVERED",
+    "  PASS  desktop_1280x900_VIEWER_IMAGE_LOADED",
+    "  PASS  desktop_1280x900_NO_STORAGE_URL_IN_PAGE",
+    "  PASS  desktop_1280x900_NO_SECRET_IN_LOCATION",
+    "  PASS  desktop_1280x900_VIEWER_ESC_CLOSES",
     "  PASS  mobile_390x844_EXPENSE_ROW_VISIBLE",
     "  PASS  mobile_390x844_ADD_CONTROL_VISIBLE",
     "  PASS  mobile_390x844_ADD_NOT_COVERED_AFTER_FOCUS",
@@ -46,7 +53,7 @@
     "  PASS  mobile_390x844_VIEWER_LABELLED",
     "  PASS  mobile_390x844_VIEWER_FOCUS_ON_CLOSE",
     "  PASS  mobile_390x844_VIEWER_CLOSE_NOT_COVERED",
-    "  FAIL  mobile_390x844_VIEWER_IMAGE_LOADED — {\"w\":0,\"h\":0,\"done\":false} content responses: []",
+    "  PASS  mobile_390x844_VIEWER_IMAGE_LOADED",
     "  PASS  mobile_390x844_NO_STORAGE_URL_IN_PAGE",
     "  PASS  mobile_390x844_NO_SECRET_IN_LOCATION",
     "  PASS  mobile_390x844_VIEWER_ESC_CLOSES",
@@ -64,7 +71,7 @@
     "  PASS  landscape_844x390_VIEWER_LABELLED",
     "  PASS  landscape_844x390_VIEWER_FOCUS_ON_CLOSE",
     "  PASS  landscape_844x390_VIEWER_CLOSE_NOT_COVERED",
-    "  FAIL  landscape_844x390_VIEWER_IMAGE_LOADED — {\"w\":0,\"h\":0,\"done\":false} content responses: []",
+    "  PASS  landscape_844x390_VIEWER_IMAGE_LOADED",
     "  PASS  landscape_844x390_NO_STORAGE_URL_IN_PAGE",
     "  PASS  landscape_844x390_NO_SECRET_IN_LOCATION",
     "  PASS  landscape_844x390_VIEWER_ESC_CLOSES",
@@ -82,7 +89,7 @@
     "  PASS  zoom_200_VIEWER_LABELLED",
     "  PASS  zoom_200_VIEWER_FOCUS_ON_CLOSE",
     "  PASS  zoom_200_VIEWER_CLOSE_NOT_COVERED",
-    "  FAIL  zoom_200_VIEWER_IMAGE_LOADED — {\"w\":0,\"h\":0,\"done\":false} content responses: []",
+    "  PASS  zoom_200_VIEWER_IMAGE_LOADED",
     "  PASS  zoom_200_NO_STORAGE_URL_IN_PAGE",
     "  PASS  zoom_200_NO_SECRET_IN_LOCATION",
     "  PASS  zoom_200_VIEWER_ESC_CLOSES",
@@ -93,5 +100,5 @@
     "  PASS  SWITCH_B_BLOCKED_VIA_CACHE",
     "  PASS  UI_CLEANUP_NO_RESIDUE"
   ],
-  "failures": 4
+  "failures": 0
 }
