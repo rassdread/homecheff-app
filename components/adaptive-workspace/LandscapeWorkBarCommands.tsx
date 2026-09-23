@@ -71,7 +71,7 @@ export default function LandscapeWorkBarCommands({
           'inline-flex shrink-0 items-center justify-center gap-1',
           'rounded-lg px-2.5 py-1.5 min-h-[40px]',
           'text-[13px] font-bold whitespace-nowrap leading-none',
-          'bg-white text-primary-brand hover:bg-emerald-50',
+          'bg-white text-emerald-900 [-webkit-text-fill-color:#064e3b] hover:bg-emerald-50',
           'border border-white/90 shadow-sm',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-white',
           'touch-manipulation select-none',

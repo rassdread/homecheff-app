@@ -201,7 +201,6 @@ export default function NavBar() {
     'sm:min-h-[44px] sm:px-3.5 sm:py-2.5 sm:text-sm',
     'lg:rounded-xl lg:px-2.5 lg:py-2 lg:text-[13px] lg:min-h-0',
     'xl:rounded-2xl xl:px-4 xl:py-2.5 xl:text-sm',
-    '2xl:px-6 2xl:py-3 2xl:text-base',
   );
   const guestAuthRegisterClass = cn(
     'inline-flex shrink-0 items-center justify-center rounded-xl font-semibold transition-all touch-manipulation no-underline whitespace-nowrap',
@@ -213,7 +212,6 @@ export default function NavBar() {
     'sm:min-h-[44px] sm:px-3.5 sm:py-2.5 sm:text-sm',
     'lg:rounded-xl lg:px-2.5 lg:py-2 lg:text-[13px] lg:min-h-0',
     'xl:rounded-2xl xl:px-4 xl:py-2.5 xl:text-sm',
-    '2xl:px-6 2xl:py-3 2xl:text-base',
   );
 
   const user =
@@ -454,7 +452,7 @@ export default function NavBar() {
       <div
         data-wx-navbar-row=""
         className={cn(
-          'max-w-7xl mx-auto relative min-w-0',
+          'max-w-7xl 2xl:max-w-screen-2xl mx-auto relative min-w-0',
           shortLandscapeChrome ? 'px-2.5 sm:px-3' : 'px-3 sm:px-5 lg:px-6 xl:px-8',
           suppressNavbarChrome && 'hidden',
         )}
@@ -501,49 +499,51 @@ export default function NavBar() {
               <Briefcase className={desktopNavIconClass} aria-hidden />
               <span className="whitespace-nowrap">{t('navbar.werkenBij')}</span>
             </Link>
-            <Link
-              href={user ? MY_HOMECHEFF_HUB_PATH : '/login'}
-              prefetch={false}
-              className={desktopNavGhostClass}
-              onClick={() =>
-                navDebug('navbar:desktop', {
-                  href: user ? MY_HOMECHEFF_HUB_PATH : '/login',
-                })
-              }
-            >
-              <User className={desktopNavIconClass} aria-hidden />
-              <span className="whitespace-nowrap">{t('myHomeCheffHub.nav.hubShort')}</span>
-            </Link>
+            {/* Account destinations only exist for signed-in users; guests get Inloggen/Aanmelden. */}
+            {user ? (
+              <Link
+                href={MY_HOMECHEFF_HUB_PATH}
+                prefetch={false}
+                data-wx-desktop-account-nav="hub"
+                className={desktopNavGhostClass}
+                onClick={() => navDebug('navbar:desktop', { href: MY_HOMECHEFF_HUB_PATH })}
+              >
+                <User className={desktopNavIconClass} aria-hidden />
+                <span className="whitespace-nowrap">{t('myHomeCheffHub.nav.hubShort')}</span>
+              </Link>
+            ) : null}
 
             {/* xl+ desktop: replaces bottom nav tabs (tablet keeps bottom nav until xl). */}
             <div className="hidden xl:flex items-center gap-0.5 shrink-0">
-              <Link
-                href={user ? '/messages' : '/login'}
-                prefetch={false}
-                className={cn(desktopNavGhostClass, 'relative')}
-                onClick={() =>
-                  navDebug('navbar:desktop', { href: user ? '/messages' : '/login' })
-                }
-              >
-                <MessageCircle className={desktopNavIconClass} aria-hidden />
-                <span className="whitespace-nowrap">{t('navbar.messages')}</span>
-                {user && unreadCount > 0 ? (
-                  <span className="absolute -top-0.5 right-0 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                ) : null}
-              </Link>
-              <Link
-                href={user ? '/mijn-hcp' : '/login'}
-                prefetch={false}
-                className={desktopNavGhostClass}
-                onClick={() =>
-                  navDebug('navbar:desktop', { href: user ? '/mijn-hcp' : '/login' })
-                }
-              >
-                <Award className={desktopNavIconClass} aria-hidden />
-                <span className="whitespace-nowrap">{t('bottomNav.reputationTab')}</span>
-              </Link>
+              {user ? (
+                <>
+                  <Link
+                    href="/messages"
+                    prefetch={false}
+                    data-wx-desktop-account-nav="messages"
+                    className={cn(desktopNavGhostClass, 'relative')}
+                    onClick={() => navDebug('navbar:desktop', { href: '/messages' })}
+                  >
+                    <MessageCircle className={desktopNavIconClass} aria-hidden />
+                    <span className="whitespace-nowrap">{t('navbar.messages')}</span>
+                    {unreadCount > 0 ? (
+                      <span className="absolute -top-0.5 right-0 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    ) : null}
+                  </Link>
+                  <Link
+                    href="/mijn-hcp"
+                    prefetch={false}
+                    data-wx-desktop-account-nav="reputation"
+                    className={desktopNavGhostClass}
+                    onClick={() => navDebug('navbar:desktop', { href: '/mijn-hcp' })}
+                  >
+                    <Award className={desktopNavIconClass} aria-hidden />
+                    <span className="whitespace-nowrap">{t('bottomNav.reputationTab')}</span>
+                  </Link>
+                </>
+              ) : null}
               {/* WX 1A.1 / WDL P6 — primary action; never truncate */}
               <button
                 type="button"
@@ -572,8 +572,11 @@ export default function NavBar() {
             </div>
           </nav>
 
-          {/* Rechtercluster: language + auth altijd buiten de nav-flex; hamburger < lg */}
-          <div className="ml-auto flex max-w-[min(100%,32rem)] items-center justify-end gap-1 sm:gap-1.5 shrink-0 pl-1 min-w-0 overflow-x-clip">
+          {/* Rechtercluster: utility (taal, Ontdek) then auth/profile; hamburger < xl */}
+          <div
+            data-wx-header-utility=""
+            className="ml-auto flex items-center justify-end gap-1 sm:gap-1.5 shrink-0 pl-1 min-w-0 overflow-x-clip"
+          >
             {/* WX 1C.1 P0 — Landscape Create invariant (xl+ already has desktop primary). */}
             {showLandscapeCreate ? (
               <button
@@ -606,17 +609,17 @@ export default function NavBar() {
                 </span>
               </button>
             ) : null}
-            {/* 2xl+: language + Ontdek — keep xl–2xl header from overflowing (~1366/1440). */}
-            <div className="hidden 2xl:block shrink-0">
-              <LanguageSwitcher />
+            <div className="hidden xl:block shrink-0" data-wx-header-language="">
+              <LanguageSwitcher compact />
             </div>
-            {/* Ecosystem discovery — desktop top chrome (guest + auth). Not buried in profile. */}
+            {/* Ecosystem discovery — only from 2xl, where the widened row leaves room next to auth. */}
             <div className="hidden 2xl:block shrink-0">
               <OntdekHomeCheffMenu
                 currentProduct={ecosystemCurrentProduct}
                 authenticated={status === 'authenticated'}
                 surface="header"
                 variant="compact"
+                showCurrentModule={false}
               />
             </div>
             {status === 'loading' && !user ? (
@@ -808,9 +811,9 @@ export default function NavBar() {
                 </button>
               ) : null}
 
-              {!bottomNavReachable ? (
+              {!bottomNavReachable && user ? (
                 <Link
-                  href={user ? '/mijn-hcp' : '/login'}
+                  href="/mijn-hcp"
                   prefetch={false}
                   data-wx-mobile-mijn-hcp=""
                   className={cn(
@@ -819,10 +822,7 @@ export default function NavBar() {
                   )}
                   onClick={() => {
                     closeMobileMenu();
-                    navDebug('navbar:mobile', {
-                      href: user ? '/mijn-hcp' : '/login',
-                      destination: 'mijn-hcp',
-                    });
+                    navDebug('navbar:mobile', { href: '/mijn-hcp', destination: 'mijn-hcp' });
                   }}
                 >
                   <Award className="w-4 h-4 shrink-0" aria-hidden />
@@ -866,14 +866,14 @@ export default function NavBar() {
                 <span>{t('navbar.androidBeta')}</span>
               </Link>
 
-              {!bottomNavReachable ? (
+              {!bottomNavReachable && user ? (
                 <Link
-                  href={user ? '/profile' : '/login'}
+                  href="/profile"
                   prefetch={false}
                   className={mobileNavRowClass}
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    navDebug('navbar:mobile', { href: user ? '/profile' : '/login' });
+                    navDebug('navbar:mobile', { href: '/profile' });
                   }}
                 >
                   <User className="w-4 h-4 shrink-0" aria-hidden />

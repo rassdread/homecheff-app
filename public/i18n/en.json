@@ -8456,21 +8456,21 @@
     "ctaDiscover": "Discover nearby",
     "ctaShare": "Sell or share",
     "ctaOfferCompact": "Offer",
-    "orientationIdentity": "Local neighbourhood market — from Vlaardingen",
+    "orientationIdentity": "Local neighbourhood market, started in Vlaardingen",
     "orientationTitle": "Discover real offers from neighbours near you",
     "orientationExplainShort": "People nearby cook, grow, make and help — find, ask or share.",
     "orientationExplainCompact": "Search · Offer · Ask · Buy · Sell · Trade · Help",
     "orientationExplainMedium": "HomeCheff grows outward from Vlaardingen: real local listings for food, harvest, creations and services — not a nationwide mega-market.",
     "orientationExplainFull": "HomeCheff is the digital neighbourhood marketplace being built. We start local (around Vlaardingen) with real makers and neighbours. Buy, sell, trade or ask — nearby first.",
-    "orientationExplainUltra": "Local neighbourhood market in progress — real offers nearby (food, garden, creations, services).",
-    "orientationExplainCompactPrimary": "Real local offers: food, harvest, creations and services from people nearby.",
+    "orientationExplainUltra": "Food, harvest, creations and services from people near you.",
+    "orientationExplainCompactPrimary": "Food, harvest, creations and services from people in your neighbourhood.",
     "orientationExplainCompactSecondary": "Discover nearby, or offer something yourself — we grow supply from Vlaardingen outward.",
-    "orientationExplainStandard": "Real local food, harvest, creations and services. We grow from Vlaardingen outward — browse what’s live, or list something yourself.",
-    "orientationExplainExpanded": "HomeCheff is the digital neighbourhood marketplace being built around Vlaardingen. Discover what neighbours cook, grow, make and offer — or list yourself. No fake nationwide inventory.",
-    "orientationExplainRich": "HomeCheff is the digital neighbourhood marketplace being built. We start locally around Vlaardingen with real listings. Discover food, harvest, creations and services — or become a maker/seller.",
+    "orientationExplainStandard": "Neighbours offer food, harvest, creations and services here. We started in Vlaardingen and are growing from there. See what’s available now, or put something online yourself.",
+    "orientationExplainExpanded": "HomeCheff is a neighbourhood market we’re building out from Vlaardingen. You can see what neighbours cook, grow, make and offer, and post something yourself. Everything here comes from real people, not a national warehouse.",
+    "orientationExplainRich": "HomeCheff is a neighbourhood market that’s still growing. We started around Vlaardingen with listings from real people. Have a look at the food, harvest, creations and services on offer, or start offering something yourself.",
     "orientationExplainSupport": "Local first: neighbours strengthen each other through food, harvest, craft and help — with or without money.",
     "orientationExplainExamples": "Think meals, garden produce, creations, repairs and neighbourly favours — all starting near you.",
-    "orientationLocalLaunchNote": "Now: real local listings in and around Vlaardingen. Growing neighbourhood by neighbourhood.",
+    "orientationLocalLaunchNote": "Now live in and around Vlaardingen",
     "orientationTrustSecurePay": "Secure payment",
     "orientationTrustPickup": "Pickup or delivery",
     "orientationTrustRealPeople": "Real makers",
@@ -8481,7 +8481,7 @@
     "heroHideLabel": "Discover nearby",
     "heroShowLabel": "Show hero",
     "heroRestoreLabel": "Show intro",
-    "orientationValueExchangeHint": "Trade without money too — discover what you can get with what you can offer.",
+    "orientationValueExchangeHint": "You can also swap things, without any money changing hands.",
     "schemaWebsiteDescription": "HomeCheff — the digital home of personal craftsmanship. Discover local makers, craftspeople and neighbours nearby.",
     "verticals": {
       "cheff": {
@@ -8498,15 +8498,24 @@
       }
     }
   },
+  "homeValueExplainer": {
+    "trigger": "What can HomeCheff do for me?",
+    "title": "Make something of what you're good at",
+    "paragraph1": "Everyone is good at something. Maybe you enjoy cooking for more people than just your household, your tree gives you more apples every autumn than you can eat, or friends keep asking about the jewellery, pottery or illustrations you make.",
+    "paragraph2": "It might be something else entirely. You fix bikes, help people with their gardens, tutor, or know a lot about sourdough and like explaining it. On HomeCheff you put that online so people near you can find you.",
+    "paragraph3": "You decide what you offer, when it suits you and what you charge. You can start by seeing whether anyone's interested, sell something now and then, or let it grow into something bigger over time. What you get out of it depends on what you do and how much time you put in.",
+    "ctaExplore": "See what you can offer",
+    "ctaStart": "Start offering"
+  },
   "guestSalesPanels": {
     "ctaRegister": "Sign up",
     "ctaLogin": "Log in",
     "discover": {
       "title": "Discover what's happening nearby",
-      "body": "HomeCheff is a local platform where neighbours buy, sell, barter and arrange food, harvest, creations, services and help. HC (HomeCheff Credits) is platform credit for eligible actions — not cash and not withdrawable as money. Don't only shop with money — discover who accepts your skills, help or creations as value.",
-      "bullet1": "1. Search for what you want — or shop with what you can offer",
-      "bullet2": "2. Make an arrangement or send a proposal",
-      "bullet3": "3. Pay securely via HomeCheff Checkout or arrange something else together"
+      "body": "On HomeCheff, neighbours buy, sell and swap food, harvest, creations, services and help. Money isn't the only way to pay: some people are happy to accept your help, your skills or something you've made. HC (HomeCheff Credits) is credit you can use on the platform for certain actions. It isn't money, and you can't withdraw it or have it paid out.",
+      "bullet1": "Search for what you need, or offer something in exchange",
+      "bullet2": "Make an arrangement or send a proposal",
+      "bullet3": "Pay securely with HomeCheff Checkout, or agree on something else together"
     },
     "share": {
       "title": "Share what you make or offer",

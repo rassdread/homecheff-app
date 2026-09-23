@@ -42,7 +42,7 @@ console.log("\n[nav-preservation-1b4] landscape below-xl destinations");
   assert.match(nav, /data-wx-mobile-mijn-hcp/);
   assert.match(nav, /handleMobileCreate|openCreateFlow/);
   assert.match(nav, /requireAuthAction\(\s*['"]create['"]\s*,\s*['"]\/sell\/new['"]/);
-  assert.match(nav, /href=\{user \? '\/mijn-hcp' : '\/login'\}/);
+  assert.match(nav, /!bottomNavReachable && user \? \(\s*<Link\s+href="\/mijn-hcp"/);
   assert.match(nav, /homePhase1\.ctaShare/);
   assert.match(nav, /bottomNav\.reputationTab/);
   // Escape closes hamburger

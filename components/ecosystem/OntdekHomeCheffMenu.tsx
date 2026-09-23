@@ -26,6 +26,8 @@ type Props = {
   authenticated: boolean;
   surface: EcosystemNavSurface;
   variant?: "sidebar" | "compact" | "inline";
+  /** Header utility omits the "· module" suffix so auth/profile keep their space. */
+  showCurrentModule?: boolean;
   className?: string;
 };
 
@@ -62,6 +64,7 @@ export function OntdekHomeCheffMenu({
   authenticated,
   surface,
   variant = "compact",
+  showCurrentModule = true,
   className = "",
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -238,9 +241,11 @@ export function OntdekHomeCheffMenu({
         />
         <span className="min-w-0 truncate">
           {ECOSYSTEM_NAV_LABEL}
-          <span className="ml-1 font-normal text-gray-400">
-            · {ecosystemCurrentModuleLabel(currentProduct ?? "homecheff")}
-          </span>
+          {showCurrentModule ? (
+            <span className="ml-1 font-normal text-gray-400">
+              · {ecosystemCurrentModuleLabel(currentProduct ?? "homecheff")}
+            </span>
+          ) : null}
         </span>
       </button>
       {panel && createPortal(panel, document.body)}

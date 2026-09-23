@@ -11,7 +11,7 @@
  * Keyword strip and “with or without money” are not primary fold chrome.
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -24,6 +24,7 @@ import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/Workspa
 import LandscapeWorkBarCommands from '@/components/adaptive-workspace/LandscapeWorkBarCommands';
 import { resolveOrientationExplanation } from '@/lib/adaptive-workspace-react/resolve-orientation-explanation';
 import HomeHeroCollapsible from '@/components/home/HomeHeroCollapsible';
+import HomeValueExplainerDialog from '@/components/home/HomeValueExplainerDialog';
 
 const GuestSalesInfoPanel = dynamic(
   () => import('@/components/home/GuestSalesInfoPanel'),
@@ -42,12 +43,22 @@ const ctaPrimaryClass = cn(
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
 );
 
+const ctaExplainClass = cn(
+  'inline-flex min-h-[40px] items-center justify-center rounded-xl px-3.5 py-1.5 text-left',
+  'text-sm font-semibold text-white border border-white/60 bg-white/0',
+  'hover:bg-white/10 touch-manipulation transition-colors',
+  'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
+);
+
 export default function WorkspaceOrientationStrip({ className }: Props) {
   const { t } = useTranslation();
   const { data: session, status } = useSession();
   const { openCreateFlow } = useCreateFlow();
   const { handleGuestCreateClick, guestBottomNavPanelEl } = useGuestBottomNavPanel();
   const [guestSalesPanel, setGuestSalesPanel] = useState<GuestSalesPanelId | null>(null);
+  const [valueExplainerOpen, setValueExplainerOpen] = useState(false);
+  const valueExplainerTriggerRef = useRef<HTMLButtonElement>(null);
+  const closeValueExplainer = useCallback(() => setValueExplainerOpen(false), []);
   const landscape = useLandscapeWorkPosture();
   const explain = resolveOrientationExplanation({
     usableWidthPx: landscape.usableWidthPx,
@@ -249,6 +260,17 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
                   <Plus className="h-4 w-4 shrink-0" aria-hidden />
                   <span>{t('homePhase1.ctaShare')}</span>
                 </button>
+                <button
+                  ref={valueExplainerTriggerRef}
+                  type="button"
+                  data-hc-value-explainer-trigger=""
+                  onClick={() => setValueExplainerOpen(true)}
+                  className={ctaExplainClass}
+                  aria-haspopup="dialog"
+                  aria-expanded={valueExplainerOpen}
+                >
+                  {t('homeValueExplainer.trigger')}
+                </button>
               </div>
             ) : explain.showActions && (workToolbar || explain.singleLine) ? (
               <div
@@ -264,6 +286,12 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
       </div>
       </HomeHeroCollapsible>
       {guestBottomNavPanelEl}
+      <HomeValueExplainerDialog
+        open={valueExplainerOpen}
+        onClose={closeValueExplainer}
+        onStartOffering={onShare}
+        returnFocusRef={valueExplainerTriggerRef}
+      />
       {isGuest ? (
         <GuestSalesInfoPanel panel={guestSalesPanel} onClose={() => setGuestSalesPanel(null)} />
       ) : null}

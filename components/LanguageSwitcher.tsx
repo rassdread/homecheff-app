@@ -5,7 +5,12 @@ import { createPortal } from 'react-dom';
 import { Globe, ChevronDown } from 'lucide-react';
 import { useTranslation, type Language } from '@/hooks/useTranslation';
 
-export default function LanguageSwitcher() {
+type LanguageSwitcherProps = {
+  /** Header utility: flag + chevron only, so it never competes with the primary CTA. */
+  compact?: boolean;
+};
+
+export default function LanguageSwitcher({ compact = false }: LanguageSwitcherProps = {}) {
   const { language, changeLanguage, availableLanguages, t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
@@ -104,13 +109,17 @@ export default function LanguageSwitcher() {
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 text-gray-700 hover:text-primary-brand transition-colors rounded-lg hover:bg-gray-50"
+        className={
+          compact
+            ? 'flex items-center gap-1 px-2 py-2 text-gray-600 hover:text-primary-brand transition-colors rounded-lg hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-brand'
+            : 'flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 text-gray-700 hover:text-primary-brand transition-colors rounded-lg hover:bg-gray-50'
+        }
         title={t('common.changeLanguage')}
         aria-label={t('common.changeLanguage')}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
-        <Globe className="w-4 h-4 flex-shrink-0" />
+        {compact ? null : <Globe className="w-4 h-4 flex-shrink-0" />}
         <span className="text-base sm:text-lg">{currentLanguage?.flag}</span>
         <ChevronDown className={`w-3 h-3 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
