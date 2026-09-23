@@ -135,6 +135,10 @@ These fail with identical counts before and after. Each assertion concerns a fil
 Priority by traffic × pattern density:
 
 1. **Shared i18n namespaces:** `affiliate` (34 dashes), `faq` (30; FAQ JSON-LD must stay consistent with visible answers), `overOns` (19), `feed` (17, incl. hints like "Reageer wanneer het jou uitkomt — je gesprek wacht op je."), `marketplace` (15), `home` (14), `register` (12), `business` (12), `guestBottomNav`, `guestSalesPanels.share`.
-2. **SEO landing templates:** `app/[seoSlug]`, `app/eten-verkopen-[stad]` (17 cities in `lib/seo/localCities.ts`: check body repetition for doorway risk and fix at the template), plus `bijverdienen-vanuit-huis`, `eten-verkopen-vanuit-huis`, `geld-verdienen-met-koken`, `lokaal-eten-verkopen`, `lokaal-verdienen`, `lokale-producten-verkopen`, `thuisgekookt-eten-verkopen`, `unieke-producten-verkopen`, `verdienen-zonder-dropshipping`, `zelfgemaakt-eten-verkopen`. Snapshot title/meta/H1/canonical/JSON-LD per page with `scripts/probe-seo-snapshot.mjs` before editing.
+2. **SEO landing templates** (details in `COPY_INVENTORY.md`):
+   - `app/[seoSlug]`: 20 NL + 20 EN pages sharing identical H2s, highest doorway risk.
+   - `app/eten-verkopen-[stad]`: 4 cities; the body differs only by `{{city}}`.
+   - `app/maaltijden/[stad]`: cities from `lib/seo/localCities.ts`, with a hardcoded shared lede.
+   - Fix all three at the template level. The standalone landing pages are: `bijverdienen-vanuit-huis`, `eten-verkopen-vanuit-huis`, `geld-verdienen-met-koken`, `lokaal-eten-verkopen`, `lokaal-verdienen`, `lokale-producten-verkopen`, `thuisgekookt-eten-verkopen`, `unieke-producten-verkopen`, `verdienen-zonder-dropshipping`, `zelfgemaakt-eten-verkopen`. Snapshot title/meta/H1/canonical/JSON-LD per page with `scripts/probe-seo-snapshot.mjs` before editing.
 3. **Static pages:** `hoe-homecheff-werkt` (meta already fine; body is client-rendered), `wat-is-homecheff`, `waarom-homecheff`, `wat-we-niet-zijn`, `werken-bij` + `hoe-werkt-het` + `vacatures`, `verdiencheck` intro (certified; only visual copy, keep fiscal precision), delivery public pages, `sell` onboarding.
 4. **Cleanup:** remove unused `homePhase1.orientationExplain*` legacy keys once no validator references them. Add the explainer CTA to `HomeHeroSection` if the workspace-off path is ever used in production.
