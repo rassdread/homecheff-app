@@ -23,7 +23,7 @@ export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps)
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const GA_MEASUREMENT_ID = measurementId || process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+    const GA_MEASUREMENT_ID = (measurementId || process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '').trim();
 
     if (!GA_MEASUREMENT_ID) {
       console.warn('Google Analytics: Measurement ID not found');
@@ -64,7 +64,7 @@ export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps)
 
   // Track page views on route change
   useEffect(() => {
-    const GA_MEASUREMENT_ID = measurementId || process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+    const GA_MEASUREMENT_ID = (measurementId || process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '').trim();
     
     if (!GA_MEASUREMENT_ID || typeof window === 'undefined' || !window.gtag) {
       return;

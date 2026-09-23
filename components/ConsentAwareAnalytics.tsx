@@ -2,9 +2,9 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 const VercelAnalytics = dynamic(() => import('@/components/VercelAnalytics'), { ssr: false });
-const GoogleAnalytics = dynamic(() => import('@/components/GoogleAnalytics'), { ssr: false });
 
 const CONSENT_KEY = 'privacy-notice-accepted';
 const CONSENT_FULL = 'true';
@@ -29,7 +29,7 @@ export default function ConsentAwareAnalytics() {
 
   if (!hasConsent) return null;
 
-  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
 
   return (
     <>
