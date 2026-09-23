@@ -1,6 +1,6 @@
 {
   "host": "https://homecheff.eu",
-  "expenseId": "b3ad3e5c-ec70-449e-8895-c81b1c6835c2",
+  "expenseId": "bcdab1bb-33c8-4976-a311-5412459d9d4d",
   "viewports": {
     "desktop_1280x900": {
       "overflow": 0,
@@ -11,6 +11,10 @@
       "accept": "image/jpeg,image/png,image/webp,application/pdf"
     },
     "landscape_844x390": {
+      "overflow": 0,
+      "accept": "image/jpeg,image/png,image/webp,application/pdf"
+    },
+    "zoom_200": {
       "overflow": 0,
       "accept": "image/jpeg,image/png,image/webp,application/pdf"
     }
@@ -26,10 +30,17 @@
     "  PASS  desktop_1280x900_NO_HORIZONTAL_OVERFLOW",
     "  PASS  desktop_1280x900_UPLOAD_ANNOUNCED",
     "  PASS  desktop_1280x900_NO_REFETCH_LOOP",
-    "  FAIL  desktop_1280x900_VIEWER_AVAILABLE — no Bekijken button",
+    "  PASS  desktop_1280x900_VIEWER_MODAL",
+    "  PASS  desktop_1280x900_VIEWER_LABELLED",
+    "  PASS  desktop_1280x900_VIEWER_FOCUS_ON_CLOSE",
+    "  PASS  desktop_1280x900_VIEWER_CLOSE_NOT_COVERED",
+    "  FAIL  desktop_1280x900_VIEWER_IMAGE_LOADED — {\"w\":0,\"h\":0,\"done\":false}",
+    "  PASS  desktop_1280x900_NO_STORAGE_URL_IN_PAGE",
+    "  PASS  desktop_1280x900_NO_SECRET_IN_LOCATION",
+    "  PASS  desktop_1280x900_VIEWER_ESC_CLOSES",
     "  PASS  mobile_390x844_EXPENSE_ROW_VISIBLE",
     "  PASS  mobile_390x844_ADD_CONTROL_VISIBLE",
-    "  FAIL  mobile_390x844_ADD_NOT_COVERED_BY_BOTTOM_NAV — blocked by bottom-nav",
+    "  PASS  mobile_390x844_ADD_NOT_COVERED_BY_BOTTOM_NAV",
     "  PASS  mobile_390x844_LIMIT_SHOWN_BEFORE_UPLOAD",
     "  PASS  mobile_390x844_NO_VERIFIED_CLAIM",
     "  PASS  mobile_390x844_ACCEPT_TYPES",
@@ -46,7 +57,7 @@
     "  PASS  mobile_390x844_VIEWER_ESC_CLOSES",
     "  PASS  landscape_844x390_EXPENSE_ROW_VISIBLE",
     "  PASS  landscape_844x390_ADD_CONTROL_VISIBLE",
-    "  PASS  landscape_844x390_ADD_NOT_COVERED_BY_BOTTOM_NAV",
+    "  FAIL  landscape_844x390_ADD_NOT_COVERED_BY_BOTTOM_NAV — blocked by bottom-nav",
     "  PASS  landscape_844x390_LIMIT_SHOWN_BEFORE_UPLOAD",
     "  PASS  landscape_844x390_NO_VERIFIED_CLAIM",
     "  PASS  landscape_844x390_ACCEPT_TYPES",
@@ -61,7 +72,23 @@
     "  PASS  landscape_844x390_NO_STORAGE_URL_IN_PAGE",
     "  PASS  landscape_844x390_NO_SECRET_IN_LOCATION",
     "  PASS  landscape_844x390_VIEWER_ESC_CLOSES",
-    "  FAIL  zoom_200_EXPENSE_ROW_VISIBLE",
+    "  PASS  zoom_200_EXPENSE_ROW_VISIBLE",
+    "  PASS  zoom_200_ADD_CONTROL_VISIBLE",
+    "  FAIL  zoom_200_ADD_NOT_COVERED_BY_BOTTOM_NAV — blocked by header",
+    "  PASS  zoom_200_LIMIT_SHOWN_BEFORE_UPLOAD",
+    "  PASS  zoom_200_NO_VERIFIED_CLAIM",
+    "  PASS  zoom_200_ACCEPT_TYPES",
+    "  PASS  zoom_200_NO_HORIZONTAL_OVERFLOW",
+    "  PASS  zoom_200_UPLOAD_ANNOUNCED",
+    "  PASS  zoom_200_NO_REFETCH_LOOP",
+    "  PASS  zoom_200_VIEWER_MODAL",
+    "  PASS  zoom_200_VIEWER_LABELLED",
+    "  PASS  zoom_200_VIEWER_FOCUS_ON_CLOSE",
+    "  PASS  zoom_200_VIEWER_CLOSE_NOT_COVERED",
+    "  PASS  zoom_200_VIEWER_IMAGE_LOADED",
+    "  PASS  zoom_200_NO_STORAGE_URL_IN_PAGE",
+    "  PASS  zoom_200_NO_SECRET_IN_LOCATION",
+    "  PASS  zoom_200_VIEWER_ESC_CLOSES",
     "  PASS  MULTIPLE_FILES_ACCUMULATED",
     "  PASS  SWITCH_A_CAN_VIEW",
     "  PASS  SWITCH_RESPONSE_NOT_CACHEABLE",

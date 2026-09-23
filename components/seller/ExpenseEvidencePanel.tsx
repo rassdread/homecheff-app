@@ -49,13 +49,17 @@ const MAX_LABEL = `${Math.round(MAX_EVIDENCE_BYTES / (1024 * 1024))} MB`;
 const contentUrl = (id: string) => `/api/seller/evidence/${id}/content`;
 
 /**
- * Keeps the fixed bottom navigation clear when the browser scrolls one of these
- * elements into view — on focus, or when the expense row expands. Without it the
- * upload control lands underneath the nav on a 390px screen, which is the trap
- * Phase 8C hit with the expense dialog. `--hc-bottom-nav-offset` is the app
- * chrome's own measurement of the nav, so this follows it rather than guessing.
+ * Keeps both fixed bars clear when the browser scrolls one of these elements
+ * into view — on focus, or when the expense row expands. Without it the upload
+ * control lands underneath the bottom nav on a 390px screen, which is the trap
+ * Phase 8C hit with the expense dialog; with only a bottom margin a short
+ * landscape viewport pushes it under the top bar instead. Both offsets are the
+ * app chrome's own measurements rather than guessed constants.
  */
-const NAV_CLEARANCE = { scrollMarginBottom: 'calc(var(--hc-bottom-nav-offset, 0px) + 1rem)' } as const;
+const NAV_CLEARANCE = {
+  scrollMarginBottom: 'calc(var(--hc-bottom-nav-offset, 0px) + 1rem)',
+  scrollMarginTop: 'calc(var(--hc-top-nav-height, 0px) + 1rem)',
+} as const;
 
 export default function ExpenseEvidencePanel({
   expenseId,

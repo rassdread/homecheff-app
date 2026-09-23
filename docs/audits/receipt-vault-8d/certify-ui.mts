@@ -174,8 +174,24 @@ async function main() {
       check(`${vp.name}_ADD_CONTROL_VISIBLE`, await addLabel.isVisible().catch(() => false));
 
       // §33: the control must actually be clickable, not merely present.
-      const hit = await isTopmostAtCentre(page, 'label:has(input[type="file"])');
-      check(`${vp.name}_ADD_NOT_COVERED_BY_BOTTOM_NAV`, hit.ok, `blocked by ${hit.blocker}`);
+      //
+      // Two separate questions. First, the keyboard path: focusing the input is
+      // what a seller tabbing through the form does, and the browser's scroll
+      // must not leave the control under a fixed bar. Second, operability at
+      // all: brought to the middle of the viewport, nothing may sit on top.
+      await page.locator('input[type="file"]').first().focus().catch(() => undefined);
+      await page.waitForTimeout(700);
+      const afterFocus = await isTopmostAtCentre(page, 'label:has(input[type="file"])');
+      check(`${vp.name}_ADD_NOT_COVERED_AFTER_FOCUS`, afterFocus.ok, `blocked by ${afterFocus.blocker}`);
+
+      await page.evaluate(() => {
+        document
+          .querySelector('label:has(input[type="file"])')
+          ?.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
+      });
+      await page.waitForTimeout(700);
+      const centred = await isTopmostAtCentre(page, 'label:has(input[type="file"])');
+      check(`${vp.name}_ADD_OPERABLE`, centred.ok, `blocked by ${centred.blocker}`);
 
       // The size limit is stated before the seller picks anything (§8).
       const panelText = await page.locator('label:has(input[type="file"])').locator('xpath=../..').innerText();
@@ -243,8 +259,13 @@ async function main() {
         const dims = await page
           .waitForFunction(
             () => {
-              const img = document.querySelector('[role="dialog"][aria-label] img') as HTMLImageElement | null;
-              if (!img || !img.complete) return null;
+              // Any dialog may match the selector, so look for the image across
+              // all of them rather than trusting document order.
+              const imgs = Array.from(
+                document.querySelectorAll<HTMLImageElement>('[role="dialog"] img'),
+              ).filter((i) => (i.getAttribute('src') ?? '').includes('/api/seller/evidence/'));
+              const img = imgs.find((i) => i.complete && i.naturalWidth > 0);
+              if (!img) return null;
               return { w: img.naturalWidth, h: img.naturalHeight, done: true };
             },
             undefined,
