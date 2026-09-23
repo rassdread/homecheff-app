@@ -61,9 +61,15 @@ export default function ExpenseEvidencePanel({
   const [items, setItems] = useState<Evidence[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [viewing, setViewing] = useState<Evidence | null>(null);
+
+  // `t` from useTranslation is a fresh function on every render, and reporting
+  // the count back to the parent re-renders this component. Neither may end up
+  // in `load`'s identity, or the effect below refetches forever.
+  const onCountChangeRef = useRef(onCountChange);
+  onCountChangeRef.current = onCountChange;
 
   const load = useCallback(async () => {
     try {
@@ -74,20 +80,20 @@ export default function ExpenseEvidencePanel({
       const data = await res.json();
       const list: Evidence[] = data.evidence ?? [];
       setItems(list);
-      onCountChange?.(list.length);
+      onCountChangeRef.current?.(list.length);
     } catch {
-      setError(t('sellerExpenses.evidenceErrorGENERIC'));
+      setErrorCode('GENERIC');
     } finally {
       setLoading(false);
     }
-  }, [expenseId, t, onCountChange]);
+  }, [expenseId]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   const upload = async (file: File) => {
-    setError(null);
+    setErrorCode(null);
     setNotice(null);
     setBusy(true);
     try {
@@ -100,13 +106,7 @@ export default function ExpenseEvidencePanel({
       if (!res.ok) {
         // Only codes we have copy for; anything else falls back rather than
         // rendering a raw translation key at the seller.
-        const code: string = KNOWN_ERROR_CODES.has(data?.code) ? data.code : 'GENERIC';
-        setError(
-          t(`sellerExpenses.evidenceError${code}`, {
-            size: MAX_LABEL,
-            max: String(MAX_EVIDENCE_PER_EXPENSE),
-          }),
-        );
+        setErrorCode(KNOWN_ERROR_CODES.has(data?.code) ? data.code : 'GENERIC');
         return;
       }
 
@@ -117,7 +117,7 @@ export default function ExpenseEvidencePanel({
       );
       await load();
     } catch {
-      setError(t('sellerExpenses.evidenceErrorGENERIC'));
+      setErrorCode('GENERIC');
     } finally {
       setBusy(false);
       // Allow re-picking the same file after a failure.
@@ -127,7 +127,7 @@ export default function ExpenseEvidencePanel({
 
   const remove = async (item: Evidence) => {
     if (!window.confirm(t('sellerExpenses.evidenceDeleteConfirm'))) return;
-    setError(null);
+    setErrorCode(null);
     setNotice(null);
     setBusy(true);
     try {
@@ -137,13 +137,19 @@ export default function ExpenseEvidencePanel({
       setNotice(t('sellerExpenses.evidenceDeleted'));
       await load();
     } catch {
-      setError(t('sellerExpenses.evidenceErrorGENERIC'));
+      setErrorCode('GENERIC');
     } finally {
       setBusy(false);
     }
   };
 
   const atLimit = items.length >= MAX_EVIDENCE_PER_EXPENSE;
+  const error = errorCode
+    ? t(`sellerExpenses.evidenceError${errorCode}`, {
+        size: MAX_LABEL,
+        max: String(MAX_EVIDENCE_PER_EXPENSE),
+      })
+    : null;
 
   return (
     <div className="mt-3 rounded-lg border border-gray-200 bg-white p-3">
@@ -289,7 +295,9 @@ function EvidenceViewer({ item, onClose }: { item: Evidence; onClose: () => void
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={t('sellerExpenses.evidenceViewerTitle')}
+        // Falls back to a literal name: translations load asynchronously, and a
+        // modal that briefly has no accessible name is a real a11y defect.
+        aria-label={t('sellerExpenses.evidenceViewerTitle') || 'Bewijsstuk bekijken'}
         className="flex max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white pb-[max(0px,env(safe-area-inset-bottom))]"
       >
         <div className="flex items-center justify-between gap-3 border-b border-gray-200 px-4 py-3">
@@ -300,7 +308,7 @@ function EvidenceViewer({ item, onClose }: { item: Evidence; onClose: () => void
             ref={closeRef}
             type="button"
             onClick={onClose}
-            aria-label={t('sellerExpenses.evidenceViewerClose')}
+            aria-label={t('sellerExpenses.evidenceViewerClose') || 'Sluiten'}
             className="rounded p-2 text-gray-500 hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500"
           >
             <X className="h-5 w-5" aria-hidden="true" />

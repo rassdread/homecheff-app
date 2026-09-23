@@ -74,7 +74,7 @@ function form(file: Buffer, filename: string, mime: string, expenseId?: string) 
 
 async function main() {
   const [sellerA, sellerB] = await prisma.user.findMany({
-    where: { SellerProfile: { isNot: null }, email: { not: null } },
+    where: { SellerProfile: { isNot: null } },
     orderBy: { createdAt: 'asc' },
     take: 2,
     select: { id: true, email: true },
