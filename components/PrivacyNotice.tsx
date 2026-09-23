@@ -21,11 +21,13 @@ const PrivacyNotice: React.FC = () => {
 
   const handleAcceptAll = () => {
     localStorage.setItem('privacy-notice-accepted', 'true');
+    window.dispatchEvent(new Event('hc-consent-changed'));
     setIsVisible(false);
   };
 
   const handleOnlyNecessary = () => {
     localStorage.setItem('privacy-notice-accepted', 'necessary');
+    window.dispatchEvent(new Event('hc-consent-changed'));
     setIsVisible(false);
   };
 

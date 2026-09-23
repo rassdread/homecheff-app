@@ -1,4 +1,5 @@
 import AffiliatePageClient from './page-client';
+import AcquisitionLandingBeacon from '@/components/acquisition/AcquisitionLandingBeacon';
 import type { Metadata } from 'next';
 import {
   getCurrentDomain,
@@ -157,6 +158,7 @@ export default async function AffiliatePage() {
 
   return (
     <div>
+      <AcquisitionLandingBeacon eventName="affiliate_landing_view" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

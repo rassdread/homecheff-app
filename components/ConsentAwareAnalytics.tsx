@@ -18,8 +18,13 @@ export default function ConsentAwareAnalytics() {
   const [hasConsent, setHasConsent] = useState(false);
 
   useEffect(() => {
-    const value = localStorage.getItem(CONSENT_KEY);
-    setHasConsent(value === CONSENT_FULL || value === CONSENT_ALL);
+    const read = () => {
+      const value = localStorage.getItem(CONSENT_KEY);
+      setHasConsent(value === CONSENT_FULL || value === CONSENT_ALL);
+    };
+    read();
+    window.addEventListener('hc-consent-changed', read);
+    return () => window.removeEventListener('hc-consent-changed', read);
   }, []);
 
   if (!hasConsent) return null;

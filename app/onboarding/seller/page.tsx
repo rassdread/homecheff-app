@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useTranslation } from '@/hooks/useTranslation';
+import AcquisitionLandingBeacon from '@/components/acquisition/AcquisitionLandingBeacon';
 
 export default function SellerOnboardingPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function SellerOnboardingPage() {
 
   return (
     <main className="min-h-screen p-4 max-w-3xl mx-auto space-y-6">
+      <AcquisitionLandingBeacon eventName="seller_landing_view" />
       <section className="bg-white rounded-2xl p-6 shadow border border-gray-200">
         <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold mb-2">
           {t('onboardingBranch.sellerStep')}

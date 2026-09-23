@@ -4,6 +4,7 @@ import Link from 'next/link';
 import JsonLdScript from '@/components/seo/JsonLdScript';
 import { useMemo } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { commercialCtaForNamespace } from '@/lib/seo/commercial-cta';
 
 export type SeoLandingLink = { href: string; labelKey: string };
 
@@ -380,6 +381,11 @@ export default function SeoLandingTemplate({
             );
           }
           if (b.type === 'cta') {
+            const cta = commercialCtaForNamespace(
+              ns,
+              language === 'en' ? 'en' : 'nl',
+              interpolation,
+            );
             return (
               <section
                 key={i}
@@ -389,16 +395,18 @@ export default function SeoLandingTemplate({
                 <p className="mt-2 text-sm text-emerald-100 sm:text-base">{tk('ctaSub')}</p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
                   <Link
-                    href="/register"
+                    href={cta.primaryHref}
+                    data-testid="seo-cta-primary"
                     className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-base font-semibold text-emerald-700 shadow hover:bg-emerald-50"
                   >
-                    {t('navigation.register')}
+                    {cta.primaryLabel}
                   </Link>
                   <Link
-                    href="/"
+                    href={cta.secondaryHref}
+                    data-testid="seo-cta-secondary"
                     className="inline-flex items-center justify-center rounded-xl border border-white/40 px-5 py-3 text-base font-semibold text-white hover:bg-white/10"
                   >
-                    {t('navigation.home')}
+                    {cta.secondaryLabel}
                   </Link>
                 </div>
               </section>

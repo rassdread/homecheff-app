@@ -45,6 +45,7 @@ import {
 } from '@/lib/trust/seller-contribution';
 import { maybeActivateSellerFromPublishedListing } from '@/lib/acquisition/marketplace-acquisition';
 import { productToListingQualityInput } from '@/lib/acquisition/product-quality-input';
+import { recordListingPublished } from '@/lib/analytics/record-acquisition-event.server';
 
 const CATEGORY_MAP: Record<string, any> = {
   CHEFF: 'CHEFF',
@@ -942,31 +943,6 @@ export async function POST(req: Request) {
         }
       });
 
-      // Generate some initial view events to simulate organic discovery
-      const initialViews = Math.floor(Math.random() * 5) + 1; // 1-5 initial views
-      for (let i = 0; i < initialViews; i++) {
-        // Create views from the last few hours
-        const viewTime = new Date();
-        viewTime.setHours(viewTime.getHours() - Math.floor(Math.random() * 6));
-        viewTime.setMinutes(Math.floor(Math.random() * 60));
-        
-        // Create view event
-        await prisma.analyticsEvent.create({
-          data: {
-            eventType: 'VIEW',
-            entityType: 'PRODUCT',
-            entityId: result.id,
-            userId: user.id,
-            metadata: {
-              category: cat,
-              source: 'product_creation',
-              isInitialView: true
-            },
-            createdAt: viewTime
-          }
-        });
-      }
-
     } catch (analyticsError) {
       console.error('Failed to generate initial analytics data:', analyticsError);
       // Don't fail the product creation if analytics fail
@@ -977,6 +953,12 @@ export async function POST(req: Request) {
     );
 
     if (result.isActive) {
+      await recordListingPublished({
+        userId: user.id,
+        productId: result.id,
+        category: result.category,
+        marketplaceCategory: result.marketplaceCategory,
+      }).catch((e) => console.warn('[acquisition] listing_published', e));
       void maybeActivateSellerFromPublishedListing(
         user.id,
         productToListingQualityInput({

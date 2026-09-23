@@ -89,6 +89,19 @@ async function applyCurrentAccountReadiness(params: {
     },
   });
 
+  if (isCompleted) {
+    await import('@/lib/analytics/record-acquisition-event.server')
+      .then(({ recordAcquisitionEvent }) =>
+        recordAcquisitionEvent({
+          eventName: 'seller_payment_ready',
+          dedupeKey: `seller-payment-ready:${params.userId}`,
+          userId: params.userId,
+          properties: { stripe_account_ready: true },
+        }),
+      )
+      .catch((e) => console.warn('[acquisition] seller_payment_ready', e));
+  }
+
   try {
     const { syncAffiliateConnectMirrorFromUser } = await import(
       '@/lib/stripe/affiliate-connect-mirror'

@@ -149,6 +149,17 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    await import('@/lib/analytics/record-acquisition-event.server')
+      .then(({ recordAcquisitionEvent }) =>
+        recordAcquisitionEvent({
+          eventName: 'affiliate_activated',
+          dedupeKey: `affiliate:${affiliate.id}`,
+          userId: user.id,
+          properties: { affiliate_id: affiliate.id },
+        }),
+      )
+      .catch((e) => console.warn('[acquisition] affiliate_activated', e));
+
     // Update session to include affiliate flag
     // This will be picked up on next session refresh
     // For immediate update, we could trigger a session update, but NextAuth handles this automatically

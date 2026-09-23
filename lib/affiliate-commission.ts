@@ -192,6 +192,17 @@ export async function processCommissionForInvoice(
     console.log(
       `✅ Commission processed for invoice ${invoiceId}: Affiliate=${finalAffiliateCommissionCents}, HomeCheff=${commissionResult.homecheffShareCents}, Discount=${commissionResult.discountCents}, FinalPrice=${amountPaidCents}`
     );
+    if (finalAffiliateCommissionCents > 0) {
+      await import('@/lib/analytics/record-acquisition-event.server')
+        .then(({ recordAffiliateEconomicAction }) =>
+          recordAffiliateEconomicAction({
+            dedupeKey: `affiliate-econ:invoice:${invoiceId}`,
+            amountCents: finalAffiliateCommissionCents,
+            invoiceId,
+          }),
+        )
+        .catch((e) => console.warn('[acquisition] affiliate invoice', e));
+    }
   } catch (error) {
     console.error('Error processing commission for invoice:', error);
     throw error;
@@ -467,6 +478,19 @@ export async function processCommissionForOrder(
     console.log(
       `✅ Commission processed for order ${orderId}: ${totalCommissionCents} cents (case=${allocation.case}, pool=${allocation.poolCents})`,
     );
+    if (totalCommissionCents > 0) {
+      const realOrderId = metadata?.orderId || null;
+      await import('@/lib/analytics/record-acquisition-event.server')
+        .then(({ recordAffiliateEconomicAction }) =>
+          recordAffiliateEconomicAction({
+            dedupeKey: `affiliate-econ:order:${realOrderId || orderId}`,
+            userId: buyerId,
+            amountCents: totalCommissionCents,
+            orderId: realOrderId || orderId,
+          }),
+        )
+        .catch((e) => console.warn('[acquisition] affiliate order', e));
+    }
   } catch (error) {
     console.error('Error processing commission for order:', error);
     throw error;

@@ -11,6 +11,10 @@ import { DELIVERY_PLATFORM_FEE_PERCENT } from "@/lib/fees";
 import { ensurePaidOrderShipment } from "@/lib/shipping/ensure-order-shipment";
 import { tryAwardFirstSaleForSeller } from "@/lib/gamification/award-first-sale";
 import { recordMarketplaceBuyerActivation } from "@/lib/acquisition/marketplace-acquisition";
+import {
+  recordConfirmedOrderEconomics,
+  recordPaidSubscription,
+} from "@/lib/analytics/record-acquisition-event.server";
 import { delivererMatchingWhere } from "@/lib/delivery/delivery-eligibility";
 import { expireExpiredTemporaryOnline } from "@/lib/delivery/delivery-online-session";
 import { resolveDeliveryTimeAvailability } from "@/lib/delivery/delivery-time-availability";
@@ -209,6 +213,16 @@ export async function POST(req: NextRequest) {
 
             // 💰 CREATE ORDER FOR SUBSCRIPTION PAYMENT (for revenue tracking)
             const subscriptionAmountCents = session.amount_total || subscription.priceCents || 0;
+            if (subscriptionAmountCents > 0 && session.payment_status === 'paid' && (session.amount_total ?? 0) > 0) {
+              await recordPaidSubscription({
+                userId,
+                stripeSessionId: session.id,
+                valueCents: session.amount_total ?? 0,
+                currency: session.currency || 'eur',
+                plan: planName,
+              }).catch((e) => console.warn('[acquisition] paid_subscription', e));
+            }
+
             if (subscriptionAmountCents > 0) {
               try {
                 await prisma.order.create({
@@ -697,6 +711,11 @@ export async function POST(req: NextRequest) {
             capturedHc: finalized.capturedHc,
           }),
         );
+        if (session.payment_status === 'paid') {
+          await recordConfirmedOrderEconomics(mixedOrderId, 'paid').catch((e) =>
+            console.warn('[acquisition] mixed order', e),
+          );
+        }
         // Seller EUR settlement for MIXED/HC uses treasury exposure path (not charge transfer).
         return new NextResponse("ok", { status: 200 });
       }
@@ -714,6 +733,11 @@ export async function POST(req: NextRequest) {
       });
 
       if (existingOrder) {
+        if (session.payment_status === 'paid') {
+          await recordConfirmedOrderEconomics(existingOrder.id, 'paid').catch((e) =>
+            console.warn('[acquisition] existing order', e),
+          );
+        }
         if (existingOrder.paymentMethod === 'MIXED_HC_EUR' || existingOrder.paymentMethod === 'HC_ONLY') {
           if (existingOrder.paymentMethod === 'MIXED_HC_EUR') {
             const finalized = await finalizeMixedHcAfterStripePaid(existingOrder.id);
@@ -1104,6 +1128,12 @@ export async function POST(req: NextRequest) {
 
         const createdOrder = order.order;
         const createdOrderItems = order.orderItems;
+
+        if (session.payment_status === 'paid') {
+          await recordConfirmedOrderEconomics(createdOrder.id, 'paid').catch((e) =>
+            console.warn('[acquisition] confirmed order', e),
+          );
+        }
 
         for (const item of createdOrderItems) {
           revalidateTag(listingProductCacheTag(item.productId));

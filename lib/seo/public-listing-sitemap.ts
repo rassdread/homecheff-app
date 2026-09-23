@@ -45,12 +45,30 @@ export async function collectPublicListingSitemapEntries(): Promise<
     take: PUBLIC_LISTING_SITEMAP_CAP,
   });
 
-  return rows.map((row) => ({
-    loc: `${MAIN_DOMAIN}${buildProductDetailPath({
-      id: row.id,
-      title: row.title,
-      place: row.seller?.User?.place,
-    })}`,
-    lastmod: row.createdAt.toISOString(),
-  }));
+  const entries: PublicListingSitemapEntry[] = [];
+  for (const row of rows) {
+    if (!row.id || !row.title) continue;
+    try {
+      entries.push({
+        loc: publicListingSitemapLoc({
+          id: row.id,
+          title: row.title,
+          place: row.seller?.User?.place,
+        }),
+        lastmod: row.createdAt.toISOString(),
+      });
+    } catch (err) {
+      console.error('[sitemap-products] skip listing', row.id, err);
+    }
+  }
+  return entries;
+}
+
+/** Absolute canonical listing URL. Arguments match buildProductDetailPath. */
+export function publicListingSitemapLoc(input: {
+  id: string;
+  title: string;
+  place?: string | null;
+}): string {
+  return `${MAIN_DOMAIN}${buildProductDetailPath(input.title, input.place, input.id)}`;
 }

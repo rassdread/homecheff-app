@@ -40,6 +40,7 @@ import {
 import { assertOrApplyCommerceDeclarationForPaidOffer } from '@/lib/legal/assert-commerce-declaration-for-paid-offer';
 import { maybeActivateSellerFromPublishedListing } from '@/lib/acquisition/marketplace-acquisition';
 import { productToListingQualityInput } from '@/lib/acquisition/product-quality-input';
+import { recordListingPublished } from '@/lib/analytics/record-acquisition-event.server';
 import { productRequiresAllergenConfirmation } from '@/lib/legal/food-allergen-applicability';
 import { buildAllergenConfirmationUpdate } from '@/lib/legal/food-allergen-context';
 import {
@@ -974,6 +975,15 @@ export async function PATCH(
             ).catch((e) => console.warn('[gamification] product PATCH', e));
           }
           if (sellerUid && updatedProduct.isActive) {
+            const wasActive = (product as { isActive?: boolean }).isActive === true;
+            if (!wasActive) {
+              await recordListingPublished({
+                userId: sellerUid,
+                productId: updatedProduct.id,
+                category: updatedProduct.category,
+                marketplaceCategory: updatedProduct.marketplaceCategory,
+              }).catch((e) => console.warn('[acquisition] listing_published', e));
+            }
             const seller = (product as {
               seller?: {
                 displayName?: string | null;

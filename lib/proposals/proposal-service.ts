@@ -414,6 +414,36 @@ export class ProposalService {
 
     const proposal = created.proposal;
 
+    await import('@/lib/analytics/record-acquisition-event.server')
+      .then(({ recordAcquisitionEvent }) => {
+        const writes = [
+          recordAcquisitionEvent({
+            eventName: 'buyer_interaction',
+            dedupeKey: `proposal:${proposal.id}`,
+            userId,
+            properties: { proposal_id: proposal.id, category: proposal.category },
+          }),
+          recordAcquisitionEvent({
+            eventName: 'seller_first_interaction',
+            dedupeKey: `seller-first-interaction:${sellerId}`,
+            userId: sellerId,
+            properties: { proposal_id: proposal.id },
+          }),
+        ];
+        if (proposal.category === 'SERVICE' || proposal.category === 'TASK') {
+          writes.push(
+            recordAcquisitionEvent({
+              eventName: 'service_enquiry',
+              dedupeKey: `service-enquiry:${proposal.id}`,
+              userId,
+              properties: { proposal_id: proposal.id },
+            }),
+          );
+        }
+        return Promise.all(writes);
+      })
+      .catch((e) => console.warn('[acquisition] proposal', e));
+
     const message = await createProposalMessage(
       conversationId,
       userId,
@@ -622,6 +652,22 @@ export class ProposalService {
     void syncConversationStatusAfterMessage(existing.conversationId).catch((e) =>
       console.warn('[proposal-service] status sync', e),
     );
+
+    if (result.proposal.requestedDate) {
+      await import('@/lib/analytics/record-acquisition-event.server')
+        .then(({ recordAcquisitionEvent }) =>
+          recordAcquisitionEvent({
+            eventName: 'service_appointment',
+            dedupeKey: `service-appointment:${result.proposal.id}`,
+            userId: result.proposal.sellerId,
+            properties: {
+              proposal_id: result.proposal.id,
+              community_order_id: result.communityOrder.id,
+            },
+          }),
+        )
+        .catch((e) => console.warn('[acquisition] appointment', e));
+    }
 
     const dto = serializeProposal(result.proposal);
     await broadcastProposal(

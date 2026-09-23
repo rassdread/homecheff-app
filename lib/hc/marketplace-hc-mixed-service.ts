@@ -317,6 +317,9 @@ export async function finalizeMixedHcAfterStripePaid(orderId: string) {
       hcPaymentPhase: 'HC_CAPTURED',
     },
   });
+  await import('@/lib/analytics/record-acquisition-event.server')
+    .then(({ recordConfirmedOrderEconomics }) => recordConfirmedOrderEconomics(orderId, 'paid'))
+    .catch((e) => console.warn('[acquisition] mixed order', e));
 
   const item = await prisma.orderItem.findFirst({
     where: { orderId },

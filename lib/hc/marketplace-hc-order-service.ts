@@ -374,6 +374,9 @@ export async function fulfillHcOnlyOrderCapture(orderId: string) {
       hcPaymentPhase: 'HC_CAPTURED',
     },
   });
+  await import('@/lib/analytics/record-acquisition-event.server')
+    .then(({ recordConfirmedOrderEconomics }) => recordConfirmedOrderEconomics(orderId))
+    .catch((e) => console.warn('[acquisition] hc capture', e));
 
   const item = await prisma.orderItem.findFirst({ where: { orderId }, include: { Product: { select: { seller: { select: { userId: true } } } } } });
   const sellerUserId = item?.Product.seller?.userId ?? '';

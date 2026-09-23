@@ -42,10 +42,12 @@ describe('SEO 0 marketplace foundation', () => {
     const route = read('app/sitemap-products.xml/route.ts');
     assert.match(route, /collectPublicListingSitemapEntries/);
     const helper = read('lib/seo/public-listing-sitemap.ts');
-    assert.match(helper, /productIntegrityPublicWhere/);
-    assert.match(helper, /isActive:\s*true/);
-    assert.match(helper, /suspendedAt:\s*null/);
-    assert.match(helper, /accountDeletedAt:\s*null/);
+    assert.match(helper, /publicListingEligibilityWhere|publicListingSitemapWhere/);
+    const eligibility = read('lib/marketplace/public-listing-eligibility.ts');
+    assert.match(eligibility, /productIntegrityPublicWhere/);
+    assert.match(eligibility, /isActive:\s*true/);
+    assert.match(eligibility, /suspendedAt:\s*null/);
+    assert.match(eligibility, /accountDeletedAt:\s*null/);
   });
 
   it('LEGAL-0 known segments allow sitemap-products.xml through middleware', () => {

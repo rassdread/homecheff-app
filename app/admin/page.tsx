@@ -189,6 +189,11 @@ export default async function AdminPage() {
 
   return (
     <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="animate-pulse text-gray-500">Loading…</div></div>}>
+      <p className="bg-gray-50 px-4 pt-4 text-sm">
+        <a href="/admin/vlaardingen-density" className="text-emerald-800 underline">
+          Vlaardingen density
+        </a>
+      </p>
       <AdminDashboard
       user={{
         id: user.id,
