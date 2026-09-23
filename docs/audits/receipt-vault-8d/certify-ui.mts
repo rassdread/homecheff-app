@@ -140,8 +140,15 @@ async function main() {
       await addSession(context, tokenA);
       const page = await context.newPage();
       let listRequests = 0;
+      const contentResponses: string[] = [];
       page.on('request', (req) => {
         if (req.method() === 'GET' && req.url().includes('/api/seller/evidence?expenseId=')) listRequests += 1;
+      });
+      page.on('response', (res) => {
+        if (res.url().includes('/content')) contentResponses.push(String(res.status()));
+      });
+      page.on('requestfailed', (req) => {
+        if (req.url().includes('/content')) contentResponses.push(`failed:${req.failure()?.errorText}`);
       });
       await page.goto(`${HOST}/verdiensten`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
       await settle(page);
@@ -169,7 +176,9 @@ async function main() {
       await page.waitForTimeout(1200);
 
       // --- the evidence panel itself ---------------------------------------
-      const addLabel = page.locator('label:has(input[type="file"])').first();
+      const panel = page.locator('[data-hc-evidence-panel]').first();
+      await panel.waitFor({ state: 'visible', timeout: 20_000 }).catch(() => undefined);
+      const addLabel = panel.locator('label:has(input[type="file"])').first();
       await addLabel.scrollIntoViewIfNeeded();
       check(`${vp.name}_ADD_CONTROL_VISIBLE`, await addLabel.isVisible().catch(() => false));
 
@@ -179,22 +188,22 @@ async function main() {
       // what a seller tabbing through the form does, and the browser's scroll
       // must not leave the control under a fixed bar. Second, operability at
       // all: brought to the middle of the viewport, nothing may sit on top.
-      await page.locator('input[type="file"]').first().focus().catch(() => undefined);
+      await panel.locator('input[type="file"]').first().focus().catch(() => undefined);
       await page.waitForTimeout(700);
-      const afterFocus = await isTopmostAtCentre(page, 'label:has(input[type="file"])');
+      const afterFocus = await isTopmostAtCentre(page, '[data-hc-evidence-panel] label:has(input[type="file"])');
       check(`${vp.name}_ADD_NOT_COVERED_AFTER_FOCUS`, afterFocus.ok, `blocked by ${afterFocus.blocker}`);
 
       await page.evaluate(() => {
         document
-          .querySelector('label:has(input[type="file"])')
+          .querySelector('[data-hc-evidence-panel] label:has(input[type="file"])')
           ?.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
       });
       await page.waitForTimeout(700);
-      const centred = await isTopmostAtCentre(page, 'label:has(input[type="file"])');
+      const centred = await isTopmostAtCentre(page, '[data-hc-evidence-panel] label:has(input[type="file"])');
       check(`${vp.name}_ADD_OPERABLE`, centred.ok, `blocked by ${centred.blocker}`);
 
       // The size limit is stated before the seller picks anything (§8).
-      const panelText = await page.locator('label:has(input[type="file"])').locator('xpath=../..').innerText();
+      const panelText = await panel.innerText();
       check(`${vp.name}_LIMIT_SHOWN_BEFORE_UPLOAD`, /MB/.test(panelText), panelText.slice(0, 120));
       check(
         `${vp.name}_NO_VERIFIED_CLAIM`,
@@ -203,7 +212,7 @@ async function main() {
       );
 
       // The file input accepts camera capture on mobile browsers (§13).
-      const accept = await page.locator('input[type="file"]').first().getAttribute('accept');
+      const accept = await panel.locator('input[type="file"]').first().getAttribute('accept');
       check(`${vp.name}_ACCEPT_TYPES`, accept === 'image/jpeg,image/png,image/webp,application/pdf', String(accept));
 
       const overflow = await page.evaluate(
@@ -212,7 +221,7 @@ async function main() {
       check(`${vp.name}_NO_HORIZONTAL_OVERFLOW`, overflow <= 1, `${overflow}px`);
 
       // --- upload through the real input -------------------------------------
-      await page.locator('input[type="file"]').first().setInputFiles({
+      await panel.locator('input[type="file"]').first().setInputFiles({
         name: 'bonnetje.jpg',
         mimeType: 'image/jpeg',
         buffer: makeJpegWithMetadata(),
@@ -221,13 +230,7 @@ async function main() {
 
       // The panel has its own live region; the page has several others, so the
       // announcement is read from inside the panel rather than page-wide.
-      const panelRoot = page.locator('div:has(> label:has(input[type="file"]))').first();
-      const added = await panelRoot
-        .locator('xpath=..')
-        .locator('[role="status"]')
-        .first()
-        .innerText()
-        .catch(() => '');
+      const added = await panel.locator('[role="status"]').first().innerText().catch(() => '');
       check(`${vp.name}_UPLOAD_ANNOUNCED`, /toegevoegd/i.test(added), added.slice(0, 80));
 
       // The request count is the loop guard: one list fetch per open, plus one
@@ -237,12 +240,12 @@ async function main() {
       await page.screenshot({ path: path.join(OUT, `${vp.name}-attached.png`), fullPage: true });
 
       // --- viewer: dialog semantics, close control, keyboard (§34) -----------
-      const viewBtn = page.getByRole('button', { name: /^Bekijken$/ }).first();
+      const viewBtn = panel.getByRole('button', { name: /^Bekijken$/ }).first();
       await viewBtn.waitFor({ state: 'visible', timeout: 20_000 }).catch(() => undefined);
       if (await viewBtn.isVisible().catch(() => false)) {
         await viewBtn.click();
         // The viewer specifically, not whatever other dialog the page may hold.
-        const dialog = page.locator('[role="dialog"][aria-label]').first();
+        const dialog = page.locator('[data-hc-evidence-viewer] [role="dialog"]').first();
         await dialog.waitFor({ state: 'visible', timeout: 15_000 });
         check(`${vp.name}_VIEWER_MODAL`, (await dialog.getAttribute('aria-modal')) === 'true');
         check(`${vp.name}_VIEWER_LABELLED`, Boolean(await dialog.getAttribute('aria-label')));
@@ -250,7 +253,7 @@ async function main() {
         // Focus lands on the close button, and the close button is reachable.
         const focused = await page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? '');
         check(`${vp.name}_VIEWER_FOCUS_ON_CLOSE`, /sluiten/i.test(focused), focused);
-        const closeHit = await isTopmostAtCentre(page, '[role="dialog"][aria-label] button[aria-label]');
+        const closeHit = await isTopmostAtCentre(page, '[data-hc-evidence-viewer] [role="dialog"] button[aria-label]');
         check(`${vp.name}_VIEWER_CLOSE_NOT_COVERED`, closeHit.ok, `blocked by ${closeHit.blocker}`);
 
         // The image really rendered — a broken private fetch would stay 0x0.
@@ -262,7 +265,7 @@ async function main() {
               // Any dialog may match the selector, so look for the image across
               // all of them rather than trusting document order.
               const imgs = Array.from(
-                document.querySelectorAll<HTMLImageElement>('[role="dialog"] img'),
+                document.querySelectorAll<HTMLImageElement>('[data-hc-evidence-viewer] img'),
               ).filter((i) => (i.getAttribute('src') ?? '').includes('/api/seller/evidence/'));
               const img = imgs.find((i) => i.complete && i.naturalWidth > 0);
               if (!img) return null;
@@ -273,7 +276,11 @@ async function main() {
           )
           .then((h) => h.jsonValue() as Promise<{ w: number; h: number; done: boolean }>)
           .catch(() => ({ w: 0, h: 0, done: false }));
-        check(`${vp.name}_VIEWER_IMAGE_LOADED`, dims.w > 0 && dims.h > 0, JSON.stringify(dims));
+        check(
+          `${vp.name}_VIEWER_IMAGE_LOADED`,
+          dims.w > 0 && dims.h > 0,
+          `${JSON.stringify(dims)} content responses: [${contentResponses.join(', ')}]`,
+        );
         await page.screenshot({ path: path.join(OUT, `${vp.name}-viewer.png`) });
 
         // No vault address anywhere in the page or the address bar (§28).

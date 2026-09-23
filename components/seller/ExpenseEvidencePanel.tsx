@@ -165,7 +165,11 @@ export default function ExpenseEvidencePanel({
     : null;
 
   return (
-    <div className="mt-3 rounded-lg border border-gray-200 bg-white p-3" style={NAV_CLEARANCE}>
+    <div
+      data-hc-evidence-panel={expenseId}
+      className="mt-3 rounded-lg border border-gray-200 bg-white p-3"
+      style={NAV_CLEARANCE}
+    >
       <div className="flex items-center justify-between gap-3">
         <h4 className="text-sm font-semibold text-gray-900">
           {items.length > 0
@@ -301,6 +305,7 @@ function EvidenceViewer({ item, onClose }: { item: Evidence; onClose: () => void
     <div
       // z-[110] sits above the expense dialog at z-[100], which in turn clears
       // the bottom navigation at z-[65].
+      data-hc-evidence-viewer=""
       className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 p-4"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
