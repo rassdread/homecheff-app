@@ -27,13 +27,13 @@ export async function generateMetadata({
   const hub = await getEcosystemHubForCitySlug(city.slug);
   const indexable = shouldIndexCityHub(hub);
   const currentDomain = await getCurrentDomain();
-  const title = `Lokaal aanbod in ${city.label} | HomeCheff`;
-  const description = `Ontdek lokale makers, vakmanschap en buurtaanbod in ${city.label} via HomeCheff — eten, tuin, creaties, diensten en hulp.`;
+  const title = `Lokaal aanbod in ${city.label}`;
+  const description = `Wat mensen in en rond ${city.label} op HomeCheff aanbieden: eten, tuinoogst, creaties, diensten en buurthulp, met de maker erbij.`;
   return {
     title,
     description,
     openGraph: {
-      title,
+      title: `${title} | HomeCheff`,
       description,
       url: `${currentDomain}/maaltijden/${city.slug}`,
       siteName: "HomeCheff",
@@ -95,8 +95,9 @@ export default async function MaaltijdenStadPage({
           Lokaal aanbod in {city.label}
         </h1>
         <p className="mt-4 text-lg text-neutral-600">
-          Op het dorpsplein vind je lokale makers, vakmanschap en buurtaanbod — eten is
-          één categorie naast tuin, creaties, diensten en hulp. De persoon achter het aanbod staat centraal.
+          Hier zie je wat mensen in en rond {city.label} op HomeCheff aanbieden. Dat is niet
+          alleen eten, maar ook tuinoogst, creaties, diensten en hulp van buren. Bij elk aanbod
+          zie je wie het maakt.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link

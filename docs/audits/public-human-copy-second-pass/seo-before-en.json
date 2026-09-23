@@ -1,0 +1,1400 @@
+{
+  "/": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/",
+    "xRobotsTag": null,
+    "title": "HomeCheff — Ecosystem for local entrepreneurship",
+    "description": "HomeCheff® — ecosystem for local entrepreneurship, creation and earning. Marketplace, Studio, Growth and Affiliate/Partners in one system. CREATE → SELL → GROW → PROMOTE → EARN.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/",
+      "nl-NL=https://homecheff.eu/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "HomeCheff — Ecosystem for local entrepreneurship",
+    "ogDescription": "HomeCheff® — ecosystem for local entrepreneurship, creation and earning. Marketplace, Studio, Growth and Affiliate/Partners in one system. CREATE → SELL → GROW → PROMOTE → EARN.",
+    "h1": [
+      ""
+    ],
+    "h2": [],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service"
+    ],
+    "jsonLdHash": "5571229de4a7",
+    "internalLinks": 3,
+    "internalLinksHash": "60dfe059f204",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/manifest.json"
+    ]
+  },
+  "/affiliate": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/affiliate",
+    "xRobotsTag": null,
+    "title": "HomeCheff Marketplace Affiliate | 50% platform fee pool · 12 months | HomeCheff",
+    "description": "Refer a HomeCheff user and earn for 12 months from the eligible HomeCheff platform fee pool — never from full order value, seller payout, or HomeCheff Credits (HC).",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/affiliate/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/affiliate/",
+      "nl-NL=https://homecheff.eu/affiliate/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Promote HomeCheff. Earn with it.",
+    "ogDescription": "12 months · share of HomeCheff platform fee revenue. Not GMV, not HC. Growth and Studio can also count. No guaranteed income.",
+    "h1": [
+      "Verdien mee met HomeCheff",
+      ""
+    ],
+    "h2": [
+      "De affiliatepool",
+      "Ook verdienen op andere HomeCheff-platformen",
+      "Veelgestelde vragen",
+      "Hoe wil je HomeCheff promoten?",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "BreadcrumbList",
+      "FAQPage",
+      "Organization"
+    ],
+    "jsonLdHash": "c48de22a82aa",
+    "internalLinks": 8,
+    "internalLinksHash": "37e325f6a804",
+    "internalLinkList": [
+      "/",
+      "/affiliate/company",
+      "/affiliate/dashboard",
+      "/affiliate/passive-income-calculator",
+      "/careers",
+      "/ecosystem",
+      "/faq",
+      "/manifest.json"
+    ]
+  },
+  "/faq": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/faq",
+    "xRobotsTag": null,
+    "title": "Frequently Asked Questions (FAQ) - HomeCheff | HomeCheff",
+    "description": "Answers about HomeCheff: HomeCheff is an ecosystem for local entrepreneurship, creation and earning. It connects Marketplace, HomeCheff Studio, HomeCheff Growth and Affiliate/Partners in one system. People and businesses can create, offer and sell, produce content, find customers, promote and earn. Fees, payouts, barter, neighbour help and trust.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/faq/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/faq/",
+      "nl-NL=https://homecheff.eu/faq/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Frequently Asked Questions (FAQ) - HomeCheff",
+    "ogDescription": "Answers about HomeCheff: HomeCheff is an ecosystem for local entrepreneurship, creation and earning. It connects Marketplace, HomeCheff Studio, HomeCheff Growth and Affiliate/Partners in one system. People and businesses can create, offer and sell, produce content, find customers, promote and earn. Fees, payouts, barter, neighbour help and trust.",
+    "h1": [
+      ""
+    ],
+    "h2": [
+      "Wat houd je écht over?",
+      "",
+      ""
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service"
+    ],
+    "jsonLdHash": "5571229de4a7",
+    "internalLinks": 6,
+    "internalLinksHash": "edfa2138d353",
+    "internalLinkList": [
+      "/",
+      "/affiliate",
+      "/careers",
+      "/contact",
+      "/manifest",
+      "/manifest.json"
+    ]
+  },
+  "/careers": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/careers",
+    "xRobotsTag": null,
+    "title": "Earn with HomeCheff — Sell, deliver, promote or join | HomeCheff",
+    "description": "See how you can participate in HomeCheff: sell what you make, deliver locally, become an affiliate or Affiliate Company, discover Studio and Growth, or view real HomeCheff jobs.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/careers/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/careers/",
+      "nl-NL=https://homecheff.eu/werken-bij/",
+      "x-default=https://homecheff.eu/careers/"
+    ],
+    "ogTitle": "Earn with HomeCheff",
+    "ogDescription": "Sell, deliver, promote HomeCheff, or explore Studio and Growth.",
+    "h1": [
+      "Earn with HomeCheff"
+    ],
+    "h2": [
+      "I want to…",
+      "Opportunities",
+      "Deliver with HomeCheff",
+      "Work at HomeCheff (internal)"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service"
+    ],
+    "jsonLdHash": "5571229de4a7",
+    "internalLinks": 10,
+    "internalLinksHash": "bf75e21071ed",
+    "internalLinkList": [
+      "/",
+      "/affiliate",
+      "/affiliate/company",
+      "/careers",
+      "/careers/how-it-works",
+      "/careers/jobs",
+      "/delivery/company/signup",
+      "/delivery/signup",
+      "/manifest.json",
+      "/onboarding/seller"
+    ]
+  },
+  "/en/seo-hub": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/seo-hub",
+    "xRobotsTag": null,
+    "title": "Guides and topics | HomeCheff | HomeCheff",
+    "description": "Guides on offering and discovering locally: food, garden, creations, services, barter and community — all HomeCheff topics.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/seo-hub/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/seo-hub/",
+      "nl-NL=https://homecheff.eu/seo-hub/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Guides and topics | HomeCheff",
+    "ogDescription": "Guides on offering and discovering locally: food, garden, creations, services, barter and community — all HomeCheff topics.",
+    "h1": [
+      "Guides and topics"
+    ],
+    "h2": [
+      "Craft and community — core topics",
+      "HomeCheff ecosystem",
+      "Governance & trust",
+      "Discover & buy locally",
+      "Food & kitchen (one category)",
+      "Offer locally & earn",
+      "Local in your city",
+      "Earning from home",
+      "Selling food",
+      "Products & platform",
+      "Delivery partner & more guides"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage"
+    ],
+    "jsonLdHash": "7ea6fb3a8b84",
+    "internalLinks": 62,
+    "internalLinksHash": "2e4bb5c626d9",
+    "internalLinkList": [
+      "/",
+      "/alternatief-voor-dropshipping",
+      "/bezorger-worden",
+      "/bijverdienen-vanuit-huis",
+      "/buurt-economie",
+      "/buurthulp",
+      "/careers",
+      "/constitution",
+      "/contact",
+      "/docs",
+      "/en/alternative-to-takeaway-platforms",
+      "/en/buy-home-cooked-food",
+      "/en/buy-local-products",
+      "/en/cook-for-others-from-home",
+      "/en/earn-money-cooking-from-home",
+      "/en/earn-money-with-home-cooking",
+      "/en/healthy-meal-ideas",
+      "/en/how-to-start-as-a-home-cook",
+      "/en/meals-at-home",
+      "/en/meals-in-amsterdam",
+      "/en/meals-in-eindhoven",
+      "/en/meals-in-rotterdam",
+      "/en/meals-in-the-hague",
+      "/en/meals-in-utrecht",
+      "/en/order-food-from-local-cooks",
+      "/en/platform-for-home-cooks",
+      "/en/rules-for-selling-food-from-home",
+      "/en/sell-from-home",
+      "/en/what-is-home-cooked-food",
+      "/en/what-should-we-eat-today",
+      "/eten-verkopen-rotterdam",
+      "/eten-verkopen-vanuit-huis",
+      "/evidence",
+      "/faq",
+      "/geld-verdienen-met-koken",
+      "/gemeenschap/community",
+      "/gemeenschap/inspiratie",
+      "/gemeenschap/keuken",
+      "/gemeenschap/studio",
+      "/gemeenschap/tuin",
+      "/growth",
+      "/hoe-homecheff-werkt",
+      "/lokaal-eten-verkopen",
+      "/lokaal-verdienen",
+      "/lokale-producten-verkopen",
+      "/manifest",
+      "/manifest.json",
+      "/ontmoet-de-maker",
+      "/over-ons",
+      "/persoonlijk-vakmanschap",
+      "/platform-voor-thuiskoks",
+      "/sell",
+      "/seo-hub",
+      "/thuisgekookt-eten-verkopen",
+      "/trust",
+      "/unieke-producten-verkopen",
+      "/verdienen-zonder-dropshipping",
+      "/vergelijken",
+      "/verkopen-vanuit-huis",
+      "/wat-is-homecheff",
+      "/wat-we-niet-zijn",
+      "/zelfgemaakt-eten-verkopen"
+    ]
+  },
+  "/en/buy-home-cooked-food": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/buy-home-cooked-food",
+    "xRobotsTag": null,
+    "title": "Buy Home-Cooked Food | Fresh Meals from Local Cooks | HomeCheff | HomeCheff",
+    "description": "Order home-cooked meals from cooks near you. Fresh, local and direct on HomeCheff — browse the village square and buy with confidence.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/buy-home-cooked-food/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/buy-home-cooked-food/",
+      "nl-NL=https://homecheff.eu/thuisgekookt-eten-kopen/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Buy Home-Cooked Food | Fresh Meals from Local Cooks | HomeCheff",
+    "ogDescription": "Order home-cooked meals from cooks near you. Fresh, local and direct on HomeCheff — browse the village square and buy with confidence.",
+    "h1": [
+      "Buy home-cooked food from local makers"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "247394d2f2cb",
+    "internalLinks": 11,
+    "internalLinksHash": "a0c0307b3d93",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/alternative-to-takeaway-platforms",
+      "/en/buy-local-products",
+      "/en/meals-at-home",
+      "/en/seo-hub",
+      "/hoe-homecheff-werkt",
+      "/manifest.json",
+      "/sell",
+      "/wat-is-homecheff"
+    ]
+  },
+  "/en/order-food-from-local-cooks": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/order-food-from-local-cooks",
+    "xRobotsTag": null,
+    "title": "Order Food from Local Cooks | HomeCheff | HomeCheff",
+    "description": "Order food from home cooks on HomeCheff. Local listings, clear pricing, and a simple way to buy from real people near you.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/order-food-from-local-cooks/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/order-food-from-local-cooks/",
+      "nl-NL=https://homecheff.eu/eten-bestellen-bij-particulieren/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Order Food from Local Cooks | HomeCheff",
+    "ogDescription": "Order food from home cooks on HomeCheff. Local listings, clear pricing, and a simple way to buy from real people near you.",
+    "h1": [
+      "Order food from local cooks"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "e48debbb923c",
+    "internalLinks": 12,
+    "internalLinksHash": "ffb5010af079",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/buy-home-cooked-food",
+      "/en/meals-at-home",
+      "/en/platform-for-home-cooks",
+      "/en/seo-hub",
+      "/hoe-homecheff-werkt",
+      "/manifest.json",
+      "/register",
+      "/sell",
+      "/wat-is-homecheff"
+    ]
+  },
+  "/en/meals-at-home": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/meals-at-home",
+    "xRobotsTag": null,
+    "title": "Meals at Home | Local and Fresh Dishes | HomeCheff | HomeCheff",
+    "description": "Meals at home from local home cooks. Fresh, nearby and easy to order on HomeCheff—see what makers near you offer today.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/meals-at-home/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/meals-at-home/",
+      "nl-NL=https://homecheff.eu/maaltijden-aan-huis/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Meals at Home | Local and Fresh Dishes | HomeCheff",
+    "ogDescription": "Meals at home from local home cooks. Fresh, nearby and easy to order on HomeCheff—see what makers near you offer today.",
+    "h1": [
+      "Meals at home from local makers"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "4f11ee8bb0a0",
+    "internalLinks": 9,
+    "internalLinksHash": "f9eb9df918a0",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/buy-home-cooked-food",
+      "/en/order-food-from-local-cooks",
+      "/en/seo-hub",
+      "/en/what-should-we-eat-today",
+      "/manifest.json",
+      "/sell"
+    ]
+  },
+  "/en/what-should-we-eat-today": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/what-should-we-eat-today",
+    "xRobotsTag": null,
+    "title": "What Should We Eat Today? | Inspiration and Local Meals | HomeCheff | HomeCheff",
+    "description": "Stuck on dinner ideas? Get inspiration and order locally on HomeCheff—from recipes to ready meals near you, all in one place.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/what-should-we-eat-today/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/what-should-we-eat-today/",
+      "nl-NL=https://homecheff.eu/wat-eten-we-vandaag/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "What Should We Eat Today? | Inspiration and Local Meals | HomeCheff",
+    "ogDescription": "Stuck on dinner ideas? Get inspiration and order locally on HomeCheff—from recipes to ready meals near you, all in one place.",
+    "h1": [
+      "What should we eat today?"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "32aede108b78",
+    "internalLinks": 11,
+    "internalLinksHash": "4ea276c0e6da",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/buy-home-cooked-food",
+      "/en/healthy-meal-ideas",
+      "/en/meals-at-home",
+      "/en/seo-hub",
+      "/hoe-homecheff-werkt",
+      "/manifest.json",
+      "/sell",
+      "/wat-is-homecheff"
+    ]
+  },
+  "/en/healthy-meal-ideas": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/healthy-meal-ideas",
+    "xRobotsTag": null,
+    "title": "Healthy Meal Ideas | HomeCheff | HomeCheff",
+    "description": "Healthy meal ideas and local food on HomeCheff. Find makers with fresh ingredients and inspiration that fits your lifestyle.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/healthy-meal-ideas/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/healthy-meal-ideas/",
+      "nl-NL=https://homecheff.eu/gezonde-maaltijden-ideeen/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Healthy Meal Ideas | HomeCheff",
+    "ogDescription": "Healthy meal ideas and local food on HomeCheff. Find makers with fresh ingredients and inspiration that fits your lifestyle.",
+    "h1": [
+      "Healthy meal ideas and local food"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "44bb3959da68",
+    "internalLinks": 9,
+    "internalLinksHash": "50cc43969bfb",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/buy-local-products",
+      "/en/meals-at-home",
+      "/en/seo-hub",
+      "/en/what-should-we-eat-today",
+      "/manifest.json",
+      "/sell"
+    ]
+  },
+  "/en/earn-money-cooking-from-home": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/earn-money-cooking-from-home",
+    "xRobotsTag": null,
+    "title": "Earn Money Cooking from Home | Start as a Home Cook | HomeCheff | HomeCheff",
+    "description": "Earn money cooking from home. Get visible locally on HomeCheff without heavy setup—list your first dish and grow step by step.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/earn-money-cooking-from-home/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/earn-money-cooking-from-home/",
+      "nl-NL=https://homecheff.eu/geld-verdienen-met-koken/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Earn Money Cooking from Home | Start as a Home Cook | HomeCheff",
+    "ogDescription": "Earn money cooking from home. Get visible locally on HomeCheff without heavy setup—list your first dish and grow step by step.",
+    "h1": [
+      "Earn money cooking from home"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can list",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "0a28ba18f53c",
+    "internalLinks": 11,
+    "internalLinksHash": "9c4f58307f0a",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/earn-money-with-home-cooking",
+      "/en/how-to-start-as-a-home-cook",
+      "/en/sell-from-home",
+      "/en/seo-hub",
+      "/hoe-homecheff-werkt",
+      "/manifest.json",
+      "/sell",
+      "/wat-is-homecheff"
+    ]
+  },
+  "/en/sell-from-home": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/sell-from-home",
+    "xRobotsTag": null,
+    "title": "Sell from Home | Start Locally with HomeCheff | HomeCheff",
+    "description": "Sell from your own kitchen or workshop. HomeCheff helps neighbours discover you—start local and grow at your pace.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/sell-from-home/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/sell-from-home/",
+      "nl-NL=https://homecheff.eu/verkopen-vanuit-huis/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Sell from Home | Start Locally with HomeCheff",
+    "ogDescription": "Sell from your own kitchen or workshop. HomeCheff helps neighbours discover you—start local and grow at your pace.",
+    "h1": [
+      "Sell from home"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can list",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "53d8ea790a37",
+    "internalLinks": 10,
+    "internalLinksHash": "047c52252556",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/earn-money-cooking-from-home",
+      "/en/platform-for-home-cooks",
+      "/en/rules-for-selling-food-from-home",
+      "/en/seo-hub",
+      "/manifest.json",
+      "/sell",
+      "/sell/new"
+    ]
+  },
+  "/en/how-to-start-as-a-home-cook": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/how-to-start-as-a-home-cook",
+    "xRobotsTag": null,
+    "title": "How to Start as a Home Cook | HomeCheff | HomeCheff",
+    "description": "Practical steps to start as a home cook on HomeCheff: profile, first listing, and visibility nearby—without fluff.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/how-to-start-as-a-home-cook/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/how-to-start-as-a-home-cook/",
+      "nl-NL=https://homecheff.eu/hoe-begin-je-als-thuiskok/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "How to Start as a Home Cook | HomeCheff",
+    "ogDescription": "Practical steps to start as a home cook on HomeCheff: profile, first listing, and visibility nearby—without fluff.",
+    "h1": [
+      "How to start as a home cook"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can list",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "11c015c57e82",
+    "internalLinks": 9,
+    "internalLinksHash": "61af1b1cb467",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/cook-for-others-from-home",
+      "/en/earn-money-cooking-from-home",
+      "/en/rules-for-selling-food-from-home",
+      "/en/seo-hub",
+      "/manifest.json",
+      "/sell"
+    ]
+  },
+  "/en/cook-for-others-from-home": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/cook-for-others-from-home",
+    "xRobotsTag": null,
+    "title": "Cook for Others from Home | HomeCheff | HomeCheff",
+    "description": "Cook for others and get paid? HomeCheff connects you with neighbours who want to order—clearly and safely.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/cook-for-others-from-home/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/cook-for-others-from-home/",
+      "nl-NL=https://homecheff.eu/koken-voor-anderen-vanuit-huis/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Cook for Others from Home | HomeCheff",
+    "ogDescription": "Cook for others and get paid? HomeCheff connects you with neighbours who want to order—clearly and safely.",
+    "h1": [
+      "Cook for others from home"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can list",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "eab4d4d2fd02",
+    "internalLinks": 13,
+    "internalLinksHash": "853cb85868fa",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/earn-money-cooking-from-home",
+      "/en/earn-money-with-home-cooking",
+      "/en/platform-for-home-cooks",
+      "/en/sell-from-home",
+      "/en/seo-hub",
+      "/hoe-homecheff-werkt",
+      "/manifest.json",
+      "/sell",
+      "/sell/new",
+      "/wat-is-homecheff"
+    ]
+  },
+  "/en/earn-money-with-home-cooking": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/earn-money-with-home-cooking",
+    "xRobotsTag": null,
+    "title": "Earn Money with Home Cooking | HomeCheff | HomeCheff",
+    "description": "Turn a cooking hobby into your first sales on HomeCheff. Start local, learn what works, grow at your pace.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/earn-money-with-home-cooking/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/earn-money-with-home-cooking/",
+      "nl-NL=https://homecheff.eu/verdienen-met-hobby-koken/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Earn Money with Home Cooking | HomeCheff",
+    "ogDescription": "Turn a cooking hobby into your first sales on HomeCheff. Start local, learn what works, grow at your pace.",
+    "h1": [
+      "Earn money with home cooking"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can list",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "70c8c6601d18",
+    "internalLinks": 12,
+    "internalLinksHash": "7caca3111549",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/cook-for-others-from-home",
+      "/en/earn-money-cooking-from-home",
+      "/en/how-to-start-as-a-home-cook",
+      "/en/seo-hub",
+      "/hoe-homecheff-werkt",
+      "/manifest.json",
+      "/register",
+      "/sell",
+      "/wat-is-homecheff"
+    ]
+  },
+  "/en/platform-for-home-cooks": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/platform-for-home-cooks",
+    "xRobotsTag": null,
+    "title": "Platform for Home Cooks | HomeCheff | HomeCheff",
+    "description": "HomeCheff is a platform for home cooks: reach nearby customers, showcase your offer, and manage orders in one place.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/platform-for-home-cooks/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/platform-for-home-cooks/",
+      "nl-NL=https://homecheff.eu/platform-voor-thuiskoks/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Platform for Home Cooks | HomeCheff",
+    "ogDescription": "HomeCheff is a platform for home cooks: reach nearby customers, showcase your offer, and manage orders in one place.",
+    "h1": [
+      "A platform for home cooks"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover or list",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "b818ad21a56c",
+    "internalLinks": 9,
+    "internalLinksHash": "487769142664",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/how-to-start-as-a-home-cook",
+      "/en/rules-for-selling-food-from-home",
+      "/en/seo-hub",
+      "/en/what-is-home-cooked-food",
+      "/manifest.json",
+      "/sell"
+    ]
+  },
+  "/en/what-is-home-cooked-food": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/what-is-home-cooked-food",
+    "xRobotsTag": null,
+    "title": "What Is Home-Cooked Food? | HomeCheff | HomeCheff",
+    "description": "What does home-cooked food mean on HomeCheff? How makers work, what freshness means, and how it differs from typical delivery chains.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/what-is-home-cooked-food/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/what-is-home-cooked-food/",
+      "nl-NL=https://homecheff.eu/wat-is-thuisgekookt-eten/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "What Is Home-Cooked Food? | HomeCheff",
+    "ogDescription": "What does home-cooked food mean on HomeCheff? How makers work, what freshness means, and how it differs from typical delivery chains.",
+    "h1": [
+      "What is home-cooked food?"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "3739274f3749",
+    "internalLinks": 12,
+    "internalLinksHash": "8cb867d60a64",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/buy-home-cooked-food",
+      "/en/platform-for-home-cooks",
+      "/en/rules-for-selling-food-from-home",
+      "/en/seo-hub",
+      "/faq",
+      "/hoe-homecheff-werkt",
+      "/manifest.json",
+      "/sell",
+      "/wat-is-homecheff"
+    ]
+  },
+  "/en/rules-for-selling-food-from-home": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/rules-for-selling-food-from-home",
+    "xRobotsTag": null,
+    "title": "Rules for Selling Food from Home | HomeCheff | HomeCheff",
+    "description": "Orientation on selling food from home: what HomeCheff handles, what you remain responsible for. Not legal advice. NVWA registration becomes relevant if you sell several times a year.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/rules-for-selling-food-from-home/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/rules-for-selling-food-from-home/",
+      "nl-NL=https://homecheff.eu/eten-verkopen-vanuit-huis-regels/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Rules for Selling Food from Home | HomeCheff",
+    "ogDescription": "Orientation on selling food from home: what HomeCheff handles, what you remain responsible for. Not legal advice. NVWA registration becomes relevant if you sell several times a year.",
+    "h1": [
+      "Rules for selling food from home"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can list",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "696827e7c60f",
+    "internalLinks": 9,
+    "internalLinksHash": "2d45a508d9a1",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/how-to-start-as-a-home-cook",
+      "/en/platform-for-home-cooks",
+      "/en/sell-from-home",
+      "/en/seo-hub",
+      "/manifest.json",
+      "/sell"
+    ]
+  },
+  "/en/buy-local-products": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/buy-local-products",
+    "xRobotsTag": null,
+    "title": "Buy Local Products | HomeCheff | HomeCheff",
+    "description": "Buy local products from makers near you—food, produce, design and more on HomeCheff. Browse the village square today.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/buy-local-products/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/buy-local-products/",
+      "nl-NL=https://homecheff.eu/lokale-producten-kopen/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Buy Local Products | HomeCheff",
+    "ogDescription": "Buy local products from makers near you—food, produce, design and more on HomeCheff. Browse the village square today.",
+    "h1": [
+      "Buy local products"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "7e8106cd1fed",
+    "internalLinks": 9,
+    "internalLinksHash": "1a2fa634d5b9",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/alternative-to-takeaway-platforms",
+      "/en/buy-home-cooked-food",
+      "/en/meals-at-home",
+      "/en/seo-hub",
+      "/manifest.json",
+      "/sell"
+    ]
+  },
+  "/en/alternative-to-takeaway-platforms": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/alternative-to-takeaway-platforms",
+    "xRobotsTag": null,
+    "title": "Alternative to Takeaway Platforms | HomeCheff | HomeCheff",
+    "description": "Looking beyond big delivery apps? HomeCheff connects you with home cooks and local makers—closer, more personal food.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/alternative-to-takeaway-platforms/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/alternative-to-takeaway-platforms/",
+      "nl-NL=https://homecheff.eu/alternatief-voor-thuisbezorgd/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Alternative to Takeaway Platforms | HomeCheff",
+    "ogDescription": "Looking beyond big delivery apps? HomeCheff connects you with home cooks and local makers—closer, more personal food.",
+    "h1": [
+      "An alternative to big takeaway platforms"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "030366bcc748",
+    "internalLinks": 11,
+    "internalLinksHash": "861b7f72410c",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/buy-home-cooked-food",
+      "/en/buy-local-products",
+      "/en/order-food-from-local-cooks",
+      "/en/seo-hub",
+      "/hoe-homecheff-werkt",
+      "/manifest.json",
+      "/sell",
+      "/wat-is-homecheff"
+    ]
+  },
+  "/en/meals-in-rotterdam": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/meals-in-rotterdam",
+    "xRobotsTag": null,
+    "title": "Meals in Rotterdam | Local Home Cooks and Fresh Dishes | HomeCheff | HomeCheff",
+    "description": "Meals in Rotterdam from local makers on HomeCheff. Discover home-cooked food near you—browse the village square today.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/meals-in-rotterdam/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/meals-in-rotterdam/",
+      "nl-NL=https://homecheff.eu/maaltijden-in-rotterdam/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Meals in Rotterdam | Local Home Cooks and Fresh Dishes | HomeCheff",
+    "ogDescription": "Meals in Rotterdam from local makers on HomeCheff. Discover home-cooked food near you—browse the village square today.",
+    "h1": [
+      "Meals in Rotterdam"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "c26862e612fa",
+    "internalLinks": 12,
+    "internalLinksHash": "8e1c5570aed3",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/buy-home-cooked-food",
+      "/en/buy-local-products",
+      "/en/meals-at-home",
+      "/en/seo-hub",
+      "/hoe-homecheff-werkt",
+      "/maaltijden/rotterdam",
+      "/manifest.json",
+      "/sell",
+      "/wat-is-homecheff"
+    ]
+  },
+  "/en/meals-in-amsterdam": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/meals-in-amsterdam",
+    "xRobotsTag": null,
+    "title": "Meals in Amsterdam | Local Home Cooks and Fresh Dishes | HomeCheff | HomeCheff",
+    "description": "Meals in Amsterdam on HomeCheff. Find home cooks and local food—fresh and nearby on the village square.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/meals-in-amsterdam/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/meals-in-amsterdam/",
+      "nl-NL=https://homecheff.eu/maaltijden-in-amsterdam/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Meals in Amsterdam | Local Home Cooks and Fresh Dishes | HomeCheff",
+    "ogDescription": "Meals in Amsterdam on HomeCheff. Find home cooks and local food—fresh and nearby on the village square.",
+    "h1": [
+      "Meals in Amsterdam"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "1b7dfcaa68ce",
+    "internalLinks": 12,
+    "internalLinksHash": "ec454b85eeee",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/alternative-to-takeaway-platforms",
+      "/en/buy-local-products",
+      "/en/meals-at-home",
+      "/en/seo-hub",
+      "/hoe-homecheff-werkt",
+      "/maaltijden/amsterdam",
+      "/manifest.json",
+      "/sell",
+      "/wat-is-homecheff"
+    ]
+  },
+  "/en/meals-in-the-hague": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/meals-in-the-hague",
+    "xRobotsTag": null,
+    "title": "Meals in The Hague | Local Home Cooks and Fresh Dishes | HomeCheff | HomeCheff",
+    "description": "Meals in The Hague from local makers on HomeCheff. Home-cooked dishes near you—check the village square.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/meals-in-the-hague/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/meals-in-the-hague/",
+      "nl-NL=https://homecheff.eu/maaltijden-in-den-haag/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Meals in The Hague | Local Home Cooks and Fresh Dishes | HomeCheff",
+    "ogDescription": "Meals in The Hague from local makers on HomeCheff. Home-cooked dishes near you—check the village square.",
+    "h1": [
+      "Meals in The Hague"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "f3333731d8f2",
+    "internalLinks": 12,
+    "internalLinksHash": "f57475ca88ba",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/buy-local-products",
+      "/en/meals-at-home",
+      "/en/order-food-from-local-cooks",
+      "/en/seo-hub",
+      "/hoe-homecheff-werkt",
+      "/maaltijden/den-haag",
+      "/manifest.json",
+      "/sell",
+      "/wat-is-homecheff"
+    ]
+  },
+  "/en/meals-in-utrecht": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/meals-in-utrecht",
+    "xRobotsTag": null,
+    "title": "Meals in Utrecht | Local Home Cooks and Fresh Dishes | HomeCheff | HomeCheff",
+    "description": "Meals in Utrecht on HomeCheff. Local home cooks and fresh listings—start on the village square.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/meals-in-utrecht/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/meals-in-utrecht/",
+      "nl-NL=https://homecheff.eu/maaltijden-in-utrecht/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Meals in Utrecht | Local Home Cooks and Fresh Dishes | HomeCheff",
+    "ogDescription": "Meals in Utrecht on HomeCheff. Local home cooks and fresh listings—start on the village square.",
+    "h1": [
+      "Meals in Utrecht"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "9500b3fdef8b",
+    "internalLinks": 12,
+    "internalLinksHash": "ae9a74c75bc7",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/buy-home-cooked-food",
+      "/en/meals-at-home",
+      "/en/seo-hub",
+      "/en/what-should-we-eat-today",
+      "/hoe-homecheff-werkt",
+      "/maaltijden/utrecht",
+      "/manifest.json",
+      "/sell",
+      "/wat-is-homecheff"
+    ]
+  },
+  "/en/meals-in-eindhoven": {
+    "status": 200,
+    "finalUrl": "https://homecheff.eu/en/meals-in-eindhoven",
+    "xRobotsTag": null,
+    "title": "Meals in Eindhoven | Local Home Cooks and Fresh Dishes | HomeCheff | HomeCheff",
+    "description": "Meals in Eindhoven on HomeCheff. Find home cooks in the region—the village square shows current listings.",
+    "robots": "index, follow",
+    "canonical": "https://homecheff.eu/en/meals-in-eindhoven/",
+    "hreflang": [
+      "en-US=https://homecheff.eu/en/meals-in-eindhoven/",
+      "nl-NL=https://homecheff.eu/maaltijden-in-eindhoven/",
+      "x-default=https://homecheff.eu/"
+    ],
+    "ogTitle": "Meals in Eindhoven | Local Home Cooks and Fresh Dishes | HomeCheff",
+    "ogDescription": "Meals in Eindhoven on HomeCheff. Find home cooks in the region—the village square shows current listings.",
+    "h1": [
+      "Meals in Eindhoven"
+    ],
+    "h2": [
+      "How HomeCheff works",
+      "Who is this for?",
+      "Why local—and why HomeCheff?",
+      "What you can discover",
+      "Get started",
+      "Explore more"
+    ],
+    "jsonLdTypes": [
+      "Organization",
+      "Organization",
+      "WebSite",
+      "SoftwareApplication",
+      "WebSite",
+      "SoftwareApplication",
+      "SoftwareApplication",
+      "Service",
+      "WebPage",
+      "Article"
+    ],
+    "jsonLdHash": "6b9edb91e92b",
+    "internalLinks": 12,
+    "internalLinksHash": "3f19a2af2ade",
+    "internalLinkList": [
+      "/",
+      "/careers",
+      "/contact",
+      "/en/buy-local-products",
+      "/en/meals-at-home",
+      "/en/platform-for-home-cooks",
+      "/en/seo-hub",
+      "/hoe-homecheff-werkt",
+      "/maaltijden/eindhoven",
+      "/manifest.json",
+      "/sell",
+      "/wat-is-homecheff"
+    ]
+  }
+}

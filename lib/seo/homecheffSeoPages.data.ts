@@ -13,39 +13,32 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Bestel thuisgekookte maaltijden bij makers bij jou in de buurt. Vers, lokaal en direct op HomeCheff — ontdek het dorpsplein.",
       h1: "Thuisgekookt eten kopen bij lokale makers",
       intro: [
-        "Wil je geen standaard bezorgketen, maar eten dat echt thuis is klaargemaakt? Op HomeCheff vind je mensen uit de buurt die koken wat ze zelf ook op tafel zetten: van comfortfood tot gezonde schotels.",
-        "Je ziet wie achter het gerecht zit, wat er wordt aangeboden en hoe je het kunt afhalen of laten brengen — afhankelijk van wat de maker aanbiedt. Zo blijft het persoonlijk en dichtbij.",
-        "Of je nu één avond wilt ontdekken of vaker lokaal wilt eten: start op het dorpsplein en filter op wat bij jou past.",
+        "Op HomeCheff koop je eten dat iemand bij jou in de buurt zelf heeft gekookt. Je ziet wie het maakt, wat het kost en of je het ophaalt of laat bezorgen. Dat laatste bepaalt de maker per gerecht.",
+        "Het aanbod verschilt per buurt en per dag, omdat het afhangt van wie er op dat moment kookt. Op het dorpsplein zie je wat er nu te krijgen is.",
       ],
-      howItWorks: {
-        title: "Hoe HomeCheff werkt",
-        paragraphs: [
-          "Je bladert op het dorpsplein door aanbod van thuiskoks, tuinders en makers in jouw omgeving. Elk item heeft een duidelijke prijs en uitleg van de maker.",
-          "Zie je iets leuks? Voeg het toe aan je winkelmand en rond af via de checkout. De maker bereidt je bestelling en je maakt af op de afgesproken manier: afhalen of bezorging, volgens wat op het product staat.",
-          "Na afloop kun je een beoordeling achterlaten — zo help je andere buren om goede makers te vinden.",
-        ],
-      },
-      audience: {
-        title: "Voor wie is dit interessant?",
-        paragraphs: [
-          "Voor iedereen die bewust wil eten zonder elke avond zelf te koken, en voor wie juist wél wil weten wie de pan vasthoudt.",
-          "Ook handig als je nieuwe smaken uit de buurt wilt proeven of gezinnen die afwisseling zoeken naast supermarkt en fastfood.",
-        ],
-      },
-      whyLocal: {
-        title: "Waarom lokaal en waarom HomeCheff?",
-        paragraphs: [
-          "Lokaal betekent vaak verser, minder kilometers en meer steun voor mensen om de hoek. Je geld gaat naar een maker in plaats van alleen naar een anonieme keten.",
-          "HomeCheff is een marketplace waar makers zelf hun aanbod tonen. Geen tussenpersonen die het verhaal vergeten — jij ziet wie kookt en wat je krijgt.",
-        ],
-      },
-      discover: {
-        title: "Wat je kunt ontdekken",
-        paragraphs: [
-          "Maaltijden, baksels, groente en creaties van designers — alles wat makers op het platform plaatsen. Combineer inspiratie (recepten en ideeën) met items die je direct kunt bestellen.",
-          "Nieuwe makers melden zich regelmatig aan; het loont om het dorpsplein vaker te bekijken.",
-        ],
-      },
+      sections: [
+        {
+          title: "Zo bestel je",
+          paragraphs: [
+            "Open het dorpsplein en kijk wat er bij jou in de buurt wordt aangeboden. Bij elk gerecht staan de prijs, een omschrijving van de maker en de manier van afhalen of bezorgen.",
+            "Leg wat je wilt in je winkelmand en reken af via de checkout. De maker gaat daarna aan de slag, en je haalt je bestelling op of krijgt hem gebracht zoals bij het gerecht staat.",
+            "Achteraf kun je een beoordeling geven. Daar hebben andere kopers in de buurt wat aan, en de maker ook.",
+          ],
+        },
+        {
+          title: "Waar je op let voordat je bestelt",
+          paragraphs: [
+            "Lees de omschrijving goed. Daarin vermeldt de maker wat erin zit en welke allergenen erin kunnen zitten. Twijfel je ergens over, stuur dan eerst een bericht.",
+            "De maker is verantwoordelijk voor de juiste productinformatie. HomeCheff zorgt dat je het aanbod vindt en dat de betaling goed verloopt.",
+          ],
+        },
+        {
+          title: "Meer dan maaltijden",
+          paragraphs: [
+            "Naast maaltijden bieden mensen ook baksels, groente uit eigen tuin en andere zelfgemaakte dingen aan. Wil je eerst ideeën opdoen, dan vind je bij Inspiratie recepten en projecten die niet te koop zijn.",
+          ],
+        },
+      ],
       cta: {
         primary: { label: "Ontdek lokaal aanbod", href: "/?chip=sale" },
         secondary: { label: "Bekijk inspiratie", href: "/?chip=inspiration" },
@@ -57,39 +50,32 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Order home-cooked meals from cooks near you. Fresh, local and direct on HomeCheff — browse the village square and buy with confidence.",
       h1: "Buy home-cooked food from local makers",
       intro: [
-        "Want food that is actually cooked at home—not the same generic delivery options? On HomeCheff you’ll find people nearby who make what they would serve at their own table, from comfort dishes to lighter meals.",
-        "You can see who is behind the dish, what is on offer, and how pickup or delivery works for that listing. It stays personal and close to home.",
-        "Whether you want to try once or eat locally more often, start on the village square and filter what fits you.",
+        "On HomeCheff you buy food that someone near you has cooked themselves. You can see who made it, what it costs, and whether you collect it or have it delivered. The maker decides that per dish.",
+        "What's available changes by neighbourhood and by day, because it depends on who is cooking. The village square shows what you can get right now.",
       ],
-      howItWorks: {
-        title: "How HomeCheff works",
-        paragraphs: [
-          "Browse the village square for offerings from home cooks, growers and makers near you. Each item shows a clear price and description from the seller.",
-          "Found something you like? Add it to your cart and complete checkout. The maker prepares your order; you pick up or receive delivery according to what the listing offers.",
-          "Afterwards you can leave a review—helping neighbours discover great makers.",
-        ],
-      },
-      audience: {
-        title: "Who is this for?",
-        paragraphs: [
-          "Anyone who wants thoughtful food without cooking every night, and anyone who cares about knowing who made the meal.",
-          "Great if you want to explore new flavours nearby or add variety beyond supermarkets and chains.",
-        ],
-      },
-      whyLocal: {
-        title: "Why local—and why HomeCheff?",
-        paragraphs: [
-          "Local often means fresher food, fewer miles, and more support for people around you. Your spend goes to a maker, not only to an anonymous chain.",
-          "HomeCheff is a marketplace where makers present their own offer—so the story stays visible.",
-        ],
-      },
-      discover: {
-        title: "What you can discover",
-        paragraphs: [
-          "Meals, baked goods, produce and more—whatever makers list. Pair inspiration (recipes and ideas) with items you can order right away.",
-          "New makers join over time; checking the village square regularly pays off.",
-        ],
-      },
+      sections: [
+        {
+          title: "How to order",
+          paragraphs: [
+            "Open the village square and see what people near you are offering. Each dish lists the price, the maker's own description, and how pickup or delivery works.",
+            "Add what you want to your cart and pay at checkout. The maker then prepares it, and you collect it or have it brought to you as described on the listing.",
+            "Afterwards you can leave a review. That helps other buyers nearby, and it helps the maker too.",
+          ],
+        },
+        {
+          title: "What to check before you order",
+          paragraphs: [
+            "Read the description properly. The maker lists what's in the dish and which allergens it may contain. If you're unsure about anything, send a message first.",
+            "The maker is responsible for accurate product information. HomeCheff makes the offer findable and handles the payment.",
+          ],
+        },
+        {
+          title: "Not only meals",
+          paragraphs: [
+            "Alongside meals, people offer baked goods, vegetables from their own garden and other things they make. If you'd rather start with ideas, Inspiration has recipes and projects that aren't for sale.",
+          ],
+        },
+      ],
       cta: {
         primary: { label: "Discover local offers", href: "/?chip=sale" },
         secondary: { label: "Explore inspiration", href: "/?chip=inspiration" },
@@ -481,38 +467,31 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Verdien geld met koken vanuit huis. HomeCheff helpt je lokaal zichtbaar te worden, zonder ingewikkeld gedoe — start met je eerste item.",
       h1: "Geld verdienen met koken vanuit huis",
       intro: [
-        "Als je graag kookt en anderen wilt verwennen, kun je dat omzetten naar inkomen. HomeCheff is een marketplace: jij bepaalt wat je maakt, tegen welke prijs en hoe afhalen of bezorging werkt—binnen de kaders die jij en het platform hanteren.",
-        "Je hoeft geen eigen webshop te bouwen: profiel, aanbod en zichtbaarheid op het dorpsplein brengen je bij buren die zoeken naar iets anders dan de standaard keten.",
-        "Begin klein met één gerecht, leer wat werkt, en breid uit als de vraag groeit.",
+        "Kook je graag en vaak, dan kun je daar op HomeCheff iets mee verdienen. Jij bepaalt wat je maakt, wat het kost en of je bezorgt of mensen het laten ophalen.",
+        "Hoeveel je overhoudt, hangt af van je prijzen, je kosten, de tijd die je erin steekt en de vraag in jouw buurt. Een vast bedrag kan niemand je beloven.",
       ],
-      howItWorks: {
-        title: "Hoe HomeCheff werkt",
-        paragraphs: [
-          "Maak een account, doorloop de verkoperflow en plaats je eerste product met duidelijke foto en beschrijving.",
-          "Klanten bestellen via het platform; jij bereidt en levert volgens de gekozen opties. Betalingen verlopen via de infrastructuur van HomeCheff waar van toepassing.",
-          "Reviews helpen je vertrouwen op te bouwen in de buurt.",
-        ],
-      },
-      audience: {
-        title: "Voor wie is dit interessant?",
-        paragraphs: [
-          "Voor hobbykoks die serieuzer willen worden en voor ervaren thuiskoks die meer lokale klanten zoeken.",
-        ],
-      },
-      whyLocal: {
-        title: "Waarom lokaal en waarom HomeCheff?",
-        paragraphs: [
-          "Lokaal bereik betekent kortere lijnen en vaak trouwere klanten die je via mond-tot-mond doorgeven.",
-          "HomeCheff richt zich op makers en buren—niet op anonieme massa’s ver weg.",
-        ],
-      },
-      discover: {
-        title: "Wat je kunt plaatsen",
-        paragraphs: [
-          "Maaltijden, menu’s op dagen die jij kiest, seizoenspecials—wat past bij jouw keuken en wetgeving in jouw situatie.",
-          "Lees ook de pagina over regels en starttips voordat je live gaat.",
-        ],
-      },
+      sections: [
+        {
+          title: "Wat je verkoopt en aan wie",
+          paragraphs: [
+            "Denk aan maaltijden op vaste dagen, een wekelijks menu of seizoensgerechten. Je kopers zijn mensen uit je omgeving die op het dorpsplein kijken. Een eigen webshop heb je niet nodig: je profiel en je aanbod staan op HomeCheff.",
+          ],
+        },
+        {
+          title: "Wat je overhoudt",
+          paragraphs: [
+            "Wat kopers betalen, is je omzet. Daar gaan je kosten af, zoals ingrediënten en verpakking, en de platformfee die HomeCheff per verkoop inhoudt. Wat overblijft, is je resultaat.",
+            "Afhankelijk van je situatie telt dat resultaat mee voor de inkomstenbelasting en kan het gevolgen hebben voor toeslagen. Met VerdienCheck kun je dat voor je eigen situatie doorrekenen.",
+          ],
+        },
+        {
+          title: "Verstandig beginnen",
+          paragraphs: [
+            "Begin met één gerecht en een klein aantal porties, zodat je ziet wat werkt. Lees de regels voor eten verkopen vanuit huis voordat je live gaat. Ook als je af en toe verkoopt, werk je veilig en hygiënisch en vermeld je allergenen.",
+            "Beoordelingen van kopers helpen je om in de buurt vertrouwen op te bouwen.",
+          ],
+        },
+      ],
       cta: {
         primary: { label: "Start met verkopen", href: "/sell" },
         secondary: { label: "Hoe begin je als thuiskok?", href: "/hoe-begin-je-als-thuiskok" },
@@ -524,38 +503,31 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Earn money cooking from home. Get visible locally on HomeCheff without heavy setup—list your first dish and grow step by step.",
       h1: "Earn money cooking from home",
       intro: [
-        "If you love cooking for others, you can turn it into income. HomeCheff is a marketplace: you choose what to make, pricing, and how pickup or delivery works—within sensible guardrails.",
-        "No need to build your own shop: your profile and listings on the village square reach neighbours looking beyond chains.",
-        "Start with one dish, learn what sells, expand when demand grows.",
+        "If you cook often and enjoy it, you can earn something from it on HomeCheff. You decide what you make, what it costs, and whether you deliver or people collect.",
+        "What you keep depends on your prices, your costs, the time you put in and demand in your area. Nobody can promise you a fixed amount.",
       ],
-      howItWorks: {
-        title: "How HomeCheff works",
-        paragraphs: [
-          "Create an account, complete the seller flow, and publish your first product with clear photos and description.",
-          "Customers order through the platform; you prepare and hand off per your options. Payments run through HomeCheff where applicable.",
-          "Reviews build neighbourhood trust.",
-        ],
-      },
-      audience: {
-        title: "Who is this for?",
-        paragraphs: [
-          "Hobby cooks going serious and experienced home cooks who want more local customers.",
-        ],
-      },
-      whyLocal: {
-        title: "Why local—and why HomeCheff?",
-        paragraphs: [
-          "Local reach means shorter lines and often loyal word-of-mouth customers.",
-          "HomeCheff focuses on makers and neighbours—not anonymous mass markets far away.",
-        ],
-      },
-      discover: {
-        title: "What you can list",
-        paragraphs: [
-          "Meals, selected service days, seasonal specials—whatever fits your kitchen and the rules that apply to you.",
-          "Read the rules and getting-started pages before you go live.",
-        ],
-      },
+      sections: [
+        {
+          title: "What you sell and to whom",
+          paragraphs: [
+            "Think of meals on set days, a weekly menu or seasonal dishes. Your buyers are people nearby who browse the village square. You don't need your own web shop: your profile and listings live on HomeCheff.",
+          ],
+        },
+        {
+          title: "What you actually keep",
+          paragraphs: [
+            "What buyers pay is your revenue. Your costs come off that, such as ingredients and packaging, and so does the platform fee HomeCheff charges on each sale. What's left is your profit.",
+            "Depending on your situation, that profit counts towards income tax and can affect Dutch benefits (toeslagen). VerdienCheck lets you work that out for your own situation.",
+          ],
+        },
+        {
+          title: "Starting sensibly",
+          paragraphs: [
+            "Start with one dish and a small number of portions so you can see what works. Read the rules for selling food from home before you go live. Even if you only sell occasionally, you need to work safely and hygienically and list allergens.",
+            "Reviews from buyers help you build trust in your neighbourhood.",
+          ],
+        },
+      ],
       cta: {
         primary: { label: "Start selling", href: "/sell" },
         secondary: { label: "How to start as a home cook", href: "/en/how-to-start-as-a-home-cook" },
@@ -663,37 +635,37 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Stap voor stap beginnen als thuiskok op HomeCheff: profiel, eerste product en zichtbaarheid in je buurt. Geen marketingjargon — praktische start.",
       h1: "Hoe begin je als thuiskok?",
       intro: [
-        "Beginnen als thuiskok hoeft niet ingewikkeld: eerst helderheid voor jezelf—wat maak je, hoe vaak, voor hoeveel personen—daarna je aanbod vertalen naar een productpagina die klanten begrijpen.",
-        "Op HomeCheff doorloop je de verkoper-onboarding, vul je gegevens in en plaats je een eerste gerecht met foto, prijs en ophaal-/bezorginformatie.",
-        "Vraag vroeg om feedback van vrienden of eerste klanten; kleine verbeteringen maken je pagina veel sterker.",
+        "Beginnen als thuiskok draait vooral om een paar keuzes die je maakt voordat je iets online zet. Wat kook je, hoe vaak, voor hoeveel mensen, en hoe komt het eten bij de koper?",
       ],
-      howItWorks: {
-        title: "Hoe HomeCheff werkt",
-        paragraphs: [
-          "Account aanmaken → verkoperflow → product plaatsen → zichtbaar op het dorpsplein.",
-          "Bestellingen en betalingen lopen via het platform waar van toepassing, zodat klanten vertrouwen houden.",
-          "Reviews en herhaalaankopen helpen je groeien.",
-        ],
-      },
-      audience: {
-        title: "Voor wie is dit interessant?",
-        paragraphs: [
-          "Voor iedereen die van koken zijn of haar inkomen wil aanvullen of een kleine business wil opbouwen.",
-        ],
-      },
-      whyLocal: {
-        title: "Waarom lokaal en waarom HomeCheff?",
-        paragraphs: [
-          "In je eigen omgeving is mond-tot-mond krachtig; goede gerechten worden gedeeld.",
-          "HomeCheff richt zich op buurt en makers, niet op anonieme schaal eerst.",
-        ],
-      },
-      discover: {
-        title: "Wat je kunt plaatsen",
-        paragraphs: [
-          "Start met één signature dish; voeg variatie toe als je weet wat loopt.",
-        ],
-      },
+      sections: [
+        {
+          title: "Stap 1: bepaal wat je aanbiedt",
+          paragraphs: [
+            "Begin met één gerecht dat je vaak maakt en goed kunt herhalen. Bedenk hoeveel porties je per keer aankunt en op welke dagen.",
+            "Reken uit wat het je kost aan ingrediënten, verpakking en tijd, en kies een prijs waar je zelf achter staat.",
+          ],
+        },
+        {
+          title: "Stap 2: lees de regels",
+          paragraphs: [
+            "Ook als je maar af en toe verkoopt, werk je veilig en hygiënisch en vertel je kopers welke allergenen erin zitten. Verkoop je meerdere keren per jaar eten of drinken, dan wordt NVWA-registratie relevant.",
+            "Houd daarnaast bij wat je verkoopt en wat het je kost. Afhankelijk van je situatie kan wat je verdient gevolgen hebben voor belasting of toeslagen.",
+          ],
+        },
+        {
+          title: "Stap 3: zet je eerste gerecht online",
+          paragraphs: [
+            "Maak een account aan, doorloop de verkopersstappen en plaats je gerecht met een duidelijke foto, een eerlijke omschrijving, de prijs en de manier van afhalen of bezorgen. Daarna staat het op het dorpsplein.",
+            "Bestellingen en betalingen lopen waar mogelijk via het platform, zodat de koper weet wat hij betaalt en jij weet dat er betaald is.",
+          ],
+        },
+        {
+          title: "Stap 4: leer van je eerste bestellingen",
+          paragraphs: [
+            "Vraag je eerste kopers wat ze ervan vonden. Een betere foto of een duidelijkere omschrijving maakt vaak al verschil, en beoordelingen helpen nieuwe kopers om je te vertrouwen. Weet je wat goed gaat, dan kun je uitbreiden.",
+          ],
+        },
+      ],
       cta: {
         primary: { label: "Start met verkopen", href: "/sell" },
         secondary: { label: "Bekijk regels", href: "/eten-verkopen-vanuit-huis-regels" },
@@ -705,37 +677,37 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Practical steps to start as a home cook on HomeCheff: profile, first listing, and visibility nearby—without fluff.",
       h1: "How to start as a home cook",
       intro: [
-        "Starting can be simple: clarify what you cook, how often, and for how many—then turn that into a product page customers understand.",
-        "On HomeCheff you complete seller onboarding, add details, and publish a first dish with photo, price, and pickup/delivery info.",
-        "Ask early customers for feedback; small tweaks make a big difference.",
+        "Starting as a home cook mostly comes down to a few decisions you make before anything goes online. What will you cook, how often, for how many people, and how does the food reach the buyer?",
       ],
-      howItWorks: {
-        title: "How HomeCheff works",
-        paragraphs: [
-          "Account → seller flow → publish → appear on the village square.",
-          "Orders and payments run through the platform where applicable to keep trust high.",
-          "Reviews and repeats help you grow.",
-        ],
-      },
-      audience: {
-        title: "Who is this for?",
-        paragraphs: [
-          "Anyone who wants to supplement income or build a small cooking business from home.",
-        ],
-      },
-      whyLocal: {
-        title: "Why local—and why HomeCheff?",
-        paragraphs: [
-          "Word of mouth is powerful nearby; great dishes get shared.",
-          "HomeCheff focuses on neighbourhood makers first—not anonymous scale on day one.",
-        ],
-      },
-      discover: {
-        title: "What you can list",
-        paragraphs: [
-          "Start with one signature dish; add variety once you learn what sells.",
-        ],
-      },
+      sections: [
+        {
+          title: "Step 1: decide what you'll offer",
+          paragraphs: [
+            "Start with one dish you make often and can repeat reliably. Work out how many portions you can manage at a time and on which days.",
+            "Add up what it costs you in ingredients, packaging and time, and pick a price you're comfortable with.",
+          ],
+        },
+        {
+          title: "Step 2: read the rules",
+          paragraphs: [
+            "Even if you only sell now and then, you need to work safely and hygienically and tell buyers which allergens are in the food. If you sell food or drink several times a year, NVWA registration becomes relevant.",
+            "Keep track of what you sell and what it costs you as well. Depending on your situation, what you earn can affect tax or benefits.",
+          ],
+        },
+        {
+          title: "Step 3: put your first dish online",
+          paragraphs: [
+            "Create an account, go through the seller steps and publish your dish with a clear photo, an honest description, the price and how pickup or delivery works. It then appears on the village square.",
+            "Orders and payments run through the platform where possible, so the buyer knows what they're paying and you know the payment has gone through.",
+          ],
+        },
+        {
+          title: "Step 4: learn from your first orders",
+          paragraphs: [
+            "Ask your first buyers what they thought. A better photo or a clearer description often makes a real difference, and reviews help new buyers trust you. Once you know what works, you can expand.",
+          ],
+        },
+      ],
       cta: {
         primary: { label: "Start selling", href: "/sell" },
         secondary: { label: "Read the rules", href: "/en/rules-for-selling-food-from-home" },
@@ -1023,36 +995,29 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Wat betekent thuisgekookt eten op HomeCheff? Uitleg over makers, versheid en hoe het verschilt van standaard bezorgchains.",
       h1: "Wat is thuisgekookt eten?",
       intro: [
-        "Thuisgekookt eten is—in de geest van HomeCheff—eten dat door particulieren of kleine makers is bereid, vaak in een huiskeuken of kleine productieruimte, in plaats van een anonieme centrale keuken ver weg.",
-        "Het betekent niet automatisch dat alles ‘gezonder’ is; het betekent wél dat je vaker weet wie kookt en hoe het wordt aangeboden.",
-        "Op het platform omschrijft elke maker eigen voorwaarden: afhalen, bezorging, allergeneninformatie—lees die altijd voor je bestelt.",
+        "Met thuisgekookt eten bedoelen we op HomeCheff gerechten die een particulier of kleine maker zelf heeft bereid, meestal in een gewone keuken of een kleine werkruimte. Het tegenovergestelde is een grote centrale keuken waarvan je niet weet wie er kookt.",
       ],
-      howItWorks: {
-        title: "Hoe HomeCheff werkt",
-        paragraphs: [
-          "Makers plaatsen hun gerechten met foto en uitleg. Jij vergelijkt en bestelt zoals bij andere marketplace-items.",
-          "HomeCheff faciliteert ontdekking en afhandeling; de maker blijft verantwoordelijk voor de juiste productinformatie.",
-        ],
-      },
-      audience: {
-        title: "Voor wie is dit interessant?",
-        paragraphs: [
-          "Voor nieuwsgierige eters én voor makers die willen uitleggen wat ze verkopen.",
-        ],
-      },
-      whyLocal: {
-        title: "Waarom lokaal en waarom HomeCheff?",
-        paragraphs: [
-          "Lokaal past vaak bij korte lijnen en unieke aanbod.",
-          "HomeCheff wil die makers zichtbaar maken in de buurt.",
-        ],
-      },
-      discover: {
-        title: "Wat je kunt ontdekken",
-        paragraphs: [
-          "Van comfortfood tot niche-keukens—afhankelijk van wie er in jouw regio actief is.",
-        ],
-      },
+      sections: [
+        {
+          title: "Wat het wel en niet zegt",
+          paragraphs: [
+            "Thuisgekookt zegt iets over wie er kookt en waar. Het zegt niets over hoe gezond of hoe lekker het is. Het betekent vooral dat je kunt zien wie het gerecht heeft gemaakt en hoe die het aanbiedt.",
+            "Het is ook geen keurmerk. De maker blijft zelf verantwoordelijk voor de juiste productinformatie.",
+          ],
+        },
+        {
+          title: "Hoe je het herkent op HomeCheff",
+          paragraphs: [
+            "Bij elk gerecht staat wie het maakt, met een profiel en vaak beoordelingen van eerdere kopers. De maker vermeldt zelf of je kunt afhalen of laten bezorgen en welke allergenen erin zitten. Lees dat altijd voordat je bestelt.",
+          ],
+        },
+        {
+          title: "Wat geldt er voor wie het verkoopt?",
+          paragraphs: [
+            "Wie thuisgekookt eten verkoopt, moet veilig en hygiënisch werken en kopers informeren over allergenen, ook bij af en toe verkopen. Verkoop je meerdere keren per jaar eten of drinken, dan wordt NVWA-registratie relevant. Op de pagina over regels voor eten verkopen vanuit huis lees je meer.",
+          ],
+        },
+      ],
       cta: {
         primary: { label: "Ontdek lokaal aanbod", href: "/?chip=sale" },
         secondary: { label: "Veelgestelde vragen", href: "/faq" },
@@ -1064,36 +1029,29 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "What does home-cooked food mean on HomeCheff? How makers work, what freshness means, and how it differs from typical delivery chains.",
       h1: "What is home-cooked food?",
       intro: [
-        "On HomeCheff, home-cooked food generally means meals prepared by individuals or small makers—often in a home or small kitchen—rather than a distant anonymous central kitchen.",
-        "It does not automatically mean ‘healthier’; it often means you can see who cooks and how it is offered.",
-        "Each maker describes terms: pickup, delivery, allergen notes—read them before you order.",
+        "On HomeCheff, home-cooked food means dishes prepared by an individual or a small maker, usually in an ordinary kitchen or a small workspace. The opposite is a large central kitchen where you have no idea who is cooking.",
       ],
-      howItWorks: {
-        title: "How HomeCheff works",
-        paragraphs: [
-          "Makers publish dishes with photos and detail. You compare and order like other marketplace items.",
-          "HomeCheff supports discovery and checkout; makers remain responsible for accurate product information.",
-        ],
-      },
-      audience: {
-        title: "Who is this for?",
-        paragraphs: [
-          "Curious eaters and makers who want clarity on what ‘home-cooked’ means here.",
-        ],
-      },
-      whyLocal: {
-        title: "Why local—and why HomeCheff?",
-        paragraphs: [
-          "Local often means short lines and unique supply.",
-          "HomeCheff aims to make those makers visible nearby.",
-        ],
-      },
-      discover: {
-        title: "What you can discover",
-        paragraphs: [
-          "From comfort food to niche cuisines—depending on who is active near you.",
-        ],
-      },
+      sections: [
+        {
+          title: "What it does and doesn't tell you",
+          paragraphs: [
+            "Home-cooked tells you who cooks and where. It says nothing about how healthy or how tasty the food is. Mostly it means you can see who made the dish and how they offer it.",
+            "It isn't a quality mark either. The maker remains responsible for accurate product information.",
+          ],
+        },
+        {
+          title: "How to recognise it on HomeCheff",
+          paragraphs: [
+            "Every dish shows who made it, with a profile and often reviews from earlier buyers. The maker states whether you can collect it or have it delivered, and which allergens it contains. Always read that before you order.",
+          ],
+        },
+        {
+          title: "What applies to people who sell it?",
+          paragraphs: [
+            "Anyone selling home-cooked food has to work safely and hygienically and tell buyers about allergens, even if they only sell now and then. If you sell food or drink several times a year, NVWA registration becomes relevant. The page on rules for selling food from home explains more.",
+          ],
+        },
+      ],
       cta: {
         primary: { label: "Discover local offers", href: "/?chip=sale" },
         secondary: { label: "FAQ", href: "/faq" },
@@ -1201,37 +1159,30 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Lokale producten kopen bij makers bij jou in de buurt. Eten, groente, design en meer op HomeCheff — ontdek het dorpsplein.",
       h1: "Lokale producten kopen",
       intro: [
-        "Lokaal kopen hoeft niet te betekenen dat je alles zelf moet regelen via markten alleen. HomeCheff brengt makers bij elkaar: eten, tuinproducten, soms design—allemaal met dezelfde ontdek- en bestelervaring.",
-        "Je steunt mensen uit de regio en ziet vaak sneller wat seizoen en creativiteit toevoegen.",
-        "Filter op afstand, categorie of type maker en bouw je eigen favorieten op.",
+        "Lokale producten zijn op HomeCheff alles wat mensen in jouw omgeving zelf maken, kweken of bereiden. Dat is eten, maar ook groente en fruit uit eigen tuin, jam, planten en handgemaakte spullen.",
+        "Je koopt ze op één plek en rekent op dezelfde manier af, in plaats van langs verschillende markten en losse accounts te gaan.",
       ],
-      howItWorks: {
-        title: "Hoe HomeCheff werkt",
-        paragraphs: [
-          "Het dorpsplein toont aanbod gesorteerd op wat jij nodig hebt: locatie, prijs, categorie.",
-          "Bestellen is gelijk aan andere producten op het platform.",
-          "Reviews helpen betrouwbare makers te vinden.",
-        ],
-      },
-      audience: {
-        title: "Voor wie is dit interessant?",
-        paragraphs: [
-          "Voor bewuste kopers die meer willen dan supermarkt-standaard.",
-        ],
-      },
-      whyLocal: {
-        title: "Waarom lokaal en waarom HomeCheff?",
-        paragraphs: [
-          "Minder kilometers, meer unieke spullen, meer geld dat in de buurt blijft.",
-          "HomeCheff maakt lokaal vindbaar zonder dat elke maker een eigen site nodig heeft.",
-        ],
-      },
-      discover: {
-        title: "Wat je kunt ontdekken",
-        paragraphs: [
-          "Seizoensgroenten, jams, maaltijden, unieke creaties—per regio verschillend.",
-        ],
-      },
+      sections: [
+        {
+          title: "Wat je kunt vinden",
+          paragraphs: [
+            "Wat er te koop is, hangt af van wie er in jouw regio actief is en van het seizoen. Denk aan seizoensgroente, zelfgemaakte jam, maaltijden, stekjes en planten of creaties van ontwerpers.",
+          ],
+        },
+        {
+          title: "Zoeken en volgen",
+          paragraphs: [
+            "Op het dorpsplein filter je op afstand, categorie of soort maker. Makers die je bevallen kun je volgen als fan, zodat je een melding krijgt als ze iets nieuws plaatsen.",
+          ],
+        },
+        {
+          title: "Kopen en ophalen",
+          paragraphs: [
+            "Bestellen werkt hetzelfde als bij andere producten op HomeCheff. Of je iets ophaalt of laat bezorgen, staat bij het product. Beoordelingen van andere kopers helpen je om betrouwbare makers te vinden.",
+            "Je koopt bij iemand uit je eigen omgeving, en die maker heeft geen eigen website nodig om gevonden te worden.",
+          ],
+        },
+      ],
       cta: {
         primary: { label: "Ontdek lokaal aanbod", href: "/?chip=sale" },
         secondary: { label: "Inspiratie", href: "/?chip=inspiration" },
@@ -1243,37 +1194,30 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Buy local products from makers near you—food, produce, design and more on HomeCheff. Browse the village square today.",
       h1: "Buy local products",
       intro: [
-        "Buying local does not have to mean only weekend markets. HomeCheff gathers makers—food, garden goods, sometimes design—with one discovery and checkout experience.",
-        "You support regional creators and often see seasonality and creativity faster.",
-        "Filter by distance, category, or maker type and build favourites.",
+        "On HomeCheff, local products are anything people near you make, grow or prepare themselves. That includes food, but also fruit and vegetables from their garden, jam, plants and handmade goods.",
+        "You buy them in one place and pay the same way each time, instead of going round different markets and separate accounts.",
       ],
-      howItWorks: {
-        title: "How HomeCheff works",
-        paragraphs: [
-          "The village square shows listings sorted by what you need: location, price, category.",
-          "Ordering matches other products on the platform.",
-          "Reviews surface reliable makers.",
-        ],
-      },
-      audience: {
-        title: "Who is this for?",
-        paragraphs: [
-          "Buyers who want more than supermarket sameness.",
-        ],
-      },
-      whyLocal: {
-        title: "Why local—and why HomeCheff?",
-        paragraphs: [
-          "Fewer miles, more unique goods, more money staying nearby.",
-          "HomeCheff makes local findable without every maker needing a custom site.",
-        ],
-      },
-      discover: {
-        title: "What you can discover",
-        paragraphs: [
-          "Seasonal veg, preserves, meals, unique crafts—varies by region.",
-        ],
-      },
+      sections: [
+        {
+          title: "What you can find",
+          paragraphs: [
+            "What's for sale depends on who is active in your area and on the season. Think of seasonal vegetables, homemade jam, meals, cuttings and plants, or pieces by designers.",
+          ],
+        },
+        {
+          title: "Searching and following makers",
+          paragraphs: [
+            "On the village square you can filter by distance, category or type of maker. You can follow makers you like as a fan, so you get a notification when they post something new.",
+          ],
+        },
+        {
+          title: "Buying and collecting",
+          paragraphs: [
+            "Ordering works the same as for any other product on HomeCheff. Each listing says whether you collect or have it delivered. Reviews from other buyers help you find makers you can rely on.",
+            "You're buying from someone in your own area, and that maker doesn't need their own website to be found.",
+          ],
+        },
+      ],
       cta: {
         primary: { label: "Discover local offers", href: "/?chip=sale" },
         secondary: { label: "Inspiration", href: "/?chip=inspiration" },
@@ -1291,35 +1235,36 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Zoek je een alternatief voor grote bezorgapps? HomeCheff verbindt je met thuiskoks en lokale makers — ander verhaal, dichterbij.",
       h1: "Een alternatief voor de grote bezorgplatforms",
       intro: [
-        "Grote bezorgapps zijn handig, maar vaak anoniem en ketengericht. HomeCheff is bewust anders: je ontdekt mensen die zelf koken of maken, dichter bij huis.",
-        "Het aanbod is uniek per buurt; wat je vindt, hangt af van wie er actief is—dat maakt het levend en lokaal.",
-        "Geen belofte dat alles binnen twintig minuten voor de deur staat; wél de kans op eten met een gezicht en een verhaal.",
+        "Grote bezorgapps zijn handig als je snel iets wilt van een restaurant of keten. HomeCheff werkt anders: je koopt bij mensen uit de buurt die zelf koken of maken.",
+        "Dat heeft voor- en nadelen, en het is goed om die te kennen voordat je bestelt.",
       ],
-      howItWorks: {
-        title: "Hoe HomeCheff werkt",
-        paragraphs: [
-          "Je bladert op het dorpsplein, vergelijkt makers en bestelt volgens hun afspraken.",
-          "Geen race-to-the-bottom op koeriersfee; wél directe relaties tussen buurt en maker.",
-        ],
-      },
-      audience: {
-        title: "Voor wie is dit interessant?",
-        paragraphs: [
-          "Voor wie bewust wil eten en de standaard apps zat is.",
-        ],
-      },
-      whyLocal: {
-        title: "Waarom lokaal en waarom HomeCheff?",
-        paragraphs: [
-          "Lokaal en kleinschalig passen bij makers die geen miljoenenmarketingbudget hebben maar wél kwaliteit leveren.",
-        ],
-      },
-      discover: {
-        title: "Wat je kunt ontdekken",
-        paragraphs: [
-          "Maaltijden en meer van makers die je anders niet zou vinden.",
-        ],
-      },
+      sections: [
+        {
+          title: "Wat er anders is",
+          paragraphs: [
+            "In een bezorgapp kies je uit restaurants. Op HomeCheff kies je uit wat buurtbewoners en kleine makers aanbieden. Je ziet wie het maakt en kunt die persoon een bericht sturen.",
+            "Het aanbod hangt af van wie er actief is. In de ene buurt is er meer te vinden dan in de andere.",
+          ],
+        },
+        {
+          title: "Wat je niet moet verwachten",
+          paragraphs: [
+            "HomeCheff belooft niet dat je eten binnen twintig minuten voor de deur staat. Vaak bestel je vooruit of haal je het zelf op, afhankelijk van wat de maker aanbiedt. Er is ook geen vast menu dat elke avond hetzelfde is.",
+          ],
+        },
+        {
+          title: "Wanneer HomeCheff een goede keuze is",
+          paragraphs: [
+            "Als je wilt weten wie je eten heeft gekookt, als je een maker uit de buurt wilt steunen of als je iets zoekt dat je niet op een restaurantmenu vindt. Wil je vanavond binnen een half uur eten, dan is een bezorgapp waarschijnlijk handiger.",
+          ],
+        },
+        {
+          title: "Zelf koken voor de buurt",
+          paragraphs: [
+            "Kook je zelf graag, dan kun je ook aanbieden op HomeCheff. Je bepaalt zelf wat je maakt, voor welke prijs en of je bezorgt.",
+          ],
+        },
+      ],
       cta: {
         primary: { label: "Ontdek lokaal aanbod", href: "/?chip=sale" },
         secondary: { label: "Start met verkopen", href: "/sell" },
@@ -1331,35 +1276,36 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Looking beyond big delivery apps? HomeCheff connects you with home cooks and local makers—closer, more personal food.",
       h1: "An alternative to big takeaway platforms",
       intro: [
-        "Large delivery apps are convenient but often anonymous and chain-heavy. HomeCheff is different: discover people who cook or make near you.",
-        "Assortment varies by neighbourhood—what you see depends on who is active, which keeps it local and alive.",
-        "We don’t promise everything in twenty minutes; we do offer food with a face and a story.",
+        "Big delivery apps are convenient when you want something quickly from a restaurant or chain. HomeCheff works differently: you buy from people nearby who cook or make things themselves.",
+        "That has upsides and downsides, and it helps to know them before you order.",
       ],
-      howItWorks: {
-        title: "How HomeCheff works",
-        paragraphs: [
-          "Browse the village square, compare makers, and order on their terms.",
-          "Fewer courier races; more direct neighbourhood relationships.",
-        ],
-      },
-      audience: {
-        title: "Who is this for?",
-        paragraphs: [
-          "Anyone who wants conscious eating beyond the usual apps.",
-        ],
-      },
-      whyLocal: {
-        title: "Why local—and why HomeCheff?",
-        paragraphs: [
-          "Small-scale local fits makers without huge ad budgets but with real quality.",
-        ],
-      },
-      discover: {
-        title: "What you can discover",
-        paragraphs: [
-          "Meals and more from makers you might never find otherwise.",
-        ],
-      },
+      sections: [
+        {
+          title: "What's different",
+          paragraphs: [
+            "In a delivery app you choose between restaurants. On HomeCheff you choose from what neighbours and small makers are offering. You can see who made it and send them a message.",
+            "What's on offer depends on who is active. Some neighbourhoods have more than others.",
+          ],
+        },
+        {
+          title: "What not to expect",
+          paragraphs: [
+            "HomeCheff doesn't promise food at your door in twenty minutes. You often order ahead or collect it yourself, depending on what the maker offers. There's no fixed menu that stays the same every night either.",
+          ],
+        },
+        {
+          title: "When HomeCheff is a good fit",
+          paragraphs: [
+            "When you want to know who cooked your food, when you'd like to support a maker nearby, or when you're after something you won't find on a restaurant menu. If you need dinner within half an hour tonight, a delivery app is probably the easier choice.",
+          ],
+        },
+        {
+          title: "Cooking for your neighbourhood",
+          paragraphs: [
+            "If you enjoy cooking yourself, you can offer food on HomeCheff too. You decide what you make, what it costs and whether you deliver.",
+          ],
+        },
+      ],
       cta: {
         primary: { label: "Discover local offers", href: "/?chip=sale" },
         secondary: { label: "Start selling", href: "/sell" },
@@ -1377,9 +1323,9 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Maaltijden in Rotterdam via lokale makers op HomeCheff. Ontdek thuisgekookt eten en buurtaanbod — start op het dorpsplein.",
       h1: "Maaltijden in Rotterdam",
       intro: [
-        "Rotterdam barst van creativiteit—en dat proef je ook in de keuken. Op HomeCheff vind je thuiskoks en makers die gerechten aanbieden die passen bij jouw buurt, van comfort tot wereldse smaken.",
-        "Omdat aanbod afhangt van wie er actief is, is het dorpsplein de beste plek om te zien wat er vandaag speelt rond Rotterdam en omgeving.",
-        "Combineer ontdekking met een concrete bestelling: zo steun je direct iemand uit de regio.",
+        "Op HomeCheff bieden thuiskoks en makers in en rond Rotterdam hun gerechten aan. Wat er te krijgen is, hangt af van wie er op dat moment kookt.",
+        "Op het dorpsplein zie je wat er nu bij jou in de buurt wordt aangeboden, wie het maakt en of je het ophaalt of laat bezorgen.",
+        "Bestel je daar, dan koop je rechtstreeks bij iemand uit de regio.",
       ],
       howItWorks: {
         title: "Hoe HomeCheff werkt",
@@ -1418,9 +1364,9 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Meals in Rotterdam from local makers on HomeCheff. Discover home-cooked food near you—browse the village square today.",
       h1: "Meals in Rotterdam",
       intro: [
-        "Rotterdam is creative—and that shows in kitchens too. On HomeCheff, home cooks and makers offer dishes that fit the city, from comfort to global flavours.",
-        "Because listings depend on who is active, the village square is the best place to see what is live around Rotterdam today.",
-        "Pair browsing with ordering to support someone local directly.",
+        "On HomeCheff, home cooks and makers in and around Rotterdam list the dishes they make. What is available depends on who is cooking at the time.",
+        "The village square shows what is on offer near you right now, who made it, and whether you pick it up or have it delivered.",
+        "When you order there, you buy directly from someone in the area.",
       ],
       howItWorks: {
         title: "How HomeCheff works",
@@ -1465,9 +1411,9 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Maaltijden in Amsterdam via HomeCheff. Vind thuiskoks en lokaal aanbod — vers en dichtbij, op het dorpsplein.",
       h1: "Maaltijden in Amsterdam",
       intro: [
-        "Amsterdam heeft buurten met elk hun eigen smaak. HomeCheff helpt je makers te vinden die dichtbij staan—niet alleen toeristische routes, maar echte buurtkoks en kleine ondernemers.",
-        "Het aanbod wisselt; daarom is live bladeren op het dorpsplein de beste check.",
-        "Zo combineer je stadsgemak met lokaal karakter.",
+        "Op HomeCheff bieden thuiskoks en makers in en rond Amsterdam hun gerechten aan. Wat er te krijgen is, hangt af van wie er op dat moment kookt.",
+        "Op het dorpsplein zie je wat er nu bij jou in de buurt wordt aangeboden, wie het maakt en of je het ophaalt of laat bezorgen.",
+        "Bestel je daar, dan koop je rechtstreeks bij iemand uit de regio.",
       ],
       howItWorks: {
         title: "Hoe HomeCheff werkt",
@@ -1505,9 +1451,9 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Meals in Amsterdam on HomeCheff. Find home cooks and local food—fresh and nearby on the village square.",
       h1: "Meals in Amsterdam",
       intro: [
-        "Amsterdam’s neighbourhoods each taste different. HomeCheff helps you find makers nearby—not only tourist routes, but real local cooks.",
-        "Listings change, so live browsing on the village square is the best check.",
-        "City convenience with local character.",
+        "On HomeCheff, home cooks and makers in and around Amsterdam list the dishes they make. What is available depends on who is cooking at the time.",
+        "The village square shows what is on offer near you right now, who made it, and whether you pick it up or have it delivered.",
+        "When you order there, you buy directly from someone in the area.",
       ],
       howItWorks: {
         title: "How HomeCheff works",
@@ -1551,9 +1497,9 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Maaltijden in Den Haag via lokale makers op HomeCheff. Thuiskoks en buurtgerechten — ontdek het dorpsplein.",
       h1: "Maaltijden in Den Haag",
       intro: [
-        "Den Haag combineert internationale invloeden met Haagse buurtcultuur. HomeCheff laat zien welke makers daar vandaag actief zijn—van Scheveningen tot Bezuidenhout, afhankelijk van aanbod.",
-        "Gebruik filters om dichter bij huis te blijven of juist iets verder te kijken.",
-        "Zo vind je maaltijden die passen bij jouw week zonder standaardmenu.",
+        "Op HomeCheff bieden thuiskoks en makers in en rond Den Haag hun gerechten aan. Wat er te krijgen is, hangt af van wie er op dat moment kookt.",
+        "Op het dorpsplein zie je wat er nu bij jou in de buurt wordt aangeboden, wie het maakt en of je het ophaalt of laat bezorgen.",
+        "Bestel je daar, dan koop je rechtstreeks bij iemand uit de regio.",
       ],
       howItWorks: {
         title: "Hoe HomeCheff werkt",
@@ -1591,9 +1537,9 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Meals in The Hague from local makers on HomeCheff. Home-cooked dishes near you—check the village square.",
       h1: "Meals in The Hague",
       intro: [
-        "The Hague mixes international influences with neighbourhood culture. HomeCheff shows which makers are active today—from the coast inward, depending on listings.",
-        "Use filters to stay close to home or look a bit wider.",
-        "Find meals that fit your week without a generic menu.",
+        "On HomeCheff, home cooks and makers in and around The Hague list the dishes they make. What is available depends on who is cooking at the time.",
+        "The village square shows what is on offer near you right now, who made it, and whether you pick it up or have it delivered.",
+        "When you order there, you buy directly from someone in the area.",
       ],
       howItWorks: {
         title: "How HomeCheff works",
@@ -1637,9 +1583,9 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Maaltijden in Utrecht via HomeCheff. Lokale thuiskoks en vers aanbod — begin op het dorpsplein.",
       h1: "Maaltijden in Utrecht",
       intro: [
-        "Utrecht is compact en buurtgericht—perfect voor lokaal eten. HomeCheff toont welke makers nu iets voor je hebben, binnen de regio die jij kiest.",
-        "Studenten, gezinnen en professionals delen dezelfde vraag: wat eten we—met een lokaal antwoord.",
-        "Blader, vergelijk en bestel wanneer iets past.",
+        "Op HomeCheff bieden thuiskoks en makers in en rond Utrecht hun gerechten aan. Wat er te krijgen is, hangt af van wie er op dat moment kookt.",
+        "Op het dorpsplein zie je wat er nu bij jou in de buurt wordt aangeboden, wie het maakt en of je het ophaalt of laat bezorgen.",
+        "Bestel je daar, dan koop je rechtstreeks bij iemand uit de regio.",
       ],
       howItWorks: {
         title: "Hoe HomeCheff werkt",
@@ -1677,9 +1623,9 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Meals in Utrecht on HomeCheff. Local home cooks and fresh listings—start on the village square.",
       h1: "Meals in Utrecht",
       intro: [
-        "Utrecht is compact and neighbourhood-driven—great for local food. HomeCheff shows which makers have something for you in the radius you pick.",
-        "Students, families, and professionals share the same question—answered locally here.",
-        "Browse, compare, and order when it fits.",
+        "On HomeCheff, home cooks and makers in and around Utrecht list the dishes they make. What is available depends on who is cooking at the time.",
+        "The village square shows what is on offer near you right now, who made it, and whether you pick it up or have it delivered.",
+        "When you order there, you buy directly from someone in the area.",
       ],
       howItWorks: {
         title: "How HomeCheff works",
@@ -1723,9 +1669,9 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Maaltijden in Eindhoven via HomeCheff. Ontdek thuiskoks in de regio — dorpsplein voor actueel aanbod.",
       h1: "Maaltijden in Eindhoven",
       intro: [
-        "Eindhoven bruist van tech en creativiteit—en dat zie je ook terug bij makers die lokaal koken en verkopen. HomeCheff helpt je die makers te vinden zonder eindeloos te zoeken op social media.",
-        "Het aanbod groeit mee met nieuwe inschrijvingen; daarom is regelmatig kijken op het dorpsplein slim.",
-        "Bestel als je iets ziet dat past, en bouw favoriete makers op.",
+        "Op HomeCheff bieden thuiskoks en makers in en rond Eindhoven hun gerechten aan. Wat er te krijgen is, hangt af van wie er op dat moment kookt.",
+        "Op het dorpsplein zie je wat er nu bij jou in de buurt wordt aangeboden, wie het maakt en of je het ophaalt of laat bezorgen.",
+        "Bestel je daar, dan koop je rechtstreeks bij iemand uit de regio.",
       ],
       howItWorks: {
         title: "Hoe HomeCheff werkt",
@@ -1763,9 +1709,9 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Meals in Eindhoven on HomeCheff. Find home cooks in the region—the village square shows current listings.",
       h1: "Meals in Eindhoven",
       intro: [
-        "Eindhoven mixes tech and creativity—and that shows in local makers who cook and sell. HomeCheff helps you find them without endless social scrolling.",
-        "Supply grows as new sellers join; checking the village square regularly pays off.",
-        "Order when something fits and build favourite makers.",
+        "On HomeCheff, home cooks and makers in and around Eindhoven list the dishes they make. What is available depends on who is cooking at the time.",
+        "The village square shows what is on offer near you right now, who made it, and whether you pick it up or have it delivered.",
+        "When you order there, you buy directly from someone in the area.",
       ],
       howItWorks: {
         title: "How HomeCheff works",

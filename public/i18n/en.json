@@ -369,7 +369,7 @@
   "ecosystemHub": {
     "sectionAria": "Local creator activity near {city}",
     "title": "Creators near {city}",
-    "subtitle": "A calm snapshot of real listings and inspiration within about {radius} km — no groups, no pressure.",
+    "subtitle": "What was posted within about {radius} km over the last seven days.",
     "stats": {
       "activeCreatorsWeek": "Active creators (7 days)",
       "newListingsWeek": "New listings (7 days)",
@@ -382,9 +382,10 @@
       "hcpLeader": "Most active maker",
       "hcpPoints": "Active this week"
     },
-    "sparseGeo": "Regional hubs grow when makers share a pickup or studio location — your feed still shows everyone nearby.",
+    "sparseGeo": "This regional page fills in as more makers add a pickup or studio location. Your feed already shows everyone near you.",
     "ctaFeed": "Open the feed for {city}",
-    "ctaDiscover": "Browse inspiration"
+    "ctaDiscover": "Browse inspiration",
+    "emptyWeek": "Nothing new has been posted in this area in the past week."
   },
   "ecosystemStrip": {
     "sectionAria": "Explore ecosystems and local hubs",
@@ -3158,7 +3159,7 @@
       },
       "2": {
         "question": "Is HomeCheff free to use?",
-        "answer": "Yes! For private sellers, HomeCheff is completely free. You pay no monthly costs, only transaction fees on each sale. For companies with a KVK number, subscriptions are available."
+        "answer": "For private sellers there is no account fee and no monthly cost. You only pay a transaction fee on each sale. Businesses with a KVK number can take out a subscription."
       },
       "3": {
         "question": "In which cities is HomeCheff available?",
@@ -3178,7 +3179,7 @@
       },
       "7": {
         "question": "Who is Sergio Arrias?",
-        "answer": "Sergio Arrias is the Founder of HomeCheff — not presented as someone who simply built an app, but as a founder who spent years developing a community-centred philosophy that eventually became a practical platform. Operated by Arrias Beheer B.V. (KvK 80532829, Vlaardingen, NL). See /sergio-arrias."
+        "answer": "Sergio Arrias is the founder of HomeCheff. The platform grew out of ideas he worked on for years about how people in a neighbourhood can get more from each other. HomeCheff is operated by Arrias Beheer B.V. (KvK 80532829, Vlaardingen, NL). You can read more about him at /sergio-arrias."
       },
       "8": {
         "question": "Why is HomeCheff written with two F’s?",
@@ -3190,7 +3191,7 @@
       },
       "10": {
         "question": "Why does HomeCheff exist?",
-        "answer": "The founder observed declining neighbourhood interaction, growing loneliness, disconnection, invisible skills and weaker local communities. Technology should reconnect people, not isolate them. HomeCheff is a calm, practical response: a digital neighbourhood marketplace where personal craftsmanship can become visible nearby first. See /oorsprong-homecheff."
+        "answer": "The founder noticed how many people can do something, such as cooking, growing, making, repairing or helping, without their neighbours knowing about it. He also saw people on the same street talking to each other less, loneliness growing, and neighbourhoods becoming weaker as a result. HomeCheff aims to be a practical place for that: a digital neighbourhood market where you first see what is made and offered close by. The full story is at /oorsprong-homecheff."
       }
     },
     "selling": {
@@ -3234,19 +3235,19 @@
       },
       "2": {
         "question": "Can I reserve products?",
-        "answer": "Yes! HomeCheff offers a unique reservation system for future products. This is perfect for BBQs, parties, or special occasions.\n\n📅 FUTURE AVAILABILITY:\n• Products can be offered up to 1 week in advance\n• Reserve in advance to prevent waste\n• Sellers know exactly how much to make\n• Ideal for surplus meals\n\n♻️ AGAINST WASTE:\n• Prevents waste through planning\n• Fewer impulse purchases\n• Better inventory management for sellers\n• Less food waste\n\n💡 EXAMPLE: Planning a BBQ weekend? Offer your surplus portions in advance and let people reserve!"
+        "answer": "Yes, when the seller offers a product in advance. That’s useful for a barbecue, a birthday or any other occasion you want to order for ahead of time.\n\n📅 FUTURE AVAILABILITY:\n• Products can be offered up to 1 week in advance\n• Reserve in advance to prevent waste\n• Sellers know exactly how much to make\n• Ideal for surplus meals\n\n♻️ AGAINST WASTE:\n• Prevents waste through planning\n• Fewer impulse purchases\n• Better inventory management for sellers\n• Less food waste\n\n💡 EXAMPLE: Planning a BBQ weekend? Offer your surplus portions in advance and let people reserve!"
       },
       "3": {
         "question": "What if I'm not satisfied with my purchase?",
         "answer": "First contact the seller. If that doesn't work, we can mediate. We have a complaint procedure and can arrange a refund in extreme cases.\n\n♻️ AGAINST WASTE:\n• Reuse products where possible\n• Composting of organic products\n• Feedback for improvement\n• Learn from handmade practices\n\nIMPORTANT: The product/service agreement is between buyer and provider; HomeCheff facilitates the platform and payment. We are not responsible for product quality or disputes between sellers and buyers."
       },
       "4": {
-        "question": "Can I become a fan or sellers?",
-        "answer": "Yes! Become a fan of your favorite handmade sellers to stay updated on new products. You'll receive notifications when they add new handmade items.\n\n🤝 LOCAL COMMUNITY:\n• Support local makers\n• Learn from handmade techniques\n• Share tips and experiences\n• Build a conscious community"
+        "question": "Can I follow sellers as a fan?",
+        "answer": "Yes. Become a fan of a seller and you’ll get a notification when they post something new.\n\n🤝 LOCAL COMMUNITY:\n• Support local makers\n• Learn from handmade techniques\n• Share tips and experiences\n• Build a conscious community"
       },
       "5": {
         "question": "How does future availability and reservations work?",
-        "answer": "HomeCheff's unique reservation system helps reduce waste through forward planning:\n\n📅 FUTURE PRODUCTS:\n• Offer up to 1 week in advance\n• Perfect for BBQs, parties, special occasions\n• Sellers know exactly how much to make\n• Buyers can reserve in advance\n\n🎯 EXAMPLES:\n• 'BBQ weekend - reserve your portion' (3 days ahead)\n• 'Extra cake for birthday' (1 week ahead)\n• 'Surplus pasta tonight' (today)\n\n♻️ BENEFITS:\n• Prevents food waste\n• Better planning for sellers\n• Buyers know what to expect\n• Fewer impulse purchases\n\n💡 TIP: If you know you'll make too much, offer it in advance!"
+        "answer": "Sellers can offer products up to a week in advance. Buyers can then reserve, and the seller knows how much to make:\n\n📅 FUTURE PRODUCTS:\n• Offer up to 1 week in advance\n• Perfect for BBQs, parties, special occasions\n• Sellers know exactly how much to make\n• Buyers can reserve in advance\n\n🎯 EXAMPLES:\n• 'BBQ weekend - reserve your portion' (3 days ahead)\n• 'Extra cake for birthday' (1 week ahead)\n• 'Surplus pasta tonight' (today)\n\n♻️ BENEFITS:\n• Prevents food waste\n• Better planning for sellers\n• Buyers know what to expect\n• Fewer impulse purchases\n\n💡 TIP: If you know you'll make too much, offer it in advance!"
       }
     },
     "payments": {
@@ -3382,7 +3383,7 @@
       },
       "1": {
         "question": "Can I fix up old items and sell them?",
-        "answer": "Yes, that's great! Restoring and upcycling old items is a beautiful form of sustainability. Think of:\n\n♻️ UPGRADING ITEMS:\n• Restore and personalize old clothing\n• Refurbish furniture and give it a new look\n• Repair and modernize electronics\n• Restore and improve kitchenware\n\n🌱 SUSTAINABILITY:\n• Prevents waste of raw materials\n• Extends product lifespan\n• Reduces waste\n• Creates unique, personal items\n\n💡 Tip: Clearly describe what you've done and why it's sustainable!"
+        "answer": "Yes. Restored and upcycled items fit HomeCheff well. Think of:\n\n♻️ UPGRADING ITEMS:\n• Restore and personalize old clothing\n• Refurbish furniture and give it a new look\n• Repair and modernize electronics\n• Restore and improve kitchenware\n\n🌱 SUSTAINABILITY:\n• Prevents waste of raw materials\n• Extends product lifespan\n• Reduces waste\n• Creates unique, personal items\n\n💡 Tip: Clearly describe what you've done and why it's sustainable!"
       },
       "2": {
         "question": "How can I sell sustainable handmade work?",
@@ -3390,7 +3391,7 @@
       },
       "3": {
         "question": "What if I make products from recycled materials?",
-        "answer": "That's fantastic! Recycled materials are the future of sustainable handmade work:\n\n♻️ RECYCLED MATERIALS:\n• Transform old clothing into new items\n• Reuse glassware for decoration\n• Process wood from old furniture\n• Convert plastic packaging into art\n\n🌱 BENEFITS:\n• Dramatically reduces waste\n• Saves new raw materials\n• Creates unique, storytelling products\n• Inspires more conscious consumption\n\n💡 Tip: Tell the story of your materials - where they come from and how you transformed them!"
+        "answer": "That works fine. Do mention where the material comes from. A few examples:\n\n♻️ RECYCLED MATERIALS:\n• Transform old clothing into new items\n• Reuse glassware for decoration\n• Process wood from old furniture\n• Convert plastic packaging into art\n\n🌱 BENEFITS:\n• Dramatically reduces waste\n• Saves new raw materials\n• Creates unique, storytelling products\n• Inspires more conscious consumption\n\n💡 Tip: Tell the story of your materials - where they come from and how you transformed them!"
       },
       "4": {
         "question": "How can I package my handmade products sustainably?",
@@ -3458,7 +3459,7 @@
       },
       "8": {
         "question": "What if I've grown too many plants?",
-        "answer": "🌱 Perfect! Many gardeners like to grow plants but have too many. This is a great way to reduce waste:\n\n🌿 SHARING PLANTS:\n• Extra seedlings you have left\n• Cuttings from your favorite plants\n• Bulbs you have too many of\n• Houseplants you want to share\n\n🤝 COMMUNITY:\n• Help other gardeners\n• Prevent plant waste\n• Support local biodiversity\n• Build a green community\n\n💡 Tip: Many people enjoy growing but don't always have green thumbs - you help them!"
+        "answer": "You can offer them to people nearby on HomeCheff instead of throwing them away. For example:\n\n🌿 SHARING PLANTS:\n• Extra seedlings you have left\n• Cuttings from your favorite plants\n• Bulbs you have too many of\n• Houseplants you want to share\n\n🤝 COMMUNITY:\n• Help other gardeners\n• Prevent plant waste\n• Support local biodiversity\n• Build a green community\n\n💡 Tip: Many people enjoy growing but don't always have green thumbs - you help them!"
       },
       "9": {
         "question": "Are there limits to sharing garden products?",
@@ -3480,11 +3481,11 @@
       },
       "2": {
         "question": "How much commission do I earn as an affiliate?",
-        "answer": "You earn through two tracks:\n\n• Transactions: up to 25% of the HomeCheff fee per side (buyer or seller), up to 50% when you refer both sides.\n• Business subscriptions: up to 50% of subscription value per month, in the standard model up to 12 months per active referred business.\n\nExact percentages and conditions are defined in your affiliate agreement."
+        "answer": "You earn in two ways:\n\n• Orders: 25% of the HomeCheff fee for the side you referred (buyer or seller), 50% if you referred both sides.\n• Business subscriptions: 50% of the distributable margin after the HC reserve, every month while the subscription runs, for up to 12 months per referred business.\n\nExact percentages and conditions are set out in your affiliate agreement."
       },
       "3": {
         "question": "How do I become an affiliate?",
-        "answer": "Signing up as an affiliate is very simple:\n\n📝 STEPS:\n1. Go to the affiliate page (/affiliate)\n2. Log in with your existing HomeCheff account (or create one)\n3. Accept the privacy policy, terms and conditions, and affiliate agreement\n4. Click 'Become an affiliate now'\n5. You immediately get access to your affiliate dashboard\n\n✅ REQUIREMENTS:\n• You must have a HomeCheff account\n• You must accept the terms\n• No costs, no obligations\n\n🎯 AFTER SIGNUP:\n• You immediately get your unique referral link\n• You can start sharing your link\n• All commissions are automatically tracked\n• Weekly payouts (ledger; Connect when the payout batch is available)"
+        "answer": "Signing up as an affiliate is very simple:\n\n📝 STEPS:\n1. Go to the affiliate page (/affiliate)\n2. Log in with your existing HomeCheff account (or create one)\n3. Accept the privacy policy, terms and conditions, and affiliate agreement\n4. Click 'Become an affiliate now'\n5. You immediately get access to your affiliate dashboard\n\n✅ REQUIREMENTS:\n• You must have a HomeCheff account\n• You must accept the terms\n• No costs, no obligations\n\n🎯 AFTER SIGNUP:\n• You immediately get your unique referral link\n• You can start sharing your link\n• All commissions are automatically tracked\n• Payouts go through Stripe Connect once you have completed onboarding"
       },
       "4": {
         "question": "What is a made affiliate and how does it work?",
@@ -3492,7 +3493,7 @@
       },
       "5": {
         "question": "How do I get my commissions paid out?",
-        "answer": "Commissions are tracked in your dashboard (pending / available / paid). Connect payout follows after onboarding when the affiliate payout batch is available; funding comes from the HomeCheff platform fee, not an extra buyer or seller fee.\n\nYour dashboard shows pending, available, and paid amounts per period. You remain responsible for proper tax handling in your jurisdiction."
+        "answer": "Your dashboard tracks commission as pending, available and paid. Payouts go through Stripe Connect under the payout rules in your dashboard, once you have completed onboarding. Commission is paid out of the HomeCheff platform fee; buyers and sellers pay nothing extra for it.\n\nYour dashboard shows pending, available and paid amounts per period. You remain responsible for handling tax correctly in your own country."
       }
     },
     "localCommunity": {
@@ -6344,52 +6345,52 @@
   },
   "overOns": {
     "title": "About us",
-    "subtitle": "The story, philosophy and how to reach us — calm and without hype.",
-    "manifestIntro": "The full philosophical foundation of HomeCheff — why we exist, which values guide us and what we refuse to become — is in the HomeCheff Manifest.",
+    "subtitle": "Where HomeCheff comes from, what we stand for and how to reach us.",
+    "manifestIntro": "Why HomeCheff exists, which values we hold to and what we explicitly don’t want to become is set out in full in the HomeCheff Manifest.",
     "manifestCta": "Read the HomeCheff Manifest",
     "storyTitle": "The story behind HomeCheff",
-    "story1": "HomeCheff did not begin as a quick startup idea. The platform grew from years of observation: society holds much unused value — people who cook, grow, make, repair, teach or help while only part of that becomes visible.",
-    "story2": "The aim is not to change people, but to use technology so people can discover each other. That long preparation makes HomeCheff larger than one person: the philosophy must remain valid for decades.",
-    "story3": "We do not tell a hero founder story. HomeCheff must stand on its own merits — for users, partners, municipalities and future team members.",
+    "story1": "HomeCheff wasn’t a weekend idea. It grew out of years of noticing what the people around us can do: cook, grow, make, repair, teach, help. Much of that never gets seen by the neighbourhood.",
+    "story2": "We don’t want to change people. We want them to find each other more easily, and technology is the means to do that. The ideas behind HomeCheff should still hold in ten years, whoever is running the platform by then.",
+    "story3": "This isn’t a hero story about a founder. HomeCheff has to prove its worth to the people who use it, to partners, to municipalities and to future colleagues.",
     "philosophyTitle": "The philosophy",
-    "philosophy1": "Every person holds value. Technology should help that value become visible and strengthen human relationships — not maximise algorithmic engagement.",
-    "philosophy2": "Read the six core values, vision and mission in the Manifest. Product decisions and public copy are checked against it.",
+    "philosophy1": "Everyone has something to offer. Technology should help make that visible and bring people closer together, not capture as much screen time as possible.",
+    "philosophy2": "Our six core values, vision and mission are in the Manifest. We check product decisions and our own copy against it.",
     "craftTitle": "Personal craftsmanship",
-    "craft1": "HomeCheff is the digital home of personal craftsmanship. A handmade product, service or skill has inherent value — technology makes it visible, not mass production.",
-    "craft2": "See also /persoonlijk-vakmanschap and /ontmoet-de-maker for how profiles and maker stories work on the platform.",
+    "craft1": "HomeCheff is about what someone makes or can do themselves: a home-baked cake, a restored chair, tutoring, a job in the garden. The platform makes that visible, but the craft stays with the maker.",
+    "craft2": "How profiles and maker stories work is explained at /persoonlijk-vakmanschap and /ontmoet-de-maker.",
     "localTitle": "Why local matters",
-    "local1": "Neighbourhoods grow stronger when neighbours know each other. HomeCheff encourages local discovery, arrangements and trust — not an anonymous global marketplace.",
-    "local2": "Pilot and growth happen regionally and honestly: sparse regions do not get spam pages. See /buurt-economie and /lokaal-verdienen.",
+    "local1": "A neighbourhood is a better place when you know who lives around the corner and what they make. That’s why HomeCheff starts close to home, with arrangements between people who might bump into each other, rather than with an anonymous global marketplace.",
+    "local2": "We grow region by region. Where there is little on offer yet, we don’t publish padded pages to hide it. More on this at /buurt-economie and /lokaal-verdienen.",
     "conscienceTitle": "Technology with a conscience",
-    "conscience1": "No dark patterns, endless scrolling, addictive mechanics or misleading notifications. We respect attention and time.",
-    "conscience2": "What we promise in copy must match product behaviour — including Phase 13O truth boundaries on export, suspension and subscription benefits.",
+    "conscience1": "No tricks to keep you scrolling, no addictive game mechanics and no notifications that promise more than there is. Your time and attention are yours.",
+    "conscience2": "What we promise in our copy, the product has to actually do. That includes exporting your data, what happens when an account is suspended, and what a subscription does and doesn’t give you.",
     "aiTitle": "AI as a supporting tool",
-    "ai1": "AI is not the product on HomeCheff. It can reduce complexity, stimulate creativity and improve communication — never replace human relationships.",
-    "ai2": "Public AI and SEO summaries rely on this Manifest and /hoe-homecheff-werkt, not marketing language.",
+    "ai1": "AI isn’t what HomeCheff is about. We use it where it makes things simpler or helps people communicate, but the contact stays between people.",
+    "ai2": "Summaries that AI tools and search engines show about HomeCheff are based on the Manifest and /hoe-homecheff-werkt, not on marketing language.",
     "entrepreneurshipTitle": "Honest entrepreneurship",
-    "entrepreneurship1": "No promises of quick wealth. Transparent fees and tools to earn, barter or offer services locally.",
-    "entrepreneurship2": "Business subscriptions (Business DNA) describe proven benefits — no guaranteed feed ranking unless proven end-to-end.",
+    "entrepreneurship1": "We don’t promise anyone quick money. We do offer clear fees and the means to sell, barter or offer services locally.",
+    "entrepreneurship2": "For business subscriptions we only describe benefits the product demonstrably delivers. A guaranteed higher place in the feed is not one of them.",
     "foodCategoryTitle": "Food is one category",
-    "foodCategory1": "Home-prepared food, garden harvest, studio creations, services and neighbour help live together on the village square. HomeCheff is for people — not products alone.",
+    "foodCategory1": "Home-made food sits on the village square alongside garden produce, studio creations, services and help from neighbours. It’s about the people, not only what they sell.",
     "villageTitle": "The digital village square",
-    "village1": "People discover people; skills find opportunity; neighbourhoods find each other. Technology is the bridge — people remain the destination.",
-    "village2": "See how the parts connect at /hoe-homecheff-werkt.",
+    "village1": "The village square is where people find each other. Someone with a skill finds someone who needs it, and neighbours get to know each other. The technology gets you there; the contact is up to you.",
+    "village2": "You can see how the parts fit together at /hoe-homecheff-werkt.",
     "futureTitle": "Looking ahead",
-    "future1": "We hope to contribute to stronger local economies, more accessible entrepreneurship and greater appreciation of craftsmanship — without unproven impact claims.",
-    "future2": "Partners, municipalities and investors can use the Manifest as a stable reference; the team works daily on a reliable, human-centred platform.",
+    "future1": "We hope HomeCheff makes it easier to run something small locally, and that craft in the neighbourhood gets more appreciation. Whether that works remains to be seen. We don’t make big promises about impact.",
+    "future2": "Partners, municipalities and investors can use the Manifest as a fixed reference. The team works every day on a platform you can rely on.",
     "whoWeAreTitle": "Who we are today",
-    "whoWeAre1": "HomeCheff is your neighbourhood's digital village square: makers, service providers and neighbours offer products, skills, creativity and help. Food is one category — alongside garden, creations and services.",
-    "whoWeAre2": "We build a place to get inspiration, discover local offerings, post in Wanted, barter or pay securely. It's about fair trade, flexible agreements and a community that supports each other.",
-    "whoWeAre3": "Whether you cook, grow, design, do chores or share knowledge: on HomeCheff you reach people in your region and build reputation.",
+    "whoWeAre1": "HomeCheff is your neighbourhood’s digital village square. Makers, service providers and neighbours offer products, skills, creations and help there. Food is one category, alongside garden produce, creations and services.",
+    "whoWeAre2": "You can find inspiration, see what’s offered nearby, post a request in Wanted, barter or pay securely. Fair arrangements come first.",
+    "whoWeAre3": "Do you cook, grow, design, do odd jobs or share what you know? On HomeCheff you reach people in your own area and build a reputation as you go.",
     "missionTitle": "Our mission",
-    "mission1": "We want local offering, discovery and agreements to feel natural again — with money, barter or personal deals. We connect sellers and buyers directly; with secure payouts via HomeCheff Checkout where available.",
-    "mission2": "We also offer Inspiration for ideas without selling, Wanted for what you're looking for, and space for services and neighbour help — one ecosystem, not separate products.",
+    "mission1": "We want offering, discovering and arranging things locally to feel normal again, whether that’s for money, as a swap or on your own terms. Buyer and seller deal with each other directly. Where possible, payment runs securely through HomeCheff Checkout.",
+    "mission2": "There’s also Inspiration for ideas that aren’t for sale, Wanted for what you’re looking for, and room for services and neighbour help. It all sits in one platform rather than separate apps.",
     "whatWeDoTitle": "What we do",
     "whatWeDo1": "Inspiration: share ideas, recipes and making processes with the community.",
     "whatWeDo2": "Village Square: discover offered products, services and help — with secure checkout or flexible agreements.",
     "whatWeDo3": "Wanted & proposals: post what you need or make a proposal with money, barter or other value.",
     "whatWeDo4": "Community & reputation: HCP, trust and making local makers visible.",
-    "reachabilityTitle": "Reachability — who to contact for what",
+    "reachabilityTitle": "Who to email for what",
     "reachabilityIntro": "We want you to reach the right place. Use the email addresses below so your message gets to the right team quickly.",
     "tableFor": "For",
     "tableEmail": "Email address",
@@ -6403,7 +6404,7 @@
     },
     "reachabilityNote": "We aim to respond within a few working days. For urgent technical issues you can also use the contact form.",
     "teamTitle": "Team and collaboration",
-    "teamText": "The team behind HomeCheff works daily on a reliable and user-friendly platform. For partnerships, press or jobs: use the matching email address above. We look forward to hearing from you.",
+    "teamText": "The team works on HomeCheff every day. For partnerships, press or jobs, use the matching email address above. We’d be glad to hear from you.",
     "contactCta": "Go to contact form",
     "companyDetailsTitle": "Company details",
     "companyUnder": "HomeCheff is part of Arrias Beheer.",
@@ -7406,7 +7407,7 @@
     "usersCommission": "Bringing users:",
     "usersCommissionDesc": "25% of HomeCheff fee per transaction (buyer or seller), 50% if you bring both (25% + 25%)",
     "businessCommission": "Bringing businesses:",
-    "businessCommissionDesc": "50% of subscription fee, with the ability to give discounts from your own commission.",
+    "businessCommissionDesc": "50% of the distributable margin after the HC reserve. You can give the business a discount, but it comes out of your share.",
     "revenueShare": "Revenue share applies for 12 months per referred business",
     "everyoneWorthMoney": "Everyone you bring is worth money!",
     "everyoneWorthMoneyDesc": "It doesn't matter who you bring - buyers, sellers, businesses - everyone can make you money!",
@@ -7452,9 +7453,9 @@
     "step1Desc": "Click the button below and you'll immediately get your unique referral link and access to your dashboard. No costs, no obligations.",
     "step2": "Share your link or promo code",
     "step2Desc": "Share your referral link or create a promo code and send it to businesses that want a subscription. From now on you can register businesses for 12 months.",
-    "step3": "Earn commission automatically",
+    "step3": "Commission is tracked",
     "step3Desc": "As soon as a user or business becomes active via your link, you automatically earn commission: 25% per user (50% if you bring both) or 50% per business. All commissions are automatically tracked and paid weekly.",
-    "step4": "Get paid weekly",
+    "step4": "Payout via Stripe",
     "step4Desc": "Commissions are ledger-tracked and paid according to dashboard rules after onboarding. Connect payout is not an extra charge to buyers or sellers.",
     "examples": "Examples: How much do you earn?",
     "exampleUsers": "Example: Bringing Users",
@@ -7781,12 +7782,12 @@
     "passiveIncomeSubtitle": "With 2 businesses per month: an illustrative scenario within the standard model",
     "realisticAdvantage": "The Realistic Advantage",
     "realisticAdvantageDesc": "Two businesses per month is achievable for many networks. The monthly figures shown are illustrative based on model assumptions; the subscription share falls within the twelve-month standard window per business.",
-    "whatItCosts": "What It Costs",
+    "whatItCosts": "What it costs you",
     "signupCost": "Signup:",
     "monthlyCosts": "Monthly costs:",
     "totalInvestment": "Total investment",
     "whatYouEarn": "What You Earn",
-    "whatYouEarnSubline": "Recurring income potential from active subscriptions and a growing community.",
+    "whatYouEarnSubline": "A scenario with many active business subscriptions and orders after twelve months. What you earn depends on who actually becomes active through your link. There is no minimum.",
     "whatYouEarnBadge": "Realistic example",
     "year1": "Year 1 (building):",
     "year1Breakdown": "* €7,722 subscriptions + €2,280 transactions",
@@ -7822,7 +7823,7 @@
     "readyToStartDescNew": "Signup takes less than 30 seconds. No credit card needed, completely free.",
     "alreadyAffiliate": "Already an affiliate?",
     "goToDashboard": "Go to your dashboard",
-    "calculatePotential": "Calculate your recurring income potential →",
+    "calculatePotential": "Work out your own scenario",
     "free": "Free",
     "noObligations": "No obligations",
     "directActive": "Directly active",
@@ -7917,21 +7918,21 @@
     "growth": {
       "heroEyebrow": "HomeCheff ecosystem",
       "heroTitle": "Earn with makers in your network",
-      "heroSubtitle": "Share your link with creators, agencies, and communities. Earn on transactions and business subscriptions in the standard model (up to 12 months per active subscription).",
+      "heroSubtitle": "Share your personal link with people and businesses who could use HomeCheff. If someone becomes active through your link as a buyer, seller or business subscriber, you receive part of what HomeCheff earns from that activity.",
       "heroTrust": "",
-      "pilotNote": "Pilot — limited partner seats.",
+      "pilotNote": "Pilot: we are admitting a limited number of partners.",
       "sectionModelTitle": "What you earn",
-      "modelBullet1": "Transactions: up to 25% of the HomeCheff fee per side; up to 50% if you refer both buyer and seller.",
-      "modelBullet2": "Subscriptions: up to 50% per month in the standard model, for up to 12 months per active referred business.",
-      "modelBullet3": "Payouts: according to dashboard rules after onboarding (Connect when the batch route is available).",
-      "modelExampleHint": "Illustrative scenario",
+      "modelBullet1": "Orders: the affiliate pool is at most 50% of the HomeCheff platform fee, never of the full order value. If you referred the buyer or the seller, you get 25% of that fee. If you referred both, you get the full 50%.",
+      "modelBullet2": "Business subscriptions: 50% of what remains of the subscription after the HC reserve. You receive it every month while the subscription runs, for up to twelve months per business.",
+      "modelBullet3": "Payouts: commission is pending for 14 days and then becomes available. Payouts go through Stripe Connect under the rules in your dashboard, once you have completed onboarding.",
+      "modelExampleHint": "Worked example, not a promise",
       "sectionFlowTitle": "Four quick steps",
       "dashboardBandTitle": "Dashboard & tools",
-      "dashboardBandBody": "Referral link, QR, promo codes, and reporting — in one place.",
+      "dashboardBandBody": "Your personal link, QR code, promo codes and an overview of what comes in through you.",
       "commissionDetailsLabel": "Full commission breakdown (expand)",
-      "statUser": "25% / side",
-      "statBoth": "50% both sides",
-      "statBiz": "50% subscription",
+      "statUser": "25% of the fee per side",
+      "statBoth": "50% for buyer and seller",
+      "statBiz": "50% after HC reserve",
       "ctaPrimary": "Become an affiliate",
       "ctaSecondary": "View dashboard",
       "ctaStartFree": "Start for free",
@@ -7974,7 +7975,7 @@
       "toolPromoTitle": "Your own promo codes",
       "toolPromoBody": "Create codes for business subscriptions; discounts come from your commission share within the limits shown in the dashboard.",
       "toolStatsTitle": "Insights & payouts",
-      "toolStatsBody": "See referrals, status, and payouts. Weekly payouts (ledger; Connect when the payout batch is available) after onboarding.",
+      "toolStatsBody": "See signups, status and payouts. Payouts go through Stripe Connect once you have completed onboarding.",
       "dashboardPreviewTitle": "Overview in your affiliate dashboard",
       "dashboardPreviewBody": "After signup you’ll see your link, QR options, promo codes, and commission overview — control without spreadsheet stress.",
       "linkFaq": "Full HomeCheff FAQ",
@@ -7984,11 +7985,11 @@
       "faq1Q": "How does the HomeCheff affiliate programme work?",
       "faq1A": "You share your unique link or promo code. When someone becomes a buyer, seller, or business subscriber through your attribution, commission is calculated per the programme and shown in your dashboard.",
       "faq2Q": "How much commission do I get?",
-      "faq2A": "Up to 25% of the HomeCheff fee per referred transaction side (buyer or seller), up to 50% if you refer both sides. For business subscriptions, up to 50% of the subscription amount for up to twelve months per business while active — see the examples on this page.",
+      "faq2A": "On orders you get 25% of the HomeCheff fee for the side you referred (buyer or seller), and 50% if you referred both sides. On business subscriptions you get 50% of the distributable margin after the HC reserve, for up to twelve months per business and only while the subscription runs. The worked examples on this page show what that comes to per plan.",
       "faq3Q": "How long does commission run?",
       "faq3A": "Transaction commission follows usage from your referrals. For business subscriptions, the standard window runs up to twelve months per active business under the current model; if the subscription ends or is cancelled, that commission stream ends.",
       "faq4Q": "When do I get paid?",
-      "faq4A": "Payouts follow dashboard rules after onboarding; Connect payout when the affiliate batch route is available. Commission is funded from the HomeCheff platform fee.",
+      "faq4A": "Commission is pending for 14 days and then becomes available. Payouts go through Stripe Connect under the rules in your dashboard, once you have completed onboarding. Commission is paid out of the HomeCheff platform fee; buyers and sellers pay nothing extra for it.",
       "faq5Q": "Can I create my own discount codes?",
       "faq5A": "Yes — as a main affiliate you can create promo codes for business subscriptions. Discounts are applied from your commission share within the maximum rules shown in the dashboard.",
       "faq6Q": "Can I promote internationally?",
@@ -8011,7 +8012,7 @@
       "alreadyPartnerTitle": "You’re already an affiliate partner",
       "alreadyPartnerBody": "Open your dashboard for links, promo codes, community growth, and payouts.",
       "ecosystemBandTitle": "Affiliate across the ecosystem",
-      "ecosystemBandBody": "Promotion and referral belong to HomeCheff broadly: Marketplace, Growth and Studio can participate where the current partner programme allows. Exact percentages and windows live in your agreement — no guaranteed income.",
+      "ecosystemBandBody": "Your link counts beyond the Marketplace. Growth and Studio can count too, as far as the current partner programme allows. Exact percentages and windows are in your agreement. There is no guaranteed income.",
       "ecosystemLinkMarketplace": "Marketplace",
       "ecosystemLinkStudio": "Studio",
       "ecosystemLinkGrowth": "Growth",

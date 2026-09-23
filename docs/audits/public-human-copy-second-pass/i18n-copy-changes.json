@@ -1,0 +1,912 @@
+[
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.heroSubtitle",
+    "op": "set",
+    "before": "Deel je link met creators, agencies en communities. Verdien op transacties en op zakelijke abonnementen via het standaardmodel (tot 12 maanden per actief abonnement).",
+    "after": "Deel je persoonlijke link met mensen en bedrijven die iets aan HomeCheff hebben. Wordt iemand via jouw link actief als koper, verkoper of zakelijk abonnee, dan krijg je een deel van wat HomeCheff aan die activiteit verdient."
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.pilotNote",
+    "op": "set",
+    "before": "Pilot — beperkt aantal partners.",
+    "after": "Pilot: we laten een beperkt aantal partners toe."
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.modelBullet1",
+    "op": "set",
+    "before": "Transacties: tot 25% van de HomeCheff-fee per kant; tot 50% als jij koper én verkoper aanbrengt.",
+    "after": "Bestellingen: de affiliatepool is maximaal 50% van de HomeCheff-platformfee, nooit van het hele orderbedrag. Heb jij de koper of de verkoper aangebracht, dan krijg je 25% van die fee. Heb je allebei aangebracht, dan de volle 50%."
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.modelBullet2",
+    "op": "set",
+    "before": "Abonnementen: tot 50% per maand binnen het standaardmodel, tot 12 maanden per actief aangebracht bedrijf.",
+    "after": "Zakelijke abonnementen: 50% van wat er van het abonnementsgeld overblijft na de HC-reserve. Je krijgt dat elke maand zolang het abonnement loopt, maximaal twaalf maanden per bedrijf."
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.modelBullet3",
+    "op": "set",
+    "before": "Uitbetaling: wekelijks via Stripe Connect na onboarding.",
+    "after": "Uitbetaling: commissie staat eerst 14 dagen op pending en wordt daarna beschikbaar. Uitbetalen gaat via Stripe Connect volgens de regels in je dashboard, nadat je de onboarding hebt afgerond."
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.modelExampleHint",
+    "op": "set",
+    "before": "Voorbeeld bij doorzetting",
+    "after": "Rekenvoorbeeld, geen belofte"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.whatYouEarnSubline",
+    "op": "set",
+    "before": "Terugkerende inkomstenpotentie via actieve abonnementen en een groeiende community.",
+    "after": "Een scenario met veel actieve zakelijke abonnementen en bestellingen na twaalf maanden. Wat jij verdient, hangt af van wie er via jouw link echt actief wordt. Een minimum is er niet."
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.whatItCosts",
+    "op": "set",
+    "before": "Wat Het Kost",
+    "after": "Wat het jou kost"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.calculatePotential",
+    "op": "set",
+    "before": "Bereken je terugkerende inkomstenpotentie →",
+    "after": "Reken je eigen scenario door"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.statUser",
+    "op": "set",
+    "before": "25% / zijde",
+    "after": "25% van de fee per kant"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.statBoth",
+    "op": "set",
+    "before": "50% duo",
+    "after": "50% bij koper én verkoper"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.statBiz",
+    "op": "set",
+    "before": "50% abonnement",
+    "after": "50% na HC-reserve"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.step2",
+    "op": "set",
+    "before": "Deel je link of promo code",
+    "after": "Deel je link of promocode"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.step3",
+    "op": "set",
+    "before": "Verdien automatisch commissie",
+    "after": "Commissie wordt bijgehouden"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.step4",
+    "op": "set",
+    "before": "Krijg wekelijks uitbetaald",
+    "after": "Uitbetaling via Stripe"
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.dashboardBandBody",
+    "op": "set",
+    "before": "Referral-link, QR, promocodes en overzicht — compact in één dashboard.",
+    "after": "Je persoonlijke link, QR-code, promocodes en een overzicht van wat er via jou binnenkomt."
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.toolStatsBody",
+    "op": "set",
+    "before": "Zie referrals, status en uitbetalingen. Wekelijkse uitbetaling via Stripe Connect na onboarding.",
+    "after": "Zie aanmeldingen, status en uitbetalingen. Uitbetaling loopt via Stripe Connect nadat je de onboarding hebt afgerond."
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.businessCommissionDesc",
+    "op": "set",
+    "before": "50% van de abonnementsfee, met de mogelijkheid om korting te geven vanuit je eigen commissie.",
+    "after": "50% van de deelbare marge na HC-reserve. Je kunt het bedrijf korting geven, maar die gaat van jouw deel af."
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.ecosystemBandBody",
+    "op": "set",
+    "before": "Promotie en referral horen bij HomeCheff breed: Marketplace, Growth en Studio kunnen meedoen waar het actuele partnerprogramma dat toestaat. Exacte percentages en vensters staan in je overeenkomst — geen gegarandeerd inkomen.",
+    "after": "Je link telt niet alleen op de Marketplace. Ook Growth en Studio kunnen meetellen, voor zover het huidige partnerprogramma dat toestaat. De exacte percentages en termijnen staan in je overeenkomst. Een gegarandeerd inkomen is er niet."
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.faq2A",
+    "op": "set",
+    "before": "Tot 25% van de HomeCheff-fee per transactiekant (koper of verkoper), tot 50% als je beide kanten aanbrengt. Voor zakelijke abonnementen tot 50% van het abonnementsbedrag, tot twaalf maanden per bedrijf, zolang het abonnement actief is — zie ook de tariefvoorbeelden op deze pagina.",
+    "after": "Bij bestellingen krijg je 25% van de HomeCheff-fee voor de kant die jij hebt aangebracht (koper of verkoper), en 50% als je beide kanten hebt aangebracht. Bij zakelijke abonnementen krijg je 50% van de deelbare marge na HC-reserve, maximaal twaalf maanden per bedrijf en alleen zolang het abonnement loopt. De rekenvoorbeelden op deze pagina laten zien wat dat per abonnement is."
+  },
+  {
+    "lang": "nl",
+    "path": "affiliate.growth.faq4A",
+    "op": "set",
+    "before": "Uitbetalingen lopen wekelijks via Stripe Connect, na succesvolle onboarding en volgens de uitbetalingsregels in het dashboard.",
+    "after": "Commissie staat eerst 14 dagen op pending en daarna op beschikbaar. Uitbetalen gaat via Stripe Connect volgens de regels in je dashboard, nadat je de onboarding hebt afgerond. De commissie komt uit de HomeCheff-platformfee; kopers en verkopers betalen er niets extra voor."
+  },
+  {
+    "lang": "nl",
+    "path": "faq.general.2.answer",
+    "op": "set",
+    "before": "Ja! Voor particuliere verkopers is HomeCheff volledig gratis. Je betaalt geen maandelijkse kosten, alleen transactiekosten op elke verkoop. Voor bedrijven met een KVK nummer zijn er abonnementen beschikbaar.",
+    "after": "Voor particulieren kost een account niets en is er geen maandbedrag. Je betaalt alleen transactiekosten op elke verkoop. Bedrijven met een KVK-nummer kunnen een abonnement nemen."
+  },
+  {
+    "lang": "nl",
+    "path": "faq.general.7.answer",
+    "op": "set",
+    "before": "Sergio Arrias is de oprichter (Founder) van HomeCheff — niet gepresenteerd als iemand die simpelweg een app bouwde, maar als een founder die jaren besteedde aan een community-gerichte filosofie die uiteindelijk een praktisch platform werd. Geëxploiteerd door Arrias Beheer B.V. (KvK 80532829, Vlaardingen, NL). Zie /sergio-arrias.",
+    "after": "Sergio Arrias is de oprichter van HomeCheff. Het platform groeide uit ideeën waar hij jarenlang aan werkte, over hoe mensen in een buurt meer aan elkaar kunnen hebben. HomeCheff wordt geëxploiteerd door Arrias Beheer B.V. (KvK 80532829, Vlaardingen). Meer over hem lees je op /sergio-arrias."
+  },
+  {
+    "lang": "nl",
+    "path": "faq.general.10.answer",
+    "op": "set",
+    "before": "De oprichter zag afnemend buurtcontact, groeiende eenzaamheid, loslating, onzichtbare skills en zwakkere lokale gemeenschappen. Technologie moet mensen opnieuw verbinden, niet isoleren. HomeCheff is een kalm, praktisch antwoord: een digitale buurtmarkt waar persoonlijk vakmanschap dichtbij eerst zichtbaar kan worden. Zie /oorsprong-homecheff.",
+    "after": "De oprichter zag hoeveel mensen iets kunnen, zoals koken, kweken, maken, repareren of helpen, zonder dat hun buren dat weten. Hij zag ook dat mensen in een straat elkaar minder vaak spreken, dat eenzaamheid toeneemt en dat buurten daardoor minder sterk worden. HomeCheff wil daar een praktische plek voor zijn: een digitale buurtmarkt waar je eerst ziet wat er dichtbij gemaakt en aangeboden wordt. Het hele verhaal staat op /oorsprong-homecheff."
+  },
+  {
+    "lang": "nl",
+    "path": "faq.affiliate.2.answer",
+    "op": "set",
+    "before": "Je verdient via twee sporen:\n\n• Transacties: tot 25% van de HomeCheff-fee per zijde (koper of verkoper), tot 50% als je beide zijden aanbrengt.\n• Zakelijke abonnementen: tot 50% van het abonnementsbedrag per maand, binnen het standaardmodel tot 12 maanden per actief aangebracht bedrijf.\n\nExacte percentages en voorwaarden staan in je affiliate-overeenkomst.",
+    "after": "Je verdient op twee manieren:\n\n• Bestellingen: 25% van de HomeCheff-fee voor de kant die jij hebt aangebracht (koper of verkoper), 50% als je beide kanten hebt aangebracht.\n• Zakelijke abonnementen: 50% van de deelbare marge na HC-reserve, elke maand zolang het abonnement loopt, maximaal 12 maanden per aangebracht bedrijf.\n\nDe exacte percentages en voorwaarden staan in je affiliate-overeenkomst."
+  },
+  {
+    "lang": "nl",
+    "path": "faq.affiliate.5.answer",
+    "op": "set",
+    "before": "Commissies worden in je dashboard bijgehouden (pending / available / paid). Connect-uitbetaling volgt na onboarding wanneer de affiliate-batchroute beschikbaar is; financiering komt uit de HomeCheff-platformfee, niet als extra koper- of verkoperskosten.\n\nIn je dashboard zie je per periode wat pending, available en paid is. Je blijft zelf verantwoordelijk voor correcte fiscale verwerking in je eigen land.",
+    "after": "Je dashboard houdt je commissies bij als pending, beschikbaar en uitbetaald. Uitbetalen gaat via Stripe Connect volgens de uitbetalingsregels in je dashboard, nadat je de onboarding hebt afgerond. De commissie komt uit de HomeCheff-platformfee; kopers en verkopers betalen er niets extra voor.\n\nIn je dashboard zie je per periode wat pending, beschikbaar en uitbetaald is. Je bent zelf verantwoordelijk voor de juiste fiscale verwerking in je eigen land."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.subtitle",
+    "op": "set",
+    "before": "Het verhaal, de filosofie en hoe je ons bereikt — rustig en zonder hype.",
+    "after": "Waar HomeCheff vandaan komt, waar we voor staan en hoe je ons bereikt."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.manifestIntro",
+    "op": "set",
+    "before": "De volledige filosofische basis van HomeCheff — waarom we bestaan, welke waarden leidend zijn en wat we weigeren te worden — staat in het HomeCheff Manifest.",
+    "after": "Waarom HomeCheff bestaat, welke waarden we aanhouden en wat we nadrukkelijk niet willen worden, staat uitgebreid in het HomeCheff Manifest."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.story1",
+    "op": "set",
+    "before": "HomeCheff begon niet als een snelle startup-idee. Het platform groeide uit van jarenlange observatie: in de samenleving ligt veel onbenutte waarde — mensen die koken, kweken, maken, repareren, onderwijzen of helpen, terwijl slechts een deel daarvan zichtbaar wordt.",
+    "after": "HomeCheff is geen idee dat in een weekend is ontstaan. Het groeide uit jaren van kijken naar wat mensen om ons heen kunnen: koken, kweken, maken, repareren, lesgeven, helpen. Veel daarvan krijgt de buurt nooit te zien."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.story2",
+    "op": "set",
+    "before": "De bedoeling is niet om mensen te veranderen, maar om technologie te gebruiken zodat mensen elkaar kunnen ontdekken. Die lange voorbereiding maakt HomeCheff groter dan één persoon: de filosofie moet decennia geldig blijven.",
+    "after": "We willen mensen niet veranderen. We willen dat ze elkaar makkelijker vinden, en technologie is daarvoor het middel. De ideeën achter HomeCheff moeten over tien jaar nog steeds kloppen, los van wie het platform dan runt."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.story3",
+    "op": "set",
+    "before": "We vertellen geen heldenverhaal over oprichters. HomeCheff moet op eigen meriten staan — voor gebruikers, partners, gemeenten en toekomstige medewerkers.",
+    "after": "Dit is geen heldenverhaal over een oprichter. HomeCheff moet zijn waarde bewijzen voor de mensen die het gebruiken, voor partners, voor gemeenten en voor toekomstige collega’s."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.philosophy1",
+    "op": "set",
+    "before": "Elke persoon bezit waarde. Technologie moet die waarde helpen zichtbaar worden en menselijke relaties versterken — niet algoritmische engagement maximaliseren.",
+    "after": "Iedereen kan iets. Technologie moet helpen om dat zichtbaar te maken en mensen dichter bij elkaar te brengen, niet om zo veel mogelijk schermtijd binnen te halen."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.philosophy2",
+    "op": "set",
+    "before": "Lees de zes kernwaarden, visie en missie in het Manifest. Productbeslissingen en publieke copy worden daaraan getoetst.",
+    "after": "De zes kernwaarden, onze visie en onze missie staan in het Manifest. Daar toetsen we productkeuzes en onze teksten aan."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.craft1",
+    "op": "set",
+    "before": "HomeCheff is het digitale thuis van persoonlijk vakmanschap. Een handgemaakt product, een dienst of een vaardigheid heeft inherente waarde — technologie maakt die zichtbaar, geen massaproductie.",
+    "after": "Op HomeCheff draait het om wat iemand zelf maakt of kan: een zelfgebakken taart, een opgeknapte stoel, bijles, een klus in de tuin. Het platform maakt dat zichtbaar, maar het vakmanschap blijft van de maker."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.craft2",
+    "op": "set",
+    "before": "Zie ook /persoonlijk-vakmanschap en /ontmoet-de-maker voor hoe profielen en maker-verhalen op het platform werken.",
+    "after": "Hoe profielen en makerverhalen werken, lees je op /persoonlijk-vakmanschap en /ontmoet-de-maker."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.local1",
+    "op": "set",
+    "before": "Buurten worden sterker wanneer buren elkaar kennen. HomeCheff moedigt lokale ontdekking, afspraken en vertrouwen aan — geen anonieme wereldmarkt.",
+    "after": "Een buurt wordt prettiger als je weet wie er om de hoek woont en wat die maakt. Daarom begint HomeCheff dichtbij, met afspraken tussen mensen die elkaar kunnen tegenkomen, en niet bij een anonieme wereldmarkt."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.local2",
+    "op": "set",
+    "before": "Pilot en groei gebeuren regionaal en eerlijk: lege regio’s krijgen geen spam-pagina’s. Zie /buurt-economie en /lokaal-verdienen.",
+    "after": "We groeien regio voor regio. Waar nog weinig aanbod is, maken we geen opgeblazen pagina’s om dat te verbergen. Meer hierover op /buurt-economie en /lokaal-verdienen."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.conscience1",
+    "op": "set",
+    "before": "Geen dark patterns, eindeloos scrollen, verslavende mechanics of misleidende meldingen. We respecteren aandacht en tijd.",
+    "after": "Geen trucs om je langer te laten scrollen, geen verslavende spelmechanieken en geen meldingen die meer beloven dan er is. Je tijd en aandacht zijn van jou."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.conscience2",
+    "op": "set",
+    "before": "Wat we beloven in copy moet kloppen met productgedrag — inclusief Phase 13O waarheidsgrenzen over export, suspension en abonnementsvoordelen.",
+    "after": "Wat we in onze teksten beloven, moet het product ook echt doen. Dat geldt ook voor het exporteren van je gegevens, voor wat er gebeurt als een account wordt geschorst en voor wat een abonnement wel en niet oplevert."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.ai1",
+    "op": "set",
+    "before": "AI is geen product op HomeCheff. Het kan complexiteit verlagen, creativiteit stimuleren en communicatie verbeteren — nooit menselijke relaties vervangen.",
+    "after": "AI is niet waar HomeCheff om draait. We gebruiken het waar het dingen eenvoudiger maakt of helpt bij communiceren, maar het contact blijft tussen mensen."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.ai2",
+    "op": "set",
+    "before": "Publieke AI- en SEO-samenvattingen leunen op dit Manifest en /hoe-homecheff-werkt, niet op marketingtaal.",
+    "after": "Samenvattingen die AI-tools en zoekmachines over HomeCheff tonen, baseren we op het Manifest en op /hoe-homecheff-werkt, niet op reclametaal."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.entrepreneurship1",
+    "op": "set",
+    "before": "Geen beloftes van snel rijkdom. Wel transparante fees, tools om lokaal te verdienen, ruilen of diensten aan te bieden.",
+    "after": "We beloven niemand snel geld. Wel duidelijke fees en de middelen om lokaal te verkopen, te ruilen of diensten aan te bieden."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.entrepreneurship2",
+    "op": "set",
+    "before": "Zakelijke abonnementen (Business DNA) beschrijven bewezen voordelen — geen gegarandeerde feed-ranking tenzij end-to-end bewezen.",
+    "after": "Bij zakelijke abonnementen noemen we alleen voordelen die het product aantoonbaar levert. Een gegarandeerd hogere plek in de feed hoort daar niet bij."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.foodCategory1",
+    "op": "set",
+    "before": "Thuisgemaakt eten, tuinoogst, studio-creaties, diensten en buurthulp leven naast elkaar op het dorpsplein. HomeCheff is voor mensen — niet alleen voor producten.",
+    "after": "Thuisgemaakt eten staat op het dorpsplein naast tuinoogst, creaties uit de studio, diensten en hulp van buren. Het gaat om de mensen, niet alleen om wat ze verkopen."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.village1",
+    "op": "set",
+    "before": "Mensen ontdekken mensen; vaardigheden vinden kansen; buurten vinden elkaar. Technologie is de brug — mensen blijven de bestemming.",
+    "after": "Op het dorpsplein vinden mensen elkaar. Wie iets kan, vindt iemand die het nodig heeft, en buren leren elkaar kennen. De techniek brengt je daar, het contact leg je zelf."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.village2",
+    "op": "set",
+    "before": "Ontdek hoe onderdelen samenhangen op /hoe-homecheff-werkt.",
+    "after": "Hoe de onderdelen samenhangen, zie je op /hoe-homecheff-werkt."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.future1",
+    "op": "set",
+    "before": "We hopen bij te dragen aan sterkere lokale economieën, toegankelijker ondernemerschap en meer waardering voor vakmanschap — zonder onbewezen impactclaims.",
+    "after": "We hopen dat HomeCheff het makkelijker maakt om lokaal te ondernemen, en dat vakmanschap in de buurt meer gewaardeerd wordt. Of dat lukt, moet blijken. Grote beloftes over impact doen we niet."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.future2",
+    "op": "set",
+    "before": "Partners, gemeenten en investeerders kunnen het Manifest gebruiken als stabiele referentie; het team werkt dagelijks aan een betrouwbaar, mensgericht platform.",
+    "after": "Partners, gemeenten en investeerders kunnen het Manifest gebruiken als vaste referentie. Het team werkt elke dag aan een platform waar je op kunt vertrouwen."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.whoWeAre1",
+    "op": "set",
+    "before": "HomeCheff is het digitale dorpsplein van je buurt: makers, dienstverleners en buren bieden producten, vaardigheden, creativiteit en hulp aan. Eten is één categorie — naast tuin, creaties en diensten.",
+    "after": "HomeCheff is het digitale dorpsplein van je buurt. Makers, dienstverleners en buren bieden er producten, vaardigheden, creaties en hulp aan. Eten is daar één categorie van, naast tuin, creaties en diensten."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.whoWeAre2",
+    "op": "set",
+    "before": "We bouwen een plek waar je inspiratie opdoet, lokaal ontdekt wat er aangeboden wordt, een oproep plaatst in Gezocht, ruilt of veilig afrekent. Alles draait om eerlijke handel, flexibele afspraken en een community die elkaar versterkt.",
+    "after": "Je doet er inspiratie op, ziet wat er dichtbij wordt aangeboden, plaatst een oproep in Gezocht, ruilt of rekent veilig af. Eerlijke afspraken staan daarbij voorop."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.whoWeAre3",
+    "op": "set",
+    "before": "Of je nu kookt, kweekt, ontwerpt, klusjes doet of kennis deelt: op HomeCheff bereik je mensen in je eigen regio en bouw je reputatie op.",
+    "after": "Kook je, kweek je, ontwerp je, doe je klussen of deel je kennis? Dan bereik je op HomeCheff mensen in je eigen regio en bouw je gaandeweg een reputatie op."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.mission1",
+    "op": "set",
+    "before": "We willen lokaal aanbieden, ontdekken en afspreken weer vanzelfsprekend maken — met geld, ruil of persoonlijke afspraken. Verkopers en kopers verbinden we direct; waar mogelijk met veilige uitbetaling via HomeCheff Checkout.",
+    "after": "We willen dat lokaal aanbieden, ontdekken en afspreken weer gewoon wordt, tegen betaling, als ruil of met een eigen afspraak. Koper en verkoper hebben direct contact. Waar het kan, loopt de betaling veilig via HomeCheff Checkout."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.mission2",
+    "op": "set",
+    "before": "Daarnaast bieden we Inspiratie voor ideeën zonder verkoop, Gezocht voor wat je zoekt, en ruimte voor diensten en buurthulp — één ecosysteem, geen losse apps.",
+    "after": "Daarnaast is er Inspiratie voor ideeën zonder verkoop, Gezocht voor wat je zoekt en ruimte voor diensten en buurthulp. Het zit allemaal in één platform in plaats van in losse apps."
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.reachabilityTitle",
+    "op": "set",
+    "before": "Bereikbaarheid — voor wie naar waar",
+    "after": "Wie je waarvoor mailt"
+  },
+  {
+    "lang": "nl",
+    "path": "overOns.teamText",
+    "op": "set",
+    "before": "Het team achter HomeCheff werkt dagelijks aan een betrouwbaar en gebruiksvriendelijk platform. Voor samenwerkingen, pers of vacatures: gebruik het bijpassende e-mailadres hierboven. We kijken ernaar uit om van je te horen.",
+    "after": "Het team werkt elke dag aan HomeCheff. Voor samenwerking, pers of vacatures gebruik je het e-mailadres hierboven dat erbij past. We horen graag van je."
+  },
+  {
+    "lang": "nl",
+    "path": "ecosystemHub.subtitle",
+    "op": "set",
+    "before": "Een rustig beeld van echte aanbiedingen en inspiratie binnen ongeveer {radius} km — geen groepen, geen druk.",
+    "after": "Wat er de afgelopen zeven dagen binnen ongeveer {radius} km is geplaatst."
+  },
+  {
+    "lang": "nl",
+    "path": "ecosystemHub.sparseGeo",
+    "op": "set",
+    "before": "Regionale hubs worden sterker als makers een ophaal- of atelierlocatie delen — op de feed zie je nog steeds iedereen bij jou in de buurt.",
+    "after": "Deze regiopagina wordt vollediger naarmate meer makers een ophaal- of atelierlocatie invullen. In de feed zie je nu al iedereen bij jou in de buurt."
+  },
+  {
+    "lang": "nl",
+    "path": "ecosystemHub.emptyWeek",
+    "op": "add",
+    "before": null,
+    "after": "In deze regio is de afgelopen week nog niets nieuws geplaatst."
+  },
+  {
+    "lang": "nl",
+    "path": "faq.buying.2.answer",
+    "op": "replace-substring",
+    "before": "Ja! HomeCheff biedt een uniek reserveringssysteem voor toekomstige producten. Dit is perfect voor bijvoorbeeld BBQ's, feestjes of speciale gelegenheden.",
+    "after": "Ja, als de verkoper een product vooruit aanbiedt. Dat is handig voor bijvoorbeeld een barbecue, een verjaardag of een ander moment waarvoor je vooraf wilt bestellen."
+  },
+  {
+    "lang": "nl",
+    "path": "faq.buying.4.answer",
+    "op": "replace-substring",
+    "before": "Ja! Word fan van je favoriete handgemaakte verkopers om op de hoogte te blijven van nieuwe producten. Je ontvangt notificaties wanneer ze nieuwe handgemaakte items toevoegen.",
+    "after": "Ja. Word fan van een verkoper en je krijgt een melding zodra die iets nieuws plaatst."
+  },
+  {
+    "lang": "nl",
+    "path": "faq.buying.5.answer",
+    "op": "replace-substring",
+    "before": "HomeCheff's unieke reserveringssysteem helpt verspilling tegen te gaan door vooruit plannen:",
+    "after": "Verkopers kunnen producten tot een week vooruit aanbieden. Kopers kunnen dan reserveren en de verkoper weet hoeveel er nodig is:"
+  },
+  {
+    "lang": "nl",
+    "path": "faq.handmade.1.answer",
+    "op": "replace-substring",
+    "before": "Ja, dat is juist geweldig! Het herstellen en upcyclen van oude spullen is een prachtige vorm van duurzaamheid. Denk aan:",
+    "after": "Ja. Opgeknapte en ge-upcyclede spullen passen goed bij HomeCheff. Denk aan:"
+  },
+  {
+    "lang": "nl",
+    "path": "faq.handmade.3.answer",
+    "op": "replace-substring",
+    "before": "Dat is fantastisch! Gerecyclede materialen zijn de toekomst van duurzaam handgemaakt werk:",
+    "after": "Dat kan prima. Vermeld wel waar het materiaal vandaan komt. Een paar voorbeelden:"
+  },
+  {
+    "lang": "nl",
+    "path": "faq.sustainability.8.answer",
+    "op": "replace-substring",
+    "before": "🌱 Perfect! Veel tuiniers kweken graag planten maar hebben er teveel van. Dit is een geweldige manier om verspilling tegen te gaan:",
+    "after": "Die kun je op HomeCheff aanbieden aan mensen in de buurt, in plaats van ze weg te gooien. Bijvoorbeeld:"
+  },
+  {
+    "lang": "nl",
+    "path": "faq.affiliate.3.answer",
+    "op": "replace-substring",
+    "before": "• Commissies worden administratief bijgehouden; Connect-uitbetaling volgt wanneer die batchroute beschikbaar is",
+    "after": "• Uitbetalen gaat via Stripe Connect nadat je de onboarding hebt afgerond"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.heroSubtitle",
+    "op": "set",
+    "before": "Share your link with creators, agencies, and communities. Earn on transactions and business subscriptions in the standard model (up to 12 months per active subscription).",
+    "after": "Share your personal link with people and businesses who could use HomeCheff. If someone becomes active through your link as a buyer, seller or business subscriber, you receive part of what HomeCheff earns from that activity."
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.pilotNote",
+    "op": "set",
+    "before": "Pilot — limited partner seats.",
+    "after": "Pilot: we are admitting a limited number of partners."
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.modelBullet1",
+    "op": "set",
+    "before": "Transactions: up to 25% of the HomeCheff fee per side; up to 50% if you refer both buyer and seller.",
+    "after": "Orders: the affiliate pool is at most 50% of the HomeCheff platform fee, never of the full order value. If you referred the buyer or the seller, you get 25% of that fee. If you referred both, you get the full 50%."
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.modelBullet2",
+    "op": "set",
+    "before": "Subscriptions: up to 50% per month in the standard model, for up to 12 months per active referred business.",
+    "after": "Business subscriptions: 50% of what remains of the subscription after the HC reserve. You receive it every month while the subscription runs, for up to twelve months per business."
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.modelBullet3",
+    "op": "set",
+    "before": "Payouts: according to dashboard rules after onboarding (Connect when the batch route is available).",
+    "after": "Payouts: commission is pending for 14 days and then becomes available. Payouts go through Stripe Connect under the rules in your dashboard, once you have completed onboarding."
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.modelExampleHint",
+    "op": "set",
+    "before": "Illustrative scenario",
+    "after": "Worked example, not a promise"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.whatYouEarnSubline",
+    "op": "set",
+    "before": "Recurring income potential from active subscriptions and a growing community.",
+    "after": "A scenario with many active business subscriptions and orders after twelve months. What you earn depends on who actually becomes active through your link. There is no minimum."
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.whatItCosts",
+    "op": "set",
+    "before": "What It Costs",
+    "after": "What it costs you"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.calculatePotential",
+    "op": "set",
+    "before": "Calculate your recurring income potential →",
+    "after": "Work out your own scenario"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.statUser",
+    "op": "set",
+    "before": "25% / side",
+    "after": "25% of the fee per side"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.statBoth",
+    "op": "set",
+    "before": "50% both sides",
+    "after": "50% for buyer and seller"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.statBiz",
+    "op": "set",
+    "before": "50% subscription",
+    "after": "50% after HC reserve"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.step3",
+    "op": "set",
+    "before": "Earn commission automatically",
+    "after": "Commission is tracked"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.step4",
+    "op": "set",
+    "before": "Get paid weekly",
+    "after": "Payout via Stripe"
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.dashboardBandBody",
+    "op": "set",
+    "before": "Referral link, QR, promo codes, and reporting — in one place.",
+    "after": "Your personal link, QR code, promo codes and an overview of what comes in through you."
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.toolStatsBody",
+    "op": "set",
+    "before": "See referrals, status, and payouts. Weekly payouts (ledger; Connect when the payout batch is available) after onboarding.",
+    "after": "See signups, status and payouts. Payouts go through Stripe Connect once you have completed onboarding."
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.businessCommissionDesc",
+    "op": "set",
+    "before": "50% of subscription fee, with the ability to give discounts from your own commission.",
+    "after": "50% of the distributable margin after the HC reserve. You can give the business a discount, but it comes out of your share."
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.ecosystemBandBody",
+    "op": "set",
+    "before": "Promotion and referral belong to HomeCheff broadly: Marketplace, Growth and Studio can participate where the current partner programme allows. Exact percentages and windows live in your agreement — no guaranteed income.",
+    "after": "Your link counts beyond the Marketplace. Growth and Studio can count too, as far as the current partner programme allows. Exact percentages and windows are in your agreement. There is no guaranteed income."
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.faq2A",
+    "op": "set",
+    "before": "Up to 25% of the HomeCheff fee per referred transaction side (buyer or seller), up to 50% if you refer both sides. For business subscriptions, up to 50% of the subscription amount for up to twelve months per business while active — see the examples on this page.",
+    "after": "On orders you get 25% of the HomeCheff fee for the side you referred (buyer or seller), and 50% if you referred both sides. On business subscriptions you get 50% of the distributable margin after the HC reserve, for up to twelve months per business and only while the subscription runs. The worked examples on this page show what that comes to per plan."
+  },
+  {
+    "lang": "en",
+    "path": "affiliate.growth.faq4A",
+    "op": "set",
+    "before": "Payouts follow dashboard rules after onboarding; Connect payout when the affiliate batch route is available. Commission is funded from the HomeCheff platform fee.",
+    "after": "Commission is pending for 14 days and then becomes available. Payouts go through Stripe Connect under the rules in your dashboard, once you have completed onboarding. Commission is paid out of the HomeCheff platform fee; buyers and sellers pay nothing extra for it."
+  },
+  {
+    "lang": "en",
+    "path": "faq.general.2.answer",
+    "op": "set",
+    "before": "Yes! For private sellers, HomeCheff is completely free. You pay no monthly costs, only transaction fees on each sale. For companies with a KVK number, subscriptions are available.",
+    "after": "For private sellers there is no account fee and no monthly cost. You only pay a transaction fee on each sale. Businesses with a KVK number can take out a subscription."
+  },
+  {
+    "lang": "en",
+    "path": "faq.general.7.answer",
+    "op": "set",
+    "before": "Sergio Arrias is the Founder of HomeCheff — not presented as someone who simply built an app, but as a founder who spent years developing a community-centred philosophy that eventually became a practical platform. Operated by Arrias Beheer B.V. (KvK 80532829, Vlaardingen, NL). See /sergio-arrias.",
+    "after": "Sergio Arrias is the founder of HomeCheff. The platform grew out of ideas he worked on for years about how people in a neighbourhood can get more from each other. HomeCheff is operated by Arrias Beheer B.V. (KvK 80532829, Vlaardingen, NL). You can read more about him at /sergio-arrias."
+  },
+  {
+    "lang": "en",
+    "path": "faq.general.10.answer",
+    "op": "set",
+    "before": "The founder observed declining neighbourhood interaction, growing loneliness, disconnection, invisible skills and weaker local communities. Technology should reconnect people, not isolate them. HomeCheff is a calm, practical response: a digital neighbourhood marketplace where personal craftsmanship can become visible nearby first. See /oorsprong-homecheff.",
+    "after": "The founder noticed how many people can do something, such as cooking, growing, making, repairing or helping, without their neighbours knowing about it. He also saw people on the same street talking to each other less, loneliness growing, and neighbourhoods becoming weaker as a result. HomeCheff aims to be a practical place for that: a digital neighbourhood market where you first see what is made and offered close by. The full story is at /oorsprong-homecheff."
+  },
+  {
+    "lang": "en",
+    "path": "faq.buying.4.question",
+    "op": "set",
+    "before": "Can I become a fan or sellers?",
+    "after": "Can I follow sellers as a fan?"
+  },
+  {
+    "lang": "en",
+    "path": "faq.affiliate.2.answer",
+    "op": "set",
+    "before": "You earn through two tracks:\n\n• Transactions: up to 25% of the HomeCheff fee per side (buyer or seller), up to 50% when you refer both sides.\n• Business subscriptions: up to 50% of subscription value per month, in the standard model up to 12 months per active referred business.\n\nExact percentages and conditions are defined in your affiliate agreement.",
+    "after": "You earn in two ways:\n\n• Orders: 25% of the HomeCheff fee for the side you referred (buyer or seller), 50% if you referred both sides.\n• Business subscriptions: 50% of the distributable margin after the HC reserve, every month while the subscription runs, for up to 12 months per referred business.\n\nExact percentages and conditions are set out in your affiliate agreement."
+  },
+  {
+    "lang": "en",
+    "path": "faq.affiliate.5.answer",
+    "op": "set",
+    "before": "Commissions are tracked in your dashboard (pending / available / paid). Connect payout follows after onboarding when the affiliate payout batch is available; funding comes from the HomeCheff platform fee, not an extra buyer or seller fee.\n\nYour dashboard shows pending, available, and paid amounts per period. You remain responsible for proper tax handling in your jurisdiction.",
+    "after": "Your dashboard tracks commission as pending, available and paid. Payouts go through Stripe Connect under the payout rules in your dashboard, once you have completed onboarding. Commission is paid out of the HomeCheff platform fee; buyers and sellers pay nothing extra for it.\n\nYour dashboard shows pending, available and paid amounts per period. You remain responsible for handling tax correctly in your own country."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.subtitle",
+    "op": "set",
+    "before": "The story, philosophy and how to reach us — calm and without hype.",
+    "after": "Where HomeCheff comes from, what we stand for and how to reach us."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.manifestIntro",
+    "op": "set",
+    "before": "The full philosophical foundation of HomeCheff — why we exist, which values guide us and what we refuse to become — is in the HomeCheff Manifest.",
+    "after": "Why HomeCheff exists, which values we hold to and what we explicitly don’t want to become is set out in full in the HomeCheff Manifest."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.story1",
+    "op": "set",
+    "before": "HomeCheff did not begin as a quick startup idea. The platform grew from years of observation: society holds much unused value — people who cook, grow, make, repair, teach or help while only part of that becomes visible.",
+    "after": "HomeCheff wasn’t a weekend idea. It grew out of years of noticing what the people around us can do: cook, grow, make, repair, teach, help. Much of that never gets seen by the neighbourhood."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.story2",
+    "op": "set",
+    "before": "The aim is not to change people, but to use technology so people can discover each other. That long preparation makes HomeCheff larger than one person: the philosophy must remain valid for decades.",
+    "after": "We don’t want to change people. We want them to find each other more easily, and technology is the means to do that. The ideas behind HomeCheff should still hold in ten years, whoever is running the platform by then."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.story3",
+    "op": "set",
+    "before": "We do not tell a hero founder story. HomeCheff must stand on its own merits — for users, partners, municipalities and future team members.",
+    "after": "This isn’t a hero story about a founder. HomeCheff has to prove its worth to the people who use it, to partners, to municipalities and to future colleagues."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.philosophy1",
+    "op": "set",
+    "before": "Every person holds value. Technology should help that value become visible and strengthen human relationships — not maximise algorithmic engagement.",
+    "after": "Everyone has something to offer. Technology should help make that visible and bring people closer together, not capture as much screen time as possible."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.philosophy2",
+    "op": "set",
+    "before": "Read the six core values, vision and mission in the Manifest. Product decisions and public copy are checked against it.",
+    "after": "Our six core values, vision and mission are in the Manifest. We check product decisions and our own copy against it."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.craft1",
+    "op": "set",
+    "before": "HomeCheff is the digital home of personal craftsmanship. A handmade product, service or skill has inherent value — technology makes it visible, not mass production.",
+    "after": "HomeCheff is about what someone makes or can do themselves: a home-baked cake, a restored chair, tutoring, a job in the garden. The platform makes that visible, but the craft stays with the maker."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.craft2",
+    "op": "set",
+    "before": "See also /persoonlijk-vakmanschap and /ontmoet-de-maker for how profiles and maker stories work on the platform.",
+    "after": "How profiles and maker stories work is explained at /persoonlijk-vakmanschap and /ontmoet-de-maker."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.local1",
+    "op": "set",
+    "before": "Neighbourhoods grow stronger when neighbours know each other. HomeCheff encourages local discovery, arrangements and trust — not an anonymous global marketplace.",
+    "after": "A neighbourhood is a better place when you know who lives around the corner and what they make. That’s why HomeCheff starts close to home, with arrangements between people who might bump into each other, rather than with an anonymous global marketplace."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.local2",
+    "op": "set",
+    "before": "Pilot and growth happen regionally and honestly: sparse regions do not get spam pages. See /buurt-economie and /lokaal-verdienen.",
+    "after": "We grow region by region. Where there is little on offer yet, we don’t publish padded pages to hide it. More on this at /buurt-economie and /lokaal-verdienen."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.conscience1",
+    "op": "set",
+    "before": "No dark patterns, endless scrolling, addictive mechanics or misleading notifications. We respect attention and time.",
+    "after": "No tricks to keep you scrolling, no addictive game mechanics and no notifications that promise more than there is. Your time and attention are yours."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.conscience2",
+    "op": "set",
+    "before": "What we promise in copy must match product behaviour — including Phase 13O truth boundaries on export, suspension and subscription benefits.",
+    "after": "What we promise in our copy, the product has to actually do. That includes exporting your data, what happens when an account is suspended, and what a subscription does and doesn’t give you."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.ai1",
+    "op": "set",
+    "before": "AI is not the product on HomeCheff. It can reduce complexity, stimulate creativity and improve communication — never replace human relationships.",
+    "after": "AI isn’t what HomeCheff is about. We use it where it makes things simpler or helps people communicate, but the contact stays between people."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.ai2",
+    "op": "set",
+    "before": "Public AI and SEO summaries rely on this Manifest and /hoe-homecheff-werkt, not marketing language.",
+    "after": "Summaries that AI tools and search engines show about HomeCheff are based on the Manifest and /hoe-homecheff-werkt, not on marketing language."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.entrepreneurship1",
+    "op": "set",
+    "before": "No promises of quick wealth. Transparent fees and tools to earn, barter or offer services locally.",
+    "after": "We don’t promise anyone quick money. We do offer clear fees and the means to sell, barter or offer services locally."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.entrepreneurship2",
+    "op": "set",
+    "before": "Business subscriptions (Business DNA) describe proven benefits — no guaranteed feed ranking unless proven end-to-end.",
+    "after": "For business subscriptions we only describe benefits the product demonstrably delivers. A guaranteed higher place in the feed is not one of them."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.foodCategory1",
+    "op": "set",
+    "before": "Home-prepared food, garden harvest, studio creations, services and neighbour help live together on the village square. HomeCheff is for people — not products alone.",
+    "after": "Home-made food sits on the village square alongside garden produce, studio creations, services and help from neighbours. It’s about the people, not only what they sell."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.village1",
+    "op": "set",
+    "before": "People discover people; skills find opportunity; neighbourhoods find each other. Technology is the bridge — people remain the destination.",
+    "after": "The village square is where people find each other. Someone with a skill finds someone who needs it, and neighbours get to know each other. The technology gets you there; the contact is up to you."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.village2",
+    "op": "set",
+    "before": "See how the parts connect at /hoe-homecheff-werkt.",
+    "after": "You can see how the parts fit together at /hoe-homecheff-werkt."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.future1",
+    "op": "set",
+    "before": "We hope to contribute to stronger local economies, more accessible entrepreneurship and greater appreciation of craftsmanship — without unproven impact claims.",
+    "after": "We hope HomeCheff makes it easier to run something small locally, and that craft in the neighbourhood gets more appreciation. Whether that works remains to be seen. We don’t make big promises about impact."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.future2",
+    "op": "set",
+    "before": "Partners, municipalities and investors can use the Manifest as a stable reference; the team works daily on a reliable, human-centred platform.",
+    "after": "Partners, municipalities and investors can use the Manifest as a fixed reference. The team works every day on a platform you can rely on."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.whoWeAre1",
+    "op": "set",
+    "before": "HomeCheff is your neighbourhood's digital village square: makers, service providers and neighbours offer products, skills, creativity and help. Food is one category — alongside garden, creations and services.",
+    "after": "HomeCheff is your neighbourhood’s digital village square. Makers, service providers and neighbours offer products, skills, creations and help there. Food is one category, alongside garden produce, creations and services."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.whoWeAre2",
+    "op": "set",
+    "before": "We build a place to get inspiration, discover local offerings, post in Wanted, barter or pay securely. It's about fair trade, flexible agreements and a community that supports each other.",
+    "after": "You can find inspiration, see what’s offered nearby, post a request in Wanted, barter or pay securely. Fair arrangements come first."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.whoWeAre3",
+    "op": "set",
+    "before": "Whether you cook, grow, design, do chores or share knowledge: on HomeCheff you reach people in your region and build reputation.",
+    "after": "Do you cook, grow, design, do odd jobs or share what you know? On HomeCheff you reach people in your own area and build a reputation as you go."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.mission1",
+    "op": "set",
+    "before": "We want local offering, discovery and agreements to feel natural again — with money, barter or personal deals. We connect sellers and buyers directly; with secure payouts via HomeCheff Checkout where available.",
+    "after": "We want offering, discovering and arranging things locally to feel normal again, whether that’s for money, as a swap or on your own terms. Buyer and seller deal with each other directly. Where possible, payment runs securely through HomeCheff Checkout."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.mission2",
+    "op": "set",
+    "before": "We also offer Inspiration for ideas without selling, Wanted for what you're looking for, and space for services and neighbour help — one ecosystem, not separate products.",
+    "after": "There’s also Inspiration for ideas that aren’t for sale, Wanted for what you’re looking for, and room for services and neighbour help. It all sits in one platform rather than separate apps."
+  },
+  {
+    "lang": "en",
+    "path": "overOns.reachabilityTitle",
+    "op": "set",
+    "before": "Reachability — who to contact for what",
+    "after": "Who to email for what"
+  },
+  {
+    "lang": "en",
+    "path": "overOns.teamText",
+    "op": "set",
+    "before": "The team behind HomeCheff works daily on a reliable and user-friendly platform. For partnerships, press or jobs: use the matching email address above. We look forward to hearing from you.",
+    "after": "The team works on HomeCheff every day. For partnerships, press or jobs, use the matching email address above. We’d be glad to hear from you."
+  },
+  {
+    "lang": "en",
+    "path": "ecosystemHub.subtitle",
+    "op": "set",
+    "before": "A calm snapshot of real listings and inspiration within about {radius} km — no groups, no pressure.",
+    "after": "What was posted within about {radius} km over the last seven days."
+  },
+  {
+    "lang": "en",
+    "path": "ecosystemHub.sparseGeo",
+    "op": "set",
+    "before": "Regional hubs grow when makers share a pickup or studio location — your feed still shows everyone nearby.",
+    "after": "This regional page fills in as more makers add a pickup or studio location. Your feed already shows everyone near you."
+  },
+  {
+    "lang": "en",
+    "path": "ecosystemHub.emptyWeek",
+    "op": "add",
+    "before": null,
+    "after": "Nothing new has been posted in this area in the past week."
+  },
+  {
+    "lang": "en",
+    "path": "faq.buying.2.answer",
+    "op": "replace-substring",
+    "before": "Yes! HomeCheff offers a unique reservation system for future products. This is perfect for BBQs, parties, or special occasions.",
+    "after": "Yes, when the seller offers a product in advance. That’s useful for a barbecue, a birthday or any other occasion you want to order for ahead of time."
+  },
+  {
+    "lang": "en",
+    "path": "faq.buying.4.answer",
+    "op": "replace-substring",
+    "before": "Yes! Become a fan of your favorite handmade sellers to stay updated on new products. You'll receive notifications when they add new handmade items.",
+    "after": "Yes. Become a fan of a seller and you’ll get a notification when they post something new."
+  },
+  {
+    "lang": "en",
+    "path": "faq.buying.5.answer",
+    "op": "replace-substring",
+    "before": "HomeCheff's unique reservation system helps reduce waste through forward planning:",
+    "after": "Sellers can offer products up to a week in advance. Buyers can then reserve, and the seller knows how much to make:"
+  },
+  {
+    "lang": "en",
+    "path": "faq.handmade.1.answer",
+    "op": "replace-substring",
+    "before": "Yes, that's great! Restoring and upcycling old items is a beautiful form of sustainability. Think of:",
+    "after": "Yes. Restored and upcycled items fit HomeCheff well. Think of:"
+  },
+  {
+    "lang": "en",
+    "path": "faq.handmade.3.answer",
+    "op": "replace-substring",
+    "before": "That's fantastic! Recycled materials are the future of sustainable handmade work:",
+    "after": "That works fine. Do mention where the material comes from. A few examples:"
+  },
+  {
+    "lang": "en",
+    "path": "faq.sustainability.8.answer",
+    "op": "replace-substring",
+    "before": "🌱 Perfect! Many gardeners like to grow plants but have too many. This is a great way to reduce waste:",
+    "after": "You can offer them to people nearby on HomeCheff instead of throwing them away. For example:"
+  },
+  {
+    "lang": "en",
+    "path": "faq.affiliate.3.answer",
+    "op": "replace-substring",
+    "before": "• Weekly payouts (ledger; Connect when the payout batch is available)",
+    "after": "• Payouts go through Stripe Connect once you have completed onboarding"
+  }
+]

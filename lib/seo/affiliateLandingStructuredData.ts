@@ -5,11 +5,11 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
       ? [
           {
             q: 'How does the HomeCheff affiliate program work?',
-            a: 'You get a personal referral link and optional promo codes. When people join or subscribe via your attribution, you earn a share of platform fees or subscriptions for a defined period, with weekly payouts through Stripe Connect.',
+            a: 'You get a personal referral link and optional promo codes. When people join or subscribe via your attribution, you earn a share of platform fees or subscriptions for a defined period, paid out through Stripe Connect.',
           },
           {
             q: 'How much commission can I earn?',
-            a: 'Up to 25% of the HomeCheff fee per transaction for each referred buyer or seller, and up to 50% when you refer both sides of a transaction. For referred business subscriptions, you can earn up to 50% of the subscription fee for up to 12 months per business, within the program rules.',
+            a: 'Up to 25% of the HomeCheff fee per transaction for each referred buyer or seller, and up to 50% when you refer both sides of a transaction. For referred business subscriptions, you earn 50% of the distributable margin after the HC reserve for up to 12 months per business, within the program rules.',
           },
           {
             q: 'How long does commission run?',
@@ -25,7 +25,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'When do I get paid?',
-            a: 'Eligible commissions are tracked in your dashboard and paid out on a weekly rhythm via Stripe Connect, subject to verification and minimum payout rules.',
+            a: 'Eligible commissions are tracked in your dashboard: pending for 14 days, then available. Payouts go through Stripe Connect under the payout rules in your dashboard, after onboarding.',
           },
           {
             q: 'Can I create my own discount codes?',
@@ -41,7 +41,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'What is recurring commission?',
-            a: 'For subscriptions you refer, you can receive a recurring share of the subscription fee each month the business stays subscribed, for up to twelve months per referred business under the standard model, as defined in your affiliate terms.',
+            a: 'For subscriptions you refer, you can receive a recurring share of the distributable margin after the HC reserve each month the business stays subscribed, for up to twelve months per referred business under the standard model, as defined in your affiliate terms.',
           },
           {
             q: 'How does Stripe Connect work here?',
@@ -59,11 +59,11 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
       : [
           {
             q: 'Hoe werkt het HomeCheff-affiliateprogramma?',
-            a: 'Je krijgt een persoonlijke referral-link en optioneel promocodes. Als mensen via jouw attributie joinen of een zakelijk abonnement afsluiten, verdien je een deel van platformfees of abonnementsgelden gedurende de in de voorwaarden beschreven periode, met wekelijkse uitbetaling via Stripe Connect.',
+            a: 'Je krijgt een persoonlijke referral-link en optioneel promocodes. Als mensen via jouw attributie joinen of een zakelijk abonnement afsluiten, verdien je een deel van platformfees of abonnementsgelden gedurende de in de voorwaarden beschreven periode, uitbetaald via Stripe Connect.',
           },
           {
             q: 'Hoeveel commissie kan ik verdienen?',
-            a: 'Tot 25% van de HomeCheff-fee per transactie per aangebrachte koper of verkoper, en tot 50% als je beide kanten van een transactie aanbrengt. Voor zakelijke abonnementen kan dat tot 50% van het abonnementsbedrag zijn, tot twaalf maanden per bedrijf, volgens programmaregels.',
+            a: 'Tot 25% van de HomeCheff-fee per transactie per aangebrachte koper of verkoper, en tot 50% als je beide kanten van een transactie aanbrengt. Voor zakelijke abonnementen is dat 50% van de deelbare marge na HC-reserve, tot twaalf maanden per bedrijf, volgens programmaregels.',
           },
           {
             q: 'Hoe lang loopt commissie?',
@@ -79,7 +79,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'Wanneer krijg ik uitbetaald?',
-            a: 'Rechte commissies zie je in je dashboard en worden wekelijks uitbetaald via Stripe Connect, afhankelijk van verificatie en minimumuitbetalingsregels.',
+            a: 'Commissies zie je in je dashboard: eerst 14 dagen pending, daarna beschikbaar. Uitbetalen gaat via Stripe Connect volgens de uitbetalingsregels in je dashboard, na onboarding.',
           },
           {
             q: 'Kan ik eigen kortingscodes maken?',
@@ -95,7 +95,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'Hoe werkt terugkerende commissie?',
-            a: 'Voor door jou aangebrachte zakelijke abonnementen ontvang je binnen het standaardmodel maandelijks een deel van het abonnementsbedrag zolang het bedrijf actief geabonneerd blijft, tot twaalf maanden per bedrijf, zoals in je affiliatevoorwaarden staat.',
+            a: 'Voor door jou aangebrachte zakelijke abonnementen ontvang je binnen het standaardmodel maandelijks een deel van de deelbare marge na HC-reserve zolang het bedrijf actief geabonneerd blijft, tot twaalf maanden per bedrijf, zoals in je affiliatevoorwaarden staat.',
           },
           {
             q: 'Hoe werkt Stripe Connect hier?',

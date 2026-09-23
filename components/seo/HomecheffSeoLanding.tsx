@@ -27,6 +27,8 @@ export default function HomecheffSeoLanding({ page, locale }: Props) {
   const related = getRelatedHomecheffSeoPages(page, locale, 3);
   const showFoodContext = shouldShowFoodCategoryContextForSeoId(page.id);
   const foodContextVariant = showFoodContext ? pickFoodContextVariant(page.id) : null;
+  const bodySections =
+    "sections" in c ? c.sections : [c.howItWorks, c.audience, c.whyLocal, c.discover];
 
   const webPageLd = {
     "@context": "https://schema.org",
@@ -80,49 +82,16 @@ export default function HomecheffSeoLanding({ page, locale }: Props) {
               <FoodCategoryContextBlock variant={foodContextVariant} />
             ) : null}
 
-            <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {c.howItWorks.title}
-              </h2>
-              <div className="mt-4 space-y-3 text-gray-700">
-                {c.howItWorks.paragraphs.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
-            </section>
-
-            <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {c.audience.title}
-              </h2>
-              <div className="mt-4 space-y-3 text-gray-700">
-                {c.audience.paragraphs.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
-            </section>
-
-            <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {c.whyLocal.title}
-              </h2>
-              <div className="mt-4 space-y-3 text-gray-700">
-                {c.whyLocal.paragraphs.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
-            </section>
-
-            <section className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {c.discover.title}
-              </h2>
-              <div className="mt-4 space-y-3 text-gray-700">
-                {c.discover.paragraphs.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
-            </section>
+            {bodySections.map((section, si) => (
+              <section key={si} className="mt-12">
+                <h2 className="text-2xl font-bold text-gray-900">{section.title}</h2>
+                <div className="mt-4 space-y-3 text-gray-700">
+                  {section.paragraphs.map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                </div>
+              </section>
+            ))}
 
             <section className="mt-14 rounded-2xl border border-emerald-200 bg-white p-8 shadow-sm">
               <h2 className="text-xl font-semibold text-gray-900">

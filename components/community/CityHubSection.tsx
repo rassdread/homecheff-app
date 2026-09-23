@@ -70,6 +70,12 @@ export default function CityHubSection({ initial }: { initial: EcosystemHubPaylo
           </div>
         </dl>
 
+        {initial.activeCreatorsWeek === 0 &&
+        initial.newListingsWeek === 0 &&
+        initial.newInspirationWeek === 0 ? (
+          <p className="mt-3 text-sm text-slate-600">{t('ecosystemHub.emptyWeek')}</p>
+        ) : null}
+
         {(initial.risingLocalUsername || initial.localHcpLeaderUsername) && (
           <div className="mt-4 space-y-2 rounded-xl border border-slate-200/80 bg-white/80 p-4 text-sm text-slate-700">
             {initial.risingLocalUsername ? (

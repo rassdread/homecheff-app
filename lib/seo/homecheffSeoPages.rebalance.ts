@@ -1,11 +1,11 @@
-import type { SeoLocaleBlock, SeoPageDefinition } from './homecheffSeoTypes';
+import type { SeoLocaleBlock, SeoPageDefinition, SeoTemplateLocaleBlock } from './homecheffSeoTypes';
 
 function block(
   title: string,
   description: string,
   h1: string,
   intro: string[],
-  extras: Partial<SeoLocaleBlock> = {},
+  extras: Partial<SeoTemplateLocaleBlock> = {},
 ): SeoLocaleBlock {
   return {
     title,

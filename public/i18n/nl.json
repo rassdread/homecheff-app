@@ -369,7 +369,7 @@
   "ecosystemHub": {
     "sectionAria": "Lokale makeractiviteit bij {city}",
     "title": "Makers rond {city}",
-    "subtitle": "Een rustig beeld van echte aanbiedingen en inspiratie binnen ongeveer {radius} km — geen groepen, geen druk.",
+    "subtitle": "Wat er de afgelopen zeven dagen binnen ongeveer {radius} km is geplaatst.",
     "stats": {
       "activeCreatorsWeek": "Actieve makers (7 dagen)",
       "newListingsWeek": "Nieuwe aanbiedingen (7 dagen)",
@@ -382,9 +382,10 @@
       "hcpLeader": "Meest actieve maker",
       "hcpPoints": "Actief deze week"
     },
-    "sparseGeo": "Regionale hubs worden sterker als makers een ophaal- of atelierlocatie delen — op de feed zie je nog steeds iedereen bij jou in de buurt.",
+    "sparseGeo": "Deze regiopagina wordt vollediger naarmate meer makers een ophaal- of atelierlocatie invullen. In de feed zie je nu al iedereen bij jou in de buurt.",
     "ctaFeed": "Open de feed voor {city}",
-    "ctaDiscover": "Bekijk inspiratie"
+    "ctaDiscover": "Bekijk inspiratie",
+    "emptyWeek": "In deze regio is de afgelopen week nog niets nieuws geplaatst."
   },
   "ecosystemStrip": {
     "sectionAria": "Ontdek ecosystemen en lokale hubs",
@@ -3536,7 +3537,7 @@
       },
       "2": {
         "question": "Is HomeCheff gratis te gebruiken?",
-        "answer": "Ja! Voor particuliere verkopers is HomeCheff volledig gratis. Je betaalt geen maandelijkse kosten, alleen transactiekosten op elke verkoop. Voor bedrijven met een KVK nummer zijn er abonnementen beschikbaar."
+        "answer": "Voor particulieren kost een account niets en is er geen maandbedrag. Je betaalt alleen transactiekosten op elke verkoop. Bedrijven met een KVK-nummer kunnen een abonnement nemen."
       },
       "3": {
         "question": "In welke steden is HomeCheff beschikbaar?",
@@ -3556,7 +3557,7 @@
       },
       "7": {
         "question": "Wie is Sergio Arrias?",
-        "answer": "Sergio Arrias is de oprichter (Founder) van HomeCheff — niet gepresenteerd als iemand die simpelweg een app bouwde, maar als een founder die jaren besteedde aan een community-gerichte filosofie die uiteindelijk een praktisch platform werd. Geëxploiteerd door Arrias Beheer B.V. (KvK 80532829, Vlaardingen, NL). Zie /sergio-arrias."
+        "answer": "Sergio Arrias is de oprichter van HomeCheff. Het platform groeide uit ideeën waar hij jarenlang aan werkte, over hoe mensen in een buurt meer aan elkaar kunnen hebben. HomeCheff wordt geëxploiteerd door Arrias Beheer B.V. (KvK 80532829, Vlaardingen). Meer over hem lees je op /sergio-arrias."
       },
       "8": {
         "question": "Waarom schrijf je HomeCheff met twee F’s?",
@@ -3568,7 +3569,7 @@
       },
       "10": {
         "question": "Waarom bestaat HomeCheff?",
-        "answer": "De oprichter zag afnemend buurtcontact, groeiende eenzaamheid, loslating, onzichtbare skills en zwakkere lokale gemeenschappen. Technologie moet mensen opnieuw verbinden, niet isoleren. HomeCheff is een kalm, praktisch antwoord: een digitale buurtmarkt waar persoonlijk vakmanschap dichtbij eerst zichtbaar kan worden. Zie /oorsprong-homecheff."
+        "answer": "De oprichter zag hoeveel mensen iets kunnen, zoals koken, kweken, maken, repareren of helpen, zonder dat hun buren dat weten. Hij zag ook dat mensen in een straat elkaar minder vaak spreken, dat eenzaamheid toeneemt en dat buurten daardoor minder sterk worden. HomeCheff wil daar een praktische plek voor zijn: een digitale buurtmarkt waar je eerst ziet wat er dichtbij gemaakt en aangeboden wordt. Het hele verhaal staat op /oorsprong-homecheff."
       }
     },
     "selling": {
@@ -3612,7 +3613,7 @@
       },
       "2": {
         "question": "Kan ik producten reserveren?",
-        "answer": "Ja! HomeCheff biedt een uniek reserveringssysteem voor toekomstige producten. Dit is perfect voor bijvoorbeeld BBQ's, feestjes of speciale gelegenheden.\n\n📅 TOEKOMSTIGE BESCHIKBAARHEID:\n• Producten kunnen maximaal 1 week vooruit worden aangeboden\n• Reserveer vooraf om verspilling te voorkomen\n• Verkopers weten precies hoeveel ze moeten maken\n• Ideaal voor overtollige maaltijden\n\n♻️ TEGEN VERSPILLING:\n• Voorkomt verspilling door planning\n• Minder impulsaankopen\n• Betere voorraadbeheer voor verkopers\n• Minder voedselverspilling\n\n💡 VOORBEELD: Planning een BBQ weekend? Bied je overtollige porties vooraf aan en laat mensen reserveren!"
+        "answer": "Ja, als de verkoper een product vooruit aanbiedt. Dat is handig voor bijvoorbeeld een barbecue, een verjaardag of een ander moment waarvoor je vooraf wilt bestellen.\n\n📅 TOEKOMSTIGE BESCHIKBAARHEID:\n• Producten kunnen maximaal 1 week vooruit worden aangeboden\n• Reserveer vooraf om verspilling te voorkomen\n• Verkopers weten precies hoeveel ze moeten maken\n• Ideaal voor overtollige maaltijden\n\n♻️ TEGEN VERSPILLING:\n• Voorkomt verspilling door planning\n• Minder impulsaankopen\n• Betere voorraadbeheer voor verkopers\n• Minder voedselverspilling\n\n💡 VOORBEELD: Planning een BBQ weekend? Bied je overtollige porties vooraf aan en laat mensen reserveren!"
       },
       "3": {
         "question": "Wat als ik niet tevreden ben over mijn aankoop?",
@@ -3620,11 +3621,11 @@
       },
       "4": {
         "question": "Kan ik verkopers fan worden?",
-        "answer": "Ja! Word fan van je favoriete handgemaakte verkopers om op de hoogte te blijven van nieuwe producten. Je ontvangt notificaties wanneer ze nieuwe handgemaakte items toevoegen.\n\n🤝 LOKALE GEMEENSCHAP:\n• Ondersteun lokale makers\n• Leer van handgemaakte technieken\n• Deel tips en ervaringen\n• Bouw een bewuste community op"
+        "answer": "Ja. Word fan van een verkoper en je krijgt een melding zodra die iets nieuws plaatst.\n\n🤝 LOKALE GEMEENSCHAP:\n• Ondersteun lokale makers\n• Leer van handgemaakte technieken\n• Deel tips en ervaringen\n• Bouw een bewuste community op"
       },
       "5": {
         "question": "Hoe werkt toekomstige beschikbaarheid en reserveringen?",
-        "answer": "HomeCheff's unieke reserveringssysteem helpt verspilling tegen te gaan door vooruit plannen:\n\n📅 TOEKOMSTIGE PRODUCTEN:\n• Maximaal 1 week vooruit aanbieden\n• Perfect voor BBQ's, feestjes, speciale gelegenheden\n• Verkopers weten precies hoeveel te maken\n• Kopers kunnen vooraf reserveren\n\n🎯 VOORBEELDEN:\n• 'BBQ weekend - reserveer je portie' (3 dagen vooruit)\n• 'Extra taart voor verjaardag' (1 week vooruit)\n• 'Overtollige pasta vanavond' (vandaag)\n\n♻️ VOORDELEN:\n• Voorkomt voedselverspilling\n• Betere planning voor verkopers\n• Kopers weten wat ze kunnen verwachten\n• Minder impulsaankopen\n\n💡 TIP: Als je weet dat je teveel gaat maken, bied het vooraf aan!"
+        "answer": "Verkopers kunnen producten tot een week vooruit aanbieden. Kopers kunnen dan reserveren en de verkoper weet hoeveel er nodig is:\n\n📅 TOEKOMSTIGE PRODUCTEN:\n• Maximaal 1 week vooruit aanbieden\n• Perfect voor BBQ's, feestjes, speciale gelegenheden\n• Verkopers weten precies hoeveel te maken\n• Kopers kunnen vooraf reserveren\n\n🎯 VOORBEELDEN:\n• 'BBQ weekend - reserveer je portie' (3 dagen vooruit)\n• 'Extra taart voor verjaardag' (1 week vooruit)\n• 'Overtollige pasta vanavond' (vandaag)\n\n♻️ VOORDELEN:\n• Voorkomt voedselverspilling\n• Betere planning voor verkopers\n• Kopers weten wat ze kunnen verwachten\n• Minder impulsaankopen\n\n💡 TIP: Als je weet dat je teveel gaat maken, bied het vooraf aan!"
       }
     },
     "payments": {
@@ -3760,7 +3761,7 @@
       },
       "1": {
         "question": "Mag ik oude spullen oplappen en verkopen?",
-        "answer": "Ja, dat is juist geweldig! Het herstellen en upcyclen van oude spullen is een prachtige vorm van duurzaamheid. Denk aan:\n\n♻️ UPGRADEN VAN SPULLEN:\n• Oude kleding herstellen en personaliseren\n• Meubels opknappen en een nieuwe look geven\n• Elektronica repareren en moderniseren\n• Keukengerei restaureren en verbeteren\n\n🌱 DUURZAAMHEID:\n• Voorkomt verspilling van grondstoffen\n• Verlengt de levensduur van producten\n• Vermindert afval\n• Creëert unieke, persoonlijke items\n\n💡 Tip: Beschrijf duidelijk wat je hebt gedaan en waarom het duurzaam is!"
+        "answer": "Ja. Opgeknapte en ge-upcyclede spullen passen goed bij HomeCheff. Denk aan:\n\n♻️ UPGRADEN VAN SPULLEN:\n• Oude kleding herstellen en personaliseren\n• Meubels opknappen en een nieuwe look geven\n• Elektronica repareren en moderniseren\n• Keukengerei restaureren en verbeteren\n\n🌱 DUURZAAMHEID:\n• Voorkomt verspilling van grondstoffen\n• Verlengt de levensduur van producten\n• Vermindert afval\n• Creëert unieke, persoonlijke items\n\n💡 Tip: Beschrijf duidelijk wat je hebt gedaan en waarom het duurzaam is!"
       },
       "2": {
         "question": "Hoe kan ik duurzaam handgemaakt werk verkopen?",
@@ -3768,7 +3769,7 @@
       },
       "3": {
         "question": "Wat als ik producten maak van gerecyclede materialen?",
-        "answer": "Dat is fantastisch! Gerecyclede materialen zijn de toekomst van duurzaam handgemaakt werk:\n\n♻️ GEREYCLEDE MATERIALEN:\n• Oude kleding omtoveren tot nieuwe items\n• Glaswerk hergebruiken voor decoratie\n• Hout van oude meubels verwerken\n• Plastic verpakkingen omzetten in kunst\n\n🌱 VOORDELEN:\n• Vermindert afval drastisch\n• Bespaart nieuwe grondstoffen\n• Creëert unieke, verhalende producten\n• Inspireert tot bewuster consumeren\n\n💡 Tip: Vertel het verhaal van je materialen - waar komen ze vandaan en hoe heb je ze getransformeerd?"
+        "answer": "Dat kan prima. Vermeld wel waar het materiaal vandaan komt. Een paar voorbeelden:\n\n♻️ GEREYCLEDE MATERIALEN:\n• Oude kleding omtoveren tot nieuwe items\n• Glaswerk hergebruiken voor decoratie\n• Hout van oude meubels verwerken\n• Plastic verpakkingen omzetten in kunst\n\n🌱 VOORDELEN:\n• Vermindert afval drastisch\n• Bespaart nieuwe grondstoffen\n• Creëert unieke, verhalende producten\n• Inspireert tot bewuster consumeren\n\n💡 Tip: Vertel het verhaal van je materialen - waar komen ze vandaan en hoe heb je ze getransformeerd?"
       },
       "4": {
         "question": "Hoe kan ik mijn handgemaakte producten duurzaam verpakken?",
@@ -3836,7 +3837,7 @@
       },
       "8": {
         "question": "Wat als ik teveel planten heb gekweekt?",
-        "answer": "🌱 Perfect! Veel tuiniers kweken graag planten maar hebben er teveel van. Dit is een geweldige manier om verspilling tegen te gaan:\n\n🌿 DELEN VAN PLANTEN:\n• Extra zaailingen die je over hebt\n• Stekjes van je favoriete planten\n• Bloembollen die je teveel hebt\n• Kamerplanten die je wilt delen\n\n🤝 GEMEENSCHAP:\n• Andere tuiniers helpen\n• Plantenverspilling tegengaan\n• Lokale biodiversiteit ondersteunen\n• Groene gemeenschap opbouwen\n\n💡 Tip: Veel mensen vinden kweken leuk maar hebben niet altijd groene vingers - jij helpt hen!"
+        "answer": "Die kun je op HomeCheff aanbieden aan mensen in de buurt, in plaats van ze weg te gooien. Bijvoorbeeld:\n\n🌿 DELEN VAN PLANTEN:\n• Extra zaailingen die je over hebt\n• Stekjes van je favoriete planten\n• Bloembollen die je teveel hebt\n• Kamerplanten die je wilt delen\n\n🤝 GEMEENSCHAP:\n• Andere tuiniers helpen\n• Plantenverspilling tegengaan\n• Lokale biodiversiteit ondersteunen\n• Groene gemeenschap opbouwen\n\n💡 Tip: Veel mensen vinden kweken leuk maar hebben niet altijd groene vingers - jij helpt hen!"
       },
       "9": {
         "question": "Zijn er limieten aan het delen van tuinproducten?",
@@ -3888,11 +3889,11 @@
       },
       "2": {
         "question": "Hoeveel commissie verdien ik als affiliate?",
-        "answer": "Je verdient via twee sporen:\n\n• Transacties: tot 25% van de HomeCheff-fee per zijde (koper of verkoper), tot 50% als je beide zijden aanbrengt.\n• Zakelijke abonnementen: tot 50% van het abonnementsbedrag per maand, binnen het standaardmodel tot 12 maanden per actief aangebracht bedrijf.\n\nExacte percentages en voorwaarden staan in je affiliate-overeenkomst."
+        "answer": "Je verdient op twee manieren:\n\n• Bestellingen: 25% van de HomeCheff-fee voor de kant die jij hebt aangebracht (koper of verkoper), 50% als je beide kanten hebt aangebracht.\n• Zakelijke abonnementen: 50% van de deelbare marge na HC-reserve, elke maand zolang het abonnement loopt, maximaal 12 maanden per aangebracht bedrijf.\n\nDe exacte percentages en voorwaarden staan in je affiliate-overeenkomst."
       },
       "3": {
         "question": "Hoe word ik affiliate?",
-        "answer": "Het aanmelden als affiliate is heel eenvoudig:\n\n📝 STAPPEN:\n1. Ga naar de affiliate pagina (/affiliate)\n2. Log in met je bestaande HomeCheff account (of maak er een aan)\n3. Accepteer de privacyverklaring, algemene voorwaarden en affiliate overeenkomst\n4. Klik op 'Word nu affiliate'\n5. Je krijgt direct toegang tot je affiliate dashboard\n\n✅ VEREISTEN:\n• Je moet een HomeCheff account hebben\n• Je moet de voorwaarden accepteren\n• Geen kosten, geen verplichtingen\n\n🎯 NA AANMELDING:\n• Je krijgt direct je unieke referral link\n• Je kunt starten met het delen van je link\n• Alle commissies worden automatisch bijgehouden\n• Commissies worden administratief bijgehouden; Connect-uitbetaling volgt wanneer die batchroute beschikbaar is"
+        "answer": "Het aanmelden als affiliate is heel eenvoudig:\n\n📝 STAPPEN:\n1. Ga naar de affiliate pagina (/affiliate)\n2. Log in met je bestaande HomeCheff account (of maak er een aan)\n3. Accepteer de privacyverklaring, algemene voorwaarden en affiliate overeenkomst\n4. Klik op 'Word nu affiliate'\n5. Je krijgt direct toegang tot je affiliate dashboard\n\n✅ VEREISTEN:\n• Je moet een HomeCheff account hebben\n• Je moet de voorwaarden accepteren\n• Geen kosten, geen verplichtingen\n\n🎯 NA AANMELDING:\n• Je krijgt direct je unieke referral link\n• Je kunt starten met het delen van je link\n• Alle commissies worden automatisch bijgehouden\n• Uitbetalen gaat via Stripe Connect nadat je de onboarding hebt afgerond"
       },
       "4": {
         "question": "Wat is een made affiliate en hoe werkt het?",
@@ -3900,7 +3901,7 @@
       },
       "5": {
         "question": "Hoe krijg ik mijn commissies uitbetaald?",
-        "answer": "Commissies worden in je dashboard bijgehouden (pending / available / paid). Connect-uitbetaling volgt na onboarding wanneer de affiliate-batchroute beschikbaar is; financiering komt uit de HomeCheff-platformfee, niet als extra koper- of verkoperskosten.\n\nIn je dashboard zie je per periode wat pending, available en paid is. Je blijft zelf verantwoordelijk voor correcte fiscale verwerking in je eigen land."
+        "answer": "Je dashboard houdt je commissies bij als pending, beschikbaar en uitbetaald. Uitbetalen gaat via Stripe Connect volgens de uitbetalingsregels in je dashboard, nadat je de onboarding hebt afgerond. De commissie komt uit de HomeCheff-platformfee; kopers en verkopers betalen er niets extra voor.\n\nIn je dashboard zie je per periode wat pending, beschikbaar en uitbetaald is. Je bent zelf verantwoordelijk voor de juiste fiscale verwerking in je eigen land."
       }
     },
     "localCommunity": {
@@ -6882,52 +6883,52 @@
   },
   "overOns": {
     "title": "Over ons",
-    "subtitle": "Het verhaal, de filosofie en hoe je ons bereikt — rustig en zonder hype.",
-    "manifestIntro": "De volledige filosofische basis van HomeCheff — waarom we bestaan, welke waarden leidend zijn en wat we weigeren te worden — staat in het HomeCheff Manifest.",
+    "subtitle": "Waar HomeCheff vandaan komt, waar we voor staan en hoe je ons bereikt.",
+    "manifestIntro": "Waarom HomeCheff bestaat, welke waarden we aanhouden en wat we nadrukkelijk niet willen worden, staat uitgebreid in het HomeCheff Manifest.",
     "manifestCta": "Lees het HomeCheff Manifest",
     "storyTitle": "Het verhaal achter HomeCheff",
-    "story1": "HomeCheff begon niet als een snelle startup-idee. Het platform groeide uit van jarenlange observatie: in de samenleving ligt veel onbenutte waarde — mensen die koken, kweken, maken, repareren, onderwijzen of helpen, terwijl slechts een deel daarvan zichtbaar wordt.",
-    "story2": "De bedoeling is niet om mensen te veranderen, maar om technologie te gebruiken zodat mensen elkaar kunnen ontdekken. Die lange voorbereiding maakt HomeCheff groter dan één persoon: de filosofie moet decennia geldig blijven.",
-    "story3": "We vertellen geen heldenverhaal over oprichters. HomeCheff moet op eigen meriten staan — voor gebruikers, partners, gemeenten en toekomstige medewerkers.",
+    "story1": "HomeCheff is geen idee dat in een weekend is ontstaan. Het groeide uit jaren van kijken naar wat mensen om ons heen kunnen: koken, kweken, maken, repareren, lesgeven, helpen. Veel daarvan krijgt de buurt nooit te zien.",
+    "story2": "We willen mensen niet veranderen. We willen dat ze elkaar makkelijker vinden, en technologie is daarvoor het middel. De ideeën achter HomeCheff moeten over tien jaar nog steeds kloppen, los van wie het platform dan runt.",
+    "story3": "Dit is geen heldenverhaal over een oprichter. HomeCheff moet zijn waarde bewijzen voor de mensen die het gebruiken, voor partners, voor gemeenten en voor toekomstige collega’s.",
     "philosophyTitle": "De filosofie",
-    "philosophy1": "Elke persoon bezit waarde. Technologie moet die waarde helpen zichtbaar worden en menselijke relaties versterken — niet algoritmische engagement maximaliseren.",
-    "philosophy2": "Lees de zes kernwaarden, visie en missie in het Manifest. Productbeslissingen en publieke copy worden daaraan getoetst.",
+    "philosophy1": "Iedereen kan iets. Technologie moet helpen om dat zichtbaar te maken en mensen dichter bij elkaar te brengen, niet om zo veel mogelijk schermtijd binnen te halen.",
+    "philosophy2": "De zes kernwaarden, onze visie en onze missie staan in het Manifest. Daar toetsen we productkeuzes en onze teksten aan.",
     "craftTitle": "Persoonlijk vakmanschap",
-    "craft1": "HomeCheff is het digitale thuis van persoonlijk vakmanschap. Een handgemaakt product, een dienst of een vaardigheid heeft inherente waarde — technologie maakt die zichtbaar, geen massaproductie.",
-    "craft2": "Zie ook /persoonlijk-vakmanschap en /ontmoet-de-maker voor hoe profielen en maker-verhalen op het platform werken.",
+    "craft1": "Op HomeCheff draait het om wat iemand zelf maakt of kan: een zelfgebakken taart, een opgeknapte stoel, bijles, een klus in de tuin. Het platform maakt dat zichtbaar, maar het vakmanschap blijft van de maker.",
+    "craft2": "Hoe profielen en makerverhalen werken, lees je op /persoonlijk-vakmanschap en /ontmoet-de-maker.",
     "localTitle": "Waarom lokaal telt",
-    "local1": "Buurten worden sterker wanneer buren elkaar kennen. HomeCheff moedigt lokale ontdekking, afspraken en vertrouwen aan — geen anonieme wereldmarkt.",
-    "local2": "Pilot en groei gebeuren regionaal en eerlijk: lege regio’s krijgen geen spam-pagina’s. Zie /buurt-economie en /lokaal-verdienen.",
+    "local1": "Een buurt wordt prettiger als je weet wie er om de hoek woont en wat die maakt. Daarom begint HomeCheff dichtbij, met afspraken tussen mensen die elkaar kunnen tegenkomen, en niet bij een anonieme wereldmarkt.",
+    "local2": "We groeien regio voor regio. Waar nog weinig aanbod is, maken we geen opgeblazen pagina’s om dat te verbergen. Meer hierover op /buurt-economie en /lokaal-verdienen.",
     "conscienceTitle": "Technologie met geweten",
-    "conscience1": "Geen dark patterns, eindeloos scrollen, verslavende mechanics of misleidende meldingen. We respecteren aandacht en tijd.",
-    "conscience2": "Wat we beloven in copy moet kloppen met productgedrag — inclusief Phase 13O waarheidsgrenzen over export, suspension en abonnementsvoordelen.",
+    "conscience1": "Geen trucs om je langer te laten scrollen, geen verslavende spelmechanieken en geen meldingen die meer beloven dan er is. Je tijd en aandacht zijn van jou.",
+    "conscience2": "Wat we in onze teksten beloven, moet het product ook echt doen. Dat geldt ook voor het exporteren van je gegevens, voor wat er gebeurt als een account wordt geschorst en voor wat een abonnement wel en niet oplevert.",
     "aiTitle": "AI als ondersteunend hulpmiddel",
-    "ai1": "AI is geen product op HomeCheff. Het kan complexiteit verlagen, creativiteit stimuleren en communicatie verbeteren — nooit menselijke relaties vervangen.",
-    "ai2": "Publieke AI- en SEO-samenvattingen leunen op dit Manifest en /hoe-homecheff-werkt, niet op marketingtaal.",
+    "ai1": "AI is niet waar HomeCheff om draait. We gebruiken het waar het dingen eenvoudiger maakt of helpt bij communiceren, maar het contact blijft tussen mensen.",
+    "ai2": "Samenvattingen die AI-tools en zoekmachines over HomeCheff tonen, baseren we op het Manifest en op /hoe-homecheff-werkt, niet op reclametaal.",
     "entrepreneurshipTitle": "Eerlijk ondernemen",
-    "entrepreneurship1": "Geen beloftes van snel rijkdom. Wel transparante fees, tools om lokaal te verdienen, ruilen of diensten aan te bieden.",
-    "entrepreneurship2": "Zakelijke abonnementen (Business DNA) beschrijven bewezen voordelen — geen gegarandeerde feed-ranking tenzij end-to-end bewezen.",
+    "entrepreneurship1": "We beloven niemand snel geld. Wel duidelijke fees en de middelen om lokaal te verkopen, te ruilen of diensten aan te bieden.",
+    "entrepreneurship2": "Bij zakelijke abonnementen noemen we alleen voordelen die het product aantoonbaar levert. Een gegarandeerd hogere plek in de feed hoort daar niet bij.",
     "foodCategoryTitle": "Eten is één categorie",
-    "foodCategory1": "Thuisgemaakt eten, tuinoogst, studio-creaties, diensten en buurthulp leven naast elkaar op het dorpsplein. HomeCheff is voor mensen — niet alleen voor producten.",
+    "foodCategory1": "Thuisgemaakt eten staat op het dorpsplein naast tuinoogst, creaties uit de studio, diensten en hulp van buren. Het gaat om de mensen, niet alleen om wat ze verkopen.",
     "villageTitle": "Het digitale dorpsplein",
-    "village1": "Mensen ontdekken mensen; vaardigheden vinden kansen; buurten vinden elkaar. Technologie is de brug — mensen blijven de bestemming.",
-    "village2": "Ontdek hoe onderdelen samenhangen op /hoe-homecheff-werkt.",
+    "village1": "Op het dorpsplein vinden mensen elkaar. Wie iets kan, vindt iemand die het nodig heeft, en buren leren elkaar kennen. De techniek brengt je daar, het contact leg je zelf.",
+    "village2": "Hoe de onderdelen samenhangen, zie je op /hoe-homecheff-werkt.",
     "futureTitle": "Vooruitkijken",
-    "future1": "We hopen bij te dragen aan sterkere lokale economieën, toegankelijker ondernemerschap en meer waardering voor vakmanschap — zonder onbewezen impactclaims.",
-    "future2": "Partners, gemeenten en investeerders kunnen het Manifest gebruiken als stabiele referentie; het team werkt dagelijks aan een betrouwbaar, mensgericht platform.",
+    "future1": "We hopen dat HomeCheff het makkelijker maakt om lokaal te ondernemen, en dat vakmanschap in de buurt meer gewaardeerd wordt. Of dat lukt, moet blijken. Grote beloftes over impact doen we niet.",
+    "future2": "Partners, gemeenten en investeerders kunnen het Manifest gebruiken als vaste referentie. Het team werkt elke dag aan een platform waar je op kunt vertrouwen.",
     "whoWeAreTitle": "Wie we zijn vandaag",
-    "whoWeAre1": "HomeCheff is het digitale dorpsplein van je buurt: makers, dienstverleners en buren bieden producten, vaardigheden, creativiteit en hulp aan. Eten is één categorie — naast tuin, creaties en diensten.",
-    "whoWeAre2": "We bouwen een plek waar je inspiratie opdoet, lokaal ontdekt wat er aangeboden wordt, een oproep plaatst in Gezocht, ruilt of veilig afrekent. Alles draait om eerlijke handel, flexibele afspraken en een community die elkaar versterkt.",
-    "whoWeAre3": "Of je nu kookt, kweekt, ontwerpt, klusjes doet of kennis deelt: op HomeCheff bereik je mensen in je eigen regio en bouw je reputatie op.",
+    "whoWeAre1": "HomeCheff is het digitale dorpsplein van je buurt. Makers, dienstverleners en buren bieden er producten, vaardigheden, creaties en hulp aan. Eten is daar één categorie van, naast tuin, creaties en diensten.",
+    "whoWeAre2": "Je doet er inspiratie op, ziet wat er dichtbij wordt aangeboden, plaatst een oproep in Gezocht, ruilt of rekent veilig af. Eerlijke afspraken staan daarbij voorop.",
+    "whoWeAre3": "Kook je, kweek je, ontwerp je, doe je klussen of deel je kennis? Dan bereik je op HomeCheff mensen in je eigen regio en bouw je gaandeweg een reputatie op.",
     "missionTitle": "Onze missie",
-    "mission1": "We willen lokaal aanbieden, ontdekken en afspreken weer vanzelfsprekend maken — met geld, ruil of persoonlijke afspraken. Verkopers en kopers verbinden we direct; waar mogelijk met veilige uitbetaling via HomeCheff Checkout.",
-    "mission2": "Daarnaast bieden we Inspiratie voor ideeën zonder verkoop, Gezocht voor wat je zoekt, en ruimte voor diensten en buurthulp — één ecosysteem, geen losse apps.",
+    "mission1": "We willen dat lokaal aanbieden, ontdekken en afspreken weer gewoon wordt, tegen betaling, als ruil of met een eigen afspraak. Koper en verkoper hebben direct contact. Waar het kan, loopt de betaling veilig via HomeCheff Checkout.",
+    "mission2": "Daarnaast is er Inspiratie voor ideeën zonder verkoop, Gezocht voor wat je zoekt en ruimte voor diensten en buurthulp. Het zit allemaal in één platform in plaats van in losse apps.",
     "whatWeDoTitle": "Wat we doen",
     "whatWeDo1": "Inspiratie: deel ideeën, recepten en maakprocessen met de community.",
     "whatWeDo2": "Dorpsplein: ontdek aangeboden producten, diensten en hulp — met veilige checkout of flexibele afspraken.",
     "whatWeDo3": "Gezocht & voorstellen: plaats wat je zoekt of doe een voorstel met geld, ruil of andere waarde.",
     "whatWeDo4": "Community & reputatie: HCP, vertrouwen en lokale makers zichtbaar maken.",
-    "reachabilityTitle": "Bereikbaarheid — voor wie naar waar",
+    "reachabilityTitle": "Wie je waarvoor mailt",
     "reachabilityIntro": "We willen graag dat je op de juiste plek terechtkomt. Gebruik onderstaande e-mailadressen zodat je bericht snel bij het juiste team landt.",
     "tableFor": "Voor",
     "tableEmail": "E-mailadres",
@@ -6941,7 +6942,7 @@
     },
     "reachabilityNote": "We streven ernaar binnen enkele werkdagen te reageren. Voor dringende technische problemen kun je ook het contactformulier gebruiken.",
     "teamTitle": "Team en samenwerking",
-    "teamText": "Het team achter HomeCheff werkt dagelijks aan een betrouwbaar en gebruiksvriendelijk platform. Voor samenwerkingen, pers of vacatures: gebruik het bijpassende e-mailadres hierboven. We kijken ernaar uit om van je te horen.",
+    "teamText": "Het team werkt elke dag aan HomeCheff. Voor samenwerking, pers of vacatures gebruik je het e-mailadres hierboven dat erbij past. We horen graag van je.",
     "contactCta": "Naar contactformulier",
     "companyDetailsTitle": "Bedrijfsgegevens",
     "companyUnder": "HomeCheff valt onder Arrias Beheer.",
@@ -7406,7 +7407,7 @@
     "usersCommission": "Gebruikers aanbrengen:",
     "usersCommissionDesc": "25% van de HomeCheff fee per transactie (koper of verkoper), 50% als je beide aanbrengt (25% + 25%)",
     "businessCommission": "Bedrijven aanbrengen:",
-    "businessCommissionDesc": "50% van de abonnementsfee, met de mogelijkheid om korting te geven vanuit je eigen commissie.",
+    "businessCommissionDesc": "50% van de deelbare marge na HC-reserve. Je kunt het bedrijf korting geven, maar die gaat van jouw deel af.",
     "revenueShare": "Revenue share geldt 12 maanden per aangebracht bedrijf",
     "everyoneWorthMoney": "Iedereen die je aanbrengt is geld waard!",
     "everyoneWorthMoneyDesc": "Het maakt niet uit wie je aanbrengt - kopers, verkopers, bedrijven - iedereen kan je geld opleveren!",
@@ -7450,11 +7451,11 @@
     "howItWorksDesc": "Van aanmelding tot uitbetaling, alles automatisch geregeld",
     "step1": "Meld je aan (gratis)",
     "step1Desc": "Klik op de knop hieronder en je krijgt direct je unieke referral link en toegang tot je dashboard. Geen kosten, geen verplichtingen.",
-    "step2": "Deel je link of promo code",
+    "step2": "Deel je link of promocode",
     "step2Desc": "Deel je referral link of maak een promo code en stuur deze naar bedrijven die een subscription willen. Vanaf nu kun je 12 maanden lang bedrijven aanmelden.",
-    "step3": "Verdien automatisch commissie",
+    "step3": "Commissie wordt bijgehouden",
     "step3Desc": "Zodra een gebruiker of bedrijf via jouw link actief wordt, verdien je automatisch commissie: 25% per gebruiker (50% als je beide aanbrengt) of 50% per bedrijf. Alle commissies worden automatisch bijgehouden en wekelijks uitbetaald.",
-    "step4": "Krijg wekelijks uitbetaald",
+    "step4": "Uitbetaling via Stripe",
     "step4Desc": "Commissies worden automatisch wekelijks uitbetaald via Stripe Connect. Geen gedoe, alles geregeld.",
     "examples": "Voorbeelden: Hoeveel verdien je?",
     "exampleUsers": "Voorbeeld: Gebruikers Aanbrengen",
@@ -7776,12 +7777,12 @@
     "passiveIncomeSubtitle": "Met 2 bedrijven per maand: een illustratief scenario binnen het standaardmodel",
     "realisticAdvantage": "Het Realistische Voordeel",
     "realisticAdvantageDesc": "2 bedrijven per maand is voor veel netwerken haalbaar. Het getoonde maandbedrag is een illustratie op basis van modelaannames; abonnementsdeel valt binnen het twaalfmaands standaardvenster per bedrijf.",
-    "whatItCosts": "Wat Het Kost",
+    "whatItCosts": "Wat het jou kost",
     "signupCost": "Aanmelding:",
     "monthlyCosts": "Maandelijkse kosten:",
     "totalInvestment": "Totaal investering",
     "whatYouEarn": "Wat Je Verdient",
-    "whatYouEarnSubline": "Terugkerende inkomstenpotentie via actieve abonnementen en een groeiende community.",
+    "whatYouEarnSubline": "Een scenario met veel actieve zakelijke abonnementen en bestellingen na twaalf maanden. Wat jij verdient, hangt af van wie er via jouw link echt actief wordt. Een minimum is er niet.",
     "whatYouEarnBadge": "Realistisch voorbeeld",
     "year1": "Jaar 1 (opbouw):",
     "year1Breakdown": "* €7,722 subscriptions + €2,280 transacties",
@@ -7817,7 +7818,7 @@
     "readyToStartDescNew": "Aanmelding duurt minder dan 30 seconden. Geen creditcard nodig, volledig gratis.",
     "alreadyAffiliate": "Al affiliate?",
     "goToDashboard": "Ga naar je dashboard",
-    "calculatePotential": "Bereken je terugkerende inkomstenpotentie →",
+    "calculatePotential": "Reken je eigen scenario door",
     "free": "Gratis",
     "noObligations": "Geen verplichtingen",
     "directActive": "Direct actief",
@@ -7917,21 +7918,21 @@
     "growth": {
       "heroEyebrow": "HomeCheff-ecosysteem",
       "heroTitle": "Verdien mee met makers in jouw netwerk",
-      "heroSubtitle": "Deel je link met creators, agencies en communities. Verdien op transacties en op zakelijke abonnementen via het standaardmodel (tot 12 maanden per actief abonnement).",
+      "heroSubtitle": "Deel je persoonlijke link met mensen en bedrijven die iets aan HomeCheff hebben. Wordt iemand via jouw link actief als koper, verkoper of zakelijk abonnee, dan krijg je een deel van wat HomeCheff aan die activiteit verdient.",
       "heroTrust": "",
-      "pilotNote": "Pilot — beperkt aantal partners.",
+      "pilotNote": "Pilot: we laten een beperkt aantal partners toe.",
       "sectionModelTitle": "Wat je verdient",
-      "modelBullet1": "Transacties: tot 25% van de HomeCheff-fee per kant; tot 50% als jij koper én verkoper aanbrengt.",
-      "modelBullet2": "Abonnementen: tot 50% per maand binnen het standaardmodel, tot 12 maanden per actief aangebracht bedrijf.",
-      "modelBullet3": "Uitbetaling: wekelijks via Stripe Connect na onboarding.",
-      "modelExampleHint": "Voorbeeld bij doorzetting",
+      "modelBullet1": "Bestellingen: de affiliatepool is maximaal 50% van de HomeCheff-platformfee, nooit van het hele orderbedrag. Heb jij de koper of de verkoper aangebracht, dan krijg je 25% van die fee. Heb je allebei aangebracht, dan de volle 50%.",
+      "modelBullet2": "Zakelijke abonnementen: 50% van wat er van het abonnementsgeld overblijft na de HC-reserve. Je krijgt dat elke maand zolang het abonnement loopt, maximaal twaalf maanden per bedrijf.",
+      "modelBullet3": "Uitbetaling: commissie staat eerst 14 dagen op pending en wordt daarna beschikbaar. Uitbetalen gaat via Stripe Connect volgens de regels in je dashboard, nadat je de onboarding hebt afgerond.",
+      "modelExampleHint": "Rekenvoorbeeld, geen belofte",
       "sectionFlowTitle": "In vier stappen",
       "dashboardBandTitle": "Dashboard & tools",
-      "dashboardBandBody": "Referral-link, QR, promocodes en overzicht — compact in één dashboard.",
+      "dashboardBandBody": "Je persoonlijke link, QR-code, promocodes en een overzicht van wat er via jou binnenkomt.",
       "commissionDetailsLabel": "Volledig tariefoverzicht (uitklappen)",
-      "statUser": "25% / zijde",
-      "statBoth": "50% duo",
-      "statBiz": "50% abonnement",
+      "statUser": "25% van de fee per kant",
+      "statBoth": "50% bij koper én verkoper",
+      "statBiz": "50% na HC-reserve",
       "ctaPrimary": "Affiliate worden",
       "ctaSecondary": "Dashboard bekijken",
       "ctaStartFree": "Start gratis",
@@ -7974,7 +7975,7 @@
       "toolPromoTitle": "Eigen promocodes",
       "toolPromoBody": "Maak codes voor zakelijke abonnementen; korting gaat uit jouw commissiedeel binnen de limieten in het dashboard.",
       "toolStatsTitle": "Inzicht & uitbetaling",
-      "toolStatsBody": "Zie referrals, status en uitbetalingen. Wekelijkse uitbetaling via Stripe Connect na onboarding.",
+      "toolStatsBody": "Zie aanmeldingen, status en uitbetalingen. Uitbetaling loopt via Stripe Connect nadat je de onboarding hebt afgerond.",
       "dashboardPreviewTitle": "Overzicht in je affiliate-dashboard",
       "dashboardPreviewBody": "Na aanmelding zie je je link, QR-opties, promocodes en commissie-overzicht. Zo houd je controle zonder spreadsheet-stress.",
       "linkFaq": "Alle FAQ’s over HomeCheff",
@@ -7984,11 +7985,11 @@
       "faq1Q": "Hoe werkt affiliate bij HomeCheff?",
       "faq1A": "Je deelt je unieke link of promocode. Als iemand via jouw attributie koper, verkoper of zakelijk abonnee wordt, wordt commissie volgens het programma berekend en in je dashboard getoond.",
       "faq2Q": "Hoeveel commissie krijg ik?",
-      "faq2A": "Tot 25% van de HomeCheff-fee per transactiekant (koper of verkoper), tot 50% als je beide kanten aanbrengt. Voor zakelijke abonnementen tot 50% van het abonnementsbedrag, tot twaalf maanden per bedrijf, zolang het abonnement actief is — zie ook de tariefvoorbeelden op deze pagina.",
+      "faq2A": "Bij bestellingen krijg je 25% van de HomeCheff-fee voor de kant die jij hebt aangebracht (koper of verkoper), en 50% als je beide kanten hebt aangebracht. Bij zakelijke abonnementen krijg je 50% van de deelbare marge na HC-reserve, maximaal twaalf maanden per bedrijf en alleen zolang het abonnement loopt. De rekenvoorbeelden op deze pagina laten zien wat dat per abonnement is.",
       "faq3Q": "Hoe lang loopt commissie?",
       "faq3A": "Transactiecommissie volgt het gebruik van je referrals. Voor zakelijke abonnementen loopt het standaardvenster tot twaalf maanden per actief bedrijf binnen het huidige model; bij opzegging of einde abonnement stopt die commissiestroom.",
       "faq4Q": "Wanneer krijg ik uitbetaald?",
-      "faq4A": "Uitbetalingen lopen wekelijks via Stripe Connect, na succesvolle onboarding en volgens de uitbetalingsregels in het dashboard.",
+      "faq4A": "Commissie staat eerst 14 dagen op pending en daarna op beschikbaar. Uitbetalen gaat via Stripe Connect volgens de regels in je dashboard, nadat je de onboarding hebt afgerond. De commissie komt uit de HomeCheff-platformfee; kopers en verkopers betalen er niets extra voor.",
       "faq5Q": "Kan ik eigen kortingscodes maken?",
       "faq5A": "Ja, als hoofd-affiliate kun je promocodes aanmaken voor zakelijke abonnementen. Korting wordt verrekend met jouw commissiedeel, binnen de maximumregels die je in het dashboard ziet.",
       "faq6Q": "Kan ik internationaal promoten?",
@@ -8011,7 +8012,7 @@
       "alreadyPartnerTitle": "Je bent al affiliate-partner",
       "alreadyPartnerBody": "Ga naar je dashboard voor links, promocodes, communitygroei en uitbetalingen.",
       "ecosystemBandTitle": "Affiliate over het hele ecosysteem",
-      "ecosystemBandBody": "Promotie en referral horen bij HomeCheff breed: Marketplace, Growth en Studio kunnen meedoen waar het actuele partnerprogramma dat toestaat. Exacte percentages en vensters staan in je overeenkomst — geen gegarandeerd inkomen.",
+      "ecosystemBandBody": "Je link telt niet alleen op de Marketplace. Ook Growth en Studio kunnen meetellen, voor zover het huidige partnerprogramma dat toestaat. De exacte percentages en termijnen staan in je overeenkomst. Een gegarandeerd inkomen is er niet.",
       "ecosystemLinkMarketplace": "Marketplace",
       "ecosystemLinkStudio": "Studio",
       "ecosystemLinkGrowth": "Growth",

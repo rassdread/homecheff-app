@@ -1,0 +1,1530 @@
+{
+  "summary": {
+    "SEO_SLUG_TOTAL": 40,
+    "SEO_SLUG_NL": 20,
+    "SEO_SLUG_EN": 20,
+    "SEO_INTENT_CLUSTER_COUNT": 10,
+    "KEEP_DISTINCT": 18,
+    "SEO_DUPLICATE_INTENT_COUNT": 20,
+    "SEO_UNCLEAR_INTENT_COUNT": 2,
+    "PAGE_SPECIFIC_STRUCTURE": 12
+  },
+  "clusters": [
+    {
+      "cluster": "BUY_HOME_COOKED",
+      "ids": [
+        "thuisgekookt-kopen",
+        "eten-bij-particulieren",
+        "maaltijden-aan-huis"
+      ]
+    },
+    {
+      "cluster": "MEAL_INSPIRATION",
+      "ids": [
+        "wat-eten-vandaag",
+        "gezonde-maaltijden"
+      ]
+    },
+    {
+      "cluster": "SELLER_EARN_FOOD",
+      "ids": [
+        "geld-koken",
+        "koken-voor-anderen",
+        "hobby-koken",
+        "platform-thuiskoks"
+      ]
+    },
+    {
+      "cluster": "SELL_FROM_HOME_BROAD",
+      "ids": [
+        "verkopen-huis"
+      ]
+    },
+    {
+      "cluster": "SELLER_HOWTO",
+      "ids": [
+        "begin-thuiskok"
+      ]
+    },
+    {
+      "cluster": "DEFINITION",
+      "ids": [
+        "wat-is-thuisgekookt"
+      ]
+    },
+    {
+      "cluster": "RULES_LEGAL",
+      "ids": [
+        "regels-verkopen"
+      ]
+    },
+    {
+      "cluster": "LOCAL_PRODUCTS_BROAD",
+      "ids": [
+        "lokale-producten"
+      ]
+    },
+    {
+      "cluster": "COMPARISON",
+      "ids": [
+        "alternatief-thuisbezorgd"
+      ]
+    },
+    {
+      "cluster": "CITY_MEALS",
+      "ids": [
+        "meals-rotterdam",
+        "meals-amsterdam",
+        "meals-den-haag",
+        "meals-utrecht",
+        "meals-eindhoven"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "id": "thuisgekookt-kopen",
+      "slug": "thuisgekookt-eten-kopen",
+      "path": "/thuisgekookt-eten-kopen",
+      "language": "NL",
+      "currentTitle": "Thuisgekookt eten kopen | Vers van lokale koks | HomeCheff",
+      "h1": "Thuisgekookt eten kopen bij lokale makers",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Zo bestel je",
+        "Waar je op let voordat je bestelt",
+        "Meer dan maaltijden"
+      ],
+      "primaryIntent": "Buy home-cooked food nearby",
+      "secondaryIntent": "Understand how ordering works",
+      "targetAudience": "Buyers",
+      "whatVisitorWants": "Where and how to order home-cooked food, what to check first",
+      "whatHomeCheffCanAnswer": "Ordering flow, pickup/delivery per listing, reviews, allergen responsibility",
+      "uniqueInfo": "Cluster head: transactional how-to-order plus pre-order checks",
+      "overlap": [
+        "eten-bij-particulieren",
+        "maaltijden-aan-huis"
+      ],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "BUY_HOME_COOKED",
+      "futureRecommendation": "KEEP as cluster head",
+      "phase2Change": "Rewritten with own structure (How to order / What to check / Not only meals)",
+      "structure": "PAGE_SPECIFIC"
+    },
+    {
+      "id": "thuisgekookt-kopen",
+      "slug": "buy-home-cooked-food",
+      "path": "/en/buy-home-cooked-food",
+      "language": "EN",
+      "currentTitle": "Buy Home-Cooked Food | Fresh Meals from Local Cooks | HomeCheff",
+      "h1": "Buy home-cooked food from local makers",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How to order",
+        "What to check before you order",
+        "Not only meals"
+      ],
+      "primaryIntent": "Buy home-cooked food nearby",
+      "secondaryIntent": "Understand how ordering works",
+      "targetAudience": "Buyers",
+      "whatVisitorWants": "Where and how to order home-cooked food, what to check first",
+      "whatHomeCheffCanAnswer": "Ordering flow, pickup/delivery per listing, reviews, allergen responsibility",
+      "uniqueInfo": "Cluster head: transactional how-to-order plus pre-order checks",
+      "overlap": [
+        "eten-bij-particulieren",
+        "maaltijden-aan-huis"
+      ],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "BUY_HOME_COOKED",
+      "futureRecommendation": "KEEP as cluster head",
+      "phase2Change": "Rewritten with own structure (How to order / What to check / Not only meals)",
+      "structure": "PAGE_SPECIFIC"
+    },
+    {
+      "id": "eten-bij-particulieren",
+      "slug": "eten-bestellen-bij-particulieren",
+      "path": "/eten-bestellen-bij-particulieren",
+      "language": "NL",
+      "currentTitle": "Eten bestellen bij particulieren | HomeCheff",
+      "h1": "Eten bestellen bij particulieren",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken"
+      ],
+      "primaryIntent": "Order food from private individuals",
+      "secondaryIntent": "Trust/safety of buying from individuals",
+      "targetAudience": "Buyers",
+      "whatVisitorWants": "Same as thuisgekookt-kopen, phrased around 'particulieren'",
+      "whatHomeCheffCanAnswer": "Same flow as cluster head",
+      "uniqueInfo": "No information that the cluster head lacks",
+      "overlap": [
+        "thuisgekookt-kopen"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "BUY_HOME_COOKED",
+      "futureRecommendation": "CANONICALIZE or MERGE into thuisgekookt-eten-kopen (future)",
+      "phase2Change": "Unchanged (no artificial differentiation)",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "eten-bij-particulieren",
+      "slug": "order-food-from-local-cooks",
+      "path": "/en/order-food-from-local-cooks",
+      "language": "EN",
+      "currentTitle": "Order Food from Local Cooks | HomeCheff",
+      "h1": "Order food from local cooks",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover"
+      ],
+      "primaryIntent": "Order food from private individuals",
+      "secondaryIntent": "Trust/safety of buying from individuals",
+      "targetAudience": "Buyers",
+      "whatVisitorWants": "Same as thuisgekookt-kopen, phrased around 'particulieren'",
+      "whatHomeCheffCanAnswer": "Same flow as cluster head",
+      "uniqueInfo": "No information that the cluster head lacks",
+      "overlap": [
+        "thuisgekookt-kopen"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "BUY_HOME_COOKED",
+      "futureRecommendation": "CANONICALIZE or MERGE into thuisgekookt-eten-kopen (future)",
+      "phase2Change": "Unchanged (no artificial differentiation)",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "maaltijden-aan-huis",
+      "slug": "maaltijden-aan-huis",
+      "path": "/maaltijden-aan-huis",
+      "language": "NL",
+      "currentTitle": "Maaltijden aan huis | Lokale en verse gerechten | HomeCheff",
+      "h1": "Maaltijden aan huis van lokale makers",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken"
+      ],
+      "primaryIntent": "Meals delivered at home",
+      "secondaryIntent": "Buy home-cooked meals",
+      "targetAudience": "Buyers wanting delivery",
+      "whatVisitorWants": "Delivery of meals to the door",
+      "whatHomeCheffCanAnswer": "Only that delivery depends on the maker per listing",
+      "uniqueInfo": "Delivery angle, but HomeCheff has no delivery-specific information beyond per-listing options",
+      "overlap": [
+        "thuisgekookt-kopen"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "BUY_HOME_COOKED",
+      "futureRecommendation": "NEEDS_RESEARCH (query volume for delivery intent), otherwise MERGE into thuisgekookt-eten-kopen",
+      "phase2Change": "Unchanged",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "maaltijden-aan-huis",
+      "slug": "meals-at-home",
+      "path": "/en/meals-at-home",
+      "language": "EN",
+      "currentTitle": "Meals at Home | Local and Fresh Dishes | HomeCheff",
+      "h1": "Meals at home from local makers",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover"
+      ],
+      "primaryIntent": "Meals delivered at home",
+      "secondaryIntent": "Buy home-cooked meals",
+      "targetAudience": "Buyers wanting delivery",
+      "whatVisitorWants": "Delivery of meals to the door",
+      "whatHomeCheffCanAnswer": "Only that delivery depends on the maker per listing",
+      "uniqueInfo": "Delivery angle, but HomeCheff has no delivery-specific information beyond per-listing options",
+      "overlap": [
+        "thuisgekookt-kopen"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "BUY_HOME_COOKED",
+      "futureRecommendation": "NEEDS_RESEARCH (query volume for delivery intent), otherwise MERGE into thuisgekookt-eten-kopen",
+      "phase2Change": "Unchanged",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "wat-eten-vandaag",
+      "slug": "wat-eten-we-vandaag",
+      "path": "/wat-eten-we-vandaag",
+      "language": "NL",
+      "currentTitle": "Wat eten we vandaag? | Inspiratie en lokale maaltijden | HomeCheff",
+      "h1": "Wat eten we vandaag?",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken"
+      ],
+      "primaryIntent": "Decide what to eat today",
+      "secondaryIntent": "Recipes or ready-made option",
+      "targetAudience": "Households looking for ideas",
+      "whatVisitorWants": "Inspiration and a quick answer",
+      "whatHomeCheffCanAnswer": "Inspiration feed plus live offers",
+      "uniqueInfo": "Inspiration-first intent, not transactional",
+      "overlap": [
+        "gezonde-maaltijden"
+      ],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "MEAL_INSPIRATION",
+      "futureRecommendation": "KEEP; future rewrite with own structure",
+      "phase2Change": "Unchanged (lower priority)",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "wat-eten-vandaag",
+      "slug": "what-should-we-eat-today",
+      "path": "/en/what-should-we-eat-today",
+      "language": "EN",
+      "currentTitle": "What Should We Eat Today? | Inspiration and Local Meals | HomeCheff",
+      "h1": "What should we eat today?",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover"
+      ],
+      "primaryIntent": "Decide what to eat today",
+      "secondaryIntent": "Recipes or ready-made option",
+      "targetAudience": "Households looking for ideas",
+      "whatVisitorWants": "Inspiration and a quick answer",
+      "whatHomeCheffCanAnswer": "Inspiration feed plus live offers",
+      "uniqueInfo": "Inspiration-first intent, not transactional",
+      "overlap": [
+        "gezonde-maaltijden"
+      ],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "MEAL_INSPIRATION",
+      "futureRecommendation": "KEEP; future rewrite with own structure",
+      "phase2Change": "Unchanged (lower priority)",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "gezonde-maaltijden",
+      "slug": "gezonde-maaltijden-ideeen",
+      "path": "/gezonde-maaltijden-ideeen",
+      "language": "NL",
+      "currentTitle": "Gezonde maaltijden ideeën | HomeCheff",
+      "h1": "Gezonde maaltijden: ideeën en lokaal aanbod",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken"
+      ],
+      "primaryIntent": "Healthy meal ideas",
+      "secondaryIntent": "Buy healthy meals",
+      "targetAudience": "Health-minded eaters",
+      "whatVisitorWants": "Nutritional guidance and healthy recipes",
+      "whatHomeCheffCanAnswer": "Only maker-provided descriptions; no nutritional expertise or data",
+      "uniqueInfo": "Health intent HomeCheff cannot answer with authority",
+      "overlap": [
+        "wat-eten-vandaag"
+      ],
+      "verdict": "UNCLEAR",
+      "cluster": "MEAL_INSPIRATION",
+      "futureRecommendation": "NEEDS_RESEARCH; likely NOINDEX or MERGE into wat-eten-we-vandaag unless real health content exists",
+      "phase2Change": "Unchanged",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "gezonde-maaltijden",
+      "slug": "healthy-meal-ideas",
+      "path": "/en/healthy-meal-ideas",
+      "language": "EN",
+      "currentTitle": "Healthy Meal Ideas | HomeCheff",
+      "h1": "Healthy meal ideas and local food",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover"
+      ],
+      "primaryIntent": "Healthy meal ideas",
+      "secondaryIntent": "Buy healthy meals",
+      "targetAudience": "Health-minded eaters",
+      "whatVisitorWants": "Nutritional guidance and healthy recipes",
+      "whatHomeCheffCanAnswer": "Only maker-provided descriptions; no nutritional expertise or data",
+      "uniqueInfo": "Health intent HomeCheff cannot answer with authority",
+      "overlap": [
+        "wat-eten-vandaag"
+      ],
+      "verdict": "UNCLEAR",
+      "cluster": "MEAL_INSPIRATION",
+      "futureRecommendation": "NEEDS_RESEARCH; likely NOINDEX or MERGE into wat-eten-we-vandaag unless real health content exists",
+      "phase2Change": "Unchanged",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "geld-koken",
+      "slug": "geld-verdienen-met-koken",
+      "path": "/geld-verdienen-met-koken",
+      "language": "NL",
+      "currentTitle": "Geld verdienen met koken | Start als thuiskok | HomeCheff",
+      "h1": "Geld verdienen met koken vanuit huis",
+      "h2sBefore": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "h2sAfterBody": [
+        "Wat je verkoopt en aan wie",
+        "Wat je overhoudt",
+        "Verstandig beginnen"
+      ],
+      "primaryIntent": "Earn money cooking from home",
+      "secondaryIntent": "What it realistically yields",
+      "targetAudience": "Prospective home-cook sellers",
+      "whatVisitorWants": "Whether and how cooking can bring income, and what you keep",
+      "whatHomeCheffCanAnswer": "Marketplace model, fees, omzet vs resultaat, tax/toeslagen pointer (VerdienCheck), rules",
+      "uniqueInfo": "Cluster head: economics of selling food (revenue, costs, fee, result)",
+      "overlap": [
+        "hobby-koken",
+        "koken-voor-anderen",
+        "platform-thuiskoks"
+      ],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "SELLER_EARN_FOOD",
+      "futureRecommendation": "KEEP as cluster head",
+      "phase2Change": "Rewritten with own structure (What you sell / What you keep / Starting sensibly); no income guarantee",
+      "structure": "PAGE_SPECIFIC"
+    },
+    {
+      "id": "geld-koken",
+      "slug": "earn-money-cooking-from-home",
+      "path": "/en/earn-money-cooking-from-home",
+      "language": "EN",
+      "currentTitle": "Earn Money Cooking from Home | Start as a Home Cook | HomeCheff",
+      "h1": "Earn money cooking from home",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can list",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "What you sell and to whom",
+        "What you actually keep",
+        "Starting sensibly"
+      ],
+      "primaryIntent": "Earn money cooking from home",
+      "secondaryIntent": "What it realistically yields",
+      "targetAudience": "Prospective home-cook sellers",
+      "whatVisitorWants": "Whether and how cooking can bring income, and what you keep",
+      "whatHomeCheffCanAnswer": "Marketplace model, fees, omzet vs resultaat, tax/toeslagen pointer (VerdienCheck), rules",
+      "uniqueInfo": "Cluster head: economics of selling food (revenue, costs, fee, result)",
+      "overlap": [
+        "hobby-koken",
+        "koken-voor-anderen",
+        "platform-thuiskoks"
+      ],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "SELLER_EARN_FOOD",
+      "futureRecommendation": "KEEP as cluster head",
+      "phase2Change": "Rewritten with own structure (What you sell / What you keep / Starting sensibly); no income guarantee",
+      "structure": "PAGE_SPECIFIC"
+    },
+    {
+      "id": "verkopen-huis",
+      "slug": "verkopen-vanuit-huis",
+      "path": "/verkopen-vanuit-huis",
+      "language": "NL",
+      "currentTitle": "Verkopen vanuit huis | Begin lokaal met HomeCheff",
+      "h1": "Verkopen vanuit huis",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt plaatsen",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt plaatsen"
+      ],
+      "primaryIntent": "Sell (anything) from home",
+      "secondaryIntent": "Where to be found",
+      "targetAudience": "Makers beyond food",
+      "whatVisitorWants": "A place to sell food, produce, design from home",
+      "whatHomeCheffCanAnswer": "Marketplace for multiple categories",
+      "uniqueInfo": "Non-food breadth",
+      "overlap": [
+        "geld-koken"
+      ],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "SELL_FROM_HOME_BROAD",
+      "futureRecommendation": "KEEP; future rewrite with non-food examples",
+      "phase2Change": "Unchanged",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "verkopen-huis",
+      "slug": "sell-from-home",
+      "path": "/en/sell-from-home",
+      "language": "EN",
+      "currentTitle": "Sell from Home | Start Locally with HomeCheff",
+      "h1": "Sell from home",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can list",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can list"
+      ],
+      "primaryIntent": "Sell (anything) from home",
+      "secondaryIntent": "Where to be found",
+      "targetAudience": "Makers beyond food",
+      "whatVisitorWants": "A place to sell food, produce, design from home",
+      "whatHomeCheffCanAnswer": "Marketplace for multiple categories",
+      "uniqueInfo": "Non-food breadth",
+      "overlap": [
+        "geld-koken"
+      ],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "SELL_FROM_HOME_BROAD",
+      "futureRecommendation": "KEEP; future rewrite with non-food examples",
+      "phase2Change": "Unchanged",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "begin-thuiskok",
+      "slug": "hoe-begin-je-als-thuiskok",
+      "path": "/hoe-begin-je-als-thuiskok",
+      "language": "NL",
+      "currentTitle": "Hoe begin je als thuiskok? | HomeCheff",
+      "h1": "Hoe begin je als thuiskok?",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt plaatsen",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Stap 1: bepaal wat je aanbiedt",
+        "Stap 2: lees de regels",
+        "Stap 3: zet je eerste gerecht online",
+        "Stap 4: leer van je eerste bestellingen"
+      ],
+      "primaryIntent": "How to start as a home cook",
+      "secondaryIntent": "Rules before starting",
+      "targetAudience": "Beginners",
+      "whatVisitorWants": "Concrete steps",
+      "whatHomeCheffCanAnswer": "Steps, rules pointer, listing tips",
+      "uniqueInfo": "Step-by-step how-to",
+      "overlap": [
+        "geld-koken"
+      ],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "SELLER_HOWTO",
+      "futureRecommendation": "KEEP",
+      "phase2Change": "Rewritten as four steps",
+      "structure": "PAGE_SPECIFIC"
+    },
+    {
+      "id": "begin-thuiskok",
+      "slug": "how-to-start-as-a-home-cook",
+      "path": "/en/how-to-start-as-a-home-cook",
+      "language": "EN",
+      "currentTitle": "How to Start as a Home Cook | HomeCheff",
+      "h1": "How to start as a home cook",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can list",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "Step 1: decide what you'll offer",
+        "Step 2: read the rules",
+        "Step 3: put your first dish online",
+        "Step 4: learn from your first orders"
+      ],
+      "primaryIntent": "How to start as a home cook",
+      "secondaryIntent": "Rules before starting",
+      "targetAudience": "Beginners",
+      "whatVisitorWants": "Concrete steps",
+      "whatHomeCheffCanAnswer": "Steps, rules pointer, listing tips",
+      "uniqueInfo": "Step-by-step how-to",
+      "overlap": [
+        "geld-koken"
+      ],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "SELLER_HOWTO",
+      "futureRecommendation": "KEEP",
+      "phase2Change": "Rewritten as four steps",
+      "structure": "PAGE_SPECIFIC"
+    },
+    {
+      "id": "koken-voor-anderen",
+      "slug": "koken-voor-anderen-vanuit-huis",
+      "path": "/koken-voor-anderen-vanuit-huis",
+      "language": "NL",
+      "currentTitle": "Koken voor anderen vanuit huis | HomeCheff",
+      "h1": "Koken voor anderen vanuit huis",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt plaatsen",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt plaatsen"
+      ],
+      "primaryIntent": "Cook for others from home",
+      "secondaryIntent": "Earn from it",
+      "targetAudience": "Prospective sellers",
+      "whatVisitorWants": "Same as geld-koken",
+      "whatHomeCheffCanAnswer": "Same as cluster head",
+      "uniqueInfo": "None beyond phrasing",
+      "overlap": [
+        "geld-koken",
+        "hobby-koken"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "SELLER_EARN_FOOD",
+      "futureRecommendation": "MERGE into geld-verdienen-met-koken (future)",
+      "phase2Change": "Unchanged",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "koken-voor-anderen",
+      "slug": "cook-for-others-from-home",
+      "path": "/en/cook-for-others-from-home",
+      "language": "EN",
+      "currentTitle": "Cook for Others from Home | HomeCheff",
+      "h1": "Cook for others from home",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can list",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can list"
+      ],
+      "primaryIntent": "Cook for others from home",
+      "secondaryIntent": "Earn from it",
+      "targetAudience": "Prospective sellers",
+      "whatVisitorWants": "Same as geld-koken",
+      "whatHomeCheffCanAnswer": "Same as cluster head",
+      "uniqueInfo": "None beyond phrasing",
+      "overlap": [
+        "geld-koken",
+        "hobby-koken"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "SELLER_EARN_FOOD",
+      "futureRecommendation": "MERGE into geld-verdienen-met-koken (future)",
+      "phase2Change": "Unchanged",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "hobby-koken",
+      "slug": "verdienen-met-hobby-koken",
+      "path": "/verdienen-met-hobby-koken",
+      "language": "NL",
+      "currentTitle": "Verdienen met hobby koken | HomeCheff",
+      "h1": "Verdienen met hobbykoken",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt plaatsen",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt plaatsen"
+      ],
+      "primaryIntent": "Earn money with hobby cooking",
+      "secondaryIntent": "Is it worth it",
+      "targetAudience": "Hobby cooks",
+      "whatVisitorWants": "Same as geld-koken",
+      "whatHomeCheffCanAnswer": "Same as cluster head",
+      "uniqueInfo": "None beyond phrasing",
+      "overlap": [
+        "geld-koken",
+        "koken-voor-anderen"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "SELLER_EARN_FOOD",
+      "futureRecommendation": "MERGE into geld-verdienen-met-koken (future)",
+      "phase2Change": "Unchanged",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "hobby-koken",
+      "slug": "earn-money-with-home-cooking",
+      "path": "/en/earn-money-with-home-cooking",
+      "language": "EN",
+      "currentTitle": "Earn Money with Home Cooking | HomeCheff",
+      "h1": "Earn money with home cooking",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can list",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can list"
+      ],
+      "primaryIntent": "Earn money with hobby cooking",
+      "secondaryIntent": "Is it worth it",
+      "targetAudience": "Hobby cooks",
+      "whatVisitorWants": "Same as geld-koken",
+      "whatHomeCheffCanAnswer": "Same as cluster head",
+      "uniqueInfo": "None beyond phrasing",
+      "overlap": [
+        "geld-koken",
+        "koken-voor-anderen"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "SELLER_EARN_FOOD",
+      "futureRecommendation": "MERGE into geld-verdienen-met-koken (future)",
+      "phase2Change": "Unchanged",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "platform-thuiskoks",
+      "slug": "platform-voor-thuiskoks",
+      "path": "/platform-voor-thuiskoks",
+      "language": "NL",
+      "currentTitle": "Platform voor thuiskoks | HomeCheff",
+      "h1": "Het platform voor thuiskoks",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken of plaatsen",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken of plaatsen"
+      ],
+      "primaryIntent": "Which platform for home cooks",
+      "secondaryIntent": "Compare platforms",
+      "targetAudience": "Home cooks choosing a platform",
+      "whatVisitorWants": "Platform comparison",
+      "whatHomeCheffCanAnswer": "Only HomeCheff's own model; no neutral comparison",
+      "uniqueInfo": "Navigational phrasing; content repeats cluster head",
+      "overlap": [
+        "geld-koken"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "SELLER_EARN_FOOD",
+      "futureRecommendation": "CANONICALIZE to geld-verdienen-met-koken or /sell (future)",
+      "phase2Change": "Unchanged",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "platform-thuiskoks",
+      "slug": "platform-for-home-cooks",
+      "path": "/en/platform-for-home-cooks",
+      "language": "EN",
+      "currentTitle": "Platform for Home Cooks | HomeCheff",
+      "h1": "A platform for home cooks",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover or list",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover or list"
+      ],
+      "primaryIntent": "Which platform for home cooks",
+      "secondaryIntent": "Compare platforms",
+      "targetAudience": "Home cooks choosing a platform",
+      "whatVisitorWants": "Platform comparison",
+      "whatHomeCheffCanAnswer": "Only HomeCheff's own model; no neutral comparison",
+      "uniqueInfo": "Navigational phrasing; content repeats cluster head",
+      "overlap": [
+        "geld-koken"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "SELLER_EARN_FOOD",
+      "futureRecommendation": "CANONICALIZE to geld-verdienen-met-koken or /sell (future)",
+      "phase2Change": "Unchanged",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "wat-is-thuisgekookt",
+      "slug": "wat-is-thuisgekookt-eten",
+      "path": "/wat-is-thuisgekookt-eten",
+      "language": "NL",
+      "currentTitle": "Wat is thuisgekookt eten? | HomeCheff",
+      "h1": "Wat is thuisgekookt eten?",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Wat het wel en niet zegt",
+        "Hoe je het herkent op HomeCheff",
+        "Wat geldt er voor wie het verkoopt?"
+      ],
+      "primaryIntent": "What is home-cooked food",
+      "secondaryIntent": "Rules for sellers",
+      "targetAudience": "Curious readers, AEO",
+      "whatVisitorWants": "A clear definition",
+      "whatHomeCheffCanAnswer": "Definition as used on HomeCheff, what it does/doesn't imply, rules pointer",
+      "uniqueInfo": "Definitional/informational intent",
+      "overlap": [],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "DEFINITION",
+      "futureRecommendation": "KEEP",
+      "phase2Change": "Rewritten with own structure",
+      "structure": "PAGE_SPECIFIC"
+    },
+    {
+      "id": "wat-is-thuisgekookt",
+      "slug": "what-is-home-cooked-food",
+      "path": "/en/what-is-home-cooked-food",
+      "language": "EN",
+      "currentTitle": "What Is Home-Cooked Food? | HomeCheff",
+      "h1": "What is home-cooked food?",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "What it does and doesn't tell you",
+        "How to recognise it on HomeCheff",
+        "What applies to people who sell it?"
+      ],
+      "primaryIntent": "What is home-cooked food",
+      "secondaryIntent": "Rules for sellers",
+      "targetAudience": "Curious readers, AEO",
+      "whatVisitorWants": "A clear definition",
+      "whatHomeCheffCanAnswer": "Definition as used on HomeCheff, what it does/doesn't imply, rules pointer",
+      "uniqueInfo": "Definitional/informational intent",
+      "overlap": [],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "DEFINITION",
+      "futureRecommendation": "KEEP",
+      "phase2Change": "Rewritten with own structure",
+      "structure": "PAGE_SPECIFIC"
+    },
+    {
+      "id": "regels-verkopen",
+      "slug": "eten-verkopen-vanuit-huis-regels",
+      "path": "/eten-verkopen-vanuit-huis-regels",
+      "language": "NL",
+      "currentTitle": "Eten verkopen vanuit huis: regels en uitleg | HomeCheff",
+      "h1": "Eten verkopen vanuit huis: regels en uitleg",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt plaatsen",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt plaatsen"
+      ],
+      "primaryIntent": "Rules for selling food from home",
+      "secondaryIntent": "NVWA, hygiene, allergens",
+      "targetAudience": "Sellers",
+      "whatVisitorWants": "Legal requirements",
+      "whatHomeCheffCanAnswer": "NVWA relevance, hygiene, allergens (existing legal copy)",
+      "uniqueInfo": "Legal/compliance intent",
+      "overlap": [],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "RULES_LEGAL",
+      "futureRecommendation": "KEEP; legal review before any rewrite",
+      "phase2Change": "Unchanged (legal meaning preserved; not naturalized)",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "regels-verkopen",
+      "slug": "rules-for-selling-food-from-home",
+      "path": "/en/rules-for-selling-food-from-home",
+      "language": "EN",
+      "currentTitle": "Rules for Selling Food from Home | HomeCheff",
+      "h1": "Rules for selling food from home",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can list",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can list"
+      ],
+      "primaryIntent": "Rules for selling food from home",
+      "secondaryIntent": "NVWA, hygiene, allergens",
+      "targetAudience": "Sellers",
+      "whatVisitorWants": "Legal requirements",
+      "whatHomeCheffCanAnswer": "NVWA relevance, hygiene, allergens (existing legal copy)",
+      "uniqueInfo": "Legal/compliance intent",
+      "overlap": [],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "RULES_LEGAL",
+      "futureRecommendation": "KEEP; legal review before any rewrite",
+      "phase2Change": "Unchanged (legal meaning preserved; not naturalized)",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "lokale-producten",
+      "slug": "lokale-producten-kopen",
+      "path": "/lokale-producten-kopen",
+      "language": "NL",
+      "currentTitle": "Lokale producten kopen | HomeCheff",
+      "h1": "Lokale producten kopen",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Wat je kunt vinden",
+        "Zoeken en volgen",
+        "Kopen en ophalen"
+      ],
+      "primaryIntent": "Buy local products",
+      "secondaryIntent": "Beyond food",
+      "targetAudience": "Buyers",
+      "whatVisitorWants": "Local produce, preserves, plants, crafts",
+      "whatHomeCheffCanAnswer": "Categories, filters, following makers, ordering",
+      "uniqueInfo": "Broad non-meal product intent",
+      "overlap": [
+        "thuisgekookt-kopen"
+      ],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "LOCAL_PRODUCTS_BROAD",
+      "futureRecommendation": "KEEP",
+      "phase2Change": "Rewritten with own structure",
+      "structure": "PAGE_SPECIFIC"
+    },
+    {
+      "id": "lokale-producten",
+      "slug": "buy-local-products",
+      "path": "/en/buy-local-products",
+      "language": "EN",
+      "currentTitle": "Buy Local Products | HomeCheff",
+      "h1": "Buy local products",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "What you can find",
+        "Searching and following makers",
+        "Buying and collecting"
+      ],
+      "primaryIntent": "Buy local products",
+      "secondaryIntent": "Beyond food",
+      "targetAudience": "Buyers",
+      "whatVisitorWants": "Local produce, preserves, plants, crafts",
+      "whatHomeCheffCanAnswer": "Categories, filters, following makers, ordering",
+      "uniqueInfo": "Broad non-meal product intent",
+      "overlap": [
+        "thuisgekookt-kopen"
+      ],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "LOCAL_PRODUCTS_BROAD",
+      "futureRecommendation": "KEEP",
+      "phase2Change": "Rewritten with own structure",
+      "structure": "PAGE_SPECIFIC"
+    },
+    {
+      "id": "alternatief-thuisbezorgd",
+      "slug": "alternatief-voor-thuisbezorgd",
+      "path": "/alternatief-voor-thuisbezorgd",
+      "language": "NL",
+      "currentTitle": "Alternatief voor Thuisbezorgd | HomeCheff",
+      "h1": "Een alternatief voor de grote bezorgplatforms",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Wat er anders is",
+        "Wat je niet moet verwachten",
+        "Wanneer HomeCheff een goede keuze is",
+        "Zelf koken voor de buurt"
+      ],
+      "primaryIntent": "Alternative to big delivery apps",
+      "secondaryIntent": "Honest trade-offs",
+      "targetAudience": "Buyers tired of delivery apps",
+      "whatVisitorWants": "How HomeCheff differs and when it fits",
+      "whatHomeCheffCanAnswer": "Differences, what not to expect, when it fits",
+      "uniqueInfo": "Comparison intent with honest limits",
+      "overlap": [],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "COMPARISON",
+      "futureRecommendation": "KEEP",
+      "phase2Change": "Rewritten with own structure",
+      "structure": "PAGE_SPECIFIC"
+    },
+    {
+      "id": "alternatief-thuisbezorgd",
+      "slug": "alternative-to-takeaway-platforms",
+      "path": "/en/alternative-to-takeaway-platforms",
+      "language": "EN",
+      "currentTitle": "Alternative to Takeaway Platforms | HomeCheff",
+      "h1": "An alternative to big takeaway platforms",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "What's different",
+        "What not to expect",
+        "When HomeCheff is a good fit",
+        "Cooking for your neighbourhood"
+      ],
+      "primaryIntent": "Alternative to big delivery apps",
+      "secondaryIntent": "Honest trade-offs",
+      "targetAudience": "Buyers tired of delivery apps",
+      "whatVisitorWants": "How HomeCheff differs and when it fits",
+      "whatHomeCheffCanAnswer": "Differences, what not to expect, when it fits",
+      "uniqueInfo": "Comparison intent with honest limits",
+      "overlap": [],
+      "verdict": "KEEP_DISTINCT",
+      "cluster": "COMPARISON",
+      "futureRecommendation": "KEEP",
+      "phase2Change": "Rewritten with own structure",
+      "structure": "PAGE_SPECIFIC"
+    },
+    {
+      "id": "meals-rotterdam",
+      "slug": "maaltijden-in-rotterdam",
+      "path": "/maaltijden-in-rotterdam",
+      "language": "NL",
+      "currentTitle": "Maaltijden in Rotterdam | Lokale thuiskoks en verse gerechten | HomeCheff",
+      "h1": "Maaltijden in Rotterdam",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken"
+      ],
+      "primaryIntent": "Find home-cooked meals in a named city",
+      "secondaryIntent": "Check whether HomeCheff is active there",
+      "targetAudience": "Residents of the named city",
+      "whatVisitorWants": "Proof of real local supply: makers, dishes, availability in that city",
+      "whatHomeCheffCanAnswer": "Only live feed results; the page itself has no city-specific data",
+      "uniqueInfo": "None beyond the city name; body sections are templated. Live counts exist only on /maaltijden/[stad] (currently noindex everywhere).",
+      "overlap": [
+        "/maaltijden/rotterdam",
+        "other meals-in-[city]"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "CITY_MEALS",
+      "futureRecommendation": "REDIRECT (future): 301 /maaltijden-in-[stad] and /en/meals-in-[city] to /maaltijden/[stad] and let city-indexability decide indexing; until then NEEDS_RESEARCH on whether these indexable pages should be NOINDEX while inventory is below threshold.",
+      "phase2Change": "Intro only: removed invented city colour (creativity, tech, Scheveningen–Bezuidenhout, students/families). No new city facts added.",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "meals-rotterdam",
+      "slug": "meals-in-rotterdam",
+      "path": "/en/meals-in-rotterdam",
+      "language": "EN",
+      "currentTitle": "Meals in Rotterdam | Local Home Cooks and Fresh Dishes | HomeCheff",
+      "h1": "Meals in Rotterdam",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover"
+      ],
+      "primaryIntent": "Find home-cooked meals in a named city",
+      "secondaryIntent": "Check whether HomeCheff is active there",
+      "targetAudience": "Residents of the named city",
+      "whatVisitorWants": "Proof of real local supply: makers, dishes, availability in that city",
+      "whatHomeCheffCanAnswer": "Only live feed results; the page itself has no city-specific data",
+      "uniqueInfo": "None beyond the city name; body sections are templated. Live counts exist only on /maaltijden/[stad] (currently noindex everywhere).",
+      "overlap": [
+        "/maaltijden/rotterdam",
+        "other meals-in-[city]"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "CITY_MEALS",
+      "futureRecommendation": "REDIRECT (future): 301 /maaltijden-in-[stad] and /en/meals-in-[city] to /maaltijden/[stad] and let city-indexability decide indexing; until then NEEDS_RESEARCH on whether these indexable pages should be NOINDEX while inventory is below threshold.",
+      "phase2Change": "Intro only: removed invented city colour (creativity, tech, Scheveningen–Bezuidenhout, students/families). No new city facts added.",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "meals-amsterdam",
+      "slug": "maaltijden-in-amsterdam",
+      "path": "/maaltijden-in-amsterdam",
+      "language": "NL",
+      "currentTitle": "Maaltijden in Amsterdam | Lokale thuiskoks en verse gerechten | HomeCheff",
+      "h1": "Maaltijden in Amsterdam",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken"
+      ],
+      "primaryIntent": "Find home-cooked meals in a named city",
+      "secondaryIntent": "Check whether HomeCheff is active there",
+      "targetAudience": "Residents of the named city",
+      "whatVisitorWants": "Proof of real local supply: makers, dishes, availability in that city",
+      "whatHomeCheffCanAnswer": "Only live feed results; the page itself has no city-specific data",
+      "uniqueInfo": "None beyond the city name; body sections are templated. Live counts exist only on /maaltijden/[stad] (currently noindex everywhere).",
+      "overlap": [
+        "/maaltijden/amsterdam",
+        "other meals-in-[city]"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "CITY_MEALS",
+      "futureRecommendation": "REDIRECT (future): 301 /maaltijden-in-[stad] and /en/meals-in-[city] to /maaltijden/[stad] and let city-indexability decide indexing; until then NEEDS_RESEARCH on whether these indexable pages should be NOINDEX while inventory is below threshold.",
+      "phase2Change": "Intro only: removed invented city colour (creativity, tech, Scheveningen–Bezuidenhout, students/families). No new city facts added.",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "meals-amsterdam",
+      "slug": "meals-in-amsterdam",
+      "path": "/en/meals-in-amsterdam",
+      "language": "EN",
+      "currentTitle": "Meals in Amsterdam | Local Home Cooks and Fresh Dishes | HomeCheff",
+      "h1": "Meals in Amsterdam",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover"
+      ],
+      "primaryIntent": "Find home-cooked meals in a named city",
+      "secondaryIntent": "Check whether HomeCheff is active there",
+      "targetAudience": "Residents of the named city",
+      "whatVisitorWants": "Proof of real local supply: makers, dishes, availability in that city",
+      "whatHomeCheffCanAnswer": "Only live feed results; the page itself has no city-specific data",
+      "uniqueInfo": "None beyond the city name; body sections are templated. Live counts exist only on /maaltijden/[stad] (currently noindex everywhere).",
+      "overlap": [
+        "/maaltijden/amsterdam",
+        "other meals-in-[city]"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "CITY_MEALS",
+      "futureRecommendation": "REDIRECT (future): 301 /maaltijden-in-[stad] and /en/meals-in-[city] to /maaltijden/[stad] and let city-indexability decide indexing; until then NEEDS_RESEARCH on whether these indexable pages should be NOINDEX while inventory is below threshold.",
+      "phase2Change": "Intro only: removed invented city colour (creativity, tech, Scheveningen–Bezuidenhout, students/families). No new city facts added.",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "meals-den-haag",
+      "slug": "maaltijden-in-den-haag",
+      "path": "/maaltijden-in-den-haag",
+      "language": "NL",
+      "currentTitle": "Maaltijden in Den Haag | Lokale thuiskoks en verse gerechten | HomeCheff",
+      "h1": "Maaltijden in Den Haag",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken"
+      ],
+      "primaryIntent": "Find home-cooked meals in a named city",
+      "secondaryIntent": "Check whether HomeCheff is active there",
+      "targetAudience": "Residents of the named city",
+      "whatVisitorWants": "Proof of real local supply: makers, dishes, availability in that city",
+      "whatHomeCheffCanAnswer": "Only live feed results; the page itself has no city-specific data",
+      "uniqueInfo": "None beyond the city name; body sections are templated. Live counts exist only on /maaltijden/[stad] (currently noindex everywhere).",
+      "overlap": [
+        "/maaltijden/den-haag",
+        "other meals-in-[city]"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "CITY_MEALS",
+      "futureRecommendation": "REDIRECT (future): 301 /maaltijden-in-[stad] and /en/meals-in-[city] to /maaltijden/[stad] and let city-indexability decide indexing; until then NEEDS_RESEARCH on whether these indexable pages should be NOINDEX while inventory is below threshold.",
+      "phase2Change": "Intro only: removed invented city colour (creativity, tech, Scheveningen–Bezuidenhout, students/families). No new city facts added.",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "meals-den-haag",
+      "slug": "meals-in-the-hague",
+      "path": "/en/meals-in-the-hague",
+      "language": "EN",
+      "currentTitle": "Meals in The Hague | Local Home Cooks and Fresh Dishes | HomeCheff",
+      "h1": "Meals in The Hague",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover"
+      ],
+      "primaryIntent": "Find home-cooked meals in a named city",
+      "secondaryIntent": "Check whether HomeCheff is active there",
+      "targetAudience": "Residents of the named city",
+      "whatVisitorWants": "Proof of real local supply: makers, dishes, availability in that city",
+      "whatHomeCheffCanAnswer": "Only live feed results; the page itself has no city-specific data",
+      "uniqueInfo": "None beyond the city name; body sections are templated. Live counts exist only on /maaltijden/[stad] (currently noindex everywhere).",
+      "overlap": [
+        "/maaltijden/den-haag",
+        "other meals-in-[city]"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "CITY_MEALS",
+      "futureRecommendation": "REDIRECT (future): 301 /maaltijden-in-[stad] and /en/meals-in-[city] to /maaltijden/[stad] and let city-indexability decide indexing; until then NEEDS_RESEARCH on whether these indexable pages should be NOINDEX while inventory is below threshold.",
+      "phase2Change": "Intro only: removed invented city colour (creativity, tech, Scheveningen–Bezuidenhout, students/families). No new city facts added.",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "meals-utrecht",
+      "slug": "maaltijden-in-utrecht",
+      "path": "/maaltijden-in-utrecht",
+      "language": "NL",
+      "currentTitle": "Maaltijden in Utrecht | Lokale thuiskoks en verse gerechten | HomeCheff",
+      "h1": "Maaltijden in Utrecht",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken"
+      ],
+      "primaryIntent": "Find home-cooked meals in a named city",
+      "secondaryIntent": "Check whether HomeCheff is active there",
+      "targetAudience": "Residents of the named city",
+      "whatVisitorWants": "Proof of real local supply: makers, dishes, availability in that city",
+      "whatHomeCheffCanAnswer": "Only live feed results; the page itself has no city-specific data",
+      "uniqueInfo": "None beyond the city name; body sections are templated. Live counts exist only on /maaltijden/[stad] (currently noindex everywhere).",
+      "overlap": [
+        "/maaltijden/utrecht",
+        "other meals-in-[city]"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "CITY_MEALS",
+      "futureRecommendation": "REDIRECT (future): 301 /maaltijden-in-[stad] and /en/meals-in-[city] to /maaltijden/[stad] and let city-indexability decide indexing; until then NEEDS_RESEARCH on whether these indexable pages should be NOINDEX while inventory is below threshold.",
+      "phase2Change": "Intro only: removed invented city colour (creativity, tech, Scheveningen–Bezuidenhout, students/families). No new city facts added.",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "meals-utrecht",
+      "slug": "meals-in-utrecht",
+      "path": "/en/meals-in-utrecht",
+      "language": "EN",
+      "currentTitle": "Meals in Utrecht | Local Home Cooks and Fresh Dishes | HomeCheff",
+      "h1": "Meals in Utrecht",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover"
+      ],
+      "primaryIntent": "Find home-cooked meals in a named city",
+      "secondaryIntent": "Check whether HomeCheff is active there",
+      "targetAudience": "Residents of the named city",
+      "whatVisitorWants": "Proof of real local supply: makers, dishes, availability in that city",
+      "whatHomeCheffCanAnswer": "Only live feed results; the page itself has no city-specific data",
+      "uniqueInfo": "None beyond the city name; body sections are templated. Live counts exist only on /maaltijden/[stad] (currently noindex everywhere).",
+      "overlap": [
+        "/maaltijden/utrecht",
+        "other meals-in-[city]"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "CITY_MEALS",
+      "futureRecommendation": "REDIRECT (future): 301 /maaltijden-in-[stad] and /en/meals-in-[city] to /maaltijden/[stad] and let city-indexability decide indexing; until then NEEDS_RESEARCH on whether these indexable pages should be NOINDEX while inventory is below threshold.",
+      "phase2Change": "Intro only: removed invented city colour (creativity, tech, Scheveningen–Bezuidenhout, students/families). No new city facts added.",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "meals-eindhoven",
+      "slug": "maaltijden-in-eindhoven",
+      "path": "/maaltijden-in-eindhoven",
+      "language": "NL",
+      "currentTitle": "Maaltijden in Eindhoven | Lokale thuiskoks en verse gerechten | HomeCheff",
+      "h1": "Maaltijden in Eindhoven",
+      "h2sBefore": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken",
+        "Aan de slag",
+        "Meer ontdekken"
+      ],
+      "h2sAfterBody": [
+        "Hoe HomeCheff werkt",
+        "Voor wie is dit interessant?",
+        "Waarom lokaal en waarom HomeCheff?",
+        "Wat je kunt ontdekken"
+      ],
+      "primaryIntent": "Find home-cooked meals in a named city",
+      "secondaryIntent": "Check whether HomeCheff is active there",
+      "targetAudience": "Residents of the named city",
+      "whatVisitorWants": "Proof of real local supply: makers, dishes, availability in that city",
+      "whatHomeCheffCanAnswer": "Only live feed results; the page itself has no city-specific data",
+      "uniqueInfo": "None beyond the city name; body sections are templated. Live counts exist only on /maaltijden/[stad] (currently noindex everywhere).",
+      "overlap": [
+        "/maaltijden/eindhoven",
+        "other meals-in-[city]"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "CITY_MEALS",
+      "futureRecommendation": "REDIRECT (future): 301 /maaltijden-in-[stad] and /en/meals-in-[city] to /maaltijden/[stad] and let city-indexability decide indexing; until then NEEDS_RESEARCH on whether these indexable pages should be NOINDEX while inventory is below threshold.",
+      "phase2Change": "Intro only: removed invented city colour (creativity, tech, Scheveningen–Bezuidenhout, students/families). No new city facts added.",
+      "structure": "SHARED_FOUR_BLOCK"
+    },
+    {
+      "id": "meals-eindhoven",
+      "slug": "meals-in-eindhoven",
+      "path": "/en/meals-in-eindhoven",
+      "language": "EN",
+      "currentTitle": "Meals in Eindhoven | Local Home Cooks and Fresh Dishes | HomeCheff",
+      "h1": "Meals in Eindhoven",
+      "h2sBefore": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover",
+        "Get started",
+        "Explore more"
+      ],
+      "h2sAfterBody": [
+        "How HomeCheff works",
+        "Who is this for?",
+        "Why local—and why HomeCheff?",
+        "What you can discover"
+      ],
+      "primaryIntent": "Find home-cooked meals in a named city",
+      "secondaryIntent": "Check whether HomeCheff is active there",
+      "targetAudience": "Residents of the named city",
+      "whatVisitorWants": "Proof of real local supply: makers, dishes, availability in that city",
+      "whatHomeCheffCanAnswer": "Only live feed results; the page itself has no city-specific data",
+      "uniqueInfo": "None beyond the city name; body sections are templated. Live counts exist only on /maaltijden/[stad] (currently noindex everywhere).",
+      "overlap": [
+        "/maaltijden/eindhoven",
+        "other meals-in-[city]"
+      ],
+      "verdict": "DUPLICATE_INTENT",
+      "cluster": "CITY_MEALS",
+      "futureRecommendation": "REDIRECT (future): 301 /maaltijden-in-[stad] and /en/meals-in-[city] to /maaltijden/[stad] and let city-indexability decide indexing; until then NEEDS_RESEARCH on whether these indexable pages should be NOINDEX while inventory is below threshold.",
+      "phase2Change": "Intro only: removed invented city colour (creativity, tech, Scheveningen–Bezuidenhout, students/families). No new city facts added.",
+      "structure": "SHARED_FOUR_BLOCK"
+    }
+  ]
+}
