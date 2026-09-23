@@ -150,11 +150,13 @@ async function main() {
 
       // Open the expense list, then the row holding our certification expense.
       const listToggle = page.locator('[aria-controls="hc-expense-list"]').first();
+      await listToggle.waitFor({ state: 'visible', timeout: 25_000 }).catch(() => undefined);
       if (await listToggle.isVisible().catch(() => false)) {
         if ((await listToggle.getAttribute('aria-expanded')) !== 'true') await listToggle.click();
-        await page.waitForTimeout(600);
+        await page.waitForTimeout(1200);
       }
       const row = page.getByRole('button', { name: new RegExp(CERT_MARKER) }).first();
+      await row.waitFor({ state: 'visible', timeout: 20_000 }).catch(() => undefined);
       const rowVisible = await row.isVisible().catch(() => false);
       check(`${vp.name}_EXPENSE_ROW_VISIBLE`, rowVisible);
       if (!rowVisible) {
@@ -220,6 +222,7 @@ async function main() {
 
       // --- viewer: dialog semantics, close control, keyboard (§34) -----------
       const viewBtn = page.getByRole('button', { name: /^Bekijken$/ }).first();
+      await viewBtn.waitFor({ state: 'visible', timeout: 20_000 }).catch(() => undefined);
       if (await viewBtn.isVisible().catch(() => false)) {
         await viewBtn.click();
         // The viewer specifically, not whatever other dialog the page may hold.
@@ -234,12 +237,21 @@ async function main() {
         const closeHit = await isTopmostAtCentre(page, '[role="dialog"][aria-label] button[aria-label]');
         check(`${vp.name}_VIEWER_CLOSE_NOT_COVERED`, closeHit.ok, `blocked by ${closeHit.blocker}`);
 
-        // The image really rendered — a broken private fetch would be 0x0.
-        await page.waitForTimeout(3000);
-        const dims = await page.evaluate(() => {
-          const img = document.querySelector('[role="dialog"][aria-label] img') as HTMLImageElement | null;
-          return img ? { w: img.naturalWidth, h: img.naturalHeight, done: img.complete } : { w: 0, h: 0, done: false };
-        });
+        // The image really rendered — a broken private fetch would stay 0x0.
+        // Polled rather than slept on: the first read of a cold object can take
+        // several seconds, and a fixed wait would only measure the delay.
+        const dims = await page
+          .waitForFunction(
+            () => {
+              const img = document.querySelector('[role="dialog"][aria-label] img') as HTMLImageElement | null;
+              if (!img || !img.complete) return null;
+              return { w: img.naturalWidth, h: img.naturalHeight, done: true };
+            },
+            undefined,
+            { timeout: 25_000, polling: 400 },
+          )
+          .then((h) => h.jsonValue() as Promise<{ w: number; h: number; done: boolean }>)
+          .catch(() => ({ w: 0, h: 0, done: false }));
         check(`${vp.name}_VIEWER_IMAGE_LOADED`, dims.w > 0 && dims.h > 0, JSON.stringify(dims));
         await page.screenshot({ path: path.join(OUT, `${vp.name}-viewer.png`) });
 

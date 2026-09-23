@@ -48,6 +48,15 @@ const MAX_LABEL = `${Math.round(MAX_EVIDENCE_BYTES / (1024 * 1024))} MB`;
 
 const contentUrl = (id: string) => `/api/seller/evidence/${id}/content`;
 
+/**
+ * Keeps the fixed bottom navigation clear when the browser scrolls one of these
+ * elements into view — on focus, or when the expense row expands. Without it the
+ * upload control lands underneath the nav on a 390px screen, which is the trap
+ * Phase 8C hit with the expense dialog. `--hc-bottom-nav-offset` is the app
+ * chrome's own measurement of the nav, so this follows it rather than guessing.
+ */
+const NAV_CLEARANCE = { scrollMarginBottom: 'calc(var(--hc-bottom-nav-offset, 0px) + 1rem)' } as const;
+
 export default function ExpenseEvidencePanel({
   expenseId,
   onCountChange,
@@ -152,7 +161,7 @@ export default function ExpenseEvidencePanel({
     : null;
 
   return (
-    <div className="mt-3 rounded-lg border border-gray-200 bg-white p-3">
+    <div className="mt-3 rounded-lg border border-gray-200 bg-white p-3" style={NAV_CLEARANCE}>
       <div className="flex items-center justify-between gap-3">
         <h4 className="text-sm font-semibold text-gray-900">
           {items.length > 0
@@ -231,9 +240,10 @@ export default function ExpenseEvidencePanel({
         </p>
       ) : null}
 
-      <div className="mt-3">
+      <div className="mt-3" style={NAV_CLEARANCE}>
         <label
           htmlFor={inputId}
+          style={NAV_CLEARANCE}
           className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-emerald-700 ${
             atLimit || busy ? 'pointer-events-none opacity-50' : ''
           }`}
