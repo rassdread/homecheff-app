@@ -219,8 +219,8 @@ export function buildStudioAppJsonLd(
     url: ECOSYSTEM_PUBLIC_URLS.studioApp,
     description:
       lang === 'en'
-        ? 'CREATE layer of HomeCheff — promotional images, video and content for products, services and businesses.'
-        : 'CREATE-laag van HomeCheff — promotiebeelden, video en content voor producten, diensten en bedrijven.',
+        ? 'CREATE layer of HomeCheff. Promotional images, video and content for products, services and businesses.'
+        : 'CREATE-laag van HomeCheff. Promotiebeelden, video en content voor producten, diensten en bedrijven.',
     isPartOf: organizationPublisherRef(domain),
     provider: organizationPublisherRef(domain),
     publisher: organizationPublisherRef(domain),
@@ -242,8 +242,8 @@ export function buildGrowthAppJsonLd(
     url: ECOSYSTEM_PUBLIC_URLS.growthApp,
     description:
       lang === 'en'
-        ? 'GROW layer of HomeCheff — discover and organize commercial opportunities and leads.'
-        : 'GROW-laag van HomeCheff — ontdek en organiseer commerciële kansen en leads.',
+        ? 'GROW layer of HomeCheff. Discover and organize commercial opportunities and leads.'
+        : 'GROW-laag van HomeCheff. Ontdek en organiseer commerciële kansen en leads.',
     isPartOf: organizationPublisherRef(domain),
     provider: organizationPublisherRef(domain),
     publisher: organizationPublisherRef(domain),
@@ -263,8 +263,8 @@ export function buildAffiliateServiceJsonLd(
     url: `${domain}/affiliate`,
     description:
       lang === 'en'
-        ? 'Cross-ecosystem promotion and referral participation where the partner programme supports it. Exact terms live in the applicable agreement — no guaranteed income.'
-        : 'Ecosysteem-brede promotie- en referraldeelname waar het partnerprogramma dat ondersteunt. Exacte voorwaarden staan in de toepasselijke overeenkomst — geen gegarandeerd inkomen.',
+        ? 'Cross-ecosystem promotion and referral participation where the partner programme supports it. Exact terms live in the applicable agreement. There is no guaranteed income.'
+        : 'Ecosysteem-brede promotie- en referraldeelname waar het partnerprogramma dat ondersteunt. Exacte voorwaarden staan in de toepasselijke overeenkomst. Er is geen gegarandeerd inkomen.',
     provider: organizationPublisherRef(domain),
     areaServed: { '@type': 'Country', name: lang === 'en' ? 'Netherlands' : 'Nederland' },
   };
