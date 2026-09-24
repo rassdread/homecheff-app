@@ -111,10 +111,8 @@ function resolveInitialTab(
     const migrated = migrateLegacyProfileTab(tab);
     if (isProfileV2TabId(migrated)) return migrated;
   }
-  const persisted = loadFeedSurfaceState<PersistedProfileV2>(PROFILE_V2_SURFACE_ID);
-  if (persisted?.activeTab && isProfileV2TabId(persisted.activeTab)) {
-    return persisted.activeTab;
-  }
+  // Persisted tab lives in sessionStorage. Reading it here makes the first
+  // client render differ from the server HTML (React #418, then #422).
   return 'overview';
 }
 
@@ -123,8 +121,7 @@ function resolveInitialAanbodFilter(
 ): ProfileV2AanbodFilter {
   const slug = parseProfileVerticalParam(searchParams?.filter ?? searchParams?.vertical);
   if (slug) return sanitizeAanbodFilter(profileSlugToAanbodFilter(slug));
-  const persisted = loadFeedSurfaceState<PersistedProfileV2>(PROFILE_V2_SURFACE_ID);
-  return sanitizeAanbodFilter(persisted?.aanbodFilter);
+  return 'all';
 }
 
 function resolveInitialInspiratieFilter(
@@ -141,8 +138,7 @@ function resolveInitialInspiratieFilter(
   }
   const slug = parseProfileVerticalParam(searchParams?.vertical ?? searchParams?.filter);
   if (slug) return profileSlugToInspiratieFilter(slug);
-  const persisted = loadFeedSurfaceState<PersistedProfileV2>(PROFILE_V2_SURFACE_ID);
-  return persisted?.inspiratieFilter ?? 'all';
+  return 'all';
 }
 
 export default function ProfileV2Client({
@@ -357,6 +353,49 @@ export default function ProfileV2Client({
     searchParams?.vertical,
     searchParams?.edit,
   ]);
+
+  useEffect(() => {
+    const persisted = loadFeedSurfaceState<PersistedProfileV2>(PROFILE_V2_SURFACE_ID);
+    if (!persisted) return;
+
+    const urlSpecifiesTab = Boolean(
+      searchParamString(searchParams?.edit) ||
+      searchParamTruthy(searchParams?.addInspiratie, 'addInspiratie') ||
+      searchParamTruthy(searchParams?.openForm, 'openForm') ||
+      searchParamString(searchParams?.tab),
+    );
+    if (
+      !openNewProducts &&
+      !urlSpecifiesTab &&
+      persisted.activeTab &&
+      isProfileV2TabId(persisted.activeTab)
+    ) {
+      const next =
+        variant === 'public' && !isOwnProfile && persisted.activeTab === 'overview'
+          ? 'aanbod'
+          : persisted.activeTab;
+      setActiveTab(next);
+    }
+
+    const urlSpecifiesFilter = Boolean(
+      parseProfileVerticalParam(searchParams?.filter ?? searchParams?.vertical),
+    );
+    if (!urlSpecifiesFilter) {
+      if (persisted.aanbodFilter) {
+        setAanbodFilter(sanitizeAanbodFilter(persisted.aanbodFilter));
+      }
+      if (
+        persisted.inspiratieFilter === 'all' ||
+        persisted.inspiratieFilter === 'chef' ||
+        persisted.inspiratieFilter === 'garden' ||
+        persisted.inspiratieFilter === 'designer'
+      ) {
+        setInspiratieFilter(persisted.inspiratieFilter);
+      }
+    }
+    // Restore once, after hydration. URL-driven updates stay in the effect above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const t = window.setTimeout(() => {
