@@ -42,7 +42,7 @@ function runTsc() {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: {
         ...process.env,
-        NODE_OPTIONS: process.env.TYPECHECK_NODE_OPTIONS || '--max-old-space-size=8192',
+        NODE_OPTIONS: process.env.TYPECHECK_NODE_OPTIONS || '--max-old-space-size=6144',
       },
       maxBuffer: 64 * 1024 * 1024,
     });

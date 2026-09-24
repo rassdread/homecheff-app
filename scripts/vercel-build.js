@@ -19,7 +19,7 @@ try {
   execSync("node scripts/typecheck-ratchet.mjs", {
     stdio: "inherit",
     shell: true,
-    env: { ...process.env, TYPECHECK_NODE_OPTIONS: "--max-old-space-size=8192" },
+    env: { ...process.env, TYPECHECK_NODE_OPTIONS: "--max-old-space-size=6144" },
   });
 
   console.log("🏗️  Building Next.js application...");
