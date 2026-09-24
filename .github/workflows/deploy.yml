@@ -10,6 +10,9 @@
 #
 # Gebruik: GitHub → Actions → "Deploy to Vercel" → Run workflow
 # Vereist secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+#
+# Release-certificatie hoort niet in deze job. Na een geslaagde production
+# deployment draait .github/workflows/release-smoke.yml tegen https://homecheff.eu.
 # -----------------------------------------------------------------------------
 
 name: Deploy to Vercel (manual)

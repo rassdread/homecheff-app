@@ -1,0 +1,64 @@
+# Authenticated production release smoke.
+#
+# Production is deployed by Vercel's Git integration, not by this workflow.
+# Vercel records a GitHub deployment whose environment is exactly
+# "Production – homecheff-app" (en dash). This job starts only after that
+# deployment status is success, then runs npm run smoke:release against
+# https://homecheff.eu.
+#
+# The deployment status environment_url is a per-deployment *.vercel.app host.
+# Do not use it as SMOKE_BASE_URL.
+#
+# SMOKE_EMAIL and SMOKE_PASSWORD are GitHub repository secrets. They are passed
+# only to the smoke step. A missing value fails the job before Playwright starts.
+# A smoke failure fails this workflow, so the release is not certified.
+
+name: Production release smoke
+
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+
+jobs:
+  authenticated-release-smoke:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production – homecheff-app'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout deployed revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Authenticated production release smoke
+        env:
+          SMOKE_EMAIL: ${{ secrets.SMOKE_EMAIL }}
+          SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
+          SMOKE_BASE_URL: https://homecheff.eu
+        run: |
+          if [ -z "$SMOKE_EMAIL" ] || [ -z "$SMOKE_PASSWORD" ]; then
+            echo "Release smoke failed: SMOKE_EMAIL and SMOKE_PASSWORD are required. Missing authenticated checks are not a pass."
+            exit 1
+          fi
+          case "$SMOKE_BASE_URL" in
+            https://homecheff.eu|https://homecheff.eu/) ;;
+            *)
+              echo "Release smoke failed: production target must be https://homecheff.eu"
+              exit 1
+              ;;
+          esac
+          echo "Authenticated release smoke target: $SMOKE_BASE_URL"
+          npm run smoke:release
