@@ -4763,6 +4763,41 @@
     "addInterest": "Toevoegen",
     "addInterestPlaceholder": "Voeg interesse toe...",
     "sellerRoles": "Verkopersrollen",
+    "sellerRoleOptions": {
+      "chef": {
+        "label": "Chef",
+        "description": "Verkoop je culinaire creaties",
+        "feature0": "Gerechten verkopen",
+        "feature1": "Bezorgen en ophalen",
+        "feature2": "Reviews ontvangen",
+        "feature3": "Fans krijgen"
+      },
+      "garden": {
+        "label": "Tuinier",
+        "description": "Deel je groenten en kruiden",
+        "feature0": "Groenten verkopen",
+        "feature1": "Seizoensproducten",
+        "feature2": "Lokale buurt",
+        "feature3": "Duurzaamheid"
+      },
+      "designer": {
+        "label": "Designer",
+        "description": "Verkoop je handgemaakte items",
+        "feature0": "Handgemaakt verkopen",
+        "feature1": "Opdrachtwerk",
+        "feature2": "Portfolio opbouwen",
+        "feature3": "Netwerk van makers"
+      }
+    },
+    "buyerRoleOptions": {
+      "ontdekker": { "label": "Ontdekker", "description": "Ik ontdek lokale parels en verborgen talenten" },
+      "verzamelaar": { "label": "Verzamelaar", "description": "Ik verzamel unieke en bijzondere items" },
+      "liefhebber": { "label": "Liefhebber", "description": "Ik waardeer kwaliteit en vakmanschap" },
+      "avonturier": { "label": "Avonturier", "description": "Ik zoek nieuwe ervaringen en uitdagingen" },
+      "fijnproever": { "label": "Fijnproever", "description": "Ik geniet van subtiele smaken en details" },
+      "connaisseur": { "label": "Connaisseur", "description": "Ik herken kwaliteit en echtheid" },
+      "genieter": { "label": "Genieter", "description": "Ik waardeer het goede leven en mooie dingen" }
+    },
     "sellerRolesDescription": "Kies welke verkopersrollen je wilt gebruiken op het platform",
     "buyerRole": "Koperrol",
     "buyerRoleDescription": "Kies 1 koperrol die het beste bij je past",

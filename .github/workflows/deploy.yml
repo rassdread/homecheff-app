@@ -35,6 +35,9 @@ jobs:
         run: npm ci
 
       - name: Build
+        # Canonical production build: prisma generate, unbound-hook check,
+        # typecheck ratchet (new errors and TS2304 fail), then next build.
+        # Same script as Vercel (vercel.json buildCommand / npm run build).
         run: npm run build
 
       - name: Deploy to Vercel

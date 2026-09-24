@@ -18,72 +18,19 @@ export interface ProfileSettingsRef {
 }
 
 const sellerTypes = [
-  {
-    id: "chef",
-    title: "Chef",
-    description: "Sell your culinary creations",
-    icon: "👨‍🍳",
-    features: ["Sell dishes", "Delivery & pickup", "Receive reviews", "Gain fans"]
-  },
-  {
-    id: "garden",
-    title: "Garden",
-    description: "Share your vegetables and herbs",
-    icon: "🌱",
-    features: ["Sell vegetables", "Seasonal products", "Local community", "Sustainability"]
-  },
-  {
-    id: "designer",
-    title: "Designer",
-    description: "Sell your handmade items",
-    icon: "🎨",
-    features: ["Sell handmade items", "Custom orders", "Build portfolio", "Artist network"]
-  },
+  { id: "chef", icon: "👨‍🍳", copyKey: "chef" },
+  { id: "garden", icon: "🌱", copyKey: "garden" },
+  { id: "designer", icon: "🎨", copyKey: "designer" },
 ];
 
 const buyerTypes = [
-  {
-    id: "ontdekker",
-    title: "Explorer",
-    description: "I love discovering local gems and hidden talents",
-    icon: "🔍"
-  },
-  {
-    id: "verzamelaar",
-    title: "Collector",
-    description: "I collect unique and special items",
-    icon: "📦"
-  },
-  {
-    id: "liefhebber",
-    title: "Enthusiast",
-    description: "I appreciate quality and craftsmanship",
-    icon: "❤️"
-  },
-  {
-    id: "avonturier",
-    title: "Adventurer",
-    description: "I seek new experiences and challenges",
-    icon: "🗺️"
-  },
-  {
-    id: "fijnproever",
-    title: "Connoisseur",
-    description: "I enjoy subtle flavors and details",
-    icon: "👅"
-  },
-  {
-    id: "connaisseur",
-    title: "Connoisseur",
-    description: "I have knowledge of quality and authenticity",
-    icon: "🎭"
-  },
-  {
-    id: "genieter",
-    title: "Enjoyer",
-    description: "I appreciate the good life and beautiful things",
-    icon: "✨"
-  }
+  { id: "ontdekker", icon: "🔍", copyKey: "ontdekker" },
+  { id: "verzamelaar", icon: "📦", copyKey: "verzamelaar" },
+  { id: "liefhebber", icon: "❤️", copyKey: "liefhebber" },
+  { id: "avonturier", icon: "🗺️", copyKey: "avonturier" },
+  { id: "fijnproever", icon: "👅", copyKey: "fijnproever" },
+  { id: "connaisseur", icon: "🎭", copyKey: "connaisseur" },
+  { id: "genieter", icon: "✨", copyKey: "genieter" },
 ];
 
 interface UserProfile {
@@ -800,14 +747,17 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
                 <div className="flex items-start space-x-3 sm:space-x-4">
                   <div className="text-2xl sm:text-3xl">{type.icon}</div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-base sm:text-lg font-semibold text-gray-900">{type.title}</h4>
-                    <p className="text-sm sm:text-base text-gray-600 mb-2 sm:mb-3">{type.description}</p>
+                    <h4 className="text-base sm:text-lg font-semibold text-gray-900">{t(`profileSettings.sellerRoleOptions.${type.copyKey}.label`)}</h4>
+                    <p className="text-sm sm:text-base text-gray-600 mb-2 sm:mb-3">{t(`profileSettings.sellerRoleOptions.${type.copyKey}.description`)}</p>
                     <div className="flex flex-wrap gap-1 sm:gap-2">
-                      {type.features.map((feature, index) => (
+                      {[0, 1, 2, 3].map((index) => {
+                        const feature = t(`profileSettings.sellerRoleOptions.${type.copyKey}.feature${index}`);
+                        return (
                         <span key={index} className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">
                           {feature}
                         </span>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                   <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 ${
@@ -827,7 +777,10 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
           {formData.sellerRoles.length > 0 && (
             <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
               <p className="text-sm text-emerald-700">
-                <strong>{t('profileSettings.selected')}</strong> {formData.sellerRoles.map(id => sellerTypes.find(st => st.id === id)?.title).join(', ')}
+                <strong>{t('profileSettings.selected')}</strong> {formData.sellerRoles.map(id => {
+                  const role = sellerTypes.find(st => st.id === id);
+                  return role ? t(`profileSettings.sellerRoleOptions.${role.copyKey}.label`) : id;
+                }).join(', ')}
               </p>
             </div>
           )}
@@ -875,8 +828,8 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
                 <div className="flex items-center space-x-3">
                   <div className="text-xl sm:text-2xl">{type.icon}</div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm sm:text-base font-semibold text-gray-900">{type.title}</h4>
-                    <p className="text-xs sm:text-sm text-gray-600">{type.description}</p>
+                    <h4 className="text-sm sm:text-base font-semibold text-gray-900">{t(`profileSettings.buyerRoleOptions.${type.copyKey}.label`)}</h4>
+                    <p className="text-xs sm:text-sm text-gray-600">{t(`profileSettings.buyerRoleOptions.${type.copyKey}.description`)}</p>
                   </div>
                   <input
                     type="radio"
@@ -894,7 +847,10 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
           {formData.buyerRoles.length > 0 && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-700">
-                <strong>{t('profileSettings.selected')}</strong> {formData.buyerRoles.map(id => buyerTypes.find(bt => bt.id === id)?.title).join(', ')}
+                <strong>{t('profileSettings.selected')}</strong> {formData.buyerRoles.map(id => {
+                  const role = buyerTypes.find(bt => bt.id === id);
+                  return role ? t(`profileSettings.buyerRoleOptions.${role.copyKey}.label`) : id;
+                }).join(', ')}
               </p>
             </div>
           )}

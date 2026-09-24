@@ -28,6 +28,7 @@ export type CompletenessItem = {
 };
 
 export type NextStepId =
+  | 'pending'
   | 'setupRoles'
   | 'firstAanbod'
   | 'firstInspiratie'
@@ -133,7 +134,18 @@ export function computeRecommendedNextStep(
     };
   }
 
-  if ((stats?.products ?? 0) === 0) {
+  // Unknown counts are not zero. Treating a still-loading stats payload as
+  // "no listings" showed "Plaats je eerste aanbod" while Aanbod already had items.
+  if (stats == null) {
+    return {
+      id: 'pending',
+      titleKey: 'profileV2.sidepanel.nextStep.sectionTitle',
+      descriptionKey: 'profileV2.sidepanel.nextStep.sectionTitle',
+      ctaKey: 'profileV2.sidepanel.nextStep.sectionTitle',
+    };
+  }
+
+  if (stats.products === 0) {
     return {
       id: 'firstAanbod',
       titleKey: 'profileV2.sidepanel.nextStep.firstAanbod.title',
@@ -143,7 +155,7 @@ export function computeRecommendedNextStep(
     };
   }
 
-  if ((stats?.dishes ?? 0) === 0) {
+  if (stats.dishes === 0) {
     return {
       id: 'firstInspiratie',
       titleKey: 'profileV2.sidepanel.nextStep.firstInspiratie.title',

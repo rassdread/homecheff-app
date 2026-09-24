@@ -39,7 +39,6 @@ export default async function ProfilePage({
       interests: true,
       profileImage: true,
       image: true,
-      image: true,
       role: true,
       sellerRoles: true,
       buyerRoles: true,

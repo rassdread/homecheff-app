@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { isNativeApp } from '@/lib/native/capacitor';
 import {
   readAppResumeState,
   saveLastRoute,
@@ -93,7 +94,9 @@ export default function AppResumeCoordinator() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    if (status === 'authenticated' && isResumeHomeEntry(pathname)) {
+    // Restore only inside the native shell. A normal browser visit to /
+    // is a request for the homepage, not an app resume.
+    if (status === 'authenticated' && isNativeApp() && isResumeHomeEntry(pathname)) {
       if (!sessionStorage.getItem(APP_RESUME_SESSION_ROUTE_DONE)) {
         const state = readAppResumeState();
         const target = state.lastRoute?.trim();

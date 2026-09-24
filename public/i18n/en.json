@@ -6194,6 +6194,41 @@
     "addInterest": "Add interest",
     "addInterestPlaceholder": "Add interest...",
     "sellerRoles": "Seller Roles",
+    "sellerRoleOptions": {
+      "chef": {
+        "label": "Chef",
+        "description": "Sell your culinary creations",
+        "feature0": "Sell dishes",
+        "feature1": "Delivery and pickup",
+        "feature2": "Receive reviews",
+        "feature3": "Gain fans"
+      },
+      "garden": {
+        "label": "Garden",
+        "description": "Share your vegetables and herbs",
+        "feature0": "Sell vegetables",
+        "feature1": "Seasonal products",
+        "feature2": "Local community",
+        "feature3": "Sustainability"
+      },
+      "designer": {
+        "label": "Designer",
+        "description": "Sell your handmade items",
+        "feature0": "Sell handmade items",
+        "feature1": "Custom orders",
+        "feature2": "Build a portfolio",
+        "feature3": "Artist network"
+      }
+    },
+    "buyerRoleOptions": {
+      "ontdekker": { "label": "Explorer", "description": "I love discovering local gems and hidden talents" },
+      "verzamelaar": { "label": "Collector", "description": "I collect unique and special items" },
+      "liefhebber": { "label": "Enthusiast", "description": "I appreciate quality and craftsmanship" },
+      "avonturier": { "label": "Adventurer", "description": "I seek new experiences and challenges" },
+      "fijnproever": { "label": "Connoisseur", "description": "I enjoy subtle flavors and details" },
+      "connaisseur": { "label": "Connoisseur", "description": "I have knowledge of quality and authenticity" },
+      "genieter": { "label": "Enjoyer", "description": "I appreciate the good life and beautiful things" }
+    },
     "sellerRolesDescription": "Choose which seller roles you want to use on the platform",
     "buyerRole": "Buyer Role",
     "buyerRoleDescription": "Choose 1 buyer role that best suits you",

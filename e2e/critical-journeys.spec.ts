@@ -7,7 +7,20 @@ import { test, expect } from '@playwright/test';
  *
  * Authenticated journeys run only when SMOKE_EMAIL and SMOKE_PASSWORD are set.
  * They are not stored in the repo.
+ *
+ * smoke:journeys may skip those tests.
+ * smoke:release (SMOKE_RELEASE=1) fails if the credentials are missing.
+ * A release certification must not pass while signed-in checks were skipped.
  */
+
+function requireReleaseCredentials() {
+  if (process.env.SMOKE_RELEASE !== '1') return;
+  if (!process.env.SMOKE_EMAIL || !process.env.SMOKE_PASSWORD) {
+    throw new Error(
+      'Release smoke failed: SMOKE_EMAIL and SMOKE_PASSWORD are required. Missing authenticated checks are not a pass.',
+    );
+  }
+}
 
 const ERROR_TITLE = 'Er is een fout opgetreden';
 const CONSOLE_BLOCK = /ReferenceError|TypeError|is not defined|Hydration failed|Minified React error/;
@@ -88,7 +101,13 @@ for (const journey of LOGGED_IN_OR_PUBLIC) {
   });
 }
 
+test('RELEASE authenticated credentials are present', async () => {
+  test.skip(process.env.SMOKE_RELEASE !== '1', 'developer suite may omit credentials');
+  requireReleaseCredentials();
+});
+
 test('SMOKE_07_PHOTO_UPLOAD control is on the profile when signed in', async ({ page }) => {
+  requireReleaseCredentials();
   test.skip(!process.env.SMOKE_EMAIL || !process.env.SMOKE_PASSWORD, 'SMOKE_EMAIL/SMOKE_PASSWORD not set');
   const problems = watch(page);
   await page.goto('/login/', { waitUntil: 'domcontentloaded' });
@@ -113,6 +132,7 @@ test('SMOKE_10_EDIT_LISTING does not crash', async ({ page }) => {
 });
 
 test('SMOKE_05 authenticated profile', async ({ page }) => {
+  requireReleaseCredentials();
   test.skip(!process.env.SMOKE_EMAIL || !process.env.SMOKE_PASSWORD, 'SMOKE_EMAIL/SMOKE_PASSWORD not set');
   const problems = watch(page);
   await page.goto('/login/', { waitUntil: 'domcontentloaded' });
@@ -120,8 +140,14 @@ test('SMOKE_05 authenticated profile', async ({ page }) => {
   await page.locator('input[type="password"]').first().fill(process.env.SMOKE_PASSWORD!);
   await page.getByRole('button', { name: /inloggen|log in|aanmelden/i }).first().click();
   await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20_000 });
-  await page.goto('/profile/', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: ERROR_TITLE })).toHaveCount(0);
-  await expect(page.locator('body')).toContainText(/Profielfoto|profiel/i);
+  for (const route of [
+    { path: '/profile/', text: /Profielfoto|profiel/i },
+    { path: '/reservations/', text: /Reservering|Afspraken|reserv/i },
+    { path: '/settings/', text: /Instellingen|profiel/i },
+  ]) {
+    await page.goto(route.path, { waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('heading', { name: ERROR_TITLE })).toHaveCount(0);
+    await expect(page.locator('body')).toContainText(route.text);
+  }
   expect(problems, problems.join('\n')).toEqual([]);
 });

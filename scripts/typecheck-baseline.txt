@@ -83,7 +83,6 @@ app/product/[id]/page.tsx	TS2339	Property 'User' does not exist on type '{}'.
 app/product/[id]/page.tsx	TS2339	Property 'id' does not exist on type '{ name?: string | null | undefined; email?: string | null | undefined; image?: string | null | undefined; }'.
 app/product/[id]/page.tsx	TS2345	Argument of type 'unknown' is not assignable to parameter of type 'string'.
 app/product/[id]/page.tsx	TS2345	Argument of type '{}' is not assignable to parameter of type 'string'.
-app/profile/page.tsx	TS1117	An object literal cannot have multiple properties with the same name.
 app/register/page.tsx	TS2345	Argument of type '{ username?: string | null | undefined; socialOnboardingCompleted?: boolean | null | undefined; } | undefined' is not assignable to parameter of type '{ username?: string | null | undefined; socialOnboardingCompleted?: boolean | null | undefined; }'.
 app/seller/stripe/refresh/page.tsx	TS2367	This comparison appears to be unintentional because the types 'true | undefined' and 'false' have no overlap.
 app/user/[username]/page.tsx	TS2339	Property 'user' does not exist on type '{}'.

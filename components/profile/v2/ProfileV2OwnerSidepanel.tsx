@@ -460,6 +460,8 @@ function NextStepBlock() {
     };
   }, [serverNextStep.id]);
 
+  if (nextStep.id === 'pending') return null;
+
   const handleClick = () => {
     switch (nextStep.id) {
       case 'setupRoles':
