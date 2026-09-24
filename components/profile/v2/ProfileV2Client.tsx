@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import AppBackBar from '@/components/navigation/AppBackBar';
 import { FeedMediaLightbox } from '@/components/feed/FeedMediaLightbox';
 import ProfileV2Shell from '@/components/profile/v2/ProfileV2Shell';

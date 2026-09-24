@@ -6,6 +6,20 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 
+describe('profile page bootstrap', () => {
+  it('imports useUserBootstrap so the profile page does not crash on render', () => {
+    const client = readFileSync(
+      join(root, 'components/profile/v2/ProfileV2Client.tsx'),
+      'utf8',
+    );
+    assert.match(
+      client,
+      /import \{ useUserBootstrap \} from '@\/components\/user\/UserBootstrapProvider';/,
+    );
+    assert.match(client, /const \{ refreshProfile \} = useUserBootstrap\(\);/);
+  });
+});
+
 describe('profile photo editor UI contract', () => {
   it('uses a visible labeled file input instead of hidden input.click()', () => {
     const editor = readFileSync(
