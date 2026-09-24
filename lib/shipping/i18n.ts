@@ -102,7 +102,7 @@ const NL: ShippingUiCopy = {
   exactSize: 'Exacte pakketmaat',
   domestic: 'Verzenden binnen Nederland',
   international: 'Internationaal verzenden',
-  internationalSoon: 'Internationaal verzenden — binnenkort beschikbaar',
+  internationalSoon: 'Internationaal verzenden: binnenkort beschikbaar',
   internationalHelp:
     'Internationale verzending wordt alleen aangeboden als er voor het adres van de koper een beschikbare verzendmethode is.',
   packageFormat: 'Pakketformaat',
@@ -127,7 +127,7 @@ const NL: ShippingUiCopy = {
   height: 'Hoogte (cm)',
   gram: 'gram',
   presetDisclaimer:
-    'Indicatieafmetingen helpen bij de keuze — beschikbare vervoerders en prijzen worden live berekend bij checkout.',
+    'Indicatieafmetingen helpen bij de keuze, beschikbare vervoerders en prijzen worden live berekend bij checkout.',
   checkoutCalcForAddress: 'Verzendkosten worden berekend voor jouw adres.',
   shippingFee: 'Verzending',
   chooseMethod: 'Kies een verzendmethode',
@@ -152,7 +152,7 @@ const EN: ShippingUiCopy = {
   exactSize: 'Exact package size',
   domestic: 'Ship within the Netherlands',
   international: 'International shipping',
-  internationalSoon: 'International shipping — coming soon',
+  internationalSoon: 'International shipping: coming soon',
   internationalHelp:
     "International shipping is only offered when a shipping method is available for the buyer's destination.",
   packageFormat: 'Package size',
@@ -177,7 +177,7 @@ const EN: ShippingUiCopy = {
   height: 'Height (cm)',
   gram: 'grams',
   presetDisclaimer:
-    'Indicative sizes help you choose — available carriers and prices are calculated live at checkout.',
+    'Indicative sizes help you choose, available carriers and prices are calculated live at checkout.',
   checkoutCalcForAddress: 'Shipping costs are calculated for your address.',
   shippingFee: 'Shipping',
   chooseMethod: 'Choose a shipping method',

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ECOSYSTEM_LOOP, ECOSYSTEM_PUBLIC_URLS } from '@/lib/seo/ecosystem-participation';
 
 /**
- * SEO 1 — crawlable, compact homepage signal.
+ * SEO 1: crawlable, compact homepage signal.
  * Marketplace feed remains primary; this explains the wider ecosystem without a manifesto.
  */
 export default function HomepageEcosystemSignal({
@@ -14,8 +14,8 @@ export default function HomepageEcosystemSignal({
   const title = 'Everybody Eats.';
   const titleSupport = isEn ? null : 'Iedereen eet mee.';
   const body = isEn
-    ? 'HomeCheff is an ecosystem to create, sell, grow, promote and earn — Marketplace is one part, alongside Studio, Growth and Affiliate/Partners.'
-    : 'HomeCheff is een ecosysteem om te maken, verkopen, groeien, promoten en verdienen — Marketplace is één onderdeel, naast Studio, Growth en Affiliate/Partners.';
+    ? 'HomeCheff is an ecosystem to create, sell, grow, promote and earn. Marketplace is one part, alongside Studio, Growth and Affiliate/Partners.'
+    : 'HomeCheff is een ecosysteem om te maken, verkopen, groeien, promoten en verdienen. Marketplace is één onderdeel, naast Studio, Growth en Affiliate/Partners.';
   const more = isEn ? 'How the ecosystem works' : 'Hoe het ecosysteem werkt';
 
   const links = [
@@ -37,7 +37,7 @@ export default function HomepageEcosystemSignal({
             id="homepage-ecosystem-signal-title"
             className="text-sm font-semibold tracking-tight text-emerald-950"
           >
-            HomeCheff — {title}
+            HomeCheff. {title}
             {titleSupport ? (
               <span className="font-normal text-emerald-800/80"> · {titleSupport}</span>
             ) : null}

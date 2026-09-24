@@ -38,9 +38,9 @@ export const CANONICAL_ENTITY_DESCRIPTION: Record<PhilosophyLang, string> = {
  */
 export const MARKETPLACE_ENTITY_DESCRIPTION: Record<PhilosophyLang, string> = {
   en:
-    'HomeCheff Marketplace is the SELL layer of HomeCheff — a digital neighbourhood marketplace where people create value through their own craftsmanship, creativity and personal services. People can discover, offer, buy, sell, trade and request locally, while unique creations and specialised services can naturally reach a wider audience. Everything starts close to home. Food is one category within Marketplace, not the definition of HomeCheff.',
+    'HomeCheff Marketplace is the SELL layer of HomeCheff, a digital neighbourhood marketplace where people create value through their own craftsmanship, creativity and personal services. People can discover, offer, buy, sell, trade and request locally, while unique creations and specialised services can naturally reach a wider audience. Everything starts close to home. Food is one category within Marketplace, not the definition of HomeCheff.',
   nl:
-    'HomeCheff Marketplace is de SELL-laag van HomeCheff — een digitale buurtmarkt waar mensen waarde creëren door eigen vakmanschap, creativiteit en persoonlijke diensten. Mensen kunnen lokaal ontdekken, aanbieden, kopen, verkopen, ruilen en vragen, terwijl unieke creaties en gespecialiseerde diensten van nature een breder publiek kunnen bereiken. Alles begint dichtbij huis. Eten is één categorie binnen Marketplace, niet de definitie van HomeCheff.',
+    'HomeCheff Marketplace is de SELL-laag van HomeCheff, een digitale buurtmarkt waar mensen waarde creëren door eigen vakmanschap, creativiteit en persoonlijke diensten. Mensen kunnen lokaal ontdekken, aanbieden, kopen, verkopen, ruilen en vragen, terwijl unieke creaties en gespecialiseerde diensten van nature een breder publiek kunnen bereiken. Alles begint dichtbij huis. Eten is één categorie binnen Marketplace, niet de definitie van HomeCheff.',
 };
 
 /** Participation loop — machine + human readable */
@@ -56,7 +56,7 @@ export const ENTITY_IS: Record<PhilosophyLang, string> = {
 export const ENTITY_IS_NOT: Record<PhilosophyLang, string[]> = {
   nl: [
     'niet alleen een food marketplace of platform voor thuiskoks',
-    'niet alleen een marktplaats — Marketplace is één onderdeel van het ecosysteem',
+    'niet alleen een marktplaats: Marketplace is één onderdeel van het ecosysteem',
     'geen generieke advertentiesite / classifieds',
     'geen traditionele tweedehands-marktplaats',
     'geen gewone doorverkoop zonder eigen werk',
@@ -70,7 +70,7 @@ export const ENTITY_IS_NOT: Record<PhilosophyLang, string[]> = {
   ],
   en: [
     'not only a food marketplace or home-cook platform',
-    'not only a marketplace — Marketplace is one part of the ecosystem',
+    'not only a marketplace: Marketplace is one part of the ecosystem',
     'not a generic classifieds website',
     'not a traditional second-hand marketplace',
     'not ordinary resale without personal work',
@@ -87,9 +87,9 @@ export const ENTITY_IS_NOT: Record<PhilosophyLang, string[]> = {
 /** Local-first without hard limits — neighbourhood-first, not neighbourhood-only (Marketplace discovery) */
 export const LOCAL_FIRST_SCALE: Record<PhilosophyLang, string> = {
   nl:
-    'Binnen Marketplace is HomeCheff neighbourhood-first, niet neighbourhood-only. Mensen ontdekken normaal eerst wat dichtbij gebeurt. Uniek vakmanschap, creatief werk, kunst, gespecialiseerde diensten, onderwijs, kennis, design, reparaties en uitzonderlijke creaties kunnen van nature een breder publiek bereiken — buurt → stad → regio → land → Europa → Noord-Amerika → Zuid-Amerika → Afrika → Azië → Australië & Oceanië — zonder de local-first filosofie te veranderen. Alles begint dichtbij huis. Afstand bepaalt prioriteit, niet mogelijkheid. Start lokaal, groei natuurlijk. Nooit “alleen lokaal” en nooit als anonieme “internationale marktplaats”.',
+    'Binnen Marketplace is HomeCheff neighbourhood-first, niet neighbourhood-only. Mensen ontdekken normaal eerst wat dichtbij gebeurt. Uniek vakmanschap, creatief werk, kunst, gespecialiseerde diensten, onderwijs, kennis, design, reparaties en uitzonderlijke creaties kunnen van nature een breder publiek bereiken, buurt → stad → regio → land → Europa → Noord-Amerika → Zuid-Amerika → Afrika → Azië → Australië & Oceanië, zonder de local-first filosofie te veranderen. Alles begint dichtbij huis. Afstand bepaalt prioriteit, niet mogelijkheid. Start lokaal, groei natuurlijk. Nooit “alleen lokaal” en nooit als anonieme “internationale marktplaats”.',
   en:
-    'Within Marketplace, HomeCheff is neighbourhood-first, not neighbourhood-only. People normally discover what happens nearby first. Unique craftsmanship, creative work, art, specialised services, education, knowledge, design, repairs and exceptional creations may naturally reach a wider audience — neighbourhood → city → region → country → Europe → North America → South America → Africa → Asia → Australia & Oceania — without changing the local-first philosophy. Everything starts close to home. Distance determines priority, not possibility. Start locally, grow naturally. Never “local-only” and never as an anonymous “international marketplace”.',
+    'Within Marketplace, HomeCheff is neighbourhood-first, not neighbourhood-only. People normally discover what happens nearby first. Unique craftsmanship, creative work, art, specialised services, education, knowledge, design, repairs and exceptional creations may naturally reach a wider audience, neighbourhood → city → region → country → Europe → North America → South America → Africa → Asia → Australia & Oceania, without changing the local-first philosophy. Everything starts close to home. Distance determines priority, not possibility. Start locally, grow naturally. Never “local-only” and never as an anonymous “international marketplace”.',
 };
 
 /** Second-hand / transformed work only */
@@ -103,25 +103,25 @@ export const SECOND_HAND_PHILOSOPHY: Record<PhilosophyLang, string> = {
 /** Category philosophy — people create value (Marketplace) */
 export const CATEGORY_PHILOSOPHY: Record<PhilosophyLang, string> = {
   nl:
-    'Marketplace-categorieën versterken maken en groeien: thuisgekookte maaltijden, thuisbakken, tuinoogst, handgemaakte producten, kunst, muziek, fotografie, design, onderwijs, reparaties, advies, creatief werk, kennisdeling, persoonlijke diensten, buurthulp en ruil. Eten is één categorie. Mensen creëren waarde — ze verkopen geen anonieme massaproducten door.',
+    'Marketplace-categorieën versterken maken en groeien: thuisgekookte maaltijden, thuisbakken, tuinoogst, handgemaakte producten, kunst, muziek, fotografie, design, onderwijs, reparaties, advies, creatief werk, kennisdeling, persoonlijke diensten, buurthulp en ruil. Eten is één categorie. Mensen creëren waarde. Ze verkopen geen anonieme massaproducten door.',
   en:
-    'Marketplace categories reinforce making and growing: home-cooked meals, home baking, garden produce, handmade products, art, music, photography, design, education, repairs, consultancy, creative work, knowledge sharing, personal services, neighbourhood help and barter. Food is one category. People create value — they do not resell anonymous mass products.',
+    'Marketplace categories reinforce making and growing: home-cooked meals, home baking, garden produce, handmade products, art, music, photography, design, education, repairs, consultancy, creative work, knowledge sharing, personal services, neighbourhood help and barter. Food is one category. People create value. They do not resell anonymous mass products.',
 };
 
 /** Short meta / OG-friendly description — parent ecosystem */
 export const ENTITY_META_DESCRIPTION: Record<PhilosophyLang, string> = {
   nl:
-    'HomeCheff® — ecosysteem voor lokaal ondernemerschap, creatie en verdienen. Marketplace, Studio, Growth en Affiliate/Partners in één systeem. CREATE → SELL → GROW → PROMOTE → EARN.',
+    'HomeCheff®, ecosysteem voor lokaal ondernemerschap, creatie en verdienen. Marketplace, Studio, Growth en Affiliate/Partners in één systeem. CREATE → SELL → GROW → PROMOTE → EARN.',
   en:
-    'HomeCheff® — ecosystem for local entrepreneurship, creation and earning. Marketplace, Studio, Growth and Affiliate/Partners in one system. CREATE → SELL → GROW → PROMOTE → EARN.',
+    'HomeCheff®, ecosystem for local entrepreneurship, creation and earning. Marketplace, Studio, Growth and Affiliate/Partners in one system. CREATE → SELL → GROW → PROMOTE → EARN.',
 };
 
 /** Marketplace-specific meta (landings that sell Marketplace, not the parent brand alone) */
 export const MARKETPLACE_META_DESCRIPTION: Record<PhilosophyLang, string> = {
   nl:
-    'HomeCheff Marketplace: digitale buurtmarkt voor vakmanschap, creativiteit en diensten. Lokaal ontdekken, aanbieden, handelen en vragen — onderdeel van het HomeCheff-ecosysteem. Alles begint dichtbij huis.',
+    'HomeCheff Marketplace: digitale buurtmarkt voor vakmanschap, creativiteit en diensten. Lokaal ontdekken, aanbieden, handelen en vragen, onderdeel van het HomeCheff-ecosysteem. Alles begint dichtbij huis.',
   en:
-    'HomeCheff Marketplace: digital neighbourhood marketplace for craftsmanship, creativity and services. Discover, offer, trade and request locally — part of the HomeCheff ecosystem. Everything starts close to home.',
+    'HomeCheff Marketplace: digital neighbourhood marketplace for craftsmanship, creativity and services. Discover, offer, trade and request locally, part of the HomeCheff ecosystem. Everything starts close to home.',
 };
 
 /** FAQ-length answer — canonical ecosystem + Marketplace clarity */

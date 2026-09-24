@@ -11,8 +11,8 @@ export const foodCategoryContextShared: Record<string, Bi> = {
 
 export const foodCategoryContextV0: Record<string, Bi> = {
   body: {
-    nl: 'Deze pagina gaat over eten — één categorie op HomeCheff. Het platform ondersteunt ook tuin, creaties, diensten, buurthulp en ruil. ',
-    en: 'This page is about food — one category on HomeCheff. The platform also supports garden, creations, services, neighbour help and barter. ',
+    nl: 'Deze pagina gaat over eten, één categorie op HomeCheff. Het platform ondersteunt ook tuin, creaties, diensten, buurthulp en ruil. ',
+    en: 'This page is about food, one category on HomeCheff. The platform also supports garden, creations, services, neighbour help and barter. ',
   },
 };
 
@@ -25,8 +25,8 @@ export const foodCategoryContextV1: Record<string, Bi> = {
 
 export const foodCategoryContextV2: Record<string, Bi> = {
   body: {
-    nl: 'Eten is één onderdeel van persoonlijk vakmanschap op HomeCheff — samen met tuin, studio, diensten en ruil in je buurt. ',
-    en: 'Food is one part of personal craftsmanship on HomeCheff — together with garden, studio, services and barter in your neighbourhood. ',
+    nl: 'Eten is één onderdeel van persoonlijk vakmanschap op HomeCheff, samen met tuin, studio, diensten en ruil in je buurt. ',
+    en: 'Food is one part of personal craftsmanship on HomeCheff, together with garden, studio, services and barter in your neighbourhood. ',
   },
 };
 

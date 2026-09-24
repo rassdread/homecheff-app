@@ -311,7 +311,7 @@ export default function MijnHcpClient() {
               ))}
               {earnedCatalog.length === 0 && extraEarned.length === 0 ? (
                 <span className="text-sm text-gray-600">
-                  Nog geen badges — blijf actief om ze te ontgrendelen. Binnenkort verschijnen hier meer competenties.
+                  Nog geen badges. Blijf actief om ze te ontgrendelen. Binnenkort verschijnen hier meer competenties.
                 </span>
               ) : null}
             </div>

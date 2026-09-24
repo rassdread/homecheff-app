@@ -12,16 +12,16 @@ export const pillarSharedFaq: Record<string, Bi> = {
     en: 'Is HomeCheff only for food?',
   },
   faq1A: {
-    nl: 'Nee. Eten is één categorie binnen Marketplace, naast tuin, creaties, diensten, hulp, inspiratie en ruil. HomeCheff zelf is een ecosysteem (Marketplace, Studio, Growth, Affiliate/Partners) — niet alleen een food marketplace of platform voor thuiskoks.',
-    en: 'No. Food is one category within Marketplace, alongside garden, creations, services, help, inspiration and barter. HomeCheff itself is an ecosystem (Marketplace, Studio, Growth, Affiliate/Partners) — not only a food marketplace or home-cook platform.',
+    nl: 'Nee. Eten is één categorie binnen Marketplace, naast tuin, creaties, diensten, hulp, inspiratie en ruil. HomeCheff zelf is een ecosysteem (Marketplace, Studio, Growth, Affiliate/Partners), niet alleen een food marketplace of platform voor thuiskoks.',
+    en: 'No. Food is one category within Marketplace, alongside garden, creations, services, help, inspiration and barter. HomeCheff itself is an ecosystem (Marketplace, Studio, Growth, Affiliate/Partners), not only a food marketplace or home-cook platform.',
   },
   faq2Q: {
     nl: 'Wie staat achter een aanbod?',
     en: 'Who is behind a listing?',
   },
   faq2A: {
-    nl: 'Altijd een echt persoon of lokaal bedrijf met een profiel. Je ziet wie kookt, kweekt, ontwerpt of helpt — niet een anonieme catalogus.',
-    en: 'Always a real person or local business with a profile. You see who cooks, grows, designs or helps — not an anonymous catalogue.',
+    nl: 'Altijd een echt persoon of lokaal bedrijf met een profiel. Je ziet wie kookt, kweekt, ontwerpt of helpt, niet een anonieme catalogus.',
+    en: 'Always a real person or local business with a profile. You see who cooks, grows, designs or helps, not an anonymous catalogue.',
   },
   faq3Q: {
     nl: 'Belooft HomeCheff gegarandeerd inkomen?',
@@ -67,18 +67,18 @@ const platformDefinitionPage: Record<string, Bi> = {
   },
   sectionWhoTitle: { nl: 'Voor wie is HomeCheff?', en: 'Who is HomeCheff for?' },
   sectionWhoBody: {
-    nl: 'Voor makers, buren, vakmensen, creators, ondernemers en teams: creëren met Studio, verkopen via Marketplace, groeien met Growth, promoten via Affiliate/Partners. Praktisch: begin met één duidelijk aanbod of één Gezocht-oproep — of met content of leads. Dichtbij eerst; uniek vakmanschap mag van nature verder reiken.',
-    en: 'For makers, neighbours, craftspeople, creators, entrepreneurs and teams: create with Studio, sell via Marketplace, grow with Growth, promote via Affiliate/Partners. Practically: start with one clear offer or Wanted request — or with content or leads. Nearby first; unique craft may naturally reach further.',
+    nl: 'Voor makers, buren, vakmensen, creators, ondernemers en teams: creëren met Studio, verkopen via Marketplace, groeien met Growth, promoten via Affiliate/Partners. Praktisch: begin met één duidelijk aanbod of één Gezocht-oproep, of met content of leads. Dichtbij eerst; uniek vakmanschap mag van nature verder reiken.',
+    en: 'For makers, neighbours, craftspeople, creators, entrepreneurs and teams: create with Studio, sell via Marketplace, grow with Growth, promote via Affiliate/Partners. Practically: start with one clear offer or Wanted request, or with content or leads. Nearby first; unique craft may naturally reach further.',
   },
   sectionPersonTitle: { nl: 'De persoon achter het aanbod', en: 'The person behind the offer' },
   sectionPersonBody: {
-    nl: 'Op Marketplace telt wie iets maakt minstens zo zwaar als wat er wordt aangeboden. Profielen, verhalen, reviews en vertrouwen maken zichtbaar dat achter elk item een mens zit — geen anonieme massaproductie of anonieme doorverkoop.',
-    en: 'On Marketplace, who makes something matters at least as much as what is offered. Profiles, stories, reviews and trust show that a human is behind every item — not anonymous mass production or anonymous resale.',
+    nl: 'Op Marketplace telt wie iets maakt minstens zo zwaar als wat er wordt aangeboden. Profielen, verhalen, reviews en vertrouwen maken zichtbaar dat achter elk item een mens zit, geen anonieme massaproductie of anonieme doorverkoop.',
+    en: 'On Marketplace, who makes something matters at least as much as what is offered. Profiles, stories, reviews and trust show that a human is behind every item, not anonymous mass production or anonymous resale.',
   },
   sectionCategoriesTitle: { nl: 'Mensen creëren waarde', en: 'People create value' },
   sectionCategoriesBody: {
-    nl: 'Thuisgekookt, eigen oogst, handwerk, creatief werk, persoonlijke diensten, lokale expertise, reparaties, kennis, buurthulp en ruil horen bij Marketplace. Eten is één categorie. Studio, Growth en Affiliate/Partners versterken het bredere ecosysteem. Mensen creëren waarde — ze verkopen geen anonieme massaproducten door.',
-    en: 'Homemade meals, self-grown produce, handmade creations, creative work, personal services, local expertise, repairs, knowledge, neighbourhood help and barter belong on Marketplace. Food is one category. Studio, Growth and Affiliate/Partners strengthen the wider ecosystem. People create value — they do not resell anonymous mass products.',
+    nl: 'Thuisgekookt, eigen oogst, handwerk, creatief werk, persoonlijke diensten, lokale expertise, reparaties, kennis, buurthulp en ruil horen bij Marketplace. Eten is één categorie. Studio, Growth en Affiliate/Partners versterken het bredere ecosysteem. Mensen creëren waarde. Ze verkopen geen anonieme massaproducten door.',
+    en: 'Homemade meals, self-grown produce, handmade creations, creative work, personal services, local expertise, repairs, knowledge, neighbourhood help and barter belong on Marketplace. Food is one category. Studio, Growth and Affiliate/Partners strengthen the wider ecosystem. People create value. They do not resell anonymous mass products.',
   },
   sectionNotTitle: { nl: 'Wat HomeCheff niet is', en: 'What HomeCheff is not' },
   sectionNotBody: {
@@ -89,8 +89,8 @@ const platformDefinitionPage: Record<string, Bi> = {
   ctaSecondary: { nl: 'Begin met aanbieden', en: 'Start offering' },
   cta: { nl: 'Klaar om HomeCheff te ontdekken?', en: 'Ready to discover HomeCheff?' },
   ctaSub: {
-    nl: 'Ontdek wat mensen in jouw buurt maken — of deel wat jij zelf te bieden hebt.',
-    en: 'Discover what people make near you — or share what you have to offer.',
+    nl: 'Ontdek wat mensen in jouw buurt maken, of deel wat jij zelf te bieden hebt.',
+    en: 'Discover what people make near you, or share what you have to offer.',
   },
 };
 
@@ -100,13 +100,13 @@ const earnLocallyPage: Record<string, Bi> = {
     en: 'Earn locally | Honest side income from home | HomeCheff',
   },
   metaDescription: {
-    nl: 'Verdien lokaal met wat je zelf maakt, kookt of aanbiedt. Transparante fees, geen valse beloftes. Eten, tuin, creaties of diensten — start klein in je buurt.',
-    en: 'Earn locally with what you make, cook or offer yourself. Transparent fees, no false promises. Food, garden, creations or services — start small in your neighbourhood.',
+    nl: 'Verdien lokaal met wat je zelf maakt, kookt of aanbiedt. Transparante fees, geen valse beloftes. Eten, tuin, creaties of diensten. Start klein in je buurt.',
+    en: 'Earn locally with what you make, cook or offer yourself. Transparent fees, no false promises. Food, garden, creations or services. Start small in your neighbourhood.',
   },
   title: { nl: 'Lokaal verdienen met wat jij kunt', en: 'Earn locally with what you can do' },
   intro: {
-    nl: 'Deze gids legt uit hoe je lokaal kunt verdienen met wat je zelf maakt of aanbiedt — zonder dropshipping of valse inkomensbeloftes. Je leest welke paden bestaan, hoe fees werken, en hoe je klein start in je buurt.',
-    en: 'This guide explains how to earn locally with what you make or offer yourself — without dropshipping or false income promises. You will learn which paths exist, how fees work, and how to start small in your neighbourhood.',
+    nl: 'Deze gids legt uit hoe je lokaal kunt verdienen met wat je zelf maakt of aanbiedt, zonder dropshipping of valse inkomensbeloftes. Je leest welke paden bestaan, hoe fees werken, en hoe je klein start in je buurt.',
+    en: 'This guide explains how to earn locally with what you make or offer yourself, without dropshipping or false income promises. You will learn which paths exist, how fees work, and how to start small in your neighbourhood.',
   },
   sectionHonestTitle: { nl: 'Eerlijk over verwachtingen', en: 'Honest about expectations' },
   sectionHonestBody: {
@@ -115,8 +115,8 @@ const earnLocallyPage: Record<string, Bi> = {
   },
   sectionPathsTitle: { nl: 'Wat kun je aanbieden?', en: 'What can you offer?' },
   sectionPathsBody: {
-    nl: 'Thuisgemaakte maaltijden, tuinoogst, handwerk, praktische hulp, workshops, bezorgen als koerier — of ruilen en directe afspraken. Kies wat bij jou past; de persoon achter het aanbod blijft centraal.',
-    en: 'Home-prepared meals, garden harvest, handmade work, practical help, workshops, delivery as a courier — or barter and direct arrangements. Choose what fits you; the person behind the offer stays central.',
+    nl: 'Thuisgemaakte maaltijden, tuinoogst, handwerk, praktische hulp, workshops, bezorgen als koerier, of ruilen en directe afspraken. Kies wat bij jou past; de persoon achter het aanbod blijft centraal.',
+    en: 'Home-prepared meals, garden harvest, handmade work, practical help, workshops, delivery as a courier, or barter and direct arrangements. Choose what fits you; the person behind the offer stays central.',
   },
   sectionFeesTitle: { nl: 'Fees en uitbetaling', en: 'Fees and payouts' },
   sectionFeesBody: {
@@ -134,7 +134,7 @@ const earnLocallyPage: Record<string, Bi> = {
   linkDelivery: { nl: 'Bezorger worden', en: 'Become a courier' },
   ctaPrimary: { nl: 'Begin met aanbieden', en: 'Start offering' },
   ctaSecondary: { nl: 'Bekijk het dorpsplein', en: 'Browse the village square' },
-  cta: { nl: 'Start lokaal — op jouw tempo', en: 'Start locally — at your pace' },
+  cta: { nl: 'Start lokaal: op jouw tempo', en: 'Start locally: at your pace' },
   ctaSub: {
     nl: 'Geen valse beloftes. Wel een buurt die je vakmanschap serieus neemt.',
     en: 'No false promises. A neighbourhood that takes your craft seriously.',
@@ -147,23 +147,23 @@ const meetTheMakerPage: Record<string, Bi> = {
     en: 'Meet the maker | The face behind the offer | HomeCheff',
   },
   metaDescription: {
-    nl: 'Op HomeCheff zie je wie kookt, kweekt, ontwerpt of helpt. Profielen, verhalen en vertrouwen — de persoon is belangrijker dan het product.',
-    en: 'On HomeCheff you see who cooks, grows, designs or helps. Profiles, stories and trust — the person matters more than the product.',
+    nl: 'Op HomeCheff zie je wie kookt, kweekt, ontwerpt of helpt. Profielen, verhalen en vertrouwen, de persoon is belangrijker dan het product.',
+    en: 'On HomeCheff you see who cooks, grows, designs or helps. Profiles, stories and trust, the person matters more than the product.',
   },
   title: { nl: 'Ontmoet de maker', en: 'Meet the maker' },
   intro: {
-    nl: 'Elk aanbod op HomeCheff heeft een gezicht. Je ontdekt niet alleen wat er te koop is, maar wie het maakt — met profiel, locatie, verhaal en reputatie.',
-    en: 'Every listing on HomeCheff has a face. You discover not only what is for sale, but who made it — with profile, location, story and reputation.',
+    nl: 'Elk aanbod op HomeCheff heeft een gezicht. Je ontdekt niet alleen wat er te koop is, maar wie het maakt, met profiel, locatie, verhaal en reputatie.',
+    en: 'Every listing on HomeCheff has a face. You discover not only what is for sale, but who made it, with profile, location, story and reputation.',
   },
   sectionWhyTitle: { nl: 'Waarom de maker centraal staat', en: 'Why the maker is central' },
   sectionWhyBody: {
-    nl: 'Lokaal vakmanschap draait om vertrouwen. Je wilt weten wie in de keuken staat, wie in de tuin werkt of wie je kast repareert. HomeCheff is gebouwd rond die menselijke relatie — niet rond anonieme volume.',
-    en: 'Local craft is about trust. You want to know who is in the kitchen, who works the garden or who repairs your cupboard. HomeCheff is built around that human relationship — not anonymous volume.',
+    nl: 'Lokaal vakmanschap draait om vertrouwen. Je wilt weten wie in de keuken staat, wie in de tuin werkt of wie je kast repareert. HomeCheff is gebouwd rond die menselijke relatie, niet rond anonieme volume.',
+    en: 'Local craft is about trust. You want to know who is in the kitchen, who works the garden or who repairs your cupboard. HomeCheff is built around that human relationship, not anonymous volume.',
   },
   sectionProfileTitle: { nl: 'Profielen met context', en: 'Profiles with context' },
   sectionProfileBody: {
-    nl: 'Elke maker heeft een publiek profiel met bio, locatie, badges, reviews en aanbod. Zo wordt een profiel het digitale atelier, de keuken of de werkplaats — niet alleen een productlijst.',
-    en: 'Each maker has a public profile with bio, location, badges, reviews and listings. A profile becomes the digital studio, kitchen or workshop — not only a product list.',
+    nl: 'Elke maker heeft een publiek profiel met bio, locatie, badges, reviews en aanbod. Zo wordt een profiel het digitale atelier, de keuken of de werkplaats, niet alleen een productlijst.',
+    en: 'Each maker has a public profile with bio, location, badges, reviews and listings. A profile becomes the digital studio, kitchen or workshop, not only a product list.',
   },
   sectionTrustTitle: { nl: 'Vertrouwen in de buurt', en: 'Trust nearby' },
   sectionTrustBody: {
@@ -178,8 +178,8 @@ const meetTheMakerPage: Record<string, Bi> = {
   ctaSecondary: { nl: 'Over HomeCheff', en: 'About HomeCheff' },
   cta: { nl: 'Ontmoet makers in je buurt', en: 'Meet makers in your neighbourhood' },
   ctaSub: {
-    nl: 'Profielen, verhalen en vertrouwen — de persoon telt.',
-    en: 'Profiles, stories and trust — the person matters.',
+    nl: 'Profielen, verhalen en vertrouwen, de persoon telt.',
+    en: 'Profiles, stories and trust, the person matters.',
   },
 };
 
@@ -194,13 +194,13 @@ const personalCraftPage: Record<string, Bi> = {
   },
   title: { nl: 'Persoonlijk vakmanschap', en: 'Personal craftsmanship' },
   intro: {
-    nl: 'Vakmanschap is wat mensen met eigen handen, hoofd en hart maken — thuis, in de tuin, in het atelier of op straat. Deze pagina helpt je herkennen wat telt als persoonlijk maakwerk op HomeCheff, welke vormen passen, en waarom herkomst en verhaal ertoe doen.',
-    en: 'Craft is what people make with their own hands, mind and heart — at home, in the garden, in the studio or on the street. This page helps you recognise what counts as personal making on HomeCheff, which forms fit, and why origin and story matter.',
+    nl: 'Vakmanschap is wat mensen met eigen handen, hoofd en hart maken, thuis, in de tuin, in het atelier of op straat. Deze pagina helpt je herkennen wat telt als persoonlijk maakwerk op HomeCheff, welke vormen passen, en waarom herkomst en verhaal ertoe doen.',
+    en: 'Craft is what people make with their own hands, mind and heart, at home, in the garden, in the studio or on the street. This page helps you recognise what counts as personal making on HomeCheff, which forms fit, and why origin and story matter.',
   },
   sectionCraftTitle: { nl: 'Wat telt als vakmanschap?', en: 'What counts as craftsmanship?' },
   sectionCraftBody: {
-    nl: 'Koken voor buren, oogst delen, meubels maken, sieraden ontwerpen, klusjes doen, workshops geven, coaching — alles wat een echt persoon persoonlijk levert telt mee. Niet: dropshipping, gewone tweedehands-doorverkoop of anonieme fabrieksvoorraad. Upcycling, artistiek herstel en creatief herontwerp horen wel — de waarde zit in eigen werk.',
-    en: 'Cooking for neighbours, sharing harvest, making furniture, designing jewellery, chores, workshops, coaching — anything a real person delivers personally counts. Not: dropshipping, ordinary second-hand resale or anonymous factory stock. Upcycling, artistic restoration and creative redesign do belong — value comes from personal work.',
+    nl: 'Koken voor buren, oogst delen, meubels maken, sieraden ontwerpen, klusjes doen, workshops geven, coaching, alles wat een echt persoon persoonlijk levert telt mee. Niet: dropshipping, gewone tweedehands-doorverkoop of anonieme fabrieksvoorraad. Upcycling, artistiek herstel en creatief herontwerp horen wel, de waarde zit in eigen werk.',
+    en: 'Cooking for neighbours, sharing harvest, making furniture, designing jewellery, chores, workshops, coaching, anything a real person delivers personally counts. Not: dropshipping, ordinary second-hand resale or anonymous factory stock. Upcycling, artistic restoration and creative redesign do belong, value comes from personal work.',
   },
   sectionFormsTitle: { nl: 'Vormen van vakmanschap op HomeCheff', en: 'Forms of craft on HomeCheff' },
   sectionFormsBody: {
@@ -209,8 +209,8 @@ const personalCraftPage: Record<string, Bi> = {
   },
   sectionStoryTitle: { nl: 'Verhaal en herkomst', en: 'Story and origin' },
   sectionStoryBody: {
-    nl: 'Inspiratie, recepten en maker-profielen laten zien hoe iets ontstaat. Zo blijft het persoonlijk — niet een generieke catalogus zonder gezicht.',
-    en: 'Inspiration, recipes and maker profiles show how something is made. That keeps it personal — not a generic catalogue without a face.',
+    nl: 'Inspiratie, recepten en maker-profielen laten zien hoe iets ontstaat. Zo blijft het persoonlijk, niet een generieke catalogus zonder gezicht.',
+    en: 'Inspiration, recipes and maker profiles show how something is made. That keeps it personal, not a generic catalogue without a face.',
   },
   ctaPrimary: { nl: 'Ontdek lokaal vakmanschap', en: 'Discover local craft' },
   ctaSecondary: { nl: 'Wat is HomeCheff?', en: 'What is HomeCheff?' },
@@ -232,28 +232,28 @@ const neighbourHelpPage: Record<string, Bi> = {
   },
   title: { nl: 'Buurthulp en lokale diensten', en: 'Neighbour help and local services' },
   intro: {
-    nl: 'Soms heb je hulp nodig — of wil je iemand om de hoek ondersteunen. HomeCheff verbindt buren via Gezocht, diensten en voorstellen, met de persoon altijd zichtbaar.',
-    en: 'Sometimes you need help — or want to support someone nearby. HomeCheff connects neighbours through Wanted, services and proposals, with the person always visible.',
+    nl: 'Soms heb je hulp nodig, of wil je iemand om de hoek ondersteunen. HomeCheff verbindt buren via Gezocht, diensten en voorstellen, met de persoon altijd zichtbaar.',
+    en: 'Sometimes you need help, or want to support someone nearby. HomeCheff connects neighbours through Wanted, services and proposals, with the person always visible.',
   },
   sectionHelpTitle: { nl: 'Hulp zonder schaamte', en: 'Help without shame' },
   sectionHelpBody: {
-    nl: 'Een oproep plaatsen hoeft niet “kopen” te voelen. Je vraagt buren om hulp, ruil of een eerlijke prijs — met duidelijke afspraken en een menselijk gezicht.',
-    en: 'Posting a request does not have to feel like “buying”. You ask neighbours for help, barter or a fair price — with clear agreements and a human face.',
+    nl: 'Een oproep plaatsen hoeft niet “kopen” te voelen. Je vraagt buren om hulp, ruil of een eerlijke prijs, met duidelijke afspraken en een menselijk gezicht.',
+    en: 'Posting a request does not have to feel like “buying”. You ask neighbours for help, barter or a fair price, with clear agreements and a human face.',
   },
-  sectionRequestTitle: { nl: 'Gezocht — vraag de buurt', en: 'Wanted — ask the neighbourhood' },
+  sectionRequestTitle: { nl: 'Gezocht. Vraag de buurt', en: 'Wanted. Ask the neighbourhood' },
   sectionRequestBody: {
-    nl: 'Via Gezocht op het dorpsplein plaats je wat je zoekt: een klus, les, oogst of creatie. Anderen reageren met een voorstel — geld, ruil of contact.',
-    en: 'Through Wanted on the village square you post what you need: a chore, lesson, harvest or creation. Others respond with a proposal — money, barter or contact.',
+    nl: 'Via Gezocht op het dorpsplein plaats je wat je zoekt: een klus, les, oogst of creatie. Anderen reageren met een voorstel, geld, ruil of contact.',
+    en: 'Through Wanted on the village square you post what you need: a chore, lesson, harvest or creation. Others respond with a proposal, money, barter or contact.',
   },
   sectionServicesTitle: { nl: 'Diensten van echte mensen', en: 'Services from real people' },
   sectionServicesBody: {
-    nl: 'Reparatie, klusjes, computerhulp, oppas, workshops en coaching — aangeboden door mensen in je regio, niet door een anoniem platform zonder gezicht.',
-    en: 'Repair, chores, computer help, childcare, workshops and coaching — offered by people in your area, not by an anonymous platform without a face.',
+    nl: 'Reparatie, klusjes, computerhulp, oppas, workshops en coaching, aangeboden door mensen in je regio, niet door een anoniem platform zonder gezicht.',
+    en: 'Repair, chores, computer help, childcare, workshops and coaching, offered by people in your area, not by an anonymous platform without a face.',
   },
   ctaRequests: { nl: 'Naar Gezocht', en: 'Go to Wanted' },
   ctaPrimary: { nl: 'Plaats een oproep', en: 'Post a request' },
   ctaSecondary: { nl: 'Bekijk diensten', en: 'Browse services' },
-  cta: { nl: 'Vraag je buurt — menselijk en lokaal', en: 'Ask your neighbourhood — human and local' },
+  cta: { nl: 'Vraag je buurt: menselijk en lokaal', en: 'Ask your neighbourhood: human and local' },
   ctaSub: {
     nl: 'Gezocht verbindt buren die hulp zoeken met mensen die iets te bieden hebben.',
     en: 'Wanted connects neighbours seeking help with people who have something to offer.',
@@ -266,28 +266,28 @@ const communityEconomyPage: Record<string, Bi> = {
     en: 'Community economy | Barter, share and create local value | HomeCheff',
   },
   metaDescription: {
-    nl: 'Ruil, deel en ondersteun elkaar lokaal. HomeCheff verbindt buurt economie met echte mensen — zonder valse duurzaamheidsclaims.',
-    en: 'Barter, share and support each other locally. HomeCheff connects community economy with real people — without false sustainability claims.',
+    nl: 'Ruil, deel en ondersteun elkaar lokaal. HomeCheff verbindt buurt economie met echte mensen, zonder valse duurzaamheidsclaims.',
+    en: 'Barter, share and support each other locally. HomeCheff connects community economy with real people, without false sustainability claims.',
   },
   title: { nl: 'Buurt economie', en: 'Community economy' },
   intro: {
-    nl: 'Een sterke buurt deelt meer dan alleen geld. HomeCheff maakt ruilen, hulp en lokaal ondernemerschap zichtbaar — eerlijk, zonder opgeblazen impact-cijfers.',
-    en: 'A strong neighbourhood shares more than money alone. HomeCheff makes barter, help and local entrepreneurship visible — honestly, without inflated impact numbers.',
+    nl: 'Een sterke buurt deelt meer dan alleen geld. HomeCheff maakt ruilen, hulp en lokaal ondernemerschap zichtbaar, eerlijk, zonder opgeblazen impact-cijfers.',
+    en: 'A strong neighbourhood shares more than money alone. HomeCheff makes barter, help and local entrepreneurship visible, honestly, without inflated impact numbers.',
   },
   sectionEconomyTitle: { nl: 'Lokaal waarde creëren', en: 'Creating local value' },
   sectionEconomyBody: {
-    nl: 'Wanneer je bij een maker om de hoek koopt, leent of ruilt, blijft waarde in de buurt. HomeCheff ondersteunt checkout, ruil en directe afspraken — jij kiest wat past.',
-    en: 'When you buy, borrow or barter with a maker around the corner, value stays in the neighbourhood. HomeCheff supports checkout, barter and direct arrangements — you choose what fits.',
+    nl: 'Wanneer je bij een maker om de hoek koopt, leent of ruilt, blijft waarde in de buurt. HomeCheff ondersteunt checkout, ruil en directe afspraken. Jij kiest wat past.',
+    en: 'When you buy, borrow or barter with a maker around the corner, value stays in the neighbourhood. HomeCheff supports checkout, barter and direct arrangements. You choose what fits.',
   },
   sectionBarterTitle: { nl: 'Ruilen en voorstellen', en: 'Barter and proposals' },
   sectionBarterBody: {
-    nl: 'Niet alles hoeft met geld. Via voorstellen en ruil ontdek je wat je kunt uitwisselen met wat jij te bieden hebt — persoonlijk en lokaal.',
-    en: 'Not everything needs money. Through proposals and barter you discover what you can exchange for what you have to offer — personal and local.',
+    nl: 'Niet alles hoeft met geld. Via voorstellen en ruil ontdek je wat je kunt uitwisselen met wat jij te bieden hebt, persoonlijk en lokaal.',
+    en: 'Not everything needs money. Through proposals and barter you discover what you can exchange for what you have to offer, personal and local.',
   },
   sectionHonestTitle: { nl: 'Eerlijk over impact', en: 'Honest about impact' },
   sectionHonestBody: {
-    nl: 'We meten nog geen kilo’s voedselverspilling of eenzaamheid. We bouwen wel infrastructuur voor hergebruik, buurthulp en lokaal inkomen — en publiceren alleen cijfers als die echt bestaan.',
-    en: 'We do not yet measure kilos of food waste or loneliness. We do build infrastructure for reuse, neighbour help and local income — and only publish numbers when they truly exist.',
+    nl: 'We meten nog geen kilo’s voedselverspilling of eenzaamheid. We bouwen wel infrastructuur voor hergebruik, buurthulp en lokaal inkomen, en publiceren alleen cijfers als die echt bestaan.',
+    en: 'We do not yet measure kilos of food waste or loneliness. We do build infrastructure for reuse, neighbour help and local income, and only publish numbers when they truly exist.',
   },
   ctaBarter: { nl: 'Bekijk ruil-aanbod', en: 'Browse barter offers' },
   linkCommunity: { nl: 'Community-ecosysteem', en: 'Community ecosystem' },
@@ -295,8 +295,8 @@ const communityEconomyPage: Record<string, Bi> = {
   ctaSecondary: { nl: 'Lokaal verdienen', en: 'Earn locally' },
   cta: { nl: 'Sterkere buurten bouw je samen', en: 'Stronger neighbourhoods are built together' },
   ctaSub: {
-    nl: 'Ruil, help en ondersteun lokaal — zonder verzonnen impact-cijfers.',
-    en: 'Barter, help and support locally — without invented impact numbers.',
+    nl: 'Ruil, help en ondersteun lokaal, zonder verzonnen impact-cijfers.',
+    en: 'Barter, help and support locally, without invented impact numbers.',
   },
 };
 
@@ -306,13 +306,13 @@ const notMassProductionPage: Record<string, Bi> = {
     en: 'What HomeCheff is not | People over mass production | HomeCheff',
   },
   metaDescription: {
-    nl: 'HomeCheff staat voor mensen, vakmanschap en buurt — niet voor dropshipping, fabrieken of anonieme massa. Lees wat wel en niet mag op het platform.',
-    en: 'HomeCheff stands for people, craft and neighbourhood — not dropshipping, factories or anonymous mass volume. Read what is and is not allowed on the platform.',
+    nl: 'HomeCheff staat voor mensen, vakmanschap en buurt, niet voor dropshipping, fabrieken of anonieme massa. Lees wat wel en niet mag op het platform.',
+    en: 'HomeCheff stands for people, craft and neighbourhood, not dropshipping, factories or anonymous mass volume. Read what is and is not allowed on the platform.',
   },
   title: { nl: 'Wat HomeCheff niet is', en: 'What HomeCheff is not' },
   intro: {
-    nl: 'HomeCheff bestaat voor persoonlijk vakmanschap en lokale mensen — niet voor anonieme massaproductie of aandachts-economie.',
-    en: 'HomeCheff exists for personal craftsmanship and local people — not anonymous mass production or attention economics.',
+    nl: 'HomeCheff bestaat voor persoonlijk vakmanschap en lokale mensen, niet voor anonieme massaproductie of aandachts-economie.',
+    en: 'HomeCheff exists for personal craftsmanship and local people, not anonymous mass production or attention economics.',
   },
   sectionPeopleTitle: { nl: 'Mensen boven fabrieken', en: 'People over factories' },
   sectionPeopleBody: {
@@ -354,8 +354,8 @@ export const PILLAR_PAGE_SOURCES: Record<string, Record<string, Bi>> = {
 
 export const PILLAR_HUB_SECTION = {
   sectionTitle: {
-    nl: 'Vakmanschap en buurt — kernonderwerpen',
-    en: 'Craft and community — core topics',
+    nl: 'Vakmanschap en buurt: kernonderwerpen',
+    en: 'Craft and community: core topics',
   },
   links: [
     { href: '/manifest', label: { nl: 'HomeCheff Manifest', en: 'HomeCheff Manifest' } },

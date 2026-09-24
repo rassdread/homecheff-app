@@ -167,7 +167,7 @@ export default function SellPage() {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Never send client-calculated discount amounts — code only.
+        // Never send client-calculated discount amounts, code only.
         body: JSON.stringify({ plan, userId, promoCode: finalPromoCode }),
       });
       
@@ -450,7 +450,7 @@ function SellPageContent({
         )}
         {promoCodeValid === true && (
           <p className="mt-1 text-sm text-green-600">
-            Code geaccepteerd — originele prijs, korting, duur en actuele prijs
+            Code geaccepteerd: originele prijs, korting, duur en actuele prijs
             staan bij de plannen (server-berekend).
           </p>
         )}

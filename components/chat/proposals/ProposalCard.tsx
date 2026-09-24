@@ -43,7 +43,7 @@ type Props = {
   messageCreatedAt?: string;
   communityOrder?: CommunityOrderDTO | null;
   deliveryRequest?: DeliveryRequestDTO | null;
-  /** Parent proposal when this card is a counter — for change highlights. */
+  /** Parent proposal when this card is a counter, for change highlights. */
   parentProposal?: ProposalDTO | null;
   /** Display name of the proposal author (receiver view). */
   authorName?: string | null;
@@ -702,7 +702,7 @@ export default function ProposalCard({
 
           {proposal.status === "PENDING" && isCreator && !showCounter ? (
             <p className="text-[11px] text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg px-2.5 py-2">
-              {t("proposal.status.sent")} — {t("proposal.status.awaitingResponse")}
+              {t("proposal.status.sent")}. {t("proposal.status.awaitingResponse")}
             </p>
           ) : null}
 

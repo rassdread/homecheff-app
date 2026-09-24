@@ -23,32 +23,32 @@ const META: Record<
   keuken: {
     titleNl: 'Keuken-ecosysteem | HomeCheff',
     titleEn: 'Kitchen ecosystem | HomeCheff',
-    descNl: 'Ontdek actieve thuiskeukens en lokaal aanbod op HomeCheff — echte activiteit, geen groepsdruk.',
-    descEn: 'Discover active home kitchens and local supply on HomeCheff — real activity, calm discovery.',
+    descNl: 'Ontdek actieve thuiskeukens en lokaal aanbod op HomeCheff, echte activiteit, geen groepsdruk.',
+    descEn: 'Discover active home kitchens and local supply on HomeCheff, real activity, calm discovery.',
   },
   tuin: {
     titleNl: 'Tuin-ecosysteem | HomeCheff',
     titleEn: 'Garden ecosystem | HomeCheff',
-    descNl: 'Tuinmakers en lokale oogst op HomeCheff — zichtbaar via echte listings en inspiratie.',
-    descEn: 'Garden makers and local harvest on HomeCheff — visible through real listings and inspiration.',
+    descNl: 'Tuinmakers en lokale oogst op HomeCheff, zichtbaar via echte listings en inspiratie.',
+    descEn: 'Garden makers and local harvest on HomeCheff, visible through real listings and inspiration.',
   },
   studio: {
     titleNl: 'Studio-ecosysteem | HomeCheff',
     titleEn: 'Studio ecosystem | HomeCheff',
-    descNl: 'Creatieve studio-makers op HomeCheff — design en ambacht met rustige momentum-signalen.',
-    descEn: 'Creative studio makers on HomeCheff — design and craft with calm momentum signals.',
+    descNl: 'Creatieve studio-makers op HomeCheff: design en ambacht met rustige momentum-signalen.',
+    descEn: 'Creative studio makers on HomeCheff, design and craft with calm momentum signals.',
   },
   inspiratie: {
     titleNl: 'Inspiratie-ecosysteem | HomeCheff',
     titleEn: 'Inspiration ecosystem | HomeCheff',
-    descNl: 'Inspiratie en makers die delen op HomeCheff — ontdek wat er leeft zonder social-ruis.',
-    descEn: 'Inspiration and makers sharing on HomeCheff — discover what is alive without social noise.',
+    descNl: 'Inspiratie en makers die delen op HomeCheff. Ontdek wat er leeft zonder social-ruis.',
+    descEn: 'Inspiration and makers sharing on HomeCheff. Discover what is alive without social noise.',
   },
   community: {
     titleNl: 'Community & affiliate | HomeCheff',
     titleEn: 'Community & affiliate | HomeCheff',
-    descNl: 'Mensen die HomeCheff verder helpen bouwen — affiliate en community builders, transparant.',
-    descEn: 'People helping build HomeCheff — affiliate and community builders, transparently.',
+    descNl: 'Mensen die HomeCheff verder helpen bouwen, affiliate en community builders, transparant.',
+    descEn: 'People helping build HomeCheff: affiliate and community builders, transparently.',
   },
 };
 

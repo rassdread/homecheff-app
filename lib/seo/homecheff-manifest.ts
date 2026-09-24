@@ -13,22 +13,22 @@ export type ManifestLang = 'nl' | 'en';
 
 /** Canonical one-line mission — reused in Organization schema and platform definition. */
 export const MANIFEST_MISSION: Record<ManifestLang, string> = {
-  nl: 'Start lokaal, groei natuurlijk: gewone mensen creëren, verkopen, ruilen, helpen, leren en samenwerken — met mensen centraal, niet anonieme producten.',
-  en: 'Start locally, grow naturally: ordinary people create, sell, exchange, help, learn and collaborate — with people at the centre, not anonymous products.',
+  nl: 'Start lokaal, groei natuurlijk: gewone mensen creëren, verkopen, ruilen, helpen, leren en samenwerken, met mensen centraal, niet anonieme producten.',
+  en: 'Start locally, grow naturally: ordinary people create, sell, exchange, help, learn and collaborate, with people at the centre, not anonymous products.',
 };
 
 /** Canonical vision — technology strengthens people. */
 export const MANIFEST_VISION: Record<ManifestLang, string> = {
-  nl: 'Technologie moet mensen sterker maken — meer kansen, lokale veerkracht, vertrouwen en tijd — in plaats van afhankelijkheid, verslaving of isolatie.',
-  en: 'Technology should make people stronger — more opportunity, local resilience, trust and time — instead of dependency, addiction or isolation.',
+  nl: 'Technologie moet mensen sterker maken, meer kansen, lokale veerkracht, vertrouwen en tijd, in plaats van afhankelijkheid, verslaving of isolatie.',
+  en: 'Technology should make people stronger, more opportunity, local resilience, trust and time, instead of dependency, addiction or isolation.',
 };
 
 /** What HomeCheff is — parent ecosystem + Marketplace village-square nuance. */
 export const MANIFEST_IS: Record<ManifestLang, string> = {
   nl:
-    'HomeCheff is een ecosysteem voor lokaal ondernemerschap, creatie en verdienen. Het verbindt Marketplace, HomeCheff Studio, HomeCheff Growth en Affiliate/Partners. Marketplace is de digitale buurtmarkt (én digitaal dorpsplein) waar mensen waarde creëren door eigen vakmanschap, creativiteit en persoonlijke diensten — lokaal ontdekken, aanbieden, kopen, verkopen, ruilen en vragen, terwijl uniek vakmanschap verder mag reiken. Alles begint dichtbij huis. Afstand bepaalt prioriteit, niet mogelijkheid. Community-first, creator-first, craftsmanship-first — local-first, niet alleen-lokaal. HomeCheff is breder dan eten en breder dan alleen Marketplace.',
+    'HomeCheff is een ecosysteem voor lokaal ondernemerschap, creatie en verdienen. Het verbindt Marketplace, HomeCheff Studio, HomeCheff Growth en Affiliate/Partners. Marketplace is de digitale buurtmarkt (én digitaal dorpsplein) waar mensen waarde creëren door eigen vakmanschap, creativiteit en persoonlijke diensten, lokaal ontdekken, aanbieden, kopen, verkopen, ruilen en vragen, terwijl uniek vakmanschap verder mag reiken. Alles begint dichtbij huis. Afstand bepaalt prioriteit, niet mogelijkheid. Community-first, creator-first, craftsmanship-first, local-first, niet alleen-lokaal. HomeCheff is breder dan eten en breder dan alleen Marketplace.',
   en:
-    'HomeCheff is an ecosystem for local entrepreneurship, creation and earning. It connects Marketplace, HomeCheff Studio, HomeCheff Growth and Affiliate/Partners. Marketplace is the digital neighbourhood marketplace (and digital village square) where people create value through their own craftsmanship, creativity and personal services — discover, offer, buy, sell, trade and request locally, while unique craft may reach further. Everything starts close to home. Distance determines priority, not possibility. Community-first, creator-first, craftsmanship-first — local-first, not local-only. HomeCheff is broader than food and broader than Marketplace alone.',
+    'HomeCheff is an ecosystem for local entrepreneurship, creation and earning. It connects Marketplace, HomeCheff Studio, HomeCheff Growth and Affiliate/Partners. Marketplace is the digital neighbourhood marketplace (and digital village square) where people create value through their own craftsmanship, creativity and personal services. Discover, offer, buy, sell, trade and request locally, while unique craft may reach further. Everything starts close to home. Distance determines priority, not possibility. Community-first, creator-first, craftsmanship-first, local-first, not local-only. HomeCheff is broader than food and broader than Marketplace alone.',
 };
 
 /** Core values — stable keys for validators and cross-page reuse. */
@@ -53,8 +53,8 @@ export const MANIFEST_VALUE_LABELS: Record<ManifestCoreValueKey, Record<Manifest
     en: 'Personal craftsmanship before mass production',
   },
   localBeforeScale: {
-    nl: 'Lokaal eerst vóór anonieme schaal — afstand bepaalt prioriteit, niet mogelijkheid',
-    en: 'Local first before anonymous scale — distance determines priority, not possibility',
+    nl: 'Lokaal eerst vóór anonieme schaal, afstand bepaalt prioriteit, niet mogelijkheid',
+    en: 'Local first before anonymous scale, distance determines priority, not possibility',
   },
   cooperationBeforeZeroSum: {
     nl: 'Samenwerking vóór nul-som competitie',
@@ -102,8 +102,8 @@ export const MANIFEST_IS_NOT: Record<ManifestLang, string[]> = {
 
 /** AI philosophy summary — tool, not product. */
 export const MANIFEST_AI: Record<ManifestLang, string> = {
-  nl: 'AI is geen product op HomeCheff; het is een hulpmiddel om complexiteit te verlagen, creativiteit te stimuleren, drempels te verlagen en communicatie te verbeteren — nooit om menselijke relaties te vervangen.',
-  en: 'AI is not the product on HomeCheff; it is a tool to reduce complexity, stimulate creativity, lower barriers and improve communication — never to replace human relationships.',
+  nl: 'AI is geen product op HomeCheff; het is een hulpmiddel om complexiteit te verlagen, creativiteit te stimuleren, drempels te verlagen en communicatie te verbeteren, nooit om menselijke relaties te vervangen.',
+  en: 'AI is not the product on HomeCheff; it is a tool to reduce complexity, stimulate creativity, lower barriers and improve communication, never to replace human relationships.',
 };
 
 /** Society hopes — aspirational, no measured claims. */

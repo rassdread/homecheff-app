@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * LEGAL-1 — settings panel to view/change commerce self-declaration.
+ * LEGAL-1: settings panel to view/change commerce self-declaration.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -98,7 +98,7 @@ export default function SellerCommerceDeclarationSettings() {
         </p>
         {commerce.needsReviewConfirm ? (
           <p className="text-sm text-amber-700 mt-2">
-            Controleer je verkoopstatus — je activiteit is veranderd.
+            Controleer je verkoopstatus. Je activiteit is veranderd.
           </p>
         ) : null}
         {commerce.registeredBusinessInfoPresent ? (

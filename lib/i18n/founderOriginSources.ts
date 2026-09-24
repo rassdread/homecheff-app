@@ -92,8 +92,8 @@ const founderSergioPage: Record<string, Bi> = {
     en: 'Who is Sergio Arrias? | Founder of HomeCheff',
   },
   metaDescription: {
-    nl: 'Sergio Arrias is de oprichter van HomeCheff — jaren filosofie die een praktisch platform werd. Groei, visie en purpose zonder heldenverhaal.',
-    en: 'Sergio Arrias is the Founder of HomeCheff — years of philosophy that became a practical platform. Growth, vision and purpose without a hero narrative.',
+    nl: 'Sergio Arrias is de oprichter van HomeCheff. Jaren filosofie werden een praktisch platform. Groei, visie en purpose, zonder heldenverhaal.',
+    en: 'Sergio Arrias is the Founder of HomeCheff. Years of philosophy became a practical platform. Growth, vision and purpose, without a hero narrative.',
   },
   title: {
     nl: 'Wie is Sergio Arrias?',
@@ -113,8 +113,8 @@ const founderSergioPage: Record<string, Bi> = {
     en: 'Learning, curiosity, entrepreneurship',
   },
   sectionPathBody: {
-    nl: 'Zijn pad omvat leren, nieuwsgierigheid, ondernemerschap, educatie en reflectie — inclusief falen en doorzettingsvermogen als onderdeel van groei. Geen heldenverhaal: focus op ideeën, purpose en community.',
-    en: 'His path includes learning, curiosity, entrepreneurship, education and reflection — including failure and perseverance as part of growth. No hero narrative: focus on ideas, purpose and community.',
+    nl: 'Zijn pad omvat leren, nieuwsgierigheid, ondernemerschap, educatie en reflectie, inclusief falen en doorzettingsvermogen als onderdeel van groei. Geen heldenverhaal: focus op ideeën, purpose en community.',
+    en: 'His path includes learning, curiosity, entrepreneurship, education and reflection, including failure and perseverance as part of growth. No hero narrative: focus on ideas, purpose and community.',
   },
   sectionWhyTitle: {
     nl: 'Waarom HomeCheff bestaat',
@@ -148,8 +148,8 @@ const homecheffOriginPage: Record<string, Bi> = {
     en: 'The Origin of HomeCheff | Official history',
   },
   metaDescription: {
-    nl: 'Hoe HomeCheff ontstond: sociale cohesie, jarenlange filosofie, lokale gemeenschappen — en waarom gewone marktplaatsen niet genoeg zijn.',
-    en: 'How HomeCheff originated: social cohesion, years of philosophy, local communities — and why ordinary marketplaces are insufficient.',
+    nl: 'Hoe HomeCheff ontstond: sociale cohesie, jarenlange filosofie, lokale gemeenschappen, en waarom gewone marktplaatsen niet genoeg zijn.',
+    en: 'How HomeCheff originated: social cohesion, years of philosophy, local communities, and why ordinary marketplaces are insufficient.',
   },
   title: {
     nl: 'De oorsprong van HomeCheff',
@@ -161,8 +161,8 @@ const homecheffOriginPage: Record<string, Bi> = {
   },
   sectionIdeaTitle: { nl: 'Hoe het idee groeide', en: 'How the idea developed' },
   sectionIdeaBody: {
-    nl: 'HomeCheff begon niet als een snelle startup-idee. Jarenlange observatie van technologie, economie en menselijk gedrag — en een filosofie die uiteindelijk een praktisch platform werd.',
-    en: 'HomeCheff did not begin as a quick startup idea. Years of observing technology, economics and human behaviour — and a philosophy that eventually became a practical platform.',
+    nl: 'HomeCheff begon niet als een snelle startup-idee. Jarenlange observatie van technologie, economie en menselijk gedrag, en een filosofie die uiteindelijk een praktisch platform werd.',
+    en: 'HomeCheff did not begin as a quick startup idea. Years of observing technology, economics and human behaviour, and a philosophy that eventually became a practical platform.',
   },
   sectionLocalTitle: {
     nl: 'Waarom lokale gemeenschappen ertoe doen',
@@ -185,8 +185,8 @@ const homecheffOriginPage: Record<string, Bi> = {
     en: 'Years of preparation',
   },
   sectionYearsBody: {
-    nl: 'De filosofie (Manifest, craftsmanship-first, local-first, community vóór data) ging vooraf aan een rijp levend product. Die voorbereiding blijft de bron van waarheid — geen herschreven geschiedenis.',
-    en: 'The philosophy (Manifest, craftsmanship-first, local-first, community before data) preceded a mature living product. That preparation remains the source of truth — not rewritten history.',
+    nl: 'De filosofie (Manifest, craftsmanship-first, local-first, community vóór data) ging vooraf aan een rijp levend product. Die voorbereiding blijft de bron van waarheid, geen herschreven geschiedenis.',
+    en: 'The philosophy (Manifest, craftsmanship-first, local-first, community before data) preceded a mature living product. That preparation remains the source of truth, not rewritten history.',
   },
   sectionAiTitle: {
     nl: 'AI versnelde implementatie',
@@ -244,16 +244,16 @@ const whyHomecheffPage: Record<string, Bi> = {
     en: 'More than cooking',
   },
   sectionMeaningBody: {
-    nl: 'Een HomeCheff is iemand die waarde creëert door eigen vakmanschap, kennis, creativiteit, persoonlijke diensten, reparatie, onderwijs, tuinieren, muziek, kunst, eten, design — en elke andere vorm van echt persoonlijk talent. De naam staat voor die maker-identiteit — niet alleen voor een keuken.',
-    en: 'A HomeCheff is someone who creates value through their own craftsmanship, knowledge, creativity, personal services, repair, education, gardening, music, art, food, design — and every other form of genuine personal talent. The name stands for that maker identity — not only for a kitchen.',
+    nl: 'Een HomeCheff is iemand die waarde creëert door eigen vakmanschap, kennis, creativiteit, persoonlijke diensten, reparatie, onderwijs, tuinieren, muziek, kunst, eten, design, en elke andere vorm van echt persoonlijk talent. De naam staat voor die maker-identiteit, niet alleen voor een keuken.',
+    en: 'A HomeCheff is someone who creates value through their own craftsmanship, knowledge, creativity, personal services, repair, education, gardening, music, art, food, design, and every other form of genuine personal talent. The name stands for that maker identity, not only for a kitchen.',
   },
   sectionWhereTitle: {
     nl: 'Vanuit huis, tuin, studio, werkplaats, keuken…',
     en: 'From home, garden, studio, workshop, kitchen…',
   },
   sectionWhereBody: {
-    nl: 'Waarde kan ontstaan vanuit huis, een tuin, een studio, een werkplaats, een keuken, een creatieve ruimte — of elke andere plek waar mensen creëren. De plek is secundair; de persoon en het vakmanschap zijn primair.',
-    en: 'Value may originate from home, a garden, a studio, a workshop, a kitchen, a creative space — or any other place where people create. Place is secondary; the person and craftsmanship are primary.',
+    nl: 'Waarde kan ontstaan vanuit huis, een tuin, een studio, een werkplaats, een keuken, een creatieve ruimte, of elke andere plek waar mensen creëren. De plek is secundair; de persoon en het vakmanschap zijn primair.',
+    en: 'Value may originate from home, a garden, a studio, a workshop, a kitchen, a creative space, or any other place where people create. Place is secondary; the person and craftsmanship are primary.',
   },
   sectionPreserveTitle: {
     nl: 'Waarom de naam bleef',
@@ -287,8 +287,8 @@ const arriassismePage: Record<string, Bi> = {
     en: 'Arriassisme | Founder’s personal inspiration',
   },
   metaDescription: {
-    nl: 'Arriassisme is de persoonlijke filosofische inspiratie van Sergio Arrias — niet het HomeCheff Manifest.',
-    en: 'Arriassisme is Sergio Arrias’s personal philosophical inspiration — not the HomeCheff Manifest.',
+    nl: 'Arriassisme is de persoonlijke filosofische inspiratie van Sergio Arrias, niet het HomeCheff Manifest.',
+    en: 'Arriassisme is Sergio Arrias’s personal philosophical inspiration, not the HomeCheff Manifest.',
   },
   title: {
     nl: 'Arriassisme',
@@ -303,8 +303,8 @@ const arriassismePage: Record<string, Bi> = {
     en: 'What Arriassisme is',
   },
   sectionWhatBody: {
-    nl: 'Arriassisme is de persoonlijke filosofische inspiratie van de oprichter. Het draait om sociale cohesie, community en samen waarde creëren — groei en purpose, geen marketingclaim.',
-    en: 'Arriassisme is the founder’s personal philosophical inspiration. It centres on social cohesion, community and creating value together — growth and purpose, not a marketing claim.',
+    nl: 'Arriassisme is de persoonlijke filosofische inspiratie van de oprichter. Het draait om sociale cohesie, community en samen waarde creëren, groei en purpose, geen marketingclaim.',
+    en: 'Arriassisme is the founder’s personal philosophical inspiration. It centres on social cohesion, community and creating value together, growth and purpose, not a marketing claim.',
   },
   sectionNotTitle: {
     nl: 'Wat Arriassisme niet is',

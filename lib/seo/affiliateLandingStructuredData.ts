@@ -17,7 +17,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'What happens after 12 months?',
-            a: 'The standard affiliate window runs for up to twelve months per active referred business subscription. After that, the partnership may be extended or expanded through future incentives, performance milestones, and community goals — without a promise of lifetime payouts. HomeCheff may change rates or terms with notice as set out in your agreement.',
+            a: 'The standard affiliate window runs for up to twelve months per active referred business subscription. After that, the partnership may be extended or expanded through future incentives, performance milestones, and community goals, without a promise of lifetime payouts. HomeCheff may change rates or terms with notice as set out in your agreement.',
           },
           {
             q: 'Can partnership models expand over time?',
@@ -71,7 +71,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'Wat gebeurt er na 12 maanden?',
-            a: 'Het standaard affiliate-venster loopt tot twaalf maanden per actief aangebracht bedrijfsabonnement. Daarna kan de samenwerking verlengd of uitgebreid worden met toekomstige incentives, prestaties en community-doelen — zonder belofte op lifetime-uitbetalingen. Tarieven of voorwaarden kunnen wijzigen met kennisgeving zoals in je overeenkomst.',
+            a: 'Het standaard affiliate-venster loopt tot twaalf maanden per actief aangebracht bedrijfsabonnement. Daarna kan de samenwerking verlengd of uitgebreid worden met toekomstige incentives, prestaties en community-doelen, zonder belofte op lifetime-uitbetalingen. Tarieven of voorwaarden kunnen wijzigen met kennisgeving zoals in je overeenkomst.',
           },
           {
             q: 'Kunnen samenwerkingen later uitbreiden?',

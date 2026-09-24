@@ -15,8 +15,8 @@ export const ecosystemParticipationPage: PageCopy = {
     en: 'HomeCheff ecosystem | Everybody Eats.',
   },
   metaDescription: {
-    nl: 'HomeCheff is één ecosysteem: maak met Studio, verkoop via de Marketplace, groei met Growth, promoot via partners — en doe mee op jouw manier. Everybody Eats. (Iedereen eet mee.)',
-    en: 'HomeCheff is one ecosystem: create with Studio, sell on the Marketplace, grow with Growth, promote through partners — participate your way. Everybody Eats.',
+    nl: 'HomeCheff is één ecosysteem: maak met Studio, verkoop via de Marketplace, groei met Growth, promoot via partners, en doe mee op jouw manier. Everybody Eats. (Iedereen eet mee.)',
+    en: 'HomeCheff is one ecosystem: create with Studio, sell on the Marketplace, grow with Growth, promote through partners, participate your way. Everybody Eats.',
   },
   heroKicker: { nl: 'HomeCheff', en: 'HomeCheff' },
   heroTitle: {
@@ -24,38 +24,38 @@ export const ecosystemParticipationPage: PageCopy = {
     en: 'Everybody Eats.',
   },
   heroBody: {
-    nl: 'HomeCheff is een ecosysteem voor lokaal ondernemerschap, creatie en verdienen. Het verbindt Marketplace, HomeCheff Studio, HomeCheff Growth en Affiliate/Partners — zonder dat iedereen hetzelfde hoeft te doen. Iedereen eet mee.',
-    en: 'HomeCheff is an ecosystem for local entrepreneurship, creation and earning. It connects Marketplace, HomeCheff Studio, HomeCheff Growth and Affiliate/Partners — without requiring everyone to do the same thing.',
+    nl: 'HomeCheff is een ecosysteem voor lokaal ondernemerschap, creatie en verdienen. Het verbindt Marketplace, HomeCheff Studio, HomeCheff Growth en Affiliate/Partners, zonder dat iedereen hetzelfde hoeft te doen. Iedereen eet mee.',
+    en: 'HomeCheff is an ecosystem for local entrepreneurship, creation and earning. It connects Marketplace, HomeCheff Studio, HomeCheff Growth and Affiliate/Partners, without requiring everyone to do the same thing.',
   },
   ideaTitle: { nl: 'Het idee', en: 'The idea' },
   ideaBody: {
-    nl: 'HomeCheff is geen losse marktplaats met twee extra tools. Het is één ecosysteem waarin mensen en bedrijven kunnen maken, aanbieden en verkopen, content creëren, klanten vinden, promoten en verdienen — waar het commerciële model dat ondersteunt.',
-    en: 'HomeCheff is not a marketplace with two bolted-on tools. It is one ecosystem where people and businesses can create, offer and sell, produce content, find customers, promote and earn — where the commercial model supports it.',
+    nl: 'HomeCheff is geen losse marktplaats met twee extra tools. Het is één ecosysteem waarin mensen en bedrijven kunnen maken, aanbieden en verkopen, content creëren, klanten vinden, promoten en verdienen, waar het commerciële model dat ondersteunt.',
+    en: 'HomeCheff is not a marketplace with two bolted-on tools. It is one ecosystem where people and businesses can create, offer and sell, produce content, find customers, promote and earn, where the commercial model supports it.',
   },
-  createTitle: { nl: 'CREATE — HomeCheff Studio', en: 'CREATE — HomeCheff Studio' },
+  createTitle: { nl: 'CREATE: HomeCheff Studio', en: 'CREATE: HomeCheff Studio' },
   createBody: {
     nl: 'Studio helpt makers, verkopers en bedrijven professionele beelden, video en promotiemateriaal maken voor producten, diensten en campagnes. Geen losse “AI-gadget”: de CREATE-laag van HomeCheff.',
     en: 'Studio helps makers, sellers and businesses create professional images, video and promotional material for products, services and campaigns. Not a random AI gadget: the CREATE layer of HomeCheff.',
   },
-  sellTitle: { nl: 'SELL — Marketplace', en: 'SELL — Marketplace' },
+  sellTitle: { nl: 'SELL: Marketplace', en: 'SELL: Marketplace' },
   sellBody: {
-    nl: 'De Marketplace is voor zelfgemaakte producten, persoonlijke diensten en creatief werk — lokaal ontdekken, met de mens achter het aanbod. Geen generieke tweedehands-marktplaats.',
-    en: 'The Marketplace is for self-made products, personal services and creative work — discovered locally, with the person behind the offer. Not a generic second-hand marketplace.',
+    nl: 'De Marketplace is voor zelfgemaakte producten, persoonlijke diensten en creatief werk, lokaal ontdekken, met de mens achter het aanbod. Geen generieke tweedehands-marktplaats.',
+    en: 'The Marketplace is for self-made products, personal services and creative work, discovered locally, with the person behind the offer. Not a generic second-hand marketplace.',
   },
-  growTitle: { nl: 'GROW — HomeCheff Growth', en: 'GROW — HomeCheff Growth' },
+  growTitle: { nl: 'GROW: HomeCheff Growth', en: 'GROW: HomeCheff Growth' },
   growBody: {
-    nl: 'Growth helpt ondernemers en teams commerciële kansen en leads ontdekken, organiseren en opvolgen — regio, branche en signalen in één workspace.',
-    en: 'Growth helps entrepreneurs and teams discover, organize and follow up commercial opportunities and leads — region, industry and signals in one workspace.',
+    nl: 'Growth helpt ondernemers en teams commerciële kansen en leads ontdekken, organiseren en opvolgen, regio, branche en signalen in één workspace.',
+    en: 'Growth helps entrepreneurs and teams discover, organize and follow up commercial opportunities and leads, region, industry and signals in one workspace.',
   },
-  promoteTitle: { nl: 'PROMOTE — Affiliate & partners', en: 'PROMOTE — Affiliate & partners' },
+  promoteTitle: { nl: 'PROMOTE: Affiliate & partners', en: 'PROMOTE: Affiliate & partners' },
   promoteBody: {
-    nl: 'Promotie en referral zijn een horizontale laag over het ecosysteem — Marketplace, Growth en Studio kunnen meedoen waar het actuele partnerprogramma dat toestaat. Exacte percentages staan in de toepasselijke voorwaarden; geen universele belofte.',
-    en: 'Promotion and referral are a horizontal layer across the ecosystem — Marketplace, Growth and Studio can participate where the current partner programme allows. Exact percentages live in the applicable terms; no universal promise.',
+    nl: 'Promotie en referral zijn een horizontale laag over het ecosysteem. Marketplace, Growth en Studio kunnen meedoen waar het actuele partnerprogramma dat toestaat. Exacte percentages staan in de toepasselijke voorwaarden; geen universele belofte.',
+    en: 'Promotion and referral are a horizontal layer across the ecosystem. Marketplace, Growth and Studio can participate where the current partner programme allows. Exact percentages live in the applicable terms; no universal promise.',
   },
-  earnTitle: { nl: 'EARN — Meedoen op jouw manier', en: 'EARN — Participate your way' },
+  earnTitle: { nl: 'EARN: Meedoen op jouw manier', en: 'EARN: Participate your way' },
   earnBody: {
-    nl: 'Maker, verkoper, dienstverlener, creator, bedrijf, promoter, affiliate of partner — of een combinatie. Verdienen hangt af van echte deelname en de geldende regels. Geen gegarandeerd inkomen.',
-    en: 'Maker, seller, service provider, creator, business, promoter, affiliate or partner — or a mix. Earnings depend on real participation and applicable rules. No guaranteed income.',
+    nl: 'Maker, verkoper, dienstverlener, creator, bedrijf, promoter, affiliate of partner, of een combinatie. Verdienen hangt af van echte deelname en de geldende regels. Geen gegarandeerd inkomen.',
+    en: 'Maker, seller, service provider, creator, business, promoter, affiliate or partner, or a mix. Earnings depend on real participation and applicable rules. No guaranteed income.',
   },
   loopTitle: { nl: 'De lus', en: 'The loop' },
   loopBody: {
@@ -82,8 +82,8 @@ export const studioLandingPage: PageCopy = {
     en: 'HomeCheff Studio | CREATE layer of the ecosystem',
   },
   metaDescription: {
-    nl: 'HomeCheff Studio is de CREATE-laag: maak promotiebeelden, video en content voor producten, diensten en bedrijven — onderdeel van HomeCheff naast Marketplace en Growth.',
-    en: 'HomeCheff Studio is the CREATE layer: make promotional images, video and content for products, services and businesses — part of HomeCheff alongside Marketplace and Growth.',
+    nl: 'HomeCheff Studio is de CREATE-laag: maak promotiebeelden, video en content voor producten, diensten en bedrijven, onderdeel van HomeCheff naast Marketplace en Growth.',
+    en: 'HomeCheff Studio is the CREATE layer: make promotional images, video and content for products, services and businesses, part of HomeCheff alongside Marketplace and Growth.',
   },
   heroKicker: { nl: 'CREATE', en: 'CREATE' },
   heroTitle: {
@@ -91,8 +91,8 @@ export const studioLandingPage: PageCopy = {
     en: 'HomeCheff Studio',
   },
   heroBody: {
-    nl: 'Maak professionele content voor wat je verkoopt, aanbiedt of promoot. Studio hoort bij HomeCheff — niet bij een losse, ongerelateerde tool.',
-    en: 'Create professional content for what you sell, offer or promote. Studio belongs to HomeCheff — not an unrelated standalone tool.',
+    nl: 'Maak professionele content voor wat je verkoopt, aanbiedt of promoot. Studio hoort bij HomeCheff, niet bij een losse, ongerelateerde tool.',
+    en: 'Create professional content for what you sell, offer or promote. Studio belongs to HomeCheff, not an unrelated standalone tool.',
   },
   forTitle: { nl: 'Voor wie', en: 'Who it is for' },
   forBody: {
@@ -101,8 +101,8 @@ export const studioLandingPage: PageCopy = {
   },
   whatTitle: { nl: 'Wat je kunt maken', en: 'What you can create' },
   whatBody: {
-    nl: 'Beelden, motion/video, storyboards en promotiemateriaal voor producten, diensten en merken — gericht op presentatie en groei, zonder claims over “magische AI” die we niet hard maken.',
-    en: 'Images, motion/video, storyboards and promotional material for products, services and brands — focused on presentation and growth, without unsupported “magic AI” claims.',
+    nl: 'Beelden, motion/video, storyboards en promotiemateriaal voor producten, diensten en merken, gericht op presentatie en groei, zonder claims over “magische AI” die we niet hard maken.',
+    en: 'Images, motion/video, storyboards and promotional material for products, services and brands, focused on presentation and growth, without unsupported “magic AI” claims.',
   },
   connectTitle: { nl: 'Hoe het past in HomeCheff', en: 'How it fits HomeCheff' },
   connectBody: {
@@ -121,8 +121,8 @@ export const growthLandingPage: PageCopy = {
     en: 'HomeCheff Growth | GROW layer of the ecosystem',
   },
   metaDescription: {
-    nl: 'HomeCheff Growth is de GROW-laag: ontdek en organiseer leads en commerciële kansen — onderdeel van HomeCheff naast Marketplace en Studio.',
-    en: 'HomeCheff Growth is the GROW layer: discover and organize leads and commercial opportunities — part of HomeCheff alongside Marketplace and Studio.',
+    nl: 'HomeCheff Growth is de GROW-laag: ontdek en organiseer leads en commerciële kansen, onderdeel van HomeCheff naast Marketplace en Studio.',
+    en: 'HomeCheff Growth is the GROW layer: discover and organize leads and commercial opportunities, part of HomeCheff alongside Marketplace and Studio.',
   },
   heroKicker: { nl: 'GROW', en: 'GROW' },
   heroTitle: {
@@ -130,8 +130,8 @@ export const growthLandingPage: PageCopy = {
     en: 'HomeCheff Growth',
   },
   heroBody: {
-    nl: 'Vind en organiseer commerciële kansen en prospects — voor ondernemers, verkopers, recruiters, agencies en teams die klanten willen groeien.',
-    en: 'Find and organize commercial opportunities and prospects — for entrepreneurs, sellers, recruiters, agencies and teams who want to grow customers.',
+    nl: 'Vind en organiseer commerciële kansen en prospects, voor ondernemers, verkopers, recruiters, agencies en teams die klanten willen groeien.',
+    en: 'Find and organize commercial opportunities and prospects, for entrepreneurs, sellers, recruiters, agencies and teams who want to grow customers.',
   },
   forTitle: { nl: 'Voor wie', en: 'Who it helps' },
   forBody: {
@@ -140,8 +140,8 @@ export const growthLandingPage: PageCopy = {
   },
   whatTitle: { nl: 'Wat Growth doet', en: 'What Growth does' },
   whatBody: {
-    nl: 'Zoeken en filteren op regio, branche en signalen; kansen beoordelen en opvolgen in één workspace. Functionaliteit blijft beperkt tot wat live beschikbaar is — geen belofte van gegarandeerde klanten.',
-    en: 'Search and filter by region, industry and signals; qualify and follow up opportunities in one workspace. Scope stays limited to what is live — no promise of guaranteed customers.',
+    nl: 'Zoeken en filteren op regio, branche en signalen; kansen beoordelen en opvolgen in één workspace. Functionaliteit blijft beperkt tot wat live beschikbaar is, geen belofte van gegarandeerde klanten.',
+    en: 'Search and filter by region, industry and signals; qualify and follow up opportunities in one workspace. Scope stays limited to what is live, no promise of guaranteed customers.',
   },
   connectTitle: { nl: 'Hoe het past in HomeCheff', en: 'How it fits HomeCheff' },
   connectBody: {

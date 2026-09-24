@@ -8,7 +8,7 @@ import { MAIN_DOMAIN } from "@/lib/seo/metadata";
 
 const title = "Guides and topics | HomeCheff";
 const description =
-  "Guides on offering and discovering locally: food, garden, creations, services, barter and community — all HomeCheff topics.";
+  "Guides on offering and discovering locally: food, garden, creations, services, barter and community, all HomeCheff topics.";
 
 export const metadata: Metadata = {
   title,

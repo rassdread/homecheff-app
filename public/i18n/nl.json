@@ -67,19 +67,19 @@
     "openingInstallerStatus": "Installatiescherm openen…",
     "btnOpenCachedApk": "Gedownloade APK openen",
     "stepTapInstall": "Tik op Installeren in het scherm van Android.",
-    "stepReopen": "Open daarna opnieuw HomeCheff — je gegevens blijven gewoon staan.",
+    "stepReopen": "Open daarna opnieuw HomeCheff. Je gegevens blijven gewoon staan.",
     "reassuranceData": "Je account en gegevens blijven bewaard. Dit vervangt alleen de app op je telefoon.",
     "postGuideTitle": "Bijna klaar",
     "postGuideBody": "Als de installatie klaar is: sluit dit venster en open HomeCheff opnieuw vanuit je beginscherm. Zie je nog de oude versie? Wacht even of start de telefoon opnieuw.",
     "postGuideDismiss": "Begrepen",
     "errorTitle": "We konden de installatie niet automatisch openen",
     "errorOpenFromNotifications": "Geen probleem: open de update via je meldingen of via de map Downloads op je telefoon. Tik op het bestand om te installeren.",
-    "errorBodyNoCache": "Er ging iets mis bij het openen van de installatie. Probeer opnieuw te downloaden. Gebruik de browser alleen als laatste redmiddel — die download blijft daar vaak hangen.",
+    "errorBodyNoCache": "Er ging iets mis bij het openen van de installatie. Probeer opnieuw te downloaden. Gebruik de browser alleen als laatste redmiddel. Die download blijft daar vaak hangen.",
     "cacheFallbackLead": "De update is gedownload binnen HomeCheff. Probeer hem opnieuw te openen of sla hem op in Downloads.",
     "exportedToDownloadsPublic": "De update staat nu in Downloads als {file} (in de map HomeCheff).",
     "exportedToAppStorage": "We hebben een kopie gezet in de app-opslag van HomeCheff op je telefoon. Open hem via de knoppen hierboven, of zoek in je Bestanden-app bij deze app (Download/HomeCheff).",
     "exportSaveFailed": "Opslaan in Downloads lukte niet. Probeer eerst opnieuw de gedownloade APK te openen.",
-    "downloadStalled": "De download duurde te lang of werd onderbroken. Probeer het opnieuw — eventueel via wifi.",
+    "downloadStalled": "De download duurde te lang of werd onderbroken. Probeer het opnieuw, eventueel via wifi.",
     "btnOpenAndroidSettings": "Open Android-instellingen",
     "btnSaveApkToDownloads": "Opslaan in Downloads",
     "saveToDownloadsBusy": "Bezig met opslaan…",
@@ -96,9 +96,9 @@
     "updateSuccessTitle": "HomeCheff is bijgewerkt",
     "updateSuccessBody": "Je gebruikt nu de nieuwste beta.",
     "webVersionToast": "Nieuwe versie geladen",
-    "reminderFinishInstall": "Rond je update af — tik op Installeren of open HomeCheff opnieuw na de installatie.",
+    "reminderFinishInstall": "Rond je update af. Tik op Installeren of open HomeCheff opnieuw na de installatie.",
     "errorPackageMismatch": "Deze update hoort de bestaande HomeCheff-app te vervangen, maar het installatiebestand hoort bij een andere app. Gebruik alleen de officiële beta-APK van homecheff.eu.",
-    "errorSignatureMismatch": "Deze update is met een andere sleutel ondertekend dan je huidige app (bijv. debug vs release, of Play vs sideload). Verwijder oude testversies één keer, installeer daarna de release-beta van homecheff.eu — volgende updates vervangen dan automatisch."
+    "errorSignatureMismatch": "Deze update is met een andere sleutel ondertekend dan je huidige app (bijv. debug vs release, of Play vs sideload). Verwijder oude testversies één keer, installeer daarna de release-beta van homecheff.eu, volgende updates vervangen dan automatisch."
   },
   "playMigration": {
     "ariaLabel": "Google Play migratie",
@@ -121,19 +121,19 @@
     "playSectionTitle": "Download via Google Play",
     "ctaOpenPlay": "Open in Google Play",
     "versionLabel": "Huidige testversie:",
-    "playTrustNote": "Updates komen automatisch via Google Play — veilig en betrouwbaar.",
+    "playTrustNote": "Updates komen automatisch via Google Play, veilig en betrouwbaar.",
     "stepsTitle": "Zo word je tester",
     "step1": "Tik op Open in Google Play en accepteer de uitnodiging voor Open Testing.",
     "step2": "Installeer HomeCheff vanuit de Play Store op je Android-toestel.",
     "step3": "Open de app en log in op je bestaande account of maak een nieuw account aan.",
-    "step4": "Geef feedback — je helpt HomeCheff beter te maken voor iedereen.",
+    "step4": "Geef feedback. Je helpt HomeCheff beter te maken voor iedereen.",
     "accountTitle": "Account",
     "accountBody": "Voor berichten, HCP en je profiel heb je een HomeCheff-account nodig.",
     "createAccount": "Account aanmaken",
     "login": "Inloggen",
     "shareTitle": "Deel de HomeCheff-app",
     "shareText": "Installeer HomeCheff via Google Play: homecheff.eu/app",
-    "shareBody": "Deel de testlink met jouw referralcode — zo groeit het netwerk eerlijk en meetbaar.",
+    "shareBody": "Deel de testlink met jouw referralcode, zo groeit het netwerk eerlijk en meetbaar.",
     "shareCta": "Deel testlink",
     "shareCopied": "Link gekopieerd naar klembord.",
     "shareManual": "Kon link niet delen. Kopieer handmatig: {url}",
@@ -158,13 +158,13 @@
   "softGate": {
     "saveItem": {
       "title": "Bewaar dit in jouw collectie",
-      "body": "Alles wat je raakt op één plek. Log in of meld je aan — we brengen je direct hier terug.",
+      "body": "Alles wat je raakt op één plek. Log in of meld je aan. We brengen je direct hier terug.",
       "ctaLogin": "Inloggen",
       "ctaRegister": "Claim jouw plek"
     },
     "giveProp": {
       "title": "Stuur waardering naar deze maker",
-      "body": "Waardering is een klein bedankje van de community. Ga verder met je account — één tik en je bent terug.",
+      "body": "Waardering is een klein bedankje van de community. Ga verder met je account, één tik en je bent terug.",
       "ctaLogin": "Inloggen",
       "ctaRegister": "Word lid van HomeCheff"
     },
@@ -176,13 +176,13 @@
     },
     "message": {
       "title": "Stuur een bericht naar deze maker",
-      "body": "Stel je voor of stel een vraag — na inloggen openen we het gesprek meteen.",
+      "body": "Stel je voor of stel een vraag, na inloggen openen we het gesprek meteen.",
       "ctaLogin": "Inloggen",
       "ctaRegister": "Start jouw plek"
     },
     "notifications": {
       "title": "Jouw HomeCheff-meldingen",
-      "body": "Bestellingen, berichten en momenten van makers die je volgt — log in om ze rustig op één plek te zien.",
+      "body": "Bestellingen, berichten en momenten van makers die je volgt. Log in om ze rustig op één plek te zien.",
       "ctaLogin": "Inloggen",
       "ctaRegister": "Word onderdeel van de community"
     },
@@ -194,13 +194,13 @@
     },
     "location": {
       "title": "Lokaal ontdekken werkt beter ingelogd",
-      "body": "Bewaar je omgeving, word vindbaar bij makers bij jou in de buurt — ga verder met je account.",
+      "body": "Bewaar je omgeving, word vindbaar bij makers bij jou in de buurt. Ga verder met je account.",
       "ctaLogin": "Inloggen",
       "ctaRegister": "Meedoen"
     },
     "create": {
       "title": "Deel iets met het dorp",
-      "body": "Aanbod en inspiratie beginnen hier. Log in of meld je aan — je concept blijft bewaard.",
+      "body": "Aanbod en inspiratie beginnen hier. Log in of meld je aan. Je concept blijft bewaard.",
       "ctaLogin": "Inloggen",
       "ctaRegister": "Open jouw keuken, tuin of atelier"
     },
@@ -212,13 +212,13 @@
     },
     "affiliate": {
       "title": "Bouw jouw HomeCheff-community",
-      "body": "Deel wat je leuk vindt en groei samen — log in om verder te gaan met partner worden.",
+      "body": "Deel wat je leuk vindt en groei samen. Log in om verder te gaan met partner worden.",
       "ctaLogin": "Inloggen",
       "ctaRegister": "Samen verdienen"
     },
     "generic": {
       "title": "Ga verder op HomeCheff",
-      "body": "Ga verder waar je was — één account voor makers, foodliefhebbers en creators.",
+      "body": "Ga verder waar je was, één account voor makers, foodliefhebbers en creators.",
       "ctaLogin": "Inloggen",
       "ctaRegister": "Meedoen"
     }
@@ -227,12 +227,12 @@
     "title": "Nog een paar stappen nodig",
     "body": "Voordat je dit kunt doen, rond je account af.",
     "subtitleUsername": "Kies een definitieve gebruikersnaam om actief deel te nemen op HomeCheff.",
-    "hint": "Je account mist nog een paar stappen — zie de checklist.",
+    "hint": "Je account mist nog een paar stappen. Zie de checklist.",
     "close": "Sluiten",
     "cta": "Ga verder"
   },
   "accountRequirementsHints": {
-    "sendMessage_email": "Om berichten te sturen moet je e-mailadres geverifieerd zijn. Ontvang je geen verificatie-e-mail? Dan kan er tijdelijk iets mis zijn bij onze maildienst — je kunt gewoon verder browsen en het later opnieuw proberen.",
+    "sendMessage_email": "Om berichten te sturen moet je e-mailadres geverifieerd zijn. Ontvang je geen verificatie-e-mail? Dan kan er tijdelijk iets mis zijn bij onze maildienst. Je kunt gewoon verder browsen en het later opnieuw proberen.",
     "sendMessage_profile": "Vul eerst de ontbrekende gegevens hieronder aan om berichten te kunnen sturen.",
     "postItem_email": "Om iets te plaatsen moet je e-mailadres geverifieerd zijn. Geen mail ontvangen? Probeer het later opnieuw of neem contact op.",
     "postItem_profile": "Vul eerst de ontbrekende gegevens aan om iets te kunnen plaatsen.",
@@ -267,43 +267,43 @@
   },
   "sellerActivation": {
     "title": "Optioneel: voeg je locatie toe",
-    "body": "Je mag eerst verkennen en aanbod plaatsen. Stad en land (en postcode in NL) helpen kopers in de buurt — pas aan wanneer het jou uitkomt.",
+    "body": "Je mag eerst verkennen en aanbod plaatsen. Stad en land (en postcode in NL) helpen kopers in de buurt. Pas aan wanneer het jou uitkomt.",
     "ctaProfile": "Woonplaats toevoegen",
     "later": "Nu niet"
   },
   "personaBanner": {
     "chef": {
-      "teaser": "Start jouw keuken — je eerste aanbod is zo geplaatst.",
+      "teaser": "Start jouw keuken. Je eerste aanbod is zo geplaatst.",
       "cta": "Naar verkopen",
       "welcome": "Dit platform is gemaakt voor makers zoals jij."
     },
     "designer": {
-      "teaser": "Open jouw atelier — laat zien wat je maakt.",
+      "teaser": "Open jouw atelier. Laat zien wat je maakt.",
       "cta": "Naar verkopen",
-      "welcome": "Laat je proces zien — hier waarderen ze vakmanschap."
+      "welcome": "Laat je proces zien: hier waarderen ze vakmanschap."
     },
     "grower": {
-      "teaser": "Start jouw tuin — deel wat je kweekt.",
+      "teaser": "Start jouw tuin. Deel wat je kweekt.",
       "cta": "Naar verkopen",
       "welcome": "Deze plek is gemaakt voor makers met groen vingers."
     },
     "affiliate": {
-      "teaser": "Bouw jouw community — deel HomeCheff met mensen die van lokaal houden.",
+      "teaser": "Bouw jouw community. Deel HomeCheff met mensen die van lokaal houden.",
       "cta": "Naar affiliate-hub",
-      "welcome": "Welkom — bouw een community rond makers die jij steunt."
+      "welcome": "Welkom. Bouw een community rond makers die jij steunt."
     },
     "explorer": {
-      "teaser": "Ontdek makers en inspiratie bij jou in de buurt — begin op de feed.",
+      "teaser": "Ontdek makers en inspiratie bij jou in de buurt. Begin op de feed.",
       "cta": "Ontdek de feed",
       "welcome": "Jouw hoek van het ecosysteem begint bij wat er nu speelt in de buurt."
     },
     "business": {
-      "teaser": "Laat je vak zien — begin met een duidelijk profiel en je eerste aanbod.",
+      "teaser": "Laat je vak zien. Begin met een duidelijk profiel en je eerste aanbod.",
       "cta": "Start met verkopen",
-      "welcome": "HomeCheff werkt voor solo-makers en kleine teams — begin met de basis."
+      "welcome": "HomeCheff werkt voor solo-makers en kleine teams. Begin met de basis."
     },
     "inspiration": {
-      "teaser": "Deel inspiratie — recepten, proces en ideeën uit keuken, tuin of atelier.",
+      "teaser": "Deel inspiratie: recepten, proces en ideeën uit keuken, tuin of atelier.",
       "cta": "Deel inspiratie",
       "welcome": "Makers zoals jij houden de inspiratiestroom levend."
     },
@@ -316,7 +316,7 @@
   },
   "communityPulse": {
     "heading": "Wat er leeft in de buurt",
-    "fallbackLine": "Ontdek wat makers en buren nu delen — aanbod, inspiratie en kleine momenten dichtbij.",
+    "fallbackLine": "Ontdek wat makers en buren nu delen, aanbod, inspiratie en kleine momenten dichtbij.",
     "newProducts24h": "{count} nieuwe aanbiedingen in de laatste 24 uur",
     "newCreators7d": "{count} nieuwe accounts deze week",
     "newInspiration7d": "{count} nieuwe openbare inspiratieposts deze week",
@@ -333,14 +333,14 @@
     "profileViews": "Je profiel werd {count} keer bekeken (totaal).",
     "savesWeek": "{count} saves op jouw aanbiedingen in de laatste 7 dagen.",
     "newFollowersWeek": "{count} nieuwe volgers in de laatste 7 dagen.",
-    "unreadNotifications": "{count} ongelezen meldingen — bekijk ze wanneer het past.",
+    "unreadNotifications": "{count} ongelezen meldingen. Bekijk ze wanneer het past.",
     "ctaProfile": "Open profiel",
     "ctaNotifications": "Open meldingen"
   },
   "creatorAudience": {
     "sectionAria": "Publiek- en communitysignalen voor je makerprofiel",
     "title": "Jouw publiek",
-    "subtitle": "Rustige signalen uit echte activiteit — totalen en kleine groepen, nooit losse namen.",
+    "subtitle": "Rustige signalen uit echte activiteit, totalen en kleine groepen, nooit losse namen.",
     "localPresence": "Verankerd bij {place}",
     "metrics": {
       "followers": "Volgers",
@@ -353,17 +353,17 @@
       "listingsActive": "{count} actieve aanbiedingen"
     },
     "hints": {
-      "growing": "Je publiek groeit — deze week kwamen er nieuwe volgers bij.",
-      "discovery": "Je creaties worden ontdekt — saves liepen deze week op.",
+      "growing": "Je publiek groeit. Deze week kwamen er nieuwe volgers bij.",
+      "discovery": "Je creaties worden ontdekt: saves liepen deze week op.",
       "returning": "Sommige mensen komen terug om jouw werk op te slaan.",
       "breadth": "Verschillende mensen sloegen deze week iets van jou op."
     },
-    "calmDefault": "Blijf rustig delen — zinvolle signalen verschijnen als mensen je vinden."
+    "calmDefault": "Blijf rustig delen: zinvolle signalen verschijnen als mensen je vinden."
   },
   "returnBelonging": {
     "title": "Community update",
     "followedCreatorsPosted": "Makers die je volgt, deelden het afgelopen etmaal iets nieuws.",
-    "yourAudienceGrowing": "Je publiek groeide deze week — er kwamen nieuwe volgers bij.",
+    "yourAudienceGrowing": "Je publiek groeide deze week. Er kwamen nieuwe volgers bij.",
     "communitySavesActive": "Er worden deze week veel favorieten toegevoegd op het Dorpsplein ({count})."
   },
   "ecosystemHub": {
@@ -401,7 +401,7 @@
   },
   "ecosystemVertical": {
     "backHome": "Terug naar het dorpsplein",
-    "emptyCalm": "Er is hier nog weinig zichtbare activiteit — op het dorpsplein en bij inspiratie zie je rustig wat er wél leeft. Word zichtbaar in jouw regio door iets te delen of een aanbod te plaatsen.",
+    "emptyCalm": "Er is hier nog weinig zichtbare activiteit, op het dorpsplein en bij inspiratie zie je rustig wat er wél leeft. Word zichtbaar in jouw regio door iets te delen of een aanbod te plaatsen.",
     "titles": {
       "keuken": "Keuken-ecosysteem",
       "tuin": "Tuin-ecosysteem",
@@ -410,11 +410,11 @@
       "community": "Community & affiliates"
     },
     "intros": {
-      "keuken": "Thuiskeukens en lokaal eten — activiteit van echte makers, rustig zichtbaar.",
-      "tuin": "Tuinmakers en oogst — geworteld in aanbiedingen en openbare werkruimte-verhalen.",
-      "studio": "Design en ambacht — een levend hoekje voor makers die delen en verkopen.",
-      "inspiratie": "Recepten, kweekverslagen en atelierproces — een zachte puls uit de community.",
-      "community": "Mensen die HomeCheff verder helpen — transparant, vrijwillig, kalm."
+      "keuken": "Thuiskeukens en lokaal eten: activiteit van echte makers, rustig zichtbaar.",
+      "tuin": "Tuinmakers en oogst: geworteld in aanbiedingen en openbare werkruimte-verhalen.",
+      "studio": "Design en ambacht, een levend hoekje voor makers die delen en verkopen.",
+      "inspiratie": "Recepten, kweekverslagen en atelierproces, een zachte puls uit de community.",
+      "community": "Mensen die HomeCheff verder helpen, transparant, vrijwillig, kalm."
     },
     "stats": {
       "activeListings": "Actieve aanbiedingen",
@@ -490,7 +490,7 @@
     "goToCheckout": "Ga naar afrekenen",
     "outOfStockMessage": "Dit product is helaas niet meer op voorraad.",
     "empty": "Je winkelwagen staat klaar voor jouw volgende ontdekking",
-    "emptyDescription": "Ontdek wat er nu beschikbaar is in je buurt — van verse oogst tot huisgemaakte gerechten",
+    "emptyDescription": "Ontdek wat er nu beschikbaar is in je buurt, van verse oogst tot huisgemaakte gerechten",
     "continueShopping": "Ontdek meer op het dorpsplein",
     "checkout": "Naar checkout",
     "subtotal": "Subtotaal",
@@ -512,9 +512,9 @@
     "checkoutWithCount": "Afrekenen ({count} items)"
   },
   "hero": {
-    "title": "HomeCheff – Thuisgemaakt. Thuisgebracht.",
+    "title": "HomeCheff. Thuisgemaakt. Thuisgebracht.",
     "valueProposition": "Lokaal en transparant: ontdek makers, praat mee op het dorpsplein, en reken veilig af wanneer je klaar bent om iets te proberen.",
-    "subtitle": "Ontdek gerechten, oogst en mode – rechtstreeks van mensen in jouw buurt.",
+    "subtitle": "Ontdek gerechten, oogst en mode, rechtstreeks van mensen in jouw buurt.",
     "greeting": "Welkom, {username}! Wat zal het vandaag worden?",
     "searchPlaceholder": "Zoek naar gerechten, producten of verkopers…",
     "filters": "Filters",
@@ -534,11 +534,11 @@
   "messages": {
     "messageAboutOrder": "Bericht over bestelling",
     "messageAboutOrderNumber": "Bericht over {orderNumber}",
-    "uploadNoUrl": "🔄 Probeer het opnieuw — soms heeft de upload even tijd nodig",
+    "uploadNoUrl": "🔄 Probeer het opnieuw: soms heeft de upload even tijd nodig",
     "uploadFailed": "💡 Tip: Check je internetverbinding en probeer het nogmaals",
-    "saved": "💾 Opgeslagen — je kunt het later bewerken",
+    "saved": "💾 Opgeslagen. Je kunt het later bewerken",
     "listingCreated": "✅ Je creatie staat nu op het dorpsplein!",
-    "listingFailed": "🔄 Probeer het opnieuw — soms heeft de upload even tijd nodig",
+    "listingFailed": "🔄 Probeer het opnieuw: soms heeft de upload even tijd nodig",
     "loading": "Berichten laden...",
     "noMessages": "Nog geen berichten",
     "startConversation": "Start een gesprek via een productpagina",
@@ -686,7 +686,7 @@
       },
       "requestReview": {
         "title": "Deel je ervaring",
-        "description": "Je hebt een afspraak afgerond — een korte review helpt de community.",
+        "description": "Je hebt een afspraak afgerond, een korte review helpt de community.",
         "action": "Review plaatsen"
       },
       "shareQr": {
@@ -696,12 +696,12 @@
       },
       "nearbyHelp": {
         "title": "Iemand in de buurt zoekt hulp",
-        "description": "Er zijn gezochte aanvragen bij jou in de buurt — misschien kun jij helpen.",
+        "description": "Er zijn gezochte aanvragen bij jou in de buurt, misschien kun jij helpen.",
         "action": "Bekijk verzoeken"
       },
       "uploadListing": {
         "title": "Plaats je eerste aanbod",
-        "description": "Deel wat je maakt, kweekt of aanbiedt — je dorpsplein wacht op je.",
+        "description": "Deel wat je maakt, kweekt of aanbiedt. Je dorpsplein wacht op je.",
         "action": "Aanbod plaatsen"
       },
       "uploadInspiration": {
@@ -711,7 +711,7 @@
       },
       "completeWorkspace": {
         "title": "Toon je werkplek",
-        "description": "Voeg foto's toe van je werkruimte — dat wekt vertrouwen bij kopers.",
+        "description": "Voeg foto's toe van je werkruimte. Dat wekt vertrouwen bij kopers.",
         "action": "Werkplek toevoegen"
       },
       "verifyAccount": {
@@ -751,7 +751,7 @@
       "practical": {
         "repairBicycleTire": {
           "title": "Help met een lekke band",
-          "description": "Iemand in de buurt zoekt hulp met een fietsband — misschien kun jij helpen.",
+          "description": "Iemand in de buurt zoekt hulp met een fietsband, misschien kun jij helpen.",
           "action": "Bekijk verzoeken"
         },
         "fixBicycleLights": {
@@ -818,7 +818,7 @@
         },
         "visitWorkshop": {
           "title": "Bezoek een workshop",
-          "description": "Er is een workshop bij jou in de buurt — ontdek en doe mee.",
+          "description": "Er is een workshop bij jou in de buurt. Ontdek en doe mee.",
           "action": "Workshops bekijken"
         },
         "pickupOrderInPerson": {
@@ -833,7 +833,7 @@
         },
         "meetNewCommunityMember": {
           "title": "Verwelkom een nieuwe buur",
-          "description": "Er zijn nieuwe leden in je buurt — stel je voor.",
+          "description": "Er zijn nieuwe leden in je buurt. Stel je voor.",
           "action": "Bekijk de buurt"
         },
         "discoverHiddenCreator": {
@@ -848,7 +848,7 @@
         },
         "exploreFavoriteMaker": {
           "title": "Stuur een bericht naar een favoriet",
-          "description": "Je hebt favorieten — start een gesprek voordat je koopt.",
+          "description": "Je hebt favorieten. Start een gesprek voordat je koopt.",
           "action": "Naar favorieten"
         }
       },
@@ -870,7 +870,7 @@
         },
         "offerPracticalHelp": {
           "title": "Praktische hulp aanbieden",
-          "description": "Iemand in de buurt zoekt praktische hulp — misschien past jouw skill.",
+          "description": "Iemand in de buurt zoekt praktische hulp, misschien past jouw skill.",
           "action": "Bekijk verzoeken"
         },
         "joinNeighborhoodInitiative": {
@@ -890,7 +890,7 @@
         },
         "reconnectPastSeller": {
           "title": "Herhaal bij een bekende maker",
-          "description": "Je hebt eerder lokaal gekocht — bezoek die maker opnieuw.",
+          "description": "Je hebt eerder lokaal gekocht, bezoek die maker opnieuw.",
           "action": "Naar bestellingen"
         }
       }
@@ -924,7 +924,7 @@
       },
       "courier": {
         "title": "Word buurtbezorger",
-        "description": "Bezorg lokaal en draag bij aan je community — verdiensten komen later.",
+        "description": "Bezorg lokaal en draag bij aan je community, verdiensten komen later.",
         "action": "Start als bezorger",
         "benefit": {
           "earn": "Toekomstig verdienpotentieel",
@@ -948,7 +948,7 @@
       },
       "communityHelper": {
         "title": "Steun iemand in de buurt",
-        "description": "Er zijn mensen bij jou in de buurt die hulp zoeken — misschien kun jij iets betekenen.",
+        "description": "Er zijn mensen bij jou in de buurt die hulp zoeken, misschien kun jij iets betekenen.",
         "action": "Bekijk verzoeken",
         "benefit": {
           "help": "Versterk buurtbanden",
@@ -960,7 +960,7 @@
         "variants": {
           "bikeRepair": {
             "title": "Help met een fiets in de buurt",
-            "description": "Iemand bij jou in de buurt heeft hulp nodig met een fiets — misschien kun jij helpen.",
+            "description": "Iemand bij jou in de buurt heeft hulp nodig met een fiets, misschien kun jij helpen.",
             "action": "Bekijk verzoeken"
           },
           "smallJobs": {
@@ -1014,7 +1014,7 @@
       },
       "sportsClubInviter": {
         "title": "Nodig je sportclub uit",
-        "description": "Samen koken, samen halen — groei als club op HomeCheff.",
+        "description": "Samen koken, samen halen: groei als club op HomeCheff.",
         "action": "Club uitnodigen",
         "benefit": {
           "community": "Bouw clubcommunity op",
@@ -1096,26 +1096,26 @@
       },
       "inviteSportsClub": {
         "title": "Nodig je sportclub uit",
-        "description": "Samen koken, samen halen — groei als club op HomeCheff.",
+        "description": "Samen koken, samen halen: groei als club op HomeCheff.",
         "action": "Club uitnodigen"
       },
       "supportNearby": {
         "title": "Steun iemand in de buurt",
-        "description": "Er zijn mensen bij jou in de buurt die hulp zoeken — misschien kun jij iets betekenen.",
+        "description": "Er zijn mensen bij jou in de buurt die hulp zoeken, misschien kun jij iets betekenen.",
         "action": "Bekijk verzoeken"
       }
     },
     "events": {
       "workshopNearby": {
         "title": "Workshop bij jou in de buurt",
-        "description": "Er is binnenkort een workshop in jouw omgeving — ontdek en doe mee.",
+        "description": "Er is binnenkort een workshop in jouw omgeving. Ontdek en doe mee.",
         "action": "Workshops bekijken"
       }
     },
     "community": {
       "peopleNearby": {
         "title": "Makers actief in je buurt",
-        "description": "Er zijn meerdere makers bij jou in de buurt — ontdek wat ze delen.",
+        "description": "Er zijn meerdere makers bij jou in de buurt. Ontdek wat ze delen.",
         "action": "Bekijk de buurt"
       },
       "newMakersNearby": {
@@ -1160,7 +1160,7 @@
       },
       "workshopWaitlist": {
         "title": "Wachtlijst workshop",
-        "description": "Een workshop bij jou in de buurt heeft een wachtlijst — meld je aan.",
+        "description": "Een workshop bij jou in de buurt heeft een wachtlijst. Meld je aan.",
         "action": "Bekijk workshop"
       }
     },
@@ -1371,7 +1371,7 @@
     "greetingQuestion": "wat gaat het worden vandaag?",
     "welcome": "Welkom op het Dorpsplein",
     "subtitle": "Ontdek wat jouw buurt te bieden heeft: eten, tuinoogst, creaties, diensten en hulp van mensen om je heen",
-    "description": "Word onderdeel van je lokale community — deel je passie of ontdek wat er om je heen gebeurt",
+    "description": "Word onderdeel van je lokale community. Deel je passie of ontdek wat er om je heen gebeurt",
     "welcomeBack": "Welkom terug!",
     "locationFound": "Locatie gevonden",
     "locationFoundMessage": "Zoekradius ingesteld op {postcode}",
@@ -1414,7 +1414,7 @@
   },
   "discover": {
     "hubTitle": "Ontdekken",
-    "hubSubtitle": "Inspiratie uit de community en aangeboden op het dorpsplein — wissel met de tabs hieronder. Uitgeklapte filters helpen je snel verfijnen.",
+    "hubSubtitle": "Inspiratie uit de community en aangeboden op het dorpsplein, wissel met de tabs hieronder. Uitgeklapte filters helpen je snel verfijnen.",
     "listingTypeLabel": "Toon",
     "listingTabsAria": "Kies inspiratie of dorpsplein"
   },
@@ -1423,7 +1423,7 @@
     "welcomeBack": "Welkom terug!",
     "greeting": "Hey {firstName}, kom hier inspiratie opdoen! Ontdek heerlijke recepten, prachtige kweken en unieke designs van onze community.",
     "subtitle": "Ontdek heerlijke recepten, prachtige kweken en unieke designs van onze community.",
-    "description": "Sla je favorieten op, deel je profiel — jouw persoonlijke atelier, tuin of keuken — waar al jouw items samenkomen.",
+    "description": "Sla je favorieten op, deel je profiel, jouw persoonlijke atelier, tuin of keuken, waar al jouw items samenkomen.",
     "filters": "Filters",
     "all": "Alles",
     "recipes": "Recepten",
@@ -1656,7 +1656,7 @@
     "eyebrow": "Werk & activiteit",
     "greeting": "Welkom, {{name}}",
     "modulesTitle": "Meer van HomeCheff",
-    "modulesSupport": "Andere HomeCheff-producten — kies waar je naartoe wilt.",
+    "modulesSupport": "Andere HomeCheff-producten. Kies waar je naartoe wilt.",
     "activityTitle": "Jouw werk",
     "modules": {
       "marketplace": {
@@ -1716,7 +1716,7 @@
       },
       "affiliate": {
         "title": "Affiliate & netwerk",
-        "description": "Je code, netwerk en commissies — één introductie voor heel HomeCheff.",
+        "description": "Je code, netwerk en commissies, één introductie voor heel HomeCheff.",
         "onboardingDescription": "Nodig iemand uit. Als diegene later ergens in HomeCheff eligible platformomzet maakt, kan jouw netwerk meedelen (geen garantie).",
         "empty": "Nog geen netwerkactiviteit. Deel je code om te starten.",
         "primary": "Open Affiliate & netwerk",
@@ -1746,7 +1746,7 @@
       },
       "hc": {
         "title": "HC-saldo",
-        "description": "Je HomeCheff Credits — saldo, geschiedenis en waar je HC kunt gebruiken.",
+        "description": "Je HomeCheff Credits: saldo, geschiedenis en waar je HC kunt gebruiken.",
         "empty": "Nog geen HC-activiteit.",
         "primary": "Bekijk HC-saldo"
       }
@@ -2867,12 +2867,12 @@
       "deliveryRequestable": "Nu aanvraagbaar (bij uitbetaling hieronder)",
       "deliveryAlreadyOnStripeExplanation": "Bezorgverdiensten worden in de huidige afwikkeling administratief bijgehouden. Controleer of een Connect-overboeking daadwerkelijk heeft plaatsgevonden voordat je bankuitbetaling aanvraagt.",
       "stripeBalanceTitle": "Saldo op je uitbetalingsaccount",
-      "stripeBalanceDescription": "Dit staat er op je gekoppelde account (Stripe), inclusief bedragen uit het verleden. Uitbetaling naar je bank doe je via de knop hieronder – geen Stripe-login nodig.",
+      "stripeBalanceDescription": "Dit staat er op je gekoppelde account (Stripe), inclusief bedragen uit het verleden. Uitbetaling naar je bank doe je via de knop hieronder, geen Stripe-login nodig.",
       "stripeBalanceAvailable": "Beschikbaar voor uitbetaling",
       "stripeBalancePending": "In verwerking (binnenkort beschikbaar)",
       "requestBankPayout": "Saldo naar bank uitbetalen",
       "confirmBankPayout": "€{amount} van je uitbetalingsaccount naar je bank laten uitbetalen?",
-      "stripeBalancePayoutHint": "Je hebt €{amount} op je uitbetalingsaccount. Klik om naar je bank te laten uitbetalen – geen Stripe-login nodig.",
+      "stripeBalancePayoutHint": "Je hebt €{amount} op je uitbetalingsaccount. Klik om naar je bank te laten uitbetalen, geen Stripe-login nodig.",
       "payoutError": "Er is een fout opgetreden bij de uitbetaling.",
       "escrowReleaseHint": "Zet verzendbestellingen op Bezorgd om dit bedrag vrij te geven voor overboeking naar je Stripe Connect-account.",
       "deliveryAlreadyOnStripe": "Bezorggelden worden administratief bijgehouden; Connect-overboeking is afhankelijk van de actuele afwikkeling.",
@@ -3362,10 +3362,10 @@
     "contactMaker": "Bericht sturen",
     "viewOffer": "Bekijk aanbod",
     "askMaker": "Vraag iets aan maker",
-    "commercePathCheckout": "Bestel direct via HomeCheff — veilig betalen en bestelling volgen.",
-    "commercePathChat": "Maak eerst afspraken via de chat — stuur een voorstel of offerte.",
+    "commercePathCheckout": "Bestel direct via HomeCheff: veilig betalen en bestelling volgen.",
+    "commercePathChat": "Maak eerst afspraken via de chat. Stuur een voorstel of offerte.",
     "commercePathContact": "Stel je vraag via de chat voordat je bestelt.",
-    "commercePathProposal": "Stuur een ruilvoorstel via de chat — spreek af wat jullie uitwisselen.",
+    "commercePathProposal": "Stuur een ruilvoorstel via de chat. Spreek af wat jullie uitwisselen.",
     "outOfStock": "Uitverkocht",
     "contactNotConfigured": "Deze maker heeft nog geen contactopties ingesteld.",
     "viewLinkedStory": "Bekijk het verhaal achter dit product",
@@ -3509,7 +3509,7 @@
     "emailUs": "E-mail ons",
     "contactForm": "Contactformulier",
     "manifestTitle": "Waarom HomeCheff bestaat",
-    "manifestDescription": "Voor de filosofische basis — missie, waarden en wat we weigeren te worden — lees het HomeCheff Manifest.",
+    "manifestDescription": "Lees het HomeCheff Manifest voor de missie, de waarden en wat we weigeren te worden.",
     "manifestLink": "Naar het Manifest",
     "moreDetail": "Meer uitleg",
     "categories": {
@@ -3529,11 +3529,11 @@
     "general": {
       "0": {
         "question": "Wat is HomeCheff?",
-        "answer": "HomeCheff is een lokaal platform voor producten, diensten, vakmanschap, creativiteit en hulp in je buurt. Buurtgenoten kunnen aanbieden op het Dorpsplein, een oproep plaatsen in Gezocht, inspiratie delen, een voorstel doen of veilig afrekenen via HomeCheff Checkout.\n\n🎯 Voor wie: makers, tuiniers, ontwerpers, dienstverleners, buren die willen helpen en iedereen die lokaal wil ontdekken of ruilen.\n\n💡 Waarde-uitwisseling: niet alleen met geld — ook direct contact, ruil en alternatieve tegenwaarden zijn mogelijk als de aanbieder dat toestaat.\n\n🏘️ Lokaal & community: vertrouwen, reputatie (HCP) en transparante afspraken staan centraal — niet alleen commerce."
+        "answer": "HomeCheff is een lokaal platform voor producten, diensten, vakmanschap, creativiteit en hulp in je buurt. Buurtgenoten kunnen aanbieden op het Dorpsplein, een oproep plaatsen in Gezocht, inspiratie delen, een voorstel doen of veilig afrekenen via HomeCheff Checkout.\n\n🎯 Voor wie: makers, tuiniers, ontwerpers, dienstverleners, buren die willen helpen en iedereen die lokaal wil ontdekken of ruilen.\n\n💡 Waarde-uitwisseling: niet alleen met geld, ook direct contact, ruil en alternatieve tegenwaarden zijn mogelijk als de aanbieder dat toestaat.\n\n🏘️ Lokaal & community: vertrouwen, reputatie (HCP) en transparante afspraken staan centraal, niet alleen commerce."
       },
       "1": {
         "question": "Hoe werkt HomeCheff?",
-        "answer": "1️⃣ Ontdek of plaats iets op het Dorpsplein (Aangeboden), in Gezocht of als Inspiratie.\n2️⃣ Kies hoe je afspreekt: veilig via HomeCheff Checkout, direct contact, ruil of een voorstel met alternatieve waarde.\n3️⃣ Chat, maak een deal en bouw reputatie in je buurt.\n\nVoor particuliere verkopers is het platform gratis — je betaalt alleen transactiekosten bij HomeCheff Checkout. Bedrijven met een KVK-nummer kunnen een abonnement kiezen."
+        "answer": "1️⃣ Ontdek of plaats iets op het Dorpsplein (Aangeboden), in Gezocht of als Inspiratie.\n2️⃣ Kies hoe je afspreekt: veilig via HomeCheff Checkout, direct contact, ruil of een voorstel met alternatieve waarde.\n3️⃣ Chat, maak een deal en bouw reputatie in je buurt.\n\nVoor particuliere verkopers is het platform gratis. Je betaalt alleen transactiekosten bij HomeCheff Checkout. Bedrijven met een KVK-nummer kunnen een abonnement kiezen."
       },
       "2": {
         "question": "Is HomeCheff gratis te gebruiken?",
@@ -3561,7 +3561,7 @@
       },
       "8": {
         "question": "Waarom schrijf je HomeCheff met twee F’s?",
-        "answer": "HomeCheff is de officiële merkspelling: één woord, hoofdletter C, dubbele f. Die spelling is de eigen identiteit van een onafhankelijk Nederlands buurtmarkt-merk — niet verbonden met “Home Chef”-maaltijdbox- of USA-merken. Zie /waarom-homecheff."
+        "answer": "HomeCheff is de officiële merkspelling: één woord, hoofdletter C, dubbele f. Die spelling is de eigen identiteit van een onafhankelijk Nederlands buurtmarkt-merk, niet verbonden met “Home Chef”-maaltijdbox- of USA-merken. Zie /waarom-homecheff."
       },
       "9": {
         "question": "Wat is Arriassisme?",
@@ -3705,7 +3705,7 @@
       },
       "13": {
         "question": "Wanneer krijg ik mijn geld als verkoper bij verzending?",
-        "answer": "Bij verzending via pakketpost wordt het bedrag eerst gereserveerd voor uitbetaling tot het pakket is afgeleverd. Dit is een technische uitstel van de Connect-overboeking — geen aparte juridische derdenrekening of wettelijk beschermde escrow-dienst.\n\n🔒 RESERVERING VOOR UITBETALING:\n• Na betaling staat het bedrag bij het platform\n• Na leveringsbevestiging volgt overboeking naar je Stripe Connect-account\n• Daarna volgt bankuitbetaling volgens Stripe (doorgaans 2–5 werkdagen)\n\n⏱️ TIJDLIJN:\n• Order bevestigd → betaling ontvangen / gereserveerd\n• Pakket verzonden → statusupdate\n• Pakket afgeleverd → Connect-overboeking\n• Bankuitbetaling volgt daarna\n\nDit beschermt het afwikkelingsproces; productafspraken blijven tussen koper en aanbieder."
+        "answer": "Bij verzending via pakketpost wordt het bedrag eerst gereserveerd voor uitbetaling tot het pakket is afgeleverd. Dit is een technische uitstel van de Connect-overboeking, geen aparte juridische derdenrekening of wettelijk beschermde escrow-dienst.\n\n🔒 RESERVERING VOOR UITBETALING:\n• Na betaling staat het bedrag bij het platform\n• Na leveringsbevestiging volgt overboeking naar je Stripe Connect-account\n• Daarna volgt bankuitbetaling volgens Stripe (doorgaans 2–5 werkdagen)\n\n⏱️ TIJDLIJN:\n• Order bevestigd → betaling ontvangen / gereserveerd\n• Pakket verzonden → statusupdate\n• Pakket afgeleverd → Connect-overboeking\n• Bankuitbetaling volgt daarna\n\nDit beschermt het afwikkelingsproces; productafspraken blijven tussen koper en aanbieder."
       },
       "14": {
         "question": "Welke producten kunnen verzonden worden?",
@@ -3739,7 +3739,7 @@
       },
       "1": {
         "question": "Vanaf welk bedrag moet ik BTW betalen?",
-        "answer": "Voor btw gelden aparte regels. Dat is iets anders dan inkomstenbelasting of KVK. Er is geen simpele HomeCheff-grens waarna je automatisch btw betaalt.\n\n---\n\nBtw hangt eerst af van of je ondernemer bent voor de btw. Dat is iets anders dan KVK. Bij een kleine omzet kan een registratiedrempel gelden. De KOR is een aparte vrijstelling waar je onder voorwaarden voor kunt kiezen — geen belastingvrije inkomsten.\n\nBronnen:\nBelastingdienst — Ondernemer voor de btw\nhttps://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/hoe_werkt_de_btw/voor_wie_geldt_de_btw/ondernemer\nBelastingdienst — Registratiedrempel voor kleine ondernemers\nhttps://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/hoe_werkt_de_btw/kleineondernemersregeling/registratiedrempel-voor-kleine-ondernemers\nBelastingdienst — Voorwaarden KOR\nhttps://www.belastingdienst.nl/wps/wcm/connect/nl/btw/content/kor-voorwaarden"
+        "answer": "Voor btw gelden aparte regels. Dat is iets anders dan inkomstenbelasting of KVK. Er is geen simpele HomeCheff-grens waarna je automatisch btw betaalt.\n\n---\n\nBtw hangt eerst af van of je ondernemer bent voor de btw. Dat is iets anders dan KVK. Bij een kleine omzet kan een registratiedrempel gelden. De KOR is een aparte vrijstelling waar je onder voorwaarden voor kunt kiezen, geen belastingvrije inkomsten.\n\nBronnen:\nBelastingdienst — Ondernemer voor de btw\nhttps://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/hoe_werkt_de_btw/voor_wie_geldt_de_btw/ondernemer\nBelastingdienst — Registratiedrempel voor kleine ondernemers\nhttps://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/hoe_werkt_de_btw/kleineondernemersregeling/registratiedrempel-voor-kleine-ondernemers\nBelastingdienst — Voorwaarden KOR\nhttps://www.belastingdienst.nl/wps/wcm/connect/nl/btw/content/kor-voorwaarden"
       },
       "2": {
         "question": "Geeft HomeCheff mijn gegevens door aan de Belastingdienst?",
@@ -3805,7 +3805,7 @@
     "sustainability": {
       "0": {
         "question": "Hoe draagt HomeCheff bij aan het tegengaan van voedselverspilling?",
-        "answer": "HomeCheff maakt het makkelijker om extra eten of drinken in de buurt te laten zien in plaats van weg te gooien. Dat is een community-doel, geen wettelijke vrijstelling.\n\n---\n\nVerkoop je eten of drinken via het platform, dan gelden voedselveiligheid en allergeneninformatie. Of NVWA-registratie relevant is, hangt af van hoe vaak je verkoopt — niet van of je het ‘delen’ noemt."
+        "answer": "HomeCheff maakt het makkelijker om extra eten of drinken in de buurt te laten zien in plaats van weg te gooien. Dat is een community-doel, geen wettelijke vrijstelling.\n\n---\n\nVerkoop je eten of drinken via het platform, dan gelden voedselveiligheid en allergeneninformatie. Of NVWA-registratie relevant is, hangt af van hoe vaak je verkoopt, niet van of je het ‘delen’ noemt."
       },
       "1": {
         "question": "Valt het delen van overtollig eten onder commerciële verkoop?",
@@ -3885,7 +3885,7 @@
       },
       "1": {
         "question": "Wat betekent '12-12' precies?",
-        "answer": "12-12 betekent dat het standaardmodel voor actieve aangebrachte bedrijfsabonnementen tot twaalf maanden terugkerende commissie per bedrijf biedt binnen het huidige commissiemodel.\n\nDe eerste twaalf maanden zijn daarin gegarandeerd volgens je overeenkomst; daarna kan samenwerking evolueren via duidelijk gecommuniceerde incentives — zonder lifetime-garantie. HomeCheff zet in op langdurige partnerships en een schaalbaar ecosystem."
+        "answer": "12-12 betekent dat het standaardmodel voor actieve aangebrachte bedrijfsabonnementen tot twaalf maanden terugkerende commissie per bedrijf biedt binnen het huidige commissiemodel.\n\nDe eerste twaalf maanden zijn daarin gegarandeerd volgens je overeenkomst; daarna kan samenwerking evolueren via duidelijk gecommuniceerde incentives, zonder lifetime-garantie. HomeCheff zet in op langdurige partnerships en een schaalbaar ecosystem."
       },
       "2": {
         "question": "Hoeveel commissie verdien ik als affiliate?",
@@ -3907,11 +3907,11 @@
     "localCommunity": {
       "0": {
         "question": "Wat is het Dorpsplein op HomeCheff?",
-        "answer": "Het Dorpsplein is jouw lokale marktplaats-feed: hier vind je aangeboden eten, oogst, creaties, diensten en hulp van makers bij jou in de buurt. Je kunt swipen naar Inspiratie voor ideeën zonder directe verkoop, en via het profiel van een maker zie je wat er aangeboden wordt versus wat als inspiratie wordt gedeeld.\n\nZo zie je wat er lokaal leeft, steun je makers dichtbij en ontdek je meer dan alleen de supermarkt — inclusief ruil en gezocht."
+        "answer": "Het Dorpsplein is jouw lokale marktplaats-feed: hier vind je aangeboden eten, oogst, creaties, diensten en hulp van makers bij jou in de buurt. Je kunt swipen naar Inspiratie voor ideeën zonder directe verkoop, en via het profiel van een maker zie je wat er aangeboden wordt versus wat als inspiratie wordt gedeeld.\n\nZo zie je wat er lokaal leeft, steun je makers dichtbij en ontdek je meer dan alleen de supermarkt, inclusief ruil en gezocht."
       },
       "1": {
         "question": "Wat is Inspiratie en hoe verschilt dat van verkopen?",
-        "answer": "Inspiratie is bedoeld om te delen wat je maakt of kweekt — recepten, tuinupdates, ontwerpen — zonder dat er een prijs op staat. Ideaal om zichtbaar te worden in de community, fans te krijgen en later eventueel items op het Dorpsplein aan te bieden.\n\nVerkoop gebeurt op items met een prijs en betaling via HomeCheff. Je blijft zelf maker; HomeCheff helpt met ontdekking, chat en veilige betaling."
+        "answer": "Inspiratie is bedoeld om te delen wat je maakt of kweekt, recepten, tuinupdates, ontwerpen, zonder dat er een prijs op staat. Ideaal om zichtbaar te worden in de community, fans te krijgen en later eventueel items op het Dorpsplein aan te bieden.\n\nVerkoop gebeurt op items met een prijs en betaling via HomeCheff. Je blijft zelf maker; HomeCheff helpt met ontdekking, chat en veilige betaling."
       },
       "2": {
         "question": "Wat zijn HomeCheff Points (HCP)?",
@@ -3919,7 +3919,7 @@
       },
       "3": {
         "question": "Hoe werken de HCP-ranglijsten?",
-        "answer": "Op de ranglijstenpagina zie je wie in jouw omgeving, land of wereldwijd hoog scoort in een gekozen periode (week, maand, jaar, alles-tijd). Je kunt filteren op dichtbij (met locatie), op land of wereldwijd.\n\nIngelogde gebruikers zien hun eigen plek in de lijst waar beschikbaar. Vanaf profielen kun je doorklikken naar makers en hun aanbod — zo combineer je ontdekking met community."
+        "answer": "Op de ranglijstenpagina zie je wie in jouw omgeving, land of wereldwijd hoog scoort in een gekozen periode (week, maand, jaar, alles-tijd). Je kunt filteren op dichtbij (met locatie), op land of wereldwijd.\n\nIngelogde gebruikers zien hun eigen plek in de lijst waar beschikbaar. Vanaf profielen kun je doorklikken naar makers en hun aanbod, zo combineer je ontdekking met community."
       },
       "4": {
         "question": "Hoe installeer ik de HomeCheff-app en blijf ik op de hoogte?",
@@ -3933,7 +3933,7 @@
     "lightTitle": "Welkom op HomeCheff",
     "lightSubtitle": "Maak een account met je e-mailadres of ga verder met Google.",
     "lightTagline": "Start jouw plek op HomeCheff",
-    "lightHint": "Telefoon, bereikbaarheid en betalingen zijn optioneel — vul je profiel en bereikbaarheid later aan wanneer je dat wilt.",
+    "lightHint": "Telefoon, bereikbaarheid en betalingen zijn optioneel. Vul je profiel en bereikbaarheid later aan wanneer je dat wilt.",
     "socialRedirect": "Je account wordt afgerond…",
     "lightStepBadge": "Snelle aanmelding",
     "lightDisplayNameLabel": "Weergavenaam",
@@ -3948,13 +3948,13 @@
     "accountCreatedRedirect": "Je account is succesvol aangemaakt. Je wordt doorgestuurd naar je profiel.",
     "redirectingToProfile": "Je wordt nu doorgestuurd naar je profiel pagina...",
     "recipesAndDishes": "Creaties & aanbod",
-    "recipesAndDishesDesc": "Deel wat je maakt — eten, tuin, design of een dienst — op jouw manier",
+    "recipesAndDishesDesc": "Deel wat je maakt, zoals eten, tuin, design of een dienst, op jouw manier",
     "growingAndHarvesting": "Kweken & Oogsten",
-    "growingAndHarvestingDesc": "Deel wat je kweekt en verbind je met andere tuiniers in je buurt — van verse oogst tot stekjes",
+    "growingAndHarvestingDesc": "Deel wat je kweekt en verbind je met andere tuiniers in je buurt, van verse oogst tot stekjes",
     "designsAndHandwork": "Designs & Handwerk",
-    "designsAndHandworkDesc": "Laat je vakmanschap zien en deel je unieke creaties — van sieraden tot meubels, alles kan op het dorpsplein",
+    "designsAndHandworkDesc": "Laat je vakmanschap zien en deel je unieke creaties, van sieraden tot meubels, alles kan op het dorpsplein",
     "didYouKnow": "💡 Wist je?",
-    "didYouKnowText": "Je kunt op elk moment starten met delen. Begin klein of ga groot — het dorpsplein is er voor iedereen die iets te delen heeft",
+    "didYouKnowText": "Je kunt op elk moment starten met delen. Begin klein of ga groot, het dorpsplein is er voor iedereen die iets te delen heeft",
     "previous": "Vorige",
     "next": "Volgende",
     "continue": "Doorgaan",
@@ -4051,9 +4051,9 @@
       }
     },
     "welcomeMessage": "Geef je creaties een podium!",
-    "welcomeChef": "Deel je culinaire passie met de buurt — vertel je verhaal en laat anderen genieten van wat jij maakt",
-    "welcomeGarden": "Deel wat je kweekt en verbind je met andere tuiniers — verse oogst, kruiden en stekjes vinden hun weg naar je buurt",
-    "welcomeDesigner": "Laat je vakmanschap zien en deel je unieke creaties — van sieraden tot meubels, alles kan op het dorpsplein",
+    "welcomeChef": "Deel je culinaire passie met de buurt, vertel je verhaal en laat anderen genieten van wat jij maakt",
+    "welcomeGarden": "Deel wat je kweekt en verbind je met andere tuiniers, verse oogst, kruiden en stekjes vinden hun weg naar je buurt",
+    "welcomeDesigner": "Laat je vakmanschap zien en deel je unieke creaties, van sieraden tot meubels, alles kan op het dorpsplein",
     "welcomeTip": "💡 Wist je? Veel mensen combineren rollen om hun verschillende passies te delen. En iedereen kan ook koper zijn om lokale parels te ontdekken!",
     "continueWithGoogle": "Doorgaan met Google",
     "continueWithFacebook": "Doorgaan met Facebook",
@@ -4062,7 +4062,7 @@
     "alreadyHaveAccount": "Al een account?",
     "login": "Inloggen",
     "chooseRoles": "Kies je rollen",
-    "chooseRolesSubtitle": "Kies wat bij jou past — veel mensen combineren rollen om hun passie te delen",
+    "chooseRolesSubtitle": "Kies wat bij jou past, veel mensen combineren rollen om hun passie te delen",
     "selected": "Geselecteerd:",
     "buyerTypeSelected": "Koper type geselecteerd:",
     "buyerOnlyNote": "Je kunt alleen producten kopen, niet op het plein zetten",
@@ -4083,7 +4083,7 @@
     "lastNamePlaceholder": "Berg",
     "username": "Gebruikersnaam",
     "usernamePlaceholder": "Unieke gebruikersnaam (3-20 karakters)",
-    "usernamePublicHandleHint": "Dit is je zichtbare @naam op HomeCheff — niet je wachtwoord.",
+    "usernamePublicHandleHint": "Dit is je zichtbare @naam op HomeCheff, niet je wachtwoord.",
     "legalNameProfileHint": "Je echte naam wordt netjes weergegeven op je profiel.",
     "usernameRules": "Gebruikersnaam regels:",
     "usernameRule1": "3-20 karakters lang",
@@ -4271,7 +4271,7 @@
       "rightToDeletion": "Recht op Verwijdering",
       "rightToDeletionDesc": "Je kunt verwijdering van je account en bijbehorende persoonsgegevens aanvragen via je profiel of door contact met support. Sommige informatie kan bewaard blijven waar de wet dat vereist of voor gerechtvaardigde boekhouding en beveiliging.",
       "rightToPortability": "Recht op Portabiliteit",
-      "rightToPortabilityDesc": "Je kunt een verzoek indienen om je gegevens te exporteren. Volledige export wordt momenteel uitgerold — neem contact op via support@homecheff.eu als je hulp nodig hebt.",
+      "rightToPortabilityDesc": "Je kunt een verzoek indienen om je gegevens te exporteren. Volledige export wordt momenteel uitgerold. Neem contact op via support@homecheff.eu als je hulp nodig hebt.",
       "cookiesAndTracking": "Cookies en Tracking",
       "minimalCookieUse": "Minimale Cookie Gebruik",
       "minimalCookieUseDesc": "We gebruiken essentiële cookies en vergelijkbare technologieën om je ingelogd te houden, voorkeuren (zoals taal) te onthouden en beveiliging te borgen:",
@@ -4596,7 +4596,7 @@
   },
   "sellNew": {
     "hubTitle": "Wat wil je toevoegen?",
-    "hubSubtitle": "Kies je rol en of je op het Dorpsplein verkoopt of inspiratie deelt — daarna foto en formulier.",
+    "hubSubtitle": "Kies je rol en of je op het Dorpsplein verkoopt of inspiratie deelt, daarna foto en formulier.",
     "chefDorps": "Chef · Dorpsplein",
     "chefInspi": "Chef · Inspiratie",
     "gardenDorps": "Tuin · Dorpsplein",
@@ -4606,7 +4606,7 @@
     "tileDorpsHint": "Product verkopen",
     "tileInspiHint": "Idee of recept delen",
     "mediaStepTitle": "Media toevoegen",
-    "mediaStepSubtitle": "Kies uit je galerij of gebruik de camera voor een foto of een video — of ga door zonder.",
+    "mediaStepSubtitle": "Kies uit je galerij of gebruik de camera voor een foto of een video, of ga door zonder.",
     "galleryTitle": "Galerij",
     "gallerySubtitle": "Kies een foto of video uit je bestanden",
     "takePhotoTitle": "Foto maken",
@@ -4637,7 +4637,7 @@
     "otherStart": "Andere start",
     "otherCategory": "Andere categorie",
     "sellFormTitle": "Start met verkopen",
-    "sellFormSubtitleSkip": "Verdien geld met wat je al kunt — gewoon in jouw buurt.",
+    "sellFormSubtitleSkip": "Verdien geld met wat je al kunt, gewoon in jouw buurt.",
     "sellFormSubtitle": "Vul het formulier in om je aanbod op het Dorpsplein te zetten.",
     "otherInspiratieCategory": "Andere inspiratie-categorie",
     "inspiratieFormTitle": "Deel inspiratie",
@@ -4652,7 +4652,7 @@
     "confirmDelete": "Weet je zeker dat je dit item wilt verwijderen?",
     "publish": "Publiceren",
     "unpublish": "Privé maken",
-    "privateDraftHint": "Dit item is privé — alleen jij ziet het tot je publiceert."
+    "privateDraftHint": "Dit item is privé, alleen jij ziet het tot je publiceert."
   },
   "werkenBij": {
     "title": "Verdien met HomeCheff",
@@ -4771,7 +4771,7 @@
     "stripeConnectText": "Uitbetalingen worden veilig afgehandeld via Stripe. Connect met Stripe om je bankgegevens toe te voegen.",
     "connectWithStripe": "Connect met Stripe",
     "encryption": "Versleutelde chatberichten",
-    "encryptionDescription": "Versleutel je chatberichten in de app. Geldt alleen voor berichten — niet voor je profiel, inspiratie of dorpsplein-items.",
+    "encryptionDescription": "Versleutel je chatberichten in de app. Geldt alleen voor berichten, niet voor je profiel, inspiratie of dorpsplein-items.",
     "encryptionActive": "🔐 Versleuteling Actief",
     "encryptionInactive": "🔓 Geen Versleuteling",
     "encryptionEnabledText": "Al je berichten worden automatisch versleuteld",
@@ -4941,7 +4941,7 @@
     "exportStarted": "Export wordt gegenereerd...",
     "exportComplete": "Opnieuw downloaden",
     "exportButton": "Data exporteren",
-    "exportSuccess": "Je export is gedownload. Het JSON-bestand bevat je profiel, activiteit en instellingen. Versleutelde berichten en platformgeheimen zijn uitgesloten — zie het veld \"omissions\" in het bestand.",
+    "exportSuccess": "Je export is gedownload. Het JSON-bestand bevat je profiel, activiteit en instellingen. Versleutelde berichten en platformgeheimen zijn uitgesloten. Zie het veld \"omissions\" in het bestand.",
     "exportError": "Export mislukt. Probeer het later opnieuw of neem contact op met support.",
     "step3Title": "Laatste bevestiging",
     "step3Subtitle": "Je staat op het punt je account te verwijderen",
@@ -4951,7 +4951,7 @@
     "confirmLabel": "Typ \"{word}\" om te bevestigen",
     "confirmHint": "Extra beveiligingscontrole. Gebruik hoofdletters: {word}.",
     "passwordLabel": "Je wachtwoord",
-    "passwordOptionalHint": "Je bent ingelogd via Google/social zonder wachtwoord — laat dit veld leeg.",
+    "passwordOptionalHint": "Je bent ingelogd via Google/social zonder wachtwoord. Laat dit veld leeg.",
     "deleteButton": "Account definitief verwijderen",
     "deleting": "Verwijderen...",
     "successMessage": "Account verwijderd. Je wordt uitgelogd en doorgestuurd naar de homepage.",
@@ -4972,7 +4972,7 @@
   "nativePush": {
     "introTitle": "Meldingen op dit apparaat",
     "introBody": "Wil je meldingen ontvangen voor nieuwe berichten en bestellingen? Je ziet zo het systeemvenster om dit toe te staan.",
-    "valueExplainer": "Blijf op de hoogte van reacties, HCP en nieuwe inspiratie — zonder constant in de app te hoeven.",
+    "valueExplainer": "Blijf op de hoogte van reacties, HCP en nieuwe inspiratie, zonder constant in de app te hoeven.",
     "turnOn": "Meldingen aanzetten",
     "later": "Later",
     "registerError": "Push registreren lukt niet. Controleer internet en probeer opnieuw via Instellingen.",
@@ -5065,15 +5065,15 @@
     "buyerTitle": "Wat wil je doen?",
     "buyerSubtitle": "Kies je startpunt. Je kunt later altijd wisselen.",
     "earnTitle": "Aanbieden & verdienen",
-    "earnSubtitle": "Start met iets aanbieden in je buurt — eten, tuin, creaties of een dienst.",
+    "earnSubtitle": "Start met iets aanbieden in je buurt, eten, tuin, creaties of een dienst.",
     "discoverTitle": "Ontdekken",
     "discoverSubtitle": "Bekijk wat er aangeboden wordt op het dorpsplein bij jou in de buurt.",
     "skip": "Nu overslaan",
     "sellerStep": "Stap 2 van 3",
     "sellerTitle": "Wat wil je als eerste aanbieden?",
-    "sellerSubtitle": "Kies een categorie. Eten is één optie — naast tuin, creaties en meer.",
+    "sellerSubtitle": "Kies een categorie. Eten is één optie, naast tuin, creaties en meer.",
     "categoryFood": "Eten",
-    "categoryFoodDesc": "Gerechten en keuken — als jij kookt of bakt.",
+    "categoryFoodDesc": "Gerechten en keuken: als jij kookt of bakt.",
     "categoryGarden": "Tuin & oogst",
     "categoryGardenDesc": "Groente, fruit, planten of honing uit je tuin.",
     "categoryCreations": "Creaties",
@@ -5088,10 +5088,10 @@
     "interestsSubtitle": "Kies één of meer. Je kunt dit later aanpassen in je profiel.",
     "interestsStep": "Stap 2 van 4",
     "contactTitle": "Hoe kunnen mensen je bereiken?",
-    "contactSubtitle": "Optioneel — je kunt dit later instellen onder Bereikbaarheid.",
+    "contactSubtitle": "Optioneel. Je kunt dit later instellen onder Bereikbaarheid.",
     "contactStep": "Stap 3 van 4",
     "paymentsTitle": "Betalingen instellen",
-    "paymentsSubtitle": "Optioneel — nodig als je wilt verkopen en uitbetalingen ontvangt.",
+    "paymentsSubtitle": "Optioneel. Nodig als je wilt verkopen en uitbetalingen ontvangt.",
     "paymentsStep": "Stap 4 van 4",
     "skip": "Overslaan",
     "continue": "Volgende",
@@ -5257,7 +5257,7 @@
     "aanbod": {
       "title": "Aanbod",
       "subtitle": "Al je keuken-, tuin- en studio-items op één plek",
-      "visitorHint": "Bekijk wat deze maker deelt op het dorpsplein — bestellen of contact opnemen kan direct vanaf het item.",
+      "visitorHint": "Bekijk wat deze maker deelt op het dorpsplein, bestellen of contact opnemen kan direct vanaf het item.",
       "addCta": "Nieuw aanbod plaatsen",
       "noMakerTitle": "Nog geen maker-profiel",
       "noMakerDesc": "Voeg eerst Keuken, Tuin of Studio toe om aanbod op het dorpsplein te plaatsen.",
@@ -5329,7 +5329,7 @@
       "completeness": {
         "title": "Maak je profiel sterker",
         "hint": "Vul je profiel aan voor meer vertrouwen",
-        "completeHint": "Je profiel is compleet — mooi zo!",
+        "completeHint": "Je profiel is compleet: mooi zo!",
         "profilePhoto": "Profielfoto",
         "bio": "Bio / verhaal",
         "roles": "Rollen of interesses",
@@ -5357,7 +5357,7 @@
         },
         "workspacePhotos": {
           "title": "Voeg werkplekfoto's toe",
-          "description": "Laat zien waar je maakt — dat bouwt vertrouwen.",
+          "description": "Laat zien waar je maakt. Dat bouwt vertrouwen.",
           "cta": "Naar Vertrouwen →"
         },
         "stripe": {
@@ -5397,22 +5397,22 @@
     },
     "empty": {
       "aboutTitle": "Nog geen verhaal",
-      "aboutOwner": "Schrijf een korte intro over wie je bent en wat je maakt — mensen volgen makers, geen dashboards.",
+      "aboutOwner": "Schrijf een korte intro over wie je bent en wat je maakt. Mensen volgen makers, geen dashboards.",
       "aboutPublic": "Deze maker heeft nog geen introductie gedeeld.",
       "aanbodOwner": "Laat de buurt zien wat je maakt, verkoopt of aanbiedt.",
       "aanbodPublic": "Deze maker heeft nog niets op het dorpsplein gezet.",
       "inspiratieOwner": "Deel foto's, ideeën en projecten zodat mensen je leren kennen.",
-      "inspiratiePublic": "Nog geen inspiratie — kom later terug om creaties en projecten te bekijken.",
-      "communityPublic": "Nog geen reviews of fans — wees de eerste die deze maker ontdekt.",
+      "inspiratiePublic": "Nog geen inspiratie. Kom later terug om creaties en projecten te bekijken.",
+      "communityPublic": "Nog geen reviews of fans. Wees de eerste die deze maker ontdekt.",
       "trustOwner": "Voeg foto's van je werkplek toe zodat anderen je kunnen vertrouwen.",
       "trustPublic": "Deze maker deelt nog geen vertrouwensinformatie."
     },
     "vertrouwen": {
       "title": "Vertrouwen",
-      "subtitle": "Waar en hoe je werkt — voor een veilig gevoel",
-      "visitorIntro": "Zie waar en hoe deze maker werkt — net als bij een Airbnb-host profiel.",
+      "subtitle": "Waar en hoe je werkt, voor een veilig gevoel",
+      "visitorIntro": "Zie waar en hoe deze maker werkt, net als bij een Airbnb-host profiel.",
       "emptyOwner": "Voeg foto's van je keuken, tuin of atelier toe zodat anderen je kunnen vertrouwen.",
-      "emptyPublic": "Deze maker deelt nog geen werkplek of verificatie — stuur gerust een bericht als je vragen hebt.",
+      "emptyPublic": "Deze maker deelt nog geen werkplek of verificatie. Stuur gerust een bericht als je vragen hebt.",
       "empty": "Nog geen vertrouwensinformatie om te tonen.",
       "roles": {
         "chef": "Keuken",
@@ -5422,7 +5422,7 @@
       "sections": {
         "workspaceGroup": {
           "title": "Achter de schermen",
-          "description": "Deel je werkplek — zo weten anderen waar en hoe je werkt"
+          "description": "Deel je werkplek: zo weten anderen waar en hoe je werkt"
         },
         "kitchen": {
           "title": "Keuken"
@@ -5455,7 +5455,7 @@
           "deletePhoto": "Foto verwijderen",
           "photoAlt": "Voertuigfoto",
           "allPhotos": "Alle voertuigfoto's ({count})",
-          "emptyOwner": "Nog geen voertuigfoto's — voeg minimaal 2 toe voor verificatie.",
+          "emptyOwner": "Nog geen voertuigfoto's. Voeg minimaal 2 toe voor verificatie.",
           "emptyPublic": "Nog geen voertuigfoto's gedeeld.",
           "verificationHint": "Upload minimaal 2 voertuigfoto's om verificatie te voltooien."
         }
@@ -5864,7 +5864,7 @@
     "errors": {
       "contactOnly": "Dit aanbod bestel je via direct contact met de maker, niet via de winkelwagen.",
       "paymentsNotReady": "De maker moet betalingen nog instellen voordat je via HomeCheff kunt afrekenen.",
-      "barterOnly": "Dit aanbod is alleen te ruil — gebruik chat en stuur een voorstel in plaats van afrekenen.",
+      "barterOnly": "Dit aanbod is alleen te ruil. Gebruik chat en stuur een voorstel in plaats van afrekenen.",
       "minimumNotMet": "Online betalen via HomeCheff is beschikbaar vanaf €10. Spreek voor kleinere bedragen rechtstreeks een betaalwijze af met de aanbieder."
     },
     "checkoutTitle": "Afrekenen",
@@ -5878,7 +5878,7 @@
     "redirectingToStripe": "Je wordt doorgestuurd naar Stripe voor veilige betaling",
     "step1DeliveryAddress": "Stap 1: Bezorgadres",
     "fillAddressToSeeOptions": "Vul je adres in om de bezorgopties te zien",
-    "addressValidatedCalculating": "Adres gevalideerd — bezorgkosten worden berekend",
+    "addressValidatedCalculating": "Adres gevalideerd: bezorgkosten worden berekend",
     "locationPrefix": "Locatie",
     "unknownAddress": "Onbekend adres",
     "deliveryOption": "Bezorgoptie",
@@ -6396,7 +6396,7 @@
       "saveGarden": "Kweek opslaan",
       "addFirstGarden": "Eerste kweek toevoegen",
       "noProjectsYet": "Nog geen kweekprojecten",
-      "startDocumenting": "Documenteer je planten, oogsten en tuinmomenten — zo zien anderen wat je kweekt.",
+      "startDocumenting": "Documenteer je planten, oogsten en tuinmomenten, zo zien anderen wat je kweekt.",
       "documentProjects": "Je kweekprojecten verschijnen hier. Voeg foto's en updates toe om je voortgang te delen.",
       "suppressPrimaryCreateHint": "Start een kweek via de knop “Tuin-inspiratie plaatsen” of “Tuinproduct op Dorpsplein zetten” boven deze lijst.",
       "designer": "Kies uit onze favoriete design en creatieve emoji's",
@@ -6545,7 +6545,7 @@
     "profileProgress": {
       "title": "Claim je plek",
       "start": "Vul een paar basics in zodat buren je herkennen.",
-      "almost": "Bijna — maak je zichtbaar in de buurt om op te vallen.",
+      "almost": "Bijna. Maak je zichtbaar in de buurt om op te vallen.",
       "complete": "Je profiel ziet er klaar uit.",
       "cta": "Verder op profiel"
     },
@@ -6567,7 +6567,7 @@
     "infoExpandAria": "Intro uitklappen: hoe het werkt, categorieën en starten met delen",
     "infoCollapseAria": "Intro inklappen: hoe het werkt, categorieën en starten met delen",
     "heroAriaLabel": "Welkom hero",
-    "heroEyebrow": "Digitale ateliers, tuinen en keukens — dichterbij dan je denkt.",
+    "heroEyebrow": "Digitale ateliers, tuinen en keukens, dichterbij dan je denkt.",
     "heroTitle": "Ontdek wat mensen in jouw buurt maken",
     "heroSubtitle": "Van inspiratie tot het dorpsplein: lokaal ontmoeten, duidelijke afspraken.",
     "reputationCompact": {
@@ -6594,7 +6594,7 @@
     "categoryDesignDescription": "Maak je iets creatiefs? Vind direct klanten.",
     "feedSectionTitle": "HomeCheff feed",
     "affiliateButtonFallback": "Affiliate 12-12",
-    "schemaOrganizationDescription": "HomeCheff is het digitale thuis van persoonlijk vakmanschap en lokale kansen. Buurtgenoten bieden en ontdekken wat echte mensen maken, koken, kweken, ontwerpen en aanbieden — met veilig afrekenen, direct contact, ruil of voorstellen.",
+    "schemaOrganizationDescription": "HomeCheff is het digitale thuis van persoonlijk vakmanschap en lokale kansen. Buurtgenoten bieden en ontdekken wat echte mensen maken, koken, kweken, ontwerpen en aanbieden, met veilig afrekenen, direct contact, ruil of voorstellen.",
     "schemaWebsiteDescription": "HomeCheff - Ontdek digitale ateliers, tuinen en keukens in jouw buurt.",
     "schemaContactCustomerService": "Klantenservice",
     "schemaAreaServedCountry": "Nederland",
@@ -6662,9 +6662,9 @@
       "shareCta": "Deel jouw uitnodigingslink",
       "shareBusy": "Bezig…",
       "shareHintCopied": "Link gekopieerd naar het klembord.",
-      "shareHintManual": "Kon niet automatisch kopiëren — selecteer en kopieer de link hieronder.",
+      "shareHintManual": "Kon niet automatisch kopiëren: selecteer en kopieer de link hieronder.",
       "shareNativeTitle": "HomeCheff Android-beta",
-      "shareNativeText": "Probeer de HomeCheff Android-beta — via homecheff.eu.",
+      "shareNativeText": "Probeer de HomeCheff Android-beta, via homecheff.eu.",
       "nativeShareCompactTitle": "Deel HomeCheff-app",
       "nativeShareCompactBody": "Nodig anderen uit om de app te installeren.",
       "nativeShareCompactCta": "Deel app-link"
@@ -6678,7 +6678,7 @@
       "streakOne": "1 dag streak",
       "streakMany": "{count} dagen streak",
       "toNextLevel": "Nog {amount} HCP tot level {next}",
-      "freshUserHint": "Verdien je eerste HCP door iets te plaatsen — inspiratie of een product op het dorpsplein.",
+      "freshUserHint": "Verdien je eerste HCP door iets te plaatsen, inspiratie of een product op het dorpsplein.",
       "missionsHeading": "Vandaag & deze week",
       "missionLoginToday": "Log vandaag in",
       "quickActions": "Snel aan de slag",
@@ -6699,7 +6699,7 @@
       },
       "ranking": {
         "title": "Top deze week",
-        "empty": "Nog geen scores deze week — verdien HCP om hier te verschijnen.",
+        "empty": "Nog geen scores deze week, verdien HCP om hier te verschijnen.",
         "loadError": "Ranglijst tijdelijk niet beschikbaar.",
         "line": "{name} · {score} HCP"
       },
@@ -6712,7 +6712,7 @@
       },
       "rewards": {
         "title": "Beloningen",
-        "teaser": "Met HCP spreek je zachte extra's voor je profiel vrij — meer aandacht wanneer het past bij HomeCheff. Geen gegarandeerd geld of vaste homepage-plek; wel echte zichtbaarheid die je verdient door actief te zijn."
+        "teaser": "Met HCP spreek je zachte extra's voor je profiel vrij, meer aandacht wanneer het past bij HomeCheff. Geen gegarandeerd geld of vaste homepage-plek; wel echte zichtbaarheid die je verdient door actief te zijn."
       },
       "ctaLeaderboards": "Bekijk ranglijsten"
     },
@@ -6726,7 +6726,7 @@
     },
     "hcpRankingsPage": {
       "title": "Reputatie in de buurt",
-      "intro": "Bekijk makers die actief bijdragen aan de community in jouw gebied en periode. Buurtlijsten gebruiken een ruwe straal rond je profiel of — als je het toestaat — je huidige locatie alleen in deze sessie.",
+      "intro": "Bekijk makers die actief bijdragen aan de community in jouw gebied en periode. Buurtlijsten gebruiken een ruwe straal rond je profiel of, als je het toestaat, je huidige locatie alleen in deze sessie.",
       "backHome": "Terug naar Dorpsplein",
       "ctaMijnHcp": "Naar Mijn HCP",
       "ctaProfile": "Profiel bewerken",
@@ -6743,7 +6743,7 @@
       "periodAll": "Algemeen",
       "ariaScope": "Gebied",
       "ariaPeriod": "Periode",
-      "nearbyExplainer": "We gebruiken eerst je opgeslagen profiel-locatie. Tik op ‘Gebruik huidige locatie’ om tijdelijk GPS te gebruiken — handig als je onderweg bent. Er worden geen exacte coördinaten publiek getoond.",
+      "nearbyExplainer": "We gebruiken eerst je opgeslagen profiel-locatie. Tik op ‘Gebruik huidige locatie’ om tijdelijk GPS te gebruiken, handig als je onderweg bent. Er worden geen exacte coördinaten publiek getoond.",
       "radiusLabel": "Straal",
       "gpsButton": "Gebruik huidige locatie",
       "useProfileLocation": "Terug naar profiel-locatie",
@@ -6752,10 +6752,10 @@
       "countryExplainer": "Ranglijst voor land {code}.",
       "worldwideExplainer": "Wereldwijde ranglijst op basis van HomeCheff Points.",
       "yourRank": "Jouw plek in deze weergave: #{rank}",
-      "notRankedYet": "Je staat nog niet in deze weergave — blijf actief in de buurt om mee te tellen.",
+      "notRankedYet": "Je staat nog niet in deze weergave. Blijf actief in de buurt om mee te tellen.",
       "inThisView": "in deze weergave",
       "loginHint": "Log in om je eigen plek in de ranglijst te zien.",
-      "ctaJoinLeaderboard": "Claim jouw plek — log in of meld je aan",
+      "ctaJoinLeaderboard": "Claim jouw plek. Log in of meld je aan",
       "emptyNearbyNoLocation": "We hebben nog geen locatie om je buurt-ranglijst te tonen. Vul je profiel-locatie aan of gebruik je huidige locatie.",
       "emptyGeneric": "Nog onvoldoende data voor deze ranglijst.",
       "emptyNoHcpInList": "Nog geen HCP in deze ranglijst.",
@@ -6785,7 +6785,7 @@
     },
     "mijnHcpLb": {
       "previewTitle": "Snelle ranglijst",
-      "previewSubtitle": "Wereldwijd — dezelfde berekening als op Ranglijsten. Hieronder de top 10; jouw plek is je echte plek in de volledige lijst.",
+      "previewSubtitle": "Wereldwijd, dezelfde berekening als op Ranglijsten. Hieronder de top 10; jouw plek is je echte plek in de volledige lijst.",
       "filtersHint": "Voor buurt, land, dit jaar of andere filters: open de volledige ranglijstenpagina.",
       "ctaFull": "Bekijk alle ranglijsten",
       "ariaPeriod": "Periode (wereldwijd)",
@@ -6809,7 +6809,7 @@
     "reported": "Bedankt voor je melding. HomeCheff bekijkt deze.",
     "submitError": "Er is een fout opgetreden bij het melden",
     "importantInfo": "Belangrijke informatie",
-    "importantInfoText": "Alle meldingen worden vertrouwelijk behandeld. HomeCheff bekijkt ze — we beloven geen specifieke uitkomst. Misbruik van het meldsysteem kan leiden tot accountbeperkingen.",
+    "importantInfoText": "Alle meldingen worden vertrouwelijk behandeld. HomeCheff bekijkt ze. We beloven geen specifieke uitkomst. Misbruik van het meldsysteem kan leiden tot accountbeperkingen.",
     "product": {
       "inappropriateContent": "Ongepaste inhoud",
       "inappropriateContentDesc": "Foto of beschrijving bevat ongepaste inhoud",
@@ -6925,7 +6925,7 @@
     "mission2": "Daarnaast is er Inspiratie voor ideeën zonder verkoop, Gezocht voor wat je zoekt en ruimte voor diensten en buurthulp. Het zit allemaal in één platform in plaats van in losse apps.",
     "whatWeDoTitle": "Wat we doen",
     "whatWeDo1": "Inspiratie: deel ideeën, recepten en maakprocessen met de community.",
-    "whatWeDo2": "Dorpsplein: ontdek aangeboden producten, diensten en hulp — met veilige checkout of flexibele afspraken.",
+    "whatWeDo2": "Dorpsplein: ontdek aangeboden producten, diensten en hulp, met veilige checkout of flexibele afspraken.",
     "whatWeDo3": "Gezocht & voorstellen: plaats wat je zoekt of doe een voorstel met geld, ruil of andere waarde.",
     "whatWeDo4": "Community & reputatie: HCP, vertrouwen en lokale makers zichtbaar maken.",
     "reachabilityTitle": "Wie je waarvoor mailt",
@@ -7004,7 +7004,7 @@
     "fansDesc": "Zodra mensen jouw fan worden, verschijnen ze hier.",
     "followsTitle": "Je bent nog niemands fan",
     "followsDesc": "Zodra je iemands fan wordt, verschijnt die hier.",
-    "noResultsHint": "Probeer andere filters, een grotere straal — of gebruik Ik bied om te shoppen met wat jij kunt aanbieden."
+    "noResultsHint": "Probeer andere filters, een grotere straal, of gebruik Ik bied om te shoppen met wat jij kunt aanbieden."
   },
   "notFound": {
     "title": "Pagina niet gevonden",
@@ -7154,7 +7154,7 @@
     "s9P1": "Aanbieders kunnen op HomeCheff aangeven of zij als particulier (incidenteel) of professioneel/zakelijk aanbieden. HomeCheff bepaalt handelsstatus niet automatisch op basis van omzet, aantal verkopen, KvK, Stripe of vergelijkbare signalen.",
     "s9P2": "Bij aankoop van een aanbieder die zichzelf als professioneel heeft opgegeven (of een geverifieerd bedrijf) kan consumentenrechtelijke informatie van toepassing zijn, waaronder informatie over herroepingsrecht waar relevant.",
     "s9P3": "Bij een particuliere aanbieder volgens eigen opgave zijn consumentenrechten die specifiek gelden jegens professionele verkopers (zoals het wettelijke herroepingsrecht) mogelijk niet van toepassing. Dit betekent niet dat er ‘geen rechten’ bestaan: platformregels, productveiligheid, voedselinformatie en overeenkomstenrecht kunnen nog steeds relevant zijn.",
-    "s9P4": "Herroepingsrecht (waar van toepassing) bedraagt in beginsel 14 dagen. Uitzonderingen kunnen gelden voor goederen die volgens de specificaties van de consument zijn gemaakt, snel bederfelijke goederen, en diensten die na uitdrukkelijk verzoek tijdens de bedenktijd volledig zijn uitgevoerd. HomeCheff markeert deze uitzonderingen alleen op basis van expliciete aanbieder-opgaven of duidelijke transactiekenmerken — niet door stille aannames over ‘handgemaakt’ of TRUST-herkomst.",
+    "s9P4": "Herroepingsrecht (waar van toepassing) bedraagt in beginsel 14 dagen. Uitzonderingen kunnen gelden voor goederen die volgens de specificaties van de consument zijn gemaakt, snel bederfelijke goederen, en diensten die na uitdrukkelijk verzoek tijdens de bedenktijd volledig zijn uitgevoerd. HomeCheff markeert deze uitzonderingen alleen op basis van expliciete aanbieder-opgaven of duidelijke transactiekenmerken, niet door stille aannames over ‘handgemaakt’ of TRUST-herkomst.",
     "s9P5": "HomeCheff is een marketplaceplatform. De onderliggende prestatie wordt geleverd door de aanbieder. Betalingen kunnen via Stripe via het platform verlopen; de precieze kwalificatie van HomeCheff’s rol bij betalingen blijft onderwerp van juridische toetsing. Deze voorwaarden doen geen sterkere claims over merchant-of-record dan hier staat.",
     "s9L1": "Particulier vs professioneel: op basis van zelfopgave van de aanbieder (LEGAL-1).",
     "s9L2": "Consumenteninformatie wordt progressief getoond vóór commitment (listing, checkout, voorstel/akkoord).",
@@ -7238,10 +7238,10 @@
     "emptyRadiusWiden": "Vergroot straal",
     "emptyRadiusViewAll": "Toon heel Nederland",
     "nearbyNeedsLocationTitle": "Je buurt is dichtbij",
-    "nearbyNeedsLocationBody": "Kies een plaats om te zien wat buren koken, groeien, maken en aanbieden — huisgemaakt eten, oogst uit de tuin, ambacht en behulpzame handen.",
+    "nearbyNeedsLocationBody": "Kies een plaats om te zien wat buren koken, groeien, maken en aanbieden, huisgemaakt eten, oogst uit de tuin, ambacht en behulpzame handen.",
     "nearbyNeedsLocationChoosePlace": "Kies een plaats",
     "nearbyNeedsLocationAltScopes": "Of bekijk eerst Heel Nederland of Internationaal.",
-    "nearbyNeedsLocationEncouragement": "Koken · Groeien · Maken · Helpen — vlak om de hoek.",
+    "nearbyNeedsLocationEncouragement": "Koken · Groeien · Maken · Helpen, vlak om de hoek.",
     "scopeLabel": "Bereik",
     "scopeNearby": "In je buurt",
     "scopeNational": "Heel Nederland",
@@ -7261,7 +7261,7 @@
     "verticalGarden": "Tuin",
     "verticalCreations": "Creaties",
     "emptyServicesTitle": "Nog geen diensten in beeld",
-    "emptyServicesBody": "Diensten zijn services, workshops, coaching en praktische klusjes — inclusief buurthulp: lokale hulp tussen buurtgenoten. Er staan er nu geen in dit gebied. Verruim je zoekgebied of bekijk andere pijlers.",
+    "emptyServicesBody": "Diensten zijn services, workshops, coaching en praktische klusjes, inclusief buurthulp: lokale hulp tussen buurtgenoten. Er staan er nu geen in dit gebied. Verruim je zoekgebied of bekijk andere pijlers.",
     "discoverFiltersHeading": "Ontdekken in jouw buurt",
     "mobileFilterCollapsedAria": "Filters openen",
     "mobileFilterCollapsedAriaActive": "Filters openen, {count} actief",
@@ -7275,12 +7275,12 @@
     "desktopColumns1": "1 kolom",
     "desktopColumns2": "2 kolommen",
     "desktopColumns3": "3 kolommen",
-    "desktopColumns1Hint": "Eén kolom — feedstijl",
-    "desktopColumns2Hint": "Twee kolommen — optioneel dichter raster",
-    "desktopColumns3Hint": "Drie kolommen — marketplace raster",
+    "desktopColumns1Hint": "Eén kolom: feedstijl",
+    "desktopColumns2Hint": "Twee kolommen: optioneel dichter raster",
+    "desktopColumns3Hint": "Drie kolommen: marketplace raster",
     "locationSectionLabel": "Locatie en zoeken in de feed",
     "refineSectionLabel": "Verfijn deze resultaten (zoeken, sorteren, prijs)",
-    "chipSectionIntro": "Alles, aangeboden, gezocht of inspiratie — één plek. Shop ook met wat jij kunt aanbieden via Ik zoek / Ik bied. Stel hieronder locatie, categorie en filters in.",
+    "chipSectionIntro": "Alles, aangeboden, gezocht of inspiratie, één plek. Shop ook met wat jij kunt aanbieden via Ik zoek / Ik bied. Stel hieronder locatie, categorie en filters in.",
     "locationErrorShort": "Locatie kon niet worden bepaald",
     "locationUsingGps": "Jouw locatie wordt gebruikt",
     "locationUsingProfile": "Profiel locatie wordt gebruikt",
@@ -7297,13 +7297,13 @@
     "inspirationViewCta": "Bekijk",
     "unknownPlace": "Locatie onbekend",
     "unknownDistance": "afstand onbekend",
-    "filtersPendingHint": "Filters aangepast — pas toe om de resultaten te vernieuwen.",
+    "filtersPendingHint": "Filters aangepast. Pas toe om de resultaten te vernieuwen.",
     "applyFilters": "Toepassen",
     "updating": "Bijwerken…",
     "endOfSelection": "Je hebt alles in deze selectie gezien. We laten je opnieuw relevante items zien.",
-    "endOfSelectionContinue": "Blijf scrollen — we tonen opnieuw relevante items uit deze selectie.",
+    "endOfSelectionContinue": "Blijf scrollen. We tonen opnieuw relevante items uit deze selectie.",
     "searchingResults": "Resultaten zoeken…",
-    "searchingResultsHint": "Even geduld — we laden wat er dichtbij beschikbaar is.",
+    "searchingResultsHint": "Even geduld. We laden wat er dichtbij beschikbaar is.",
     "emptyConfirmedTitle": "Nog niets gevonden in jouw buurt",
     "emptyConfirmedBody": "Wees de eerste die iets aanbiedt. Vergroot je zoekgebied, zoek iets anders, plaats eigen aanbod, vraag iets aan je buurt, of ruil met iemand dichtbij.",
     "emptyConfirmedAdjustFilters": "Filters aanpassen",
@@ -7313,17 +7313,17 @@
     "emptyConfirmedTrade": "Ruilen met buren",
     "emptyConfirmedInvite": "Nodig iemand uit",
     "continuityEmptySearchTitle": "Nog geen “{query}” in jouw buurt",
-    "continuityEmptySearchBody": "Nog niemand heeft dit in jouw buurt gedeeld. Wees de eerste — of ontdek hieronder wat HomeCheff wél dichtbij heeft.",
+    "continuityEmptySearchBody": "Nog niemand heeft dit in jouw buurt gedeeld. Wees de eerste, of ontdek hieronder wat HomeCheff wél dichtbij heeft.",
     "continuitySparseTitle": "{count} treffers dichtbij",
-    "continuitySparseBody": "Wees de eerste die hier meer van aanbiedt in jouw buurt — de ontdekking gaat hieronder verder.",
+    "continuitySparseBody": "Wees de eerste die hier meer van aanbiedt in jouw buurt, de ontdekking gaat hieronder verder.",
     "continuityBeFirst": "Wees de eerste dichtbij",
-    "continuityContinueHint": "Blijf scrollen — de buurtontdekking gaat hieronder verder.",
+    "continuityContinueHint": "Blijf scrollen, de buurtontdekking gaat hieronder verder.",
     "continuityContinueLabel": "Verder ontdekken",
     "scopeNearbyFirstHint": "Dichtstbijzijnde buurtaanbod eerst.",
-    "scopeWiderNationalHint": "Je bekijkt Heel Nederland — dichterbij eerst waar afstand bekend is.",
-    "scopeWiderInternationalHint": "Je bekijkt internationaal aanbod — dichterbij eerst waar afstand bekend is.",
+    "scopeWiderNationalHint": "Je bekijkt Heel Nederland: dichterbij eerst waar afstand bekend is.",
+    "scopeWiderInternationalHint": "Je bekijkt internationaal aanbod: dichterbij eerst waar afstand bekend is.",
     "tradeActionChip": "Ruilen",
-    "tradeActionHint": "Ruil creaties, diensten of kennis — ook zonder geld.",
+    "tradeActionHint": "Ruil creaties, diensten of kennis, ook zonder geld.",
     "resetFiltersDraft": "Reset",
     "sidebarSectionLocation": "Locatie",
     "sidebarSectionView": "Weergave",
@@ -7363,7 +7363,7 @@
     "resultPlural": "resultaten",
     "filteredByQuery": " · Gefilterd op: \"{query}\"",
     "emptySaleTitle": "Nog geen aanbiedingen gevonden in jouw buurt",
-    "emptySaleBody": "Verruim je zoekgebied, bekijk inspiratie of plaats zelf iets — product, dienst, hulp of tegenwaarde.",
+    "emptySaleBody": "Verruim je zoekgebied, bekijk inspiratie of plaats zelf iets, product, dienst, hulp of tegenwaarde.",
     "emptyNationalTitle": "Nog geen aanbod gevonden.",
     "emptyNationalBody": "Er is nog geen buurtaanbod dat aan je filters voldoet.",
     "emptyInternationalTitle": "Internationaal aanbod komt eraan.",
@@ -7446,8 +7446,8 @@
     "benefit25Percent": "25% per Gebruiker",
     "benefit25PercentDesc": "Verdien 25% van de HomeCheff fee per transactie voor elke gebruiker (koper of verkoper) die je aanbrengt. Als je beide aanbrengt, verdien je 50% (25% + 25%).",
     "benefitPromoCodes": "Eigen Promo Codes",
-    "benefitPromoCodesDesc": "Maak je eigen promo codes en geef korting op subscriptions. De korting gaat van jouw share, niet van HomeCheff — volledige controle.",
-    "howItWorks": "Zo werkt het — in 4 simpele stappen",
+    "benefitPromoCodesDesc": "Maak je eigen promo codes en geef korting op subscriptions. De korting gaat van jouw share, niet van HomeCheff, volledige controle.",
+    "howItWorks": "Zo werkt het: in 4 simpele stappen",
     "howItWorksDesc": "Van aanmelding tot uitbetaling, alles automatisch geregeld",
     "step1": "Meld je aan (gratis)",
     "step1Desc": "Klik op de knop hieronder en je krijgt direct je unieke referral link en toegang tot je dashboard. Geen kosten, geen verplichtingen.",
@@ -7473,7 +7473,7 @@
     "businessPays": "Bedrijf betaalt",
     "youGet": "Jij krijgt",
     "homecheffGets": "HomeCheff krijgt",
-    "signupButton": "Word nu affiliate — gratis aanmelden",
+    "signupButton": "Word nu affiliate: gratis aanmelden",
     "signingUp": "Aanmelden...",
     "signupSuccess": "Aanmelding succesvol!",
     "signupSuccessDesc": "Je wordt doorgestuurd naar je dashboard...",
@@ -7487,7 +7487,7 @@
     "contractRenewal": "Contract Verlenging",
     "contractRenewalDesc": "HomeCheff richt zich op langdurige partnerships en een schaalbaar ecosystem. Na de standaardperiode kunnen samenwerkingen evolueren; dat is geen belofte op lifetime-uitbetalingen. Eventuele uitbreidingen of wijzigingen leggen we vooraf vast in de voorwaarden.",
     "guaranteed12Months": "Gegarandeerd 12 Maanden",
-    "guaranteed12MonthsDesc": "De eerste twaalf maanden zijn gegarandeerd binnen het huidige commissiemodel voor actieve aangebrachte bedrijfsabonnementen, volgens de afgesproken tarieven. Daarna kan de samenwerking verlengd of uitgebreid worden met toekomstige incentives, prestaties en community-doelen — zonder garantie op lifetime-inkomen.",
+    "guaranteed12MonthsDesc": "De eerste twaalf maanden zijn gegarandeerd binnen het huidige commissiemodel voor actieve aangebrachte bedrijfsabonnementen, volgens de afgesproken tarieven. Daarna kan de samenwerking verlengd of uitgebreid worden met toekomstige incentives, prestaties en community-doelen, zonder garantie op lifetime-inkomen.",
     "twelveMonthsExtendedForSome": "HomeCheff bouwt aan langdurige samenwerkingen met actieve partners en communities. Eventuele uitbreidingen communiceren we altijd helder en vooraf.",
     "alreadyAccepted": "Je hebt deze al geaccepteerd",
     "welcomeBack": "Welkom terug!",
@@ -7555,7 +7555,7 @@
       "welcomeDesc": "Je account is actief. Deel je partnerlink om nieuwe aanmeldingen te genereren.",
       "surpriseIncome": {
         "title": "Eén introductie. Meer mogelijkheden.",
-        "body": "Eén keer iemand uitnodigen is genoeg. Als diegene later op een andere manier actief wordt binnen HomeCheff, kan dat binnen je geldige netwerk opnieuw affiliate-inkomsten opleveren — alleen over eligible HomeCheff-platformomzet, nooit gegarandeerd.",
+        "body": "Eén keer iemand uitnodigen is genoeg. Als diegene later op een andere manier actief wordt binnen HomeCheff, kan dat binnen je geldige netwerk opnieuw affiliate-inkomsten opleveren, alleen over eligible HomeCheff-platformomzet, nooit gegarandeerd.",
         "example1": "Je nodigt iemand uit voor de Marketplace. Later gaat diegene bezorgen. Als HomeCheff daar een platformfee op verdient, kan jouw netwerk meedelen.",
         "example2": "Iemand start als verkoper en neemt later Studio. De oorspronkelijke geldige referral hoeft niet opnieuw te worden aangemaakt.",
         "example3": "Een contact begint klein en gebruikt later Growth. Eén introductie kan op verschillende momenten activiteit opleveren.",
@@ -7567,7 +7567,7 @@
       "attributionPolicyCookie": "Cookie: {name} ({days} dagen). Aanmelding of social onboarding moet in dezelfde browser/apparaat gebeuren zolang de cookie actief is.",
       "attributionPolicyCrossDevice": "Cross-device: nog niet ondersteund. Een klik op desktop volgt iemand niet die op mobiel registreert.",
       "attributionPolicyCommission": "Commissie: pending na betaling, beschikbaar na de wachttijd, daarna uitbetaald via Stripe Connect wanneer je een uitbetaling aanvraagt.",
-      "attributionPolicySubscription": "Zakelijke abonnementen: commissie geldt wanneer het doorverwezen bedrijf abonneert — via jouw promocode of jouw ref-link bij aanmelding.",
+      "attributionPolicySubscription": "Zakelijke abonnementen: commissie geldt wanneer het doorverwezen bedrijf abonneert, via jouw promocode of jouw ref-link bij aanmelding.",
       "earnings": "Earnings",
       "referrals": "Aanmeldingen via link",
       "subAffiliates": "Mijn partners",
@@ -7613,7 +7613,7 @@
       "viewProfile": "Bekijk profiel",
       "profile": "Profiel",
       "noReferrals": "Nog geen aanmeldingen via jouw link",
-      "noReferralsHint": "Deel je partnerlink — elke aanmelding telt, maar wordt geen directe partner in je netwerk.",
+      "noReferralsHint": "Deel je partnerlink, elke aanmelding telt, maar wordt geen directe partner in je netwerk.",
       "deleteSubAffiliateTitle": "Partner uit netwerk verwijderen",
       "delete": "Verwijder",
       "noPayouts": "No payouts yet",
@@ -7686,7 +7686,7 @@
       "rate": "40% van de platformfee",
       "lead": "Promoot HomeCheff met je persoonlijke affiliatelink en verdien mee wanneer klanten via jou gebruikmaken van HomeCheff.",
       "rateDetail": "Op kwalificerende transacties die via jou worden toegeschreven ontvang je 40% van de toepasselijke HomeCheff-platformfee.",
-      "notOrder": "Je commissie wordt berekend over de platformfee die HomeCheff op de betreffende transactie ontvangt — niet over het volledige aankoopbedrag.",
+      "notOrder": "Je commissie wordt berekend over de platformfee die HomeCheff op de betreffende transactie ontvangt, niet over het volledige aankoopbedrag.",
       "exampleTitle": "Voorbeeld",
       "exampleIntro": "Een klant doet een aankoop van €100. Stel dat de HomeCheff-platformfee voor die transactie €20 bedraagt.",
       "exampleMath": "40% × €20 = €8",
@@ -7733,15 +7733,15 @@
       "benefitDesc": "Je hoeft niets extra te doen! Wanneer je iets deelt via de share-knop op recepten, producten, kweekprojecten of designs, wordt je affiliate link automatisch meegestuurd. Elke klik op je gedeelde link kan je commissie opleveren!"
     },
     "passiveIncome": {
-      "title": "Terugkerende inkomstenpotentie — transparant ingeschat",
+      "title": "Terugkerende inkomstenpotentie: transparant ingeschat",
       "subtitle": "Een illustratief scenario op basis van actieve abonnementen binnen het standaard affiliate-model (geen garantie op inkomen).",
       "scenario": "Scenario: 2 Bedrijven per Maand",
-      "scenarioDesc": "Stel je voor dat je gemiddeld slechts 2 bedrijven per maand aanbrengt die een Pro-abonnement (€99/maand) afsluiten. Dat is slechts 1 bedrijf per 2 weken – zeer realistisch met jouw netwerk of via lokale outreach!",
+      "scenarioDesc": "Stel je voor dat je gemiddeld slechts 2 bedrijven per maand aanbrengt die een Pro-abonnement (€99/maand) afsluiten. Dat is slechts 1 bedrijf per 2 weken, zeer realistisch met jouw netwerk of via lokale outreach!",
       "month1": "Maand 1: 2 actieve abonnementen = €99/maand",
       "month3": "Maand 3: 6 actieve abonnementen = €297/maand",
       "month6": "Maand 6: 12 actieve abonnementen = €594/maand",
       "month12": "Maand 12: 24 actieve abonnementen = €1.188/maand",
-      "after12Months": "In dit voorbeeld piekt het maandbedrag rond maand 12 op €1.188 commissiedeel — afhankelijk van actieve abonnementen en het geldende model (standaard tot twaalf maanden per bedrijf).",
+      "after12Months": "In dit voorbeeld piekt het maandbedrag rond maand 12 op €1.188 commissiedeel, afhankelijk van actieve abonnementen en het geldende model (standaard tot twaalf maanden per bedrijf).",
       "basedOn": "Dit is gebaseerd op een gemiddeld Pro-abonnement van €99/maand, waarvan jij 50% commissie ontvangt.",
       "yourPotential": "Jouw Potentieel",
       "investment": "Investering",
@@ -7749,7 +7749,7 @@
       "yearlyPassive": "Jaarlijks scenario (model; geen garantie)",
       "evenOnDay364": "Laat aangebrachte actieve bedrijfsabonnementen krijgen binnen het standaardmodel hun eigen twaalfmaandsvenster. Dat maakt planning voorspelbaar; het is geen belofte dat inkomen automatisch blijft doorlopen zonder nieuwe activatie.",
       "calculatePotential": "Bereken jouw Potentieel met de Volledige Calculator",
-      "offerTitle": "Word partner — heldere voorwaarden",
+      "offerTitle": "Word partner: heldere voorwaarden",
       "offerDesc": "Word HomeCheff-affiliate en bouw stap voor stap aan terugkerende commissie binnen het contractuele model.",
       "yourInvestment": "Jouw Investering",
       "yourROI": "Jouw Potentiële ROI",
@@ -7770,16 +7770,16 @@
     "ownYourCity": "Eigenaar van Jouw Stad",
     "ownYourCityDesc": "Schaal op naar stad-niveau. Perfect voor artiesten en vloggers met een groter bereik. Bouw een netwerk op met duurzame terugkerende commissiekansen, conform je overeenkomst.",
     "localMarketPower": "De Kracht van Lokale Markten",
-    "localMarketPowerDesc": "Lokale markten zijn krachtig. Mensen vertrouwen lokale aanbevelingen. Als jij de affiliate bent voor jouw gebied, word je de vertrouwde schakel tussen HomeCheff en jouw gemeenschap — met ruimte voor langetermijn partnerships en terugkerende commissie binnen duidelijke voorwaarden.",
+    "localMarketPowerDesc": "Lokale markten zijn krachtig. Mensen vertrouwen lokale aanbevelingen. Als jij de affiliate bent voor jouw gebied, word je de vertrouwde schakel tussen HomeCheff en jouw gemeenschap, met ruimte voor langetermijn partnerships en terugkerende commissie binnen duidelijke voorwaarden.",
     "financialSecurity": {
-      "title": "Langetermijnvisie — binnen duidelijke affiliate-voorwaarden",
+      "title": "Langetermijnvisie, binnen duidelijke affiliate-voorwaarden",
       "subtitle": "Bouw terugkerende commissie op binnen het standaardmodel; daarna kan samenwerking evolueren volgens je overeenkomst.",
       "mainMessage": "Met het HomeCheff-affiliateprogramma bouw je aan terugkerende commissie op actieve abonnementen en transacties, binnen het contractuele model. De eerste twaalf maanden per aangebracht bedrijfsabonnement zijn binnen dat model gedefinieerd; daarna zijn uitbreidingen mogelijk maar niet gegarandeerd.",
       "keyPoints": {
         "point1": "12 Maanden per Referral",
         "point1Desc": "Per actief aangebracht bedrijfsabonnement geldt binnen het standaardmodel tot twaalf maanden terugkerende commissie. Laat aangebrachte abonnementen krijgen elk hun eigen venster.",
         "point2": "Structurele opbouw",
-        "point2Desc": "Met doorlopende activatie en sterke klantrelaties kun je terugkerende commissie opbouwen binnen de geldende voorwaarden. Resultaten hangen af van adoptie en marktdynamiek — geen vast inkomensgarantie.",
+        "point2Desc": "Met doorlopende activatie en sterke klantrelaties kun je terugkerende commissie opbouwen binnen de geldende voorwaarden. Resultaten hangen af van adoptie en marktdynamiek, geen vast inkomensgarantie.",
         "point3": "Geen Risico",
         "point3Desc": "Geen investering nodig, geen maandelijkse kosten, geen verborgen kosten. Elke euro die je verdient is pure winst. Je kunt op elk moment stoppen zonder verlies.",
         "point4": "Schaalbaar",
@@ -7852,7 +7852,7 @@
     "acceptAllRequired": "Accepteer alle verplichte voorwaarden om door te gaan",
     "passiveIncomeForever": "Langdurige terugkerende inkomstenpotentie",
     "yearAfterYear": "Jaar na jaar",
-    "higherConversionStart": "In de beginfase ligt de conversie vaak hoger — onze voorbeelden mogen daarom optimistischer zijn.",
+    "higherConversionStart": "In de beginfase ligt de conversie vaak hoger, onze voorbeelden mogen daarom optimistischer zijn.",
     "noCeiling": "Geen dak: er is geen maximum op wat je kunt verdienen.",
     "guidanceWhenScaling": "Wordt het te veel? HomeCheff instrueert en begeleidt je richting bedrijfsinschrijving en hoe je de stap naar ondernemer zet.",
     "fixedNumberEnough": "Er is plaats voor een beperkt aantal hoofd-affiliates.",
@@ -7877,24 +7877,24 @@
     "passiveIncomeCalculator": {
       "title": "Terugkerende commissie-calculator",
       "subtitle": "Model · partner · groei",
-      "description": "Modelleer commissie op basis van je invoer, en lees in één lijn hoe het standaardmodel, partnerships en een bredere ecosysteem-visie samenhangen — geworteld in je overeenkomst, zonder hype.",
+      "description": "Modelleer commissie op basis van je invoer, en lees in één lijn hoe het standaardmodel, partnerships en een bredere ecosysteem-visie samenhangen, geworteld in je overeenkomst, zonder hype.",
       "storyAriaLabel": "Overzicht affiliate-calculator",
       "narrativeStandardTitle": "Standaard recurring model",
       "narrativeStandardBody": "Het programma biedt tot twaalf maanden terugkerende commissie per actief aangebracht bedrijfsabonnement. De eerste twaalf maanden staan in je huidige overeenkomst; stopt een abonnement, dan stopt die commissiestroom. Tarieven en voorwaarden kunnen later evolueren met kennisgeving.",
       "narrativePartnershipTitle": "Langetermijn partnership-potentie",
-      "narrativePartnershipBody": "HomeCheff is een langetermijn-ecosysteem voor makers, buurten en bedrijven. Actieve affiliates kunnen meegroeien met adoptie en productdiepte. Toekomstige incentives, prestatiedoelen en community-milestones kunnen samenwerking verlengen of herschikken — altijd vooraf gecommuniceerd, nooit als gegarandeerde uitbetaling.",
+      "narrativePartnershipBody": "HomeCheff is een langetermijn-ecosysteem voor makers, buurten en bedrijven. Actieve affiliates kunnen meegroeien met adoptie en productdiepte. Toekomstige incentives, prestatiedoelen en community-milestones kunnen samenwerking verlengen of herschikken, altijd vooraf gecommuniceerd, nooit als gegarandeerde uitbetaling.",
       "narrativeFutureVisionTitle": "Toekomstvisie op groei",
-      "narrativeFutureVisionBody": "We bouwen bewust aan samen groeien: naarmate internationale reikwijdte en communities dieper worden, kunnen sterke partners grotere terugkerende inkomstenkansen ontdekken — binnen duidelijke regels en een evoluerend programmaontwerp.",
+      "narrativeFutureVisionBody": "We bouwen bewust aan samen groeien: naarmate internationale reikwijdte en communities dieper worden, kunnen sterke partners grotere terugkerende inkomstenkansen ontdekken, binnen duidelijke regels en een evoluerend programmaontwerp.",
       "narrativeFutureTitle": "Illustratieve lange horizon",
-      "narrativeFutureIntro": "Geen prognose of belofte. Eén ambitieuze, internationale kijk op ecosysteemschaal — jouw resultaten zullen anders zijn.",
+      "narrativeFutureIntro": "Geen prognose of belofte. Eén ambitieuze, internationale kijk op ecosysteemschaal, jouw resultaten zullen anders zijn.",
       "timelineY1Title": "Jaar 1",
       "timelineY1Body": "Bouw je eerste netwerk van makers, bedrijven en kopers die HomeCheff via jou ontdekken.",
       "timelineY2Title": "Jaar 2",
       "timelineY2Body": "Veel klanten blijven jaren actief terwijl jij je community blijft verbreden en verfijnt hoe je zichtbaar bent.",
       "timelineY35Title": "Jaar 3–5",
-      "timelineY35Body": "Sterke affiliates en communities krijgen mogelijk toegang tot uitgebreidere samenwerkingen, extra incentives en grotere terugkerende stromen — naarmate het programma rijpt en geschiktheid wijzigt.",
+      "timelineY35Body": "Sterke affiliates en communities krijgen mogelijk toegang tot uitgebreidere samenwerkingen, extra incentives en grotere terugkerende stromen, naarmate het programma rijpt en geschiktheid wijzigt.",
       "timelineY710Title": "Jaar 7–10",
-      "timelineY710Body": "Partners die lang meebouwen aan de missie, kunnen onderdeel worden van een veel groter internationaal netwerk van bedrijven, makers en buurten — als strategie, regelgeving en adoptie dat toelaten.",
+      "timelineY710Body": "Partners die lang meebouwen aan de missie, kunnen onderdeel worden van een veel groter internationaal netwerk van bedrijven, makers en buurten, als strategie, regelgeving en adoptie dat toelaten.",
       "narrativeFutureDisclaimer": "Alleen een illustratief verhaal. Geen gegarandeerd inkomen, duur, timing of lifetime-commissies.",
       "commissionDetailsToggle": "Zo werkt transactiecommissie",
       "commissionDetailsBody": "Ben jij de enige affiliate op een bestelling, dan kun je de hele pool krijgen: maximaal 50% van de platformfee. Zijn er twee verschillende affiliates, dan krijgt ieder de helft van die pool. Zonder affiliate is de commissie €0. Dit is een scenario, geen belofte dat elke referral het maximum oplevert.",
@@ -7934,7 +7934,7 @@
       "ctaSlimTitle": "Groei mee met het ecosysteem",
       "ctaSlimSubtitle": "Heldere voorwaarden · Wekelijkse Stripe-uitbetalingen · Creator- en community-first, internationaal schaalbaar",
       "legalFootnote": "Exacte percentages, plafonds en vensters staan in je affiliate-overeenkomst en algemene voorwaarden.",
-      "becomeAffiliate": "Word affiliate — gratis starten",
+      "becomeAffiliate": "Word affiliate: gratis starten",
       "readyToStartDesc": "Word affiliate en bouw samen met je community aan terugkerende commissie, binnen je overeenkomst.",
       "growthPlan": "Zakelijk abonnement",
       "growthPlanHint": "Commissie is 50% van wat er overblijft na de HC-reserve van dat abonnement, niet 50% van de prijs. Geen minimum.",
@@ -7975,15 +7975,15 @@
       "ctaDashboard": "Naar dashboard",
       "ctaPromoCodes": "Promocodes beheren",
       "howTitle": "Zo werkt het",
-      "howSubtitle": "Van eerste link tot wekelijkse uitbetaling — overzichtelijk en voorspelbaar.",
-      "recurringTitle": "Terugkerende commissie — in het kort",
-      "recurringIntro": "Je verdient op twee sporen: gebruikers (koper en/of verkoper) en zakelijke abonnementen. Bij abonnementen kan je commissie maandelijks terugkeren zolang het bedrijf geabonneerd blijft, tot twaalf maanden per aangebracht bedrijf — conform je affiliatevoorwaarden.",
+      "howSubtitle": "Van eerste link tot wekelijkse uitbetaling, overzichtelijk en voorspelbaar.",
+      "recurringTitle": "Terugkerende commissie: in het kort",
+      "recurringIntro": "Je verdient op twee sporen: gebruikers (koper en/of verkoper) en zakelijke abonnementen. Bij abonnementen kan je commissie maandelijks terugkeren zolang het bedrijf geabonneerd blijft, tot twaalf maanden per aangebracht bedrijf, conform je affiliatevoorwaarden.",
       "recurringCard1Title": "Transacties via gebruikers",
       "recurringCard1Body": "Tot 25% van de HomeCheff-fee per transactie per kant; tot 50% als jij zowel koper als verkoper hebt aangebracht. Actieve gebruikers betekenen doorlopende transactie-commissie binnen het model.",
       "recurringCard2Title": "Zakelijke abonnementen",
       "recurringCard2Body": "Tot 50% van het abonnementsbedrag per maand, tot twaalf maanden per door jou aangebracht bedrijf, zolang het abonnement loopt. Stopt het abonnement, dan stopt ook deze commissiestroom.",
       "recurringCard3Title": "Internationaal delen",
-      "recurringCard3Body": "Je mag je link overal eerlijk delen (TikTok, Instagram, nieuwsbrief, events). Waar mensen zich kunnen registreren hangt af van HomeCheff-beschikbaarheid en lokale regels — geen misleidende claims.",
+      "recurringCard3Body": "Je mag je link overal eerlijk delen (TikTok, Instagram, nieuwsbrief, events). Waar mensen zich kunnen registreren hangt af van HomeCheff-beschikbaarheid en lokale regels, geen misleidende claims.",
       "recurringLegal": "Exacte percentages, looptijden en uitzonderingen staan in de affiliate-overeenkomst en algemene voorwaarden. De eerste twaalf maanden vallen binnen het huidige commissiemodel; daarna kunnen voorwaarden evolueren. HomeCheff kan tarieven wijzigen met minimaal 30 dagen kennisgeving.",
       "examplesTitle": "Voorbeelden die passen bij jouw stijl",
       "example1Title": "Lokale community",
@@ -7993,7 +7993,7 @@
       "example3Title": "Zakelijke netwerken",
       "example3Body": "Recruiters, bureaus en ondernemersclubs die kleine bedrijven willen helpen met zichtbaarheid en een extra inkomstenstroom voor zichzelf.",
       "audiencesTitle": "Voor wie is dit bedoeld?",
-      "audiencesSubtitle": "Niet alleen voor influencers met miljoenen volgers — juist ook voor kleinere, hechte netwerken.",
+      "audiencesSubtitle": "Ook kleinere, hechte netwerken kunnen meedoen, niet alleen influencers met miljoenen volgers.",
       "audience1": "Lokale makers & food creators",
       "audience2": "Ondernemers & recruiters",
       "audience3": "Community- en buurtpagina’s",
@@ -8003,11 +8003,11 @@
       "audience7": "Designers & studio’s",
       "audience8": "Iedereen met bereik én vertrouwen",
       "toolsTitle": "Wat je in het dashboard krijgt",
-      "toolsSubtitle": "Alles om professioneel te delen — zonder spammy tools.",
+      "toolsSubtitle": "Alles om professioneel te delen, zonder spammy tools.",
       "toolLinkTitle": "Persoonlijke referral-link",
       "toolLinkBody": "Eén duidelijke link voor social, mail en bio. Attributie wordt automatisch bijgehouden.",
       "toolQrTitle": "QR-codes",
-      "toolQrBody": "Download of print QR voor flyers, markten of je winkel — handig voor offline traffic.",
+      "toolQrBody": "Download of print QR voor flyers, markten of je winkel, handig voor offline traffic.",
       "toolPromoTitle": "Eigen promocodes",
       "toolPromoBody": "Maak codes voor zakelijke abonnementen; korting gaat uit jouw commissiedeel binnen de limieten in het dashboard.",
       "toolStatsTitle": "Inzicht & uitbetaling",
@@ -8033,7 +8033,7 @@
       "faq7Q": "Moet ik verkoper zijn op HomeCheff?",
       "faq7A": "Nee. Affiliate zijn staat los van een verkopersprofiel. Veel partners promoten zonder zelf producten te verkopen.",
       "faq8Q": "Hoe werkt terugkerende commissie precies?",
-      "faq8A": "Bij door jou aangebrachte zakelijke abonnementen ontvang je binnen het standaardmodel maandelijks een deel van het abonnement; de eerste twaalf maanden vallen onder het huidige commissiemodel. Daarna kan samenwerking evolueren via duidelijk gecommuniceerde incentives — zonder belofte op lifetime-inkomen.",
+      "faq8A": "Bij door jou aangebrachte zakelijke abonnementen ontvang je binnen het standaardmodel maandelijks een deel van het abonnement; de eerste twaalf maanden vallen onder het huidige commissiemodel. Daarna kan samenwerking evolueren via duidelijk gecommuniceerde incentives, zonder belofte op lifetime-inkomen.",
       "faq12Q": "Wat gebeurt er na 12 maanden?",
       "faq12A": "Het standaard affiliate-venster loopt tot twaalf maanden per actief aangebracht bedrijfsabonnement; die periode is binnen het huidige model helder vastgelegd. Daarna kan de samenwerking verlengd of uitgebreid worden met toekomstige incentives, prestaties en community-doelen. HomeCheff blijft inzetten op langdurige partnerships; exacte voorwaarden staan in je overeenkomst.",
       "faq13Q": "Kunnen samenwerkingen later uitbreiden?",
@@ -8114,8 +8114,8 @@
     },
     "dna": {
       "growthTitle": "Groei sneller met een zakelijk abonnement",
-      "growthSubtitle": "Kies zichtbaarheid, vertrouwen en bereik — niet alleen een lagere fee. Elk plan helpt je bedrijf groeien in de buurt.",
-      "growthPitch": "HomeCheff abonnementen verlagen je platformfee en versterken je zakelijke profiel — business badge, vertrouwen en lagere kosten per transactie. Geen verborgen ranking-beloftes.",
+      "growthSubtitle": "Kies zichtbaarheid, vertrouwen en bereik, niet alleen een lagere fee. Elk plan helpt je bedrijf groeien in de buurt.",
+      "growthPitch": "HomeCheff abonnementen verlagen je platformfee en versterken je zakelijke profiel, business badge, vertrouwen en lagere kosten per transactie. Geen verborgen ranking-beloftes.",
       "pillar": {
         "visibility": "Zakelijke badge en profiel op het dorpsplein",
         "trust": "Business badge en geverifieerd profiel",
@@ -8123,7 +8123,7 @@
         "automation": "Automatische activatie na betaling"
       },
       "perMonth": "per maand",
-      "commissionNote": "Platformfee op verkopen: {{percent}}% — secundair aan groei en zichtbaarheid.",
+      "commissionNote": "Platformfee op verkopen: {{percent}}%, secundair aan groei en zichtbaarheid.",
       "unavailable": "Niet beschikbaar",
       "choosePlan": "Kies {{plan}}",
       "plan": {
@@ -8173,7 +8173,7 @@
         "multiLocation": "Meerdere vestigingen"
       },
       "preview": {
-        "liveTitle": "Live preview — zo zie je eruit",
+        "liveTitle": "Live preview: zo zie je eruit",
         "liveSubtitle": "Wissel tussen plannen en zie direct wat verandert. Alles komt uit je Business DNA-profiel.",
         "badge": "Business badge",
         "noBadge": "Geen badge",
@@ -8195,20 +8195,20 @@
           "4": "Premium"
         },
         "tier": {
-          "1": "Particulier — standaard profiel",
-          "2": "Basic — business badge en lagere fee",
-          "3": "Pro — verified badge en uitgebreider profiel",
-          "4": "Premium — hoogste planprofiel"
+          "1": "Particulier: standaard profiel",
+          "2": "Basic: business badge en lagere fee",
+          "3": "Pro: verified badge en uitgebreider profiel",
+          "4": "Premium: hoogste planprofiel"
         },
         "whatChangesTitle": "Na upgraden ontvang je direct",
-        "whatChangesSubtitle": "Dit activeert automatisch na betaling — geen handmatige actie.",
+        "whatChangesSubtitle": "Dit activeert automatisch na betaling, geen handmatige actie.",
         "deltaFrom": "Van {{from}} naar {{to}}",
         "upgradeDeltaTitle": "{{from}} → {{to}}: wat erbij komt",
         "comingSoonTitle": "Binnenkort beschikbaar",
         "individualNote": "Als particulier heb je standaard zichtbaarheid. Kies een zakelijk plan voor groei.",
         "noChanges": "Geen extra wijzigingen ten opzichte van je huidige plan.",
         "productTitle": "Zo verschijn je op HomeCheff",
-        "productSubtitle": "Echte tile- en trust-componenten — geen mockup.",
+        "productSubtitle": "Echte tile- en trust-componenten, geen mockup.",
         "sampleSeller": "Jouw bedrijf",
         "surface": {
           "tile": "Feed-tegel",
@@ -8285,7 +8285,7 @@
       },
       "compare": {
         "title": "Vergelijk abonnementen",
-        "subtitle": "Kies op basis van fee, badge en profielvoordelen — geen gegarandeerde feed-ranking.",
+        "subtitle": "Kies op basis van fee, badge en profielvoordelen, geen gegarandeerde feed-ranking.",
         "feature": "Functie",
         "commission": "Platformfee op verkopen",
         "badge": "Business badge",
@@ -8307,11 +8307,11 @@
   "sell": {
     "pageTitle": "Verkopen op HomeCheff",
     "freeTitle": "Als particulier plaats en verkoop je gratis",
-    "freeBody": "Plaats je maaltijden, oogst, creaties of een dienst — of een oproep in Gezocht — zonder abonnement. Je betaalt alleen een kleine fee per verkoop; kopen kost nooit een abonnement.",
+    "freeBody": "Plaats je maaltijden, oogst, creaties of een dienst, of een oproep in Gezocht, zonder abonnement. Je betaalt alleen een kleine fee per verkoop; kopen kost nooit een abonnement.",
     "freeCta": "Gratis iets plaatsen",
     "businessSectionTitle": "Optioneel: zakelijk abonnement (KVK / bedrijf)",
     "businessSectionSubtitle": "Verkoop je als bedrijf of met een KVK-registratie? Met een maandabonnement betaal je een lagere platformfee. Dit is een upgrade, geen verplichting om te kunnen verkopen.",
-    "title": "Zet je bedrijf op de kaart — groei met je lokale community",
+    "title": "Zet je bedrijf op de kaart, groei met je lokale community",
     "subtitle": "Kies het abonnement dat bij jouw bedrijf past. Transparante prijzen, maandelijks opzegbaar en zonder verborgen kosten.",
     "introWho": "Deze pagina is voor verkopers met een KVK / bedrijfsregistratie: je kiest hier een maandabonnement met lagere HomeCheff-platformfee op je verkopen.",
     "feeSummary": "Overzicht plannen: Basic €39 per maand + 9% platformfee · Pro €99 per maand + 7% · Premium €199 per maand + 5%.",
@@ -8321,7 +8321,7 @@
     "confirmingSubscription": "We bevestigen je abonnement, een moment geduld..."
   },
   "splash": {
-    "title": "Ontdek digitale ateliers, tuinen en keukens in jouw buurt — of deel de jouwe en verdien extra.",
+    "title": "Ontdek digitale ateliers, tuinen en keukens in jouw buurt, of deel de jouwe en verdien extra.",
     "subtitle": "Verzamel inspiratie, verkoop gratis wat je maakt, met directe uitbetalingen. Jouw buurt wordt jouw dorpsplein.",
     "valueProposition": "Lokaal en transparant: ontdek makers, praat mee op het dorpsplein, en reken veilig af wanneer je klaar bent om iets te proberen.",
     "affiliate": "Affiliate 12-12",
@@ -8406,7 +8406,7 @@
     "helpTitle": "Hulp nodig?",
     "helpSpam": "Controleer je spam/junk folder",
     "helpExpiry": "Verificatielinks zijn 24 uur geldig",
-    "helpProfile": "Profiel — e-mailadres wijzigen",
+    "helpProfile": "Profiel: e-mailadres wijzigen",
     "helpContact": "Contact",
     "helpSupport": "of support@homecheff.eu"
   },
@@ -8415,7 +8415,7 @@
     "quickActionsTitle": "Snelle acties",
     "messagesUrgentOne": "Je hebt 1 ongelezen bericht",
     "messagesUrgentMany": "Je hebt {{count}} ongelezen berichten",
-    "messagesUrgentHint": "Reageer wanneer het jou uitkomt — je gesprek wacht op je.",
+    "messagesUrgentHint": "Reageer wanneer het jou uitkomt. Je gesprek wacht op je.",
     "messagesUrgentCta": "Berichten openen",
     "browseMakers": "Makers in de buurt",
     "communityCardTitle": "Samen groeien we lokaal",
@@ -8428,9 +8428,9 @@
     "buurtmomentenTitle": "Buurtmomenten",
     "heroLiveLabel": "Er gebeurt iets in je buurt",
     "heroCommunityHint": "Makers en buren delen actief",
-    "heroVisualCaption": "Ontdek wat er leeft in jouw buurt — van keuken tot tuin en atelier.",
+    "heroVisualCaption": "Ontdek wat er leeft in jouw buurt, van keuken tot tuin en atelier.",
     "mobileShareInsertTitle": "Deel iets met je buurt",
-    "mobileShareInsertBody": "Kook, kweek of creëer — laat buren zien wat je maakt."
+    "mobileShareInsertBody": "Kook, kweek of creëer. Laat buren zien wat je maakt."
   },
   "homePromotions": {
     "sectionTitle": "Aanbevolen",
@@ -8498,18 +8498,18 @@
     "orientationTitle": "Ontdek echt aanbod van buren bij jou in de buurt",
     "orientationTitleInCity": "Ontdek echt aanbod van mensen bij jou in {city}",
     "orientationOrigin": "HomeCheff is gestart in Vlaardingen.",
-    "orientationExplainShort": "Mensen koken, groeien, maken en helpen dichtbij — vind, vraag of deel.",
+    "orientationExplainShort": "Mensen koken, groeien, maken en helpen dichtbij, vind, vraag of deel.",
     "orientationExplainCompact": "Zoeken · Aanbieden · Vragen · Kopen · Verkopen · Ruilen · Helpen",
-    "orientationExplainMedium": "HomeCheff groeit van Vlaardingen naar buiten: echte lokale listings van eten, oogst, creaties en diensten — geen landelijke megamarkt.",
-    "orientationExplainFull": "HomeCheff is de digitale buurtmarkt in opbouw. We starten lokaal (rond Vlaardingen) met echte makers en buren. Koop, verkoop, ruil of vraag iets — dichtbij eerst.",
+    "orientationExplainMedium": "HomeCheff groeit van Vlaardingen naar buiten: echte lokale listings van eten, oogst, creaties en diensten, geen landelijke megamarkt.",
+    "orientationExplainFull": "HomeCheff is de digitale buurtmarkt in opbouw. We starten lokaal (rond Vlaardingen) met echte makers en buren. Koop, verkoop, ruil of vraag iets, dichtbij eerst.",
     "orientationExplainUltra": "Eten, oogst, creaties en diensten van mensen dichtbij.",
     "orientationExplainCompactPrimary": "Eten, oogst, creaties en diensten van mensen bij jou in de buurt.",
-    "orientationExplainCompactSecondary": "Ontdek dichtbij, of bied zelf iets aan — we bouwen supply van Vlaardingen naar buiten.",
+    "orientationExplainCompactSecondary": "Ontdek dichtbij, of bied zelf iets aan. We bouwen supply van Vlaardingen naar buiten.",
     "orientationExplainStandard": "Buren bieden hier eten, oogst, creaties en diensten aan. We zijn begonnen in Vlaardingen en groeien van daaruit verder. Kijk wat er nu staat, of zet zelf iets online.",
     "orientationExplainExpanded": "HomeCheff is een buurtmarkt die we vanuit Vlaardingen opbouwen. Je ziet wat buren koken, kweken, maken en aanbieden, en je kunt zelf ook iets plaatsen. Wat je hier vindt, komt van echte mensen en niet uit een landelijk magazijn.",
     "orientationExplainRich": "HomeCheff is een buurtmarkt in opbouw. We zijn rond Vlaardingen begonnen, met aanbod van echte mensen. Kijk wat er aan eten, oogst, creaties en diensten te vinden is, of bied zelf iets aan.",
-    "orientationExplainSupport": "Dichtbij eerst: buren versterken elkaar met eten, oogst, ambacht en hulp — met of zonder geld.",
-    "orientationExplainExamples": "Denk aan maaltijden, tuinproducten, creaties, reparaties en buurtdiensten — alles begint dichtbij jou.",
+    "orientationExplainSupport": "Dichtbij eerst: buren versterken elkaar met eten, oogst, ambacht en hulp, met of zonder geld.",
+    "orientationExplainExamples": "Denk aan maaltijden, tuinproducten, creaties, reparaties en buurtdiensten, alles begint dichtbij jou.",
     "orientationLocalLaunchNote": "Nu actief in en rond Vlaardingen",
     "orientationTrustSecurePay": "Veilig betalen",
     "orientationTrustPickup": "Ophalen of bezorgen",
@@ -8522,7 +8522,7 @@
     "heroHideLabel": "Ontdek in je buurt",
     "heroShowLabel": "Hero tonen",
     "heroRestoreLabel": "Intro tonen",
-    "schemaWebsiteDescription": "HomeCheff — het digitale thuis van persoonlijk vakmanschap. Ontdek lokale makers, vakmensen en buren — eten, tuin, creaties, diensten en hulp.",
+    "schemaWebsiteDescription": "HomeCheff, het digitale thuis van persoonlijk vakmanschap. Ontdek lokale makers, vakmensen en buren, eten, tuin, creaties, diensten en hulp.",
     "verticals": {
       "cheff": {
         "title": "HomeCheff",
@@ -8626,7 +8626,7 @@
     "showLessBadges": "Minder tonen",
     "noBadgesYet": "Deze maker bouwt nog aan zichtbare waardering in de community.",
     "noReviewsTitle": "Nog geen reviews",
-    "newMakerReassurance": "Nieuwe maker — bekijk het profiel, de foto's en het aanbod, en maak duidelijke afspraken via een bericht.",
+    "newMakerReassurance": "Nieuwe maker. Bekijk het profiel, de foto's en het aanbod, en maak duidelijke afspraken via een bericht.",
     "emptyBio": "Deze maker heeft nog geen verhaal toegevoegd.",
     "emptyOfferings": "Deze maker heeft nog geen aanbod geplaatst.",
     "emptyInspiration": "Deze maker heeft nog geen inspiratie gedeeld.",
@@ -8689,7 +8689,7 @@
     "entry": {
       "intentHeading": "Wat wil je doen?",
       "categoryHeading": "Wat past het beste?",
-      "categoryHint": "Kies de hoofdactiviteit — daarna open je alleen de groepen die daarbij horen.",
+      "categoryHint": "Kies de hoofdactiviteit, daarna open je alleen de groepen die daarbij horen.",
       "groupHeading": "Kies een groep",
       "groupHint": "Selecteer waar je aanbod het beste past. Je kunt daarna meerdere items kiezen.",
       "itemsHeading": "Wat past hier het beste?",
@@ -8819,7 +8819,7 @@
     },
     "payment": {
       "heading": "Hoe kan er worden afgerekend?",
-      "hint": "Je mag één of beide opties kiezen — handig voor chat-voorstellen en groepsbestellingen.",
+      "hint": "Je mag één of beide opties kiezen, handig voor chat-voorstellen en groepsbestellingen.",
       "homecheffTitle": "Via HomeCheff betalen",
       "homecheffDescription": "Veilig online afrekenen via HomeCheff (Stripe).",
       "directContactTitle": "Via direct contact afrekenen",
@@ -8958,7 +8958,7 @@
       }
     },
     "exchangeSuggestions": {
-      "hint": "Optionele ruilkansen — alleen voor jou, niet voor de volgorde in de feed.",
+      "hint": "Optionele ruilkansen, alleen voor jou, niet voor de volgorde in de feed.",
       "matchReasons": "Waarom deze suggestie",
       "empty": "Geen ruilkansen op dit moment.",
       "dismiss": "Sluiten",
@@ -9031,8 +9031,8 @@
         "wantHint": "Wat wil ik vinden?",
         "offer": "Ik bied",
         "offerHint": "Wat kan ik aanbieden?",
-        "wantEducation": "Zoek wat je wilt in je buurt — eten, hulp, creaties of diensten.",
-        "offerEducation": "Heb je fruit, skills, hulp of creaties? Kies wat jij kunt aanbieden — we tonen wie dat als waarde accepteert."
+        "wantEducation": "Zoek wat je wilt in je buurt, eten, hulp, creaties of diensten.",
+        "offerEducation": "Heb je fruit, skills, hulp of creaties? Kies wat jij kunt aanbieden. We tonen wie dat als waarde accepteert."
       },
       "acceptedValuesFilter": {
         "heading": "Geaccepteerde waarden",
@@ -9054,9 +9054,9 @@
       "requests": {
         "chip": "Vraag / Gezocht",
         "sectionTitle": "Vraag / Gezocht",
-        "sectionSubtitle": "Bekijk wat buurtgenoten zoeken — of vraag zelf om een maaltijd, hulp, dienst of iets huisgemaakts dichtbij.",
+        "sectionSubtitle": "Bekijk wat buurtgenoten zoeken, of vraag zelf om een maaltijd, hulp, dienst of iets huisgemaakts dichtbij.",
         "emptyTitle": "Nog geen open verzoeken",
-        "emptyBody": "Bekijk wat er wordt aangeboden of vraag zelf iets — misschien helpt iemand in de buurt.",
+        "emptyBody": "Bekijk wat er wordt aangeboden of vraag zelf iets, misschien helpt iemand in de buurt.",
         "searchHints": {
           "gezocht": "Gezocht",
           "help": "Hulp gevraagd",
@@ -9075,7 +9075,7 @@
         "badge": "Gezocht",
         "helpBadge": "Hulp gevraagd",
         "soughtHeading": "Gezocht",
-        "intro": "Iemand zoekt hulp of iets specifieks — reageer met een voorstel."
+        "intro": "Iemand zoekt hulp of iets specifieks. Reageer met een voorstel."
       }
     },
     "deals": {
@@ -9098,12 +9098,12 @@
         },
         "delivery": {
           "available": "Bezorging mogelijk",
-          "requestedPending": "Bezorging aangevraagd — wacht op koppeling",
+          "requestedPending": "Bezorging aangevraagd: wacht op koppeling",
           "requested": "Bezorging aangevraagd",
           "courierAssigned": "Bezorger toegewezen",
           "courierAssignedNamed": "Bezorger: {{name}}",
           "inProgress": "Bezorging onderweg",
-          "inProgressNamed": "Onderweg — {{name}}",
+          "inProgressNamed": "Onderweg: {{name}}",
           "completed": "Bezorging afgerond",
           "cancelled": "Bezorging geannuleerd"
         }
@@ -9318,7 +9318,7 @@
         "alternativeValue": "Andere waarde bespreekbaar",
         "requestBudget": "Budgetindicatie",
         "requestOpen": "Voorstel welkom",
-        "inspiration": "Inspiratie — geen verkoop"
+        "inspiration": "Inspiratie, geen verkoop"
       },
       "fulfillment": {
         "onSite": "Op locatie",
@@ -9390,7 +9390,7 @@
     },
     "acceptedValues": {
       "heading": "Wat accepteer je naast geld eventueel ook?",
-      "description": "Optioneel — geef aan wat je naast geld ook zou accepteren, zoals hulp, eten, bezorging of een creatie. Dit verplicht niemand tot ruilen.",
+      "description": "Optioneel. Geef aan wat je naast geld ook zou accepteren, zoals hulp, eten, bezorging of een creatie. Dit verplicht niemand tot ruilen.",
       "searchPlaceholder": "Zoek op categorie of product…",
       "offeredInReturnHeading": "Wat bied je terug?",
       "filterAll": "Alles",
@@ -9483,7 +9483,7 @@
       "invalidStock": "Voorraad moet een heel getal van 0 of hoger zijn. 0 = uitverkocht."
     },
     "barterOpenness": {
-      "hint": "Kies of je alleen verkoopt, ook open staat voor ruil, of alleen ruil accepteert. Ruilen is nooit verplicht en niet gegarandeerd — je spreekt het samen af."
+      "hint": "Kies of je alleen verkoopt, ook open staat voor ruil, of alleen ruil accepteert. Ruilen is nooit verplicht en niet gegarandeerd. Je spreekt het samen af."
     },
     "taxonomy": {
       "groups": {
@@ -9948,11 +9948,11 @@
     "blocklist": {
       "dropshipping": {
         "label": "Dropshipping",
-        "reason": "HomeCheff is bedoeld voor aanbod waar jij zelf betekenisvolle waarde toevoegt — niet voor ongewijzigde doorverkoop of dropshipping."
+        "reason": "HomeCheff is bedoeld voor aanbod waar jij zelf betekenisvolle waarde toevoegt, niet voor ongewijzigde doorverkoop of dropshipping."
       },
       "resale": {
         "label": "Ongewijzigde wederverkoop",
-        "reason": "Ongewijzigde wederverkoop hoort niet op HomeCheff. Zelf maken, bereiden, kweken, ontwerpen, personaliseren, bewerken, restaureren of samenstellen wel — herkomst van onderdelen is niet doorslaggevend."
+        "reason": "Ongewijzigde wederverkoop hoort niet op HomeCheff. Zelf maken, bereiden, kweken, ontwerpen, personaliseren, bewerken, restaureren of samenstellen wel, herkomst van onderdelen is niet doorslaggevend."
       },
       "rental": {
         "label": "Verhuur",
@@ -10025,7 +10025,7 @@
       "labelTime": "Tijd",
       "labelFulfillment": "Wijze",
       "labelNotes": "Extra afspraak",
-      "superseded": "Vervangen door een nieuwer voorstel — dit voorstel kun je niet meer accepteren.",
+      "superseded": "Vervangen door een nieuwer voorstel. Dit voorstel kun je niet meer accepteren.",
       "changesHeading": "Gewijzigd t.o.v. vorig voorstel",
       "confirmedHeading": "Afspraak bevestigd",
       "viewAppointment": "Bekijk afspraak",
@@ -10066,16 +10066,16 @@
     },
     "create": {
       "title": "Voorstel doen",
-      "settlementHint": "Kies hoe waarde wordt afgesproken — geen betaling via dit scherm.",
+      "settlementHint": "Kies hoe waarde wordt afgesproken, geen betaling via dit scherm.",
       "prefilledAccepted": "Vooraf ingevuld vanuit het aanbod.",
       "discardConfirm": "Je voorstel is nog niet verstuurd. Sluiten bewaart het als concept (alleen voor jou).",
       "reviewHint": "Controleer je voorstel hierboven. Alleen met ‘Voorstel versturen’ wordt het verzonden.",
-      "conceptBadge": "Concept — nog niet verstuurd",
+      "conceptBadge": "Concept: nog niet verstuurd",
       "explicitSendOnly": "Alleen met deze knop wordt je voorstel echt verstuurd."
     },
     "fields": {
       "messageLabel": "Extra afspraak / bericht",
-      "messagePlaceholder": "Optioneel — bijvoorbeeld waarom, materialen of ophalen bij de deur",
+      "messagePlaceholder": "Optioneel: bijvoorbeeld waarom, materialen of ophalen bij de deur",
       "locationMethodLabel": "Locatie / wijze",
       "pickupDateLabel": "Afhaaldatum",
       "pickupTimeLabel": "Afhaaltijd",
@@ -10083,7 +10083,7 @@
       "deliveryTimeLabel": "Bezorgtijd"
     },
     "location": {
-      "pendingHeading": "Afspraak bevestigd — gegevens nog afronden",
+      "pendingHeading": "Afspraak bevestigd: gegevens nog afronden",
       "completeHeading": "Locatie afgerond",
       "pickupAddress": "Afhaaladres",
       "deliveryAddress": "Afleveradres",
@@ -10104,7 +10104,7 @@
       "accepted": "Voorstel geaccepteerd.",
       "rejected": "Voorstel afgewezen.",
       "cancelled": "Voorstel geannuleerd.",
-      "communityOrderCreated": "Afspraak vastgelegd — jullie kunnen de details verder afspreken."
+      "communityOrderCreated": "Afspraak vastgelegd: jullie kunnen de details verder afspreken."
     },
     "errors": {
       "moneyAmountRequired": "Vul eerst een bedrag in.",
@@ -10116,8 +10116,8 @@
       "invalidAcceptedValues": "Eén of meer geaccepteerde waarden zijn ongeldig.",
       "invalidRequestedValues": "Eén of meer gevraagde waarden zijn ongeldig.",
       "checkoutNotAvailable": "Betalen via HomeCheff is voor dit aanbod niet beschikbaar.",
-      "barterNotAllowedOnMoneyListing": "Dit aanbod is alleen te koop — ruilvoorstellen zijn hier niet toegestaan.",
-      "moneyNotAllowedOnBarterListing": "Dit aanbod is alleen te ruil — geldbod is hier niet toegestaan.",
+      "barterNotAllowedOnMoneyListing": "Dit aanbod is alleen te koop, ruilvoorstellen zijn hier niet toegestaan.",
+      "moneyNotAllowedOnBarterListing": "Dit aanbod is alleen te ruil, geldbod is hier niet toegestaan.",
       "commitmentRequired": "Bevestig dat je deze afspraak wilt nakomen voordat je accepteert."
     },
     "payment": {
@@ -10144,7 +10144,7 @@
       "paymentPathRequired": "Kies eerst een betaalmethode.",
       "fulfillmentNotOffered": "Deze fulfillment-optie wordt niet aangeboden.",
       "stockUnavailableOnAccept": "Voorraad niet meer beschikbaar bij accepteren.",
-      "stockNegotiable": "Beschikbaarheid wordt bij afspraak bevestigd — je kunt wel een voorstel sturen."
+      "stockNegotiable": "Beschikbaarheid wordt bij afspraak bevestigd. Je kunt wel een voorstel sturen."
     },
     "nextAction": {
       "none": "Afspraak vastgelegd.",
@@ -10177,7 +10177,7 @@
       },
       "mixedAccepted": {
         "title": "Afspraak bevestigd",
-        "body": "\"{{title}}\" — afspraak bevestigd."
+        "body": "\"{{title}}\": afspraak bevestigd."
       },
       "communityOrderCreated": {
         "title": "Afspraak bevestigd",
@@ -10219,7 +10219,7 @@
     "commitment": {
       "acceptLabel": "Ik begrijp dat ik deze afspraak moet nakomen.",
       "homecheffHint": "Betaal via HomeCheff voor extra zekerheid.",
-      "directRisk": "Spreek je buiten HomeCheff af? Dan regel je betaling onderling — op eigen risico.",
+      "directRisk": "Spreek je buiten HomeCheff af? Dan regel je betaling onderling, op eigen risico.",
       "requiredError": "Bevestig dat je deze afspraak wilt nakomen voordat je accepteert."
     },
     "paymentPath": {
@@ -10248,7 +10248,7 @@
     "nextStep": {
       "payHomecheff": "Betaal veilig via HomeCheff om de afspraak af te ronden.",
       "discussPayment": "Spreek met elkaar af hoe en wanneer je betaalt.",
-      "exchangeValue": "Rond jullie ruil af — spreek af wanneer en hoe jullie waarde uitwisselen.",
+      "exchangeValue": "Rond jullie ruil af. Spreek af wanneer en hoe jullie waarde uitwisselen.",
       "requestDelivery": "Vraag bezorging aan wanneer jullie klaar zijn.",
       "viewDelivery": "Bekijk de status van jullie bezorging.",
       "discussDeal": "Spreek de details van jullie afspraak af in de chat.",
@@ -10284,7 +10284,7 @@
     "nextStep": {
       "markComplete": "Rond de afspraak af wanneer jullie klaar zijn.",
       "reviewDeal": "Laat een beoordeling achter voor je tegenpartij.",
-      "reviewDelivery": "De bezorging is afgerond — beoordeel de bezorger."
+      "reviewDelivery": "De bezorging is afgerond. Beoordeel de bezorger."
     },
     "profile": {
       "heading": "Vertrouwen",
@@ -10345,7 +10345,7 @@
     },
     "contribution": {
       "question": "Wat heb jij zelf aan dit aanbod gedaan?",
-      "help": "Kies wat bij jou past. Materialen inkopen mag — ongewijzigd doorverkopen niet. Dit is geen HomeCheff-certificaat.",
+      "help": "Kies wat bij jou past. Materialen inkopen mag, ongewijzigd doorverkopen niet. Dit is geen HomeCheff-certificaat.",
       "noteLabel": "Vertel kort wat jouw eigen bijdrage is (optioneel)",
       "notePlaceholder": "Bijv. blanco vazen ingekocht en zelf gespoten in drie kleuren.",
       "required": "Geef aan wat jij zelf aan dit aanbod hebt gedaan (minimaal één bijdrage).",
@@ -10360,7 +10360,7 @@
       "clarifySubmit": "Toelichting versturen",
       "clarifySending": "Versturen…",
       "clarifyNoteRequired": "Toelichting is verplicht.",
-      "clarifySubmitted": "Toelichting ontvangen. HomeCheff beoordeelt deze — je kunt de zichtbaarheid niet zelf herstellen.",
+      "clarifySubmitted": "Toelichting ontvangen. HomeCheff beoordeelt deze. Je kunt de zichtbaarheid niet zelf herstellen.",
       "noSelfRestore": "Alleen HomeCheff kan dit aanbod weer zichtbaar maken."
     }
   },
@@ -10536,7 +10536,7 @@
     "settingsIntro": "Kies hoe mensen jou mogen benaderen voor vragen of bestellingen. Je bepaalt zelf wat zichtbaar is op je profiel.",
     "premiumFutureNote": "Externe contactknoppen kunnen later onderdeel worden van een premium profiel. Je kunt ze nu alvast instellen.",
     "settingsMenuDescription": "Telefoon, WhatsApp en socials op je profiel",
-    "chatAlwaysOn": "Altijd beschikbaar via HomeCheff — onafhankelijk van onderstaande opties.",
+    "chatAlwaysOn": "Altijd beschikbaar via HomeCheff, onafhankelijk van onderstaande opties.",
     "save": "Bereikbaarheid opslaan",
     "saveSuccess": "Je bereikbaarheid is opgeslagen.",
     "fields": {
@@ -10771,7 +10771,7 @@
     "finance": "Financiën",
     "requestPayout": "Uitbetaling aanvragen",
     "modalTitle": "Partnerlink & QR",
-    "modalHint": "Scan of deel je partnerlink voor nieuwe aanmeldingen — geen directe partner in je netwerk.",
+    "modalHint": "Scan of deel je partnerlink voor nieuwe aanmeldingen, geen directe partner in je netwerk.",
     "modalUnavailable": "Partnerlink is nu niet beschikbaar.",
     "copyLink": "Kopieer link",
     "copied": "Gekopieerd",
@@ -10834,7 +10834,7 @@
       "earnTitle": "Wat verdient je partner?",
       "rate": "40% van de platformfee",
       "detail": "Je partner ontvangt 40% van de toepasselijke HomeCheff-platformfee op kwalificerende transacties die via zijn of haar affiliatebijdrage worden toegeschreven.",
-      "notOrder": "De commissie wordt berekend over de platformfee van HomeCheff — niet over het volledige aankoopbedrag."
+      "notOrder": "De commissie wordt berekend over de platformfee van HomeCheff, niet over het volledige aankoopbedrag."
     }
   },
   "legal3": {
@@ -10845,7 +10845,7 @@
     "moreInfo": "Meer informatie",
     "lessInfo": "Minder informatie",
     "termsLink": "Lees de voorwaarden",
-    "platformRole": "HomeCheff is een marketplaceplatform. De verkoper/dienstverlener levert het aanbod; HomeCheff faciliteert de verbinding. Betalingen via Stripe verlopen via het platform — de precieze juridische rol van HomeCheff bij betalingen is onderwerp van verdere juridische toetsing.",
+    "platformRole": "HomeCheff is een marketplaceplatform. De verkoper/dienstverlener levert het aanbod; HomeCheff faciliteert de verbinding. Betalingen via Stripe verlopen via het platform, de precieze juridische rol van HomeCheff bij betalingen is onderwerp van verdere juridische toetsing.",
     "professionalNote": "Deze aanbieder heeft zichzelf als professioneel/zakelijk opgegeven. Dat is geen HomeCheff-certificaat van ondernemerschap.",
     "privateNote": "Deze aanbieder heeft aangegeven als particulier aan te bieden. Consumentenrechten die specifiek gelden bij aankoop van een professionele verkoper, zoals het wettelijke herroepingsrecht, zijn daarom mogelijk niet van toepassing. Overige rechten (platformregels, voedselinformatie, productveiligheid, overeenkomstenrecht) blijven relevant waar van toepassing.",
     "undeclaredNote": "De aanbieder heeft nog geen particulier/professioneel-status opgegeven. Toon voorzichtigheid; HomeCheff bepaalt geen handelsstatus automatisch.",
@@ -10862,9 +10862,9 @@
       "STANDARD_14_DAY": "14 dagen bedenktijd",
       "CUSTOM_OR_PERSONALISED_EXCEPTION": "Uitzondering: op maat gemaakt",
       "PERISHABLE_EXCEPTION": "Uitzondering: snel bederfelijk",
-      "FULLY_PERFORMED_SERVICE_EXCEPTION": "Dienst — herroepingsrecht hangt af van uitvoering",
+      "FULLY_PERFORMED_SERVICE_EXCEPTION": "Dienst: herroepingsrecht hangt af van uitvoering",
       "NOT_APPLICABLE_PRIVATE_C2C": "Wettelijk herroepingsrecht (B2C) mogelijk niet van toepassing",
-      "NOT_APPLICABLE_FREE": "Geen betaalde aankoop — herroepingsmachine niet van toepassing",
+      "NOT_APPLICABLE_FREE": "Geen betaalde aankoop: herroepingsmachine niet van toepassing",
       "REQUIRES_REVIEW": "Nog niet vastgesteld"
     },
     "summary": {
@@ -10872,13 +10872,13 @@
       "CUSTOM_OR_PERSONALISED_EXCEPTION": "Dit aanbod is door de aanbieder gemarkeerd als gemaakt volgens jouw specificaties. In dat geval kan het wettelijke herroepingsrecht niet gelden.",
       "PERISHABLE_EXCEPTION": "Dit aanbod is gemarkeerd als snel bederfelijk. Voor zulke goederen kan het wettelijke herroepingsrecht niet gelden. Allergenen- en voedselinformatie blijven apart gelden.",
       "FULLY_PERFORMED_SERVICE_EXCEPTION": "Voor diensten geldt doorgaans bedenktijd. Bij volledige uitvoering na jouw uitdrukkelijke verzoek tijdens de bedenktijd kun je het herroepingsrecht verliezen.",
-      "NOT_APPLICABLE_PRIVATE_C2C": "Particuliere aanbieder volgens eigen opgave — specifieke B2C-herroepingsrechten mogelijk niet van toepassing.",
+      "NOT_APPLICABLE_PRIVATE_C2C": "Particuliere aanbieder volgens eigen opgave, specifieke B2C-herroepingsrechten mogelijk niet van toepassing.",
       "NOT_APPLICABLE_FREE": "Gratis delen: geen betaalde aankoop.",
       "REQUIRES_REVIEW": "Zonder duidelijke particulier/professioneel-opgave tonen we geen standaard B2C-herroepingsclaim."
     },
     "detail": {
       "STANDARD_14_DAY": "Je kunt de overeenkomst in beginsel binnen 14 dagen zonder opgave van reden ontbinden, behalve waar een wettelijke uitzondering geldt. Hoe je herroept en wat je terugstuurt, hangt af van het type aanbod en de afspraken met de aanbieder.",
-      "CUSTOM_OR_PERSONALISED_EXCEPTION": "Goederen die volgens jouw specificaties zijn gemaakt of duidelijk persoonlijk zijn, kunnen van het herroepingsrecht zijn uitgesloten. Dit is alleen van toepassing als de aanbieder dat expliciet heeft aangegeven voor dit aanbod — niet enkel omdat iets ‘gepersonaliseerd’ is als herkomstclaim.",
+      "CUSTOM_OR_PERSONALISED_EXCEPTION": "Goederen die volgens jouw specificaties zijn gemaakt of duidelijk persoonlijk zijn, kunnen van het herroepingsrecht zijn uitgesloten. Dit is alleen van toepassing als de aanbieder dat expliciet heeft aangegeven voor dit aanbod, niet enkel omdat iets ‘gepersonaliseerd’ is als herkomstclaim.",
       "PERISHABLE_EXCEPTION": "Snel bederfelijke goederen kunnen van herroeping zijn uitgesloten. Dit vervangt géén allergeneninformatie of voedselveiligheidsverplichtingen.",
       "FULLY_PERFORMED_SERVICE_EXCEPTION": "Vraag alleen om start tijdens de bedenktijd als je dat echt wilt. Automatisch ‘werk is begonnen → geen herroeping’ doen we niet.",
       "NOT_APPLICABLE_PRIVATE_C2C": "Dit is géén verklaring dat je ‘geen rechten’ hebt. Het betekent dat specifieke consumentenrechten t.o.v. professionele verkopers mogelijk niet gelden.",
@@ -10887,7 +10887,7 @@
     },
     "sellerFlags": {
       "title": "Uitzonderingen herroepingsrecht (optioneel)",
-      "help": "Vink alleen aan wat feitelijk klopt voor dit aanbod. Dit is geen automatische vrijstelling — het informeert kopers. TRUST-herkomst ‘gepersonaliseerd’ is niet hetzelfde.",
+      "help": "Vink alleen aan wat feitelijk klopt voor dit aanbod. Dit is geen automatische vrijstelling, het informeert kopers. TRUST-herkomst ‘gepersonaliseerd’ is niet hetzelfde.",
       "madeToSpec": "Dit item wordt/is gemaakt volgens de individuele specificaties van de koper (op maat / duidelijk gepersonaliseerd).",
       "rapidlyPerishable": "Dit is snel bederfelijk bereid voedsel (niet automatisch elk GROW-product)."
     },
@@ -10915,7 +10915,7 @@
     "ctaShareHub": "Deel alle mogelijkheden",
     "shareTitle": "Verdien met HomeCheff",
     "shareText": "Ontdek hoe je kunt meedoen en verdienen binnen het HomeCheff-ecosysteem.",
-    "noIncomePromise": "Geen gegarandeerd inkomen — verdiensten hangen af van activiteit en eligible platformomzet.",
+    "noIncomePromise": "Geen gegarandeerd inkomen: verdiensten hangen af van activiteit en eligible platformomzet.",
     "orientTitle": "Ik wil…",
     "cardsHeading": "Mogelijkheden",
     "orient": {
@@ -10989,7 +10989,7 @@
         "title": "Werken bij HomeCheff",
         "proposition": "Echte functies en stages bij HomeCheff zelf.",
         "forWhom": "Sollicitanten voor interne HomeCheff-rollen.",
-        "howStart": "Bekijk openstaande vacatures — geen nepvacatures.",
+        "howStart": "Bekijk openstaande vacatures, geen nepvacatures.",
         "cta": "Bekijk vacatures",
         "share": "Deel vacatures"
       }
@@ -11011,11 +11011,11 @@
       "body": "Als zelfstandige of via je bezorgbedrijf. HomeCheff faciliteert matching en settlement; jij bepaalt beschikbaarheid en (binnen de regels) je aanbod.",
       "point1": "Individueel: eigen aanmelding en beschikbaarheid",
       "point2": "Bedrijf: team, toewijzing en bedrijfsuitbetaling",
-      "point3": "Nodig iemand uit — bij affiliate-context reist attributie mee"
+      "point3": "Nodig iemand uit: bij affiliate-context reist attributie mee"
     },
     "employment": {
       "title": "Werken bij HomeCheff (intern)",
-      "body": "Dit is alleen voor echte HomeCheff-dienstverbanden of stages — niet voor zelfstandige bezorgers, verkopers of affiliates.",
+      "body": "Dit is alleen voor echte HomeCheff-dienstverbanden of stages, niet voor zelfstandige bezorgers, verkopers of affiliates.",
       "cta": "Naar vacatures",
       "nav": "Vacatures",
       "pageTitle": "Werken bij HomeCheff",
@@ -11027,12 +11027,12 @@
     },
     "shareCenter": {
       "title": "Deel & verdien",
-      "body": "Deel specifieke kansen. Jouw affiliate- of bedrijfscontext reist automatisch mee — geen gegarandeerd inkomen."
+      "body": "Deel specifieke kansen. Jouw affiliate- of bedrijfscontext reist automatisch mee, geen gegarandeerd inkomen."
     }
   },
   "deliveryStart": {
     "title": "Hoe wil je bezorgen?",
-    "subtitle": "Kies wat bij jou past. HomeCheff is geen werkgever — jij of jouw bedrijf levert als zelfstandige bezorgpartner.",
+    "subtitle": "Kies wat bij jou past. HomeCheff is geen werkgever. Jij of jouw bedrijf levert als zelfstandige bezorgpartner.",
     "individualTitle": "Ik bezorg zelf",
     "individualBody": "Persoonlijk bezorgprofiel: beschikbaarheid, werkgebied, tarieven en opdrachten.",
     "companyTitle": "Ik heb een bezorgbedrijf",
@@ -11097,7 +11097,7 @@
       "retry": "Opnieuw proberen",
       "empty": "Nog geen affiliate-activiteit. Deel HomeCheff om te beginnen.",
       "emptyCta": "Bekijk wat je kunt promoten",
-      "blurb": "Eén netwerk: hoofd-affiliate (10%) en partner (40%) van eligible HomeCheff-platformomzet — samen max 50%. Geen garantie op inkomsten.",
+      "blurb": "Eén netwerk: hoofd-affiliate (10%) en partner (40%) van eligible HomeCheff-platformomzet, samen max 50%. Geen garantie op inkomsten.",
       "howItWorks": "Hoe werkt affiliate verdienen op HomeCheff?",
       "product": {
         "marketplace": "Marketplace",
@@ -11122,7 +11122,7 @@
     "externalRevenueNotice": "Verdien je ook buiten HomeCheff? Die omzet staat hier niet in.",
     "needsReviewNotice": "{amount} aan kosten moet je nog controleren voordat we die kunnen meenemen in je resultaat.",
     "investmentNotice": "{amount} staat als investering. Die verdeel je over meerdere jaren, dus we tellen het niet in één keer mee.",
-    "platformDuplicateNotice": "Je hebt {amount} onder platformkosten gezet. De kosten van HomeCheff zelf staan er al in — voeg die niet nog een keer toe.",
+    "platformDuplicateNotice": "Je hebt {amount} onder platformkosten gezet. De kosten van HomeCheff zelf staan er al in. Voeg die niet nog een keer toe.",
     "viewCosts": "Kosten bekijken",
     "addCost": "Kosten toevoegen",
     "emptyTitle": "Nog geen kosten ingevuld",
@@ -11197,7 +11197,7 @@
     "evidenceDuplicate": "Je hebt dit bestand al een keer toegevoegd.",
     "evidencePrivacy": "Bonnetjes zijn privé. Alleen jij kunt ze bekijken; ze komen niet op je profiel of in de feed.",
     "evidenceNotProof": "HomeCheff controleert het bonnetje niet. Een bijlage bewijst niet dat het bedrag, de datum of het zakelijke deel kloppen, en verandert niets aan de fiscale behandeling.",
-    "evidenceRetention": "Bewaar je eigen administratie zelf. Verwijder je een bonnetje hier, dan is het weg — HomeCheff is geen vervanging voor je wettelijke bewaarplicht.",
+    "evidenceRetention": "Bewaar je eigen administratie zelf. Verwijder je een bonnetje hier, dan is het weg. HomeCheff is geen vervanging voor je wettelijke bewaarplicht.",
     "evidenceViewerTitle": "Bewijsstuk bekijken",
     "evidenceViewerClose": "Sluiten",
     "evidenceErrorFILE_TOO_LARGE": "Dit bestand is te groot. Maximaal {{size}}.",

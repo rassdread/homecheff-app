@@ -211,7 +211,7 @@ export default function DisputeResolution() {
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
         <h3 className="font-semibold text-amber-950">Stripe chargebacks (financial)</h3>
         <p className="text-xs text-amber-800">
-          Preview only — geen live dispute of transfer reversal vanaf deze knop.
+          Preview only, geen live dispute of transfer reversal vanaf deze knop.
         </p>
         <div className="flex flex-wrap gap-2">
           <input

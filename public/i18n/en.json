@@ -67,19 +67,19 @@
     "openingInstallerStatus": "Opening installer…",
     "btnOpenCachedApk": "Open downloaded APK",
     "stepTapInstall": "Tap Install on the Android screen.",
-    "stepReopen": "Then open HomeCheff again — your data stays safe.",
+    "stepReopen": "Then open HomeCheff again. Your data stays safe.",
     "reassuranceData": "Your account and data are kept. This only replaces the app on your phone.",
     "postGuideTitle": "Almost done",
     "postGuideBody": "When installation finishes: close this message and open HomeCheff from your home screen. Still seeing the old app? Wait a moment or restart your phone.",
     "postGuideDismiss": "Got it",
     "errorTitle": "We couldn’t open the installer automatically",
     "errorOpenFromNotifications": "No worries: open the update from your notifications or from the Downloads folder, then tap the file to install.",
-    "errorBodyNoCache": "Something went wrong opening the installer. Try downloading again. Only use the browser option if nothing else works — that download often gets stuck.",
+    "errorBodyNoCache": "Something went wrong opening the installer. Try downloading again. Only use the browser option if nothing else works. That download often gets stuck.",
     "cacheFallbackLead": "The update is downloaded inside HomeCheff. Try opening it again, or save a copy to Downloads so you can find it in your files app.",
     "exportedToDownloadsPublic": "The update is now in your Downloads folder as {file} (inside the HomeCheff folder).",
     "exportedToAppStorage": "We saved a copy in HomeCheff’s app storage on your phone. You can open it with the buttons above, or browse to this app’s folder in your Files app (Download/HomeCheff).",
     "exportSaveFailed": "Could not save the file to Downloads. Try opening the downloaded APK again.",
-    "downloadStalled": "The download took too long or was interrupted. Try again — preferably on Wi‑Fi.",
+    "downloadStalled": "The download took too long or was interrupted. Try again, preferably on Wi‑Fi.",
     "btnOpenAndroidSettings": "Open Android settings",
     "btnSaveApkToDownloads": "Save to Downloads",
     "saveToDownloadsBusy": "Saving…",
@@ -89,16 +89,16 @@
     "browserLastResortHint": "Last resort only: Chrome downloads often hang at full size. Prefer Save to Downloads or retry opening the APK first.",
     "btnOpenDownloads": "Open Downloads",
     "btnDownloadViaBrowser": "Download via browser (last resort)",
-    "browserFallbackHint": "Avoid the browser if you can — that download can hang. Try Retry or Open Downloads first. Use the browser only if nothing else works.",
+    "browserFallbackHint": "Avoid the browser if you can. That download can hang. Try Retry or Open Downloads first. Use the browser only if nothing else works.",
     "errorDismiss": "Close",
     "unknownSourcesTitle": "Android needs permission once",
     "unknownSourcesBody": "To install beta updates, Android sometimes needs to allow HomeCheff to install updates. This is separate from the Play Store.",
     "updateSuccessTitle": "HomeCheff is updated",
     "updateSuccessBody": "You’re on the latest beta.",
     "webVersionToast": "New version loaded",
-    "reminderFinishInstall": "Finish your update — tap Install, or reopen HomeCheff after installing.",
+    "reminderFinishInstall": "Finish your update. Tap Install, or reopen HomeCheff after installing.",
     "errorPackageMismatch": "This update should replace your existing HomeCheff app, but the install file belongs to a different app. Only use the official beta APK from homecheff.eu.",
-    "errorSignatureMismatch": "This update was signed with a different key than your current app (e.g. debug vs release, or Play vs sideload). Uninstall old test builds once, then install the release beta from homecheff.eu — future updates will replace in place."
+    "errorSignatureMismatch": "This update was signed with a different key than your current app (e.g. debug vs release, or Play vs sideload). Uninstall old test builds once, then install the release beta from homecheff.eu, future updates will replace in place."
   },
   "playMigration": {
     "ariaLabel": "Google Play migration",
@@ -121,19 +121,19 @@
     "playSectionTitle": "Download via Google Play",
     "ctaOpenPlay": "Open in Google Play",
     "versionLabel": "Current test version:",
-    "playTrustNote": "Updates arrive automatically through Google Play — safe and reliable.",
+    "playTrustNote": "Updates arrive automatically through Google Play, safe and reliable.",
     "stepsTitle": "How to become a tester",
     "step1": "Tap Open in Google Play and accept the Open Testing invitation.",
     "step2": "Install HomeCheff from the Play Store on your Android device.",
     "step3": "Open the app and sign in to your existing account or create a new one.",
-    "step4": "Share feedback — you help make HomeCheff better for everyone.",
+    "step4": "Share feedback. You help make HomeCheff better for everyone.",
     "accountTitle": "Account",
     "accountBody": "You need a HomeCheff account for messages, HCP, and your profile.",
     "createAccount": "Create account",
     "login": "Log in",
     "shareTitle": "Share the HomeCheff app",
     "shareText": "Install HomeCheff from Google Play: homecheff.eu/app",
-    "shareBody": "Share the test link with your referral code — fair, measurable growth.",
+    "shareBody": "Share the test link with your referral code, fair, measurable growth.",
     "shareCta": "Share test link",
     "shareCopied": "Link copied to clipboard.",
     "shareManual": "Could not share the link. Copy manually: {url}",
@@ -158,13 +158,13 @@
   "softGate": {
     "saveItem": {
       "title": "Save this to your collection",
-      "body": "Keep what inspires you in one place. Log in or join — we bring you right back here.",
+      "body": "Keep what inspires you in one place. Log in or join. We bring you right back here.",
       "ctaLogin": "Log in",
       "ctaRegister": "Claim your place"
     },
     "giveProp": {
       "title": "Send appreciation to this maker",
-      "body": "Appreciation is a small thank-you from the community. Continue with your account — one tap and you're back.",
+      "body": "Appreciation is a small thank-you from the community. Continue with your account, one tap and you're back.",
       "ctaLogin": "Log in",
       "ctaRegister": "Join HomeCheff"
     },
@@ -176,13 +176,13 @@
     },
     "message": {
       "title": "Message this maker",
-      "body": "Introduce yourself or ask a question — we'll open the chat as soon as you're signed in.",
+      "body": "Introduce yourself or ask a question. We'll open the chat as soon as you're signed in.",
       "ctaLogin": "Log in",
       "ctaRegister": "Start your place"
     },
     "notifications": {
       "title": "Your HomeCheff notifications",
-      "body": "Orders, messages and moments from makers you follow — sign in to see them in one calm inbox.",
+      "body": "Orders, messages and moments from makers you follow. Sign in to see them in one calm inbox.",
       "ctaLogin": "Log in",
       "ctaRegister": "Join the community"
     },
@@ -194,13 +194,13 @@
     },
     "location": {
       "title": "Local discovery works better signed in",
-      "body": "Save your area, earn local visibility and find makers near you — continue with your account.",
+      "body": "Save your area, earn local visibility and find makers near you, continue with your account.",
       "ctaLogin": "Log in",
       "ctaRegister": "Join"
     },
     "create": {
       "title": "Share something with the village",
-      "body": "Listings and inspiration start here. Log in or join — your draft stays safe.",
+      "body": "Listings and inspiration start here. Log in or join. Your draft stays safe.",
       "ctaLogin": "Log in",
       "ctaRegister": "Open your kitchen, garden or studio"
     },
@@ -212,13 +212,13 @@
     },
     "affiliate": {
       "title": "Build your HomeCheff community",
-      "body": "Share what you love and grow together — sign in to continue your affiliate journey.",
+      "body": "Share what you love and grow together. Sign in to continue your affiliate journey.",
       "ctaLogin": "Log in",
       "ctaRegister": "Start earning together"
     },
     "generic": {
       "title": "Continue on HomeCheff",
-      "body": "Pick up where you left off — one account for makers, food lovers and creators.",
+      "body": "Pick up where you left off, one account for makers, food lovers and creators.",
       "ctaLogin": "Log in",
       "ctaRegister": "Join"
     }
@@ -227,12 +227,12 @@
     "title": "A few more steps",
     "body": "Before you can do this, finish setting up your account.",
     "subtitleUsername": "Choose a permanent username to take part on HomeCheff.",
-    "hint": "Your account still needs a few steps — see the checklist.",
+    "hint": "Your account still needs a few steps. See the checklist.",
     "close": "Close",
     "cta": "Continue"
   },
   "accountRequirementsHints": {
-    "sendMessage_email": "To send messages, your email must be verified. If you are not receiving verification email, our mail provider may be temporarily unavailable — you can keep browsing and try again later.",
+    "sendMessage_email": "To send messages, your email must be verified. If you are not receiving verification email, our mail provider may be temporarily unavailable. You can keep browsing and try again later.",
     "sendMessage_profile": "Complete the missing steps below before you can send messages.",
     "postItem_email": "To post a listing, your email must be verified. If email is not arriving, try again later or contact support.",
     "postItem_profile": "Complete the missing account details before you can post.",
@@ -267,43 +267,43 @@
   },
   "sellerActivation": {
     "title": "Optional: add your location",
-    "body": "You can explore and list first. City and country (and postcode in NL) help nearby buyers — update when it suits you.",
+    "body": "You can explore and list first. City and country (and postcode in NL) help nearby buyers, update when it suits you.",
     "ctaProfile": "Add hometown",
     "later": "Not now"
   },
   "personaBanner": {
     "chef": {
-      "teaser": "Start your kitchen — your first listing is a tap away.",
+      "teaser": "Start your kitchen. Your first listing is a tap away.",
       "cta": "Open sell flow",
       "welcome": "This platform is built for makers like you."
     },
     "designer": {
-      "teaser": "Open your atelier — show what you make.",
+      "teaser": "Open your atelier: show what you make.",
       "cta": "Open sell flow",
-      "welcome": "Show your process — people here value craft."
+      "welcome": "Show your process. People here value craft."
     },
     "grower": {
-      "teaser": "Start your garden — share what you grow.",
+      "teaser": "Start your garden. Share what you grow.",
       "cta": "Open sell flow",
       "welcome": "This space is built for growers like you."
     },
     "affiliate": {
-      "teaser": "Build your community — share HomeCheff with people who care about local makers.",
+      "teaser": "Build your community. Share HomeCheff with people who care about local makers.",
       "cta": "Open affiliate hub",
-      "welcome": "Welcome — grow a community around makers you believe in."
+      "welcome": "Welcome: grow a community around makers you believe in."
     },
     "explorer": {
-      "teaser": "Discover makers and inspiration near you — your map starts on the feed.",
+      "teaser": "Discover makers and inspiration near you. Your map starts on the feed.",
       "cta": "Explore the feed",
       "welcome": "Your corner of the ecosystem starts with what is happening nearby."
     },
     "business": {
-      "teaser": "Show your craft professionally — start with a clear profile and first listing.",
+      "teaser": "Show your craft professionally. Start with a clear profile and first listing.",
       "cta": "Start selling",
-      "welcome": "HomeCheff works for solo makers and small teams — begin with the basics."
+      "welcome": "HomeCheff works for solo makers and small teams. Begin with the basics."
     },
     "inspiration": {
-      "teaser": "Share inspiration — recipes, process, and ideas from your kitchen, garden, or studio.",
+      "teaser": "Share inspiration, recipes, process, and ideas from your kitchen, garden, or studio.",
       "cta": "Share inspiration",
       "welcome": "Creators like you keep the inspiration river flowing."
     },
@@ -316,7 +316,7 @@
   },
   "communityPulse": {
     "heading": "What's happening nearby",
-    "fallbackLine": "See what makers and neighbours are sharing — listings, inspiration and small moments close to home.",
+    "fallbackLine": "See what makers and neighbours are sharing, listings, inspiration and small moments close to home.",
     "newProducts24h": "{count} new listings in the last 24 hours",
     "newCreators7d": "{count} new accounts this week",
     "newInspiration7d": "{count} new public inspiration posts this week",
@@ -333,14 +333,14 @@
     "profileViews": "Your profile was viewed {count} times (all time).",
     "savesWeek": "{count} saves on your listings in the last 7 days.",
     "newFollowersWeek": "{count} new followers in the last 7 days.",
-    "unreadNotifications": "{count} unread notifications — catch up when it suits you.",
+    "unreadNotifications": "{count} unread notifications: catch up when it suits you.",
     "ctaProfile": "Open profile",
     "ctaNotifications": "Open notifications"
   },
   "creatorAudience": {
     "sectionAria": "Audience and community signals for your creator profile",
     "title": "Your audience",
-    "subtitle": "Quiet signals from real activity — totals and small groups, never individual names.",
+    "subtitle": "Quiet signals from real activity, totals and small groups, never individual names.",
     "localPresence": "Rooted near {place}",
     "metrics": {
       "followers": "Followers",
@@ -353,17 +353,17 @@
       "listingsActive": "{count} active listings"
     },
     "hints": {
-      "growing": "Your audience is growing — new followers found you this week.",
-      "discovery": "Your creations are being discovered — saves picked up this week.",
+      "growing": "Your audience is growing: new followers found you this week.",
+      "discovery": "Your creations are being discovered, saves picked up this week.",
       "returning": "Some people keep returning to save your work.",
       "breadth": "Several different people saved your listings this week."
     },
-    "calmDefault": "Keep sharing calmly — meaningful signals appear as people discover you."
+    "calmDefault": "Keep sharing calmly: meaningful signals appear as people discover you."
   },
   "returnBelonging": {
     "title": "Community update",
     "followedCreatorsPosted": "Creators you follow shared something new in the last day.",
-    "yourAudienceGrowing": "Your audience grew this week — new followers joined you.",
+    "yourAudienceGrowing": "Your audience grew this week, new followers joined you.",
     "communitySavesActive": "Lots of favorites are being added on Dorpsplein this week ({count})."
   },
   "ecosystemHub": {
@@ -401,7 +401,7 @@
   },
   "ecosystemVertical": {
     "backHome": "Back to the village square",
-    "emptyCalm": "There is still little visible activity here — on the feed and in discover you can quietly see what is alive. Become visible in your area by sharing something or posting a listing.",
+    "emptyCalm": "There is still little visible activity here, on the feed and in discover you can quietly see what is alive. Become visible in your area by sharing something or posting a listing.",
     "titles": {
       "keuken": "Kitchen ecosystem",
       "tuin": "Garden ecosystem",
@@ -410,11 +410,11 @@
       "community": "Community & affiliates"
     },
     "intros": {
-      "keuken": "Home kitchens and local food listings — activity from real makers, surfaced quietly.",
-      "tuin": "Garden makers and harvest — rooted in listings and public workspace stories.",
-      "studio": "Design and craft — a living corner for makers who ship and share process.",
-      "inspiratie": "Recipes, growth logs, and studio process — a gentle pulse from the community.",
-      "community": "People helping HomeCheff reach more neighbourhoods — transparent, optional, calm."
+      "keuken": "Home kitchens and local food listings, activity from real makers, surfaced quietly.",
+      "tuin": "Garden makers and harvest: rooted in listings and public workspace stories.",
+      "studio": "Design and craft, a living corner for makers who ship and share process.",
+      "inspiratie": "Recipes, growth logs, and studio process, a gentle pulse from the community.",
+      "community": "People helping HomeCheff reach more neighbourhoods, transparent, optional, calm."
     },
     "stats": {
       "activeListings": "Active listings",
@@ -577,9 +577,9 @@
     "checkoutWithCount": "Checkout ({count} items)"
   },
   "hero": {
-    "title": "HomeCheff – Homemade. Home Delivered.",
+    "title": "HomeCheff: Homemade. Home Delivered.",
     "valueProposition": "Local and transparent: discover makers, chat on the village square, and check out safely when you are ready to try something new.",
-    "subtitle": "Discover dishes, harvest and fashion – directly from people in your neighborhood.",
+    "subtitle": "Discover dishes, harvest and fashion, directly from people in your neighborhood.",
     "greeting": "Welcome, {username}! What will it be today?",
     "searchPlaceholder": "Search for dishes, products or sellers…",
     "filters": "Filters",
@@ -2050,7 +2050,7 @@
       },
       "requestReview": {
         "title": "Share your experience",
-        "description": "You completed a deal — a short review helps the community.",
+        "description": "You completed a deal, a short review helps the community.",
         "action": "Leave review"
       },
       "shareQr": {
@@ -2060,12 +2060,12 @@
       },
       "nearbyHelp": {
         "title": "Someone nearby needs help",
-        "description": "There are requests near you — maybe you can help.",
+        "description": "There are requests near you, maybe you can help.",
         "action": "View requests"
       },
       "uploadListing": {
         "title": "Publish your first listing",
-        "description": "Share what you make, grow, or offer — your village square is waiting.",
+        "description": "Share what you make, grow, or offer. Your village square is waiting.",
         "action": "Create listing"
       },
       "uploadInspiration": {
@@ -2075,7 +2075,7 @@
       },
       "completeWorkspace": {
         "title": "Show your workspace",
-        "description": "Add photos of where you work — it builds buyer trust.",
+        "description": "Add photos of where you work. It builds buyer trust.",
         "action": "Add workspace"
       },
       "verifyAccount": {
@@ -2115,7 +2115,7 @@
       "practical": {
         "repairBicycleTire": {
           "title": "Help fix a flat tire",
-          "description": "Someone nearby needs help with a bicycle tire — maybe you can assist.",
+          "description": "Someone nearby needs help with a bicycle tire, maybe you can assist.",
           "action": "View requests"
         },
         "fixBicycleLights": {
@@ -2182,7 +2182,7 @@
         },
         "visitWorkshop": {
           "title": "Visit a workshop",
-          "description": "A workshop is happening near you — discover and join in.",
+          "description": "A workshop is happening near you. Discover and join in.",
           "action": "Browse workshops"
         },
         "pickupOrderInPerson": {
@@ -2197,7 +2197,7 @@
         },
         "meetNewCommunityMember": {
           "title": "Welcome a new neighbor",
-          "description": "New members joined your area — say hello.",
+          "description": "New members joined your area, say hello.",
           "action": "Explore nearby"
         },
         "discoverHiddenCreator": {
@@ -2212,7 +2212,7 @@
         },
         "exploreFavoriteMaker": {
           "title": "Message a favorite",
-          "description": "You have favorites — start a conversation before you buy.",
+          "description": "You have favorites. Start a conversation before you buy.",
           "action": "Go to favorites"
         }
       },
@@ -2234,7 +2234,7 @@
         },
         "offerPracticalHelp": {
           "title": "Offer practical help",
-          "description": "Someone nearby needs practical help — your skills may fit.",
+          "description": "Someone nearby needs practical help. Your skills may fit.",
           "action": "View requests"
         },
         "joinNeighborhoodInitiative": {
@@ -2254,7 +2254,7 @@
         },
         "reconnectPastSeller": {
           "title": "Revisit a maker you know",
-          "description": "You bought locally before — visit that maker again.",
+          "description": "You bought locally before. Visit that maker again.",
           "action": "Go to orders"
         }
       }
@@ -2288,7 +2288,7 @@
       },
       "courier": {
         "title": "Become a neighborhood courier",
-        "description": "Deliver locally and contribute to your community — earnings framework coming later.",
+        "description": "Deliver locally and contribute to your community, earnings framework coming later.",
         "action": "Start as courier",
         "benefit": {
           "earn": "Future earning potential",
@@ -2312,7 +2312,7 @@
       },
       "communityHelper": {
         "title": "Support someone nearby",
-        "description": "People near you are looking for help — maybe you can make a difference.",
+        "description": "People near you are looking for help, maybe you can make a difference.",
         "action": "View requests",
         "benefit": {
           "help": "Strengthen neighborhood bonds",
@@ -2324,7 +2324,7 @@
         "variants": {
           "bikeRepair": {
             "title": "Help fix a bike nearby",
-            "description": "Someone near you needs help with a bicycle — maybe you can assist.",
+            "description": "Someone near you needs help with a bicycle, maybe you can assist.",
             "action": "View requests"
           },
           "smallJobs": {
@@ -2378,7 +2378,7 @@
       },
       "sportsClubInviter": {
         "title": "Invite your sports club",
-        "description": "Cook together, pick up together — grow as a club on HomeCheff.",
+        "description": "Cook together, pick up together, grow as a club on HomeCheff.",
         "action": "Invite club",
         "benefit": {
           "community": "Build club community",
@@ -2460,26 +2460,26 @@
       },
       "inviteSportsClub": {
         "title": "Invite your sports club",
-        "description": "Cook together, pick up together — grow as a club on HomeCheff.",
+        "description": "Cook together, pick up together, grow as a club on HomeCheff.",
         "action": "Invite club"
       },
       "supportNearby": {
         "title": "Support someone nearby",
-        "description": "People near you are looking for help — maybe you can make a difference.",
+        "description": "People near you are looking for help, maybe you can make a difference.",
         "action": "View requests"
       }
     },
     "events": {
       "workshopNearby": {
         "title": "Workshop near you",
-        "description": "A workshop is coming up in your area — discover and join in.",
+        "description": "A workshop is coming up in your area. Discover and join in.",
         "action": "Browse workshops"
       }
     },
     "community": {
       "peopleNearby": {
         "title": "Makers active near you",
-        "description": "Several makers are active in your area — see what they share.",
+        "description": "Several makers are active in your area. See what they share.",
         "action": "Explore nearby"
       },
       "newMakersNearby": {
@@ -2524,7 +2524,7 @@
       },
       "workshopWaitlist": {
         "title": "Workshop waitlist",
-        "description": "A nearby workshop has a waitlist — sign up to join.",
+        "description": "A nearby workshop has a waitlist. Sign up to join.",
         "action": "View workshop"
       }
     },
@@ -2732,7 +2732,7 @@
   },
   "discover": {
     "hubTitle": "Discover",
-    "hubSubtitle": "Community inspiration and offered listings on the village square — switch with the tabs below. Expanded filters help you refine quickly.",
+    "hubSubtitle": "Community inspiration and offered listings on the village square, switch with the tabs below. Expanded filters help you refine quickly.",
     "listingTypeLabel": "Show",
     "listingTabsAria": "Choose inspiration or village square"
   },
@@ -2741,7 +2741,7 @@
     "welcomeBack": "Welcome back!",
     "greeting": "Hey {firstName}, come here to get inspired! Discover delicious recipes, beautiful grows and unique designs from our community.",
     "subtitle": "Discover delicious recipes, beautiful grows and unique designs from our community.",
-    "description": "Save your favorites, share your profile — your personal studio, garden or kitchen — where all your items come together.",
+    "description": "Save your favorites, share your profile, your personal studio, garden or kitchen, where all your items come together.",
     "filters": "Filters",
     "all": "All",
     "recipes": "Recipes",
@@ -2974,7 +2974,7 @@
     "eyebrow": "Work & activity",
     "greeting": "Welcome, {{name}}",
     "modulesTitle": "More from HomeCheff",
-    "modulesSupport": "Other HomeCheff products — choose where you want to go.",
+    "modulesSupport": "Other HomeCheff products. Choose where you want to go.",
     "activityTitle": "Your work",
     "modules": {
       "marketplace": {
@@ -3034,7 +3034,7 @@
       },
       "affiliate": {
         "title": "Affiliate & network",
-        "description": "Your code, network and commissions — one introduction across HomeCheff.",
+        "description": "Your code, network and commissions, one introduction across HomeCheff.",
         "onboardingDescription": "Invite someone once. If they later generate eligible HomeCheff platform revenue, your network may share in it (not guaranteed).",
         "empty": "No network activity yet. Share your code to get started.",
         "primary": "Open Affiliate & network",
@@ -3064,7 +3064,7 @@
       },
       "hc": {
         "title": "HC balance",
-        "description": "Your HomeCheff Credits — balance, history and where you can use HC.",
+        "description": "Your HomeCheff Credits: balance, history and where you can use HC.",
         "empty": "No HC activity yet.",
         "primary": "View HC balance"
       }
@@ -3131,7 +3131,7 @@
     "emailUs": "E-mail ons",
     "contactForm": "Contact Form",
     "manifestTitle": "Why HomeCheff exists",
-    "manifestDescription": "For the philosophical foundation — mission, values and what we refuse to become — read the HomeCheff Manifest.",
+    "manifestDescription": "For the philosophical foundation, mission, values and what we refuse to become, read the HomeCheff Manifest.",
     "manifestLink": "Go to the Manifest",
     "moreDetail": "More detail",
     "categories": {
@@ -3151,11 +3151,11 @@
     "general": {
       "0": {
         "question": "What is HomeCheff?",
-        "answer": "HomeCheff is a local platform for products, services, craftsmanship, creativity and help in your neighbourhood. Neighbours can list on the Village Square (Offered), post in Wanted, share inspiration, make a proposal or pay securely via HomeCheff Checkout.\n\n🎯 Who it's for: makers, gardeners, designers, service providers, neighbours who want to help, and anyone who wants to discover or barter locally.\n\n💡 Value exchange: not only money — direct contact, barter and alternative counter-values are possible when the provider allows it.\n\n🏘️ Local & community: trust, reputation (HCP) and transparent agreements matter — not commerce alone."
+        "answer": "HomeCheff is a local platform for products, services, craftsmanship, creativity and help in your neighbourhood. Neighbours can list on the Village Square (Offered), post in Wanted, share inspiration, make a proposal or pay securely via HomeCheff Checkout.\n\n🎯 Who it's for: makers, gardeners, designers, service providers, neighbours who want to help, and anyone who wants to discover or barter locally.\n\n💡 Value exchange: not only money, direct contact, barter and alternative counter-values are possible when the provider allows it.\n\n🏘️ Local & community: trust, reputation (HCP) and transparent agreements matter, not commerce alone."
       },
       "1": {
         "question": "How does HomeCheff work?",
-        "answer": "1️⃣ Discover or post on the Village Square (Offered), in Wanted or as Inspiration.\n2️⃣ Choose how you agree: securely via HomeCheff Checkout, direct contact, barter or a proposal with alternative value.\n3️⃣ Chat, make a deal and build reputation locally.\n\nFor private sellers the platform is free — you only pay transaction fees on HomeCheff Checkout. Companies with a KVK number can choose a subscription."
+        "answer": "1️⃣ Discover or post on the Village Square (Offered), in Wanted or as Inspiration.\n2️⃣ Choose how you agree: securely via HomeCheff Checkout, direct contact, barter or a proposal with alternative value.\n3️⃣ Chat, make a deal and build reputation locally.\n\nFor private sellers the platform is free. You only pay transaction fees on HomeCheff Checkout. Companies with a KVK number can choose a subscription."
       },
       "2": {
         "question": "Is HomeCheff free to use?",
@@ -3183,7 +3183,7 @@
       },
       "8": {
         "question": "Why is HomeCheff written with two F’s?",
-        "answer": "HomeCheff is the official brand spelling: one word, capital C, double f. That spelling is the distinct identity of an independent Dutch neighbourhood-marketplace brand — not affiliated with “Home Chef” meal-kit or USA brands. See /waarom-homecheff."
+        "answer": "HomeCheff is the official brand spelling: one word, capital C, double f. That spelling is the distinct identity of an independent Dutch neighbourhood-marketplace brand, not affiliated with “Home Chef” meal-kit or USA brands. See /waarom-homecheff."
       },
       "9": {
         "question": "What is Arriassisme?",
@@ -3361,7 +3361,7 @@
       },
       "1": {
         "question": "From what amount do I have to pay VAT?",
-        "answer": "VAT has its own rules. That is separate from income tax or KVK. There is no simple HomeCheff threshold after which you automatically pay VAT.\n\n---\n\nVAT first depends on whether you are an entrepreneur for VAT. That is different from KVK. A registration threshold may apply at a small turnover. KOR is a separate exemption you can opt into under conditions — not tax-free income.\n\nSources:\nBelastingdienst — Entrepreneur for VAT\nhttps://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/hoe_werkt_de_btw/voor_wie_geldt_de_btw/ondernemer\nBelastingdienst — Registration threshold for small businesses\nhttps://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/hoe_werkt_de_btw/kleineondernemersregeling/registratiedrempel-voor-kleine-ondernemers\nBelastingdienst — KOR conditions\nhttps://www.belastingdienst.nl/wps/wcm/connect/nl/btw/content/kor-voorwaarden"
+        "answer": "VAT has its own rules. That is separate from income tax or KVK. There is no simple HomeCheff threshold after which you automatically pay VAT.\n\n---\n\nVAT first depends on whether you are an entrepreneur for VAT. That is different from KVK. A registration threshold may apply at a small turnover. KOR is a separate exemption you can opt into under conditions, not tax-free income.\n\nSources:\nBelastingdienst — Entrepreneur for VAT\nhttps://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/hoe_werkt_de_btw/voor_wie_geldt_de_btw/ondernemer\nBelastingdienst — Registration threshold for small businesses\nhttps://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/hoe_werkt_de_btw/kleineondernemersregeling/registratiedrempel-voor-kleine-ondernemers\nBelastingdienst — KOR conditions\nhttps://www.belastingdienst.nl/wps/wcm/connect/nl/btw/content/kor-voorwaarden"
       },
       "2": {
         "question": "Does HomeCheff share my data with the tax authorities?",
@@ -3427,7 +3427,7 @@
     "sustainability": {
       "0": {
         "question": "How does HomeCheff contribute to reducing food waste?",
-        "answer": "HomeCheff makes it easier to show extra food or drink nearby instead of throwing it away. That is a community goal, not a legal exemption.\n\n---\n\nIf you sell food or drink on the platform, food safety and allergen information still apply. Whether NVWA registration is relevant depends on how often you sell — not on calling it ‘sharing’."
+        "answer": "HomeCheff makes it easier to show extra food or drink nearby instead of throwing it away. That is a community goal, not a legal exemption.\n\n---\n\nIf you sell food or drink on the platform, food safety and allergen information still apply. Whether NVWA registration is relevant depends on how often you sell, not on calling it ‘sharing’."
       },
       "1": {
         "question": "Does sharing surplus food fall under commercial sales?",
@@ -3477,7 +3477,7 @@
       },
       "1": {
         "question": "What does '12-12' mean exactly?",
-        "answer": "12-12 means the standard model provides up to twelve months of recurring commission per active referred business subscription under the current commission framework.\n\nThe first twelve months are guaranteed under your agreement; after that, the partnership may evolve through clearly communicated incentives — not a lifetime guarantee. HomeCheff focuses on long-term partnerships and a scalable ecosystem."
+        "answer": "12-12 means the standard model provides up to twelve months of recurring commission per active referred business subscription under the current commission framework.\n\nThe first twelve months are guaranteed under your agreement; after that, the partnership may evolve through clearly communicated incentives, not a lifetime guarantee. HomeCheff focuses on long-term partnerships and a scalable ecosystem."
       },
       "2": {
         "question": "How much commission do I earn as an affiliate?",
@@ -3499,11 +3499,11 @@
     "localCommunity": {
       "0": {
         "question": "What is the Village Square (Dorpsplein) on HomeCheff?",
-        "answer": "The Village Square is your local marketplace feed: offered food, harvest, creations, services and help from makers near you. Swipe to Inspiration for ideas without immediate sales; on a maker's profile you see what is offered versus shared as inspiration.\n\nYou see what is alive locally, support nearby makers, and discover more than the supermarket — including barter and Wanted."
+        "answer": "The Village Square is your local marketplace feed: offered food, harvest, creations, services and help from makers near you. Swipe to Inspiration for ideas without immediate sales; on a maker's profile you see what is offered versus shared as inspiration.\n\nYou see what is alive locally, support nearby makers, and discover more than the supermarket, including barter and Wanted."
       },
       "1": {
         "question": "What is Inspiration and how is it different from selling?",
-        "answer": "Inspiration is for sharing what you make or grow — recipes, garden updates, designs — without a price. It helps you become visible in the community, gain fans, and later optionally list items on the Village Square.\n\nSelling is for priced items with checkout via HomeCheff. You remain the maker; HomeCheff helps with discovery, chat, and secure payment."
+        "answer": "Inspiration is for sharing what you make or grow, recipes, garden updates, designs, without a price. It helps you become visible in the community, gain fans, and later optionally list items on the Village Square.\n\nSelling is for priced items with checkout via HomeCheff. You remain the maker; HomeCheff helps with discovery, chat, and secure payment."
       },
       "2": {
         "question": "What are HomeCheff Points (HCP)?",
@@ -3511,7 +3511,7 @@
       },
       "3": {
         "question": "How do HCP leaderboards work?",
-        "answer": "On the rankings page you can see who scores highest near you, in your country, or worldwide for a chosen period (week, month, year, all-time). You can filter by nearby (with location), country, or worldwide.\n\nLogged-in users see their own position where available. From profiles you can open makers and their listings — combining discovery with community."
+        "answer": "On the rankings page you can see who scores highest near you, in your country, or worldwide for a chosen period (week, month, year, all-time). You can filter by nearby (with location), country, or worldwide.\n\nLogged-in users see their own position where available. From profiles you can open makers and their listings, combining discovery with community."
       },
       "4": {
         "question": "How do I install the HomeCheff app and stay up to date?",
@@ -3726,12 +3726,12 @@
       "deliveryRequestable": "Requestable now (in payout below)",
       "deliveryAlreadyOnStripeExplanation": "Delivery earnings are currently ledger-tracked. Confirm a Connect transfer actually occurred before requesting a bank payout.",
       "stripeBalanceTitle": "Balance on your payout account",
-      "stripeBalanceDescription": "This is what's on your connected account (Stripe), including past funds. Request a payout to your bank with the button below – no Stripe login required.",
+      "stripeBalanceDescription": "This is what's on your connected account (Stripe), including past funds. Request a payout to your bank with the button below, no Stripe login required.",
       "stripeBalanceAvailable": "Available for payout",
       "stripeBalancePending": "Pending (available soon)",
       "requestBankPayout": "Pay out balance to bank",
       "confirmBankPayout": "Send €{amount} from your payout account to your bank?",
-      "stripeBalancePayoutHint": "You have €{amount} on your payout account. Click to send to your bank – no Stripe login needed.",
+      "stripeBalancePayoutHint": "You have €{amount} on your payout account. Click to send to your bank, no Stripe login needed.",
       "payoutError": "An error occurred while requesting payout.",
       "escrowReleaseHint": "Mark shipping orders as Delivered to release this amount for transfer to your Stripe Connect account.",
       "deliveryAlreadyOnStripe": "Delivery amounts are ledger-tracked; Connect transfer depends on the current settlement path.",
@@ -4110,10 +4110,10 @@
     "contactMaker": "Message maker",
     "viewOffer": "View listing",
     "askMaker": "Ask the maker a question",
-    "commercePathCheckout": "Order directly via HomeCheff — secure payment and order tracking.",
-    "commercePathChat": "Make arrangements first via chat — send a proposal or quote.",
+    "commercePathCheckout": "Order directly via HomeCheff: secure payment and order tracking.",
+    "commercePathChat": "Make arrangements first via chat. Send a proposal or quote.",
     "commercePathContact": "Ask your question via chat before you order.",
-    "commercePathProposal": "Send an exchange proposal via chat — agree on what you will trade.",
+    "commercePathProposal": "Send an exchange proposal via chat. Agree on what you will trade.",
     "outOfStock": "Sold out",
     "contactNotConfigured": "This maker has not set up contact options yet.",
     "viewLinkedStory": "View the story behind this product",
@@ -4151,7 +4151,7 @@
     "lightTitle": "Welcome to HomeCheff",
     "lightSubtitle": "Sign up with email or continue with Google.",
     "lightTagline": "Start your place on HomeCheff",
-    "lightHint": "Phone, reachability, and payments are optional — add your profile and contact options later when you want.",
+    "lightHint": "Phone, reachability, and payments are optional. Add your profile and contact options later when you want.",
     "socialRedirect": "Completing your account…",
     "lightStepBadge": "Quick signup",
     "lightDisplayNameLabel": "Display name",
@@ -4166,13 +4166,13 @@
     "accountCreatedRedirect": "Your account has been successfully created. You will be redirected to your profile.",
     "redirectingToProfile": "You are now being redirected to your profile page...",
     "recipesAndDishes": "Creations & listings",
-    "recipesAndDishesDesc": "Share what you make — food, garden, design or a service — your way",
+    "recipesAndDishesDesc": "Share what you make, food, garden, design or a service, your way",
     "growingAndHarvesting": "Growing & Harvesting",
-    "growingAndHarvestingDesc": "Share what you grow and connect with other gardeners in your neighborhood — from fresh harvest to cuttings",
+    "growingAndHarvestingDesc": "Share what you grow and connect with other gardeners in your neighborhood, from fresh harvest to cuttings",
     "designsAndHandwork": "Designs & Handwork",
-    "designsAndHandworkDesc": "Show your craftsmanship and share your unique creations — from jewelry to furniture, everything can be on the village square",
+    "designsAndHandworkDesc": "Show your craftsmanship and share your unique creations, from jewelry to furniture, everything can be on the village square",
     "didYouKnow": "💡 Did you know?",
-    "didYouKnowText": "You can start sharing at any time. Start small or go big — the village square is for everyone who has something to share",
+    "didYouKnowText": "You can start sharing at any time. Start small or go big, the village square is for everyone who has something to share",
     "previous": "Previous",
     "next": "Next",
     "continue": "Continue",
@@ -4269,9 +4269,9 @@
       }
     },
     "welcomeMessage": "Give your creations a stage!",
-    "welcomeChef": "Share your culinary passion with the neighborhood — tell your story and let others enjoy what you make",
-    "welcomeGarden": "Share what you grow and connect with other gardeners — fresh harvest, herbs and cuttings find their way to your neighborhood",
-    "welcomeDesigner": "Show your craftsmanship and share your unique creations — from jewelry to furniture, everything can be on the village square",
+    "welcomeChef": "Share your culinary passion with the neighborhood, tell your story and let others enjoy what you make",
+    "welcomeGarden": "Share what you grow and connect with other gardeners, fresh harvest, herbs and cuttings find their way to your neighborhood",
+    "welcomeDesigner": "Show your craftsmanship and share your unique creations, from jewelry to furniture, everything can be on the village square",
     "welcomeTip": "💡 Did you know? Many people combine roles to share their different passions. And everyone can also be a buyer to discover local gems!",
     "continueWithGoogle": "Continue with Google",
     "continueWithFacebook": "Continue with Facebook",
@@ -4280,7 +4280,7 @@
     "alreadyHaveAccount": "Already have an account?",
     "login": "Log in",
     "chooseRoles": "Choose your roles",
-    "chooseRolesSubtitle": "Choose what suits you — many people combine roles to share their passion",
+    "chooseRolesSubtitle": "Choose what suits you: many people combine roles to share their passion",
     "selected": "Selected:",
     "buyerTypeSelected": "Buyer type selected:",
     "buyerOnlyNote": "You can only buy products, not put them on the square",
@@ -4301,7 +4301,7 @@
     "lastNamePlaceholder": "Berg",
     "username": "Username",
     "usernamePlaceholder": "Unique username (3-20 characters)",
-    "usernamePublicHandleHint": "This is your public @handle on HomeCheff — not your password.",
+    "usernamePublicHandleHint": "This is your public @handle on HomeCheff, not your password.",
     "legalNameProfileHint": "Your real name is shown neatly on your profile.",
     "usernameRules": "Username rules:",
     "usernameRule1": "3-20 characters long",
@@ -4502,7 +4502,7 @@
       "rightToDeletion": "Right to Deletion",
       "rightToDeletionDesc": "You can request deletion of your account and associated personal data via your profile or by contacting support. Some information may be retained where required by law or for legitimate accounting and security purposes.",
       "rightToPortability": "Right to Portability",
-      "rightToPortabilityDesc": "You can request an export of your data. Full export is being rolled out — contact support@homecheff.eu if you need help.",
+      "rightToPortabilityDesc": "You can request an export of your data. Full export is being rolled out, contact support@homecheff.eu if you need help.",
       "cookiesAndTracking": "Cookies and Tracking",
       "minimalCookieUse": "Minimal Cookie Use",
       "minimalCookieUseDesc": "We use essential cookies and similar technologies to keep you signed in, remember preferences (such as language), and protect security:",
@@ -4566,7 +4566,7 @@
     "greetingQuestion": "What will it be today?",
     "welcome": "Welcome to the Village Square",
     "subtitle": "Discover what your neighborhood offers: food, garden harvest, creations, services and help from people around you",
-    "description": "Become part of your local community — share your passion or discover what's happening around you",
+    "description": "Become part of your local community. Share your passion or discover what's happening around you",
     "welcomeBack": "Welcome back!",
     "locationFound": "Location found",
     "locationFoundMessage": "Search radius set to {postcode}",
@@ -4611,7 +4611,7 @@
     "errors": {
       "contactOnly": "This listing is ordered by contacting the maker directly, not through the cart.",
       "paymentsNotReady": "The maker still needs to set up payments before you can checkout via HomeCheff.",
-      "barterOnly": "This listing is barter only — use chat and send a proposal instead of checkout.",
+      "barterOnly": "This listing is barter only. Use chat and send a proposal instead of checkout.",
       "minimumNotMet": "Online payment via HomeCheff is available from €10. For smaller amounts, arrange payment directly with the provider."
     },
     "checkoutTitle": "Checkout",
@@ -4625,7 +4625,7 @@
     "redirectingToStripe": "Redirecting you to Stripe for secure payment",
     "step1DeliveryAddress": "Step 1: Delivery address",
     "fillAddressToSeeOptions": "Enter your address to see the delivery options",
-    "addressValidatedCalculating": "Address validated — calculating delivery costs",
+    "addressValidatedCalculating": "Address validated: calculating delivery costs",
     "locationPrefix": "Location",
     "unknownAddress": "Unknown address",
     "deliveryOption": "Delivery option",
@@ -4782,7 +4782,7 @@
     "profileProgress": {
       "title": "Claim your space",
       "start": "Add a few basics so neighbors recognize you.",
-      "almost": "Almost there — finish visibility to stand out nearby.",
+      "almost": "Almost there. Finish visibility to stand out nearby.",
       "complete": "Your profile looks ready.",
       "cta": "Continue on profile"
     },
@@ -4804,7 +4804,7 @@
     "infoExpandAria": "Expand intro: how it works, categories, and getting started",
     "infoCollapseAria": "Collapse intro: how it works, categories, and getting started",
     "heroAriaLabel": "Welcome hero",
-    "heroEyebrow": "Digital studios, gardens, and kitchens — closer than you think.",
+    "heroEyebrow": "Digital studios, gardens, and kitchens, closer than you think.",
     "heroTitle": "Discover what people near you make",
     "heroSubtitle": "From inspiration to the village square: meet locally, with clear expectations.",
     "reputationCompact": {
@@ -4831,8 +4831,8 @@
     "categoryDesignDescription": "Make something creative? Find customers directly.",
     "feedSectionTitle": "HomeCheff feed",
     "affiliateButtonFallback": "Affiliate 12-12",
-    "schemaOrganizationDescription": "HomeCheff is the digital home of personal craftsmanship and local opportunity. Neighbours offer and discover what real people make, cook, grow, design and provide — with secure checkout, direct contact, barter or proposals.",
-    "schemaWebsiteDescription": "HomeCheff — discover digital studios, gardens, and kitchens in your neighborhood.",
+    "schemaOrganizationDescription": "HomeCheff is the digital home of personal craftsmanship and local opportunity. Neighbours offer and discover what real people make, cook, grow, design and provide, with secure checkout, direct contact, barter or proposals.",
+    "schemaWebsiteDescription": "HomeCheff. Discover digital studios, gardens, and kitchens in your neighborhood.",
     "schemaContactCustomerService": "Customer service",
     "schemaAreaServedCountry": "Netherlands",
     "schemaAvailableLang1": "Dutch",
@@ -4899,9 +4899,9 @@
       "shareCta": "Share your invite link",
       "shareBusy": "Working…",
       "shareHintCopied": "Link copied to clipboard.",
-      "shareHintManual": "Could not copy automatically — copy the link below manually.",
+      "shareHintManual": "Could not copy automatically: copy the link below manually.",
       "shareNativeTitle": "HomeCheff Android beta",
-      "shareNativeText": "Try the HomeCheff Android beta — via homecheff.eu.",
+      "shareNativeText": "Try the HomeCheff Android beta, via homecheff.eu.",
       "nativeShareCompactTitle": "Share the HomeCheff app",
       "nativeShareCompactBody": "Invite others to install the app.",
       "nativeShareCompactCta": "Share app link"
@@ -4915,7 +4915,7 @@
       "streakOne": "1-day streak",
       "streakMany": "{count}-day streak",
       "toNextLevel": "{amount} HCP to level {next}",
-      "freshUserHint": "Earn your first HCP by posting — inspiration or a product on the village square.",
+      "freshUserHint": "Earn your first HCP by posting, inspiration or a product on the village square.",
       "missionsHeading": "Today & this week",
       "missionLoginToday": "Log in today",
       "quickActions": "Quick actions",
@@ -4936,7 +4936,7 @@
       },
       "ranking": {
         "title": "Top this week",
-        "empty": "No scores yet this week — earn HCP to appear here.",
+        "empty": "No scores yet this week, earn HCP to appear here.",
         "loadError": "Leaderboard temporarily unavailable.",
         "line": "{name} · {score} HCP"
       },
@@ -4949,7 +4949,7 @@
       },
       "rewards": {
         "title": "Rewards",
-        "teaser": "Earn HCP to unlock gentle extras for your profile — more visibility when it fits HomeCheff. No guaranteed cash or fixed homepage slots; real visibility you earn by staying active."
+        "teaser": "Earn HCP to unlock gentle extras for your profile, more visibility when it fits HomeCheff. No guaranteed cash or fixed homepage slots; real visibility you earn by staying active."
       },
       "ctaLeaderboards": "View leaderboards"
     },
@@ -4963,7 +4963,7 @@
     },
     "hcpRankingsPage": {
       "title": "Reputation nearby",
-      "intro": "See makers who actively contribute to the community in your area and time period. Nearby boards use a rough radius around your saved profile — or your current location only for this session if you allow it.",
+      "intro": "See makers who actively contribute to the community in your area and time period. Nearby boards use a rough radius around your saved profile, or your current location only for this session if you allow it.",
       "backHome": "Back to village feed",
       "ctaMijnHcp": "My HCP",
       "ctaProfile": "Edit profile",
@@ -4980,7 +4980,7 @@
       "periodAll": "All-time",
       "ariaScope": "Area",
       "ariaPeriod": "Period",
-      "nearbyExplainer": "We start from your saved profile location. Tap “Use current location” to temporarily use GPS — useful when you’re on the move. Exact coordinates are never shown publicly.",
+      "nearbyExplainer": "We start from your saved profile location. Tap “Use current location” to temporarily use GPS, useful when you’re on the move. Exact coordinates are never shown publicly.",
       "radiusLabel": "Radius",
       "gpsButton": "Use current location",
       "useProfileLocation": "Use profile location again",
@@ -4989,10 +4989,10 @@
       "countryExplainer": "Leaderboard for country {code}.",
       "worldwideExplainer": "Worldwide leaderboard based on HomeCheff Points.",
       "yourRank": "Your position in this view: #{rank}",
-      "notRankedYet": "You're not on this board yet — stay active nearby to appear.",
+      "notRankedYet": "You're not on this board yet. Stay active nearby to appear.",
       "inThisView": "in this view",
       "loginHint": "Sign in to see your position on the leaderboard.",
-      "ctaJoinLeaderboard": "Claim your spot — log in or join",
+      "ctaJoinLeaderboard": "Claim your spot. Log in or join",
       "emptyNearbyNoLocation": "We don’t have a location yet to show your nearby leaderboard. Add your profile location or use your current location.",
       "emptyGeneric": "Not enough data for this leaderboard yet.",
       "emptyNoHcpInList": "No HCP on this leaderboard yet.",
@@ -5022,7 +5022,7 @@
     },
     "mijnHcpLb": {
       "previewTitle": "Quick leaderboard",
-      "previewSubtitle": "Worldwide — same calculation as the full Rankings page. Top 10 below; your rank is your real rank on the full list.",
+      "previewSubtitle": "Worldwide, same calculation as the full Rankings page. Top 10 below; your rank is your real rank on the full list.",
       "filtersHint": "For nearby, country, this year, or other filters, open the full rankings page.",
       "ctaFull": "View all rankings",
       "ariaPeriod": "Period (worldwide)",
@@ -5386,8 +5386,8 @@
       "metaMinutes": "{minutes} min",
       "metaServings": "{count} servings",
       "fillTitleDescriptionPrice": "Enter title, description and a valid price.",
-      "statusActiveDorpsplein": "✅ Active — visible on the village square",
-      "statusInactiveDorpsplein": "❌ Inactive — hidden on the village square",
+      "statusActiveDorpsplein": "✅ Active: visible on the village square",
+      "statusInactiveDorpsplein": "❌ Inactive: hidden on the village square",
       "statusActiveHelp": "Your product is visible to other users on the village square",
       "statusInactiveHelp": "Your product is hidden but not deleted. You can activate it again later.",
       "publishAndEarn": "Publish & start earning",
@@ -5460,7 +5460,7 @@
   },
   "sellNew": {
     "hubTitle": "What do you want to add?",
-    "hubSubtitle": "Pick your seller role and whether you sell on the village square (Dorpsplein) or share inspiration — then photo and form.",
+    "hubSubtitle": "Pick your seller role and whether you sell on the village square (Dorpsplein) or share inspiration, then photo and form.",
     "chefDorps": "Chef · Village square",
     "chefInspi": "Chef · Inspiration",
     "gardenDorps": "Garden · Village square",
@@ -5470,7 +5470,7 @@
     "tileDorpsHint": "Sell a product",
     "tileInspiHint": "Share an idea or recipe",
     "mediaStepTitle": "Add media",
-    "mediaStepSubtitle": "Pick from your gallery or use the camera for a photo or a video — or continue without.",
+    "mediaStepSubtitle": "Pick from your gallery or use the camera for a photo or a video, or continue without.",
     "galleryTitle": "Gallery",
     "gallerySubtitle": "Choose a photo or video from your files",
     "takePhotoTitle": "Take photo",
@@ -5501,7 +5501,7 @@
     "otherStart": "Different start",
     "otherCategory": "Different category",
     "sellFormTitle": "Start selling",
-    "sellFormSubtitleSkip": "Earn money with what you already do — right in your neighborhood.",
+    "sellFormSubtitleSkip": "Earn money with what you already do, right in your neighborhood.",
     "sellFormSubtitle": "Fill in the form to list your offering on the village square.",
     "otherInspiratieCategory": "Different inspiration category",
     "inspiratieFormTitle": "Share inspiration",
@@ -5516,7 +5516,7 @@
     "confirmDelete": "Are you sure you want to delete this item?",
     "publish": "Publish",
     "unpublish": "Make private",
-    "privateDraftHint": "This item is private — only you can see it until you publish."
+    "privateDraftHint": "This item is private, only you can see it until you publish."
   },
   "werkenBij": {
     "title": "Earn with HomeCheff",
@@ -5558,7 +5558,7 @@
     "reported": "Thank you for your report. HomeCheff is reviewing it.",
     "submitError": "An error occurred while submitting the report",
     "importantInfo": "Important information",
-    "importantInfoText": "All reports are handled confidentially. HomeCheff reviews them — we do not promise a specific outcome. Abuse of the reporting system may lead to account restrictions.",
+    "importantInfoText": "All reports are handled confidentially. HomeCheff reviews them. We do not promise a specific outcome. Abuse of the reporting system may lead to account restrictions.",
     "product": {
       "inappropriateContent": "Ongepaste inhoud",
       "inappropriateContentDesc": "Photo or description contains inappropriate content",
@@ -5953,10 +5953,10 @@
     "emptyRadiusWiden": "Widen radius",
     "emptyRadiusViewAll": "Show all of Netherlands",
     "nearbyNeedsLocationTitle": "Your neighbourhood is nearby",
-    "nearbyNeedsLocationBody": "Choose a place to see what neighbours cook, grow, make and offer — homemade food, garden harvests, craft and helpful hands.",
+    "nearbyNeedsLocationBody": "Choose a place to see what neighbours cook, grow, make and offer, homemade food, garden harvests, craft and helpful hands.",
     "nearbyNeedsLocationChoosePlace": "Choose a place",
     "nearbyNeedsLocationAltScopes": "Or browse the whole Netherlands or International first.",
-    "nearbyNeedsLocationEncouragement": "Cook · Grow · Make · Help — waiting just around the corner.",
+    "nearbyNeedsLocationEncouragement": "Cook · Grow · Make · Help, waiting just around the corner.",
     "scopeLabel": "Scope",
     "scopeNearby": "Nearby",
     "scopeNational": "Netherlands",
@@ -5976,7 +5976,7 @@
     "verticalGarden": "Garden",
     "verticalCreations": "Creations",
     "emptyServicesTitle": "No services here yet",
-    "emptyServicesBody": "Services (Diensten) are services, workshops, coaching and practical tasks — including buurthulp: local help between neighbours. There are none in this area right now. Widen your search area or explore other pillars.",
+    "emptyServicesBody": "Services (Diensten) are services, workshops, coaching and practical tasks, including buurthulp: local help between neighbours. There are none in this area right now. Widen your search area or explore other pillars.",
     "discoverFiltersHeading": "Discover near you",
     "mobileFilterCollapsedAria": "Open filters",
     "mobileFilterCollapsedAriaActive": "Open filters, {count} active",
@@ -5990,12 +5990,12 @@
     "desktopColumns1": "1 column",
     "desktopColumns2": "2 columns",
     "desktopColumns3": "3 columns",
-    "desktopColumns1Hint": "Single column — feed style",
-    "desktopColumns2Hint": "Two columns — optional denser grid",
-    "desktopColumns3Hint": "Three columns — marketplace grid",
+    "desktopColumns1Hint": "Single column: feed style",
+    "desktopColumns2Hint": "Two columns: optional denser grid",
+    "desktopColumns3Hint": "Three columns: marketplace grid",
     "locationSectionLabel": "Location and feed search",
     "refineSectionLabel": "Refine these results (search, sort, price)",
-    "chipSectionIntro": "All, offered, wanted or inspiration — one place. Also shop with what you can offer via I want / I offer. Set location, category and filters below.",
+    "chipSectionIntro": "All, offered, wanted or inspiration, one place. Also shop with what you can offer via I want / I offer. Set location, category and filters below.",
     "locationErrorShort": "Could not determine location",
     "locationUsingGps": "Your location is being used",
     "locationUsingProfile": "Profile location is being used",
@@ -6012,13 +6012,13 @@
     "inspirationViewCta": "View",
     "unknownPlace": "Location unknown",
     "unknownDistance": "distance unknown",
-    "filtersPendingHint": "Filters changed — apply to refresh results.",
+    "filtersPendingHint": "Filters changed: apply to refresh results.",
     "applyFilters": "Apply",
     "updating": "Updating…",
     "endOfSelection": "You've seen everything in this selection. Showing relevant items again.",
-    "endOfSelectionContinue": "Keep scrolling — we'll show relevant items from this selection again.",
+    "endOfSelectionContinue": "Keep scrolling. We'll show relevant items from this selection again.",
     "searchingResults": "Searching for results…",
-    "searchingResultsHint": "One moment — loading what’s available nearby.",
+    "searchingResultsHint": "One moment: loading what’s available nearby.",
     "emptyConfirmedTitle": "Nothing found in your neighbourhood yet",
     "emptyConfirmedBody": "Be the first to offer something. Widen your area, search for something else, share your own offer, ask your neighbourhood, or trade with someone nearby.",
     "emptyConfirmedAdjustFilters": "Adjust filters",
@@ -6028,17 +6028,17 @@
     "emptyConfirmedTrade": "Trade with neighbours",
     "emptyConfirmedInvite": "Invite someone",
     "continuityEmptySearchTitle": "No “{query}” nearby yet",
-    "continuityEmptySearchBody": "No one has shared this in your neighbourhood yet. Be the first — or keep discovering what HomeCheff has nearby.",
+    "continuityEmptySearchBody": "No one has shared this in your neighbourhood yet. Be the first, or keep discovering what HomeCheff has nearby.",
     "continuitySparseTitle": "{count} matches nearby",
-    "continuitySparseBody": "Be the first to offer more of this in your neighbourhood — discovery continues below.",
+    "continuitySparseBody": "Be the first to offer more of this in your neighbourhood, discovery continues below.",
     "continuityBeFirst": "Be the first nearby",
-    "continuityContinueHint": "Keep scrolling — neighbourhood discovery continues below.",
+    "continuityContinueHint": "Keep scrolling: neighbourhood discovery continues below.",
     "continuityContinueLabel": "Continue discovering",
     "scopeNearbyFirstHint": "Closest neighbourhood offers first.",
-    "scopeWiderNationalHint": "You’re browsing all of the Netherlands — closest first when distance is known.",
-    "scopeWiderInternationalHint": "You’re browsing international offers — closest first when distance is known.",
+    "scopeWiderNationalHint": "You’re browsing all of the Netherlands, closest first when distance is known.",
+    "scopeWiderInternationalHint": "You’re browsing international offers: closest first when distance is known.",
     "tradeActionChip": "Trade",
-    "tradeActionHint": "Trade creations, services or knowledge — including without money.",
+    "tradeActionHint": "Trade creations, services or knowledge, including without money.",
     "resetFiltersDraft": "Reset",
     "sidebarSectionLocation": "Location",
     "sidebarSectionView": "View",
@@ -6078,7 +6078,7 @@
     "resultPlural": "results",
     "filteredByQuery": " · Filtered by: \"{query}\"",
     "emptySaleTitle": "No offers found near you yet",
-    "emptySaleBody": "Widen your area, browse inspiration, or post something — product, service, help or counter-value.",
+    "emptySaleBody": "Widen your area, browse inspiration, or post something, product, service, help or counter-value.",
     "emptyNationalTitle": "No neighbourhood offers found yet.",
     "emptyNationalBody": "No neighbourhood offers match your current filters.",
     "emptyInternationalTitle": "International neighbourhood offers coming soon.",
@@ -6202,7 +6202,7 @@
     "stripeConnectText": "Payouts are securely handled via Stripe. Connect with Stripe to add your bank details.",
     "connectWithStripe": "Connect with Stripe",
     "encryption": "Encrypted chat messages",
-    "encryptionDescription": "Encrypt your in-app chat messages. Applies to chat only — not your profile, inspiration, or village square items.",
+    "encryptionDescription": "Encrypt your in-app chat messages. Applies to chat only, not your profile, inspiration, or village square items.",
     "encryptionActive": "🔐 Encryption Active",
     "encryptionInactive": "🔓 No Encryption",
     "encryptionEnabledText": "All your messages are automatically encrypted",
@@ -6323,7 +6323,7 @@
     "exportStarted": "Generating export...",
     "exportComplete": "Download again",
     "exportButton": "Export data",
-    "exportSuccess": "Your export has been downloaded. The JSON file contains your profile, activity and settings. Encrypted messages and platform secrets are omitted — see the \"omissions\" field in the file.",
+    "exportSuccess": "Your export has been downloaded. The JSON file contains your profile, activity and settings. Encrypted messages and platform secrets are omitted. See the \"omissions\" field in the file.",
     "exportError": "Export failed. Please try again later or contact support.",
     "step3Title": "Final confirmation",
     "step3Subtitle": "You are about to delete your account",
@@ -6333,7 +6333,7 @@
     "confirmLabel": "Type \"{word}\" to confirm",
     "confirmHint": "Extra security check. Use uppercase: {word}.",
     "passwordLabel": "Your password",
-    "passwordOptionalHint": "You signed in with Google/social without a password — leave this empty.",
+    "passwordOptionalHint": "You signed in with Google/social without a password, leave this empty.",
     "deleteButton": "Delete account permanently",
     "deleting": "Deleting...",
     "successMessage": "Account deleted. You will be signed out and redirected to the homepage.",
@@ -6387,7 +6387,7 @@
     "mission2": "There’s also Inspiration for ideas that aren’t for sale, Wanted for what you’re looking for, and room for services and neighbour help. It all sits in one platform rather than separate apps.",
     "whatWeDoTitle": "What we do",
     "whatWeDo1": "Inspiration: share ideas, recipes and making processes with the community.",
-    "whatWeDo2": "Village Square: discover offered products, services and help — with secure checkout or flexible agreements.",
+    "whatWeDo2": "Village Square: discover offered products, services and help, with secure checkout or flexible agreements.",
     "whatWeDo3": "Wanted & proposals: post what you need or make a proposal with money, barter or other value.",
     "whatWeDo4": "Community & reputation: HCP, trust and making local makers visible.",
     "reachabilityTitle": "Who to email for what",
@@ -6466,7 +6466,7 @@
     "fansDesc": "As soon as people become your fan, they appear here.",
     "followsTitle": "You're not a fan of anyone yet",
     "followsDesc": "As soon as you become someone's fan, they appear here.",
-    "noResultsHint": "Try different filters, a larger radius — or use I offer to shop with what you can offer."
+    "noResultsHint": "Try different filters, a larger radius, or use I offer to shop with what you can offer."
   },
   "notFound": {
     "title": "Page not found",
@@ -6616,7 +6616,7 @@
     "s9P1": "Providers on HomeCheff may declare whether they offer as a private (occasional) individual or as a professional/business. HomeCheff does not automatically determine trader status from revenue, sales counts, KvK, Stripe, or similar signals.",
     "s9P2": "When buying from a provider who self-declared as professional (or a verified business), consumer-law information may apply, including withdrawal information where relevant.",
     "s9P3": "For a private provider by self-declaration, consumer rights that specifically apply against professional traders (such as the statutory right of withdrawal) may not apply. This does not mean ‘you have no rights’: platform rules, product safety, food information and contract law may still be relevant.",
-    "s9P4": "Where applicable, the right of withdrawal is generally 14 days. Exceptions may apply to goods made to the consumer’s specifications, rapidly perishable goods, and services fully performed after an express request during the cooling-off period. HomeCheff only marks these exceptions based on explicit provider declarations or clear transaction characteristics — not silent assumptions from ‘handmade’ or TRUST provenance.",
+    "s9P4": "Where applicable, the right of withdrawal is generally 14 days. Exceptions may apply to goods made to the consumer’s specifications, rapidly perishable goods, and services fully performed after an express request during the cooling-off period. HomeCheff only marks these exceptions based on explicit provider declarations or clear transaction characteristics, not silent assumptions from ‘handmade’ or TRUST provenance.",
     "s9P5": "HomeCheff is a marketplace platform. The underlying performance is supplied by the provider. Payments may run via Stripe through the platform; the precise qualification of HomeCheff’s payment role remains subject to legal review. These terms do not make stronger merchant-of-record claims than stated here.",
     "s9L1": "Private vs professional: based on the provider’s self-declaration (LEGAL-1).",
     "s9L2": "Consumer information is shown progressively before commitment (listing, checkout, proposal/agreement).",
@@ -6730,7 +6730,7 @@
   "nativePush": {
     "introTitle": "Notifications on this device",
     "introBody": "Would you like notifications for new messages and orders? Next you’ll see the system prompt to allow them.",
-    "valueExplainer": "Stay in the loop for replies, HomeCheff points, and new inspiration — without living in the app.",
+    "valueExplainer": "Stay in the loop for replies, HomeCheff points, and new inspiration, without living in the app.",
     "turnOn": "Turn on notifications",
     "later": "Not now",
     "registerError": "Could not register push. Check your connection and try again from Settings.",
@@ -6753,7 +6753,7 @@
     "osPermissionTitle": "Phone notifications",
     "osPermissionBody": "Turn on notifications for HomeCheff on your phone. Then you can choose which HomeCheff notifications you want here. Without phone notifications, messages and updates appear when you open HomeCheff.",
     "preferencesTitle": "Which HomeCheff pushes do you want?",
-    "preferencesBody": "These are account preferences — they apply once your phone allows notifications for HomeCheff.",
+    "preferencesBody": "These are account preferences. They apply once your phone allows notifications for HomeCheff.",
     "pushChat": "Chat messages",
     "pushChatHint": "New messages and replies",
     "pushOrders": "Orders",
@@ -6823,15 +6823,15 @@
     "buyerTitle": "What would you like to do?",
     "buyerSubtitle": "Choose your starting point. You can always switch later.",
     "earnTitle": "Offer & earn",
-    "earnSubtitle": "Start offering something nearby — food, garden, creations or a service.",
+    "earnSubtitle": "Start offering something nearby: food, garden, creations or a service.",
     "discoverTitle": "Discover",
     "discoverSubtitle": "See what's offered on the village square in your neighbourhood.",
     "skip": "Skip for now",
     "sellerStep": "Step 2 of 3",
     "sellerTitle": "What would you like to offer first?",
-    "sellerSubtitle": "Pick a category. Food is one option — alongside garden, creations and more.",
+    "sellerSubtitle": "Pick a category. Food is one option, alongside garden, creations and more.",
     "categoryFood": "Food",
-    "categoryFoodDesc": "Dishes and kitchen — if you cook or bake.",
+    "categoryFoodDesc": "Dishes and kitchen, if you cook or bake.",
     "categoryGarden": "Garden & harvest",
     "categoryGardenDesc": "Vegetables, fruit, plants or honey from your garden.",
     "categoryCreations": "Creations",
@@ -6846,10 +6846,10 @@
     "interestsSubtitle": "Pick one or more. You can change this later in your profile.",
     "interestsStep": "Step 2 of 4",
     "contactTitle": "How can people reach you?",
-    "contactSubtitle": "Optional — you can set this later under Contact channels.",
+    "contactSubtitle": "Optional. You can set this later under Contact channels.",
     "contactStep": "Step 3 of 4",
     "paymentsTitle": "Set up payments",
-    "paymentsSubtitle": "Optional — required if you want to sell and receive payouts.",
+    "paymentsSubtitle": "Optional, required if you want to sell and receive payouts.",
     "paymentsStep": "Step 4 of 4",
     "skip": "Skip",
     "continue": "Next",
@@ -7015,7 +7015,7 @@
     "aanbod": {
       "title": "Offerings",
       "subtitle": "All your kitchen, garden and studio items in one place",
-      "visitorHint": "Browse what this maker shares on the marketplace — order or get in touch from each item.",
+      "visitorHint": "Browse what this maker shares on the marketplace, order or get in touch from each item.",
       "addCta": "Add new offering",
       "noMakerTitle": "No maker profile yet",
       "noMakerDesc": "Add Kitchen, Garden or Studio first to list offerings on the marketplace.",
@@ -7087,7 +7087,7 @@
       "completeness": {
         "title": "Strengthen your profile",
         "hint": "Complete your profile for more trust",
-        "completeHint": "Your profile is complete — nice work!",
+        "completeHint": "Your profile is complete: nice work!",
         "profilePhoto": "Profile photo",
         "bio": "Bio / story",
         "roles": "Roles or interests",
@@ -7115,7 +7115,7 @@
         },
         "workspacePhotos": {
           "title": "Add workspace photos",
-          "description": "Show where you create — it builds trust.",
+          "description": "Show where you create. It builds trust.",
           "cta": "Go to Trust →"
         },
         "stripe": {
@@ -7155,22 +7155,22 @@
     },
     "empty": {
       "aboutTitle": "No story yet",
-      "aboutOwner": "Write a short intro about who you are and what you make — people follow makers, not dashboards.",
+      "aboutOwner": "Write a short intro about who you are and what you make. People follow makers, not dashboards.",
       "aboutPublic": "This maker hasn't shared an introduction yet.",
       "aanbodOwner": "Show the neighbourhood what you make, sell or offer.",
       "aanbodPublic": "This maker hasn't listed anything on the marketplace yet.",
       "inspiratieOwner": "Share photos, ideas and projects so people can get to know you.",
-      "inspiratiePublic": "No inspiration yet — check back later for creations and projects.",
-      "communityPublic": "No reviews or fans yet — be the first to discover this maker.",
+      "inspiratiePublic": "No inspiration yet. Check back later for creations and projects.",
+      "communityPublic": "No reviews or fans yet. Be the first to discover this maker.",
       "trustOwner": "Add photos of your workspace so others can trust you.",
       "trustPublic": "This maker hasn't shared trust information yet."
     },
     "vertrouwen": {
       "title": "Trust",
-      "subtitle": "Where and how you work — for peace of mind",
-      "visitorIntro": "See where and how this maker works — like an Airbnb host profile.",
+      "subtitle": "Where and how you work, for peace of mind",
+      "visitorIntro": "See where and how this maker works, like an Airbnb host profile.",
       "emptyOwner": "Add photos of your kitchen, garden or studio so others can trust you.",
-      "emptyPublic": "This maker hasn't shared workspace or verification yet — feel free to send a message if you have questions.",
+      "emptyPublic": "This maker hasn't shared workspace or verification yet, feel free to send a message if you have questions.",
       "empty": "No trust information to show yet.",
       "roles": {
         "chef": "Kitchen",
@@ -7180,7 +7180,7 @@
       "sections": {
         "workspaceGroup": {
           "title": "Behind the scenes",
-          "description": "Share your workspace — so others know where and how you work"
+          "description": "Share your workspace, so others know where and how you work"
         },
         "kitchen": {
           "title": "Kitchen"
@@ -7213,7 +7213,7 @@
           "deletePhoto": "Delete photo",
           "photoAlt": "Vehicle photo",
           "allPhotos": "All vehicle photos ({count})",
-          "emptyOwner": "No vehicle photos yet — add at least 2 for verification.",
+          "emptyOwner": "No vehicle photos yet. Add at least 2 for verification.",
           "emptyPublic": "No vehicle photos shared yet.",
           "verificationHint": "Upload at least 2 vehicle photos to complete verification."
         }
@@ -7446,8 +7446,8 @@
     "benefit25Percent": "25% per User",
     "benefit25PercentDesc": "Earn 25% of HomeCheff fee per transaction for every user (buyer or seller) you bring. If you bring both, you earn 50% (25% + 25%).",
     "benefitPromoCodes": "Own Promo Codes",
-    "benefitPromoCodesDesc": "Create your own promo codes and give discounts on subscriptions. The discount comes from your share, not from HomeCheff — full control.",
-    "howItWorks": "How it works — in 4 simple steps",
+    "benefitPromoCodesDesc": "Create your own promo codes and give discounts on subscriptions. The discount comes from your share, not from HomeCheff, full control.",
+    "howItWorks": "How it works: in 4 simple steps",
     "howItWorksDesc": "From signup to payout, everything automatically arranged",
     "step1": "Sign up (free)",
     "step1Desc": "Click the button below and you'll immediately get your unique referral link and access to your dashboard. No costs, no obligations.",
@@ -7473,7 +7473,7 @@
     "businessPays": "Business pays",
     "youGet": "You get",
     "homecheffGets": "HomeCheff gets",
-    "signupButton": "Become an affiliate now — sign up free",
+    "signupButton": "Become an affiliate now. Sign up free",
     "signingUp": "Signing up...",
     "signupSuccess": "Signup successful!",
     "signupSuccessDesc": "You're being redirected to your dashboard...",
@@ -7492,7 +7492,7 @@
     "contractRenewal": "Contract Renewal",
     "contractRenewalDesc": "HomeCheff focuses on long-term partnerships and a scalable ecosystem. After the standard window, partnerships may evolve; that is not a promise of lifetime payouts. Any extensions or changes are communicated in advance and reflected in your terms.",
     "guaranteed12Months": "Guaranteed 12 Months",
-    "guaranteed12MonthsDesc": "The first twelve months are guaranteed under the current commission model for active referred business subscriptions, at the agreed rates. After that, the partnership may be extended or expanded through future incentives, performance milestones, and community goals — without a guarantee of lifetime income.",
+    "guaranteed12MonthsDesc": "The first twelve months are guaranteed under the current commission model for active referred business subscriptions, at the agreed rates. After that, the partnership may be extended or expanded through future incentives, performance milestones, and community goals, without a guarantee of lifetime income.",
     "twelveMonthsExtendedForSome": "HomeCheff is built for long-term collaboration with active partners and communities. Any future model extensions are communicated clearly in advance.",
     "alreadyAccepted": "You've already accepted this",
     "welcomeBack": "Welcome back!",
@@ -7560,7 +7560,7 @@
       "welcomeDesc": "Your account is active. Start sharing your referral link!",
       "surpriseIncome": {
         "title": "One introduction. More possibilities.",
-        "body": "Inviting someone once is enough. If they later become active in another HomeCheff way, that can again generate affiliate income within your valid network — only on eligible HomeCheff platform revenue, never guaranteed.",
+        "body": "Inviting someone once is enough. If they later become active in another HomeCheff way, that can again generate affiliate income within your valid network, only on eligible HomeCheff platform revenue, never guaranteed.",
         "example1": "You invite someone to the Marketplace. Later they start delivering. If HomeCheff earns a platform fee there, your network can share in it.",
         "example2": "Someone starts as a seller and later takes Studio. The original valid referral does not need to be recreated.",
         "example3": "A contact starts small and later uses Growth. One introduction can create activity at different moments.",
@@ -7572,7 +7572,7 @@
       "attributionPolicyCookie": "Cookie: {name} ({days} days). Sign-up or social onboarding must happen in the same browser/device while the cookie is active.",
       "attributionPolicyCrossDevice": "Cross-device: not supported yet. A desktop click does not follow someone who registers on mobile.",
       "attributionPolicyCommission": "Commission: pending after payment, available after the hold period, then payable per dashboard rules (Connect when the batch route is available). Funded from the HomeCheff platform fee.",
-      "attributionPolicySubscription": "Business subscriptions: commission applies when the referred business subscribes — via your promo code or your ref link at sign-up.",
+      "attributionPolicySubscription": "Business subscriptions: commission applies when the referred business subscribes, via your promo code or your ref link at sign-up.",
       "earnings": "Earnings",
       "referrals": "Sign-ups via link",
       "subAffiliates": "My partners",
@@ -7619,7 +7619,7 @@
       "viewProfile": "View profile",
       "profile": "Profile",
       "noReferrals": "No sign-ups via your link yet",
-      "noReferralsHint": "Share your partner link — each sign-up counts, but does not become a direct partner in your network.",
+      "noReferralsHint": "Share your partner link, each sign-up counts, but does not become a direct partner in your network.",
       "deleteSubAffiliateTitle": "Remove partner from network",
       "delete": "Delete",
       "noPayouts": "No payouts yet",
@@ -7691,7 +7691,7 @@
       "rate": "40% of the platform fee",
       "lead": "Promote HomeCheff with your personal affiliate link and earn when customers use HomeCheff through you.",
       "rateDetail": "On qualifying transactions attributed through you, you receive 40% of the applicable HomeCheff platform fee.",
-      "notOrder": "Your commission is calculated on the platform fee HomeCheff receives for that transaction — not on the full purchase amount.",
+      "notOrder": "Your commission is calculated on the platform fee HomeCheff receives for that transaction, not on the full purchase amount.",
       "exampleTitle": "Example",
       "exampleIntro": "A customer makes a purchase of €100. Suppose the HomeCheff platform fee for that transaction is €20.",
       "exampleMath": "40% × €20 = €8",
@@ -7738,15 +7738,15 @@
       "benefitDesc": "You don't need to do anything extra! When you share something via the share button on recipes, products, garden projects, or designs, your affiliate link is automatically included. Every click on your shared link can earn you commission!"
     },
     "passiveIncome": {
-      "title": "Recurring income potential — transparent estimates",
+      "title": "Recurring income potential: transparent estimates",
       "subtitle": "An illustrative scenario based on active subscriptions within the standard affiliate model (not a guarantee of earnings).",
       "scenario": "Scenario: 2 Businesses per Month",
-      "scenarioDesc": "Imagine you bring an average of just 2 businesses per month that sign up for a Pro subscription (€99/month). That's just 1 business every 2 weeks – very realistic with your network or via local outreach!",
+      "scenarioDesc": "Imagine you bring an average of just 2 businesses per month that sign up for a Pro subscription (€99/month). That's just 1 business every 2 weeks, very realistic with your network or via local outreach!",
       "month1": "Month 1: 2 active subscriptions = €99/month",
       "month3": "Month 3: 6 active subscriptions = €297/month",
       "month6": "Month 6: 12 active subscriptions = €594/month",
       "month12": "Month 12: 24 active subscriptions = €1,400/month",
-      "after12Months": "In this example, monthly commission share peaks around month 12 at €1,750 — depending on active subscriptions, transactions, and the applicable model (standard up to twelve months per business).",
+      "after12Months": "In this example, monthly commission share peaks around month 12 at €1,750, depending on active subscriptions, transactions, and the applicable model (standard up to twelve months per business).",
       "basedOn": "This is based on an average Pro subscription of €99/month, of which you receive 50% commission.",
       "yourPotential": "Your Potential",
       "investment": "Investment",
@@ -7754,7 +7754,7 @@
       "yearlyPassive": "Yearly scenario (model; not a guarantee)",
       "evenOnDay364": "Later referred active business subscriptions each receive their own twelve-month standard window under the model. That keeps planning predictable; it is not a promise that income continues indefinitely without further activation.",
       "calculatePotential": "Calculate Your Potential with the Full Calculator",
-      "offerTitle": "Become a partner — clear terms",
+      "offerTitle": "Become a partner: clear terms",
       "offerDesc": "Join as a HomeCheff affiliate and build recurring commission step by step within the contractual model.",
       "yourInvestment": "Your Investment",
       "yourROI": "Your Potential ROI",
@@ -7775,16 +7775,16 @@
     "ownYourCity": "Own Your City",
     "ownYourCityDesc": "Scale up to city level. Perfect for artists and vloggers with a larger reach. Build a network with durable recurring commission opportunities, per your agreement.",
     "localMarketPower": "The Power of Local Markets",
-    "localMarketPowerDesc": "Local markets are powerful. People trust local recommendations. As the affiliate for your area, you become the trusted link between HomeCheff and your community — with room for long-term partnerships and recurring commission under clear terms.",
+    "localMarketPowerDesc": "Local markets are powerful. People trust local recommendations. As the affiliate for your area, you become the trusted link between HomeCheff and your community, with room for long-term partnerships and recurring commission under clear terms.",
     "financialSecurity": {
-      "title": "Long-term vision — within clear affiliate terms",
+      "title": "Long-term vision, within clear affiliate terms",
       "subtitle": "Build recurring commission within the standard model; partnerships may evolve afterwards per your agreement.",
       "mainMessage": "With the HomeCheff affiliate programme you build recurring commission on active subscriptions and transactions, within the contractual framework. The first twelve months per referred business subscription are defined in that model; further extensions are possible but not guaranteed.",
       "keyPoints": {
         "point1": "12 Months per Referral",
         "point1Desc": "For each active referred business subscription, the standard model includes up to twelve months of recurring commission. Later referrals each get their own window.",
         "point2": "Structured build-up",
-        "point2Desc": "With consistent activation and strong customer relationships, you can build recurring commission within the applicable rules. Outcomes depend on adoption and market dynamics — not a fixed income promise.",
+        "point2Desc": "With consistent activation and strong customer relationships, you can build recurring commission within the applicable rules. Outcomes depend on adoption and market dynamics, not a fixed income promise.",
         "point3": "No Risk",
         "point3Desc": "No investment needed, no monthly costs, no hidden fees. Every euro you earn is pure profit. You can stop at any time without loss.",
         "point4": "Scalable",
@@ -7857,7 +7857,7 @@
     "acceptAllRequired": "Accept all required terms to continue",
     "passiveIncomeForever": "Long-term recurring income potential",
     "yearAfterYear": "Year after year",
-    "higherConversionStart": "In the start phase conversion is often higher — so we can estimate on the optimistic side.",
+    "higherConversionStart": "In the start phase conversion is often higher, so we can estimate on the optimistic side.",
     "noCeiling": "No ceiling: there is no cap on what you can earn.",
     "guidanceWhenScaling": "If it gets too much? HomeCheff will instruct and guide you towards business registration and how to make the step to being an entrepreneur.",
     "fixedNumberEnough": "There is room for a limited number of main affiliates.",
@@ -7882,24 +7882,24 @@
     "passiveIncomeCalculator": {
       "title": "Recurring commission calculator",
       "subtitle": "Model · partner · grow",
-      "description": "Estimate commission from your inputs, then see how the standard model, partnerships, and a wider ecosystem horizon fit together—grounded in your agreement, not hype.",
+      "description": "Estimate commission from your inputs, then see how the standard model, partnerships, and a wider ecosystem horizon fit together, grounded in your agreement, not hype.",
       "storyAriaLabel": "Affiliate calculator overview",
       "narrativeStandardTitle": "Standard recurring model",
       "narrativeStandardBody": "The programme provides up to twelve months of recurring commission per active referred business subscription. The first twelve months are defined in your current agreement; if a subscription ends, that commission stream stops. Terms and rates may evolve later with notice.",
       "narrativePartnershipTitle": "Long-term partnership potential",
-      "narrativePartnershipBody": "HomeCheff is a long-term ecosystem for creators, neighbourhoods, and businesses. Active affiliates can grow alongside adoption and product depth. Future incentives, performance goals, and community milestones may extend or reshape collaboration—always communicated in advance, never as a guaranteed payout.",
+      "narrativePartnershipBody": "HomeCheff is a long-term ecosystem for creators, neighbourhoods, and businesses. Active affiliates can grow alongside adoption and product depth. Future incentives, performance goals, and community milestones may extend or reshape collaboration, always communicated in advance, never as a guaranteed payout.",
       "narrativeFutureVisionTitle": "Future growth vision",
-      "narrativeFutureVisionBody": "We are building for growing together: as international reach and communities deepen, strong partners can unlock larger recurring income opportunities over time—within clear rules and evolving programme design.",
+      "narrativeFutureVisionBody": "We are building for growing together: as international reach and communities deepen, strong partners can unlock larger recurring income opportunities over time, within clear rules and evolving programme design.",
       "narrativeFutureTitle": "Illustrative long horizon",
-      "narrativeFutureIntro": "Not a forecast or promise. One ambitious, internationally minded lens on ecosystem scale—your results will differ.",
+      "narrativeFutureIntro": "Not a forecast or promise. One ambitious, internationally minded lens on ecosystem scale. Your results will differ.",
       "timelineY1Title": "Year 1",
       "timelineY1Body": "Build your first network of makers, businesses, and buyers discovering HomeCheff through you.",
       "timelineY2Title": "Year 2",
       "timelineY2Body": "Many customers stay active for years while you keep widening the community and refining how you show up.",
       "timelineY35Title": "Years 3–5",
-      "timelineY35Body": "Strong affiliates and communities may access expanded collaborations, added incentives, and larger recurring income streams—as the programme matures and eligibility evolves.",
+      "timelineY35Body": "Strong affiliates and communities may access expanded collaborations, added incentives, and larger recurring income streams, as the programme matures and eligibility evolves.",
       "timelineY710Title": "Years 7–10",
-      "timelineY710Body": "Partners who grow with the mission could sit inside a much larger international network of businesses, creators, and neighbourhoods—if strategy, regulation, and adoption align.",
+      "timelineY710Body": "Partners who grow with the mission could sit inside a much larger international network of businesses, creators, and neighbourhoods, if strategy, regulation, and adoption align.",
       "narrativeFutureDisclaimer": "Illustrative storyline only. No guaranteed income, tenure, timing, or lifetime commissions.",
       "commissionDetailsToggle": "How transaction commission works",
       "commissionDetailsBody": "If you are the only affiliate on an order, you can receive the whole pool: at most 50% of the platform fee. If two different affiliates qualify, each receives half of that pool. With no affiliate, commission is €0. This is a scenario, not a promise that every referral pays the maximum.",
@@ -7939,7 +7939,7 @@
       "ctaSlimTitle": "Grow the ecosystem with us",
       "ctaSlimSubtitle": "Transparent terms · Dashboard-tracked commissions · Creator- and community-first, built to scale internationally",
       "legalFootnote": "Exact percentages, caps, and windows are defined in your affiliate agreement and general terms.",
-      "becomeAffiliate": "Become an affiliate — start free",
+      "becomeAffiliate": "Become an affiliate. Start free",
       "readyToStartDesc": "Become an affiliate and build recurring commission with your community over time, within your agreement.",
       "growthPlan": "Business subscription",
       "growthPlanHint": "Commission is 50% of what remains after that plan’s HC reserve, not 50% of the price. There is no minimum.",
@@ -7975,15 +7975,15 @@
       "ctaDashboard": "Open dashboard",
       "ctaPromoCodes": "Manage promo codes",
       "howTitle": "How it works",
-      "howSubtitle": "From first link to weekly payouts — structured and transparent.",
-      "recurringTitle": "Recurring commission — the essentials",
-      "recurringIntro": "You earn on two tracks: users (buyer and/or seller) and business subscriptions. For subscriptions, commission can repeat monthly while the business stays subscribed, for up to twelve months per referred business — as set out in your affiliate terms.",
+      "howSubtitle": "From first link to weekly payouts, structured and transparent.",
+      "recurringTitle": "Recurring commission, the essentials",
+      "recurringIntro": "You earn on two tracks: users (buyer and/or seller) and business subscriptions. For subscriptions, commission can repeat monthly while the business stays subscribed, for up to twelve months per referred business, as set out in your affiliate terms.",
       "recurringCard1Title": "Transactions from users",
       "recurringCard1Body": "Up to 25% of the HomeCheff fee per transaction side you refer; up to 50% if you refer both buyer and seller. Active users mean ongoing transaction commission within the programme model.",
       "recurringCard2Title": "Business subscriptions",
       "recurringCard2Body": "Up to 50% of the subscription amount per month, for up to twelve months per business you refer, while the subscription runs. If the subscription ends, that commission stream ends too.",
       "recurringCard3Title": "Share internationally",
-      "recurringCard3Body": "You may share your link honestly anywhere (TikTok, Instagram, newsletters, events). Where people can sign up depends on HomeCheff availability and local rules — no misleading claims.",
+      "recurringCard3Body": "You may share your link honestly anywhere (TikTok, Instagram, newsletters, events). Where people can sign up depends on HomeCheff availability and local rules, no misleading claims.",
       "recurringLegal": "Exact percentages, durations, and exceptions are in the affiliate agreement and terms. The first twelve months sit within the current commission model; terms may evolve afterwards. HomeCheff may change rates with at least 30 days’ notice.",
       "examplesTitle": "Examples that fit your style",
       "example1Title": "Local community",
@@ -7993,7 +7993,7 @@
       "example3Title": "Business networks",
       "example3Body": "Recruiters, agencies, and clubs that help small businesses get visibility while building an additional income stream.",
       "audiencesTitle": "Who is this for?",
-      "audiencesSubtitle": "Not only influencers with huge followings — smaller, high-trust networks work too.",
+      "audiencesSubtitle": "Smaller, high-trust networks can take part too, not only influencers with huge followings.",
       "audience1": "Local makers & food creators",
       "audience2": "Entrepreneurs & recruiters",
       "audience3": "Community & neighbourhood pages",
@@ -8003,17 +8003,17 @@
       "audience7": "Designers & studios",
       "audience8": "Anyone with reach and trust",
       "toolsTitle": "What you get in the dashboard",
-      "toolsSubtitle": "Everything to share professionally — without spammy tooling.",
+      "toolsSubtitle": "Everything to share professionally, without spammy tooling.",
       "toolLinkTitle": "Personal referral link",
       "toolLinkBody": "One clear link for social, email, and bios. Attribution is tracked automatically.",
       "toolQrTitle": "QR codes",
-      "toolQrBody": "Download or print QR codes for flyers, markets, or your shop — great for offline traffic.",
+      "toolQrBody": "Download or print QR codes for flyers, markets, or your shop, great for offline traffic.",
       "toolPromoTitle": "Your own promo codes",
       "toolPromoBody": "Create codes for business subscriptions; discounts come from your commission share within the limits shown in the dashboard.",
       "toolStatsTitle": "Insights & payouts",
       "toolStatsBody": "See signups, status and payouts. Payouts go through Stripe Connect once you have completed onboarding.",
       "dashboardPreviewTitle": "Overview in your affiliate dashboard",
-      "dashboardPreviewBody": "After signup you’ll see your link, QR options, promo codes, and commission overview — control without spreadsheet stress.",
+      "dashboardPreviewBody": "After signup you’ll see your link, QR options, promo codes, and commission overview, control without spreadsheet stress.",
       "linkFaq": "Full HomeCheff FAQ",
       "faqTitle": "Affiliate FAQ",
       "faqSubtitle": "Short answers; details are in your agreement and the full FAQ.",
@@ -8027,13 +8027,13 @@
       "faq4Q": "When do I get paid?",
       "faq4A": "Commission is pending for 14 days and then becomes available. Payouts go through Stripe Connect under the rules in your dashboard, once you have completed onboarding. Commission is paid out of the HomeCheff platform fee; buyers and sellers pay nothing extra for it.",
       "faq5Q": "Can I create my own discount codes?",
-      "faq5A": "Yes — as a main affiliate you can create promo codes for business subscriptions. Discounts are applied from your commission share within the maximum rules shown in the dashboard.",
+      "faq5A": "Yes, as a main affiliate you can create promo codes for business subscriptions. Discounts are applied from your commission share within the maximum rules shown in the dashboard.",
       "faq6Q": "Can I promote internationally?",
       "faq6A": "You may share your link internationally as long as marketing is honest and compliant. Where HomeCheff is available may change; always check current terms.",
       "faq7Q": "Do I need to be a seller on HomeCheff?",
       "faq7A": "No. Affiliates are separate from selling on the marketplace. Many partners promote without listing products themselves.",
       "faq8Q": "How does recurring commission work?",
-      "faq8A": "For referred business subscriptions, you receive a monthly share within the standard model; the first twelve months are covered under the current commission framework. After that, the partnership may evolve through clearly communicated incentives — not a promise of lifetime income.",
+      "faq8A": "For referred business subscriptions, you receive a monthly share within the standard model; the first twelve months are covered under the current commission framework. After that, the partnership may evolve through clearly communicated incentives, not a promise of lifetime income.",
       "faq12Q": "What happens after 12 months?",
       "faq12A": "The standard affiliate window runs up to twelve months per active referred business subscription; that period is clearly defined in the current model. After that, the partnership may be extended or expanded through future incentives, performance milestones, and community goals. HomeCheff remains focused on long-term partnerships; exact terms are in your agreement.",
       "faq13Q": "Can partnerships expand later?",
@@ -8114,8 +8114,8 @@
     },
     "dna": {
       "growthTitle": "Grow faster with a business subscription",
-      "growthSubtitle": "Choose visibility, trust, and reach — not just a lower fee. Every plan helps your business grow locally.",
-      "growthPitch": "HomeCheff subscriptions lower your platform fee and strengthen your business profile — business badge, trust and lower costs per transaction. No hidden ranking promises.",
+      "growthSubtitle": "Choose visibility, trust, and reach, not just a lower fee. Every plan helps your business grow locally.",
+      "growthPitch": "HomeCheff subscriptions lower your platform fee and strengthen your business profile, business badge, trust and lower costs per transaction. No hidden ranking promises.",
       "pillar": {
         "visibility": "Business badge and profile on the village square",
         "trust": "Business badge and verified profile",
@@ -8123,7 +8123,7 @@
         "automation": "Automatic activation after payment"
       },
       "perMonth": "per month",
-      "commissionNote": "Platform fee on sales: {{percent}}% — secondary to growth and visibility.",
+      "commissionNote": "Platform fee on sales: {{percent}}%, secondary to growth and visibility.",
       "unavailable": "Unavailable",
       "choosePlan": "Choose {{plan}}",
       "plan": {
@@ -8173,7 +8173,7 @@
         "multiLocation": "Multiple locations"
       },
       "preview": {
-        "liveTitle": "Live preview — how you'll appear",
+        "liveTitle": "Live preview: how you'll appear",
         "liveSubtitle": "Switch plans and see what changes instantly. Everything comes from your Business DNA profile.",
         "badge": "Business badge",
         "noBadge": "No badge",
@@ -8195,20 +8195,20 @@
           "4": "Premium"
         },
         "tier": {
-          "1": "Individual — standard profile",
-          "2": "Basic — business badge and lower fee",
-          "3": "Pro — verified badge and richer profile",
-          "4": "Premium — highest plan profile"
+          "1": "Individual: standard profile",
+          "2": "Basic: business badge and lower fee",
+          "3": "Pro: verified badge and richer profile",
+          "4": "Premium: highest plan profile"
         },
         "whatChangesTitle": "After upgrading you immediately get",
-        "whatChangesSubtitle": "This activates automatically after payment — no manual steps.",
+        "whatChangesSubtitle": "This activates automatically after payment, no manual steps.",
         "deltaFrom": "From {{from}} to {{to}}",
         "upgradeDeltaTitle": "{{from}} → {{to}}: what's added",
         "comingSoonTitle": "Coming soon",
         "individualNote": "As an individual you have standard visibility. Choose a business plan to grow.",
         "noChanges": "No extra changes compared to your current plan.",
         "productTitle": "How you appear on HomeCheff",
-        "productSubtitle": "Real tile and trust components — not a mockup.",
+        "productSubtitle": "Real tile and trust components, not a mockup.",
         "sampleSeller": "Your business",
         "surface": {
           "tile": "Feed tile",
@@ -8285,7 +8285,7 @@
       },
       "compare": {
         "title": "Compare subscriptions",
-        "subtitle": "Choose based on fee, badge and profile benefits — no guaranteed feed ranking.",
+        "subtitle": "Choose based on fee, badge and profile benefits, no guaranteed feed ranking.",
         "feature": "Feature",
         "commission": "Platform fee on sales",
         "badge": "Business badge",
@@ -8307,11 +8307,11 @@
   "sell": {
     "pageTitle": "Selling on HomeCheff",
     "freeTitle": "As an individual you list and sell for free",
-    "freeBody": "List your food, harvest, creations or a service — or post a request in Wanted — without a subscription. You only pay a small fee per sale; buying never requires a subscription.",
+    "freeBody": "List your food, harvest, creations or a service, or post a request in Wanted, without a subscription. You only pay a small fee per sale; buying never requires a subscription.",
     "freeCta": "Post something for free",
     "businessSectionTitle": "Optional: business subscription (registered business)",
     "businessSectionSubtitle": "Selling as a business or with a business registration? A monthly subscription gives you a lower platform fee. This is an upgrade, not a requirement to sell.",
-    "title": "Put your business on the map — grow with your local community",
+    "title": "Put your business on the map, grow with your local community",
     "subtitle": "Choose the subscription that fits your business. Transparent prices, cancelable monthly and without hidden costs.",
     "introWho": "This page is for sellers with a business registration: you choose a monthly subscription with a lower HomeCheff platform fee on your sales.",
     "feeSummary": "Plans: Basic €39/month + 9% platform fee · Pro €99/month + 7% · Premium €199/month + 5%.",
@@ -8321,7 +8321,7 @@
     "confirmingSubscription": "We are confirming your subscription, please wait..."
   },
   "splash": {
-    "title": "Discover digital studios, gardens and kitchens in your neighborhood — or share yours and earn extra.",
+    "title": "Discover digital studios, gardens and kitchens in your neighborhood, or share yours and earn extra.",
     "subtitle": "Collect inspiration, sell what you make for free, with direct payouts. Your neighborhood becomes your village square.",
     "valueProposition": "Local and transparent: discover makers, chat on the village square, and check out safely when you are ready to try something new.",
     "affiliate": "Affiliate 12-12",
@@ -8369,7 +8369,7 @@
     "resendInvalidEmail": "Enter a valid email address.",
     "resendGenericError": "Could not resend right now. Try again later.",
     "resendNetworkError": "Network error. Check your connection and try again.",
-    "resendDebounced": "Please wait — we cannot send mail right now. Try again in {seconds} seconds.",
+    "resendDebounced": "Please wait. We cannot send mail right now. Try again in {seconds} seconds.",
     "continueBrowsing": "Continue browsing",
     "changeEmailCta": "Change email (profile)",
     "contactSupportCta": "Contact / support",
@@ -8387,7 +8387,7 @@
     "sendingMail": "Sending verification email…",
     "resendingMail": "Sending verification email again…",
     "codeSentOk": "New code sent. Check your inbox (and spam).",
-    "resendWaitMailDown": "Please wait — email is temporarily unavailable. Try again in {seconds} seconds.",
+    "resendWaitMailDown": "Please wait, email is temporarily unavailable. Try again in {seconds} seconds.",
     "rateLimited": "Please wait before requesting a new code ({seconds}s).",
     "alreadyVerified": "Your email is already verified. You can sign in.",
     "mailUnavailable": "There is currently a problem sending verification emails. You can keep browsing; try again later or change your email in your profile.",
@@ -8406,7 +8406,7 @@
     "helpTitle": "Need help?",
     "helpSpam": "Check your spam/junk folder",
     "helpExpiry": "Verification links are valid for 24 hours",
-    "helpProfile": "Profile — change email",
+    "helpProfile": "Profile: change email",
     "helpContact": "Contact",
     "helpSupport": "or support@homecheff.eu"
   },
@@ -8415,7 +8415,7 @@
     "quickActionsTitle": "Quick actions",
     "messagesUrgentOne": "You have 1 unread message",
     "messagesUrgentMany": "You have {{count}} unread messages",
-    "messagesUrgentHint": "Reply when it suits you — your conversation is waiting.",
+    "messagesUrgentHint": "Reply when it suits you. Your conversation is waiting.",
     "messagesUrgentCta": "Open messages",
     "browseMakers": "Makers nearby",
     "communityCardTitle": "Growing locally together",
@@ -8428,9 +8428,9 @@
     "buurtmomentenTitle": "Neighborhood moments",
     "heroLiveLabel": "Something's happening nearby",
     "heroCommunityHint": "Makers and neighbors actively sharing",
-    "heroVisualCaption": "Discover what's alive in your neighborhood — from kitchen to garden and studio.",
+    "heroVisualCaption": "Discover what's alive in your neighborhood, from kitchen to garden and studio.",
     "mobileShareInsertTitle": "Share something with your neighborhood",
-    "mobileShareInsertBody": "Cook, grow, or create — show neighbors what you make."
+    "mobileShareInsertBody": "Cook, grow, or create: show neighbors what you make."
   },
   "homePromotions": {
     "sectionTitle": "Recommended",
@@ -8498,18 +8498,18 @@
     "orientationTitle": "Discover real offers from neighbours near you",
     "orientationTitleInCity": "Discover real products and services from people in {city}",
     "orientationOrigin": "HomeCheff started in Vlaardingen.",
-    "orientationExplainShort": "People nearby cook, grow, make and help — find, ask or share.",
+    "orientationExplainShort": "People nearby cook, grow, make and help, find, ask or share.",
     "orientationExplainCompact": "Search · Offer · Ask · Buy · Sell · Trade · Help",
-    "orientationExplainMedium": "HomeCheff grows outward from Vlaardingen: real local listings for food, harvest, creations and services — not a nationwide mega-market.",
-    "orientationExplainFull": "HomeCheff is the digital neighbourhood marketplace being built. We start local (around Vlaardingen) with real makers and neighbours. Buy, sell, trade or ask — nearby first.",
+    "orientationExplainMedium": "HomeCheff grows outward from Vlaardingen: real local listings for food, harvest, creations and services, not a nationwide mega-market.",
+    "orientationExplainFull": "HomeCheff is the digital neighbourhood marketplace being built. We start local (around Vlaardingen) with real makers and neighbours. Buy, sell, trade or ask, nearby first.",
     "orientationExplainUltra": "Food, harvest, creations and services from people near you.",
     "orientationExplainCompactPrimary": "Food, harvest, creations and services from people in your neighbourhood.",
-    "orientationExplainCompactSecondary": "Discover nearby, or offer something yourself — we grow supply from Vlaardingen outward.",
+    "orientationExplainCompactSecondary": "Discover nearby, or offer something yourself. We grow supply from Vlaardingen outward.",
     "orientationExplainStandard": "Neighbours offer food, harvest, creations and services here. We started in Vlaardingen and are growing from there. See what’s available now, or put something online yourself.",
     "orientationExplainExpanded": "HomeCheff is a neighbourhood market we’re building out from Vlaardingen. You can see what neighbours cook, grow, make and offer, and post something yourself. Everything here comes from real people, not a national warehouse.",
     "orientationExplainRich": "HomeCheff is a neighbourhood market that’s still growing. We started around Vlaardingen with listings from real people. Have a look at the food, harvest, creations and services on offer, or start offering something yourself.",
-    "orientationExplainSupport": "Local first: neighbours strengthen each other through food, harvest, craft and help — with or without money.",
-    "orientationExplainExamples": "Think meals, garden produce, creations, repairs and neighbourly favours — all starting near you.",
+    "orientationExplainSupport": "Local first: neighbours strengthen each other through food, harvest, craft and help, with or without money.",
+    "orientationExplainExamples": "Think meals, garden produce, creations, repairs and neighbourly favours, all starting near you.",
     "orientationLocalLaunchNote": "Now live in and around Vlaardingen",
     "orientationTrustSecurePay": "Secure payment",
     "orientationTrustPickup": "Pickup or delivery",
@@ -8522,7 +8522,7 @@
     "heroShowLabel": "Show hero",
     "heroRestoreLabel": "Show intro",
     "orientationValueExchangeHint": "You can also swap things, without any money changing hands.",
-    "schemaWebsiteDescription": "HomeCheff — the digital home of personal craftsmanship. Discover local makers, craftspeople and neighbours nearby.",
+    "schemaWebsiteDescription": "HomeCheff, the digital home of personal craftsmanship. Discover local makers, craftspeople and neighbours nearby.",
     "verticals": {
       "cheff": {
         "title": "HomeCheff",
@@ -8626,7 +8626,7 @@
     "showLessBadges": "Show less",
     "noBadgesYet": "This maker is still building visible appreciation in the community.",
     "noReviewsTitle": "No reviews yet",
-    "newMakerReassurance": "New maker — check the profile, photos and listings, and make clear arrangements via a message.",
+    "newMakerReassurance": "New maker. Check the profile, photos and listings, and make clear arrangements via a message.",
     "emptyBio": "This maker has not added their story yet.",
     "emptyOfferings": "This maker has not listed anything for sale yet.",
     "emptyInspiration": "This maker has not shared inspiration yet.",
@@ -8689,7 +8689,7 @@
     "entry": {
       "intentHeading": "What would you like to do?",
       "categoryHeading": "What fits best?",
-      "categoryHint": "Choose your main activity — then open only the groups that belong with it.",
+      "categoryHint": "Choose your main activity, then open only the groups that belong with it.",
       "groupHeading": "Choose a group",
       "groupHint": "Select where your offering fits best. You can pick multiple items next.",
       "itemsHeading": "What fits here best?",
@@ -8819,7 +8819,7 @@
     },
     "payment": {
       "heading": "How can payment be arranged?",
-      "hint": "You may choose one or both options — useful for chat proposals and group orders.",
+      "hint": "You may choose one or both options, useful for chat proposals and group orders.",
       "homecheffTitle": "Pay via HomeCheff",
       "homecheffDescription": "Secure online checkout via HomeCheff (Stripe).",
       "directContactTitle": "Pay via direct contact",
@@ -8958,7 +8958,7 @@
       }
     },
     "exchangeSuggestions": {
-      "hint": "Optional trade opportunities — just for you, not for feed order.",
+      "hint": "Optional trade opportunities, just for you, not for feed order.",
       "matchReasons": "Why this suggestion",
       "empty": "No exchange opportunities right now.",
       "dismiss": "Dismiss",
@@ -9031,8 +9031,8 @@
         "wantHint": "What am I looking for?",
         "offer": "I offer",
         "offerHint": "What can I offer?",
-        "wantEducation": "Search for what you want nearby — food, help, creations or services.",
-        "offerEducation": "Have fruit, skills, help or creations? Choose what you can offer — we'll show who accepts it as value."
+        "wantEducation": "Search for what you want nearby, food, help, creations or services.",
+        "offerEducation": "Have fruit, skills, help or creations? Choose what you can offer. We'll show who accepts it as value."
       },
       "acceptedValuesFilter": {
         "heading": "Accepted values",
@@ -9054,9 +9054,9 @@
       "requests": {
         "chip": "Ask / Wanted",
         "sectionTitle": "Ask / Wanted",
-        "sectionSubtitle": "See what neighbours are looking for — or ask for a meal, help, service or something homemade nearby.",
+        "sectionSubtitle": "See what neighbours are looking for, or ask for a meal, help, service or something homemade nearby.",
         "emptyTitle": "No open requests yet",
-        "emptyBody": "Browse what's offered or ask for something yourself — someone nearby might help.",
+        "emptyBody": "Browse what's offered or ask for something yourself. Someone nearby might help.",
         "searchHints": {
           "gezocht": "Wanted",
           "help": "Help needed",
@@ -9075,7 +9075,7 @@
         "badge": "Wanted",
         "helpBadge": "Help needed",
         "soughtHeading": "Wanted",
-        "intro": "Someone is looking for help or something specific — respond with a proposal."
+        "intro": "Someone is looking for help or something specific, respond with a proposal."
       }
     },
     "deals": {
@@ -9098,12 +9098,12 @@
         },
         "delivery": {
           "available": "Delivery available",
-          "requestedPending": "Delivery requested — awaiting match",
+          "requestedPending": "Delivery requested: awaiting match",
           "requested": "Delivery requested",
           "courierAssigned": "Courier assigned",
           "courierAssignedNamed": "Courier: {{name}}",
           "inProgress": "Delivery in progress",
-          "inProgressNamed": "On the way — {{name}}",
+          "inProgressNamed": "On the way: {{name}}",
           "completed": "Delivery completed",
           "cancelled": "Delivery cancelled"
         }
@@ -9318,7 +9318,7 @@
         "alternativeValue": "Other value negotiable",
         "requestBudget": "Budget indication",
         "requestOpen": "Proposals welcome",
-        "inspiration": "Inspiration — not for sale"
+        "inspiration": "Inspiration, not for sale"
       },
       "fulfillment": {
         "onSite": "On-site",
@@ -9390,7 +9390,7 @@
     },
     "acceptedValues": {
       "heading": "Besides money, what else would you accept?",
-      "description": "Optional — indicate what you would also accept besides money, such as help, food, delivery or a creation. This does not oblige anyone to barter.",
+      "description": "Optional, indicate what you would also accept besides money, such as help, food, delivery or a creation. This does not oblige anyone to barter.",
       "searchPlaceholder": "Search by category or item…",
       "offeredInReturnHeading": "What do you offer in return?",
       "filterAll": "All",
@@ -9483,7 +9483,7 @@
       "invalidStock": "Stock must be a whole number of 0 or more. 0 = sold out."
     },
     "barterOpenness": {
-      "hint": "Choose whether you sell for money only, accept money and barter, or barter only. Bartering is never required or guaranteed — you arrange it together."
+      "hint": "Choose whether you sell for money only, accept money and barter, or barter only. Bartering is never required or guaranteed. You arrange it together."
     },
     "taxonomy": {
       "groups": {
@@ -9948,11 +9948,11 @@
     "blocklist": {
       "dropshipping": {
         "label": "Dropshipping",
-        "reason": "HomeCheff is for offers where you personally add meaningful value — not unmodified resale or dropshipping."
+        "reason": "HomeCheff is for offers where you personally add meaningful value, not unmodified resale or dropshipping."
       },
       "resale": {
         "label": "Unmodified resale",
-        "reason": "Unmodified resale does not belong on HomeCheff. Making, preparing, growing, designing, personalising, transforming, restoring or assembling does — material origin is not decisive."
+        "reason": "Unmodified resale does not belong on HomeCheff. Making, preparing, growing, designing, personalising, transforming, restoring or assembling does, material origin is not decisive."
       },
       "rental": {
         "label": "Rental",
@@ -10025,7 +10025,7 @@
       "labelTime": "Time",
       "labelFulfillment": "How",
       "labelNotes": "Extra notes",
-      "superseded": "Replaced by a newer proposal — you can no longer accept this one.",
+      "superseded": "Replaced by a newer proposal. You can no longer accept this one.",
       "changesHeading": "Changed from previous proposal",
       "confirmedHeading": "Appointment confirmed",
       "viewAppointment": "View appointment",
@@ -10066,16 +10066,16 @@
     },
     "create": {
       "title": "Make a proposal",
-      "settlementHint": "Choose how value is agreed — no payment processing in this screen.",
+      "settlementHint": "Choose how value is agreed, no payment processing in this screen.",
       "prefilledAccepted": "Prefilled from the listing.",
       "discardConfirm": "Your proposal is not sent yet. Closing saves it as a private draft.",
       "reviewHint": "Review your proposal above. It is only sent when you tap “Send proposal”.",
-      "conceptBadge": "Draft — not sent yet",
+      "conceptBadge": "Draft, not sent yet",
       "explicitSendOnly": "Your proposal is only sent when you tap this button."
     },
     "fields": {
       "messageLabel": "Extra notes / message",
-      "messagePlaceholder": "Optional — for example why, materials, or pickup at the door",
+      "messagePlaceholder": "Optional, for example why, materials, or pickup at the door",
       "locationMethodLabel": "Location / method",
       "pickupDateLabel": "Pickup date",
       "pickupTimeLabel": "Pickup time",
@@ -10083,7 +10083,7 @@
       "deliveryTimeLabel": "Delivery time"
     },
     "location": {
-      "pendingHeading": "Appointment confirmed — finish the details",
+      "pendingHeading": "Appointment confirmed. Finish the details",
       "completeHeading": "Location completed",
       "pickupAddress": "Pickup address",
       "deliveryAddress": "Delivery address",
@@ -10104,7 +10104,7 @@
       "accepted": "Proposal accepted.",
       "rejected": "Proposal rejected.",
       "cancelled": "Proposal cancelled.",
-      "communityOrderCreated": "Deal confirmed — arrange the details together."
+      "communityOrderCreated": "Deal confirmed: arrange the details together."
     },
     "errors": {
       "moneyAmountRequired": "Enter an amount first.",
@@ -10116,8 +10116,8 @@
       "invalidAcceptedValues": "One or more accepted values are invalid.",
       "invalidRequestedValues": "One or more requested values are invalid.",
       "checkoutNotAvailable": "HomeCheff checkout is not available for this listing.",
-      "barterNotAllowedOnMoneyListing": "This listing is for sale only — barter proposals are not allowed here.",
-      "moneyNotAllowedOnBarterListing": "This listing is barter only — money proposals are not allowed here.",
+      "barterNotAllowedOnMoneyListing": "This listing is for sale only, barter proposals are not allowed here.",
+      "moneyNotAllowedOnBarterListing": "This listing is barter only, money proposals are not allowed here.",
       "commitmentRequired": "Confirm that you will honour this deal before accepting."
     },
     "payment": {
@@ -10144,7 +10144,7 @@
       "paymentPathRequired": "Choose a payment method first.",
       "fulfillmentNotOffered": "This fulfillment option is not offered.",
       "stockUnavailableOnAccept": "Stock no longer available on accept.",
-      "stockNegotiable": "Availability is confirmed when you agree — you can still send a proposal."
+      "stockNegotiable": "Availability is confirmed when you agree. You can still send a proposal."
     },
     "nextAction": {
       "none": "Deal confirmed.",
@@ -10177,7 +10177,7 @@
       },
       "mixedAccepted": {
         "title": "Deal confirmed",
-        "body": "\"{{title}}\" — deal confirmed."
+        "body": "\"{{title}}\": deal confirmed."
       },
       "communityOrderCreated": {
         "title": "Deal confirmed",
@@ -10219,7 +10219,7 @@
     "commitment": {
       "acceptLabel": "I understand that I must honour this deal.",
       "homecheffHint": "Pay via HomeCheff for extra peace of mind.",
-      "directRisk": "Arranging payment outside HomeCheff? You settle payment between yourselves — at your own risk.",
+      "directRisk": "Arranging payment outside HomeCheff? You settle payment between yourselves, at your own risk.",
       "requiredError": "Confirm that you will honour this deal before accepting."
     },
     "paymentPath": {
@@ -10248,7 +10248,7 @@
     "nextStep": {
       "payHomecheff": "Pay securely via HomeCheff to complete the deal.",
       "discussPayment": "Agree with each other how and when to pay.",
-      "exchangeValue": "Complete your trade — agree when and how to exchange value.",
+      "exchangeValue": "Complete your trade. Agree when and how to exchange value.",
       "requestDelivery": "Request delivery when you are ready.",
       "viewDelivery": "View your delivery status.",
       "discussDeal": "Arrange the details of your deal in chat.",
@@ -10284,7 +10284,7 @@
     "nextStep": {
       "markComplete": "Mark the deal complete when you are done.",
       "reviewDeal": "Leave a review for your counterpart.",
-      "reviewDelivery": "Delivery is complete — review the courier."
+      "reviewDelivery": "Delivery is complete. Review the courier."
     },
     "profile": {
       "heading": "Trust",
@@ -10345,7 +10345,7 @@
     },
     "contribution": {
       "question": "What did you personally contribute to this offer?",
-      "help": "Pick what fits. Buying materials is fine — reselling unchanged is not. This is not a HomeCheff certificate.",
+      "help": "Pick what fits. Buying materials is fine, reselling unchanged is not. This is not a HomeCheff certificate.",
       "noteLabel": "Briefly describe your own contribution (optional)",
       "notePlaceholder": "E.g. bought blank vases and spray-painted them in three colours myself.",
       "required": "Please select at least one contribution type before publishing.",
@@ -10360,7 +10360,7 @@
       "clarifySubmit": "Submit clarification",
       "clarifySending": "Sending…",
       "clarifyNoteRequired": "Clarification is required.",
-      "clarifySubmitted": "Clarification received. HomeCheff will review it — you cannot restore visibility yourself.",
+      "clarifySubmitted": "Clarification received. HomeCheff will review it. You cannot restore visibility yourself.",
       "noSelfRestore": "Only HomeCheff can make this listing visible again."
     }
   },
@@ -10536,7 +10536,7 @@
     "settingsIntro": "Choose how people can reach you for questions or orders. You decide what appears on your profile.",
     "premiumFutureNote": "External contact buttons may later become part of a premium profile. You can set them up now in advance.",
     "settingsMenuDescription": "Phone, WhatsApp and social links on your profile",
-    "chatAlwaysOn": "Always available via HomeCheff — regardless of the options below.",
+    "chatAlwaysOn": "Always available via HomeCheff: regardless of the options below.",
     "save": "Save reachability",
     "saveSuccess": "Your reachability settings have been saved.",
     "fields": {
@@ -10771,7 +10771,7 @@
     "finance": "Finance",
     "requestPayout": "Request payout",
     "modalTitle": "Partner link & QR",
-    "modalHint": "Scan or share your partner link for new sign-ups — not a direct partner in your network.",
+    "modalHint": "Scan or share your partner link for new sign-ups, not a direct partner in your network.",
     "modalUnavailable": "Partner link is not available right now.",
     "copyLink": "Copy link",
     "copied": "Copied",
@@ -10834,7 +10834,7 @@
       "earnTitle": "What does your partner earn?",
       "rate": "40% of the platform fee",
       "detail": "Your partner receives 40% of the applicable HomeCheff platform fee on qualifying transactions attributed through their affiliate contribution.",
-      "notOrder": "Commission is calculated on HomeCheff’s platform fee — not on the full purchase amount."
+      "notOrder": "Commission is calculated on HomeCheff’s platform fee, not on the full purchase amount."
     }
   },
   "legal3": {
@@ -10845,7 +10845,7 @@
     "moreInfo": "More information",
     "lessInfo": "Less information",
     "termsLink": "Read the terms",
-    "platformRole": "HomeCheff is a marketplace platform. The seller/provider supplies the offer; HomeCheff facilitates the connection. Payments via Stripe run through the platform — HomeCheff’s precise legal role in payments remains subject to further legal review.",
+    "platformRole": "HomeCheff is a marketplace platform. The seller/provider supplies the offer; HomeCheff facilitates the connection. Payments via Stripe run through the platform. HomeCheff’s precise legal role in payments remains subject to further legal review.",
     "professionalNote": "This provider self-declared as professional/business. That is not a HomeCheff certificate of entrepreneurship.",
     "privateNote": "This provider indicated they offer as a private individual. Consumer rights that specifically apply when buying from a professional trader, such as the statutory right of withdrawal, may therefore not apply. Other rights (platform rules, food information, product safety, contract law) remain relevant where applicable.",
     "undeclaredNote": "The provider has not yet declared private/professional status. Proceed carefully; HomeCheff does not auto-determine trader status.",
@@ -10862,9 +10862,9 @@
       "STANDARD_14_DAY": "14-day cooling-off period",
       "CUSTOM_OR_PERSONALISED_EXCEPTION": "Exception: made to order / personalised",
       "PERISHABLE_EXCEPTION": "Exception: rapidly perishable",
-      "FULLY_PERFORMED_SERVICE_EXCEPTION": "Service — withdrawal depends on performance",
+      "FULLY_PERFORMED_SERVICE_EXCEPTION": "Service: withdrawal depends on performance",
       "NOT_APPLICABLE_PRIVATE_C2C": "Statutory B2C withdrawal may not apply",
-      "NOT_APPLICABLE_FREE": "Not a paid purchase — withdrawal machinery not applicable",
+      "NOT_APPLICABLE_FREE": "Not a paid purchase: withdrawal machinery not applicable",
       "REQUIRES_REVIEW": "Not yet determined"
     },
     "summary": {
@@ -10872,13 +10872,13 @@
       "CUSTOM_OR_PERSONALISED_EXCEPTION": "This offer is marked as made to your specifications. Statutory withdrawal may not apply.",
       "PERISHABLE_EXCEPTION": "This offer is marked rapidly perishable. Statutory withdrawal may not apply. Allergen and food information remain separate.",
       "FULLY_PERFORMED_SERVICE_EXCEPTION": "Services usually have a cooling-off period. After full performance following your express request during that period, you may lose withdrawal rights.",
-      "NOT_APPLICABLE_PRIVATE_C2C": "Private provider by self-declaration — specific B2C withdrawal rights may not apply.",
+      "NOT_APPLICABLE_PRIVATE_C2C": "Private provider by self-declaration: specific B2C withdrawal rights may not apply.",
       "NOT_APPLICABLE_FREE": "Free sharing: not a paid purchase.",
       "REQUIRES_REVIEW": "Without a clear private/professional declaration we do not claim standard B2C withdrawal."
     },
     "detail": {
       "STANDARD_14_DAY": "You may generally withdraw within 14 days without giving a reason, except where a statutory exception applies.",
-      "CUSTOM_OR_PERSONALISED_EXCEPTION": "Goods made to your specifications or clearly personalised may be excluded from withdrawal. This applies only when the seller explicitly marked this offer — not merely from a TRUST ‘personalised’ provenance claim.",
+      "CUSTOM_OR_PERSONALISED_EXCEPTION": "Goods made to your specifications or clearly personalised may be excluded from withdrawal. This applies only when the seller explicitly marked this offer, not merely from a TRUST ‘personalised’ provenance claim.",
       "PERISHABLE_EXCEPTION": "Rapidly perishable goods may be excluded from withdrawal. This never replaces allergen or food-safety duties.",
       "FULLY_PERFORMED_SERVICE_EXCEPTION": "Only request start during the cooling-off period if you truly want that. We do not auto-remove withdrawal merely because work started.",
       "NOT_APPLICABLE_PRIVATE_C2C": "This does not mean ‘you have no rights’. It means specific consumer rights vs professional traders may not apply.",
@@ -10915,7 +10915,7 @@
     "ctaShareHub": "Share all options",
     "shareTitle": "Earn with HomeCheff",
     "shareText": "Discover how to participate and earn in the HomeCheff ecosystem.",
-    "noIncomePromise": "No guaranteed income — earnings depend on activity and eligible platform revenue.",
+    "noIncomePromise": "No guaranteed income: earnings depend on activity and eligible platform revenue.",
     "orientTitle": "I want to…",
     "cardsHeading": "Opportunities",
     "orient": {
@@ -10989,7 +10989,7 @@
         "title": "Work at HomeCheff",
         "proposition": "Real roles and internships at HomeCheff itself.",
         "forWhom": "Applicants for internal HomeCheff roles.",
-        "howStart": "View open vacancies — no fake jobs.",
+        "howStart": "View open vacancies, no fake jobs.",
         "cta": "View vacancies",
         "share": "Share vacancies"
       }
@@ -11011,11 +11011,11 @@
       "body": "As an independent provider or through your delivery company. HomeCheff facilitates matching and settlement; you set availability and (within the rules) your offer.",
       "point1": "Individual: own signup and availability",
       "point2": "Company: team, assignment and company payout",
-      "point3": "Invite someone — with affiliate context, attribution travels with the share"
+      "point3": "Invite someone, with affiliate context, attribution travels with the share"
     },
     "employment": {
       "title": "Work at HomeCheff (internal)",
-      "body": "This is only for real HomeCheff employment or internships — not for independent couriers, sellers or affiliates.",
+      "body": "This is only for real HomeCheff employment or internships, not for independent couriers, sellers or affiliates.",
       "cta": "Go to vacancies",
       "nav": "Vacancies",
       "pageTitle": "Work at HomeCheff",
@@ -11027,12 +11027,12 @@
     },
     "shareCenter": {
       "title": "Share & earn",
-      "body": "Share specific opportunities. Your personal or company affiliate context travels automatically — no guaranteed income."
+      "body": "Share specific opportunities. Your personal or company affiliate context travels automatically, no guaranteed income."
     }
   },
   "deliveryStart": {
     "title": "How do you want to deliver?",
-    "subtitle": "Choose what fits. HomeCheff is not an employer — you or your company deliver as an independent partner.",
+    "subtitle": "Choose what fits. HomeCheff is not an employer. You or your company deliver as an independent partner.",
     "individualTitle": "I deliver myself",
     "individualBody": "Personal delivery profile: availability, area, rates and jobs.",
     "companyTitle": "I have a delivery company",
@@ -11097,7 +11097,7 @@
       "retry": "Try again",
       "empty": "No affiliate activity yet. Share HomeCheff to get started.",
       "emptyCta": "See what you can promote",
-      "blurb": "One network: main affiliate (10%) and partner (40%) of eligible HomeCheff platform revenue — together max 50%. No guaranteed income.",
+      "blurb": "One network: main affiliate (10%) and partner (40%) of eligible HomeCheff platform revenue, together max 50%. No guaranteed income.",
       "howItWorks": "How does affiliate earning work on HomeCheff?",
       "product": {
         "marketplace": "Marketplace",
@@ -11122,7 +11122,7 @@
     "externalRevenueNotice": "Do you also earn outside HomeCheff? That revenue is not included here.",
     "needsReviewNotice": "{amount} in costs still needs checking before we can include it in your result.",
     "investmentNotice": "{amount} is recorded as an investment. That is spread over several years, so we do not count it all at once.",
-    "platformDuplicateNotice": "You entered {amount} under platform costs. HomeCheff's own fees are already included — do not add them again.",
+    "platformDuplicateNotice": "You entered {amount} under platform costs. HomeCheff's own fees are already included, do not add them again.",
     "viewCosts": "View costs",
     "addCost": "Add costs",
     "emptyTitle": "No costs entered yet",
@@ -11197,7 +11197,7 @@
     "evidenceDuplicate": "You already added this file once.",
     "evidencePrivacy": "Receipts are private. Only you can view them; they never appear on your profile or in the feed.",
     "evidenceNotProof": "HomeCheff does not check the receipt. An attachment does not prove the amount, date or business share are correct, and changes nothing about the fiscal treatment.",
-    "evidenceRetention": "Keep your own administration yourself. If you delete a receipt here it is gone — HomeCheff is not a substitute for your legal retention duty.",
+    "evidenceRetention": "Keep your own administration yourself. If you delete a receipt here it is gone. HomeCheff is not a substitute for your legal retention duty.",
     "evidenceViewerTitle": "View document",
     "evidenceViewerClose": "Close",
     "evidenceErrorFILE_TOO_LARGE": "This file is too large. Maximum {{size}}.",

@@ -9,7 +9,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-status';
 
 /**
- * Phase 7C.4 — friendly Stripe Connect guidance where seller chooses
+ * Phase 7C.4: friendly Stripe Connect guidance where seller chooses
  * HomeCheff Checkout. Uses shared Connect uiStatus (never accountId alone).
  */
 export default function SettlementConnectGuidance({
@@ -97,7 +97,7 @@ export default function SettlementConnectGuidance({
       >
         <Clock className="mt-0.5 h-4 w-4 shrink-0 text-sky-700" aria-hidden />
         <p className="text-xs leading-relaxed text-sky-950">
-          Je gegevens zijn ontvangen. Stripe controleert je betaalaccount — je hoeft
+          Je gegevens zijn ontvangen. Stripe controleert je betaalaccount, je hoeft
           niets opnieuw in te vullen. HomeCheff Checkout wordt beschikbaar zodra
           verificatie klaar is.
         </p>

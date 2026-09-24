@@ -85,7 +85,7 @@ export default async function AdminHcpOverviewPage() {
               Locatie targeting gebruikt opgeslagen profielzone en optionele sessie-GPS; er worden geen exacte coördinaten publiek
               getoond.
             </li>
-            <li>Geen HCP-geldprijzen of Stripe voor deze automatische beloningen — alleen zichtbaarheid / interne status.</li>
+            <li>Geen HCP-geldprijzen of Stripe voor deze automatische beloningen, alleen zichtbaarheid / interne status.</li>
           </ul>
         </section>
 

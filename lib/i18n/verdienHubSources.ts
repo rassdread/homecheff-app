@@ -16,7 +16,7 @@ export const verdienHubNl = {
   "ctaShareHub": "Deel alle mogelijkheden",
   "shareTitle": "Verdien met HomeCheff",
   "shareText": "Er zijn verschillende manieren om mee te doen én te verdienen met HomeCheff. Verkoop wat je maakt, bezorg in je buurt, promoot het platform of werk mee aan HomeCheff. Bekijk wat bij jou past.",
-  "noIncomePromise": "Geen gegarandeerd inkomen — verdiensten hangen af van activiteit en eligible platformomzet.",
+  "noIncomePromise": "Geen gegarandeerd inkomen: verdiensten hangen af van activiteit en eligible platformomzet.",
   "orientTitle": "Ik wil…",
   "cardsHeading": "Mogelijkheden",
   "orient": {
@@ -90,7 +90,7 @@ export const verdienHubNl = {
       "title": "Werken bij HomeCheff",
       "proposition": "Echte functies en stages bij HomeCheff zelf.",
       "forWhom": "Sollicitanten voor interne HomeCheff-rollen.",
-      "howStart": "Bekijk openstaande vacatures — geen nepvacatures.",
+      "howStart": "Bekijk openstaande vacatures, geen nepvacatures.",
       "cta": "Bekijk vacatures",
       "share": "Deel vacatures"
     }
@@ -102,7 +102,7 @@ export const verdienHubNl = {
     "affiliate": "Ken jij mensen die bij HomeCheff passen? Deel HomeCheff en verdien mee wanneer jouw netwerk actief wordt binnen het ecosysteem. Geen gegarandeerd inkomen.",
     "affiliate_company": "Werk je in sales, marketing of acquisitie? Ontdek hoe je als zakelijke partner kunt meebouwen aan de groei van HomeCheff.",
     "studio": "Maak content voor je product, bedrijf of idee met HomeCheff Studio. Ontdek de creatieve mogelijkheden van het HomeCheff-ecosysteem.",
-    "growth": "Op zoek naar zakelijke kansen? HomeCheff Growth helpt professionals en bedrijven met leadgeneratie — een eigen product naast de Marketplace.",
+    "growth": "Op zoek naar zakelijke kansen? HomeCheff Growth helpt professionals en bedrijven met leadgeneratie, een eigen product naast de Marketplace.",
     "jobs": "Wil je niet alleen HomeCheff gebruiken, maar eraan meebouwen? Bekijk de mogelijkheden om met HomeCheff samen te werken.",
     "hub": "Er zijn verschillende manieren om mee te doen én te verdienen met HomeCheff. Verkoop wat je maakt, bezorg in je buurt, promoot het platform of werk mee aan HomeCheff."
   },
@@ -111,11 +111,11 @@ export const verdienHubNl = {
     "body": "Als zelfstandige of via je bezorgbedrijf. HomeCheff faciliteert matching en settlement; jij bepaalt beschikbaarheid en (binnen de regels) je aanbod.",
     "point1": "Individueel: eigen aanmelding en beschikbaarheid",
     "point2": "Bedrijf: team, toewijzing en bedrijfsuitbetaling",
-    "point3": "Nodig iemand uit — bij affiliate-context reist attributie mee"
+    "point3": "Nodig iemand uit: bij affiliate-context reist attributie mee"
   },
   "employment": {
     "title": "Werken bij HomeCheff (intern)",
-    "body": "Dit is alleen voor echte HomeCheff-dienstverbanden of stages — niet voor zelfstandige bezorgers, verkopers of affiliates.",
+    "body": "Dit is alleen voor echte HomeCheff-dienstverbanden of stages, niet voor zelfstandige bezorgers, verkopers of affiliates.",
     "cta": "Naar vacatures",
     "nav": "Vacatures",
     "pageTitle": "Werken bij HomeCheff",
@@ -127,7 +127,7 @@ export const verdienHubNl = {
   },
   "shareCenter": {
     "title": "Deel & verdien",
-    "body": "Deel specifieke kansen. Jouw affiliate- of bedrijfscontext reist automatisch mee — geen gegarandeerd inkomen."
+    "body": "Deel specifieke kansen. Jouw affiliate- of bedrijfscontext reist automatisch mee, geen gegarandeerd inkomen."
   }
 } as const;
 
@@ -140,7 +140,7 @@ export const verdienHubEn = {
   "ctaShareHub": "Share all options",
   "shareTitle": "Earn with HomeCheff",
   "shareText": "There are several ways to take part and earn with HomeCheff. Sell what you make, deliver nearby, promote the platform, or help build HomeCheff. See what fits you.",
-  "noIncomePromise": "No guaranteed income — earnings depend on activity and eligible platform revenue.",
+  "noIncomePromise": "No guaranteed income: earnings depend on activity and eligible platform revenue.",
   "orientTitle": "I want to…",
   "cardsHeading": "Opportunities",
   "orient": {
@@ -214,7 +214,7 @@ export const verdienHubEn = {
       "title": "Careers",
       "proposition": "Real roles and internships at HomeCheff itself.",
       "forWhom": "Applicants for internal HomeCheff roles.",
-      "howStart": "View open vacancies — no fake jobs.",
+      "howStart": "View open vacancies: no fake jobs.",
       "cta": "View vacancies",
       "share": "Share vacancies"
     }
@@ -226,7 +226,7 @@ export const verdienHubEn = {
     "affiliate": "Know people who fit HomeCheff? Share HomeCheff and earn when your network becomes active in the ecosystem. No guaranteed income.",
     "affiliate_company": "Work in sales, marketing, or acquisition? Discover how to grow HomeCheff as a business partner.",
     "studio": "Create content for your product, business, or idea with HomeCheff Studio. Explore creative tools in the HomeCheff ecosystem.",
-    "growth": "Looking for business opportunities? HomeCheff Growth helps professionals and companies with lead generation — a distinct product alongside Marketplace.",
+    "growth": "Looking for business opportunities? HomeCheff Growth helps professionals and companies with lead generation, a distinct product alongside Marketplace.",
     "jobs": "Want to help build HomeCheff, not only use it? See how you can work with HomeCheff.",
     "hub": "There are several ways to take part and earn with HomeCheff. Sell what you make, deliver nearby, promote the platform, or help build HomeCheff."
   },
@@ -235,11 +235,11 @@ export const verdienHubEn = {
     "body": "As an independent provider or through your delivery company. HomeCheff facilitates matching and settlement; you set availability and (within the rules) your offer.",
     "point1": "Individual: own signup and availability",
     "point2": "Company: team, assignment and company payout",
-    "point3": "Invite someone — with affiliate context, attribution travels with the share"
+    "point3": "Invite someone, with affiliate context, attribution travels with the share"
   },
   "employment": {
     "title": "Work at HomeCheff (internal)",
-    "body": "This is only for real HomeCheff employment or internships — not for independent couriers, sellers or affiliates.",
+    "body": "This is only for real HomeCheff employment or internships, not for independent couriers, sellers or affiliates.",
     "cta": "Go to vacancies",
     "nav": "Careers",
     "pageTitle": "Careers",
@@ -251,7 +251,7 @@ export const verdienHubEn = {
   },
   "shareCenter": {
     "title": "Share & earn",
-    "body": "Share specific opportunities. Your personal or company affiliate context travels automatically — no guaranteed income."
+    "body": "Share specific opportunities. Your personal or company affiliate context travels automatically, no guaranteed income."
   }
 } as const;
 

@@ -16,7 +16,7 @@ export default function CommunityDeliveryInfo() {
           </h3>
           <p className="text-gray-700 mb-4">
             HomeCheff faciliteert het contact en de boeking. Transport wordt
-            uitgevoerd door een zelfstandige bezorgaanbieder — niet door HomeCheff
+            uitgevoerd door een zelfstandige bezorgaanbieder, niet door HomeCheff
             als vervoerder of werkgever.
           </p>
 

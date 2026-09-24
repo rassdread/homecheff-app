@@ -72,7 +72,7 @@ export const MARKETPLACE_ADOPTION_READINESS: ReadinessItem[] = [
     status: 'partial',
     evidence:
       'Nearby-first GeoFeed, place/map, CommunityPulseBar, community progress/HCP, activations library.',
-    gap: 'Density of real local supply/demand still depends on adoption — not inventable in code.',
+    gap: 'Density of real local supply/demand still depends on adoption, not inventable in code.',
   },
   {
     id: 'first_ambassadors',
@@ -94,7 +94,7 @@ export const MARKETPLACE_ADOPTION_READINESS: ReadinessItem[] = [
     label: 'First municipalities',
     status: 'blocked',
     evidence: 'Press/About/entity pages ready for outreach.',
-    gap: 'No public municipal partnership page — do not claim until real agreement exists.',
+    gap: 'No public municipal partnership page, do not claim until real agreement exists.',
   },
   {
     id: 'first_local_organisations',
@@ -109,7 +109,7 @@ export const MARKETPLACE_ADOPTION_READINESS: ReadinessItem[] = [
     status: 'partial',
     evidence:
       'Seller subscriptions (/sell), business DNA/preview libs, affiliate programme.',
-    gap: 'Collaborations only after real agreements — readiness for tools exists.',
+    gap: 'Collaborations only after real agreements, readiness for tools exists.',
   },
 ];
 
@@ -155,7 +155,7 @@ export const CREATOR_EXPERIENCE_READINESS: ReadinessItem[] = [
     status: 'partial',
     evidence:
       'Seller dashboard/analytics, growth surfaces (lib/discovery/growth), HCP, follows, profile trust.',
-    gap: 'Growth storytelling can still feel product-heavy for first-time creators — polish, not architecture.',
+    gap: 'Growth storytelling can still feel product-heavy for first-time creators, polish, not architecture.',
   },
   {
     id: 'how_they_become_trusted',
@@ -238,14 +238,14 @@ export const COMMUNITY_EXPERIENCE_READINESS: ReadinessItem[] = [
     id: 'stories_local_identity',
     label: 'Stories / local identity',
     status: 'partial',
-    evidence: 'Maker profiles, meet-the-maker pillars, open knowledge — not a feed of posts.',
+    evidence: 'Maker profiles, meet-the-maker pillars, open knowledge, not a feed of posts.',
     gap: 'No invented community posts; authentic maker stories remain the path.',
   },
   {
     id: 'social_interaction_without_sns',
     label: 'Social interaction without SNS complexity',
     status: 'ready',
-    evidence: 'Chat, proposals, follows, favorites, reviews — transaction/community oriented, not infinite scroll social.',
+    evidence: 'Chat, proposals, follows, favorites, reviews, transaction/community oriented, not infinite scroll social.',
   },
 ];
 
@@ -306,7 +306,7 @@ export const GROWTH_LOOPS: Array<{
       'Delivery review strengthens network',
     ],
     status: 'ready',
-    notes: 'Platform identity remains marketplace — not a delivery company.',
+    notes: 'Platform identity remains marketplace, not a delivery company.',
   },
   {
     id: 'affiliate_referral_loop',
@@ -317,7 +317,7 @@ export const GROWTH_LOOPS: Array<{
       'Attribution + promo tools',
     ],
     status: 'ready',
-    notes: 'Programme ready; growth depends on honest partners — no fake affiliates.',
+    notes: 'Programme ready; growth depends on honest partners, no fake affiliates.',
   },
 ];
 
@@ -352,7 +352,7 @@ export const RETENTION_READINESS: ReadinessItem[] = [
     id: 'repeat_purchases_trades_services',
     label: 'Repeat purchases / trades / services',
     status: 'partial',
-    evidence: 'Orders, deals, chat, favorites — re-engagement possible.',
+    evidence: 'Orders, deals, chat, favorites: re-engagement possible.',
     gap: 'No fabricated loyalty programme claims; HCP helps but is not CRM automation.',
   },
   {
@@ -382,7 +382,7 @@ export const LOCAL_EXPANSION_READINESS = {
   status: 'ready' as ReadinessStatus,
   evidence:
     'GeoFeed nearby-first + entity LOCAL_FIRST_SCALE; unique craft may reach further without “international marketplace” branding.',
-  contradictionCheck: 'PASS — growth expansion does not override local-first discovery priority.',
+  contradictionCheck: 'PASS: growth expansion does not override local-first discovery priority.',
 };
 
 export const REAL_WORLD_TRUST_READINESS: ReadinessItem[] = [
@@ -390,7 +390,7 @@ export const REAL_WORLD_TRUST_READINESS: ReadinessItem[] = [
     id: 'real_reviews',
     label: 'Real reviews',
     status: 'ready',
-    evidence: 'Token reviews, deal reviews, delivery reviews — no fabricated aggregate ratings in schema.',
+    evidence: 'Token reviews, deal reviews, delivery reviews, no fabricated aggregate ratings in schema.',
   },
   {
     id: 'real_reputation',
@@ -422,7 +422,7 @@ export const REAL_WORLD_TRUST_READINESS: ReadinessItem[] = [
     label: 'Municipalities / partners / stories / media',
     status: 'planned',
     evidence: 'Press readiness (press@) + public entity pages.',
-    gap: 'Earn only — never invent partnerships or media logos.',
+    gap: 'Earn only: never invent partnerships or media logos.',
   },
 ];
 
@@ -433,7 +433,7 @@ export const BUSINESS_ECOSYSTEM_FIT: Array<{
   status: ReadinessStatus;
   note: string;
 }> = [
-  { group: 'home cooks', fits: true, status: 'ready', note: 'Core food category — homemade, not dark kitchens as identity.' },
+  { group: 'home cooks', fits: true, status: 'ready', note: 'Core food category: homemade, not dark kitchens as identity.' },
   { group: 'restaurants', fits: true, status: 'partial', note: 'Fit when personal/local craft visible; not anonymous mass retail.' },
   { group: 'gardeners', fits: true, status: 'ready', note: 'Garden / home-grown category.' },
   { group: 'artists', fits: true, status: 'ready', note: 'Creations / creative work.' },
@@ -442,7 +442,7 @@ export const BUSINESS_ECOSYSTEM_FIT: Array<{
   { group: 'consultants', fits: true, status: 'ready', note: 'Personal services / knowledge.' },
   { group: 'repair specialists', fits: true, status: 'ready', note: 'Repairs + craftsmanship-first.' },
   { group: 'craft makers', fits: true, status: 'ready', note: 'Handmade / studio.' },
-  { group: 'delivery partners', fits: true, status: 'ready', note: 'Assist fulfilment — platform is not a delivery company.' },
+  { group: 'delivery partners', fits: true, status: 'ready', note: 'Assist fulfilment: platform is not a delivery company.' },
   { group: 'municipal projects', fits: true, status: 'planned', note: 'Philosophy fit; blocked until real public agreements.' },
   { group: 'social initiatives', fits: true, status: 'planned', note: 'Neighbour help / community exchange fit.' },
   { group: 'small businesses', fits: true, status: 'ready', note: 'Subscriptions + seller tools when craftsmanship-first.' },
@@ -454,13 +454,13 @@ export const GROWTH_CAMPAIGN_READINESS: ReadinessItem[] = [
     label: 'Local flyer / QR campaigns',
     status: 'partial',
     evidence: 'Short links /r/[slug], welkom/uitnodiging codes, public homepage.',
-    gap: 'Creative/ops playbooks outside product — preparation only here.',
+    gap: 'Creative/ops playbooks outside product: preparation only here.',
   },
   {
     id: 'tiktok_instagram_facebook',
     label: 'TikTok / Instagram / Facebook',
     status: 'planned',
-    evidence: 'Phase 2.5 real-world signal inventory — accounts not verified yet.',
+    evidence: 'Phase 2.5 real-world signal inventory, accounts not verified yet.',
   },
   {
     id: 'linkedin',
@@ -534,7 +534,7 @@ export const GROWTH_ROADMAP: Array<{
   {
     priority: 2,
     item: 'Authentic social channels (LinkedIn → Instagram/Facebook) with HomeCheff spelling',
-    rationale: 'External entity signals from Phase 2.5 — create only real accounts.',
+    rationale: 'External entity signals from Phase 2.5, create only real accounts.',
   },
   {
     priority: 3,
@@ -577,6 +577,6 @@ export function growthFoundationBrief(): string {
     `roadmap_items: ${GROWTH_ROADMAP.length}`,
     `local_expansion: ${LOCAL_EXPANSION_READINESS.path.join(' → ')} (${LOCAL_EXPANSION_READINESS.contradictionCheck})`,
     `scores: growth=${GROWTH_SCORES.growthReadiness} community=${GROWTH_SCORES.communityReadiness} creator=${GROWTH_SCORES.creatorReadiness} marketplace=${GROWTH_SCORES.marketplaceReadiness}`,
-    'rule: readiness documentation only — never invent usage, partners, reviews or SEO spam',
+    'rule: readiness documentation only: never invent usage, partners, reviews or SEO spam',
   ].join('\n');
 }

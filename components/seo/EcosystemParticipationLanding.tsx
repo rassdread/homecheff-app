@@ -67,7 +67,7 @@ export function EcosystemParticipationLanding({
           {tBi(s.heroKicker, lang)}
         </p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-          HomeCheff — {title}
+          HomeCheff. {title}
         </h1>
         <p className="mt-4 text-base leading-relaxed text-slate-600 sm:text-lg">
           {tBi(s.heroBody, lang)}

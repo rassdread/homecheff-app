@@ -39,7 +39,7 @@ export const DISCOVERY_SECTION_REGISTRY: Record<
     id: 'nearby',
     titleKey: 'discovery.sections.nearby',
     description:
-      'Geographic relevance — products, services, tasks, workshops, requests within radius.',
+      'Geographic relevance: products, services, tasks, workshops, requests within radius.',
     rankingProfileId: 'nearby',
     defaultLimit: 20,
     allowedListingKinds: MARKETPLACE_KINDS,
@@ -71,7 +71,7 @@ export const DISCOVERY_SECTION_REGISTRY: Record<
     id: 'top_rated',
     titleKey: 'discovery.sections.top_rated',
     description:
-      'Per-channel review evidence — product, deal, or courier. No blended rating.',
+      'Per-channel review evidence: product, deal, or courier. No blended rating.',
     rankingProfileId: 'top_rated',
     defaultLimit: 15,
     allowedListingKinds: MARKETPLACE_KINDS,
@@ -85,7 +85,7 @@ export const DISCOVERY_SECTION_REGISTRY: Record<
   trending: {
     id: 'trending',
     titleKey: 'discovery.sections.trending',
-    description: 'Recent momentum via capped favorites and activity — no views.',
+    description: 'Recent momentum via capped favorites and activity, no views.',
     rankingProfileId: 'trending',
     defaultLimit: 15,
     allowedListingKinds: MARKETPLACE_KINDS,
@@ -102,7 +102,7 @@ export const DISCOVERY_SECTION_REGISTRY: Record<
     id: 'new_creators',
     titleKey: 'discovery.sections.new_creators',
     description:
-      'Quality newcomers within account age window — media and description required.',
+      'Quality newcomers within account age window, media and description required.',
     rankingProfileId: 'new_creators',
     defaultLimit: 12,
     allowedListingKinds: MARKETPLACE_KINDS,

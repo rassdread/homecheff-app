@@ -10,7 +10,7 @@ const NL = {
   greeting: 'Welkom, {{name}}',
   activityTitle: 'Jouw werk',
   modulesTitle: 'Meer van HomeCheff',
-  modulesSupport: 'Andere HomeCheff-producten — kies waar je naartoe wilt.',
+  modulesSupport: 'Andere HomeCheff-producten. Kies waar je naartoe wilt.',
   cards: {
     orders: {
       title: 'Mijn bestellingen',
@@ -20,7 +20,7 @@ const NL = {
     },
     hc: {
       title: 'HC-saldo',
-      description: 'Je HomeCheff Credits — saldo, geschiedenis en waar je HC kunt gebruiken.',
+      description: 'Je HomeCheff Credits: saldo, geschiedenis en waar je HC kunt gebruiken.',
       empty: 'Nog geen HC-activiteit.',
       primary: 'Bekijk HC-saldo',
     },
@@ -36,7 +36,7 @@ const NL = {
     affiliate: {
       title: 'Affiliate & netwerk',
       description:
-        'Je code, netwerk en commissies — één introductie voor heel HomeCheff.',
+        'Je code, netwerk en commissies, één introductie voor heel HomeCheff.',
       onboardingDescription:
         'Nodig iemand uit. Als diegene later ergens in HomeCheff eligible platformomzet maakt, kan jouw netwerk meedelen (geen garantie).',
       empty: 'Nog geen netwerkactiviteit. Deel je code om te starten.',
@@ -91,7 +91,7 @@ const EN = {
   greeting: 'Welcome, {{name}}',
   activityTitle: 'Your work',
   modulesTitle: 'More from HomeCheff',
-  modulesSupport: 'Other HomeCheff products — choose where to go.',
+  modulesSupport: 'Other HomeCheff products: choose where to go.',
   cards: {
     orders: {
       title: 'My orders',
@@ -101,7 +101,7 @@ const EN = {
     },
     hc: {
       title: 'HC balance',
-      description: 'Your HomeCheff Credits — balance, history and where you can use HC.',
+      description: 'Your HomeCheff Credits: balance, history and where you can use HC.',
       empty: 'No HC activity yet.',
       primary: 'View HC balance',
     },
@@ -116,7 +116,7 @@ const EN = {
     },
     affiliate: {
       title: 'Affiliate & network',
-      description: 'Your code, network and commissions — one intro across HomeCheff.',
+      description: 'Your code, network and commissions, one intro across HomeCheff.',
       onboardingDescription:
         'Invite someone. If they later generate eligible HomeCheff platform revenue, your network may share in it (no guarantee).',
       empty: 'No network activity yet. Share your code to start.',

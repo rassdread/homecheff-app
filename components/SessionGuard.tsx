@@ -60,8 +60,8 @@ export default function SessionGuard() {
     clearIdentityBoundClientResidue();
     setBanner(
       nextUserId == null
-        ? 'Je bent uitgelogd — gegevens worden gewist…'
-        : 'Sessie gewijzigd — gegevens worden opnieuw geladen…',
+        ? 'Je bent uitgelogd. Je gegevens worden gewist…'
+        : 'Sessie gewijzigd. Je gegevens worden opnieuw geladen…',
     );
     console.info('[homecheff-marketplace-auth] identity_changed', {
       reason,

@@ -165,7 +165,7 @@ export const earnHowItWorksNl = {
       'Niet elk percentage geldt over dezelfde grondslag. “50% affiliate” betekent dus niet “50% van het bestelbedrag”.',
   },
   marketplace: {
-    title: 'Marketplace — platformfees voor verkopers',
+    title: 'Marketplace: platformfees voor verkopers',
     intro:
       'Verkoop je via HomeCheff Checkout, dan geldt afhankelijk van je verkopersprofiel een platformfee. Bij directe/contactafspraken buiten HomeCheff Checkout loopt deze fee-route niet.',
     checkoutNote:
@@ -180,7 +180,7 @@ export const earnHowItWorksNl = {
       'Schattingen van Stripe-betaalkosten voor kopers zijn geen HomeCheff-platformfee en worden hier niet als platforminkomsten gepresenteerd.',
   },
   marketplaceAffiliate: {
-    title: 'Marketplace — affiliate',
+    title: 'Marketplace: affiliate',
     basis: `Tot maximaal ${PUBLIC_AFFILIATE_POOL_MAX_PERCENT_OF_FEE}% van de HomeCheff-platformfee`,
     notOrder: 'Niet: 50% van het verkoopbedrag.',
     exampleTitle: 'Voorbeeld',
@@ -218,11 +218,11 @@ export const earnHowItWorksNl = {
   growth: {
     title: 'Growth',
     intro:
-      'HomeCheff Growth — maandelijkse abonnementen exclusief btw (huidige officiële plannen).',
+      'HomeCheff Growth: maandelijkse abonnementen exclusief btw (huidige officiële plannen).',
     free: `Free: €${PUBLIC_GROWTH_PLANS[0].monthlyEurExVat}`,
     basisTitle: 'Waarover wordt Growth-commissie berekend?',
     basisBody:
-      `Growth-abonnementen bevatten HC die binnen het HomeCheff-ecosysteem gebruikt kunnen worden. Wat de klant krijgt (de klant-entitlement) en de HC-reserve in de commissieformule zijn twee verschillende getallen. Voor Growth Starter is dat ${PUBLIC_GROWTH_STARTER_CUSTOMER_ENTITLEMENT_HC.toLocaleString('nl-NL')} HC bij €${PUBLIC_GROWTH_STARTER_CUSTOMER_PRICE_EUR} per maand, terwijl de affiliate-reserve ${PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC.starter.toLocaleString('nl-NL')} HC is. We trekken de face value van die reserve (1 HC = €0,01) af van de abonnementsprijs exclusief btw. Van het resterende abonnementsbedrag — de deelbare marge — ontvang je ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliatecommissie. De volledige abonnementsprijs is dus niet de commissiegrondslag. Inbegrepen HC en maandelijkse leadquota zijn aparte rechten: HC is geen leadquota. ${growthHcScopeNl}`,
+      `Growth-abonnementen bevatten HC die binnen het HomeCheff-ecosysteem gebruikt kunnen worden. Wat de klant krijgt (de klant-entitlement) en de HC-reserve in de commissieformule zijn twee verschillende getallen. Voor Growth Starter is dat ${PUBLIC_GROWTH_STARTER_CUSTOMER_ENTITLEMENT_HC.toLocaleString('nl-NL')} HC bij €${PUBLIC_GROWTH_STARTER_CUSTOMER_PRICE_EUR} per maand, terwijl de affiliate-reserve ${PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC.starter.toLocaleString('nl-NL')} HC is. We trekken de face value van die reserve (1 HC = €0,01) af van de abonnementsprijs exclusief btw. Van het resterende abonnementsbedrag, de deelbare marge, ontvang je ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliatecommissie. De volledige abonnementsprijs is dus niet de commissiegrondslag. Inbegrepen HC en maandelijkse leadquota zijn aparte rechten: HC is geen leadquota. ${growthHcScopeNl}`,
     notOfVat:
       'Commissie wordt niet berekend over btw. Credit packs vallen niet onder affiliate-commissie.',
     flowPrice: 'Abonnementsprijs ex. btw',
@@ -253,13 +253,13 @@ export const earnHowItWorksNl = {
   },
   studio: {
     title: 'Studio',
-    intro: 'HomeCheff Studio — huidige maandelijkse plannen.',
+    intro: 'HomeCheff Studio: huidige maandelijkse plannen.',
     basisTitle: 'Waarover wordt Studio-commissie berekend?',
     basisBody:
       'De affiliatecommissie wordt berekend over de beschikbare commissiemarge, niet over de volledige abonnementsprijs. Die marge is de eligible residuale platformopbrengst: netto ontvangst exclusief btw, minus geschatte betaalkosten, minus de Model A HC-treasurydekking voor inbegrepen credits.',
     notSticker:
       '“50%” betekent dus niet automatisch de helft van de catalogusprijs (bijvoorbeeld niet automatisch €7,50 op Creator).',
-    annual: `Jaarlijks (catalogus): €${formatPublicEurNl(PUBLIC_STUDIO_PLANS[0].yearlyEur)} · €${formatPublicEurNl(PUBLIC_STUDIO_PLANS[1].yearlyEur)} · €${formatPublicEurNl(PUBLIC_STUDIO_PLANS[2].yearlyEur)} — commissie volgt de betaalde factuurperiode binnen het venster.`,
+    annual: `Jaarlijks (catalogus): €${formatPublicEurNl(PUBLIC_STUDIO_PLANS[0].yearlyEur)} · €${formatPublicEurNl(PUBLIC_STUDIO_PLANS[1].yearlyEur)} · €${formatPublicEurNl(PUBLIC_STUDIO_PLANS[2].yearlyEur)}: commissie volgt de betaalde factuurperiode binnen het venster.`,
     reward: `Voor Studio ontvang je ${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% van de beschikbare commissiemarge (eligible residuale platformopbrengst).`,
     duration: `Looptijd: tot ${PUBLIC_STUDIO_COMMISSION_MONTHS} maanden`,
     flowPayment: 'Studio-betaling (catalogusprijs)',
@@ -309,7 +309,7 @@ export const earnHowItWorksNl = {
     human:
       'Nieuwe affiliate-inkomsten kunnen eerst een wacht-/verwerkingsperiode hebben voordat ze beschikbaar zijn voor uitbetaling. Geen belofte van directe uitbetaling.',
     productSpecific:
-      'Growth en Studio kunnen andere uitbetalingsdrempels volgen dan Marketplace — bekijk altijd de productspecifieke regels in je dashboard.',
+      'Growth en Studio kunnen andere uitbetalingsdrempels volgen dan Marketplace. Bekijk altijd de productspecifieke regels in je dashboard.',
   },
   comparison: {
     title: 'Vergelijking per platform',
@@ -384,7 +384,7 @@ export const earnHowItWorksEn = {
   fundamentals: {
     title: 'The fundamental model first',
     lead:
-      'An affiliate reward is calculated on the applicable HomeCheff platform revenue — not automatically on the customer’s full purchase amount.',
+      'An affiliate reward is calculated on the applicable HomeCheff platform revenue, not automatically on the customer’s full purchase amount.',
     flowCustomer: 'Customer payment',
     flowPlatform: 'HomeCheff platform revenue / platform fee',
     flowPool: 'Eligible affiliate pool',
@@ -393,7 +393,7 @@ export const earnHowItWorksEn = {
       'Not every percentage uses the same base. “50% affiliate” does not mean “50% of the order value”.',
   },
   marketplace: {
-    title: 'Marketplace — seller platform fees',
+    title: 'Marketplace: seller platform fees',
     intro:
       'If you sell via HomeCheff Checkout, a platform fee applies depending on your seller profile. Direct/contact settlements outside HomeCheff Checkout do not use this fee path.',
     checkoutNote:
@@ -408,7 +408,7 @@ export const earnHowItWorksEn = {
       'Buyer Stripe processing cost estimates are not HomeCheff platform fees and are not presented here as platform revenue.',
   },
   marketplaceAffiliate: {
-    title: 'Marketplace — affiliate',
+    title: 'Marketplace: affiliate',
     basis: `Up to ${PUBLIC_AFFILIATE_POOL_MAX_PERCENT_OF_FEE}% of the HomeCheff platform fee`,
     notOrder: 'Not: 50% of the sale amount.',
     exampleTitle: 'Example',
@@ -428,7 +428,7 @@ export const earnHowItWorksEn = {
     main: `MAIN: ${PUBLIC_MAIN_PERCENT_OF_ELIGIBLE}%`,
     combined: `Combined: up to ${PUBLIC_DIRECT_PERCENT_OF_ELIGIBLE}% of the eligible platform revenue / fee basis`,
     clarify:
-      'These percentages are shares of eligible HomeCheff platform revenue or fee — not of full Marketplace GMV.',
+      'These percentages are shares of eligible HomeCheff platform revenue or fee, not of full Marketplace GMV.',
     availability:
       'Whether you can start as MAIN depends on region, campaign or invitation. Existing affiliate relationships and accrued earnings remain if public MAIN enrolment later changes.',
   },
@@ -446,11 +446,11 @@ export const earnHowItWorksEn = {
   growth: {
     title: 'Growth',
     intro:
-      'HomeCheff Growth — monthly subscriptions excluding VAT (current official plans).',
+      'HomeCheff Growth: monthly subscriptions excluding VAT (current official plans).',
     free: `Free: €${PUBLIC_GROWTH_PLANS[0].monthlyEurExVat}`,
     basisTitle: 'What is Growth commission calculated on?',
     basisBody:
-      `Growth subscriptions include HC that can be used across the HomeCheff ecosystem. What the customer receives (the customer entitlement) and the HC reserve in the commission formula are two different numbers. For Growth Starter that is ${PUBLIC_GROWTH_STARTER_CUSTOMER_ENTITLEMENT_HC.toLocaleString('en-GB')} HC at €${PUBLIC_GROWTH_STARTER_CUSTOMER_PRICE_EUR} per month, while the affiliate reserve is ${PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC.starter.toLocaleString('en-GB')} HC. We deduct the face value of that reserve (1 HC = €0.01) from the subscription price excluding VAT. Of the remaining subscription amount — the distributable margin — you receive ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliate commission. The full subscription price is therefore not the commission base. Included HC and monthly lead quota are separate entitlements: HC is not lead quota. ${growthHcScopeEn}`,
+      `Growth subscriptions include HC that can be used across the HomeCheff ecosystem. What the customer receives (the customer entitlement) and the HC reserve in the commission formula are two different numbers. For Growth Starter that is ${PUBLIC_GROWTH_STARTER_CUSTOMER_ENTITLEMENT_HC.toLocaleString('en-GB')} HC at €${PUBLIC_GROWTH_STARTER_CUSTOMER_PRICE_EUR} per month, while the affiliate reserve is ${PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC.starter.toLocaleString('en-GB')} HC. We deduct the face value of that reserve (1 HC = €0.01) from the subscription price excluding VAT. Of the remaining subscription amount, the distributable margin, you receive ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliate commission. The full subscription price is therefore not the commission base. Included HC and monthly lead quota are separate entitlements: HC is not lead quota. ${growthHcScopeEn}`,
     notOfVat:
       'Commission is not calculated on VAT. Credit packs are not commissionable.',
     flowPrice: 'Subscription price ex VAT',
@@ -481,13 +481,13 @@ export const earnHowItWorksEn = {
   },
   studio: {
     title: 'Studio',
-    intro: 'HomeCheff Studio — current monthly plans.',
+    intro: 'HomeCheff Studio: current monthly plans.',
     basisTitle: 'What is Studio commission calculated on?',
     basisBody:
       'Affiliate commission is calculated on the available commissionable margin, not on the full subscription list price. That margin is the eligible residual platform revenue: net receipt excluding VAT, minus estimated payment costs, minus Model A HC treasury coverage for included credits.',
     notSticker:
       '“50%” therefore does not automatically mean half the catalogue price (e.g. not automatically €7.50 on Creator).',
-    annual: `Annual (catalogue): €${formatPublicEurEn(PUBLIC_STUDIO_PLANS[0].yearlyEur)} · €${formatPublicEurEn(PUBLIC_STUDIO_PLANS[1].yearlyEur)} · €${formatPublicEurEn(PUBLIC_STUDIO_PLANS[2].yearlyEur)} — commission follows the paid invoice period within the window.`,
+    annual: `Annual (catalogue): €${formatPublicEurEn(PUBLIC_STUDIO_PLANS[0].yearlyEur)} · €${formatPublicEurEn(PUBLIC_STUDIO_PLANS[1].yearlyEur)} · €${formatPublicEurEn(PUBLIC_STUDIO_PLANS[2].yearlyEur)}, commission follows the paid invoice period within the window.`,
     reward: `For Studio you receive ${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% of the available commissionable margin (eligible residual platform revenue).`,
     duration: `Duration: up to ${PUBLIC_STUDIO_COMMISSION_MONTHS} months`,
     flowPayment: 'Studio payment (catalogue price)',
@@ -537,7 +537,7 @@ export const earnHowItWorksEn = {
     human:
       'New affiliate earnings may first have a hold/processing period before they are available for payout. No instant-payout promise.',
     productSpecific:
-      'Growth and Studio may follow different payout thresholds than Marketplace — always check product-specific rules in your dashboard.',
+      'Growth and Studio may follow different payout thresholds than Marketplace, always check product-specific rules in your dashboard.',
   },
   comparison: {
     title: 'Comparison by platform',

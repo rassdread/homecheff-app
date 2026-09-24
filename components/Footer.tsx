@@ -16,7 +16,7 @@ export default function Footer() {
   const compactPath = isCompactMobileFooterPath(pathname);
 
   /**
-   * WX 1A.1 — site footer Logo/bar sits below the Adaptive Workspace shell and
+   * WX 1A.1, site footer Logo/bar sits below the Adaptive Workspace shell and
    * reads as a floating HomeCheff brand strip in the left rail dead space.
    * Home owns continuous Workspace chrome; legal links remain on other routes.
    */
@@ -94,7 +94,7 @@ export default function Footer() {
         </nav>
       </div>
       <div className="mt-6 pt-6 border-t border-gray-100">
-        <p className="text-xs font-medium text-emerald-900">HomeCheff — Everybody Eats.</p>
+        <p className="text-xs font-medium text-emerald-900">HomeCheff. Everybody Eats.</p>
         <p className="mt-1 text-xs text-gray-500">
           {formatLegalOperatorRegistryLine()}
           {' · '}

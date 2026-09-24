@@ -42,8 +42,8 @@ export const seoSharedFaq: Record<string, Bi> = {
     en: "Do you need a permit?",
   },
   faq4A: {
-    nl: "Soms wel, soms niet — afhankelijk van activiteit en gemeente. Vraag dit na bij je overheid; HomeCheff vervangt geen officiële informatie.",
-    en: "Sometimes yes, sometimes not — depends on activity and municipality. Ask your authorities; HomeCheff does not replace official information.",
+    nl: "Soms wel, soms niet, afhankelijk van activiteit en gemeente. Vraag dit na bij je overheid; HomeCheff vervangt geen officiële informatie.",
+    en: "Sometimes yes, sometimes not, depends on activity and municipality. Ask your authorities; HomeCheff does not replace official information.",
   },
   faq5Q: {
     nl: "Moet ik een webshop bouwen om te starten?",
@@ -58,8 +58,8 @@ export const seoSharedFaq: Record<string, Bi> = {
     en: "What is the difference from dropshipping?",
   },
   faq6A: {
-    nl: "Bij dropshipping importeer je vaak anonieme massa-producten. Bij HomeCheff verkoop je iets dat jij maakt of oogst, lokaal en met direct contact — andere marge, andere relatie.",
-    en: "With dropshipping you often import anonymous mass products. On HomeCheff you sell something you make or grow, locally with direct contact — different margin, different relationship.",
+    nl: "Bij dropshipping importeer je vaak anonieme massa-producten. Bij HomeCheff verkoop je iets dat jij maakt of oogst, lokaal en met direct contact, andere marge, andere relatie.",
+    en: "With dropshipping you often import anonymous mass products. On HomeCheff you sell something you make or grow, locally with direct contact, different margin, different relationship.",
   },
 };
 
@@ -69,8 +69,8 @@ const homeEarningPage: Record<string, Bi> = {
     en: "Earn from home without dropshipping | HomeCheff",
   },
   metaDescription: {
-    nl: "Alternatief voor dropshipping: lokaal unieke producten, thuisgekookt eten en tuinproducten verkopen met direct contact — via HomeCheff.",
-    en: "A dropshipping alternative: sell unique local products, home-cooked food and garden goods with direct contact — on HomeCheff.",
+    nl: "Alternatief voor dropshipping: lokaal unieke producten, thuisgekookt eten en tuinproducten verkopen met direct contact, via HomeCheff.",
+    en: "A dropshipping alternative: sell unique local products, home-cooked food and garden goods with direct contact, on HomeCheff.",
   },
   title: {
     nl: "Verdienen vanuit huis zonder dropshipping (unieke producten, eten en lokaal verkopen)",
@@ -109,8 +109,8 @@ const homeEarningPage: Record<string, Bi> = {
     en: "Create unique products",
   },
   sectionDesignerText: {
-    nl: "Geen standaard dropshipping-producten, maar zelf ontworpen of aangepaste items. Denk aan maatwerk, kleine series en handwerk — dingen die je niet 1-op-1 uit een fulfilment-catalogus haalt.",
-    en: "Not generic dropshipping items, but self-designed or customised work. Think bespoke pieces, small batches and craft — not something lifted straight from a fulfilment catalogue.",
+    nl: "Geen standaard dropshipping-producten, maar zelf ontworpen of aangepaste items. Denk aan maatwerk, kleine series en handwerk, dingen die je niet 1-op-1 uit een fulfilment-catalogus haalt.",
+    en: "Not generic dropshipping items, but self-designed or customised work. Think bespoke pieces, small batches and craft, not something lifted straight from a fulfilment catalogue.",
   },
   sectionDeliveryTitle: {
     nl: "Bezorger worden",
@@ -141,8 +141,8 @@ const homeEarningPage: Record<string, Bi> = {
     en: "Step-by-step plan",
   },
   step1: {
-    nl: "Kies je route: koken, tuin (Garden) of creatief (Designer) — begin smal.",
-    en: "Pick your route: cooking, garden (Garden) or creative (Designer) — start narrow.",
+    nl: "Kies je route: koken, tuin (Garden) of creatief (Designer). Begin smal.",
+    en: "Pick your route: cooking, garden (Garden) or creative (Designer). Start narrow.",
   },
   step2: {
     nl: "Maak je eerste concreet aanbod (prijs, portie of stuk, ophalen, foto die klopt).",
@@ -213,8 +213,8 @@ const homeEarningPage: Record<string, Bi> = {
     en: "Start earning today with HomeCheff",
   },
   ctaSub: {
-    nl: "Registreer, kies je rol en zet je eerste aanbod live — zonder dropshipping-stress.",
-    en: "Sign up, pick your role and publish your first listing — without dropshipping stress.",
+    nl: "Registreer, kies je rol en zet je eerste aanbod live, zonder dropshipping-stress.",
+    en: "Sign up, pick your role and publish your first listing, without dropshipping stress.",
   },
   authorityDropshippingTitle: {
     nl: "Waarom mensen stoppen met dropshipping",
@@ -229,16 +229,16 @@ const homeEarningPage: Record<string, Bi> = {
     en: "Why people want to buy closer to home",
   },
   authorityLocal2026Body: {
-    nl: "Kopers vragen vaker naar herkomst en korte keten — niet als modegrap, maar omdat ze controle willen over wat ze eten en bij wie ze kopen. Platforms die ophalen en buurt-serieus nemen, passen daar beter bij dan anonieme schaal.",
-    en: "Buyers ask more about origin and short chains — not as a fad, but because they want control over what they eat and from whom. Platforms that take pickup and neighbourhood seriously fit better than anonymous scale.",
+    nl: "Kopers vragen vaker naar herkomst en korte keten, niet als modegrap, maar omdat ze controle willen over wat ze eten en bij wie ze kopen. Platforms die ophalen en buurt-serieus nemen, passen daar beter bij dan anonieme schaal.",
+    en: "Buyers ask more about origin and short chains, not as a fad, but because they want control over what they eat and from whom. Platforms that take pickup and neighbourhood seriously fit better than anonymous scale.",
   },
   authorityHomeCookedTitle: {
     nl: "Waarom mensen kiezen voor thuisgekookt eten",
     en: "Why people choose home-cooked food",
   },
   authorityHomeCookedBody: {
-    nl: "Omdat het vaak persoonlijker is: seizoen, voorkeur, allergenen bespreekbaar, en geen anonieme schaal-keuken. Thuiskoks die leveren wat ze beloven, bouwen vaste ritten — dat is je echte concurrentievoordeel.",
-    en: "Because it is often more personal: season, preference, allergens discussable, no anonymous scale kitchen. Cooks who deliver what they promise build steady runs — that is your real competitive edge.",
+    nl: "Omdat het vaak persoonlijker is: seizoen, voorkeur, allergenen bespreekbaar, en geen anonieme schaal-keuken. Thuiskoks die leveren wat ze beloven, bouwen vaste ritten. Dat is je echte concurrentievoordeel.",
+    en: "Because it is often more personal: season, preference, allergens discussable, no anonymous scale kitchen. Cooks who deliver what they promise build steady runs. That is your real competitive edge.",
   },
   homeRp1a: {
     nl: "Wil je starten met koken voor anderen? Lees de ",
@@ -279,32 +279,32 @@ const cookingEarningPage: Record<string, Bi> = {
     en: "Earn money cooking from home | HomeCheff",
   },
   metaDescription: {
-    nl: "Thuiskoken verkopen: ophalen, vaste klanten, lokaal — zonder webshop-stress. Praktische gids via HomeCheff.",
-    en: "Sell home cooking: pickup, repeat customers, locally — without webshop stress. A practical HomeCheff guide.",
+    nl: "Thuiskoken verkopen: ophalen, vaste klanten, lokaal, zonder webshop-stress. Praktische gids via HomeCheff.",
+    en: "Sell home cooking: pickup, repeat customers, locally, without webshop stress. A practical HomeCheff guide.",
   },
   title: {
     nl: "Geld verdienen met koken vanuit huis (lokaal, concreet, zonder webshop-gedoe)",
     en: "Earn money cooking from home (local, concrete, without webshop hassle)",
   },
   intro: {
-    nl: "Als je thuis kookt voor anderen, win je op smaak, versheid en vertrouwen — niet op wie de laagste prijs heeft voor een anonieme schaal. Het echte werk zit in duidelijke afspraken: wat lever je, wanneer, waar haal je op, en hoe blijft het veilig en voorspelbaar voor klanten.",
-    en: "When you cook for others, you win on taste, freshness and trust — not on who has the lowest price for anonymous scale. The real work is clear agreements: what you deliver, when, where pickup happens, and how it stays safe and predictable.",
+    nl: "Als je thuis kookt voor anderen, win je op smaak, versheid en vertrouwen, niet op wie de laagste prijs heeft voor een anonieme schaal. Het echte werk zit in duidelijke afspraken: wat lever je, wanneer, waar haal je op, en hoe blijft het veilig en voorspelbaar voor klanten.",
+    en: "When you cook for others, you win on taste, freshness and trust, not on who has the lowest price for anonymous scale. The real work is clear agreements: what you deliver, when, where pickup happens, and how it stays safe and predictable.",
   },
   sec1Title: {
     nl: "Hoe werkt het in de praktijk?",
     en: "How it works in practice",
   },
   sec1Body: {
-    nl: "Je maakt een beperkt aanbod met vaste momenten. Je communiceert porties, allergenen en ophaalvenster eerlijk. Je eerste klanten komen bijna altijd uit je buurt — daarom is zichtbaarheid dichterbij belangrijker dan een perfecte landingspagina ver weg.",
-    en: "You offer a limited menu with fixed moments. You communicate portions, allergens and pickup honestly. First buyers almost always come from nearby — so local visibility matters more than a perfect landing page far away.",
+    nl: "Je maakt een beperkt aanbod met vaste momenten. Je communiceert porties, allergenen en ophaalvenster eerlijk. Je eerste klanten komen bijna altijd uit je buurt, daarom is zichtbaarheid dichterbij belangrijker dan een perfecte landingspagina ver weg.",
+    en: "You offer a limited menu with fixed moments. You communicate portions, allergens and pickup honestly. First buyers almost always come from nearby, so local visibility matters more than a perfect landing page far away.",
   },
   sec2Title: {
     nl: "Wat kun je verkopen?",
     en: "What can you sell?",
   },
   sec2Body: {
-    nl: "Maaltijden in schalen, meal-prep voor drukke gezinnen, kleine catering voor buurtborrels, soms sauzen of gebak als je dat aankunt qua planning. Begin met één lijn die je week overzichtelijk houdt — uitbreiden kan altijd als de rit er is.",
-    en: "Tray meals, meal prep for busy families, small neighbourhood catering, sometimes sauces or baked goods if your planning allows. Start with one line that keeps your week manageable — expand when the rhythm is there.",
+    nl: "Maaltijden in schalen, meal-prep voor drukke gezinnen, kleine catering voor buurtborrels, soms sauzen of gebak als je dat aankunt qua planning. Begin met één lijn die je week overzichtelijk houdt, uitbreiden kan altijd als de rit er is.",
+    en: "Tray meals, meal prep for busy families, small neighbourhood catering, sometimes sauces or baked goods if your planning allows. Start with one line that keeps your week manageable, expand when the rhythm is there.",
   },
   sec3Title: {
     nl: "Logistiek: ophalen en herhaling",
@@ -387,8 +387,8 @@ const cookingEarningPage: Record<string, Bi> = {
     en: "Why people want to buy closer to home",
   },
   authorityLocal2026Body: {
-    nl: "Mensen willen kortere ketens en duidelijkheid: wie kookt dit, hoe haal ik op. Dat past bij vaste ophaal en buurt-reviews — niet bij anonieme schaal-import.",
-    en: "People want shorter chains and clarity: who cooked this, how do I pick up. That fits fixed pickup and neighbourhood reviews — not anonymous scale imports.",
+    nl: "Mensen willen kortere ketens en duidelijkheid: wie kookt dit, hoe haal ik op. Dat past bij vaste ophaal en buurt-reviews, niet bij anonieme schaal-import.",
+    en: "People want shorter chains and clarity: who cooked this, how do I pick up. That fits fixed pickup and neighbourhood reviews, not anonymous scale imports.",
   },
   authorityHomeCookedTitle: {
     nl: "Waarom mensen kiezen voor thuisgekookt eten",
@@ -447,40 +447,40 @@ const localProductsPage: Record<string, Bi> = {
     en: "Sell local products (garden, fresh, transparent) | HomeCheff",
   },
   metaDescription: {
-    nl: "Groente, fruit, kruiden en planten lokaal verkopen: transparantie, versheid en vertrouwen — zonder supermarkt-keten.",
-    en: "Sell vegetables, fruit, herbs and plants locally: transparency, freshness and trust — without supermarket chains.",
+    nl: "Groente, fruit, kruiden en planten lokaal verkopen: transparantie, versheid en vertrouwen, zonder supermarkt-keten.",
+    en: "Sell vegetables, fruit, herbs and plants locally: transparency, freshness and trust, without supermarket chains.",
   },
   title: {
     nl: "Lokale producten verkopen vanuit je tuin of kas (vers, kleinschalig, dichtbij)",
     en: "Sell local products from your garden or greenhouse (fresh, small-scale, nearby)",
   },
   intro: {
-    nl: "Mensen zoeken kortere ketens: minder stappen tussen oogst en bord, meer zicht op herkomst. Dat betekent niet dat je medische claims moet maken — wél dat je eerlijk vertelt wat je doet, hoe je teelt, en waarom jouw product in de buurt logischer is dan een doos die weken onderweg is.",
-    en: "People want shorter chains: fewer steps between harvest and plate, clearer origin. That does not mean medical claims — it means honest storytelling about how you grow and why nearby makes sense compared to boxes travelling for weeks.",
+    nl: "Mensen zoeken kortere ketens: minder stappen tussen oogst en bord, meer zicht op herkomst. Dat betekent niet dat je medische claims moet maken, wél dat je eerlijk vertelt wat je doet, hoe je teelt, en waarom jouw product in de buurt logischer is dan een doos die weken onderweg is.",
+    en: "People want shorter chains: fewer steps between harvest and plate, clearer origin. That does not mean medical claims. It means honest storytelling about how you grow and why nearby makes sense compared to boxes travelling for weeks.",
   },
   sec1Title: {
     nl: "Wat kun je lokaal verkopen?",
     en: "What can you sell locally?",
   },
   sec1Body: {
-    nl: "Groente en fruit in seizoen, kruiden, planten en stekjes, soms jams of andere verwerkte producten als je regels en planning aankunt. Begin met wat je betrouwbaar kunt leveren — kwaliteit boven volume.",
-    en: "Seasonal veg and fruit, herbs, plants and cuttings, sometimes preserves if rules and planning allow. Start with what you can deliver reliably — quality over volume.",
+    nl: "Groente en fruit in seizoen, kruiden, planten en stekjes, soms jams of andere verwerkte producten als je regels en planning aankunt. Begin met wat je betrouwbaar kunt leveren, kwaliteit boven volume.",
+    en: "Seasonal veg and fruit, herbs, plants and cuttings, sometimes preserves if rules and planning allow. Start with what you can deliver reliably, quality over volume.",
   },
   sec2Title: {
     nl: "Supermarkt vs lokaal (zonder overdrijven)",
     en: "Supermarket vs local (without exaggeration)",
   },
   sec2Body: {
-    nl: "Supermarkten zijn handig, maar abstract: keten, schaal, weinig persoon. Lokaal wint op verhaal en nabijheid: mensen weten bij wie ze kopen. Positioneer jezelf op transparantie en versheid — geen schreeuwende claims.",
-    en: "Supermarkets are convenient but abstract: chain, scale, little personality. Local wins on story and proximity: people know who they buy from. Position on transparency and freshness — no shouting claims.",
+    nl: "Supermarkten zijn handig, maar abstract: keten, schaal, weinig persoon. Lokaal wint op verhaal en nabijheid: mensen weten bij wie ze kopen. Positioneer jezelf op transparantie en versheid, geen schreeuwende claims.",
+    en: "Supermarkets are convenient but abstract: chain, scale, little personality. Local wins on story and proximity: people know who they buy from. Position on transparency and freshness, no shouting claims.",
   },
   sec3Title: {
     nl: "Hoe HomeCheff past bij tuin- en buurtverkoop",
     en: "How HomeCheff fits garden and neighbourhood sales",
   },
   sec3Body: {
-    nl: "Je hebt een profiel, een aanbod en een plek waar buurtbewoners je kunnen vinden zonder eerst een eigen webshop te bouwen. Combineer dat met vaste ophaaldagen — dan wordt herhalen makkelijker.",
-    en: "You get a profile, listings and a place neighbours can find you without building a webshop first. Combine that with fixed pickup days — that makes repeat orders easier.",
+    nl: "Je hebt een profiel, een aanbod en een plek waar buurtbewoners je kunnen vinden zonder eerst een eigen webshop te bouwen. Combineer dat met vaste ophaaldagen, dan wordt herhalen makkelijker.",
+    en: "You get a profile, listings and a place neighbours can find you without building a webshop first. Combine that with fixed pickup days. That makes repeat orders easier.",
   },
   linkGrowth: {
     nl: "Growth: zichtbaarheid in je buurt",
@@ -543,16 +543,16 @@ const localProductsPage: Record<string, Bi> = {
     en: "Why people quit dropshipping",
   },
   authorityDropshippingBody: {
-    nl: "Tuinverkoop heeft niets met import-catalogi te maken — maar hetzelfde valkuil-principe geldt: als je anoniem en prijs-only bent, win je niet. Lokaal tuinproduct is juist verhaal + ophalen.",
-    en: "Garden sales are not import catalogues — but the same pitfall applies: if you are anonymous and price-only, you lose. Local garden goods are story plus pickup.",
+    nl: "Tuinverkoop heeft niets met import-catalogi te maken, maar hetzelfde valkuil-principe geldt: als je anoniem en prijs-only bent, win je niet. Lokaal tuinproduct is juist verhaal + ophalen.",
+    en: "Garden sales are not import catalogues, but the same pitfall applies: if you are anonymous and price-only, you lose. Local garden goods are story plus pickup.",
   },
   authorityLocal2026Title: {
     nl: "Waarom mensen dichter bij huis willen kopen",
     en: "Why people want to buy closer to home",
   },
   authorityLocal2026Body: {
-    nl: "Mensen zoeken transparantie bij voedsel en planten: wie teelt dit, hoe vers is het. Dat is geen medische claim — wél een verwachting aan uitleg.",
-    en: "People look for transparency in food and plants: who grows this, how fresh. That is not a medical claim — it is an expectation of explanation.",
+    nl: "Mensen zoeken transparantie bij voedsel en planten: wie teelt dit, hoe vers is het. Dat is geen medische claim, wél een verwachting aan uitleg.",
+    en: "People look for transparency in food and plants: who grows this, how fresh. That is not a medical claim. It is an expectation of explanation.",
   },
   authorityHomeCookedTitle: {
     nl: "Waarom mensen kiezen voor thuisgekookt eten",
@@ -589,19 +589,19 @@ const uniqueProductsPage: Record<string, Bi> = {
   },
   title: {
     nl: "Unieke en creatieve producten verkopen (geen catalogus, wel jouw signatuur)",
-    en: "Sell unique creative products (not a catalogue — your signature)",
+    en: "Sell unique creative products (not a catalogue, your signature)",
   },
   intro: {
-    nl: "Uniek betekent hier: jij ontwerpt, bewerkt of personaliseert — geen ‘gevonden product’ dat duizend shops tegelijk verkopen. Dat is precies het verschil met dropshipping: je concurrent is niet alleen prijs, maar vooral of mensen jouw stijl herkennen en willen.",
-    en: "Unique here means you design, customise or personalise — not a found product sold by a thousand shops. That is the dropshipping difference: competition is not only price, but whether people recognise and want your style.",
+    nl: "Uniek betekent hier: jij ontwerpt, bewerkt of personaliseert, geen ‘gevonden product’ dat duizend shops tegelijk verkopen. Dat is precies het verschil met dropshipping: je concurrent is niet alleen prijs, maar vooral of mensen jouw stijl herkennen en willen.",
+    en: "Unique here means you design, customise or personalise, not a found product sold by a thousand shops. That is the dropshipping difference: competition is not only price, but whether people recognise and want your style.",
   },
   sec1Title: {
     nl: "Wat telt als “uniek”?",
     en: "What counts as unique?",
   },
   sec1Body: {
-    nl: "Maatwerk, kleine series, handbedrukte items, aangepaste cadeaus, restauratie-achtige bewerkingen — alles waar je uitleg bij kunt geven die klopt met wat de klant krijgt.",
-    en: "Bespoke work, small batches, hand-printed items, tailored gifts, restoration-style edits — anything you can explain that matches what buyers receive.",
+    nl: "Maatwerk, kleine series, handbedrukte items, aangepaste cadeaus, restauratie-achtige bewerkingen, alles waar je uitleg bij kunt geven die klopt met wat de klant krijgt.",
+    en: "Bespoke work, small batches, hand-printed items, tailored gifts, restoration-style edits, anything you can explain that matches what buyers receive.",
   },
   sec2Title: {
     nl: "Waarom dit niet hetzelfde is als Shopify + dropshipping",
@@ -692,8 +692,8 @@ const uniqueProductsPage: Record<string, Bi> = {
     en: "Why people choose home-cooked food",
   },
   authorityHomeCookedBody: {
-    nl: "Niet elke designer verkoopt eten — maar dezelfde buurt kan beide nodig hebben. Positioneer jezelf helder: wat doe jij wél, en waar verwijs je door voor maaltijden?",
-    en: "Not every designer sells food — but the same neighbourhood may need both. Position clearly: what you do and where you refer for meals?",
+    nl: "Niet elke designer verkoopt eten, maar dezelfde buurt kan beide nodig hebben. Positioneer jezelf helder: wat doe jij wél, en waar verwijs je door voor maaltijden?",
+    en: "Not every designer sells food, but the same neighbourhood may need both. Position clearly: what you do and where you refer for meals?",
   },
   designerRp1a: { nl: "Vergelijk met ", en: "Compare with " },
   designerRp1b: {
@@ -719,8 +719,8 @@ const deliveryPartnerPage: Record<string, Bi> = {
     en: "Become a HomeCheff delivery partner | Flexible side income",
   },
   metaDescription: {
-    nl: "Lokaal bezorgen, flexibele ritten, community — praktische uitleg zonder juridische beloftes.",
-    en: "Local delivery, flexible runs, community — practical overview without legal promises.",
+    nl: "Lokaal bezorgen, flexibele ritten, community, praktische uitleg zonder juridische beloftes.",
+    en: "Local delivery, flexible runs, community, practical overview without legal promises.",
   },
   title: {
     nl: "Bezorger worden: flexibel bijverdienen met lokale ritten",
@@ -743,8 +743,8 @@ const deliveryPartnerPage: Record<string, Bi> = {
     en: "Flexible work (students, side job, evenings)",
   },
   sec2Body: {
-    nl: "Veel bezorgers combineren met studie of werk: vaste blokken op bepaalde dagen werken vaak beter dan “altijd beschikbaar”. Begin klein zodat je betrouwbaar blijft — betrouwbaarheid is je reputatie.",
-    en: "Many partners combine with study or work: fixed blocks on certain days often beat always on call. Start small so you stay reliable — reliability is your reputation.",
+    nl: "Veel bezorgers combineren met studie of werk: vaste blokken op bepaalde dagen werken vaak beter dan “altijd beschikbaar”. Begin klein zodat je betrouwbaar blijft, betrouwbaarheid is je reputatie.",
+    en: "Many partners combine with study or work: fixed blocks on certain days often beat always on call. Start small so you stay reliable, reliability is your reputation.",
   },
   sec3Title: {
     nl: "Community en lokale economie",
@@ -807,8 +807,8 @@ const deliveryPartnerPage: Record<string, Bi> = {
     en: "Why people quit dropshipping",
   },
   authorityDropshippingBody: {
-    nl: "Bezorging is fysiek werk — geen “set and forget” webshop. Dat is juist gezond: je ziet direct of een rit klopt en of communicatie eerlijk is.",
-    en: "Delivery is physical work — not a set-and-forget webshop. That is healthy: you see immediately if a run works and if communication is honest.",
+    nl: "Bezorging is fysiek werk, geen “set and forget” webshop. Dat is juist gezond: je ziet direct of een rit klopt en of communicatie eerlijk is.",
+    en: "Delivery is physical work, not a set-and-forget webshop. That is healthy: you see immediately if a run works and if communication is honest.",
   },
   authorityLocal2026Title: {
     nl: "Waarom mensen dichter bij huis willen kopen",
@@ -850,8 +850,8 @@ const dropshippingAlternativePage: Record<string, Bi> = {
     en: "Alternative to dropshipping (local, unique) | HomeCheff",
   },
   metaDescription: {
-    nl: "Waarom dropshipping verzadigd raakt en hoe lokaal verkopen met HomeCheff wél klantrelatie en marge kan geven — zonder webshop-complexiteit.",
-    en: "Why dropshipping saturates and how local selling on HomeCheff can bring margin and real relationships — without webshop complexity.",
+    nl: "Waarom dropshipping verzadigd raakt en hoe lokaal verkopen met HomeCheff wél klantrelatie en marge kan geven, zonder webshop-complexiteit.",
+    en: "Why dropshipping saturates and how local selling on HomeCheff can bring margin and real relationships, without webshop complexity.",
   },
   title: {
     nl: "Alternatief voor dropshipping: lokaal verkopen met echte producten en contact",
@@ -874,16 +874,16 @@ const dropshippingAlternativePage: Record<string, Bi> = {
     en: "What people actually want (and pay for)",
   },
   sec2Body: {
-    nl: "Versheid, herkomst, persoonlijke service en duidelijke afspraken. Dat is tastbaar — en dat past bij buurtverkoop en ophalen in plaats van anonieme warehouses.",
-    en: "Freshness, origin, personal service and clear agreements. That is tangible — it fits neighbourhood pickup instead of anonymous warehouses.",
+    nl: "Versheid, herkomst, persoonlijke service en duidelijke afspraken. Dat is tastbaar, en dat past bij buurtverkoop en ophalen in plaats van anonieme warehouses.",
+    en: "Freshness, origin, personal service and clear agreements. That is tangible. It fits neighbourhood pickup instead of anonymous warehouses.",
   },
   sec3Title: {
     nl: "HomeCheff als lokaal alternatief",
     en: "HomeCheff as a local alternative",
   },
   sec3Body: {
-    nl: "Je zet een profiel en aanbod neer waar buurtbewoners op zoeken. Je praat rechtstreeks met kopers, plant ophalen en bouwt reputatie door herhaling — niet door advertentie-bidding op hetzelfde gadget.",
-    en: "You publish a profile and listings where neighbours look. You talk directly to buyers, plan pickup and build reputation through repeat orders — not by bidding ads on the same gadget.",
+    nl: "Je zet een profiel en aanbod neer waar buurtbewoners op zoeken. Je praat rechtstreeks met kopers, plant ophalen en bouwt reputatie door herhaling, niet door advertentie-bidding op hetzelfde gadget.",
+    en: "You publish a profile and listings where neighbours look. You talk directly to buyers, plan pickup and build reputation through repeat orders, not by bidding ads on the same gadget.",
   },
   sec4Title: {
     nl: "Community-gedreven in plaats van anonieme schaal",
@@ -938,8 +938,8 @@ const dropshippingAlternativePage: Record<string, Bi> = {
     en: "Common mistakes",
   },
   mistakesBody: {
-    nl: "Nog steeds anonieme import proberen te combineren met “lokaal” label — dat breekt vertrouwen. Kies één eerlijk verhaal.",
-    en: "Trying to combine anonymous imports with a local label — that breaks trust. Pick one honest story.",
+    nl: "Nog steeds anonieme import proberen te combineren met “lokaal” label. Dat breekt vertrouwen. Kies één eerlijk verhaal.",
+    en: "Trying to combine anonymous imports with a local label. That breaks trust. Pick one honest story.",
   },
   authorityDropshippingTitle: {
     nl: "Waarom mensen stoppen met dropshipping",
@@ -954,16 +954,16 @@ const dropshippingAlternativePage: Record<string, Bi> = {
     en: "Why people want to buy closer to home",
   },
   authorityLocal2026Body: {
-    nl: "Kopers zoeken makers en korte ketens — niet alleen lagere prijs. Platforms die ophalen en profielen serieus nemen, passen bij die shift.",
-    en: "Buyers look for makers and short chains — not only lower price. Platforms that take pickup and profiles seriously fit that shift.",
+    nl: "Kopers zoeken makers en korte ketens, niet alleen lagere prijs. Platforms die ophalen en profielen serieus nemen, passen bij die shift.",
+    en: "Buyers look for makers and short chains, not only lower price. Platforms that take pickup and profiles seriously fit that shift.",
   },
   authorityHomeCookedTitle: {
     nl: "Waarom mensen kiezen voor thuisgekookt eten",
     en: "Why people choose home-cooked food",
   },
   authorityHomeCookedBody: {
-    nl: "Omdat het dichtbij en bespreekbaar is. Thuiskoks zijn vaak de eerste “lokale makers” die mensen proberen — daarna volgen tuin en creatief.",
-    en: "Because it is nearby and discussable. Home cooks are often the first local makers people try — then garden and creative follow.",
+    nl: "Omdat het dichtbij en bespreekbaar is. Thuiskoks zijn vaak de eerste “lokale makers” die mensen proberen, daarna volgen tuin en creatief.",
+    en: "Because it is nearby and discussable. Home cooks are often the first local makers people try, then garden and creative follow.",
   },
   dsAltRp1a: { nl: "Lees ook ", en: "Also read " },
   dsAltRp1b: {
@@ -986,8 +986,8 @@ const dropshippingAlternativePage: Record<string, Bi> = {
     en: "side income from home (realistic earnings)",
   },
   cta: {
-    nl: "Kies lokaal in plaats van dropshipping — start op HomeCheff",
-    en: "Choose local over dropshipping — start on HomeCheff",
+    nl: "Kies lokaal in plaats van dropshipping. Start op HomeCheff",
+    en: "Choose local over dropshipping. Start on HomeCheff",
   },
   ctaSub: {
     nl: "Registreer en zet vandaag nog je eerste echte aanbod live.",
@@ -1038,8 +1038,8 @@ export const SEO_HUB_PROGRAMMATIC_SECTIONS = [
       {
         href: "/growth",
         label: {
-          nl: "Growth — klanten en zichtbaarheid",
-          en: "Growth — customers and visibility",
+          nl: "Growth: klanten en zichtbaarheid",
+          en: "Growth: customers and visibility",
         },
       },
     ],

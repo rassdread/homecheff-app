@@ -10,7 +10,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Thuisgekookt eten kopen | Vers van lokale koks | HomeCheff",
       description:
-        "Bestel thuisgekookte maaltijden bij makers bij jou in de buurt. Vers, lokaal en direct op HomeCheff — ontdek het dorpsplein.",
+        "Bestel thuisgekookte maaltijden bij makers bij jou in de buurt. Vers, lokaal en direct op HomeCheff. Ontdek het dorpsplein.",
       h1: "Thuisgekookt eten kopen bij lokale makers",
       intro: [
         "Op HomeCheff koop je eten dat iemand bij jou in de buurt zelf heeft gekookt. Je ziet wie het maakt, wat het kost en of je het ophaalt of laat bezorgen. Dat laatste bepaalt de maker per gerecht.",
@@ -47,7 +47,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "Buy Home-Cooked Food | Fresh Meals from Local Cooks | HomeCheff",
       description:
-        "Order home-cooked meals from cooks near you. Fresh, local and direct on HomeCheff — browse the village square and buy with confidence.",
+        "Order home-cooked meals from cooks near you. Fresh, local and direct on HomeCheff. Browse the village square and buy with confidence.",
       h1: "Buy home-cooked food from local makers",
       intro: [
         "On HomeCheff you buy food that someone near you has cooked themselves. You can see who made it, what it costs, and whether you collect it or have it delivered. The maker decides that per dish.",
@@ -93,7 +93,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Bestel eten bij particuliere thuiskoks op HomeCheff. Lokaal aanbod, duidelijke prijzen en direct contact met de maker.",
       h1: "Eten bestellen bij particulieren",
       intro: [
-        "Particulieren die met passie koken, bieden op HomeCheff gerechten aan alsof je bij de buren eet—maar dan via een duidelijk platform met betaling en overzicht.",
+        "Particulieren die met passie koken, bieden op HomeCheff gerechten aan alsof je bij de buren eet, maar dan via een duidelijk platform met betaling en overzicht.",
         "Je hoeft geen Facebook-groep of losse app-groep meer af te speuren: alles staat op het dorpsplein, met filters en zoeken zoals je gewend bent van een marketplace.",
         "Zo combineer je het gemak van online bestellen met het gevoel van buurt en ambacht.",
       ],
@@ -101,7 +101,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         title: "Hoe HomeCheff werkt",
         paragraphs: [
           "Makers plaatsen zelf hun producten met foto, prijs en voorwaarden (afhalen, bezorging of beide waar mogelijk). Jij kiest, betaalt via de flow van het platform en ontvangt bevestiging.",
-          "Communicatie over praktische details verloopt via de afspraken op het product en—waar beschikbaar—via de chatfuncties van het platform.",
+          "Communicatie over praktische details verloopt via de afspraken op het product en, waar beschikbaar, via de chatfuncties van het platform.",
           "Zo blijft het overzichtelijk voor zowel koper als maker.",
         ],
       },
@@ -137,7 +137,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Order food from home cooks on HomeCheff. Local listings, clear pricing, and a simple way to buy from real people near you.",
       h1: "Order food from local cooks",
       intro: [
-        "Home cooks who love feeding others list dishes on HomeCheff—like eating with neighbours, but with clear checkout and payments on a proper marketplace.",
+        "Home cooks who love feeding others list dishes on HomeCheff, like eating with neighbours, but with clear checkout and payments on a proper marketplace.",
         "No need to hunt through scattered groups: everything is on the village square with search and filters.",
         "You get online convenience with a neighbourhood feel.",
       ],
@@ -145,7 +145,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         title: "How HomeCheff works",
         paragraphs: [
           "Sellers publish products with photos, price and terms (pickup, delivery or both where available). You pay through the platform flow and receive confirmation.",
-          "Practical details follow the product information and—where available—platform messaging.",
+          "Practical details follow the product information and, where available, platform messaging.",
           "That keeps things clear for buyers and sellers alike.",
         ],
       },
@@ -157,7 +157,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
           "Local ties spending to people you can relate to and surfaces flavours that fit your area.",
           "HomeCheff adds structure: a familiar place to order instead of scattered payment links.",
@@ -184,7 +184,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Maaltijden aan huis | Lokale en verse gerechten | HomeCheff",
       description:
-        "Maaltijden aan huis van lokale thuiskoks. Vers, dichtbij en te bestellen op HomeCheff — ontdek makers bij jou in de buurt.",
+        "Maaltijden aan huis van lokale thuiskoks. Vers, dichtbij en te bestellen op HomeCheff. Ontdek makers bij jou in de buurt.",
       h1: "Maaltijden aan huis van lokale makers",
       intro: [
         "Maaltijden aan huis hoeven niet standaard uit een industriële keuken te komen. Op HomeCheff vind je gerechten die thuis of in een kleine keuken worden bereid, vaak met ingrediënten waar de maker zelf achter staat.",
@@ -216,7 +216,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       discover: {
         title: "Wat je kunt ontdekken",
         paragraphs: [
-          "Diners, lunchboxen, vegetarische lijnen, culturele keukens—afhankelijk van wie er actief is in jouw regio.",
+          "Diners, lunchboxen, vegetarische lijnen, culturele keukens, afhankelijk van wie er actief is in jouw regio.",
           "Combineer met inspiratiepagina’s voor ideeën en ga dan naar het dorpsplein om te bestellen.",
         ],
       },
@@ -228,10 +228,10 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "Meals at Home | Local and Fresh Dishes | HomeCheff",
       description:
-        "Meals at home from local home cooks. Fresh, nearby and easy to order on HomeCheff—see what makers near you offer today.",
+        "Meals at home from local home cooks. Fresh, nearby and easy to order on HomeCheff. See what makers near you offer today.",
       h1: "Meals at home from local makers",
       intro: [
-        "Home meals do not have to come from a distant central kitchen. On HomeCheff you’ll find dishes prepared at home or in small kitchens—often with ingredients the maker stands behind.",
+        "Home meals do not have to come from a distant central kitchen. On HomeCheff you’ll find dishes prepared at home or in small kitchens, often with ingredients the maker stands behind.",
         "You choose pickup or delivery where offered, keeping things practical and personal.",
         "Great for busy weeks, families, or when you want something different from the usual apps.",
       ],
@@ -251,7 +251,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
           "Shorter chains often mean less waste and more care per portion.",
           "HomeCheff gathers makers in one place so you don’t hunt scattered channels.",
@@ -260,7 +260,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       discover: {
         title: "What you can discover",
         paragraphs: [
-          "Dinners, lunch options, veggie lines, world cuisines—depending on who is active near you.",
+          "Dinners, lunch options, veggie lines, world cuisines, depending on who is active near you.",
           "Pair inspiration pages with the village square to browse and buy.",
         ],
       },
@@ -278,10 +278,10 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Wat eten we vandaag? | Inspiratie en lokale maaltijden | HomeCheff",
       description:
-        "Geen inspiratie voor vanavond? Ontdek ideeën en bestel lokaal op HomeCheff — van recepten tot kant-en-klare maaltijden bij jou in de buurt.",
+        "Geen inspiratie voor vanavond? Ontdek ideeën en bestel lokaal op HomeCheff, van recepten tot kant-en-klare maaltijden bij jou in de buurt.",
       h1: "Wat eten we vandaag?",
       intro: [
-        "Die vraag kent elke huishouding. HomeCheff helpt op twee manieren: eerst inspiratie—recepten en ideeën—en daarna concreet aanbod op het dorpsplein dat je direct kunt bestellen.",
+        "Die vraag kent elke huishouding. HomeCheff helpt op twee manieren: eerst inspiratie, recepten en ideeën, en daarna concreet aanbod op het dorpsplein dat je direct kunt bestellen.",
         "Zo ga je niet alleen scrollen, maar kom je uit bij echte makers die vandaag of deze week iets voor je kunnen maken.",
         "Mix en match: laat je raken door een recept en zoek daarna een vergelijkbaar item bij een kok om de hoek.",
       ],
@@ -290,7 +290,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         paragraphs: [
           "Start bij inspiratie om smaken en stijlen te ontdekken, of ga direct naar het dorpsplein als je al weet dat je wilt bestellen.",
           "Filters en zoeken helpen je sneller iets te vinden dat past bij je dieet, budget of tijd.",
-          "Plaats je bestelling, volg de afspraken van de maker en geniet—en deel desgewenst je ervaring.",
+          "Plaats je bestelling, volg de afspraken van de maker en geniet, en deel desgewenst je ervaring.",
         ],
       },
       audience: {
@@ -304,7 +304,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         title: "Waarom lokaal en waarom HomeCheff?",
         paragraphs: [
           "Lokaal betekent vaak unieke combinaties die je niet in elke supermarkt vindt.",
-          "HomeCheff verbindt inspiratie met echte koopknoppen—geen eindeloze Pinterest-zonder-actie.",
+          "HomeCheff verbindt inspiratie met echte koopknoppen, geen eindeloze Pinterest-zonder-actie.",
         ],
       },
       discover: {
@@ -322,11 +322,11 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "What Should We Eat Today? | Inspiration and Local Meals | HomeCheff",
       description:
-        "Stuck on dinner ideas? Get inspiration and order locally on HomeCheff—from recipes to ready meals near you, all in one place.",
+        "Stuck on dinner ideas? Get inspiration and order locally on HomeCheff, from recipes to ready meals near you, all in one place.",
       h1: "What should we eat today?",
       intro: [
-        "Every household knows this question. HomeCheff helps in two ways: inspiration first—recipes and ideas—then real listings on the village square you can order.",
-        "You don’t only scroll—you land with makers who can cook for you this week.",
+        "Every household knows this question. HomeCheff helps in two ways: inspiration first, recipes and ideas, then real listings on the village square you can order.",
+        "You don’t only scroll. You land with makers who can cook for you this week.",
         "Mix a recipe that sparks an idea with a similar dish from a cook nearby.",
       ],
       howItWorks: {
@@ -334,7 +334,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         paragraphs: [
           "Browse inspiration for flavours and styles, or jump straight to the village square if you already want to buy.",
           "Search and filters narrow options to diet, budget or time.",
-          "Place your order, follow the maker’s instructions, enjoy—and review if you like.",
+          "Place your order, follow the maker’s instructions, enjoy, and review if you like.",
         ],
       },
       audience: {
@@ -345,10 +345,10 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
           "Local often means unique combinations you won’t find in every supermarket.",
-          "HomeCheff connects inspiration with real buy buttons—not endless browsing without action.",
+          "HomeCheff connects inspiration with real buy buttons, not endless browsing without action.",
         ],
       },
       discover: {
@@ -375,7 +375,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Gezonde maaltijdideeën en lokaal aanbod op HomeCheff. Ontdek makers met verse ingrediënten en inspiratie die bij jouw stijl past.",
       h1: "Gezonde maaltijden: ideeën en lokaal aanbod",
       intro: [
-        "Gezond eten is geen één-size-fits-all: de één wil meer groente, de ander minder suiker of juist eiwitrijke maaltijden. Op HomeCheff zie je wat makers zelf aanbieden—met ingrediënten en beschrijvingen die je zelf beoordeelt.",
+        "Gezond eten is geen één-size-fits-all: de één wil meer groente, de ander minder suiker of juist eiwitrijke maaltijden. Op HomeCheff zie je wat makers zelf aanbieden, met ingrediënten en beschrijvingen die je zelf beoordeelt.",
         "Combineer inspiratiepagina’s met het dorpsplein om niet alleen te lezen, maar ook te proberen wat iemand bij jou in de buurt maakt.",
         "Zo blijft het haalbaar voor drukke dagen én leuk om nieuwe smaken te ontdekken.",
       ],
@@ -397,13 +397,13 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         title: "Waarom lokaal en waarom HomeCheff?",
         paragraphs: [
           "Vers van dichtbij past vaak goed bij gezonde routines: minder lange routes en soms kortere lijntjes naar de bron.",
-          "HomeCheff maakt zichtbaar wie kookt—transparanter dan een generieke maaltijdbox zonder gezicht.",
+          "HomeCheff maakt zichtbaar wie kookt, transparanter dan een generieke maaltijdbox zonder gezicht.",
         ],
       },
       discover: {
         title: "Wat je kunt ontdekken",
         paragraphs: [
-          "Vegetarische schotels, seizoensgroenten van tuinders, lichte diners van thuiskoks—afhankelijk van aanbod.",
+          "Vegetarische schotels, seizoensgroenten van tuinders, lichte diners van thuiskoks, afhankelijk van aanbod.",
           "Kijk ook bij lokale producten en tuin-inspiratie.",
         ],
       },
@@ -418,8 +418,8 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Healthy meal ideas and local food on HomeCheff. Find makers with fresh ingredients and inspiration that fits your lifestyle.",
       h1: "Healthy meal ideas and local food",
       intro: [
-        "Healthy eating looks different for everyone—more veg, less sugar, higher protein. On HomeCheff you see what makers actually offer, with descriptions you can judge for yourself.",
-        "Pair inspiration with the village square so you don’t only read—you taste what someone nearby cooks.",
+        "Healthy eating looks different for everyone, more veg, less sugar, higher protein. On HomeCheff you see what makers actually offer, with descriptions you can judge for yourself.",
+        "Pair inspiration with the village square so you don’t only read. You taste what someone nearby cooks.",
         "That keeps busy weeks manageable and discovery fun.",
       ],
       howItWorks: {
@@ -437,16 +437,16 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
           "Fresh nearby often supports healthy routines: fewer miles and sometimes clearer sourcing.",
-          "HomeCheff shows who cooks—more transparent than a faceless meal box.",
+          "HomeCheff shows who cooks: more transparent than a faceless meal box.",
         ],
       },
       discover: {
         title: "What you can discover",
         paragraphs: [
-          "Vegetarian plates, seasonal produce from growers, lighter dinners from home cooks—depending on supply.",
+          "Vegetarian plates, seasonal produce from growers, lighter dinners from home cooks, depending on supply.",
           "Also browse local products and garden inspiration.",
         ],
       },
@@ -464,7 +464,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Geld verdienen met koken | Start als thuiskok | HomeCheff",
       description:
-        "Verdien geld met koken vanuit huis. HomeCheff helpt je lokaal zichtbaar te worden, zonder ingewikkeld gedoe — start met je eerste item.",
+        "Verdien geld met koken vanuit huis. HomeCheff helpt je lokaal zichtbaar te worden, zonder ingewikkeld gedoe. Start met je eerste item.",
       h1: "Geld verdienen met koken vanuit huis",
       intro: [
         "Kook je graag en vaak, dan kun je daar op HomeCheff iets mee verdienen. Jij bepaalt wat je maakt, wat het kost en of je bezorgt of mensen het laten ophalen.",
@@ -500,7 +500,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "Earn Money Cooking from Home | Start as a Home Cook | HomeCheff",
       description:
-        "Earn money cooking from home. Get visible locally on HomeCheff without heavy setup—list your first dish and grow step by step.",
+        "Earn money cooking from home. Get visible locally on HomeCheff without heavy setup, list your first dish and grow step by step.",
       h1: "Earn money cooking from home",
       intro: [
         "If you cook often and enjoy it, you can earn something from it on HomeCheff. You decide what you make, what it costs, and whether you deliver or people collect.",
@@ -542,10 +542,10 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Verkopen vanuit huis | Begin lokaal met HomeCheff",
       description:
-        "Verkopen vanuit je eigen keuken of werkplaats? HomeCheff maakt je zichtbaar in de buurt — start lokaal, groei in je eigen tempo.",
+        "Verkopen vanuit je eigen keuken of werkplaats? HomeCheff maakt je zichtbaar in de buurt. Start lokaal, groei in je eigen tempo.",
       h1: "Verkopen vanuit huis",
       intro: [
-        "Steeds meer mensen willen iets maken en delen—eten, groente, design. Verkopen vanuit huis vraagt om duidelijkheid naar klanten toe en een plek waar je gevonden wordt. HomeCheff speelt die rol: marketplace met profiel, bestellingen en ondersteuning.",
+        "Steeds meer mensen willen iets maken en delen, eten, groente, design. Verkopen vanuit huis vraagt om duidelijkheid naar klanten toe en een plek waar je gevonden wordt. HomeCheff speelt die rol: marketplace met profiel, bestellingen en ondersteuning.",
         "Je blijft zelf verantwoordelijk voor wat je verkoopt en welke regels gelden; wij helpen je met het platform en uitleg op hoog niveau.",
         "Ideaal om eerst in je eigen buurt te testen voordat je groots uitbreidt.",
       ],
@@ -584,10 +584,10 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "Sell from Home | Start Locally with HomeCheff",
       description:
-        "Sell from your own kitchen or workshop. HomeCheff helps neighbours discover you—start local and grow at your pace.",
+        "Sell from your own kitchen or workshop. HomeCheff helps neighbours discover you. Start local and grow at your pace.",
       h1: "Sell from home",
       intro: [
-        "More people want to make and share—food, produce, design. Selling from home needs clarity for customers and a place to be found. HomeCheff is that marketplace: profile, orders and tooling.",
+        "More people want to make and share, food, produce, design. Selling from home needs clarity for customers and a place to be found. HomeCheff is that marketplace: profile, orders and tooling.",
         "You remain responsible for compliance; we provide the platform and high-level guidance.",
         "Great to test demand nearby before scaling.",
       ],
@@ -602,11 +602,11 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       audience: {
         title: "Who is this for?",
         paragraphs: [
-          "Home cooks, growers, designers—anyone with a craft product that fits local discovery.",
+          "Home cooks, growers, designers, anyone with a craft product that fits local discovery.",
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
           "Local lets you test demand without national logistics on day one.",
           "HomeCheff pairs inspiration with selling on the village square.",
@@ -615,7 +615,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       discover: {
         title: "What you can list",
         paragraphs: [
-          "Food and related categories supported by the platform—see onboarding for maker types.",
+          "Food and related categories supported by the platform. See onboarding for maker types.",
         ],
       },
       cta: {
@@ -632,7 +632,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Hoe begin je als thuiskok? | HomeCheff",
       description:
-        "Stap voor stap beginnen als thuiskok op HomeCheff: profiel, eerste product en zichtbaarheid in je buurt. Geen marketingjargon — praktische start.",
+        "Stap voor stap beginnen als thuiskok op HomeCheff: profiel, eerste product en zichtbaarheid in je buurt. Geen marketingjargon, praktische start.",
       h1: "Hoe begin je als thuiskok?",
       intro: [
         "Beginnen als thuiskok draait vooral om een paar keuzes die je maakt voordat je iets online zet. Wat kook je, hoe vaak, voor hoeveel mensen, en hoe komt het eten bij de koper?",
@@ -674,7 +674,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "How to Start as a Home Cook | HomeCheff",
       description:
-        "Practical steps to start as a home cook on HomeCheff: profile, first listing, and visibility nearby—without fluff.",
+        "Practical steps to start as a home cook on HomeCheff: profile, first listing, and visibility nearby, without fluff.",
       h1: "How to start as a home cook",
       intro: [
         "Starting as a home cook mostly comes down to a few decisions you make before anything goes online. What will you cook, how often, for how many people, and how does the food reach the buyer?",
@@ -722,7 +722,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Koken voor anderen vanuit huis | HomeCheff",
       description:
-        "Koken voor anderen en daar iets voor terugzien? HomeCheff verbindt je met buren die willen bestellen — veilig en overzichtelijk.",
+        "Koken voor anderen en daar iets voor terugzien? HomeCheff verbindt je met buren die willen bestellen, veilig en overzichtelijk.",
       h1: "Koken voor anderen vanuit huis",
       intro: [
         "Koken voor anderen is meer dan een hobby als mensen er bewust voor betalen en op tijd afhankelijk zijn van jouw planning. Een platform helpt verwachtingen af te stemmen: wat, wanneer, waar en voor welke prijs.",
@@ -733,7 +733,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         title: "Hoe HomeCheff werkt",
         paragraphs: [
           "Plaats duidelijke producten met cut-off tijden als je die nodig hebt.",
-          "Klanten bestellen vooruit; jij kookt in batches of per bestelling—wat bij jou past.",
+          "Klanten bestellen vooruit; jij kookt in batches of per bestelling, wat bij jou past.",
           "Na afloop bouw je aan reviews en vaste klanten.",
         ],
       },
@@ -753,7 +753,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       discover: {
         title: "Wat je kunt plaatsen",
         paragraphs: [
-          "Menu’s, enkele gerechten, thema-avonden—als het past bij het platform en jouw mogelijkheden.",
+          "Menu’s, enkele gerechten, thema-avonden, als het past bij het platform en jouw mogelijkheden.",
         ],
       },
       cta: {
@@ -764,18 +764,18 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "Cook for Others from Home | HomeCheff",
       description:
-        "Cook for others and get paid? HomeCheff connects you with neighbours who want to order—clearly and safely.",
+        "Cook for others and get paid? HomeCheff connects you with neighbours who want to order, clearly and safely.",
       h1: "Cook for others from home",
       intro: [
         "Cooking for others becomes more than a hobby when people pay and rely on your timing. A platform aligns expectations: what, when, where, and price.",
-        "HomeCheff gives you a neighbourhood storefront—visible to people who might never find you otherwise.",
+        "HomeCheff gives you a neighbourhood storefront, visible to people who might never find you otherwise.",
         "You control your schedule and range; you scale when it feels right.",
       ],
       howItWorks: {
         title: "How HomeCheff works",
         paragraphs: [
           "Publish clear products with cut-off times if you need them.",
-          "Customers order ahead; you cook in batches or per order—your choice.",
+          "Customers order ahead; you cook in batches or per order, your choice.",
           "Reviews and repeats follow.",
         ],
       },
@@ -786,7 +786,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
           "Neighbours value short lines and recognition.",
           "HomeCheff supports discovery and the transaction.",
@@ -795,7 +795,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       discover: {
         title: "What you can list",
         paragraphs: [
-          "Menus, single dishes, themed nights—if it fits the platform and your capacity.",
+          "Menus, single dishes, themed nights, if it fits the platform and your capacity.",
         ],
       },
       cta: {
@@ -843,7 +843,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       discover: {
         title: "Wat je kunt plaatsen",
         paragraphs: [
-          "Signature baksels, weekmenu’s, proefpakketten—wat past bij jouw hobby en tijd.",
+          "Signature baksels, weekmenu’s, proefpakketten: wat past bij jouw hobby en tijd.",
         ],
       },
       cta: {
@@ -857,7 +857,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         "Turn a cooking hobby into your first sales on HomeCheff. Start local, learn what works, grow at your pace.",
       h1: "Earn money with home cooking",
       intro: [
-        "A hobby becomes income when you know what your time is worth and how to find customers. HomeCheff helps with visibility—you appear where neighbourhoods search.",
+        "A hobby becomes income when you know what your time is worth and how to find customers. HomeCheff helps with visibility. You appear where neighbourhoods search.",
         "You don’t need to be a restaurant manager; you do need clear pricing, portions, and allergen communication.",
         "Start with small batches; success invites expansion.",
       ],
@@ -876,7 +876,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
           "Local keeps logistics manageable while you learn.",
           "HomeCheff gives structure without forcing you to build a brand first.",
@@ -885,7 +885,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       discover: {
         title: "What you can list",
         paragraphs: [
-          "Signature bakes, weekly menus, tasters—whatever fits your hobby and time.",
+          "Signature bakes, weekly menus, tasters, whatever fits your hobby and time.",
         ],
       },
       cta: {
@@ -906,7 +906,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       h1: "Het platform voor thuiskoks",
       intro: [
         "Een platform voor thuiskoks moet twee kanten bedienen: kopers die snel iets lekkers willen, en makers die serieus willen verkopen zonder eigen IT-team. HomeCheff combineert inspiratie, dorpsplein en checkout.",
-        "Je profiel vertelt wie je bent; je producten vertellen wat je maakt. Reviews en chat—waar beschikbaar—maken het menselijk.",
+        "Je profiel vertelt wie je bent; je producten vertellen wat je maakt. Reviews en chat, waar beschikbaar, maken het menselijk.",
         "We groeien mee met makers: begin klein, breid uit als je buurt mee groeit.",
       ],
       howItWorks: {
@@ -948,7 +948,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       h1: "A platform for home cooks",
       intro: [
         "A home-cook platform must serve buyers who want tasty food fast and sellers who want to sell seriously without building IT. HomeCheff combines inspiration, the village square, and checkout.",
-        "Your profile tells who you are; your products tell what you make. Reviews and chat—where available—keep it human.",
+        "Your profile tells who you are; your products tell what you make. Reviews and chat, where available, keep it human.",
         "We grow with makers: start small, expand as your neighbourhood joins in.",
       ],
       howItWorks: {
@@ -966,7 +966,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
           "Local is our focus: neighbourhood economy over anonymous chains.",
           "HomeCheff aims to make makers visible without forcing them to become marketers first.",
@@ -1090,7 +1090,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       whyLocal: {
         title: "Waarom lokaal en waarom HomeCheff?",
         paragraphs: [
-          "Lokaal verkoop betekent vaak duidelijke afspraken met buren—maar de wettelijke kaders blijven persoonlijk.",
+          "Lokaal verkoop betekent vaak duidelijke afspraken met buren, maar de wettelijke kaders blijven persoonlijk.",
           "HomeCheff ondersteunt zichtbaarheid en afhandeling, niet de volledige compliance-check voor elke situatie.",
         ],
       },
@@ -1130,9 +1130,9 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
-          "Local selling often means clear neighbourly agreements—but legal frames remain personal.",
+          "Local selling often means clear neighbourly agreements, but legal frames remain personal.",
           "HomeCheff supports visibility and checkout, not a full compliance audit for every case.",
         ],
       },
@@ -1156,7 +1156,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Lokale producten kopen | HomeCheff",
       description:
-        "Lokale producten kopen bij makers bij jou in de buurt. Eten, groente, design en meer op HomeCheff — ontdek het dorpsplein.",
+        "Lokale producten kopen bij makers bij jou in de buurt. Eten, groente, design en meer op HomeCheff. Ontdek het dorpsplein.",
       h1: "Lokale producten kopen",
       intro: [
         "Lokale producten zijn op HomeCheff alles wat mensen in jouw omgeving zelf maken, kweken of bereiden. Dat is eten, maar ook groente en fruit uit eigen tuin, jam, planten en handgemaakte spullen.",
@@ -1191,7 +1191,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "Buy Local Products | HomeCheff",
       description:
-        "Buy local products from makers near you—food, produce, design and more on HomeCheff. Browse the village square today.",
+        "Buy local products from makers near you, food, produce, design and more on HomeCheff. Browse the village square today.",
       h1: "Buy local products",
       intro: [
         "On HomeCheff, local products are anything people near you make, grow or prepare themselves. That includes food, but also fruit and vegetables from their garden, jam, plants and handmade goods.",
@@ -1232,7 +1232,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Alternatief voor Thuisbezorgd | HomeCheff",
       description:
-        "Zoek je een alternatief voor grote bezorgapps? HomeCheff verbindt je met thuiskoks en lokale makers — ander verhaal, dichterbij.",
+        "Zoek je een alternatief voor grote bezorgapps? HomeCheff verbindt je met thuiskoks en lokale makers, ander verhaal, dichterbij.",
       h1: "Een alternatief voor de grote bezorgplatforms",
       intro: [
         "Grote bezorgapps zijn handig als je snel iets wilt van een restaurant of keten. HomeCheff werkt anders: je koopt bij mensen uit de buurt die zelf koken of maken.",
@@ -1273,7 +1273,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "Alternative to Takeaway Platforms | HomeCheff",
       description:
-        "Looking beyond big delivery apps? HomeCheff connects you with home cooks and local makers—closer, more personal food.",
+        "Looking beyond big delivery apps? HomeCheff connects you with home cooks and local makers, closer, more personal food.",
       h1: "An alternative to big takeaway platforms",
       intro: [
         "Big delivery apps are convenient when you want something quickly from a restaurant or chain. HomeCheff works differently: you buy from people nearby who cook or make things themselves.",
@@ -1320,7 +1320,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Maaltijden in Rotterdam | Lokale thuiskoks en verse gerechten | HomeCheff",
       description:
-        "Maaltijden in Rotterdam via lokale makers op HomeCheff. Ontdek thuisgekookt eten en buurtaanbod — start op het dorpsplein.",
+        "Maaltijden in Rotterdam via lokale makers op HomeCheff. Ontdek thuisgekookt eten en buurtaanbod. Start op het dorpsplein.",
       h1: "Maaltijden in Rotterdam",
       intro: [
         "Op HomeCheff bieden thuiskoks en makers in en rond Rotterdam hun gerechten aan. Wat er te krijgen is, hangt af van wie er op dat moment kookt.",
@@ -1361,7 +1361,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "Meals in Rotterdam | Local Home Cooks and Fresh Dishes | HomeCheff",
       description:
-        "Meals in Rotterdam from local makers on HomeCheff. Discover home-cooked food near you—browse the village square today.",
+        "Meals in Rotterdam from local makers on HomeCheff. Discover home-cooked food near you. Browse the village square today.",
       h1: "Meals in Rotterdam",
       intro: [
         "On HomeCheff, home cooks and makers in and around Rotterdam list the dishes they make. What is available depends on who is cooking at the time.",
@@ -1382,7 +1382,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
           "Urban neighbourhoods benefit from short lines and variety when makers participate.",
           "HomeCheff gathers them in one place.",
@@ -1408,7 +1408,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Maaltijden in Amsterdam | Lokale thuiskoks en verse gerechten | HomeCheff",
       description:
-        "Maaltijden in Amsterdam via HomeCheff. Vind thuiskoks en lokaal aanbod — vers en dichtbij, op het dorpsplein.",
+        "Maaltijden in Amsterdam via HomeCheff. Vind thuiskoks en lokaal aanbod, vers en dichtbij, op het dorpsplein.",
       h1: "Maaltijden in Amsterdam",
       intro: [
         "Op HomeCheff bieden thuiskoks en makers in en rond Amsterdam hun gerechten aan. Wat er te krijgen is, hangt af van wie er op dat moment kookt.",
@@ -1431,7 +1431,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       whyLocal: {
         title: "Waarom lokaal en waarom HomeCheff?",
         paragraphs: [
-          "Lokaal in de stad verkleint afstand tussen maker en klant—letterlijk en figuurlijk.",
+          "Lokaal in de stad verkleint afstand tussen maker en klant, letterlijk en figuurlijk.",
         ],
       },
       discover: {
@@ -1448,7 +1448,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "Meals in Amsterdam | Local Home Cooks and Fresh Dishes | HomeCheff",
       description:
-        "Meals in Amsterdam on HomeCheff. Find home cooks and local food—fresh and nearby on the village square.",
+        "Meals in Amsterdam on HomeCheff. Find home cooks and local food, fresh and nearby on the village square.",
       h1: "Meals in Amsterdam",
       intro: [
         "On HomeCheff, home cooks and makers in and around Amsterdam list the dishes they make. What is available depends on who is cooking at the time.",
@@ -1469,7 +1469,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
           "Local in the city shortens the distance between maker and customer.",
         ],
@@ -1494,7 +1494,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Maaltijden in Den Haag | Lokale thuiskoks en verse gerechten | HomeCheff",
       description:
-        "Maaltijden in Den Haag via lokale makers op HomeCheff. Thuiskoks en buurtgerechten — ontdek het dorpsplein.",
+        "Maaltijden in Den Haag via lokale makers op HomeCheff. Thuiskoks en buurtgerechten. Ontdek het dorpsplein.",
       h1: "Maaltijden in Den Haag",
       intro: [
         "Op HomeCheff bieden thuiskoks en makers in en rond Den Haag hun gerechten aan. Wat er te krijgen is, hangt af van wie er op dat moment kookt.",
@@ -1523,7 +1523,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
       discover: {
         title: "Wat je kunt ontdekken",
         paragraphs: [
-          "Extra startpunt: /maaltijden/den-haag — daarna dorpsplein voor live aanbod.",
+          "Extra startpunt: /maaltijden/den-haag, daarna dorpsplein voor live aanbod.",
         ],
       },
       cta: {
@@ -1534,7 +1534,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "Meals in The Hague | Local Home Cooks and Fresh Dishes | HomeCheff",
       description:
-        "Meals in The Hague from local makers on HomeCheff. Home-cooked dishes near you—check the village square.",
+        "Meals in The Hague from local makers on HomeCheff. Home-cooked dishes near you. Check the village square.",
       h1: "Meals in The Hague",
       intro: [
         "On HomeCheff, home cooks and makers in and around The Hague list the dishes they make. What is available depends on who is cooking at the time.",
@@ -1555,7 +1555,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
           "Neighbourhood makers add colour; HomeCheff makes them findable.",
         ],
@@ -1580,7 +1580,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Maaltijden in Utrecht | Lokale thuiskoks en verse gerechten | HomeCheff",
       description:
-        "Maaltijden in Utrecht via HomeCheff. Lokale thuiskoks en vers aanbod — begin op het dorpsplein.",
+        "Maaltijden in Utrecht via HomeCheff. Lokale thuiskoks en vers aanbod. Begin op het dorpsplein.",
       h1: "Maaltijden in Utrecht",
       intro: [
         "Op HomeCheff bieden thuiskoks en makers in en rond Utrecht hun gerechten aan. Wat er te krijgen is, hangt af van wie er op dat moment kookt.",
@@ -1620,7 +1620,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "Meals in Utrecht | Local Home Cooks and Fresh Dishes | HomeCheff",
       description:
-        "Meals in Utrecht on HomeCheff. Local home cooks and fresh listings—start on the village square.",
+        "Meals in Utrecht on HomeCheff. Local home cooks and fresh listings. Start on the village square.",
       h1: "Meals in Utrecht",
       intro: [
         "On HomeCheff, home cooks and makers in and around Utrecht list the dishes they make. What is available depends on who is cooking at the time.",
@@ -1641,7 +1641,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
           "Short city distances make fresh pickup practical.",
         ],
@@ -1666,7 +1666,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     nl: {
       title: "Maaltijden in Eindhoven | Lokale thuiskoks en verse gerechten | HomeCheff",
       description:
-        "Maaltijden in Eindhoven via HomeCheff. Ontdek thuiskoks in de regio — dorpsplein voor actueel aanbod.",
+        "Maaltijden in Eindhoven via HomeCheff. Ontdek thuiskoks in de regio, dorpsplein voor actueel aanbod.",
       h1: "Maaltijden in Eindhoven",
       intro: [
         "Op HomeCheff bieden thuiskoks en makers in en rond Eindhoven hun gerechten aan. Wat er te krijgen is, hangt af van wie er op dat moment kookt.",
@@ -1706,7 +1706,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
     en: {
       title: "Meals in Eindhoven | Local Home Cooks and Fresh Dishes | HomeCheff",
       description:
-        "Meals in Eindhoven on HomeCheff. Find home cooks in the region—the village square shows current listings.",
+        "Meals in Eindhoven on HomeCheff. Find home cooks in the region, the village square shows current listings.",
       h1: "Meals in Eindhoven",
       intro: [
         "On HomeCheff, home cooks and makers in and around Eindhoven list the dishes they make. What is available depends on who is cooking at the time.",
@@ -1727,7 +1727,7 @@ export const HOMECHEFF_SEO_PAGE_DEFS: SeoPageDefinition[] = [
         ],
       },
       whyLocal: {
-        title: "Why local—and why HomeCheff?",
+        title: "Why local, and why HomeCheff?",
         paragraphs: [
           "The Brainport area plus neighbourhood makers means unique flavours nearby.",
         ],

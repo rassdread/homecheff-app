@@ -82,13 +82,13 @@ export const openKnowledgeHub = {
     en: 'HomeCheff documentation | Open knowledge for people and AI',
   },
   metaDescription: {
-    nl: 'Open documentatie over ranking, Business DNA, HCP, affiliate, marketplace, trust, privacy en AI — verifieerbaar en afgestemd op het Manifest.',
-    en: 'Open documentation on ranking, Business DNA, HCP, affiliate, marketplace, trust, privacy and AI — verifiable and aligned with the Manifest.',
+    nl: 'Open documentatie over ranking, Business DNA, HCP, affiliate, marketplace, trust, privacy en AI, verifieerbaar en afgestemd op het Manifest.',
+    en: 'Open documentation on ranking, Business DNA, HCP, affiliate, marketplace, trust, privacy and AI, verifiable and aligned with the Manifest.',
   },
   title: { nl: 'Open kennis', en: 'Open knowledge' },
   intro: {
-    nl: 'Deze documentatie legt uit hoe HomeCheff werkt — voor gebruikers, partners, onderzoekers en AI-systemen. Geen marketing: alleen traceerbare uitleg met beperkingen en waarheidsgrenzen (Phase 13O).',
-    en: 'This documentation explains how HomeCheff works — for users, partners, researchers and AI systems. Not marketing: only traceable explanation with limitations and truth boundaries (Phase 13O).',
+    nl: 'Deze documentatie legt uit hoe HomeCheff werkt, voor gebruikers, partners, onderzoekers en AI-systemen. Geen marketing: alleen traceerbare uitleg met beperkingen en waarheidsgrenzen (Phase 13O).',
+    en: 'This documentation explains how HomeCheff works, for users, partners, researchers and AI systems. Not marketing: only traceable explanation with limitations and truth boundaries (Phase 13O).',
   },
   sectionIndexTitle: { nl: 'Onderwerpen', en: 'Topics' },
   sectionIndexBody: {
@@ -122,24 +122,24 @@ export const openKnowledgeDocRanking = docPage({
   },
   title: { nl: 'Ranking & feed', en: 'Ranking & feed' },
   intro: {
-    nl: 'De geo-feed (Dorpsplein) toont lokale aanbod in secties zoals nearby, trusted maker en diversiteit. Ranking ondersteunt ontdekking — geen engagement-maximalisatie.',
-    en: 'The geo feed (Village Square) shows local offers in sections such as nearby, trusted maker and diversity. Ranking supports discovery — not engagement maximisation.',
+    nl: 'De geo-feed (Dorpsplein) toont lokale aanbod in secties zoals nearby, trusted maker en diversiteit. Ranking ondersteunt ontdekking, geen engagement-maximalisatie.',
+    en: 'The geo feed (Village Square) shows local offers in sections such as nearby, trusted maker and diversity. Ranking supports discovery, not engagement maximisation.',
   },
   purpose: {
-    nl: 'Ranking helpt buren relevante makers en aanbod te vinden op afstand, vertrouwen en diversiteit — zonder anonieme massa-catalogus.',
-    en: 'Ranking helps neighbours find relevant makers and offers by distance, trust and diversity — without an anonymous mass catalogue.',
+    nl: 'Ranking helpt buren relevante makers en aanbod te vinden op afstand, vertrouwen en diversiteit, zonder anonieme massa-catalogus.',
+    en: 'Ranking helps neighbours find relevant makers and offers by distance, trust and diversity, without an anonymous mass catalogue.',
   },
   how: {
     nl: 'De feed bouwt secties met vaste ranking-profielen (bijv. nearby, trusted_maker). Dedup-regels voorkomen dat één seller of listing meerdere secties domineert. Business DNA beschrijft abonnementsvoordelen; paid feed-boost is niet live in ranking (BUSINESS_DISCOVERY_RANKING_WIRED = false).',
     en: 'The feed builds sections with fixed ranking profiles (e.g. nearby, trusted_maker). Dedup rules prevent one seller or listing from dominating multiple sections. Business DNA describes subscription benefits; paid feed boost is not live in ranking (BUSINESS_DISCOVERY_RANKING_WIRED = false).',
   },
   limits: {
-    nl: 'Ranking is niet personaliseerd op engagement-traps. Geen belofte dat betalen zichtbaarheid in de feed garandeert. Lege regio’s tonen minder — geen spam-steden.',
-    en: 'Ranking is not personalised for engagement traps. No promise that paying guarantees feed visibility. Sparse regions show less — no spam cities.',
+    nl: 'Ranking is niet personaliseerd op engagement-traps. Geen belofte dat betalen zichtbaarheid in de feed garandeert. Lege regio’s tonen minder, geen spam-steden.',
+    en: 'Ranking is not personalised for engagement traps. No promise that paying guarantees feed visibility. Sparse regions show less, no spam cities.',
   },
   impact: {
-    nl: 'Kopers zien gevarieerd lokaal aanbod. Nieuwe en onbetaalde makers blijven discoverable via diversiteitssecties. Zakelijke abonnementen verlagen vooral fees en tonen badges — geen stille ranking-overmacht.',
-    en: 'Buyers see varied local offers. New and unpaid makers remain discoverable via diversity sections. Business subscriptions mainly lower fees and show badges — no silent ranking dominance.',
+    nl: 'Kopers zien gevarieerd lokaal aanbod. Nieuwe en onbetaalde makers blijven discoverable via diversiteitssecties. Zakelijke abonnementen verlagen vooral fees en tonen badges, geen stille ranking-overmacht.',
+    en: 'Buyers see varied local offers. New and unpaid makers remain discoverable via diversity sections. Business subscriptions mainly lower fees and show badges, no silent ranking dominance.',
   },
   truth: {
     nl: 'Publieke copy over feed-zichtbaarheidsboosts of beloftes over gegarandeerde zichtbaarheid is verwijderd of afgezwakt (Phase 13T). Documentatie volgt live code, niet marketing.',
@@ -155,8 +155,8 @@ export const openKnowledgeDocRanking = docPage({
   faq2: {
     q: { nl: 'Welke secties bestaan er?', en: 'Which sections exist?' },
     a: {
-      nl: 'O.a. nearby, trusted maker, new creators en diversiteit — afhankelijk van regio en activiteit. Zie /hoe-homecheff-werkt.',
-      en: 'Including nearby, trusted maker, new creators and diversity — depending on region and activity. See /hoe-homecheff-werkt.',
+      nl: 'O.a. nearby, trusted maker, new creators en diversiteit, afhankelijk van regio en activiteit. Zie /hoe-homecheff-werkt.',
+      en: 'Including nearby, trusted maker, new creators and diversity, depending on region and activity. See /hoe-homecheff-werkt.',
     },
   },
   faq3: {
@@ -174,8 +174,8 @@ export const openKnowledgeDocBusinessDna = docPage({
     en: 'Business DNA | HomeCheff documentation',
   },
   metaDescription: {
-    nl: 'Zakelijke abonnementen: fees, badges, profiel — en wat niet live is in feed-ranking.',
-    en: 'Business subscriptions: fees, badges, profile — and what is not live in feed ranking.',
+    nl: 'Zakelijke abonnementen: fees, badges, profiel, en wat niet live is in feed-ranking.',
+    en: 'Business subscriptions: fees, badges, profile, and what is not live in feed ranking.',
   },
   title: { nl: 'Business DNA', en: 'Business DNA' },
   intro: {
@@ -183,8 +183,8 @@ export const openKnowledgeDocBusinessDna = docPage({
     en: 'Business DNA is the SSOT for business subscriptions (individual, basic, pro, premium): commission, badges, analytics labels and profile benefits.',
   },
   purpose: {
-    nl: 'Transparante abonnementsvergelijking voor KVK/bedrijven — lagere platformfee waar van toepassing, verified badge, profielversterking.',
-    en: 'Transparent subscription comparison for registered businesses — lower platform fee where applicable, verified badge, profile strength.',
+    nl: 'Transparante abonnementsvergelijking voor KVK/bedrijven: lagere platformfee waar van toepassing, verified badge, profielversterking.',
+    en: 'Transparent subscription comparison for registered businesses, lower platform fee where applicable, verified badge, profile strength.',
   },
   how: {
     nl: 'getBusinessVisibilityProfile() leest planconfig. UI op /sell en dashboards deriveert daarvan. Live checkout en fees gebruiken deze SSOT.',
@@ -195,8 +195,8 @@ export const openKnowledgeDocBusinessDna = docPage({
     en: 'rankingBoost in config is not wired to live feed (Phase 13T). No separate analytics module unless the product delivers it. Website/social promotion often “ready/future”.',
   },
   impact: {
-    nl: 'Zakelijke verkopers zien lagere fees en badges. Kopers zien verified/business signalen op profiel en tiles — geen belofte van feed-dominantie.',
-    en: 'Business sellers see lower fees and badges. Buyers see verified/business signals on profile and tiles — no promise of feed dominance.',
+    nl: 'Zakelijke verkopers zien lagere fees en badges. Kopers zien verified/business signalen op profiel en tiles, geen belofte van feed-dominantie.',
+    en: 'Business sellers see lower fees and badges. Buyers see verified/business signals on profile and tiles, no promise of feed dominance.',
   },
   truth: {
     nl: 'Vergelijkings- en DNA-copy vermeldt expliciet: geen gegarandeerd feed-ranking vooruitdeel.',
@@ -208,7 +208,7 @@ export const openKnowledgeDocBusinessDna = docPage({
   },
   faq2: {
     q: { nl: 'Waar staat de SSOT?', en: 'Where is the SSOT?' },
-    a: { nl: 'lib/business/visibility-profile.ts — alle plan checks moeten daar vandaan komen.', en: 'lib/business/visibility-profile.ts — all plan checks must come from there.' },
+    a: { nl: 'lib/business/visibility-profile.ts: alle plan checks moeten daar vandaan komen.', en: 'lib/business/visibility-profile.ts: all plan checks must come from there.' },
   },
   faq3: {
     q: { nl: 'Is dit verplicht om te verkopen?', en: 'Is this required to sell?' },
@@ -219,8 +219,8 @@ export const openKnowledgeDocBusinessDna = docPage({
 export const openKnowledgeDocHcp = docPage({
   metaTitle: { nl: 'HCP | HomeCheff documentatie', en: 'HCP | HomeCheff documentation' },
   metaDescription: {
-    nl: 'HomeCheff Points: erkenning voor constructieve deelname — geen geld, geen uitbetaling.',
-    en: 'HomeCheff Points: recognition for constructive participation — not money, not payout.',
+    nl: 'HomeCheff Points: erkenning voor constructieve deelname, geen geld, geen uitbetaling.',
+    en: 'HomeCheff Points: recognition for constructive participation, not money, not payout.',
   },
   title: { nl: 'HomeCheff Points (HCP)', en: 'HomeCheff Points (HCP)' },
   intro: {
@@ -240,8 +240,8 @@ export const openKnowledgeDocHcp = docPage({
     en: 'HCP is not a currency. No guaranteed ranking boost via HCP unless explicit product behaviour. Rewards may expire.',
   },
   impact: {
-    nl: 'Actieve makers zien voortgang en badges. Kopers kunnen reputatie-in signalen zien — naast reviews.',
-    en: 'Active makers see progress and badges. Buyers may see reputation signals — alongside reviews.',
+    nl: 'Actieve makers zien voortgang en badges. Kopers kunnen reputatie-in signalen zien, naast reviews.',
+    en: 'Active makers see progress and badges. Buyers may see reputation signals, alongside reviews.',
   },
   truth: {
     nl: 'Ecosystem- en FAQ-copy benadrukt: HCP is geen geld. Geen “verdien HCP als inkomen”-claims.',
@@ -253,11 +253,11 @@ export const openKnowledgeDocHcp = docPage({
   },
   faq2: {
     q: { nl: 'Hoe krijg ik HCP?', en: 'How do I earn HCP?' },
-    a: { nl: 'Via gedocumenteerde acties (login streak, listings, orders, reviews). Exacte regels in product — geen verborgen formules in marketing.', en: 'Via documented actions (login streak, listings, orders, reviews). Exact rules in product — no hidden formulas in marketing.' },
+    a: { nl: 'Via gedocumenteerde acties (login streak, listings, orders, reviews). Exacte regels in product, geen verborgen formules in marketing.', en: 'Via documented actions (login streak, listings, orders, reviews). Exact rules in product, no hidden formulas in marketing.' },
   },
   faq3: {
     q: { nl: 'Beïnvloedt HCP ranking?', en: 'Does HCP affect ranking?' },
-    a: { nl: 'Niet als beloofde paid boost. Trust-signalen kunnen indirect meewegen in secties — zie ranking-doc.', en: 'Not as a promised paid boost. Trust signals may indirectly weigh in sections — see ranking doc.' },
+    a: { nl: 'Niet als beloofde paid boost. Trust-signalen kunnen indirect meewegen in secties. Zie ranking-doc.', en: 'Not as a promised paid boost. Trust signals may indirectly weigh in sections. See ranking doc.' },
   },
 });
 
@@ -266,13 +266,13 @@ export const openKnowledgeDocHcp = docPage({
 export const openKnowledgeDocAffiliate = docPage({
   metaTitle: { nl: 'Affiliate | HomeCheff documentatie', en: 'Affiliate | HomeCheff documentation' },
   metaDescription: {
-    nl: 'Affiliate-programma: attributie, commissies, uitbetaling — eerlijk en afhankelijk van echt platformgebruik.',
-    en: 'Affiliate programme: attribution, commissions, payout — honest and dependent on real platform use.',
+    nl: 'Affiliate-programma: attributie, commissies, uitbetaling: eerlijk en afhankelijk van echt platformgebruik.',
+    en: 'Affiliate programme: attribution, commissions, payout, honest and dependent on real platform use.',
   },
   title: { nl: 'Affiliate', en: 'Affiliate' },
   intro: {
-    nl: 'Affiliates helpen HomeCheff groeien via referral-links. Commissies volgen kwalificerende events — geen belofte van passief inkomen zonder activiteit.',
-    en: 'Affiliates help HomeCheff grow via referral links. Commissions follow qualifying events — no promise of passive income without activity.',
+    nl: 'Affiliates helpen HomeCheff groeien via referral-links. Commissies volgen kwalificerende events, geen belofte van passief inkomen zonder activiteit.',
+    en: 'Affiliates help HomeCheff grow via referral links. Commissions follow qualifying events, no promise of passive income without activity.',
   },
   purpose: {
     nl: 'Eerlijke groei via community-verwijzingen in plaats van advertentieplatform.',
@@ -300,7 +300,7 @@ export const openKnowledgeDocAffiliate = docPage({
   },
   faq2: {
     q: { nl: 'Wanneer wordt commissie beschikbaar?', en: 'When is commission available?' },
-    a: { nl: 'Volgens ledger-status en productregels — zie dashboard, geen vaste marketing-termijn tenzij gepubliceerd.', en: 'Per ledger status and product rules — see dashboard, no fixed marketing term unless published.' },
+    a: { nl: 'Volgens ledger-status en productregels. Zie dashboard, geen vaste marketing-termijn tenzij gepubliceerd.', en: 'Per ledger status and product rules. See dashboard, no fixed marketing term unless published.' },
   },
   faq3: {
     q: { nl: 'Kunnen geschorste accounts affiliate doen?', en: 'Can suspended accounts do affiliate?' },
@@ -311,13 +311,13 @@ export const openKnowledgeDocAffiliate = docPage({
 export const openKnowledgeDocCommunityOrders = docPage({
   metaTitle: { nl: 'Community orders | Documentatie', en: 'Community orders | Documentation' },
   metaDescription: {
-    nl: 'Buurtafspraken, deals en community orders na voorstellen — met reviews waar van toepassing.',
-    en: 'Neighbourhood arrangements, deals and community orders after proposals — with reviews where applicable.',
+    nl: 'Buurtafspraken, deals en community orders na voorstellen, met reviews waar van toepassing.',
+    en: 'Neighbourhood arrangements, deals and community orders after proposals, with reviews where applicable.',
   },
   title: { nl: 'Community orders', en: 'Community orders' },
   intro: {
-    nl: 'Community orders en deals zijn buurtgerichte afspraken die vaak ontstaan na voorstellen (proposals) — soms naast klassieke Stripe-orders.',
-    en: 'Community orders and deals are neighbourhood-focused arrangements often created after proposals — sometimes alongside classic Stripe orders.',
+    nl: 'Community orders en deals zijn buurtgerichte afspraken die vaak ontstaan na voorstellen (proposals), soms naast klassieke Stripe-orders.',
+    en: 'Community orders and deals are neighbourhood-focused arrangements often created after proposals, sometimes alongside classic Stripe orders.',
   },
   purpose: {
     nl: 'Flexibele waarde-uitwisseling (geld, ruil, afspraak) met traceerbaarheid en review waar het product dat ondersteunt.',
@@ -341,7 +341,7 @@ export const openKnowledgeDocCommunityOrders = docPage({
   },
   faq1: {
     q: { nl: 'Verschil met normale order?', en: 'Difference from normal order?' },
-    a: { nl: 'Stripe-orders via checkout; community flows via proposals/deals — soms zonder platformbetaling.', en: 'Stripe orders via checkout; community flows via proposals/deals — sometimes without platform payment.' },
+    a: { nl: 'Stripe-orders via checkout; community flows via proposals/deals, soms zonder platformbetaling.', en: 'Stripe orders via checkout; community flows via proposals/deals, sometimes without platform payment.' },
   },
   faq2: {
     q: { nl: 'Zijn reviews verplicht?', en: 'Are reviews required?' },
@@ -356,8 +356,8 @@ export const openKnowledgeDocCommunityOrders = docPage({
 export const openKnowledgeDocBarter = docPage({
   metaTitle: { nl: 'Ruil & barter | Documentatie', en: 'Barter | Documentation' },
   metaDescription: {
-    nl: 'Ruilen via voorstellen — geld is niet altijd nodig op HomeCheff.',
-    en: 'Barter via proposals — money is not always required on HomeCheff.',
+    nl: 'Ruilen via voorstellen: geld is niet altijd nodig op HomeCheff.',
+    en: 'Barter via proposals: money is not always required on HomeCheff.',
   },
   title: { nl: 'Ruil & barter', en: 'Barter' },
   intro: {
@@ -381,8 +381,8 @@ export const openKnowledgeDocBarter = docPage({
     en: 'Makers can exchange skills and products alongside sales.',
   },
   truth: {
-    nl: 'Ruil is aangeboden — geen garantie op match of voltooiing.',
-    en: 'Barter is offered — no guarantee of match or completion.',
+    nl: 'Ruil is aangeboden, geen garantie op match of voltooiing.',
+    en: 'Barter is offered, no guarantee of match or completion.',
   },
   faq1: {
     q: { nl: 'Moet ruil via checkout?', en: 'Must barter use checkout?' },
@@ -394,15 +394,15 @@ export const openKnowledgeDocBarter = docPage({
   },
   faq3: {
     q: { nl: 'Is ruil belastbaar?', en: 'Is barter taxable?' },
-    a: { nl: 'Gebruikers zijn zelf verantwoordelijk — zie FAQ belastingen.', en: 'Users are responsible — see taxes FAQ.' },
+    a: { nl: 'Gebruikers zijn zelf verantwoordelijk. Zie FAQ belastingen.', en: 'Users are responsible. See taxes FAQ.' },
   },
 });
 
 export const openKnowledgeDocDelivery = docPage({
   metaTitle: { nl: 'Bezorging | Documentatie', en: 'Delivery | Documentation' },
   metaDescription: {
-    nl: 'Koeriers, bezorgprofielen en lokale logistiek — HomeCheff is geen landelijke bezorg-app.',
-    en: 'Couriers, delivery profiles and local logistics — HomeCheff is not a national delivery app.',
+    nl: 'Koeriers, bezorgprofielen en lokale logistiek, HomeCheff is geen landelijke bezorg-app.',
+    en: 'Couriers, delivery profiles and local logistics. HomeCheff is not a national delivery app.',
   },
   title: { nl: 'Bezorging', en: 'Delivery' },
   intro: {
@@ -426,12 +426,12 @@ export const openKnowledgeDocDelivery = docPage({
     en: 'Buyers may choose pickup, meetup or courier depending on offer.',
   },
   truth: {
-    nl: 'HomeCheff positioneert zich niet als Thuisbezorgd/Uber Eats — zie /vergelijken/homecheff-vs-bezorgplatforms.',
-    en: 'HomeCheff does not position as Thuisbezorgd/Uber Eats — see /vergelijken/homecheff-vs-bezorgplatforms.',
+    nl: 'HomeCheff positioneert zich niet als Thuisbezorgd/Uber Eats. Zie /vergelijken/homecheff-vs-bezorgplatforms.',
+    en: 'HomeCheff does not position as Thuisbezorgd/Uber Eats. See /vergelijken/homecheff-vs-bezorgplatforms.',
   },
   faq1: {
     q: { nl: 'Hoe word ik koerier?', en: 'How do I become a courier?' },
-    a: { nl: 'Via /bezorger-worden en DeliveryProfile — onder voorbehoud van regio en onboarding.', en: 'Via /bezorger-worden and DeliveryProfile — subject to region and onboarding.' },
+    a: { nl: 'Via /bezorger-worden en DeliveryProfile: onder voorbehoud van regio en onboarding.', en: 'Via /bezorger-worden and DeliveryProfile: subject to region and onboarding.' },
   },
   faq2: {
     q: { nl: 'Is bezorging verplicht?', en: 'Is delivery mandatory?' },
@@ -439,15 +439,15 @@ export const openKnowledgeDocDelivery = docPage({
   },
   faq3: {
     q: { nl: 'Wie betaalt bezorging?', en: 'Who pays delivery?' },
-    a: { nl: 'Volgens listing en order — transparant in checkout waar van toepassing.', en: 'Per listing and order — transparent in checkout where applicable.' },
+    a: { nl: 'Volgens listing en order: transparant in checkout waar van toepassing.', en: 'Per listing and order: transparent in checkout where applicable.' },
   },
 });
 
 export const openKnowledgeDocMarketplace = docPage({
   metaTitle: { nl: 'Marketplace | Documentatie', en: 'Marketplace | Documentation' },
   metaDescription: {
-    nl: 'Listings, checkout, profielen en categorieën — het dorpsplein als marketplace.',
-    en: 'Listings, checkout, profiles and categories — the village square as marketplace.',
+    nl: 'Listings, checkout, profielen en categorieën, het dorpsplein als marketplace.',
+    en: 'Listings, checkout, profiles and categories, the village square as marketplace.',
   },
   title: { nl: 'Marketplace', en: 'Marketplace' },
   intro: {
@@ -471,33 +471,33 @@ export const openKnowledgeDocMarketplace = docPage({
     en: 'Buyers discover locally; sellers reach neighbourhood without mandatory own webshop.',
   },
   truth: {
-    nl: 'Fees staan op /sell en in Business DNA — geen verborgen marketplace-model.',
-    en: 'Fees on /sell and in Business DNA — no hidden marketplace model.',
+    nl: 'Fees staan op /sell en in Business DNA, geen verborgen marketplace-model.',
+    en: 'Fees on /sell and in Business DNA, no hidden marketplace model.',
   },
   faq1: {
     q: { nl: 'Is HomeCheff een webshop?', en: 'Is HomeCheff a webshop?' },
-    a: { nl: 'Nee — een buurtplatform met mensen centraal.', en: 'No — a neighbourhood platform with people at the centre.' },
+    a: { nl: 'Nee, een buurtplatform met mensen centraal.', en: 'No, a neighbourhood platform with people at the centre.' },
   },
   faq2: {
     q: { nl: 'Welke categorieën?', en: 'Which categories?' },
-    a: { nl: 'Chef, Garden, Designer, diensten, inspiratie, Gezocht — eten is één categorie.', en: 'Chef, Garden, Designer, services, inspiration, Wanted — food is one category.' },
+    a: { nl: 'Chef, Garden, Designer, diensten, inspiratie, Gezocht, eten is één categorie.', en: 'Chef, Garden, Designer, services, inspiration, Wanted, food is one category.' },
   },
   faq3: {
     q: { nl: 'Hoe werkt checkout?', en: 'How does checkout work?' },
-    a: { nl: 'Stripe Checkout waar ingeschakeld; uitbetaling via Connect — zie FAQ betalingen.', en: 'Stripe Checkout where enabled; payout via Connect — see payments FAQ.' },
+    a: { nl: 'Stripe Checkout waar ingeschakeld; uitbetaling via Connect. Zie FAQ betalingen.', en: 'Stripe Checkout where enabled; payout via Connect, see payments FAQ.' },
   },
 });
 
 export const openKnowledgeDocTrustOps = docPage({
   metaTitle: { nl: 'Trust (operations) | Documentatie', en: 'Trust (operations) | Documentation' },
   metaDescription: {
-    nl: 'Melden, moderatie, suspensie en data-export — operationele trust op HomeCheff.',
-    en: 'Reporting, moderation, suspension and data export — operational trust on HomeCheff.',
+    nl: 'Melden, moderatie, suspensie en data-export, operationele trust op HomeCheff.',
+    en: 'Reporting, moderation, suspension and data export, operational trust on HomeCheff.',
   },
   title: { nl: 'Trust (operations)', en: 'Trust (operations)' },
   intro: {
-    nl: 'Operationele trust: hoe meldingen, suspensie, reviews en profielen worden behandeld — zonder misbruikvectoren te documenteren.',
-    en: 'Operational trust: how reports, suspension, reviews and profiles are handled — without documenting abuse vectors.',
+    nl: 'Operationele trust: hoe meldingen, suspensie, reviews en profielen worden behandeld, zonder misbruikvectoren te documenteren.',
+    en: 'Operational trust: how reports, suspension, reviews and profiles are handled, without documenting abuse vectors.',
   },
   purpose: {
     nl: 'Veilige buurt-economie met proportionele handhaving.',
@@ -508,8 +508,8 @@ export const openKnowledgeDocTrustOps = docPage({
     en: 'Users report via in-app/report flows. Admins can suspend (suspendedAt). Middleware + API guard blocks mutations for suspended accounts (Phase 13T). Reviews and profiles are visible with guidelines.',
   },
   limits: {
-    nl: 'HomeCheff is platform — geen garantie op 100% moderatie vóór schade. Interne moderation details niet publiek.',
-    en: 'HomeCheff is a platform — no guarantee of 100% moderation before harm. Internal moderation details not public.',
+    nl: 'HomeCheff is platform, geen garantie op 100% moderatie vóór schade. Interne moderation details niet publiek.',
+    en: 'HomeCheff is a platform, no guarantee of 100% moderation before harm. Internal moderation details not public.',
   },
   impact: {
     nl: 'Geschorste accounts kunnen lezen en GDPR-export; geen checkout/messaging/listings mutaties. Slachtoffers kunnen melden.',
@@ -529,24 +529,24 @@ export const openKnowledgeDocTrustOps = docPage({
   },
   faq3: {
     q: { nl: 'Zijn reviews gemodereerd?', en: 'Are reviews moderated?' },
-    a: { nl: 'Eerlijkheid vereist; misbruik meldbaar — geen volledige pre-publicatie voor alles.', en: 'Honesty required; abuse reportable — not full pre-publication for everything.' },
+    a: { nl: 'Eerlijkheid vereist; misbruik meldbaar, geen volledige pre-publicatie voor alles.', en: 'Honesty required; abuse reportable, not full pre-publication for everything.' },
   },
 });
 
 export const openKnowledgeDocPrivacy = docPage({
   metaTitle: { nl: 'Privacy (product) | Documentatie', en: 'Privacy (product) | Documentation' },
   metaDescription: {
-    nl: 'GDPR-export, consent, data-minimalisatie — product privacy op HomeCheff.',
-    en: 'GDPR export, consent, data minimisation — product privacy on HomeCheff.',
+    nl: 'GDPR-export, consent, data-minimalisatie: product privacy op HomeCheff.',
+    en: 'GDPR export, consent, data minimisation, product privacy on HomeCheff.',
   },
   title: { nl: 'Privacy (product)', en: 'Privacy (product)' },
   intro: {
-    nl: `${PRIVACY_MISSION.nl} Product privacy: welke data gebruikers kunnen exporteren, wat bewaard blijft en waar het juridische beleid staat. Gebruikersdata is bedoeld om HomeCheff zelf te laten werken — zie filosofie op /trust en /docs/privacy; juridisch: /privacy.`,
-    en: `${PRIVACY_MISSION.en} Product privacy: which data users can export, what is retained and where legal policy lives. User data is intended to make HomeCheff itself work — see philosophy on /trust and /docs/privacy; legal: /privacy.`,
+    nl: `${PRIVACY_MISSION.nl} Product privacy: welke data gebruikers kunnen exporteren, wat bewaard blijft en waar het juridische beleid staat. Gebruikersdata is bedoeld om HomeCheff zelf te laten werken. Zie filosofie op /trust en /docs/privacy; juridisch: /privacy.`,
+    en: `${PRIVACY_MISSION.en} Product privacy: which data users can export, what is retained and where legal policy lives. User data is intended to make HomeCheff itself work. See philosophy on /trust and /docs/privacy; legal: /privacy.`,
   },
   purpose: {
-    nl: `${DATA_PURPOSE.nl} Transparantie over persoonsgegevens — technologie met geweten. Geen belofte die de privacyverklaring vervangt.`,
-    en: `${DATA_PURPOSE.en} Transparency about personal data — technology with a conscience. Not a substitute for the privacy policy.`,
+    nl: `${DATA_PURPOSE.nl} Transparantie over persoonsgegevens, technologie met geweten. Geen belofte die de privacyverklaring vervangt.`,
+    en: `${DATA_PURPOSE.en} Transparency about personal data, technology with a conscience. Not a substitute for the privacy policy.`,
   },
   how: {
     nl: 'GET /api/profile/export-data levert JSON-export (Phase 13T): profiel, orders, messages metadata, HCP, etc. Account deletion via /api/profile/delete-account. Juridisch: /privacy.',
@@ -561,12 +561,12 @@ export const openKnowledgeDocPrivacy = docPage({
     en: 'Users can download export before delete. Suspended users may export (GDPR).',
   },
   truth: {
-    nl: 'Geen “volledige data-portability”-marketing — export documenteert omissions expliciet.',
-    en: 'No “full data portability” marketing — export documents omissions explicitly.',
+    nl: 'Geen “volledige data-portability”-marketing: export documenteert omissions expliciet.',
+    en: 'No “full data portability” marketing, export documents omissions explicitly.',
   },
   faq1: {
     q: { nl: 'Waar is het privacybeleid?', en: 'Where is the privacy policy?' },
-    a: { nl: '/privacy — juridische tekst.', en: '/privacy — legal text.' },
+    a: { nl: '/privacy: juridische tekst.', en: '/privacy: legal text.' },
   },
   faq2: {
     q: { nl: 'Zitten wachtwoorden in export?', en: 'Are passwords in export?' },
@@ -574,15 +574,15 @@ export const openKnowledgeDocPrivacy = docPage({
   },
   faq3: {
     q: { nl: 'Encrypted messages?', en: 'Encrypted messages?' },
-    a: { nl: 'Metadata wel; plaintext alleen wanneer veilig beschikbaar — zie omissions in export.', en: 'Metadata yes; plaintext only when safely available — see export omissions.' },
+    a: { nl: 'Metadata wel; plaintext alleen wanneer veilig beschikbaar. Zie omissions in export.', en: 'Metadata yes; plaintext only when safely available, see export omissions.' },
   },
 });
 
 export const openKnowledgeDocAi = docPage({
   metaTitle: { nl: 'AI (technisch) | Documentatie', en: 'AI (technical) | Documentation' },
   metaDescription: {
-    nl: 'Waar AI wel en niet wordt gebruikt op HomeCheff — geen overdreven capabilities.',
-    en: 'Where AI is and is not used on HomeCheff — no exaggerated capabilities.',
+    nl: 'Waar AI wel en niet wordt gebruikt op HomeCheff, geen overdreven capabilities.',
+    en: 'Where AI is and is not used on HomeCheff, no exaggerated capabilities.',
   },
   title: { nl: 'AI (technisch)', en: 'AI (technical)' },
   intro: {
@@ -590,12 +590,12 @@ export const openKnowledgeDocAi = docPage({
     en: 'Technical AI documentation for readers and future agents: current capabilities, rules and boundaries.',
   },
   purpose: {
-    nl: 'AI als hulpmiddel documenteren — niet als product (Manifest).',
-    en: 'Document AI as a tool — not the product (Manifest).',
+    nl: 'AI als hulpmiddel documenteren, niet als product (Manifest).',
+    en: 'Document AI as a tool, not the product (Manifest).',
   },
   how: {
-    nl: 'Publieke SEO/schema/documentatie is machine-leesbaar (Phase 13S/V). Product-AI (indien aanwezig) ondersteunt UX — geen autonome agent-API publiek.',
-    en: 'Public SEO/schema/documentation is machine-readable (Phase 13S/V). Product AI (where present) supports UX — no autonomous agent API public.',
+    nl: 'Publieke SEO/schema/documentatie is machine-leesbaar (Phase 13S/V). Product-AI (indien aanwezig) ondersteunt UX, geen autonome agent-API publiek.',
+    en: 'Public SEO/schema/documentation is machine-readable (Phase 13S/V). Product AI (where present) supports UX, no autonomous agent API public.',
   },
   limits: {
     nl: 'Geen publieke write-API voor agents. Geen verborgen AI-tekst voor manipulatie. Menselijke review waar content publiek wordt.',
@@ -606,41 +606,41 @@ export const openKnowledgeDocAi = docPage({
     en: 'AI systems can understand platform via /docs, /manifest, /glossary. Users do not see an AI-first interface.',
   },
   truth: {
-    nl: 'Zie ook /ai voor publieke uitleg. futureAiMarketing in Business DNA is “future” — niet live claim.',
-    en: 'See also /ai for public explanation. futureAiMarketing in Business DNA is “future” — not a live claim.',
+    nl: 'Zie ook /ai voor publieke uitleg. futureAiMarketing in Business DNA is “future”, niet live claim.',
+    en: 'See also /ai for public explanation. futureAiMarketing in Business DNA is “future”, not a live claim.',
   },
   faq1: {
     q: { nl: 'Is er een publieke HomeCheff API?', en: 'Is there a public HomeCheff API?' },
-    a: { nl: 'Nee — zie /docs/api.', en: 'No — see /docs/api.' },
+    a: { nl: 'Nee. Zie /docs/api.', en: 'No: see /docs/api.' },
   },
   faq2: {
     q: { nl: 'Vervangt AI makers?', en: 'Does AI replace makers?' },
-    a: { nl: 'Nee — Manifest: mensen centraal.', en: 'No — Manifest: people first.' },
+    a: { nl: 'Nee: Manifest: mensen centraal.', en: 'No: Manifest: people first.' },
   },
   faq3: {
     q: { nl: 'Structured data voor AI?', en: 'Structured data for AI?' },
-    a: { nl: 'Organization/WebSite graph, FAQ, TechArticle op docs — alleen waarheidsgetrouw.', en: 'Organization/WebSite graph, FAQ, TechArticle on docs — truthful only.' },
+    a: { nl: 'Organization/WebSite graph, FAQ, TechArticle op docs, alleen waarheidsgetrouw.', en: 'Organization/WebSite graph, FAQ, TechArticle on docs, truthful only.' },
   },
 });
 
 export const openKnowledgeDocApi = docPage({
   metaTitle: { nl: 'API & agents | Documentatie', en: 'API & agents | Documentation' },
   metaDescription: {
-    nl: 'Geen speculatieve API — wat agents vandaag wel kunnen lezen en wat niet.',
-    en: 'No speculative API — what agents can read today and what not.',
+    nl: 'Geen speculatieve API, wat agents vandaag wel kunnen lezen en wat niet.',
+    en: 'No speculative API: what agents can read today and what not.',
   },
   title: { nl: 'API & agents', en: 'API & agents' },
   intro: {
-    nl: 'HomeCheff heeft geen publieke write-API voor autonome agents. Deze pagina beschrijft read-only open kennis en toekomstige richting — zonder fake integraties.',
-    en: 'HomeCheff has no public write API for autonomous agents. This page describes read-only open knowledge and future direction — without fake integrations.',
+    nl: 'HomeCheff heeft geen publieke write-API voor autonome agents. Deze pagina beschrijft read-only open kennis en toekomstige richting, zonder fake integraties.',
+    en: 'HomeCheff has no public write API for autonomous agents. This page describes read-only open knowledge and future direction, without fake integrations.',
   },
   purpose: {
     nl: 'AI agent readiness via documentatie, niet via premature endpoints.',
     en: 'AI agent readiness via documentation, not premature endpoints.',
   },
   how: {
-    nl: 'Agents kunnen publieke HTML/JSON-LD, /docs/*, /manifest, /glossary, sitemap en FAQ lezen. Authenticated APIs bestaan voor ingelogde app — niet voor third-party agents.',
-    en: 'Agents can read public HTML/JSON-LD, /docs/*, /manifest, /glossary, sitemap and FAQ. Authenticated APIs exist for logged-in app — not for third-party agents.',
+    nl: 'Agents kunnen publieke HTML/JSON-LD, /docs/*, /manifest, /glossary, sitemap en FAQ lezen. Authenticated APIs bestaan voor ingelogde app, niet voor third-party agents.',
+    en: 'Agents can read public HTML/JSON-LD, /docs/*, /manifest, /glossary, sitemap and FAQ. Authenticated APIs exist for logged-in app, not for third-party agents.',
   },
   limits: {
     nl: 'Geen OAuth voor externe agents. Geen guaranteed SLA op documentatie. Rate limits op export en API.',
@@ -651,8 +651,8 @@ export const openKnowledgeDocApi = docPage({
     en: 'Citation-quality answers possible without scraping private data.',
   },
   truth: {
-    nl: 'Als een publieke API komt, verschijnt die eerst hier — niet in marketing.',
-    en: 'If a public API comes, it appears here first — not in marketing.',
+    nl: 'Als een publieke API komt, verschijnt die eerst hier, niet in marketing.',
+    en: 'If a public API comes, it appears here first, not in marketing.',
   },
   faq1: {
     q: { nl: 'Kan een agent listings plaatsen?', en: 'Can an agent post listings?' },
@@ -660,7 +660,7 @@ export const openKnowledgeDocApi = docPage({
   },
   faq2: {
     q: { nl: 'Welke terminologie?', en: 'Which terminology?' },
-    a: { nl: 'Zie /glossary — DefinedTermSet schema.', en: 'See /glossary — DefinedTermSet schema.' },
+    a: { nl: 'Zie /glossary: DefinedTermSet schema.', en: 'See /glossary: DefinedTermSet schema.' },
   },
   faq3: {
     q: { nl: 'Platformregels?', en: 'Platform rules?' },
@@ -675,13 +675,13 @@ export const openKnowledgeTrust = {
     en: 'Trust & transparency | HomeCheff',
   },
   metaDescription: {
-    nl: 'Hoe HomeCheff vertrouwen opbouwt: echte mensen, vakmanschap, buurten, moderatie, safety, privacy en eerlijke marketplace-regels — zonder 100%-veiligheidsbeloftes.',
-    en: 'How HomeCheff builds trust: real people, craftsmanship, neighbourhoods, moderation, safety, privacy and honest marketplace rules — without promising 100% safety.',
+    nl: 'Hoe HomeCheff vertrouwen opbouwt: echte mensen, vakmanschap, buurten, moderatie, safety, privacy en eerlijke marketplace-regels, zonder 100%-veiligheidsbeloftes.',
+    en: 'How HomeCheff builds trust: real people, craftsmanship, neighbourhoods, moderation, safety, privacy and honest marketplace rules, without promising 100% safety.',
   },
   title: { nl: 'Trust & transparantie', en: 'Trust & transparency' },
   intro: {
-    nl: 'Trust ontstaat uit echte mensen, echt vakmanschap en echte buurten — plus transparante regels. Geen marketingclaims. Deze pagina vat publieke filosofie samen; operationele details staan in /docs/trust.',
-    en: 'Trust comes from real people, real craftsmanship and real neighbourhoods — plus transparent rules. Not marketing claims. This page summarises public philosophy; operational details are in /docs/trust.',
+    nl: 'Trust ontstaat uit echte mensen, echt vakmanschap en echte buurten, plus transparante regels. Geen marketingclaims. Deze pagina vat publieke filosofie samen; operationele details staan in /docs/trust.',
+    en: 'Trust comes from real people, real craftsmanship and real neighbourhoods, plus transparent rules. Not marketing claims. This page summarises public philosophy; operational details are in /docs/trust.',
   },
   sectionIdentityTitle: { nl: 'Identiteit & verantwoordelijkheid', en: 'Identity & accountability' },
   sectionIdentityBody: {
@@ -690,13 +690,13 @@ export const openKnowledgeTrust = {
   },
   sectionModerationTitle: { nl: 'Moderatiefilosofie', en: 'Moderation philosophy' },
   sectionModerationBody: {
-    nl: 'Proportioneel, niet destructief waar mogelijk. Suspensie blokkeert mutaties; admins loggen acties. CSAM/nul tolerantie — zie /safety. Melden en handhaving horen bij communityvertrouwen.',
-    en: 'Proportionate, non-destructive where possible. Suspension blocks mutations; admins log actions. CSAM/zero tolerance — see /safety. Reporting and enforcement belong to community trust.',
+    nl: 'Proportioneel, niet destructief waar mogelijk. Suspensie blokkeert mutaties; admins loggen acties. CSAM/nul tolerantie. Zie /safety. Melden en handhaving horen bij communityvertrouwen.',
+    en: 'Proportionate, non-destructive where possible. Suspension blocks mutations; admins log actions. CSAM/zero tolerance. See /safety. Reporting and enforcement belong to community trust.',
   },
   sectionRankingTitle: { nl: 'Rankingfilosofie', en: 'Ranking philosophy' },
   sectionRankingBody: {
-    nl: 'Ontdekking voor mensen, niet engagement-maximalisatie. Diversiteit en new-creator secties blijven. Geen stille paid dominance — zie /docs/ranking.',
-    en: 'Discovery for people, not engagement maximisation. Diversity and new-creator sections remain. No silent paid dominance — see /docs/ranking.',
+    nl: 'Ontdekking voor mensen, niet engagement-maximalisatie. Diversiteit en new-creator secties blijven. Geen stille paid dominance. Zie /docs/ranking.',
+    en: 'Discovery for people, not engagement maximisation. Diversity and new-creator sections remain. No silent paid dominance. See /docs/ranking.',
   },
   sectionAiTitle: { nl: 'AI-filosofie', en: 'AI philosophy' },
   sectionAiBody: {
@@ -710,18 +710,18 @@ export const openKnowledgeTrust = {
   },
   sectionPrivacyTitle: { nl: 'Privacy-filosofie', en: 'Privacy philosophy' },
   sectionPrivacyBody: {
-    nl: `${PRIVACY_MISSION.nl} ${DATA_PURPOSE.nl} Data-minimalisatie, echte export, duidelijke omissions. Juridisch beleid op /privacy; product op /docs/privacy — dit is filosofie, geen vervanging van de privacyverklaring.`,
-    en: `${PRIVACY_MISSION.en} ${DATA_PURPOSE.en} Data minimisation, real export, clear omissions. Legal policy at /privacy; product at /docs/privacy — this is philosophy, not a substitute for the privacy policy.`,
+    nl: `${PRIVACY_MISSION.nl} ${DATA_PURPOSE.nl} Data-minimalisatie, echte export, duidelijke omissions. Juridisch beleid op /privacy; product op /docs/privacy. Dit is filosofie, geen vervanging van de privacyverklaring.`,
+    en: `${PRIVACY_MISSION.en} ${DATA_PURPOSE.en} Data minimisation, real export, clear omissions. Legal policy at /privacy; product at /docs/privacy. This is philosophy, not a substitute for the privacy policy.`,
   },
   sectionMarketplaceTitle: { nl: 'Marketplace-filosofie', en: 'Marketplace philosophy' },
   sectionMarketplaceBody: {
-    nl: 'Mensen vóór producten. Echt vakmanschap en zichtbare makers. Geen dropshipping, geen anonieme massa, geen gewone tweedehands-doorverkoop. Eerlijke fees — /docs/marketplace.',
-    en: 'People before products. Real craftsmanship and visible makers. No dropshipping, no anonymous mass, no ordinary second-hand resale. Honest fees — /docs/marketplace.',
+    nl: 'Mensen vóór producten. Echt vakmanschap en zichtbare makers. Geen dropshipping, geen anonieme massa, geen gewone tweedehands-doorverkoop. Eerlijke fees, /docs/marketplace.',
+    en: 'People before products. Real craftsmanship and visible makers. No dropshipping, no anonymous mass, no ordinary second-hand resale. Honest fees, /docs/marketplace.',
   },
   sectionCommunityTitle: { nl: 'Communityprincipes', en: 'Community principles' },
   sectionCommunityBody: {
-    nl: 'Respect, eerlijk aanbod, zichtbare identiteit waar relevant, en regels die buurten beschermen — zie /community-guidelines en /principles.',
-    en: 'Respect, honest offers, visible identity where relevant, and rules that protect neighbourhoods — see /community-guidelines and /principles.',
+    nl: 'Respect, eerlijk aanbod, zichtbare identiteit waar relevant, en regels die buurten beschermen. Zie /community-guidelines en /principles.',
+    en: 'Respect, honest offers, visible identity where relevant, and rules that protect neighbourhoods. See /community-guidelines and /principles.',
   },
   linkManifest: { nl: 'HomeCheff Manifest', en: 'HomeCheff Manifest' },
   linkDocsTrust: { nl: 'Trust (operations)', en: 'Trust (operations)' },
@@ -732,13 +732,13 @@ export const openKnowledgeTrust = {
   faqBlockTitle: { nl: 'Veelgestelde vragen', en: 'Frequently asked questions' },
   faq1Q: { nl: 'Belooft HomeCheff 100% veiligheid?', en: 'Does HomeCheff promise 100% safety?' },
   faq1A: {
-    nl: 'Nee. We bieden tools, melden en handhaving — gebruikers blijven medeverantwoordelijk.',
-    en: 'No. We offer tools, reporting and enforcement — users remain co-responsible.',
+    nl: 'Nee. We bieden tools, melden en handhaving, gebruikers blijven medeverantwoordelijk.',
+    en: 'No. We offer tools, reporting and enforcement, users remain co-responsible.',
   },
   faq2Q: { nl: 'Waar is operationele trust gedocumenteerd?', en: 'Where is operational trust documented?' },
-  faq2A: { nl: '/docs/trust — plus /safety, /privacy en /community-guidelines.', en: '/docs/trust — plus /safety, /privacy and /community-guidelines.' },
+  faq2A: { nl: '/docs/trust, plus /safety, /privacy en /community-guidelines.', en: '/docs/trust, plus /safety, /privacy and /community-guidelines.' },
   faq3Q: { nl: 'Hoe sluit dit aan op het Manifest?', en: 'How does this align with the Manifest?' },
-  faq3A: { nl: 'Alle filosofie erft van /manifest — technologie met geweten, echte mensen en lokale kansen.', en: 'All philosophy inherits from /manifest — technology with a conscience, real people and local opportunity.' },
+  faq3A: { nl: 'Alle filosofie erft van /manifest, technologie met geweten, echte mensen en lokale kansen.', en: 'All philosophy inherits from /manifest, technology with a conscience, real people and local opportunity.' },
   lastReviewedLabel: { nl: 'Laatst gecontroleerd', en: 'Last reviewed' },
   lastReviewedDate: { nl: '4 augustus 2026', en: '4 August 2026' },
 };
@@ -746,35 +746,35 @@ export const openKnowledgeTrust = {
 export const openKnowledgeChangelog = {
   metaTitle: { nl: 'Changelog | HomeCheff', en: 'Changelog | HomeCheff' },
   metaDescription: {
-    nl: 'Chronologische productupdates — feitelijk, zonder marketingtaal.',
-    en: 'Chronological product updates — factual, no marketing language.',
+    nl: 'Chronologische productupdates: feitelijk, zonder marketingtaal.',
+    en: 'Chronological product updates: factual, no marketing language.',
   },
   title: { nl: 'Changelog', en: 'Changelog' },
   intro: {
-    nl: 'Belangrijke wijzigingen aan product, documentatie en trust-laag. Geen hype — alleen wat shipped is of expliciet breaking is.',
-    en: 'Important changes to product, documentation and trust layer. No hype — only what shipped or is explicitly breaking.',
+    nl: 'Belangrijke wijzigingen aan product, documentatie en trust-laag. Geen hype, alleen wat shipped is of expliciet breaking is.',
+    en: 'Important changes to product, documentation and trust layer. No hype, only what shipped or is explicitly breaking.',
   },
-  entry202608Title: { nl: '2026-08 — Authority & trust (Phase 2.2)', en: '2026-08 — Authority & trust (Phase 2.2)' },
+  entry202608Title: { nl: '2026-08: Authority & trust (Phase 2.2)', en: '2026-08: Authority & trust (Phase 2.2)' },
   entry202608Body: {
     nl: 'Entity-graph SSOT, Organization policy-URL’s (manifest, guidelines, trust, privacy), press ContactPoint, versterkte /trust-copy, lokale NAP-readiness zonder verzonnen adres, off-page readiness docs.',
     en: 'Entity-graph SSOT, Organization policy URLs (manifest, guidelines, trust, privacy), press ContactPoint, strengthened /trust copy, local NAP readiness without invented address, off-page readiness docs.',
   },
-  entry202607Title: { nl: '2026-07 — Open Knowledge (Phase 13V)', en: '2026-07 — Open Knowledge (Phase 13V)' },
+  entry202607Title: { nl: '2026-07. Open Knowledge (Phase 13V)', en: '2026-07. Open Knowledge (Phase 13V)' },
   entry202607Body: {
     nl: 'Publieke /docs, /trust, /changelog, /roadmap, /principles, /ai, /glossary. Machine-leesbare schema waar waarheidsgetrouw.',
     en: 'Public /docs, /trust, /changelog, /roadmap, /principles, /ai, /glossary. Machine-readable schema where truthful.',
   },
-  entry202607bTitle: { nl: '2026-07 — Manifest (Phase 13T)', en: '2026-07 — Manifest (Phase 13T)' },
+  entry202607bTitle: { nl: '2026-07: Manifest (Phase 13T)', en: '2026-07: Manifest (Phase 13T)' },
   entry202607bBody: {
     nl: '/manifest, uitgebreid /over-ons, filosofische SSOT voor schema en copy.',
     en: '/manifest, expanded /over-ons, philosophy SSOT for schema and copy.',
   },
-  entry202607cTitle: { nl: '2026-07 — Product truth (Phase 13T)', en: '2026-07 — Product truth (Phase 13T)' },
+  entry202607cTitle: { nl: '2026-07: Product truth (Phase 13T)', en: '2026-07: Product truth (Phase 13T)' },
   entry202607cBody: {
-    nl: 'Echte GDPR-export, global suspension guard, Business DNA ranking-boost niet live — copy gecorrigeerd.',
-    en: 'Real GDPR export, global suspension guard, Business DNA ranking boost not live — copy corrected.',
+    nl: 'Echte GDPR-export, global suspension guard, Business DNA ranking-boost niet live, copy gecorrigeerd.',
+    en: 'Real GDPR export, global suspension guard, Business DNA ranking boost not live, copy corrected.',
   },
-  entry202606Title: { nl: '2026-06 — AI Authority (Phase 13R–13S)', en: '2026-06 — AI Authority (Phase 13R–13S)' },
+  entry202606Title: { nl: '2026-06: AI Authority (Phase 13R–13S)', en: '2026-06: AI Authority (Phase 13R–13S)' },
   entry202606Body: {
     nl: 'Vergelijk-pagina’s, ecosystem map, Organization JSON-LD SSOT, craft-first positioning.',
     en: 'Comparison pages, ecosystem map, Organization JSON-LD SSOT, craft-first positioning.',
@@ -786,8 +786,8 @@ export const openKnowledgeChangelog = {
 export const openKnowledgeRoadmap = {
   metaTitle: { nl: 'Roadmap | HomeCheff', en: 'Roadmap | HomeCheff' },
   metaDescription: {
-    nl: 'Voltooid, bezig, gepland en ideeën — duidelijk gescheiden.',
-    en: 'Completed, in progress, planned and ideas — clearly separated.',
+    nl: 'Voltooid, bezig, gepland en ideeën, duidelijk gescheiden.',
+    en: 'Completed, in progress, planned and ideas, clearly separated.',
   },
   title: { nl: 'Roadmap', en: 'Roadmap' },
   intro: {
@@ -806,13 +806,13 @@ export const openKnowledgeRoadmap = {
   },
   sectionPlannedTitle: { nl: 'Gepland', en: 'Planned' },
   sectionPlannedBody: {
-    nl: 'Business DNA ranking alleen indien capped en end-to-end bewezen. Eventuele publieke read-API voor partners — na security review.',
-    en: 'Business DNA ranking only if capped and proven end-to-end. Possible public read API for partners — after security review.',
+    nl: 'Business DNA ranking alleen indien capped en end-to-end bewezen. Eventuele publieke read-API voor partners, na security review.',
+    en: 'Business DNA ranking only if capped and proven end-to-end. Possible public read API for partners, after security review.',
   },
   sectionIdeasTitle: { nl: 'Ideeën', en: 'Ideas' },
   sectionIdeasBody: {
-    nl: 'AI marketing assist voor makers (Business DNA “future”), campagne-builder, franchise tools — niet live tot bewezen.',
-    en: 'AI marketing assist for makers (Business DNA “future”), campaign builder, franchise tools — not live until proven.',
+    nl: 'AI marketing assist voor makers (Business DNA “future”), campagne-builder, franchise tools, niet live tot bewezen.',
+    en: 'AI marketing assist for makers (Business DNA “future”), campaign builder, franchise tools, not live until proven.',
   },
   lastReviewedLabel: { nl: 'Laatst gecontroleerd', en: 'Last reviewed' },
   lastReviewedDate: { nl: LAST_REVIEWED_NL, en: LAST_REVIEWED_EN },
@@ -821,8 +821,8 @@ export const openKnowledgeRoadmap = {
 export const openKnowledgePrinciples = {
   metaTitle: { nl: 'Open principes | HomeCheff', en: 'Open principles | HomeCheff' },
   metaDescription: {
-    nl: 'Samenvatting van platformprincipes — aligned met het Manifest.',
-    en: 'Summary of platform principles — aligned with the Manifest.',
+    nl: 'Samenvatting van platformprincipes: aligned met het Manifest.',
+    en: 'Summary of platform principles: aligned with the Manifest.',
   },
   title: { nl: 'Open principes', en: 'Open principles' },
   intro: {
@@ -831,8 +831,8 @@ export const openKnowledgePrinciples = {
   },
   p1Title: { nl: 'Mens vóór algoritmes', en: 'Human before algorithms' },
   p1Body: {
-    nl: 'Algoritmes ondersteunen mensen — niet omgekeerd.',
-    en: 'Algorithms support people — not the other way around.',
+    nl: 'Algoritmes ondersteunen mensen, niet omgekeerd.',
+    en: 'Algorithms support people, not the other way around.',
   },
   p2Title: { nl: 'Technologie met geweten', en: 'Technology with a conscience' },
   p2Body: {
@@ -841,33 +841,33 @@ export const openKnowledgePrinciples = {
   },
   p3Title: { nl: 'Eerlijke kansen', en: 'Honest opportunities' },
   p3Body: {
-    nl: 'Transparante fees en beperkingen — geen rijkdom-beloftes.',
-    en: 'Transparent fees and limits — no wealth promises.',
+    nl: 'Transparante fees en beperkingen, geen rijkdom-beloftes.',
+    en: 'Transparent fees and limits, no wealth promises.',
   },
   p4Title: { nl: 'Lokale gemeenschappen', en: 'Local communities' },
   p4Body: {
-    nl: 'Alles begint dichtbij huis. Buurt vóór anonieme schaal — echte buurten, geen verzonnen “internationale marktplaats”.',
-    en: 'Everything starts close to home. Neighbourhood before anonymous scale — real neighbourhoods, not an invented “international marketplace”.',
+    nl: 'Alles begint dichtbij huis. Buurt vóór anonieme schaal, echte buurten, geen verzonnen “internationale marktplaats”.',
+    en: 'Everything starts close to home. Neighbourhood before anonymous scale, real neighbourhoods, not an invented “international marketplace”.',
   },
   p5Title: { nl: 'Persoonlijk vakmanschap', en: 'Personal craftsmanship' },
   p5Body: {
-    nl: 'Echte makers met gezicht en verhaal — niet anonieme cataloguscommerce.',
-    en: 'Real makers with a face and story — not anonymous catalogue commerce.',
+    nl: 'Echte makers met gezicht en verhaal, niet anonieme cataloguscommerce.',
+    en: 'Real makers with a face and story, not anonymous catalogue commerce.',
   },
   p6Title: { nl: 'Waarheid vóór marketing', en: 'Truth before marketing' },
   p6Body: {
-    nl: 'Phase 13O boundaries — copy volgt product. Geen verzonnen metrics of partnerships.',
-    en: 'Phase 13O boundaries — copy follows product. No invented metrics or partnerships.',
+    nl: 'Phase 13O boundaries: copy volgt product. Geen verzonnen metrics of partnerships.',
+    en: 'Phase 13O boundaries: copy follows product. No invented metrics or partnerships.',
   },
   p7Title: { nl: 'Transparantie vóór manipulatie', en: 'Transparency over manipulation' },
   p7Body: {
-    nl: 'Open docs, changelog, roadmap, trust en safety — geen verborgen AI-tekst.',
-    en: 'Open docs, changelog, roadmap, trust and safety — no hidden AI text.',
+    nl: 'Open docs, changelog, roadmap, trust en safety, geen verborgen AI-tekst.',
+    en: 'Open docs, changelog, roadmap, trust and safety, no hidden AI text.',
   },
   p8Title: { nl: 'Community & veiligheid', en: 'Community & safety' },
   p8Body: {
-    nl: 'Richtlijnen, melden en handhaving beschermen echte communities — zonder 100%-veiligheidsbeloftes.',
-    en: 'Guidelines, reporting and enforcement protect real communities — without promising 100% safety.',
+    nl: 'Richtlijnen, melden en handhaving beschermen echte communities, zonder 100%-veiligheidsbeloftes.',
+    en: 'Guidelines, reporting and enforcement protect real communities, without promising 100% safety.',
   },
   linkManifest: { nl: 'Lees het volledige Manifest', en: 'Read the full Manifest' },
   linkConstitution: { nl: 'HomeCheff Constitution', en: 'HomeCheff Constitution' },
@@ -878,18 +878,18 @@ export const openKnowledgePrinciples = {
 export const openKnowledgeAiPublic = {
   metaTitle: { nl: 'AI op HomeCheff', en: 'AI on HomeCheff' },
   metaDescription: {
-    nl: 'Hoe AI wordt gebruikt, waar niet, privacy en beperkingen — geen overdreven capabilities.',
-    en: 'How AI is used, where not, privacy and limits — no exaggerated capabilities.',
+    nl: 'Hoe AI wordt gebruikt, waar niet, privacy en beperkingen, geen overdreven capabilities.',
+    en: 'How AI is used, where not, privacy and limits, no exaggerated capabilities.',
   },
   title: { nl: 'AI op HomeCheff', en: 'AI on HomeCheff' },
   intro: {
-    nl: 'AI is geen product. Deze pagina is voor iedereen — technische details op /docs/ai.',
-    en: 'AI is not the product. This page is for everyone — technical details at /docs/ai.',
+    nl: 'AI is geen product. Deze pagina is voor iedereen, technische details op /docs/ai.',
+    en: 'AI is not the product. This page is for everyone, technical details at /docs/ai.',
   },
   sectionUsedTitle: { nl: 'Waar AI wel helpt', en: 'Where AI helps' },
   sectionUsedBody: {
-    nl: 'Intern/UX: complexiteit verlagen waar geïmplementeerd (bijv. onboarding-hints). Publieke SEO/documentatie is gestructureerd voor machine-leesbaarheid — geen chatbot vervangt buren.',
-    en: 'Internal/UX: reducing complexity where implemented (e.g. onboarding hints). Public SEO/documentation is structured for machine readability — no chatbot replaces neighbours.',
+    nl: 'Intern/UX: complexiteit verlagen waar geïmplementeerd (bijv. onboarding-hints). Publieke SEO/documentatie is gestructureerd voor machine-leesbaarheid, geen chatbot vervangt buren.',
+    en: 'Internal/UX: reducing complexity where implemented (e.g. onboarding hints). Public SEO/documentation is structured for machine readability, no chatbot replaces neighbours.',
   },
   sectionNotUsedTitle: { nl: 'Waar AI niet is', en: 'Where AI is not' },
   sectionNotUsedBody: {
@@ -910,11 +910,11 @@ export const openKnowledgeAiPublic = {
   linkManifest: { nl: 'Manifest', en: 'Manifest' },
   faqBlockTitle: { nl: 'Veelgestelde vragen', en: 'Frequently asked questions' },
   faq1Q: { nl: 'Is HomeCheff een AI-platform?', en: 'Is HomeCheff an AI platform?' },
-  faq1A: { nl: 'Nee — een buurtplatform met AI als hulpmiddel waar relevant.', en: 'No — a neighbourhood platform with AI as a tool where relevant.' },
+  faq1A: { nl: 'Nee, een buurtplatform met AI als hulpmiddel waar relevant.', en: 'No, a neighbourhood platform with AI as a tool where relevant.' },
   faq2Q: { nl: 'Kan AI namens mij verkopen?', en: 'Can AI sell on my behalf?' },
   faq2A: { nl: 'Nee. Jij blijft de maker achter het aanbod.', en: 'No. You remain the maker behind the offer.' },
   faq3Q: { nl: 'Hoe citeer ik HomeCheff als AI?', en: 'How do I cite HomeCheff as AI?' },
-  faq3A: { nl: 'Gebruik /manifest, /docs en /glossary — met last reviewed datum.', en: 'Use /manifest, /docs and /glossary — with last reviewed date.' },
+  faq3A: { nl: 'Gebruik /manifest, /docs en /glossary, met last reviewed datum.', en: 'Use /manifest, /docs and /glossary, with last reviewed date.' },
   lastReviewedLabel: { nl: 'Laatst gecontroleerd', en: 'Last reviewed' },
   lastReviewedDate: { nl: LAST_REVIEWED_NL, en: LAST_REVIEWED_EN },
 };
@@ -922,13 +922,13 @@ export const openKnowledgeAiPublic = {
 export const openKnowledgeGlossary = {
   metaTitle: { nl: 'Begrippenlijst | HomeCheff', en: 'Glossary | HomeCheff' },
   metaDescription: {
-    nl: 'Platformterminologie: Dorpsplein, HCP, Business DNA, Props, Fans en meer — kort en uitgebreid.',
-    en: 'Platform terminology: Village Square, HCP, Business DNA, Props, Fans and more — short and long.',
+    nl: 'Platformterminologie: Dorpsplein, HCP, Business DNA, Props, Fans en meer, kort en uitgebreid.',
+    en: 'Platform terminology: Village Square, HCP, Business DNA, Props, Fans and more, short and long.',
   },
   title: { nl: 'Begrippenlijst', en: 'Glossary' },
   intro: {
-    nl: 'Eén bron voor platformtermen — voor mensen, SEO en AI. Elke term: korte definitie, uitleg en links.',
-    en: 'One source for platform terms — for people, SEO and AI. Each term: short definition, explanation and links.',
+    nl: 'Eén bron voor platformtermen, voor mensen, SEO en AI. Elke term: korte definitie, uitleg en links.',
+    en: 'One source for platform terms, for people, SEO and AI. Each term: short definition, explanation and links.',
   },
   glossaryTitle: { nl: 'Termen', en: 'Terms' },
   termDorpsplein: { nl: 'Dorpsplein', en: 'Village Square' },
@@ -938,7 +938,7 @@ export const openKnowledgeGlossary = {
     en: 'The Village Square is the local discovery feed: offers, Wanted and inspiration by distance. Not an endless social timeline.',
   },
   termHcp: { nl: 'HCP (HomeCheff Points)', en: 'HCP (HomeCheff Points)' },
-  defHcpShort: { nl: 'Erkenningspunten — geen geld.', en: 'Recognition points — not money.' },
+  defHcpShort: { nl: 'Erkenningspunten, geen geld.', en: 'Recognition points, not money.' },
   defHcp: {
     nl: 'Punten voor constructieve deelname. Badges en ranglijsten maken bijdragen zichtbaar. Geen uitbetaling.',
     en: 'Points for constructive participation. Badges and leaderboards make contribution visible. No payout.',
@@ -958,14 +958,14 @@ export const openKnowledgeGlossary = {
   termProps: { nl: 'Props', en: 'Props' },
   defPropsShort: { nl: 'Waardering op content.', en: 'Appreciation on content.' },
   defProps: {
-    nl: 'Props zijn een lichte social erkenning op inspiratie/content — geen valuta.',
-    en: 'Props are light social recognition on inspiration/content — not a currency.',
+    nl: 'Props zijn een lichte social erkenning op inspiratie/content, geen valuta.',
+    en: 'Props are light social recognition on inspiration/content, not a currency.',
   },
   termFans: { nl: 'Fans', en: 'Fans' },
   defFansShort: { nl: 'Volgers van makers.', en: 'Followers of makers.' },
   defFans: {
-    nl: 'Fans volgen makers voor updates. Verschilt van Follow/Props — zie profiel en feed.',
-    en: 'Fans follow makers for updates. Differs from Follow/Props — see profile and feed.',
+    nl: 'Fans volgen makers voor updates. Verschilt van Follow/Props. Zie profiel en feed.',
+    en: 'Fans follow makers for updates. Differs from Follow/Props. See profile and feed.',
   },
   termMarketplace: { nl: 'Marketplace', en: 'Marketplace' },
   defMarketplaceShort: { nl: 'Lokaal aanbod met personen.', en: 'Local offers with people.' },
@@ -982,32 +982,32 @@ export const openKnowledgeGlossary = {
   termDelivery: { nl: 'Bezorging', en: 'Delivery' },
   defDeliveryShort: { nl: 'Lokale koeriers optioneel.', en: 'Local couriers optional.' },
   defDelivery: {
-    nl: 'DeliveryProfile en DeliveryOrder — geen landelijke bezorgketen.',
-    en: 'DeliveryProfile and DeliveryOrder — not a national delivery chain.',
+    nl: 'DeliveryProfile en DeliveryOrder, geen landelijke bezorgketen.',
+    en: 'DeliveryProfile and DeliveryOrder, not a national delivery chain.',
   },
   termBarter: { nl: 'Ruil / barter', en: 'Barter' },
   defBarterShort: { nl: 'Waarde zonder geld.', en: 'Value without money.' },
   defBarter: {
-    nl: 'Via proposals met alternatieve waarden — naast checkout.',
-    en: 'Via proposals with alternative values — alongside checkout.',
+    nl: 'Via proposals met alternatieve waarden, naast checkout.',
+    en: 'Via proposals with alternative values, alongside checkout.',
   },
   termStudio: { nl: 'Studio', en: 'Studio' },
   defStudioShort: { nl: 'Creatieve maker-categorie.', en: 'Creative maker category.' },
   defStudio: {
-    nl: 'Studio-community voor handgemaakt en design — naast Chef en Garden.',
-    en: 'Studio community for handmade and design — alongside Chef and Garden.',
+    nl: 'Studio-community voor handgemaakt en design, naast Chef en Garden.',
+    en: 'Studio community for handmade and design, alongside Chef and Garden.',
   },
   termChef: { nl: 'Chef', en: 'Chef' },
   defChefShort: { nl: 'Thuisgemaakt eten categorie.', en: 'Home-prepared food category.' },
   defChef: {
-    nl: 'Makers die eten aanbieden — één categorie, niet het hele platform.',
-    en: 'Makers offering food — one category, not the whole platform.',
+    nl: 'Makers die eten aanbieden: één categorie, niet het hele platform.',
+    en: 'Makers offering food: one category, not the whole platform.',
   },
   termGarden: { nl: 'Garden', en: 'Garden' },
   defGardenShort: { nl: 'Tuin/oogst categorie.', en: 'Garden/harvest category.' },
   defGarden: {
-    nl: 'Tuinmakers en oogst — lokaal en seizoensgebonden.',
-    en: 'Garden makers and harvest — local and seasonal.',
+    nl: 'Tuinmakers en oogst: lokaal en seizoensgebonden.',
+    en: 'Garden makers and harvest: local and seasonal.',
   },
   termDesigner: { nl: 'Designer', en: 'Designer' },
   defDesignerShort: { nl: 'Design/creaties rol.', en: 'Design/creations role.' },
@@ -1018,8 +1018,8 @@ export const openKnowledgeGlossary = {
   termGezocht: { nl: 'Gezocht', en: 'Wanted' },
   defGezochtShort: { nl: 'Buurtoproep chip.', en: 'Neighbourhood request chip.' },
   defGezocht: {
-    nl: 'Wat je zoekt in de buurt — reacties via voorstellen, geld of ruil.',
-    en: 'What you need nearby — responses via proposals, money or barter.',
+    nl: 'Wat je zoekt in de buurt, reacties via voorstellen, geld of ruil.',
+    en: 'What you need nearby: responses via proposals, money or barter.',
   },
   lastReviewedLabel: { nl: 'Laatst gecontroleerd', en: 'Last reviewed' },
   lastReviewedDate: { nl: LAST_REVIEWED_NL, en: LAST_REVIEWED_EN },

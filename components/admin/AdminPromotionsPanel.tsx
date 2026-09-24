@@ -181,7 +181,7 @@ export default function AdminPromotionsPanel() {
           </h2>
           <p className="mt-1 max-w-2xl text-sm text-gray-600">
             Platform-owned subscription codes created by HomeCheff. Separate from
-            Affiliates / partners / referrals — no affiliate commission.
+            Affiliates / partners / referrals, no affiliate commission.
           </p>
         </div>
         <button

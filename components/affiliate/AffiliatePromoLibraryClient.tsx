@@ -298,7 +298,7 @@ export default function AffiliatePromoLibraryClient() {
                 checked={visibility === 'PRIVATE'}
                 onChange={() => setVisibility('PRIVATE')}
               />
-              <span>Alleen voor mij — anderen zien dit niet in de communitybibliotheek.</span>
+              <span>Alleen voor mij: anderen zien dit niet in de communitybibliotheek.</span>
             </label>
             <label className="flex items-start gap-2">
               <input

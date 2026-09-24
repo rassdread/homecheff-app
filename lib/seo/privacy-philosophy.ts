@@ -37,17 +37,17 @@ export const PRIVACY_PRINCIPLES: Record<PrivacyLang, string[]> = {
 /** What data is for — improve HomeCheff itself. */
 export const DATA_PURPOSE: Record<PrivacyLang, string> = {
   en:
-    'Your data exists to make HomeCheff work: nearby results, chats, orders, reviews, trust, notifications and recommendations inside HomeCheff — not to create advertising profiles across the internet.',
+    'Your data exists to make HomeCheff work: nearby results, chats, orders, reviews, trust, notifications and recommendations inside HomeCheff, not to create advertising profiles across the internet.',
   nl:
-    'Jouw data bestaat om HomeCheff te laten werken: resultaten dichtbij, chats, bestellingen, reviews, trust, notificaties en aanbevelingen binnen HomeCheff — niet om advertentieprofielen over het internet te bouwen.',
+    'Jouw data bestaat om HomeCheff te laten werken: resultaten dichtbij, chats, bestellingen, reviews, trust, notificaties en aanbevelingen binnen HomeCheff, niet om advertentieprofielen over het internet te bouwen.',
 };
 
 /** Honest framing for security / analytics / improvement tracking. */
 export const HONEST_PLATFORM_MEASUREMENT: Record<PrivacyLang, string> = {
   en:
-    'Where HomeCheff uses security, analytics or platform-improvement measurement, that is to run and improve the neighbourhood marketplace itself — not to sell behavioural advertising profiles. Legal details remain in /privacy; this text is philosophy, not a legal guarantee.',
+    'Where HomeCheff uses security, analytics or platform-improvement measurement, that is to run and improve the neighbourhood marketplace itself, not to sell behavioural advertising profiles. Legal details remain in /privacy; this text is philosophy, not a legal guarantee.',
   nl:
-    'Waar HomeCheff security, analytics of platformverbetering meet, is dat om de buurtmarkt zelf te laten draaien en te verbeteren — niet om gedragsadvertentieprofielen te verkopen. Juridische details blijven op /privacy; deze tekst is filosofie, geen juridische garantie.',
+    'Waar HomeCheff security, analytics of platformverbetering meet, is dat om de buurtmarkt zelf te laten draaien en te verbeteren, niet om gedragsadvertentieprofielen te verkopen. Juridische details blijven op /privacy; deze tekst is filosofie, geen juridische garantie.',
 };
 
 /** Explicit is-not — anti-profiling communication. */
@@ -78,8 +78,8 @@ export const PRIVACY_FAQ_ANSWER: Record<PrivacyLang, string> = {
 
 /** Manifest / trust one-liner. */
 export const PRIVACY_MANIFEST_LINE: Record<PrivacyLang, string> = {
-  en: 'Community before data: people are neighbours to connect — not profiles to monetise.',
-  nl: 'Community vóór data: mensen zijn buren om te verbinden — geen profielen om te gelde te maken.',
+  en: 'Community before data: people are neighbours to connect, not profiles to monetise.',
+  nl: 'Community vóór data: mensen zijn buren om te verbinden, geen profielen om te gelde te maken.',
 };
 
 export function privacyPhilosophyBrief(): string {
@@ -89,6 +89,6 @@ export function privacyPhilosophyBrief(): string {
     `data_purpose: ${DATA_PURPOSE.en}`,
     `is_not: ${PRIVACY_IS_NOT.en.join('; ')}`,
     `honest_measurement: ${HONEST_PLATFORM_MEASUREMENT.en}`,
-    'rule: philosophy communication only — legal policy remains /privacy; no invented guarantees',
+    'rule: philosophy communication only: legal policy remains /privacy; no invented guarantees',
   ].join('\n');
 }

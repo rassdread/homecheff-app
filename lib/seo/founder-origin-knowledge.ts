@@ -52,12 +52,12 @@ export const WHY_HOMECHEFF_EXISTS: Record<KnowledgeLang, string> = {
 
 The founder observed patterns familiar to many neighbourhoods: declining everyday interaction, growing loneliness, people becoming more disconnected, valuable skills remaining invisible, and local communities growing weaker.
 
-Technology should reconnect people — not isolate them. ${CANONICAL_BRAND_SPELLING} exists as a calm, practical response: an ecosystem for local entrepreneurship, creation and earning — with Marketplace as the digital neighbourhood marketplace where personal craftsmanship, knowledge, creativity and neighbour help can become visible nearby first — without turning people into advertising products or inventing impact metrics.`,
+Technology should reconnect people, not isolate them. ${CANONICAL_BRAND_SPELLING} exists as a calm, practical response: an ecosystem for local entrepreneurship, creation and earning, with Marketplace as the digital neighbourhood marketplace where personal craftsmanship, knowledge, creativity and neighbour help can become visible nearby first, without turning people into advertising products or inventing impact metrics.`,
   nl: `Waarom bestaat ${CANONICAL_BRAND_SPELLING}?
 
 De oprichter zag patronen die in veel buurten herkenbaar zijn: afnemend alledaags contact, groeiende eenzaamheid, mensen die verder uit elkaar raken, waardevolle skills die onzichtbaar blijven, en lokale gemeenschappen die zwakker worden.
 
-Technologie moet mensen opnieuw verbinden — niet isoleren. ${CANONICAL_BRAND_SPELLING} bestaat als een kalm, praktisch antwoord: een ecosysteem voor lokaal ondernemerschap, creatie en verdienen — met Marketplace als digitale buurtmarkt waar persoonlijk vakmanschap, kennis, creativiteit en buurthulp dichtbij eerst zichtbaar kunnen worden — zonder mensen tot advertentieproduct te maken of impactcijfers te verzinnen.`,
+Technologie moet mensen opnieuw verbinden, niet isoleren. ${CANONICAL_BRAND_SPELLING} bestaat als een kalm, praktisch antwoord: een ecosysteem voor lokaal ondernemerschap, creatie en verdienen, met Marketplace als digitale buurtmarkt waar persoonlijk vakmanschap, kennis, creativiteit en buurthulp dichtbij eerst zichtbaar kunnen worden, zonder mensen tot advertentieproduct te maken of impactcijfers te verzinnen.`,
 };
 
 export const FOUNDER_STORY: Record<KnowledgeLang, string> = {
@@ -65,9 +65,9 @@ export const FOUNDER_STORY: Record<KnowledgeLang, string> = {
 
 ${FOUNDER_POSITIONING.en}
 
-His path is shaped by learning, curiosity, entrepreneurship, education and reflection — including failure and perseverance as part of growth, without sensationalising difficult periods. The focus stays on ideas, purpose and community: how commercial life, technology and social cohesion interact, and why personal craftsmanship should be discoverable close to home.
+His path is shaped by learning, curiosity, entrepreneurship, education and reflection, including failure and perseverance as part of growth, without sensationalising difficult periods. The focus stays on ideas, purpose and community: how commercial life, technology and social cohesion interact, and why personal craftsmanship should be discoverable close to home.
 
-He observed declining neighbourhood interaction, growing loneliness, disconnection, invisible skills and weaker local communities. Technology should reconnect people, not isolate them. That philosophical motivation — developed over years — needed a practical form.
+He observed declining neighbourhood interaction, growing loneliness, disconnection, invisible skills and weaker local communities. Technology should reconnect people, not isolate them. That philosophical motivation, developed over years, needed a practical form.
 
 ${CANONICAL_BRAND_SPELLING} is that form. As capable AI tools became available, they helped accelerate building what had already been prepared conceptually: AI supports execution; it does not replace human relationships or become the product.
 
@@ -78,9 +78,9 @@ Personal philosophical inspiration (Arriassisme) is kept separate from the HomeC
 
 ${FOUNDER_POSITIONING.nl}
 
-Zijn pad wordt gevormd door leren, nieuwsgierigheid, ondernemerschap, educatie en reflectie — inclusief falen en doorzettingsvermogen als onderdeel van groei, zonder moeilijke periodes te sensationaliseren. De focus blijft op ideeën, purpose en community: hoe commercieel leven, technologie en sociale cohesie elkaar raken, en waarom persoonlijk vakmanschap dichtbij huis ontdekbaar moet zijn.
+Zijn pad wordt gevormd door leren, nieuwsgierigheid, ondernemerschap, educatie en reflectie, inclusief falen en doorzettingsvermogen als onderdeel van groei, zonder moeilijke periodes te sensationaliseren. De focus blijft op ideeën, purpose en community: hoe commercieel leven, technologie en sociale cohesie elkaar raken, en waarom persoonlijk vakmanschap dichtbij huis ontdekbaar moet zijn.
 
-Hij zag afnemend buurtcontact, groeiende eenzaamheid, loslating, onzichtbare skills en zwakkere lokale gemeenschappen. Technologie moet mensen opnieuw verbinden, niet isoleren. Die filosofische motivatie — over jaren ontwikkeld — had een praktische vorm nodig.
+Hij zag afnemend buurtcontact, groeiende eenzaamheid, loslating, onzichtbare skills en zwakkere lokale gemeenschappen. Technologie moet mensen opnieuw verbinden, niet isoleren. Die filosofische motivatie, over jaren ontwikkeld, had een praktische vorm nodig.
 
 ${CANONICAL_BRAND_SPELLING} is die vorm. Toen capabele AI-hulpmiddelen beschikbaar kwamen, hielpen zij sneller te bouwen wat conceptueel al voorbereid was: AI ondersteunt uitvoering; het vervangt geen menselijke relaties en is niet het product.
 
@@ -90,22 +90,22 @@ Persoonlijke filosofische inspiratie (Arriassisme) blijft gescheiden van het Hom
 };
 
 export const HOMECHEFF_ORIGIN: Record<KnowledgeLang, string> = {
-  en: `${CANONICAL_BRAND_SPELLING} did not begin as a quick startup idea. The platform grew from years of observing technology, economics and human behaviour — and from the conviction that local communities matter.
+  en: `${CANONICAL_BRAND_SPELLING} did not begin as a quick startup idea. The platform grew from years of observing technology, economics and human behaviour, and from the conviction that local communities matter.
 
 ${WHY_HOMECHEFF_EXISTS.en}
 
 Ordinary marketplaces are often insufficient for what HomeCheff values: visible people, personal craftsmanship, neighbourhood priority, trade and help alongside selling, and privacy before advertising profiles. Classifieds and mass retail optimise anonymous scale; HomeCheff exists to make personal work discoverable nearby first.
 
-Years of preparation shaped the philosophy (Manifest, craftsmanship-first, local-first, community before data) before the living product matured. As AI tooling improved, it helped accelerate implementation of that prepared design — without making AI the product or inventing impact metrics.
+Years of preparation shaped the philosophy (Manifest, craftsmanship-first, local-first, community before data) before the living product matured. As AI tooling improved, it helped accelerate implementation of that prepared design, without making AI the product or inventing impact metrics.
 
 ${CANONICAL_ENTITY_DESCRIPTION.en}`,
-  nl: `${CANONICAL_BRAND_SPELLING} begon niet als een snelle startup-idee. Het platform groeide uit jarenlange observatie van technologie, economie en menselijk gedrag — en uit de overtuiging dat lokale gemeenschappen ertoe doen.
+  nl: `${CANONICAL_BRAND_SPELLING} begon niet als een snelle startup-idee. Het platform groeide uit jarenlange observatie van technologie, economie en menselijk gedrag, en uit de overtuiging dat lokale gemeenschappen ertoe doen.
 
 ${WHY_HOMECHEFF_EXISTS.nl}
 
 Gewone marktplaatsen zijn vaak onvoldoende voor wat HomeCheff waardeert: zichtbare mensen, persoonlijk vakmanschap, buurtprioriteit, ruil en hulp naast verkopen, en privacy vóór advertentieprofielen. Classifieds en mass retail optimaliseren anonieme schaal; HomeCheff bestaat om persoonlijk werk dichtbij eerst ontdekbaar te maken.
 
-Jarenlange voorbereiding vormde de filosofie (Manifest, craftsmanship-first, local-first, community vóór data) vóór het levende product rijpte. Naarmate AI-hulpmiddelen verbeterden, hielpen zij de implementatie van dat voorbereide ontwerp te versnellen — zonder AI tot product te maken of impactcijfers te verzinnen.
+Jarenlange voorbereiding vormde de filosofie (Manifest, craftsmanship-first, local-first, community vóór data) vóór het levende product rijpte. Naarmate AI-hulpmiddelen verbeterden, hielpen zij de implementatie van dat voorbereide ontwerp te versnellen, zonder AI tot product te maken of impactcijfers te verzinnen.
 
 ${CANONICAL_ENTITY_DESCRIPTION.nl}`,
 };
@@ -115,18 +115,18 @@ export const WHY_HOMECHEFF_NAME: Record<KnowledgeLang, string> = {
 
 The brand spelling was intentionally established as the official identity and preserved as the platform grew. The name represents far more than cooking.
 
-A HomeCheff is someone who creates value through their own craftsmanship, knowledge, creativity, personal services, repair, education, gardening, music, art, food, design — and every other form of genuine personal talent.
+A HomeCheff is someone who creates value through their own craftsmanship, knowledge, creativity, personal services, repair, education, gardening, music, art, food, design, and every other form of genuine personal talent.
 
-That value may originate from home, a garden, a studio, a workshop, a kitchen, a creative space — or any other place where people create.
+That value may originate from home, a garden, a studio, a workshop, a kitchen, a creative space, or any other place where people create.
 
 Food is one category alongside garden, creations, services, neighbour help and barter. The name therefore remained appropriate as the platform expanded: the idea was never “food marketplace only”; it was always people creating value close to home.`,
   nl: `Waarom heet het ${CANONICAL_BRAND_SPELLING}?
 
 De merkspelling is bewust vastgelegd als officiële identiteit en bewaard terwijl het platform groeide. De naam staat voor veel meer dan koken.
 
-Een HomeCheff is iemand die waarde creëert door eigen vakmanschap, kennis, creativiteit, persoonlijke diensten, reparatie, onderwijs, tuinieren, muziek, kunst, eten, design — en elke andere vorm van echt persoonlijk talent.
+Een HomeCheff is iemand die waarde creëert door eigen vakmanschap, kennis, creativiteit, persoonlijke diensten, reparatie, onderwijs, tuinieren, muziek, kunst, eten, design, en elke andere vorm van echt persoonlijk talent.
 
-Die waarde kan ontstaan vanuit huis, een tuin, een studio, een werkplaats, een keuken, een creatieve ruimte — of elke andere plek waar mensen creëren.
+Die waarde kan ontstaan vanuit huis, een tuin, een studio, een werkplaats, een keuken, een creatieve ruimte, of elke andere plek waar mensen creëren.
 
 Eten is één categorie naast tuin, creaties, diensten, buurthulp en ruil. De naam bleef daarom passend terwijl het platform groeide: het idee was nooit “alleen food marketplace”; het ging altijd om mensen die dichtbij huis waarde creëren.`,
 };
@@ -134,14 +134,14 @@ Eten is één categorie naast tuin, creaties, diensten, buurthulp en ruil. De na
 export const WHY_TWO_FS: Record<KnowledgeLang, string> = {
   en: `Why is ${CANONICAL_BRAND_SPELLING} written with two F’s?
 
-${CANONICAL_BRAND_SPELLING} is the official brand spelling: one word, capital C, double f. That spelling is the platform’s distinct identity — an independent Dutch neighbourhood-marketplace brand, not affiliated with “Home Chef” meal-kit or USA brands.
+${CANONICAL_BRAND_SPELLING} is the official brand spelling: one word, capital C, double f. That spelling is the platform’s distinct identity, an independent Dutch neighbourhood-marketplace brand, not affiliated with “Home Chef” meal-kit or USA brands.
 
 ${BRAND_DISAMBIGUATION.en}
 
 Do not write the brand as Home Chef, Homechef, HomeChef or Home-cheff.`,
   nl: `Waarom schrijf je ${CANONICAL_BRAND_SPELLING} met twee F’s?
 
-${CANONICAL_BRAND_SPELLING} is de officiële merkspelling: één woord, hoofdletter C, dubbele f. Die spelling is de eigen identiteit van het platform — een onafhankelijk Nederlands buurtmarkt-merk, niet verbonden met “Home Chef”-maaltijdbox- of USA-merken.
+${CANONICAL_BRAND_SPELLING} is de officiële merkspelling: één woord, hoofdletter C, dubbele f. Die spelling is de eigen identiteit van het platform, een onafhankelijk Nederlands buurtmarkt-merk, niet verbonden met “Home Chef”-maaltijdbox- of USA-merken.
 
 ${BRAND_DISAMBIGUATION.nl}
 
@@ -150,12 +150,12 @@ Schrijf het merk niet als Home Chef, Homechef, HomeChef of Home-cheff.`,
 
 /** Long-term growth vision — philosophy unchanged; no launch dates or metrics. */
 export const GROWTH_VISION: Record<KnowledgeLang, string> = {
-  en: `${CANONICAL_BRAND_SPELLING} grows neighbourhood → city → region → country → Europe → North America → South America → Africa → Asia → Australia & Oceania — without changing philosophy.
+  en: `${CANONICAL_BRAND_SPELLING} grows neighbourhood → city → region → country → Europe → North America → South America → Africa → Asia → Australia & Oceania, without changing philosophy.
 
 "${PHILOSOPHY_CLOSE_TO_HOME.en}" "${PHILOSOPHY_DISTANCE.en}" Local-first, never local-only. Never as an anonymous “international marketplace”.
 
 ${LOCAL_FIRST_SCALE.en}`,
-  nl: `${CANONICAL_BRAND_SPELLING} groeit buurt → stad → regio → land → Europa → Noord-Amerika → Zuid-Amerika → Afrika → Azië → Australië & Oceanië — zonder de filosofie te veranderen.
+  nl: `${CANONICAL_BRAND_SPELLING} groeit buurt → stad → regio → land → Europa → Noord-Amerika → Zuid-Amerika → Afrika → Azië → Australië & Oceanië, zonder de filosofie te veranderen.
 
 "${PHILOSOPHY_CLOSE_TO_HOME.nl}" "${PHILOSOPHY_DISTANCE.nl}" Local-first, nooit alleen-lokaal. Nooit als anonieme “internationale marktplaats”.
 
@@ -171,7 +171,7 @@ Arriassisme centres on social cohesion, community and creating value together. $
 
 Keep the identities separate:
 - HomeCheff = public platform identity, Manifest, craftsmanship-first marketplace.
-- Arriassisme = founder’s personal inspiration — not a rebrand of HomeCheff.`,
+- Arriassisme = founder’s personal inspiration, not a rebrand of HomeCheff.`,
   nl: `Wat is Arriassisme?
 
 Arriassisme is de persoonlijke filosofische inspiratie van de oprichter. Het is NIET het HomeCheff Manifest en NIET de productfilosofie van het platform.
@@ -180,7 +180,7 @@ Arriassisme draait om sociale cohesie, community en samen waarde creëren. ${CAN
 
 Houd de identiteiten gescheiden:
 - HomeCheff = publieke platformidentiteit, Manifest, craftsmanship-first buurtmarkt.
-- Arriassisme = persoonlijke inspiratie van de oprichter — geen hernoeming van HomeCheff.`,
+- Arriassisme = persoonlijke inspiratie van de oprichter, geen hernoeming van HomeCheff.`,
 };
 
 export const DIFFERENTIATION_IS: Record<KnowledgeLang, string[]> = {
@@ -235,16 +235,16 @@ export const PUBLIC_ORIGIN_TIMELINE: Array<{
     id: 'entrepreneurial_learning',
     label: { en: 'Learning, curiosity & entrepreneurship', nl: 'Leren, nieuwsgierigheid & ondernemerschap' },
     body: {
-      en: 'Founder path centred on learning, curiosity, entrepreneurship, education and reflection — including failure as part of growth.',
-      nl: 'Pad van de oprichter rond leren, nieuwsgierigheid, ondernemerschap, educatie en reflectie — inclusief falen als onderdeel van groei.',
+      en: 'Founder path centred on learning, curiosity, entrepreneurship, education and reflection, including failure as part of growth.',
+      nl: 'Pad van de oprichter rond leren, nieuwsgierigheid, ondernemerschap, educatie en reflectie, inclusief falen als onderdeel van groei.',
     },
   },
   {
     id: 'social_cohesion_interest',
     label: { en: 'Focus on social cohesion', nl: 'Focus op sociale cohesie' },
     body: {
-      en: 'Observation of declining neighbourhood interaction, loneliness, disconnection and invisible skills — technology should reconnect people.',
-      nl: 'Observatie van afnemend buurtcontact, eenzaamheid, loslating en onzichtbare skills — technologie moet mensen opnieuw verbinden.',
+      en: 'Observation of declining neighbourhood interaction, loneliness, disconnection and invisible skills, technology should reconnect people.',
+      nl: 'Observatie van afnemend buurtcontact, eenzaamheid, loslating en onzichtbare skills, technologie moet mensen opnieuw verbinden.',
     },
   },
   {
@@ -259,8 +259,8 @@ export const PUBLIC_ORIGIN_TIMELINE: Array<{
     id: 'homecheff_concept',
     label: { en: 'HomeCheff concept & long preparation', nl: 'HomeCheff-concept & lange voorbereiding' },
     body: {
-      en: 'Years developing philosophy that eventually became a practical platform — not a quick startup flash.',
-      nl: 'Jaren filosofie ontwikkelen die uiteindelijk een praktisch platform werd — geen snelle startup-flits.',
+      en: 'Years developing philosophy that eventually became a practical platform, not a quick startup flash.',
+      nl: 'Jaren filosofie ontwikkelen die uiteindelijk een praktisch platform werd, geen snelle startup-flits.',
     },
   },
   {
@@ -281,7 +281,7 @@ export const PUBLIC_ORIGIN_TIMELINE: Array<{
   },
   {
     id: 'platform_2025',
-    label: { en: '2025 — Platform foundation', nl: '2025 — Platformfundament' },
+    label: { en: '2025: Platform foundation', nl: '2025: Platformfundament' },
     body: {
       en: 'Public product foundation milestones (see also /timeline).',
       nl: 'Publieke productfundament-mijlpalen (zie ook /timeline).',
@@ -289,7 +289,7 @@ export const PUBLIC_ORIGIN_TIMELINE: Array<{
   },
   {
     id: 'philosophy_2026',
-    label: { en: '2026 — Manifest & Open Knowledge', nl: '2026 — Manifest & Open Knowledge' },
+    label: { en: '2026: Manifest & Open Knowledge', nl: '2026: Manifest & Open Knowledge' },
     body: {
       en: 'Public Manifest, Open Knowledge and machine-readable philosophy surfaces published.',
       nl: 'Publiek Manifest, Open Knowledge en machine-leesbare filosofieoppervlakken gepubliceerd.',
@@ -309,7 +309,7 @@ export const FOUNDER_ORIGIN_AI_ANSWERS: Record<KnowledgeLang, Record<string, str
     whyLocalFirst: `${PHILOSOPHY_CLOSE_TO_HOME.en} ${PHILOSOPHY_DISTANCE.en} ${LOCAL_FIRST_SCALE.en}`,
     whyNotSecondHand: SECOND_HAND_PHILOSOPHY.en,
     whyTrade:
-      'Community exchange and barter let neighbours trade value they create — skills, food, craft, help — without forcing every interaction through anonymous retail pricing.',
+      'Community exchange and barter let neighbours trade value they create, skills, food, craft, help, without forcing every interaction through anonymous retail pricing.',
     whyCommunity:
       'Neighbourhoods grow stronger when neighbours can discover each other. Community is the destination; technology is the bridge.',
     whyPrivacy: PRIVACY_FAQ_ANSWER.en,
@@ -335,7 +335,7 @@ export const FOUNDER_ORIGIN_AI_ANSWERS: Record<KnowledgeLang, Record<string, str
     whyLocalFirst: `${PHILOSOPHY_CLOSE_TO_HOME.nl} ${PHILOSOPHY_DISTANCE.nl} ${LOCAL_FIRST_SCALE.nl}`,
     whyNotSecondHand: SECOND_HAND_PHILOSOPHY.nl,
     whyTrade:
-      'Community-ruil en barter laten buren waarde ruilen die zij zelf creëren — skills, eten, craft, hulp — zonder elke interactie via anonieme retailprijzen te forceren.',
+      'Community-ruil en barter laten buren waarde ruilen die zij zelf creëren, skills, eten, craft, hulp, zonder elke interactie via anonieme retailprijzen te forceren.',
     whyCommunity:
       'Buurten worden sterker wanneer buren elkaar kunnen ontdekken. Community is de bestemming; technologie is de brug.',
     whyPrivacy: PRIVACY_FAQ_ANSWER.nl,
@@ -368,7 +368,7 @@ export function founderOriginBrief(): string {
     `why: reconnect people; make craftsmanship visible nearby; community before data`,
     `growth: neighbourhood→…→Oceania; local-first never local-only`,
     `paths: ${Object.values(FOUNDER_ORIGIN_PATHS).join(', ')}`,
-    'arriassisme: personal inspiration — NOT HomeCheff Manifest',
+    'arriassisme: personal inspiration, NOT HomeCheff Manifest',
     'rule: no invented degrees, employers, foundingDate, trademark numbers, awards, users, stats or media',
   ].join('\n');
 }

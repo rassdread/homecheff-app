@@ -31,7 +31,7 @@ export default function OnboardingContactPage() {
         </h1>
         <p className="text-gray-600 mb-6">
           {t('onboardingFlow.contactSubtitle') ||
-            'Optioneel — je kunt dit later instellen onder Bereikbaarheid.'}
+            'Optioneel. Je kunt dit later instellen onder Bereikbaarheid.'}
         </p>
 
         <MakerContactSettings />

@@ -23,8 +23,8 @@ export default function HomecheffSeoHub({ locale }: { locale: "nl" | "en" }) {
     "@type": "WebPage",
     name: isNl ? "Onderwerpen en gidsen | HomeCheff" : "Guides and topics | HomeCheff",
     description: isNl
-      ? "Overzicht van HomeCheff-gidsen: persoonlijk vakmanschap, lokaal verdienen, buurthulp en community — eten is één categorie."
-      : "Overview of HomeCheff guides: personal craftsmanship, earn locally, neighbour help and community — food is one category.",
+      ? "Overzicht van HomeCheff-gidsen: persoonlijk vakmanschap, lokaal verdienen, buurthulp en community, eten is één categorie."
+      : "Overview of HomeCheff guides: personal craftsmanship, earn locally, neighbour help and community, food is one category.",
     url: canonical,
     inLanguage: isNl ? "nl-NL" : "en-US",
     isPartOf: { "@type": "WebSite", name: "HomeCheff", url: MAIN_DOMAIN },
@@ -48,8 +48,8 @@ export default function HomecheffSeoHub({ locale }: { locale: "nl" | "en" }) {
           </h1>
           <p className="mt-4 text-lg text-gray-700">
             {isNl
-              ? "HomeCheff is het digitale thuis van persoonlijk vakmanschap. Kies een kernonderwerp — eten is één categorie naast tuin, creaties, diensten en buurthulp."
-              : "HomeCheff is the digital home of personal craftsmanship. Pick a core topic — food is one category alongside garden, creations, services and neighbour help."}
+              ? "HomeCheff is het digitale thuis van persoonlijk vakmanschap. Kies een kernonderwerp, eten is één categorie naast tuin, creaties, diensten en buurthulp."
+              : "HomeCheff is the digital home of personal craftsmanship. Pick a core topic, food is one category alongside garden, creations, services and neighbour help."}
           </p>
 
           <div className="mt-10 space-y-12">

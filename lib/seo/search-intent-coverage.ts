@@ -26,7 +26,7 @@ export const SEARCH_INTENT_COVERAGE: SearchIntentRow[] = [
     intent: 'bake',
     coverage: 'partial',
     primarySurfaces: ['food SEO cluster', 'Chef category'],
-    note: 'Covered under home cooking — no dedicated bakery education page (gap, not spam target).',
+    note: 'Covered under home cooking, no dedicated bakery education page (gap, not spam target).',
   },
   {
     intent: 'grow',
@@ -68,7 +68,7 @@ export const SEARCH_INTENT_COVERAGE: SearchIntentRow[] = [
     intent: 'music',
     coverage: 'strong',
     primarySurfaces: ['fotografie-muziek landing'],
-    note: 'Shared creative-services page — acceptable; avoid thin music-only doorway.',
+    note: 'Shared creative-services page: acceptable; avoid thin music-only doorway.',
   },
   {
     intent: 'craft',
@@ -116,7 +116,7 @@ export const SEARCH_INTENT_COVERAGE: SearchIntentRow[] = [
     intent: 'creator economy',
     coverage: 'partial',
     primarySurfaces: ['/lokaal-verdienen', 'micro-ondernemen', '/manifest'],
-    note: 'Adjacent coverage; dedicated creator-economy explainer optional — not mass SEO.',
+    note: 'Adjacent coverage; dedicated creator-economy explainer optional, not mass SEO.',
   },
   {
     intent: 'local economy',

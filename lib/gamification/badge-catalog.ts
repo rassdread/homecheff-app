@@ -87,7 +87,7 @@ export const HCP_BADGE_CATALOG: BadgeCatalogEntry[] = [
   {
     slug: 'early-homecheff',
     name: 'Early HomeCheff Creator',
-    description: 'Level 4+ — je bouwt mee.',
+    description: 'Level 4+. Je bouwt mee.',
     iconKey: 'rocket',
     unlockHint: 'Bereik level 4 of hoger door HCP te verdienen (o.a. posts, streak en reviews).',
   },

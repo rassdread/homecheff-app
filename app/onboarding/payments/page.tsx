@@ -29,7 +29,7 @@ export default function OnboardingPaymentsPage() {
         </h1>
         <p className="text-gray-600 mb-6">
           {t('onboardingFlow.paymentsSubtitle') ||
-            'Optioneel — nodig als je wilt verkopen en uitbetalingen ontvangt.'}
+            'Optioneel. Nodig als je wilt verkopen en uitbetalingen ontvangt.'}
         </p>
 
         <Link

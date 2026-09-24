@@ -181,17 +181,17 @@ export const BLOCKLIST_LABELS: Record<string, BlocklistLabelPair> = {
     nl: 'Dropshipping',
     en: 'Dropshipping',
     reasonNl:
-      'HomeCheff is bedoeld voor aanbod waar jij zelf betekenisvolle waarde toevoegt — niet voor ongewijzigde doorverkoop of dropshipping.',
+      'HomeCheff is bedoeld voor aanbod waar jij zelf betekenisvolle waarde toevoegt, niet voor ongewijzigde doorverkoop of dropshipping.',
     reasonEn:
-      'HomeCheff is for offers where you personally add meaningful value — not unmodified resale or dropshipping.',
+      'HomeCheff is for offers where you personally add meaningful value, not unmodified resale or dropshipping.',
   },
   resale: {
     nl: 'Ongewijzigde wederverkoop',
     en: 'Unmodified resale',
     reasonNl:
-      'Ongewijzigde wederverkoop hoort niet op HomeCheff. Zelf maken, bereiden, kweken, ontwerpen, personaliseren, bewerken, restaureren of samenstellen wel — herkomst van onderdelen is niet doorslaggevend.',
+      'Ongewijzigde wederverkoop hoort niet op HomeCheff. Zelf maken, bereiden, kweken, ontwerpen, personaliseren, bewerken, restaureren of samenstellen wel, herkomst van onderdelen is niet doorslaggevend.',
     reasonEn:
-      'Unmodified resale does not belong on HomeCheff. Making, preparing, growing, designing, personalising, transforming, restoring or assembling does — material origin is not decisive.',
+      'Unmodified resale does not belong on HomeCheff. Making, preparing, growing, designing, personalising, transforming, restoring or assembling does, material origin is not decisive.',
   },
   rental: {
     nl: 'Verhuur',
@@ -247,8 +247,8 @@ export const TAXONOMY_UI_LABELS = {
       en: 'What would you also accept as value?',
     },
     description: {
-      nl: 'Optioneel — geef aan welke andere producten of diensten je ook zou accepteren als ruil of alternatieve waarde.',
-      en: 'Optional — indicate which other products or services you would also accept as trade or alternative value.',
+      nl: 'Optioneel. Geef aan welke andere producten of diensten je ook zou accepteren als ruil of alternatieve waarde.',
+      en: 'Optional, indicate which other products or services you would also accept as trade or alternative value.',
     },
     searchPlaceholder: { nl: 'Zoek in taxonomy…', en: 'Search taxonomy…' },
     filterAll: { nl: 'Alles', en: 'All' },

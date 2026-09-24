@@ -151,7 +151,7 @@ export default function DeliveryCompanyDashboardPage() {
             {companyName}
           </h1>
           <p className="text-sm text-gray-600">
-            Opdrachten, chauffeurs en bedrijfsinstellingen — tarief blijft van het bedrijf.
+            Opdrachten, chauffeurs en bedrijfsinstellingen: tarief blijft van het bedrijf.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

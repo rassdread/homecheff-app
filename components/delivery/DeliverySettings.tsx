@@ -1160,7 +1160,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                 <div>
                   <p className="text-gray-700 font-medium">Landelijke dekking</p>
                   <p className="text-sm text-gray-500">
-                    Toekomstklaar — schakelt de maximumafstandslimiet uit bij prijsberekening.
+                    Toekomstklaar: schakelt de maximumafstandslimiet uit bij prijsberekening.
                   </p>
                 </div>
                 <button

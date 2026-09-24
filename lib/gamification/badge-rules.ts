@@ -100,7 +100,7 @@ export const BADGE_ROW_META: Record<HcpV2BadgeSlug, BadgeRowMeta> = {
   },
   'early-homecheff': {
     name: 'Early HomeCheff Creator',
-    description: 'Level 4 of meer — je bouwt echt mee.',
+    description: 'Level 4 of meer. Je bouwt echt mee.',
     iconKey: 'rocket',
     unlockHint: catalogUnlockHint('early-homecheff'),
   },

@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json(
           {
             error:
-              'Gebruikersnaam kan niet worden gewijzigd. Alleen accounts met een tijdelijke of voorlopige naam mogen eenmalig een definitieve, unieke naam kiezen — zoals op de site beschreven.',
+              'Gebruikersnaam kan niet worden gewijzigd. Alleen accounts met een tijdelijke of voorlopige naam mogen eenmalig een definitieve, unieke naam kiezen, zoals op de site beschreven.',
           },
           { status: 400 }
         );

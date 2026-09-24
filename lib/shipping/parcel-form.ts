@@ -28,7 +28,7 @@ export function validateParcelFormUi(state: ParcelFormState): string | null {
     return 'Schakel «Verzenden binnen Nederland» in of schakel EctaroShip-verzending uit.';
   }
   if (!state.parcelPreset) {
-    return 'Kies hoe groot het pakket wordt — selecteer een formaat hieronder.';
+    return 'Kies hoe groot het pakket wordt, selecteer een formaat hieronder.';
   }
   const g = Number(String(state.weightGrams).replace(',', '.'));
   const l = Number(String(state.lengthCm).replace(',', '.'));

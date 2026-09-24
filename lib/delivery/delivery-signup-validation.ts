@@ -96,7 +96,7 @@ export const DELIVERY_SIGNUP_NL = {
   companyName: 'Vul een bedrijfsnaam in.',
   kvk: 'Vul een geldig KvK-nummer in (8 cijfers).',
   resume:
-    'Je account bestaat al, maar je bezorgerprofiel is nog niet afgerond. Log in en rond je aanmelding af — je hoeft geen nieuw account aan te maken.',
+    'Je account bestaat al, maar je bezorgerprofiel is nog niet afgerond. Log in en rond je aanmelding af. Je hoeft geen nieuw account aan te maken.',
   orphanRetry:
     'Je account is aangemaakt, maar je bezorgerprofiel kon nog niet worden afgerond. Je gegevens zijn bewaard. Log in en probeer het opnieuw.',
   internal:

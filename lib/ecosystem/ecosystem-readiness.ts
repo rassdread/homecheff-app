@@ -42,7 +42,7 @@ export type EcosystemParticipant = {
 
 export const ECOSYSTEM_OBJECTIVE = {
   from: 'Marketplace growth foundation (Phase 3)',
-  to: 'Living community ecosystem — every participant feels they belong',
+  to: 'Living community ecosystem: every participant feels they belong',
   notGoals: [
     'Add new functionality',
     'Redesign UI/Workspace',
@@ -86,17 +86,17 @@ export const CATEGORY_COVERAGE = {
 /** Full participant inventory — philosophy fit + first-impression readiness. */
 export const ECOSYSTEM_PARTICIPANTS: EcosystemParticipant[] = [
   // Food
-  { id: 'home_cooks', label: 'Home cooks', group: 'food', bucket: 'FOOD', fit: 'natural', firstImpression: 'Strong — cooking is a flagship signal.', evidence: 'FOOD category, Chef ecosystem, homemade philosophy.' },
-  { id: 'bakers', label: 'Bakers', group: 'food', bucket: 'FOOD', fit: 'natural', firstImpression: 'Strong — home bakery fits craftsmanship-first.', evidence: 'FOOD + create flow specializations.' },
+  { id: 'home_cooks', label: 'Home cooks', group: 'food', bucket: 'FOOD', fit: 'natural', firstImpression: 'Strong: cooking is a flagship signal.', evidence: 'FOOD category, Chef ecosystem, homemade philosophy.' },
+  { id: 'bakers', label: 'Bakers', group: 'food', bucket: 'FOOD', fit: 'natural', firstImpression: 'Strong: home bakery fits craftsmanship-first.', evidence: 'FOOD + create flow specializations.' },
   { id: 'restaurants', label: 'Restaurants', group: 'business', bucket: 'FOOD', fit: 'natural_with_cue', firstImpression: 'Needs cue: personal/local craft visible, not anonymous dark kitchen.', evidence: 'Seller/business tools; philosophy excludes mass retail identity.', gap: 'Onboarding example for “restaurant as neighbourhood craft”.' },
 
   // Garden
-  { id: 'gardeners', label: 'Gardeners', group: 'garden', bucket: 'GARDEN', fit: 'natural', firstImpression: 'Strong — harvest and plants are core.', evidence: 'GARDEN category, garden ecosystem.' },
+  { id: 'gardeners', label: 'Gardeners', group: 'garden', bucket: 'GARDEN', fit: 'natural', firstImpression: 'Strong: harvest and plants are core.', evidence: 'GARDEN category, garden ecosystem.' },
   { id: 'garden_maintenance', label: 'Garden maintenance', group: 'services', bucket: 'SERVICES', fit: 'natural', firstImpression: 'Clear as practical service nearby.', evidence: 'SERVICES / practicalService entry.' },
 
   // Creative
   { id: 'artists', label: 'Artists', group: 'creative', bucket: 'CREATIONS', fit: 'natural', firstImpression: 'Strong under creations.', evidence: 'CREATIONS + artistic entry.' },
-  { id: 'designers', label: 'Designers', group: 'creative', bucket: 'CREATIONS', fit: 'natural', firstImpression: 'Strong — design entry axis.', evidence: 'design entryCategories.' },
+  { id: 'designers', label: 'Designers', group: 'creative', bucket: 'CREATIONS', fit: 'natural', firstImpression: 'Strong: design entry axis.', evidence: 'design entryCategories.' },
   { id: 'photographers', label: 'Photographers', group: 'creative', bucket: 'SERVICES', fit: 'natural', firstImpression: 'Clear as creative/artistic service.', evidence: 'artisticService + services.' },
   { id: 'videographers', label: 'Videographers', group: 'creative', bucket: 'SERVICES', fit: 'natural_with_cue', firstImpression: 'Fits services; less explicit example than photo.', evidence: 'SERVICES absorb creative media.', gap: 'Example cue in entry/onboarding.' },
   { id: 'musicians', label: 'Musicians', group: 'creative', bucket: 'SERVICES', fit: 'natural_with_cue', firstImpression: 'Lessons/performance as service or knowledge.', evidence: 'knowledge / artisticService.', gap: 'Belonging cue for performers vs teachers.' },
@@ -109,7 +109,7 @@ export const ECOSYSTEM_PARTICIPANTS: EcosystemParticipant[] = [
   { id: 'developers', label: 'Developers', group: 'education', bucket: 'SERVICES', fit: 'natural_with_cue', firstImpression: 'Same as programmers.', evidence: 'knowledge services.', gap: 'Same cue as programmers.' },
 
   // Education
-  { id: 'teachers', label: 'Teachers', group: 'education', bucket: 'SERVICES', fit: 'natural', firstImpression: 'Strong — lessons/knowledge.', evidence: 'knowledge entry + SERVICES.' },
+  { id: 'teachers', label: 'Teachers', group: 'education', bucket: 'SERVICES', fit: 'natural', firstImpression: 'Strong: lessons/knowledge.', evidence: 'knowledge entry + SERVICES.' },
   { id: 'tutors', label: 'Tutors', group: 'education', bucket: 'SERVICES', fit: 'natural', firstImpression: 'Clear local tutoring fit.', evidence: 'knowledge / SERVICES.' },
   { id: 'consultants', label: 'Consultants', group: 'education', bucket: 'SERVICES', fit: 'natural', firstImpression: 'Personal expertise services.', evidence: 'SERVICES / knowledge.' },
   { id: 'fitness_coaches', label: 'Fitness coaches', group: 'education', bucket: 'SERVICES', fit: 'natural', firstImpression: 'Local coaching fits.', evidence: 'SERVICES.' },
@@ -130,9 +130,9 @@ export const ECOSYSTEM_PARTICIPANTS: EcosystemParticipant[] = [
   { id: 'neighbourhood_helpers', label: 'Neighbourhood helpers', group: 'community', bucket: 'WANTED', fit: 'natural', firstImpression: 'Core Gezocht / buurthulp identity.', evidence: 'Wanted view, buurthulp pillar, neighbour help.' },
   { id: 'volunteers', label: 'Volunteers', group: 'community', bucket: 'CROSS', fit: 'partial', firstImpression: 'Can offer help/non-transactional inspiration; less explicit volunteer model.', evidence: 'Inspiration + help + HCP community contribution.', gap: 'Volunteer-specific explanation without inventing NGO features.' },
   { id: 'charities', label: 'Charities', group: 'institutions', bucket: 'CROSS', fit: 'planned', firstImpression: 'Philosophy-aligned; no dedicated charity org mode.', evidence: 'Open knowledge / community guidelines.', gap: 'Org onboarding & trust cues for charities.' },
-  { id: 'community_organisations', label: 'Community organisations', group: 'institutions', bucket: 'CROSS', fit: 'planned', firstImpression: 'Same as charities — fit yes, surface thin.', evidence: 'Community activations library.', gap: 'Org profile / collaboration patterns.' },
+  { id: 'community_organisations', label: 'Community organisations', group: 'institutions', bucket: 'CROSS', fit: 'planned', firstImpression: 'Same as charities: fit yes, surface thin.', evidence: 'Community activations library.', gap: 'Org profile / collaboration patterns.' },
   { id: 'schools', label: 'Schools', group: 'institutions', bucket: 'CROSS', fit: 'planned', firstImpression: 'Education fit; institutional presence not first-class.', evidence: 'Teachers/tutors already natural.', gap: 'School-as-participant story.' },
-  { id: 'municipalities', label: 'Municipalities', group: 'institutions', bucket: 'CROSS', fit: 'blocked', firstImpression: 'Not yet “built for us” without public partnership.', evidence: 'Press/entity readiness only.', gap: 'Blocked until real public agreements — do not claim.' },
+  { id: 'municipalities', label: 'Municipalities', group: 'institutions', bucket: 'CROSS', fit: 'blocked', firstImpression: 'Not yet “built for us” without public partnership.', evidence: 'Press/entity readiness only.', gap: 'Blocked until real public agreements, do not claim.' },
   { id: 'housing_corporations', label: 'Housing corporations', group: 'institutions', bucket: 'CROSS', fit: 'planned', firstImpression: 'Neighbourhood economy fit; no dedicated path.', evidence: 'Local-first philosophy.', gap: 'Partnership readiness docs only.' },
 
   // Business & market
@@ -181,7 +181,7 @@ export const TRUST_ECOSYSTEM_REVIEW = {
     'community organisations',
   ] as const,
   status: 'ready' as const,
-  complexity: 'Profiles, reviews, reports, guidelines, safety — shared mechanisms without SNS complexity.',
+  complexity: 'Profiles, reviews, reports, guidelines, safety, shared mechanisms without SNS complexity.',
   gap: 'Care roles (babysitters) and institutions need stronger trust-first cues; orgs lack dedicated trust patterns.',
 };
 
@@ -216,7 +216,7 @@ export const LOCAL_COMMUNITY_REVIEW = {
   ] as const,
   status: 'partial' as const,
   evidence:
-    'Maker profiles, GeoFeed, ecosystems, activations, CommunityPulse, HCP — without becoming a social network.',
+    'Maker profiles, GeoFeed, ecosystems, activations, CommunityPulse, HCP, without becoming a social network.',
   gap: 'Stories/events/collaborations scale with real participation; avoid SNS feature creep.',
 };
 
@@ -317,7 +317,7 @@ export const MISSING_OPPORTUNITIES = [
   {
     id: 'institution_presence',
     area: 'participants',
-    note: 'Schools, municipalities, housing corporations — blocked/planned until real partnerships.',
+    note: 'Schools, municipalities, housing corporations: blocked/planned until real partnerships.',
   },
   {
     id: 'ambassador_surface',
@@ -332,7 +332,7 @@ export const MISSING_OPPORTUNITIES = [
   {
     id: 'no_new_categories_required',
     area: 'categories',
-    note: 'No missing canonical category — FOOD/GARDEN/CREATIONS/SERVICES + Wanted/Inspiration cover the model; cues > new taxonomy.',
+    note: 'No missing canonical category. FOOD/GARDEN/CREATIONS/SERVICES + Wanted/Inspiration cover the model; cues > new taxonomy.',
   },
 ] as const;
 
@@ -347,7 +347,7 @@ export const ECOSYSTEM_ROADMAP: Array<{
   { priority: 2, item: 'Volunteer/charity/community-org narrative (docs/copy only)', rationale: 'Philosophy fit without new social network.' },
   { priority: 3, item: 'Ambassador programme surface', rationale: 'Converts partial partner fit to runnable advocacy.' },
   { priority: 3, item: 'Market vendor / small business craft-visible examples', rationale: 'Prevent retail/classifieds confusion.' },
-  { priority: 4, item: 'Institutional collaborations only after public agreements', rationale: 'Municipality/housing/school — earn, never invent.' },
+  { priority: 4, item: 'Institutional collaborations only after public agreements', rationale: 'Municipality/housing/school: earn, never invent.' },
 ];
 
 export const ECOSYSTEM_SCORES = {
@@ -373,6 +373,6 @@ export function ecosystemReadinessBrief(): string {
     `loops: ${ECOSYSTEM_LOOPS.length}`,
     `missing: ${MISSING_OPPORTUNITIES.length}`,
     `scores: ecosystem=${ECOSYSTEM_SCORES.ecosystemReadiness} inclusion=${ECOSYSTEM_SCORES.creatorInclusion} completeness=${ECOSYSTEM_SCORES.marketplaceCompleteness}`,
-    'rule: validation only — no new features, no invented users, no SEO/AW changes',
+    'rule: validation only, no new features, no invented users, no SEO/AW changes',
   ].join('\n');
 }

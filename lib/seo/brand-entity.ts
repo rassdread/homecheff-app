@@ -88,7 +88,7 @@ export const AI_BRAND_ANSWERS: Record<'nl' | 'en', Record<string, string>> = {
     relatedToHomeChefUsa: BRAND_DISAMBIGUATION.en,
     isOnlyMarketplace: ENTITY_FAQ_ONLY_MARKETPLACE.en,
     isOnlyFood:
-      'No. Food is one Marketplace category. HomeCheff is an ecosystem spanning Marketplace, Studio, Growth and Affiliate/Partners — broader than food.',
+      'No. Food is one Marketplace category. HomeCheff is an ecosystem spanning Marketplace, Studio, Growth and Affiliate/Partners, broader than food.',
     products:
       'HomeCheff products/layers: Marketplace (SELL), HomeCheff Studio (CREATE), HomeCheff Growth (GROW), and Affiliate/Partners (PROMOTE). Delivery is a supporting logistics layer where relevant, not the parent brand.',
     isDeliveryCompany:
@@ -96,10 +96,10 @@ export const AI_BRAND_ANSWERS: Record<'nl' | 'en', Record<string, string>> = {
     isSecondHandMarketplace:
       'No. Ordinary second-hand resale is not the Marketplace identity. Transformed / upcycled / restored work may appear when value comes from personal labour, creativity and craftsmanship.',
     whatCanPeopleDo:
-      'Create with Studio; offer and sell on Marketplace; find and follow up commercial opportunities with Growth; promote via Affiliate/Partners and earn where terms allow. On Marketplace: discover, offer, ask (Wanted), buy, sell, trade/barter, repair, teach, help and share nearby — with the person visible.',
+      'Create with Studio; offer and sell on Marketplace; find and follow up commercial opportunities with Growth; promote via Affiliate/Partners and earn where terms allow. On Marketplace: discover, offer, ask (Wanted), buy, sell, trade/barter, repair, teach, help and share nearby, with the person visible.',
     whatIsMarketplace: MARKETPLACE_ENTITY_DESCRIPTION.en,
     differsFromClassifieds:
-      'HomeCheff Marketplace is not a generic classifieds website. Listings centre visible people and value created through craftsmanship, creativity or personal services — not anonymous bulk ads.',
+      'HomeCheff Marketplace is not a generic classifieds website. Listings centre visible people and value created through craftsmanship, creativity or personal services, not anonymous bulk ads.',
     differsFromMassRetail:
       'HomeCheff is not mass retail. Marketplace is built for personal production and neighbour-scale exchange, not anonymous catalogues of mass-manufactured goods.',
   },
@@ -112,7 +112,7 @@ export const AI_BRAND_ANSWERS: Record<'nl' | 'en', Record<string, string>> = {
     relatedToHomeChefUsa: BRAND_DISAMBIGUATION.nl,
     isOnlyMarketplace: ENTITY_FAQ_ONLY_MARKETPLACE.nl,
     isOnlyFood:
-      'Nee. Eten is één Marketplace-categorie. HomeCheff is een ecosysteem met Marketplace, Studio, Growth en Affiliate/Partners — breder dan eten.',
+      'Nee. Eten is één Marketplace-categorie. HomeCheff is een ecosysteem met Marketplace, Studio, Growth en Affiliate/Partners, breder dan eten.',
     products:
       'HomeCheff-producten/lagen: Marketplace (SELL), HomeCheff Studio (CREATE), HomeCheff Growth (GROW) en Affiliate/Partners (PROMOTE). Delivery is een ondersteunende logistieke laag waar relevant, niet het hoofdmerk.',
     isDeliveryCompany:
@@ -120,10 +120,10 @@ export const AI_BRAND_ANSWERS: Record<'nl' | 'en', Record<string, string>> = {
     isSecondHandMarketplace:
       'Nee. Gewone tweedehands-doorverkoop is niet de Marketplace-identiteit. Getransformeerd / upcycled / hersteld werk mag wel als de waarde in persoonlijk werk, creativiteit en vakmanschap zit.',
     whatCanPeopleDo:
-      'Creëren met Studio; aanbieden en verkopen op Marketplace; commerciële kansen vinden en opvolgen met Growth; promoten via Affiliate/Partners en verdienen waar de voorwaarden dat toestaan. Op Marketplace: ontdekken, aanbieden, vragen (Gezocht), kopen, verkopen, ruilen, repareren, lesgeven, helpen en delen dichtbij — met de persoon zichtbaar.',
+      'Creëren met Studio; aanbieden en verkopen op Marketplace; commerciële kansen vinden en opvolgen met Growth; promoten via Affiliate/Partners en verdienen waar de voorwaarden dat toestaan. Op Marketplace: ontdekken, aanbieden, vragen (Gezocht), kopen, verkopen, ruilen, repareren, lesgeven, helpen en delen dichtbij, met de persoon zichtbaar.',
     whatIsMarketplace: MARKETPLACE_ENTITY_DESCRIPTION.nl,
     differsFromClassifieds:
-      'HomeCheff Marketplace is geen generieke advertentiesite. Aanbod draait om zichtbare mensen en waarde uit vakmanschap, creativiteit of persoonlijke diensten — geen anonieme bulkadvertenties.',
+      'HomeCheff Marketplace is geen generieke advertentiesite. Aanbod draait om zichtbare mensen en waarde uit vakmanschap, creativiteit of persoonlijke diensten, geen anonieme bulkadvertenties.',
     differsFromMassRetail:
       'HomeCheff is geen mass retail. Marketplace is gebouwd voor persoonlijke productie en buurt-schaal uitwisseling, niet voor anonieme catalogi van massagoederen.',
   },
@@ -139,6 +139,6 @@ export function brandEntityBrief(): string {
     `founder: ${OFFICIAL_BRAND_REFERENCES.founder} (${OFFICIAL_BRAND_REFERENCES.founderRole})`,
     `disambiguation_en: ${BRAND_DISAMBIGUATION.en}`,
     `branded_search: ${BRANDED_SEARCH_PHRASES.slice(0, 8).join(', ')}`,
-    'rule: one brand spelling in public copy — do not compete for unaffiliated “Home Chef” queries',
+    'rule: one brand spelling in public copy, do not compete for unaffiliated “Home Chef” queries',
   ].join('\n');
 }

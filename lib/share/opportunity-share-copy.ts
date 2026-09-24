@@ -40,13 +40,13 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
     professionalText:
       'HomeCheff bouwt aan een lokaal ecosysteem waarin mensen kunnen verkopen, bezorgen, promoten en ondernemen.\n\nBekijk welke mogelijkheid bij jou past.',
     communityText:
-      'Ken je iemand die wil verkopen, bezorgen of meebouwen? Deel HomeCheff — er is voor ieder wat wils in het ecosysteem.',
-    shortPost: 'Verdien met HomeCheff — verkoop, bezorg, promoot of bouw mee.',
+      'Ken je iemand die wil verkopen, bezorgen of meebouwen? Deel HomeCheff. Er is voor ieder wat wils in het ecosysteem.',
+    shortPost: 'Verdien met HomeCheff: verkoop, bezorg, promoot of bouw mee.',
     emailSubject: 'Verdien met HomeCheff',
     emailBody:
       'Er zijn verschillende manieren om mee te doen én te verdienen met HomeCheff. Verkoop wat je maakt, bezorg in je buurt, promoot het platform of werk mee. Bekijk wat bij jou past:',
     socialCaption:
-      'Verdien met HomeCheff 🌿 Verkoop, bezorg, promoot of bouw mee. Link in tekst — bekijk wat bij jou past.',
+      'Verdien met HomeCheff 🌿 Verkoop, bezorg, promoot of bouw mee. Link in tekst. Bekijk wat bij jou past.',
     hashtags: ['HomeCheff', 'Ondernemen', 'Lokaal'],
     ogTitle: 'Verdien met HomeCheff',
     ogDescription:
@@ -54,7 +54,7 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
     ogHeadline: 'Verdien met HomeCheff',
     ogSubline: 'Verkoop · Bezorg · Promoot · Bouw mee',
     ecosystem: 'ecosystem',
-    imageAlt: 'HomeCheff ecosysteem — Verdien met HomeCheff',
+    imageAlt: 'HomeCheff ecosysteem: Verdien met HomeCheff',
   },
   seller: {
     title: 'Verkopen & aanbieden',
@@ -64,13 +64,13 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
     professionalText:
       'HomeCheff Marketplace helpt makers en aanbieders lokaal te verkopen.\n\nOntdek hoe je jouw producten of diensten kunt aanbieden.',
     communityText:
-      'Heb jij iets wat je buurt kan gebruiken? Op HomeCheff kun je lokaal aanbieden — van eten tot diensten.',
-    shortPost: 'Lokaal aanbieden via HomeCheff Marketplace — bekijk hoe je start.',
+      'Heb jij iets wat je buurt kan gebruiken? Op HomeCheff kun je lokaal aanbieden, van eten tot diensten.',
+    shortPost: 'Lokaal aanbieden via HomeCheff Marketplace. Bekijk hoe je start.',
     emailSubject: 'Aanbieden via HomeCheff',
     emailBody:
       'Maak of doe jij iets waar anderen iets aan hebben? Via HomeCheff kun je lokaal jouw producten of diensten aanbieden. Bekijk hoe je kunt beginnen:',
     socialCaption:
-      'Lokaal aanbieden via HomeCheff — producten of diensten. Bekijk hoe je start.',
+      'Lokaal aanbieden via HomeCheff: producten of diensten. Bekijk hoe je start.',
     hashtags: ['HomeCheff', 'Marketplace', 'Lokaal'],
     ogTitle: 'Verkopen & aanbieden via HomeCheff',
     ogDescription:
@@ -78,7 +78,7 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
     ogHeadline: 'Verkopen & aanbieden',
     ogSubline: 'Lokaal via HomeCheff Marketplace',
     ecosystem: 'marketplace',
-    imageAlt: 'HomeCheff Marketplace — verkopen en aanbieden',
+    imageAlt: 'HomeCheff Marketplace: verkopen en aanbieden',
   },
   delivery_individual: {
     title: 'Bezorgen',
@@ -102,7 +102,7 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
     ogHeadline: 'Bezorg in je buurt',
     ogSubline: 'Ontdek hoe je kunt meedoen · 18+',
     ecosystem: 'marketplace',
-    imageAlt: 'HomeCheff — bezorgen in je buurt',
+    imageAlt: 'HomeCheff: bezorgen in je buurt',
   },
   delivery_company: {
     title: 'Bezorgbedrijf',
@@ -126,7 +126,7 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
     ogHeadline: 'Bezorgbedrijf',
     ogSubline: 'Opdrachten voor jouw lokale team',
     ecosystem: 'marketplace',
-    imageAlt: 'HomeCheff — bezorgbedrijf',
+    imageAlt: 'HomeCheff: bezorgbedrijf',
   },
   affiliate: {
     title: 'Affiliate',
@@ -134,19 +134,19 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
     longText:
       'Ken jij mensen die bij HomeCheff passen? Deel HomeCheff en verdien mee wanneer jouw netwerk actief wordt binnen het ecosysteem. Geen gegarandeerd inkomen.',
     professionalText:
-      'Word HomeCheff-affiliate: deel kansen in je netwerk en verdien mee aan eligible platformomzet.\n\nGeen gegarandeerd inkomen — verdiensten hangen af van activiteit.',
+      'Word HomeCheff-affiliate: deel kansen in je netwerk en verdien mee aan eligible platformomzet.\n\nGeen gegarandeerd inkomen, verdiensten hangen af van activiteit.',
     communityText:
-      'Ken je makers, bezorgers of ondernemers? Deel HomeCheff en verdien mee als zij actief worden — zonder inkomensgarantie.',
-    shortPost: 'Deel HomeCheff als affiliate — verdien mee (geen garantie).',
+      'Ken je makers, bezorgers of ondernemers? Deel HomeCheff en verdien mee als zij actief worden, zonder inkomensgarantie.',
+    shortPost: 'Deel HomeCheff als affiliate: verdien mee (geen garantie).',
     emailSubject: 'HomeCheff affiliate',
     emailBody:
       'Ken jij mensen die bij HomeCheff passen? Deel HomeCheff en verdien mee wanneer jouw netwerk actief wordt. Geen gegarandeerd inkomen:',
     socialCaption:
-      'Deel HomeCheff als affiliate. Verdien mee wanneer je netwerk actief wordt — geen inkomensgarantie.',
+      'Deel HomeCheff als affiliate. Verdien mee wanneer je netwerk actief wordt, geen inkomensgarantie.',
     hashtags: ['HomeCheff', 'Affiliate', 'Ondernemen'],
     ogTitle: 'Promoot HomeCheff. Verdien mee.',
     ogDescription:
-      'Deel HomeCheff in je netwerk. Geen gegarandeerd inkomen — wel eligible platformomzet.',
+      'Deel HomeCheff in je netwerk. Geen gegarandeerd inkomen, wel eligible platformomzet.',
     ogHeadline: 'Promoot HomeCheff. Verdien mee.',
     ogSubline: 'Geen gegarandeerd inkomen',
     ecosystem: 'marketplace',
@@ -161,7 +161,7 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
       'HomeCheff zoekt marketing- en acquisitiepartners.\n\nOntdek hoe jouw bedrijf kan meebouwen aan de groei van het ecosysteem.',
     communityText:
       'Sales- of marketingbureau? Word marketingpartner van HomeCheff en bouw mee aan lokale groei.',
-    shortPost: 'Marketingpartner van HomeCheff — acquisitie & groei.',
+    shortPost: 'Marketingpartner van HomeCheff: acquisitie & groei.',
     emailSubject: 'HomeCheff marketingpartner',
     emailBody:
       'Werk je in sales, marketing of acquisitie? Ontdek hoe je als zakelijke partner kunt meebouwen aan de groei van HomeCheff:',
@@ -184,15 +184,15 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
     professionalText:
       'HomeCheff Studio helpt je content te maken voor product, bedrijf of idee.\n\nOntdek de creatieve tools in het HomeCheff-ecosysteem.',
     communityText:
-      'Creators opgelet: maak content met HomeCheff Studio — onderdeel van het HomeCheff-ecosysteem.',
-    shortPost: 'Maak. Creëer. Deel. — HomeCheff Studio.',
+      'Creators opgelet: maak content met HomeCheff Studio, onderdeel van het HomeCheff-ecosysteem.',
+    shortPost: 'Maak. Creëer. Deel. HomeCheff Studio.',
     emailSubject: 'HomeCheff Studio',
     emailBody:
       'Maak content voor je product, bedrijf of idee met HomeCheff Studio. Ontdek de creatieve mogelijkheden:',
     socialCaption:
-      'Maak. Creëer. Deel. — HomeCheff Studio voor content in het ecosysteem.',
+      'Maak. Creëer. Deel. HomeCheff Studio voor content in het ecosysteem.',
     hashtags: ['HomeCheff', 'Studio', 'Creators'],
-    ogTitle: 'HomeCheff Studio — Maak. Creëer. Deel.',
+    ogTitle: 'HomeCheff Studio. Maak. Creëer. Deel.',
     ogDescription:
       'Maak content voor je product, bedrijf of idee met HomeCheff Studio.',
     ogHeadline: 'HomeCheff Studio',
@@ -204,21 +204,21 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
     title: 'HomeCheff Growth',
     shortText: 'Vind zakelijke leads met HomeCheff Growth.',
     longText:
-      'Op zoek naar zakelijke kansen? HomeCheff Growth helpt professionals en bedrijven met leadgeneratie — een eigen product naast de Marketplace.',
+      'Op zoek naar zakelijke kansen? HomeCheff Growth helpt professionals en bedrijven met leadgeneratie, een eigen product naast de Marketplace.',
     professionalText:
       'HomeCheff Growth is het leadgeneratie-product van het HomeCheff-ecosysteem.\n\nOntdek hoe Growth zakelijke kansen ontsluit (niet de Marketplace).',
     communityText:
-      'Zakelijke leads nodig? Ontdek HomeCheff Growth — leadgeneratie binnen het ecosysteem.',
-    shortPost: 'HomeCheff Growth — zakelijke leadgeneratie.',
+      'Zakelijke leads nodig? Ontdek HomeCheff Growth, leadgeneratie binnen het ecosysteem.',
+    shortPost: 'HomeCheff Growth: zakelijke leadgeneratie.',
     emailSubject: 'HomeCheff Growth',
     emailBody:
-      'Ontdek HomeCheff Growth voor zakelijke leadgeneratie — een eigen product in het HomeCheff-ecosysteem:',
+      'Ontdek HomeCheff Growth voor zakelijke leadgeneratie, een eigen product in het HomeCheff-ecosysteem:',
     socialCaption:
       'HomeCheff Growth: zakelijke leadgeneratie in het ecosysteem (niet Marketplace).',
     hashtags: ['HomeCheff', 'Growth', 'Leads'],
-    ogTitle: 'HomeCheff Growth — zakelijke leads',
+    ogTitle: 'HomeCheff Growth: zakelijke leads',
     ogDescription:
-      'Leadgeneratie voor professionals en bedrijven. HomeCheff Growth — niet de Marketplace.',
+      'Leadgeneratie voor professionals en bedrijven. HomeCheff Growth, niet de Marketplace.',
     ogHeadline: 'HomeCheff Growth',
     ogSubline: 'Zakelijke leadgeneratie',
     ecosystem: 'growth',
@@ -230,19 +230,19 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
     longText:
       'Wil je niet alleen HomeCheff gebruiken, maar eraan meebouwen? Bekijk de mogelijkheden om met HomeCheff samen te werken.',
     professionalText:
-      'HomeCheff zoekt mensen die het ecosysteem willen meebouwen.\n\nBekijk echte interne vacatures en stages — geen nepvacatures.',
+      'HomeCheff zoekt mensen die het ecosysteem willen meebouwen.\n\nBekijk echte interne vacatures en stages, geen nepvacatures.',
     communityText:
-      'Wil je meebouwen aan HomeCheff zelf? Bekijk echte vacatures — niet te verwarren met verkoper, bezorger of affiliate.',
-    shortPost: 'Echte vacatures bij HomeCheff — bouw mee aan het ecosysteem.',
+      'Wil je meebouwen aan HomeCheff zelf? Bekijk echte vacatures, niet te verwarren met verkoper, bezorger of affiliate.',
+    shortPost: 'Echte vacatures bij HomeCheff. Bouw mee aan het ecosysteem.',
     emailSubject: 'Vacatures bij HomeCheff',
     emailBody:
       'Wil je niet alleen HomeCheff gebruiken, maar eraan meebouwen? Bekijk de mogelijkheden:',
     socialCaption:
-      'Bouw mee aan HomeCheff — bekijk echte vacatures en stages.',
+      'Bouw mee aan HomeCheff. Bekijk echte vacatures en stages.',
     hashtags: ['HomeCheff', 'Vacatures', 'Werken'],
     ogTitle: 'Werken bij HomeCheff',
     ogDescription:
-      'Echte interne vacatures en stages bij HomeCheff — bouw mee aan het ecosysteem.',
+      'Echte interne vacatures en stages bij HomeCheff. Bouw mee aan het ecosysteem.',
     ogHeadline: 'Werken bij HomeCheff',
     ogSubline: 'Echte vacatures · bouw mee',
     ecosystem: 'ecosystem',
@@ -252,11 +252,11 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
     title: 'VerdienCheck | HomeCheff',
     shortText: 'Benieuwd wat bijverdienen voor jou ongeveer oplevert?',
     longText:
-      'Wat houd je echt extra over als je bijverdient? Bereken het met de HomeCheff VerdienCheck. Geen inkomensgarantie — een persoonlijke schatting na kosten, belasting en toeslagen.',
+      'Wat houd je echt extra over als je bijverdient? Bereken het met de HomeCheff VerdienCheck. Geen inkomensgarantie, een persoonlijke schatting na kosten, belasting en toeslagen.',
     professionalText:
       'De HomeCheff VerdienCheck helpt je inschatten wat extra verdienen na relevante kosten, belasting en toeslagen ongeveer betekent.\n\nGeen garantie en geen belastingadvies.',
     communityText:
-      'Ken je iemand die wil bijverdienen? Deel de HomeCheff VerdienCheck — ontdek wat extra verdienen ongeveer oplevert, zonder inkomensgarantie.',
+      'Ken je iemand die wil bijverdienen? Deel de HomeCheff VerdienCheck. Ontdek wat extra verdienen ongeveer oplevert, zonder inkomensgarantie.',
     shortPost: 'Benieuwd wat bijverdienen ongeveer oplevert? Doe de HomeCheff VerdienCheck.',
     emailSubject: 'VerdienCheck | HomeCheff',
     emailBody:
@@ -283,13 +283,13 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
     professionalText:
       'HomeCheff is building a local ecosystem where people can sell, deliver, promote, and build.\n\nSee which opportunity fits you.',
     communityText:
-      'Know someone who wants to sell, deliver, or build? Share HomeCheff — there is something for everyone in the ecosystem.',
-    shortPost: 'Earn with HomeCheff — sell, deliver, promote, or build.',
+      'Know someone who wants to sell, deliver, or build? Share HomeCheff, there is something for everyone in the ecosystem.',
+    shortPost: 'Earn with HomeCheff: sell, deliver, promote, or build.',
     emailSubject: 'Earn with HomeCheff',
     emailBody:
       'There are several ways to take part and earn with HomeCheff. Sell, deliver, promote, or join. See what fits you:',
     socialCaption:
-      'Earn with HomeCheff — sell, deliver, promote, or build. Link in text.',
+      'Earn with HomeCheff: sell, deliver, promote, or build. Link in text.',
     hashtags: ['HomeCheff', 'LocalBusiness', 'Earn'],
     ogTitle: 'Earn with HomeCheff',
     ogDescription:
@@ -297,7 +297,7 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
     ogHeadline: 'Earn with HomeCheff',
     ogSubline: 'Sell · Deliver · Promote · Build',
     ecosystem: 'ecosystem',
-    imageAlt: 'HomeCheff ecosystem — Earn with HomeCheff',
+    imageAlt: 'HomeCheff ecosystem: Earn with HomeCheff',
   },
   seller: {
     title: 'Sell & offer',
@@ -308,7 +308,7 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
       'HomeCheff Marketplace helps makers offer locally.\n\nDiscover how to list your products or services.',
     communityText:
       'Have something your neighbourhood needs? Offer it locally on HomeCheff.',
-    shortPost: 'Offer locally on HomeCheff Marketplace — see how to start.',
+    shortPost: 'Offer locally on HomeCheff Marketplace, see how to start.',
     emailSubject: 'Offer via HomeCheff',
     emailBody:
       'Do you make or do something others value? Offer locally via HomeCheff:',
@@ -319,7 +319,7 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
     ogHeadline: 'Sell & offer',
     ogSubline: 'Local via HomeCheff Marketplace',
     ecosystem: 'marketplace',
-    imageAlt: 'HomeCheff Marketplace — sell and offer',
+    imageAlt: 'HomeCheff Marketplace: sell and offer',
   },
   delivery_individual: {
     title: 'Deliver',
@@ -341,7 +341,7 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
     ogHeadline: 'Deliver nearby',
     ogSubline: 'See how to join · 18+',
     ecosystem: 'marketplace',
-    imageAlt: 'HomeCheff — local delivery',
+    imageAlt: 'HomeCheff: local delivery',
   },
   delivery_company: {
     title: 'Delivery company',
@@ -364,7 +364,7 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
     ogHeadline: 'Delivery company',
     ogSubline: 'Jobs for your local team',
     ecosystem: 'marketplace',
-    imageAlt: 'HomeCheff — delivery company',
+    imageAlt: 'HomeCheff: delivery company',
   },
   affiliate: {
     title: 'Affiliate',
@@ -372,19 +372,19 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
     longText:
       'Know people who fit HomeCheff? Share HomeCheff and earn when your network becomes active in the ecosystem. No guaranteed income.',
     professionalText:
-      'Become a HomeCheff affiliate: share opportunities and earn from eligible platform revenue.\n\nNo guaranteed income — earnings depend on activity.',
+      'Become a HomeCheff affiliate: share opportunities and earn from eligible platform revenue.\n\nNo guaranteed income, earnings depend on activity.',
     communityText:
-      'Know makers, couriers, or founders? Share HomeCheff and earn when they become active — no income guarantee.',
-    shortPost: 'Share HomeCheff as an affiliate — earn when they activate (no guarantee).',
+      'Know makers, couriers, or founders? Share HomeCheff and earn when they become active, no income guarantee.',
+    shortPost: 'Share HomeCheff as an affiliate, earn when they activate (no guarantee).',
     emailSubject: 'HomeCheff affiliate',
     emailBody:
       'Know people who fit HomeCheff? Share and earn when your network becomes active. No guaranteed income:',
     socialCaption:
-      'Share HomeCheff as an affiliate. Earn when your network activates — no income guarantee.',
+      'Share HomeCheff as an affiliate. Earn when your network activates, no income guarantee.',
     hashtags: ['HomeCheff', 'Affiliate', 'Earn'],
     ogTitle: 'Promote HomeCheff. Earn with it.',
     ogDescription:
-      'Share HomeCheff in your network. No guaranteed income — eligible platform revenue only.',
+      'Share HomeCheff in your network. No guaranteed income, eligible platform revenue only.',
     ogHeadline: 'Promote HomeCheff. Earn with it.',
     ogSubline: 'No guaranteed income',
     ecosystem: 'marketplace',
@@ -399,7 +399,7 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
       'HomeCheff seeks marketing and acquisition partners.\n\nSee how your company can help grow the ecosystem.',
     communityText:
       'Sales or marketing agency? Become a HomeCheff marketing partner.',
-    shortPost: 'HomeCheff marketing partner — acquisition & growth.',
+    shortPost: 'HomeCheff marketing partner: acquisition & growth.',
     emailSubject: 'HomeCheff marketing partner',
     emailBody:
       'Work in sales, marketing, or acquisition? Discover how to partner with HomeCheff:',
@@ -421,14 +421,14 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
     professionalText:
       'HomeCheff Studio helps you create content for products, businesses, and ideas.\n\nExplore creative tools in the ecosystem.',
     communityText:
-      'Creators: make content with HomeCheff Studio — part of the HomeCheff ecosystem.',
-    shortPost: 'Make. Create. Share. — HomeCheff Studio.',
+      'Creators: make content with HomeCheff Studio, part of the HomeCheff ecosystem.',
+    shortPost: 'Make. Create. Share. HomeCheff Studio.',
     emailSubject: 'HomeCheff Studio',
     emailBody:
       'Create content for your product, business, or idea with HomeCheff Studio:',
-    socialCaption: 'Make. Create. Share. — HomeCheff Studio.',
+    socialCaption: 'Make. Create. Share. HomeCheff Studio.',
     hashtags: ['HomeCheff', 'Studio', 'Creators'],
-    ogTitle: 'HomeCheff Studio — Make. Create. Share.',
+    ogTitle: 'HomeCheff Studio: Make. Create. Share.',
     ogDescription: 'Create content with HomeCheff Studio in the ecosystem.',
     ogHeadline: 'HomeCheff Studio',
     ogSubline: 'Make. Create. Share.',
@@ -439,21 +439,21 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
     title: 'HomeCheff Growth',
     shortText: 'Find business leads with HomeCheff Growth.',
     longText:
-      'Looking for business opportunities? HomeCheff Growth helps professionals and companies with lead generation — a distinct product alongside Marketplace.',
+      'Looking for business opportunities? HomeCheff Growth helps professionals and companies with lead generation, a distinct product alongside Marketplace.',
     professionalText:
       'HomeCheff Growth is the lead-generation product in the HomeCheff ecosystem.\n\nDiscover how Growth unlocks business opportunities (not Marketplace).',
     communityText:
-      'Need business leads? Explore HomeCheff Growth — lead generation in the ecosystem.',
-    shortPost: 'HomeCheff Growth — business lead generation.',
+      'Need business leads? Explore HomeCheff Growth, lead generation in the ecosystem.',
+    shortPost: 'HomeCheff Growth: business lead generation.',
     emailSubject: 'HomeCheff Growth',
     emailBody:
-      'Explore HomeCheff Growth for business lead generation — a distinct product in the ecosystem:',
+      'Explore HomeCheff Growth for business lead generation, a distinct product in the ecosystem:',
     socialCaption:
       'HomeCheff Growth: business lead generation (not Marketplace).',
     hashtags: ['HomeCheff', 'Growth', 'Leads'],
-    ogTitle: 'HomeCheff Growth — business leads',
+    ogTitle: 'HomeCheff Growth: business leads',
     ogDescription:
-      'Lead generation for professionals and companies. HomeCheff Growth — not Marketplace.',
+      'Lead generation for professionals and companies. HomeCheff Growth, not Marketplace.',
     ogHeadline: 'HomeCheff Growth',
     ogSubline: 'Business lead generation',
     ecosystem: 'growth',
@@ -465,18 +465,18 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
     longText:
       'Want to help build HomeCheff, not only use it? See how you can work with HomeCheff.',
     professionalText:
-      'HomeCheff is hiring people to help build the ecosystem.\n\nSee real internal roles and internships — no fake listings.',
+      'HomeCheff is hiring people to help build the ecosystem.\n\nSee real internal roles and internships, no fake listings.',
     communityText:
-      'Want to build HomeCheff itself? See real vacancies — not seller, courier, or affiliate roles.',
-    shortPost: 'Real HomeCheff jobs — help build the ecosystem.',
+      'Want to build HomeCheff itself? See real vacancies, not seller, courier, or affiliate roles.',
+    shortPost: 'Real HomeCheff jobs: help build the ecosystem.',
     emailSubject: 'HomeCheff careers',
     emailBody:
       'Want to help build HomeCheff, not only use it? See open roles:',
-    socialCaption: 'Help build HomeCheff — see real jobs and internships.',
+    socialCaption: 'Help build HomeCheff. See real jobs and internships.',
     hashtags: ['HomeCheff', 'Jobs', 'Careers'],
     ogTitle: 'Work at HomeCheff',
     ogDescription:
-      'Real internal roles and internships at HomeCheff — help build the ecosystem.',
+      'Real internal roles and internships at HomeCheff, help build the ecosystem.',
     ogHeadline: 'Work at HomeCheff',
     ogSubline: 'Real jobs · help build',
     ecosystem: 'ecosystem',
@@ -486,11 +486,11 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
     title: 'VerdienCheck | HomeCheff',
     shortText: 'Curious what extra earning would roughly mean for you?',
     longText:
-      'What do you actually keep extra if you earn on the side? Work it out with the HomeCheff VerdienCheck. No income guarantee — a personal estimate after costs, tax and allowances.',
+      'What do you actually keep extra if you earn on the side? Work it out with the HomeCheff VerdienCheck. No income guarantee, a personal estimate after costs, tax and allowances.',
     professionalText:
       'The HomeCheff VerdienCheck helps estimate what extra earning after relevant costs, tax and allowances would roughly mean.\n\nNo guarantee and no tax advice.',
     communityText:
-      'Know someone who wants to earn extra? Share the HomeCheff VerdienCheck — see what extra earning would roughly mean, with no income guarantee.',
+      'Know someone who wants to earn extra? Share the HomeCheff VerdienCheck. See what extra earning would roughly mean, with no income guarantee.',
     shortPost: 'Curious what extra earning roughly means? Try the HomeCheff VerdienCheck.',
     emailSubject: 'VerdienCheck | HomeCheff',
     emailBody:

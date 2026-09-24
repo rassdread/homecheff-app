@@ -14,28 +14,28 @@ export const constitutionPage: Record<string, Bi> = {
     en: 'HomeCheff Constitution | Operating System & governance',
   },
   metaDescription: {
-    nl: 'Constitutionele laag: beslissingskader, AI charter, groei, moderatie, investering en cultuur — voor founders, team, partners en AI. Geen marketing.',
-    en: 'Constitutional layer: decision framework, AI charter, growth, moderation, investment and culture — for founders, team, partners and AI. Not marketing.',
+    nl: 'Constitutionele laag: beslissingskader, AI charter, groei, moderatie, investering en cultuur, voor founders, team, partners en AI. Geen marketing.',
+    en: 'Constitutional layer: decision framework, AI charter, growth, moderation, investment and culture, for founders, team, partners and AI. Not marketing.',
   },
   title: { nl: 'HomeCheff Constitution', en: 'HomeCheff Constitution' },
   intro: {
-    nl: 'Dit is het operating system van HomeCheff — hoger dan features, roadmap of software. Het beschrijft hoe elke toekomstige beslissing wordt beoordeeld. Filosofische basis: het Manifest (/manifest). Dit document voegt governance charters toe voor product, AI, groei, moderatie, investering en cultuur.',
-    en: 'This is the HomeCheff operating system — above features, roadmap or software. It describes how every future decision is evaluated. Philosophical foundation: the Manifest (/manifest). This document adds governance charters for product, AI, growth, moderation, investment and culture.',
+    nl: 'Dit is het operating system van HomeCheff, hoger dan features, roadmap of software. Het beschrijft hoe elke toekomstige beslissing wordt beoordeeld. Filosofische basis: het Manifest (/manifest). Dit document voegt governance charters toe voor product, AI, groei, moderatie, investering en cultuur.',
+    en: 'This is the HomeCheff operating system, above features, roadmap or software. It describes how every future decision is evaluated. Philosophical foundation: the Manifest (/manifest). This document adds governance charters for product, AI, growth, moderation, investment and culture.',
   },
-  sectionConstitutionTitle: { nl: 'Constitution — permanente principes', en: 'Constitution — permanent principles' },
+  sectionConstitutionTitle: { nl: 'Constitution: permanente principes', en: 'Constitution: permanent principles' },
   sectionConstitutionBody: {
-    nl: 'HomeCheff bestaat om onzichtbare menselijke waarde zichtbaar te maken in buurten — niet om aandacht of engagement te maximaliseren. We worden een digitaal dorpsplein waar mensen mensen ontdekken. We worden nooit een engagement-machine, advertentieplatform of anonieme massa-marktplaats. Mensen gaan vóór algoritmes; technologie ondersteunt mensen — vervangt ze niet.',
-    en: 'HomeCheff exists to make invisible human value visible in neighbourhoods — not to maximise attention or engagement. We are becoming a digital village square where people discover people. We will never become an engagement machine, advertising platform or anonymous mass marketplace. People come before algorithms; technology supports people — it does not replace them.',
+    nl: 'HomeCheff bestaat om onzichtbare menselijke waarde zichtbaar te maken in buurten, niet om aandacht of engagement te maximaliseren. We worden een digitaal dorpsplein waar mensen mensen ontdekken. We worden nooit een engagement-machine, advertentieplatform of anonieme massa-marktplaats. Mensen gaan vóór algoritmes; technologie ondersteunt mensen, vervangt ze niet.',
+    en: 'HomeCheff exists to make invisible human value visible in neighbourhoods, not to maximise attention or engagement. We are becoming a digital village square where people discover people. We will never become an engagement machine, advertising platform or anonymous mass marketplace. People come before algorithms; technology supports people. It does not replace them.',
   },
   sectionProblemTitle: { nl: 'Welk probleem lossen we op?', en: 'What problem are we solving?' },
   sectionProblemBody: {
-    nl: 'Veel mensen koken, kweken, maken, repareren en helpen — maar een deel blijft economisch en sociaal onzichtbaar. HomeCheff verbindt dat vakmanschap met buren, zonder mensen te veranderen of te manipuleren.',
-    en: 'Many people cook, grow, make, repair and help — yet part of that remains economically and socially invisible. HomeCheff connects that craftsmanship with neighbours, without changing or manipulating people.',
+    nl: 'Veel mensen koken, kweken, maken, repareren en helpen, maar een deel blijft economisch en sociaal onzichtbaar. HomeCheff verbindt dat vakmanschap met buren, zonder mensen te veranderen of te manipuleren.',
+    en: 'Many people cook, grow, make, repair and help, yet part of that remains economically and socially invisible. HomeCheff connects that craftsmanship with neighbours, without changing or manipulating people.',
   },
   sectionBecomingTitle: { nl: 'Wat voor platform worden we?', en: 'What kind of platform are we becoming?' },
   sectionBecomingBody: {
-    nl: 'Een lokaal, menselijk, transparant platform voor vakmanschap, buurt-economie en eerlijke kansen — met open documentatie (/docs), bewijs (/evidence) en trust (/trust).',
-    en: 'A local, human, transparent platform for craft, community economy and honest opportunity — with open documentation (/docs), evidence (/evidence) and trust (/trust).',
+    nl: 'Een lokaal, menselijk, transparant platform voor vakmanschap, buurt-economie en eerlijke kansen, met open documentatie (/docs), bewijs (/evidence) en trust (/trust).',
+    en: 'A local, human, transparent platform for craft, community economy and honest opportunity, with open documentation (/docs), evidence (/evidence) and trust (/trust).',
   },
   sectionNeverTitle: { nl: 'Wat worden we nooit?', en: 'What will we never become?' },
   sectionNeverBody: {
@@ -44,8 +44,8 @@ export const constitutionPage: Record<string, Bi> = {
   },
   sectionPeopleFirstTitle: { nl: 'Mensen vóór algoritmes', en: 'People before algorithms' },
   sectionPeopleFirstBody: {
-    nl: 'Algoritmes ondersteunen ontdekking en fairness — geen verslaving. Ranking heeft diversiteitssecties; paid dominance is niet beloofd (Phase 13O). Technologie is de brug; mensen blijven de bestemming.',
-    en: 'Algorithms support discovery and fairness — not addiction. Ranking includes diversity sections; paid dominance is not promised (Phase 13O). Technology is the bridge; people remain the destination.',
+    nl: 'Algoritmes ondersteunen ontdekking en fairness, geen verslaving. Ranking heeft diversiteitssecties; paid dominance is niet beloofd (Phase 13O). Technologie is de brug; mensen blijven de bestemming.',
+    en: 'Algorithms support discovery and fairness, not addiction. Ranking includes diversity sections; paid dominance is not promised (Phase 13O). Technology is the bridge; people remain the destination.',
   },
   sectionDecisionTitle: { nl: 'Decision Framework', en: 'Decision Framework' },
   sectionDecisionBody: {
@@ -57,15 +57,15 @@ export const constitutionPage: Record<string, Bi> = {
     nl: 'Een idee wordt geaccepteerd alleen als het: (1) een echt probleem oplost, (2) mensen verbetert i.p.v. verslaafd maakt, (3) complexiteit verlaagt, (4) trust verhoogt, (5) past bij het Manifest, (6) past bij deze Constitution. Geen uitzonderingen zonder expliciete governance-review.',
     en: 'An idea is accepted only if it: (1) solves a real problem, (2) improves people instead of addicting them, (3) reduces complexity, (4) improves trust, (5) fits the Manifest, (6) fits this Constitution. No exceptions without explicit governance review.',
   },
-  sectionFeatureRejectTitle: { nl: 'Wat we bewust afwijzen — en waarom', en: 'What we deliberately reject — and why' },
+  sectionFeatureRejectTitle: { nl: 'Wat we bewust afwijzen: en waarom', en: 'What we deliberately reject, and why' },
   sectionFeatureRejectBody: {
     nl: 'Geen infinite scroll voor engagement, gokmechanica, lootboxes, nep-urgentie, dark patterns, manipulatie of “engagement om engagement”. Waarom: het ondermijnt vertrouwen, verslaving en welzijn, en past niet bij “technologie met geweten”.',
     en: 'No infinite scroll for engagement, gambling mechanics, loot boxes, fake urgency, dark patterns, manipulation or “engagement for engagement”. Why: it undermines trust, addiction and wellbeing, and does not fit “technology with a conscience”.',
   },
   sectionModerationTitle: { nl: 'Moderation Philosophy', en: 'Moderation Philosophy' },
   sectionModerationBody: {
-    nl: 'Moderators vragen niet alleen “breekt dit een regel?” maar “versterkt dit de community?”. Fairness, consistentie, transparantie en menselijk oordeel staan centraal. Appeal via /contact. Technologie ondersteunt moderatie (melden, suspensie) — vervangt geen menselijkheid. Operationele details: /docs/trust.',
-    en: 'Moderators ask not only “does this break a rule?” but “does this strengthen the community?”. Fairness, consistency, transparency and human judgement are central. Appeal via /contact. Technology supports moderation (reporting, suspension) — it does not replace humanity. Operational details: /docs/trust.',
+    nl: 'Moderators vragen niet alleen “breekt dit een regel?” maar “versterkt dit de community?”. Fairness, consistentie, transparantie en menselijk oordeel staan centraal. Appeal via /contact. Technologie ondersteunt moderatie (melden, suspensie), vervangt geen menselijkheid. Operationele details: /docs/trust.',
+    en: 'Moderators ask not only “does this break a rule?” but “does this strengthen the community?”. Fairness, consistency, transparency and human judgement are central. Appeal via /contact. Technology supports moderation (reporting, suspension). It does not replace humanity. Operational details: /docs/trust.',
   },
   sectionAiCharterTitle: { nl: 'AI Charter', en: 'AI Charter' },
   sectionAiCharterBody: {
@@ -79,8 +79,8 @@ export const constitutionPage: Record<string, Bi> = {
   },
   sectionInvestmentTitle: { nl: 'Investment Principles', en: 'Investment Principles' },
   sectionInvestmentBody: {
-    nl: 'Voor elke investering: versterkt het de missie? Blijft het platform onafhankelijk genoeg? Beïnvloedt geld onze ethiek? Zouden we funding afwijzen die manipulatie vereist? HomeCheff wijst partnerschap af dat dark patterns of engagement-traps verplicht stelt — ook als het financieel aantrekkelijk is.',
-    en: 'For every investment: does it strengthen the mission? Does the platform remain independent enough? Does money influence our ethics? Would we reject funding that requires manipulation? HomeCheff declines partnerships that mandate dark patterns or engagement traps — even when financially attractive.',
+    nl: 'Voor elke investering: versterkt het de missie? Blijft het platform onafhankelijk genoeg? Beïnvloedt geld onze ethiek? Zouden we funding afwijzen die manipulatie vereist? HomeCheff wijst partnerschap af dat dark patterns of engagement-traps verplicht stelt, ook als het financieel aantrekkelijk is.',
+    en: 'For every investment: does it strengthen the mission? Does the platform remain independent enough? Does money influence our ethics? Would we reject funding that requires manipulation? HomeCheff declines partnerships that mandate dark patterns or engagement traps, even when financially attractive.',
   },
   sectionGovernanceTitle: { nl: 'Open Governance', en: 'Open Governance' },
   sectionGovernanceBody: {
@@ -89,13 +89,13 @@ export const constitutionPage: Record<string, Bi> = {
   },
   sectionCultureTitle: { nl: 'Company Culture', en: 'Company Culture' },
   sectionCultureBody: {
-    nl: 'Toekomstige medewerkers moeten begrijpen: waarom HomeCheff bestaat, hoe beslissingen worden genomen, hoe gebruikers/collega’s/gemeenschappen worden behandeld. Succes is niet alleen omzet — ook mensen geholpen, trust opgebouwd, vakmanschap mogelijk gemaakt, communities versterkt. Publiek communiceren we alleen meetbare uitkomsten wanneer bewijs bestaat (Phase 13O).',
-    en: 'Future employees must understand: why HomeCheff exists, how decisions are made, how users/colleagues/communities are treated. Success is not revenue alone — also people helped, trust built, craftsmanship enabled, communities strengthened. We communicate measurable outcomes publicly only when evidence exists (Phase 13O).',
+    nl: 'Toekomstige medewerkers moeten begrijpen: waarom HomeCheff bestaat, hoe beslissingen worden genomen, hoe gebruikers/collega’s/gemeenschappen worden behandeld. Succes is niet alleen omzet, ook mensen geholpen, trust opgebouwd, vakmanschap mogelijk gemaakt, communities versterkt. Publiek communiceren we alleen meetbare uitkomsten wanneer bewijs bestaat (Phase 13O).',
+    en: 'Future employees must understand: why HomeCheff exists, how decisions are made, how users/colleagues/communities are treated. Success is not revenue alone, also people helped, trust built, craftsmanship enabled, communities strengthened. We communicate measurable outcomes publicly only when evidence exists (Phase 13O).',
   },
-  sectionFuture25Title: { nl: 'HomeCheff in 25 jaar — richting, geen belofte', en: 'HomeCheff in 25 years — direction, not promise' },
+  sectionFuture25Title: { nl: 'HomeCheff in 25 jaar: richting, geen belofte', en: 'HomeCheff in 25 years: direction, not promise' },
   sectionFuture25Body: {
-    nl: 'Aspirationeel: technologie wordt stiller; mensen zichtbaarder; lokale economieën sterker; vakmanschap waardevoller; AI een assistent; communities gezonder. Dit zijn geen voorspellingen of meetbare claims — alleen richting. Het platform moet herkenbaar blijven als elke regel code vervangen is.',
-    en: 'Aspirational: technology becomes quieter; people more visible; local economies stronger; craftsmanship more valuable; AI an assistant; communities healthier. These are not predictions or measurable claims — direction only. The platform must remain recognisable even if every line of code is replaced.',
+    nl: 'Aspirationeel: technologie wordt stiller; mensen zichtbaarder; lokale economieën sterker; vakmanschap waardevoller; AI een assistent; communities gezonder. Dit zijn geen voorspellingen of meetbare claims, alleen richting. Het platform moet herkenbaar blijven als elke regel code vervangen is.',
+    en: 'Aspirational: technology becomes quieter; people more visible; local economies stronger; craftsmanship more valuable; AI an assistant; communities healthier. These are not predictions or measurable claims, direction only. The platform must remain recognisable even if every line of code is replaced.',
   },
   linkManifest: { nl: 'Manifest', en: 'Manifest' },
   linkPrinciples: { nl: 'Open principes', en: 'Open principles' },

@@ -31,7 +31,7 @@ export default function HoeWerktHetOpenGraphImage() {
             Zo verdien je met HomeCheff
           </div>
           <div style={{ fontSize: 26, opacity: 0.92, marginTop: 20, maxWidth: 900 }}>
-            Platformfees, affiliatevergoedingen en uitbetaling — duidelijk uitgelegd
+            Platformfees, affiliatevergoedingen en uitbetaling: duidelijk uitgelegd
           </div>
         </div>
         <div style={{ fontSize: 22, opacity: 0.9 }}>homecheff.eu/werken-bij/hoe-werkt-het</div>

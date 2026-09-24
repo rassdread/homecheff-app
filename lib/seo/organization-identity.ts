@@ -174,15 +174,15 @@ export const PENDING_SAME_AS_VERIFICATION = [
   'Official Facebook Page URL',
   'Official YouTube channel URL (if published)',
   'Official TikTok profile URL (if published)',
-  'Wikidata item (if created — requires independent sources)',
-  'Wikipedia article (blocked until notability — do not create promotional stub)',
+  'Wikidata item (if created: requires independent sources)',
+  'Wikipedia article (blocked until notability, do not create promotional stub)',
   'Municipality of Vlaardingen partnership page (if published)',
 ] as const;
 
 /** Fields deliberately omitted from Organization JSON-LD. */
 export const ORGANIZATION_OMITTED_FIELDS = {
-  foundingDate: 'Not published on About or legal pages — do not guess.',
-  streetAddress: 'Only city (Vlaardingen) is published — no full street address.',
+  foundingDate: 'Not published on About or legal pages, do not guess.',
+  streetAddress: 'Only city (Vlaardingen) is published, no full street address.',
   founderBiography:
     'JSON-LD Person remains name/role/url only. Public knowledge at /sergio-arrias (no invented credentials). About avoids hero narrative.',
   socialProfiles:

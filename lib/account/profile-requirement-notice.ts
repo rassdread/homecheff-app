@@ -146,7 +146,7 @@ const SELLER_LOCATION: Record<
     shortLabelNl: 'Woonplaats',
     titleNl: 'Voeg je woonplaats toe om items in jouw buurt te kunnen aanbieden.',
     bodyNl:
-      'Stad helpt kopers in de buurt. Dit is geen blokkade — je mag eerst plaatsen.',
+      'Stad helpt kopers in de buurt. Dit is geen blokkade. Je mag eerst plaatsen.',
     ctaLabelNl: 'Woonplaats toevoegen',
     targetRoute: '/profile',
   },

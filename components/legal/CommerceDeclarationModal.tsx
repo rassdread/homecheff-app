@@ -46,7 +46,7 @@ export default function CommerceDeclarationModal({
             Hoe bied je aan op HomeCheff?
           </h2>
           <p className="mt-1 text-sm text-gray-600">
-            Kies wat het beste past. Dit is jouw keuze — geen juridische
+            Kies wat het beste past. Dit is jouw keuze, geen juridische
             vaststelling door HomeCheff.
           </p>
         </div>

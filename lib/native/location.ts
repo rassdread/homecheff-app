@@ -85,7 +85,7 @@ export async function getNativeCurrentPosition(options?: {
   if (!isNativeApp()) {
     throw new NativeLocationError(
       "not_native",
-      "Geen native app (Capacitor) — gebruik de browser-locatieflow."
+      "Geen native app (Capacitor). Gebruik de browser-locatieflow."
     );
   }
   try {
@@ -120,7 +120,7 @@ export async function requestAndGetNativeCurrentPosition(options?: {
   if (!isNativeApp()) {
     throw new NativeLocationError(
       "not_native",
-      "Geen native app (Capacitor) — gebruik de browser-locatieflow."
+      "Geen native app (Capacitor). Gebruik de browser-locatieflow."
     );
   }
   const granted = await requestNativeLocationPermission();

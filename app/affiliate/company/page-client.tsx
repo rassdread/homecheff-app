@@ -83,7 +83,7 @@ export default function AffiliateCompanyPageClient() {
         });
         const json = await res.json();
         if (json.ok) {
-          setMessage('Uitnodiging geaccepteerd — welkom in het team.');
+          setMessage('Uitnodiging geaccepteerd: welkom in het team.');
           await refreshList();
           if (json.organizationId) setSelectedId(String(json.organizationId));
         } else {
@@ -408,7 +408,7 @@ export default function AffiliateCompanyPageClient() {
                 {payout.connectOnboardingCompleted
                   ? 'Gereed voor uitbetaling'
                   : payout.connectAccountLinked
-                    ? 'Onboarding gestart — nog niet voltooid'
+                    ? 'Onboarding gestart: nog niet voltooid'
                     : 'Nog niet ingesteld'}
               </p>
               {!payout.connectOnboardingCompleted && (

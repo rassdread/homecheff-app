@@ -239,7 +239,7 @@ export default function FulfillmentLocationPanel({
                   defaultValue: 'Locatie afgerond',
                 })
               : t('proposal.location.pendingHeading', {
-                  defaultValue: 'Afspraak bevestigd — gegevens nog afronden',
+                  defaultValue: 'Afspraak bevestigd: gegevens nog afronden',
                 })}
           </p>
           <DetailRow

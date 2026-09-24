@@ -110,7 +110,7 @@ export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
           },
           {
             q: 'What is the Village Square (Dorpsplein)?',
-            a: 'The Village Square is where you discover what local makers and neighbours offer nearby — food, garden, creations, services and help — with profiles for trust. The person behind the offer is always visible.',
+            a: 'The Village Square is where you discover what local makers and neighbours offer nearby, food, garden, creations, services and help, with profiles for trust. The person behind the offer is always visible.',
           },
           {
             q: 'What are HomeCheff Points (HCP)?',
@@ -216,7 +216,7 @@ export function getFaqPageJsonLd(lang: 'nl' | 'en'): Record<string, unknown> {
           },
           {
             q: 'Wat is het Dorpsplein?',
-            a: 'Het Dorpsplein is waar je ontdekt wat lokale makers en buren bij jou in de buurt aanbieden — eten, tuin, creaties, diensten en hulp — met profielen voor vertrouwen. De persoon achter het aanbod is altijd zichtbaar.',
+            a: 'Het Dorpsplein is waar je ontdekt wat lokale makers en buren bij jou in de buurt aanbieden, eten, tuin, creaties, diensten en hulp, met profielen voor vertrouwen. De persoon achter het aanbod is altijd zichtbaar.',
           },
           {
             q: 'Wat zijn HomeCheff Points (HCP)?',

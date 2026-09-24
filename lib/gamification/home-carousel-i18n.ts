@@ -49,28 +49,28 @@ export function carouselStrings(lang: CarouselLang) {
     spotlightFallback: {
       title: L ? 'You could be featured here' : 'Jij kunt hier staan',
       subtitle: L
-        ? 'Stay active with HomeCheff Points — spotlights rotate automatically.'
-        : 'Blijf actief met HomeCheff Points — spotlights wisselen automatisch.',
+        ? 'Stay active with HomeCheff Points, spotlights rotate automatically.'
+        : 'Blijf actief met HomeCheff Points, spotlights wisselen automatisch.',
     },
     promoJoin: {
       title: L ? 'Join HomeCheff Points' : 'Doe mee met HomeCheff Points',
       subtitle: L
-        ? 'Complete missions and climb the boards — visibility may grow over time.'
-        : 'Voltooi missies en klim mee — zichtbaarheid kan in de loop van tijd groeien.',
+        ? 'Complete missions and climb the boards, visibility may grow over time.'
+        : 'Voltooi missies en klim mee, zichtbaarheid kan in de loop van tijd groeien.',
       cta: L ? 'Open Mijn HCP' : 'Open Mijn HCP',
     },
     promoLocal: {
       title: L ? 'Show up near you' : 'Word zichtbaar in jouw buurt',
       subtitle: L
-        ? 'Add an approximate area on your profile — nearby boards use rough radius only.'
-        : 'Zet een ruwe zone op je profiel — buurtboards gebruiken alleen een ruwe straal.',
+        ? 'Add an approximate area on your profile, nearby boards use rough radius only.'
+        : 'Zet een ruwe zone op je profiel, buurtboards gebruiken alleen een ruwe straal.',
       cta: L ? 'Profile' : 'Profiel',
     },
     promoBadges: {
       title: L ? 'Earn badges' : 'Verdien badges',
       subtitle: L
-        ? 'Badges reflect activity — they can unlock extra flair over time.'
-        : 'Badges tonen activiteit — ze kunnen later extra flair geven.',
+        ? 'Badges reflect activity: they can unlock extra flair over time.'
+        : 'Badges tonen activiteit. Ze kunnen later extra flair geven.',
       cta: L ? 'My HCP' : 'Mijn HCP',
     },
     promoInspire: {
@@ -88,7 +88,7 @@ export function carouselStrings(lang: CarouselLang) {
         : 'Beloningen worden automatisch verwerkt zodra je aan de voorwaarden voldoet. Denk aan extra zichtbaarheid, badges, profielboosts, spotlight-plekken of promoties in de HCP-schermen. Er zijn geen vaste geldprijzen of automatische uitbetalingen gekoppeld aan HCP, tenzij HomeCheff dat apart en vooraf communiceert.',
       /** Homepage-carousel (compact). */
       subtitleShort: L
-        ? 'Processed automatically when you qualify — badges, boosts & spotlights. No fixed cash prizes unless announced.'
+        ? 'Processed automatically when you qualify, badges, boosts & spotlights. No fixed cash prizes unless announced.'
         : 'Automatisch bij voorwaarden: badges, boosts en spotlights. Geen vaste geldprijzen tenzij vooraf bekend.',
       cta: L ? 'Leaderboards' : 'Ranglijsten',
     },

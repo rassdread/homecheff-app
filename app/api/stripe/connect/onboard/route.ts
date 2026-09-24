@@ -297,8 +297,8 @@ export async function POST(req: NextRequest) {
           success: true,
           message:
             live.uiStatus === 'PENDING_VERIFICATION'
-              ? 'Stripe is verifying your details — no onboarding link needed'
-              : 'No actionable Stripe requirements — onboarding link not created',
+              ? 'Stripe is verifying your details, no onboarding link needed'
+              : 'No actionable Stripe requirements: onboarding link not created',
           accountId: current.stripeConnectAccountId,
           uiStatus: live.uiStatus,
           paymentReady: live.paymentReady,

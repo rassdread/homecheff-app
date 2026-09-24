@@ -99,7 +99,7 @@ function summarizeMessage(msg: {
       hasAttachment: Boolean(msg.attachmentUrl || msg.attachmentName),
       body: null,
       encrypted: true,
-      note: 'Encrypted message body omitted — decrypt locally if you hold the key.',
+      note: 'Encrypted message body omitted: decrypt locally if you hold the key.',
     };
   }
   return {

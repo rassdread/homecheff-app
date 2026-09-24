@@ -88,12 +88,12 @@ export async function generateMetadata(
     const description =
       lang === 'en'
         ? sellerName
-          ? `${product.title} from ${sellerName}${city ? ` in ${city}` : ''} on HomeCheff — personal craftsmanship from a real local maker.`
+          ? `${product.title} from ${sellerName}${city ? ` in ${city}` : ''} on HomeCheff: personal craftsmanship from a real local maker.`
           : city
             ? `Discover ${product.title} from local makers in ${city} on HomeCheff.`
             : `Discover ${product.title} from local makers on HomeCheff.`
         : sellerName
-          ? `${product.title} van ${sellerName}${city ? ` in ${city}` : ''} op HomeCheff — persoonlijk vakmanschap van een echte maker.`
+          ? `${product.title} van ${sellerName}${city ? ` in ${city}` : ''} op HomeCheff: persoonlijk vakmanschap van een echte maker.`
           : city
             ? `Ontdek ${product.title} van lokale makers in ${city} via HomeCheff.`
             : `Ontdek ${product.title} van lokale makers via HomeCheff.`;

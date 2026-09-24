@@ -60,7 +60,7 @@ export default function HomeHeroSection() {
           {/* Row 1 — identity + ecosystem navigation */}
           <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <p className="text-[11px] sm:text-xs font-semibold text-white/95 tracking-tight">
-              HomeCheff — {t('homePhase1.orientationIdentityGeneric')}
+              HomeCheff. {t('homePhase1.orientationIdentityGeneric')}
             </p>
             <HomepageEcosystemNavLinks tone="onHero" className="sm:justify-end" />
           </div>

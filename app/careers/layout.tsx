@@ -15,8 +15,8 @@ export async function generateMetadata(): Promise<Metadata> {
     ...og,
     title:
       lang === 'en'
-        ? 'Earn with HomeCheff — Sell, deliver, promote or join'
-        : 'Verdien met HomeCheff — Verkoop, bezorg, promoot of werk mee',
+        ? 'Earn with HomeCheff: Sell, deliver, promote or join'
+        : 'Verdien met HomeCheff: Verkoop, bezorg, promoot of werk mee',
     description:
       lang === 'en'
         ? 'See how you can participate in HomeCheff: sell what you make, deliver locally, become an affiliate or Affiliate Company, discover Studio and Growth, or view real HomeCheff jobs.'

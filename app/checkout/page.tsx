@@ -894,7 +894,7 @@ export default function CheckoutPage() {
         ? outboundLocalProviderMode()
         : checkoutDraft.selectedDelivery.toUpperCase();
 
-      // Model A: explicit HC selection — server re-validates eligibility/rate.
+      // Model A: explicit HC selection, server re-validates eligibility/rate.
       if (selectedHc > 0) {
         const remainingAfterHc = Math.max(0, subtotalCents - selectedHc);
         if (remainingAfterHc === 0) {
@@ -1473,7 +1473,7 @@ export default function CheckoutPage() {
                         )}
                         {bookingStatus === 'AUTO_CONFIRMED' && (
                           <p className="text-sm text-green-700 font-medium">
-                            Direct bevestigd — je kunt doorgaan naar betalen.
+                            Direct bevestigd. Je kunt doorgaan naar betalen.
                           </p>
                         )}
                         {bookingStatus === 'PENDING' && bookingRequestId && (
@@ -1484,7 +1484,7 @@ export default function CheckoutPage() {
                         )}
                         {bookingStatus === 'ACCEPTED' && (
                           <p className="text-sm text-green-700 font-medium">
-                            Bezorger heeft bevestigd — je kunt doorgaan naar betalen.
+                            Bezorger heeft bevestigd. Je kunt doorgaan naar betalen.
                           </p>
                         )}
                         {(bookingStatus === 'REJECTED' || bookingStatus === 'EXPIRED') && (

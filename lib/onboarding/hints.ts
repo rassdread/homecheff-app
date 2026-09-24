@@ -35,7 +35,7 @@ export const PAGE_HINTS: Record<string, PageHints> = {
       filters: {
         id: 'home-filters',
         title: '🔄 Zoeken met geld én waarde',
-        description: 'Gebruik Ik zoek voor wat je wilt vinden, of Ik bied om te shoppen met fruit, skills, hulp of creaties. Filter op geaccepteerde waarden — geen verborgen advanced optie.',
+        description: 'Gebruik Ik zoek voor wat je wilt vinden, of Ik bied om te shoppen met fruit, skills, hulp of creaties. Filter op geaccepteerde waarden, geen verborgen advanced optie.',
       },
       radius: {
         id: 'home-radius',

@@ -59,7 +59,7 @@ function normalizeSellerRolesForQuickAdd(raw: unknown): string[] {
   return normalizeCreatePlacementRoles(raw);
 }
 
-/** Bottom tabs: soft pill active state, calm hover — aligns with HomeCheff emerald/teal. */
+/** Bottom tabs: soft pill active state, calm hover, aligns with HomeCheff emerald/teal. */
 function navTabClasses(active: boolean, isNativeShell: boolean) {
   return cn(
     'flex flex-col items-center justify-center w-full max-w-[5rem] mx-auto rounded-2xl transition-all duration-200 ease-out',
@@ -108,7 +108,7 @@ export default function BottomNavigation() {
   const landscapeWork = useLandscapeWorkPosture();
   const { count: messagesUnreadCount } = useCommsUnread(sessionStatus === 'authenticated');
   const shouldHide = isBottomNavigationHidden(pathname);
-  /** WX 1B.4: bottom button menu is a portrait affordance — collapse in Landscape Work Posture. */
+  /** WX 1B.4: bottom button menu is a portrait affordance, collapse in Landscape Work Posture. */
   const landscapeCollapsed = landscapeWork.bottomNavCollapsed;
   /** Geen flow-spacer onder berichten: layout reserveert zelf (voorkomt dubbele “witte band”). */
   const suppressFlowSpacer =
@@ -758,7 +758,7 @@ export default function BottomNavigation() {
     // de cancel-change event af.
     if (!file) {
       armFilePickerGuard(800);
-      quickAddDebug('handleFileSelect: no file (cancel) — keeping menu open');
+      quickAddDebug('handleFileSelect: no file (cancel): keeping menu open');
       return;
     }
     // Verleng guard tijdens FileReader/compression zodat een late phantom-click niet
@@ -885,7 +885,7 @@ export default function BottomNavigation() {
     // de quick-add modal sloten en met `window.location.href` een hard reload deden.
     // Bij die hard reload gingen we soms terug naar `/` doordat de SessionProvider
     // tijdens het opnieuw mounten kort 'unauthenticated' rapporteerde en SessionGuard
-    // dan sessionStorage volledig wiste — incl. de net-opgeslagen foto.
+    // dan sessionStorage volledig wiste, incl. de net-opgeslagen foto.
     quickAddDebug('handleCategorySelect entry', {
       category,
       selectedPlatform,
@@ -914,7 +914,7 @@ export default function BottomNavigation() {
       photoLength: photoUrl?.length ?? 0,
     });
     
-    // Compress alleen foto's — video's niet door canvas/compressDataUrl halen
+    // Compress alleen foto's: video's niet door canvas/compressDataUrl halen
     const srcIsVideo = !!photoUrl && photoUrl.startsWith('data:video/');
     let compressedPhotoUrl = photoUrl;
     if (photoUrl && !srcIsVideo) {
@@ -968,7 +968,7 @@ export default function BottomNavigation() {
 
     // Sluit de quick-add modal eerst (state-only). Bewust GEEN
     // `closeQuickAddMenu()` aanroepen: die wist `quickAddPhoto` niet maar zou wel
-    // andere quick-add flags resetten — die zijn voor de overgang naar /sell/new
+    // andere quick-add flags resetten. Die zijn voor de overgang naar /sell/new
     // niet meer relevant.
     setShowQuickAddMenu(false);
     setQuickAddStep('platform');
@@ -1303,9 +1303,9 @@ export default function BottomNavigation() {
             // Only close if clicking directly on overlay background
             if (e.target !== e.currentTarget) return;
             // Negeer phantom click die Safari/mobile soms vuurt vlak na het sluiten van
-            // de native file picker — dit voorkomt dat de modal terugvalt naar homepage.
+            // de native file picker. Dit voorkomt dat de modal terugvalt naar homepage.
             if (isFilePickerGuardActive()) {
-              quickAddDebug('overlay click ignored — file picker guard active');
+              quickAddDebug('overlay click ignored: file picker guard active');
               e.preventDefault();
               e.stopPropagation();
               return;

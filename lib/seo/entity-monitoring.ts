@@ -104,11 +104,11 @@ export const KNOWLEDGE_PANEL_READINESS = {
   },
   wikipedia: {
     status: 'blocked' as const,
-    note: 'Notability not established — do not create promotional article.',
+    note: 'Notability not established: do not create promotional article.',
   },
   openCorporates: {
     status: 'planned' as const,
-    note: 'May mirror KvK company data for Arrias Beheer B.V. — verify before citing; do not invent records.',
+    note: 'May mirror KvK company data for Arrias Beheer B.V. verify before citing; do not invent records.',
   },
   businessRegistries: {
     status: 'verified_public' as const,
@@ -154,13 +154,13 @@ export const OFF_PAGE_ROADMAP: Array<{
   },
   {
     priority: 3,
-    item: 'TikTok / YouTube (optional) — craftsmanship and neighbourhood stories',
+    item: 'TikTok / YouTube (optional): craftsmanship and neighbourhood stories',
     rationale: 'Only if operator can sustain authentic content; no purchased engagement.',
   },
   {
     priority: 3,
     item: 'Podcasts, interviews, public talks, conference appearances',
-    rationale: 'Builds notability for future Wikipedia/Wikidata — never invent credits.',
+    rationale: 'Builds notability for future Wikipedia/Wikidata, never invent credits.',
   },
   {
     priority: 3,
@@ -170,11 +170,11 @@ export const OFF_PAGE_ROADMAP: Array<{
   {
     priority: 4,
     item: 'Wikidata item after independent sources; Wikipedia only if notability met',
-    rationale: 'Knowledge Panel path — blocked until secondary sources exist.',
+    rationale: 'Knowledge Panel path: blocked until secondary sources exist.',
   },
   {
     priority: 4,
-    item: 'Awards / incubators listings — only after official public announcement',
+    item: 'Awards / incubators listings: only after official public announcement',
     rationale: 'Never invent awards or programme memberships.',
   },
 ];
@@ -217,7 +217,7 @@ export const ENTITY_MONITOR_TRACKS: MonitorTrack[] = [
     cadence: 'monthly',
     status: 'prepared',
     checks: [
-      'Observe panel appearance for HomeCheff — do not spoof ownership',
+      'Observe panel appearance for HomeCheff, do not spoof ownership',
       'If panel appears: verify name, website, description against canonical entity',
       'Watch for duplicate entities / wrong logos / wrong operator',
     ],
@@ -286,7 +286,7 @@ export const ENTITY_MONITOR_TRACKS: MonitorTrack[] = [
     checks: [
       'Organization @id https://homecheff.eu/#organization stable',
       'WebSite @id https://homecheff.eu/#website stable',
-      'FAQPage still truthful — no spam FAQ injection',
+      'FAQPage still truthful: no spam FAQ injection',
       'No invented aggregateRating / review markup',
     ],
   },
@@ -334,14 +334,14 @@ export const EXTERNAL_TRUST_MONITOR = {
 
 export function entityMonitoringBrief(): string {
   return [
-    `objective: long-term recognition via genuine signals — monitoring only`,
+    `objective: long-term recognition via genuine signals, monitoring only`,
     `recognition_queries: ${BRAND_AUTHORITY_OBJECTIVE.recognitionQueries.join(', ')}`,
     `monitor_tracks: ${ENTITY_MONITOR_TRACKS.length}`,
     `expected_canonical: ${EXPECTED_AI_IDENTITY.canonical}`,
     `knowledge_panel: ${KNOWLEDGE_PANEL_READINESS.googleKnowledgePanel.status}`,
     `off_page_roadmap_items: ${OFF_PAGE_ROADMAP.length}`,
     `gsc: ${GOOGLE_SEARCH_CONSOLE_READINESS.status}; bing: ${BING_WEBMASTER_READINESS.status}`,
-    'rule: observe and document — never automate ranking manipulation or fabricate metrics',
+    'rule: observe and document, never automate ranking manipulation or fabricate metrics',
   ].join('\n');
 }
 

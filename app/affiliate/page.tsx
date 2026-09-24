@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 const faqsNl = [
   {
     q: 'Waarover wordt affiliatecommissie berekend?',
-    a: 'Over de HomeCheff-platformfee van de order — nooit over het hele orderbedrag, het verkopersdeel of HomeCheff Credits (HC).',
+    a: 'Over de HomeCheff-platformfee van de order, nooit over het hele orderbedrag, het verkopersdeel of HomeCheff Credits (HC).',
   },
   {
     q: 'Krijg ik commissie over het hele orderbedrag?',
@@ -39,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
       title: 'HomeCheff Marketplace Affiliate | 50% platform fee pool · 12 months',
       description:
-        'Refer a HomeCheff user and earn for 12 months from the eligible HomeCheff platform fee pool — never from full order value, seller payout, or HomeCheff Credits (HC).',
+        'Refer a HomeCheff user and earn for 12 months from the eligible HomeCheff platform fee pool, never from full order value, seller payout, or HomeCheff Credits (HC).',
       keywords: [
         'HomeCheff affiliate',
         'HomeCheff commissie',
@@ -68,7 +68,7 @@ export async function generateMetadata(): Promise<Metadata> {
         card: 'summary_large_image',
         title: 'Promote HomeCheff. Earn with it.',
         description:
-          'Share HomeCheff in your network. No guaranteed income — eligible platform revenue only.',
+          'Share HomeCheff in your network. No guaranteed income, eligible platform revenue only.',
         images: [opportunityOgImageUrl('affiliate', currentDomain)],
       },
       alternates: {
@@ -111,7 +111,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: 'Promoot HomeCheff. Verdien mee.',
       description:
-        'Deel HomeCheff in je netwerk. Geen gegarandeerd inkomen — wel eligible platformomzet.',
+        'Deel HomeCheff in je netwerk. Geen gegarandeerd inkomen, wel eligible platformomzet.',
       images: [opportunityOgImageUrl('affiliate', currentDomain)],
     },
     alternates: {
@@ -172,14 +172,14 @@ export default async function AffiliatePage() {
             Verdien mee met HomeCheff
           </h1>
           <p className="mt-4 text-center text-base leading-relaxed text-slate-700">
-            HomeCheff Marketplace is de lokale buurtmarkt van HomeCheff — voor eten, oogst, creaties
+            HomeCheff Marketplace is de lokale buurtmarkt van HomeCheff, voor eten, oogst, creaties
             en diensten dichtbij. Breng een gebruiker aan en ontvang 12 maanden lang een aandeel uit
             de HomeCheff-platformopbrengst die via die gebruiker wordt gegenereerd.
           </p>
           <div className="mt-6 space-y-3 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-700 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">De affiliatepool</h2>
             <p>
-              De pool is gebaseerd op de HomeCheff-platformfee — nooit op het verkopersdeel, de
+              De pool is gebaseerd op de HomeCheff-platformfee, nooit op het verkopersdeel, de
               volledige orderwaarde of HomeCheff Credits (HC).
             </p>
             <p>

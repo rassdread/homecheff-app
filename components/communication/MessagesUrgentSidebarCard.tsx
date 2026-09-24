@@ -12,7 +12,7 @@ type Props = {
 };
 
 /**
- * Prominent unread-messages alert for homepage sidebar — visible without scrolling.
+ * Prominent unread-messages alert for homepage sidebar, visible without scrolling.
  * Renders nothing when unread count is 0.
  */
 export default function MessagesUrgentSidebarCard({ className }: Props) {
@@ -60,8 +60,8 @@ export default function MessagesUrgentSidebarCard({ className }: Props) {
           <p className="mt-0.5 text-xs text-orange-900/75">
             {tOr(
               'homeDorpsplein.messagesUrgentHint',
-              'Reply when it suits you — your conversation is waiting.',
-              'Reageer wanneer het jou uitkomt — je gesprek wacht op je.',
+              'Reply when it suits you. Your conversation is waiting.',
+              'Reageer wanneer het jou uitkomt. Je gesprek wacht op je.',
             )}
           </p>
           <Link

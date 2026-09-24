@@ -48,32 +48,32 @@ const etenVerkopenVanuitHuisPage: Record<string, Bi> = {
     en: "Sell food from home | Without a webshop | HomeCheff",
   },
   metaDescription: {
-    nl: "Eten verkopen vanuit huis: ophalen, buurt, regels en klanten — zonder Shopify-stress. HomeCheff helpt je lokaal starten.",
-    en: "Sell food from home: pickup, neighbourhood, rules and customers — without Shopify stress. Start locally on HomeCheff.",
+    nl: "Eten verkopen vanuit huis: ophalen, buurt, regels en klanten, zonder Shopify-stress. HomeCheff helpt je lokaal starten.",
+    en: "Sell food from home: pickup, neighbourhood, rules and customers, without Shopify stress. Start locally on HomeCheff.",
   },
   title: {
     nl: "Eten verkopen vanuit huis: concreet, lokaal en zonder webshop als bottleneck",
     en: "Selling food from home: concrete, local and without a webshop bottleneck",
   },
   intro: {
-    nl: "Als je eten wilt verkopen vanuit huis, is de echte uitdaging niet “een site hebben”, maar vertrouwen, ritme en herhaalbare logistiek. Je concurrent is niet alleen andere thuiskoks, maar ook gemak: mensen moeten weten wat ze bestellen, wanneer ze het ophalen en waarom jouw maaltijd de moeite waard is. HomeCheff is gebouwd rond lokaal ophalen, duidelijke profielen en buurt-vraag — niet rond anonieme schaal.",
-    en: "If you want to sell food from home, the real challenge is not having a website, but trust, rhythm and repeatable logistics. Your competition is not only other cooks, but convenience: people need to know what they order, when they pick up and why your meal is worth it. HomeCheff is built around local pickup, clear profiles and neighbourhood demand — not anonymous scale.",
+    nl: "Als je eten wilt verkopen vanuit huis, is de echte uitdaging niet “een site hebben”, maar vertrouwen, ritme en herhaalbare logistiek. Je concurrent is niet alleen andere thuiskoks, maar ook gemak: mensen moeten weten wat ze bestellen, wanneer ze het ophalen en waarom jouw maaltijd de moeite waard is. HomeCheff is gebouwd rond lokaal ophalen, duidelijke profielen en buurt-vraag, niet rond anonieme schaal.",
+    en: "If you want to sell food from home, the real challenge is not having a website, but trust, rhythm and repeatable logistics. Your competition is not only other cooks, but convenience: people need to know what they order, when they pick up and why your meal is worth it. HomeCheff is built around local pickup, clear profiles and neighbourhood demand, not anonymous scale.",
   },
   sec1Title: {
     nl: "Waarom “producten verkopen zonder webshop” juist bij eten past",
     en: "Why selling products without a webshop fits food especially",
   },
   sec1Body: {
-    nl: "Een webshop lost geen koelketen, geen ophaalvenster en geen buurt-mond-tot-mond op. Wat wél werkt is een plek waar mensen in jouw omgeving zoeken, een profiel dat vertrouwen geeft, en een flow waarin bestellen net zo simpel voelt als bij een keten — maar dan met jouw verhaal. Daarom sluit dit aan bij producten verkopen zonder webshop: je gebruikt een marketplace-profiel in plaats van maanden theme-tweaken.",
-    en: "A webshop does not solve cold chain, pickup windows or neighbourhood word of mouth. What works is a place where nearby people search, a profile that builds trust, and a flow that feels as simple as a chain — but with your story. That is why selling without a webshop fits: you use a marketplace profile instead of months of theme tweaking.",
+    nl: "Een webshop lost geen koelketen, geen ophaalvenster en geen buurt-mond-tot-mond op. Wat wél werkt is een plek waar mensen in jouw omgeving zoeken, een profiel dat vertrouwen geeft, en een flow waarin bestellen net zo simpel voelt als bij een keten, maar dan met jouw verhaal. Daarom sluit dit aan bij producten verkopen zonder webshop: je gebruikt een marketplace-profiel in plaats van maanden theme-tweaken.",
+    en: "A webshop does not solve cold chain, pickup windows or neighbourhood word of mouth. What works is a place where nearby people search, a profile that builds trust, and a flow that feels as simple as a chain, but with your story. That is why selling without a webshop fits: you use a marketplace profile instead of months of theme tweaking.",
   },
   sec2Title: {
     nl: "Geld verdienen vanuit huis met eten: begin met één aanbod",
     en: "Earning from home with food: start with one offer",
   },
   sec2Body: {
-    nl: "De snelste route naar inkomen is niet een groot menu, maar één gerecht of één maaltijd-lijn die je week overzichtelijk houdt. Denk aan twee vaste bakken per week, een duidelijke prijs per portie en een vaste ophaaldag. Als dat loopt, breid je uit. Zo koppel je geld verdienen vanuit huis aan iets dat je volhoudt — niet aan een Instagram-perfecte maar onrealistische planning.",
-    en: "The fastest route to income is not a huge menu, but one dish or one meal line that keeps your week manageable. Think two trays per week, clear price per portion and a fixed pickup day. When that runs, you expand. That ties earning from home to something sustainable — not an Instagram-perfect but unrealistic plan.",
+    nl: "De snelste route naar inkomen is niet een groot menu, maar één gerecht of één maaltijd-lijn die je week overzichtelijk houdt. Denk aan twee vaste bakken per week, een duidelijke prijs per portie en een vaste ophaaldag. Als dat loopt, breid je uit. Zo koppel je geld verdienen vanuit huis aan iets dat je volhoudt, niet aan een Instagram-perfecte maar onrealistische planning.",
+    en: "The fastest route to income is not a huge menu, but one dish or one meal line that keeps your week manageable. Think two trays per week, clear price per portion and a fixed pickup day. When that runs, you expand. That ties earning from home to something sustainable, not an Instagram-perfect but unrealistic plan.",
   },
   sec3Title: {
     nl: "Klanten vinden: lokaal beats landelijk",
@@ -88,16 +88,16 @@ const etenVerkopenVanuitHuisPage: Record<string, Bi> = {
     en: "Why people quit dropshipping (and what you do differently)",
   },
   sec4Body: {
-    nl: "Dropshipping loopt vast op identieke producten, lage marges en geen relatie. Eten vanuit huis is het tegenovergestelde: tastbaar, persoonlijk en herhaalbaar in dezelfde postcode. Je bouwt reputatie op kwaliteit en afspraken — niet op wie de snelste advertentie heeft.",
-    en: "Dropshipping hits identical products, low margins and no relationship. Food from home is the opposite: tangible, personal and repeatable in the same postcode. You build reputation on quality and agreements — not on who buys the fastest ads.",
+    nl: "Dropshipping loopt vast op identieke producten, lage marges en geen relatie. Eten vanuit huis is het tegenovergestelde: tastbaar, persoonlijk en herhaalbaar in dezelfde postcode. Je bouwt reputatie op kwaliteit en afspraken, niet op wie de snelste advertentie heeft.",
+    en: "Dropshipping hits identical products, low margins and no relationship. Food from home is the opposite: tangible, personal and repeatable in the same postcode. You build reputation on quality and agreements, not on who buys the fastest ads.",
   },
   sec5Title: {
     nl: "Waarom mensen dichter bij huis willen kopen",
     en: "Why people want to buy closer to home",
   },
   sec5Body: {
-    nl: "Mensen zoeken kortere ketens en meer zeggenschap: wie kookt, waar komt het vandaan, kan ik vragen stellen. Dat is geen hype-cyclus maar gedrag. Marktplaatsen die buurt en ophalen serieus nemen, passen daarbij — niet omdat “lokaal” een sticker is, maar omdat het de enige manier is om vertrouwen schaalbaar te maken zonder fabriek.",
-    en: "People want shorter chains and more control: who cooks, where it comes from, can I ask questions. That is behaviour, not a hype cycle. Marketplaces that take neighbourhood and pickup seriously fit that — not because local is a sticker, but because it is how trust scales without a factory.",
+    nl: "Mensen zoeken kortere ketens en meer zeggenschap: wie kookt, waar komt het vandaan, kan ik vragen stellen. Dat is geen hype-cyclus maar gedrag. Marktplaatsen die buurt en ophalen serieus nemen, passen daarbij, niet omdat “lokaal” een sticker is, maar omdat het de enige manier is om vertrouwen schaalbaar te maken zonder fabriek.",
+    en: "People want shorter chains and more control: who cooks, where it comes from, can I ask questions. That is behaviour, not a hype cycle. Marketplaces that take neighbourhood and pickup seriously fit that, not because local is a sticker, but because it is how trust scales without a factory.",
   },
   sec6Title: {
     nl: "Waarom mensen kiezen voor thuisgekookt eten",
@@ -112,8 +112,8 @@ const etenVerkopenVanuitHuisPage: Record<string, Bi> = {
     en: "Want to start cooking for others? Read the ",
   },
   rp1b: {
-    nl: " — daar staan keuzes die je week haalbaar houden. Daarna sluit ",
-    en: " — choices that keep your week realistic. Then connect ",
+    nl: ", daar staan keuzes die je week haalbaar houden. Daarna sluit ",
+    en: ": choices that keep your week realistic. Then connect ",
   },
   rp1c: {
     nl: " aan: regels en verwachtingen zijn onderdeel van je reputatie.",
@@ -190,16 +190,16 @@ const thuisgekooktEtenVerkopenPage: Record<string, Bi> = {
     en: "Sell home-cooked food | Neighbourhood, pickup | HomeCheff",
   },
   metaDescription: {
-    nl: "Thuisgekookt eten verkopen: porties, ophalen, hygiëne en klanten in je buurt — praktisch en zonder marketing-bullshit.",
-    en: "Sell home-cooked food: portions, pickup, hygiene and nearby customers — practical and without marketing fluff.",
+    nl: "Thuisgekookt eten verkopen: porties, ophalen, hygiëne en klanten in je buurt, praktisch en zonder marketing-bullshit.",
+    en: "Sell home-cooked food: portions, pickup, hygiene and nearby customers, practical and without marketing fluff.",
   },
   title: {
     nl: "Thuisgekookt eten verkopen: vers, nabij en volgens vaste afspraken",
     en: "Selling home-cooked food: fresh, nearby and with clear agreements",
   },
   intro: {
-    nl: "Thuisgekookt verkopen is geen trend-foto, maar logistiek en vertrouwen. Mensen betalen voor smaak én voor voorspelbaarheid: dezelfde kwaliteit, hetzelfde ophaalmoment, dezelfde communicatie. Als je dat snapt, hoef je niet te concurreren op wie de meeste filters heeft — je concurreert op wie het beste nakomt wat er op het scherm staat.",
-    en: "Selling home-cooked is not a trend photo, but logistics and trust. People pay for taste and predictability: same quality, same pickup moment, same communication. If you understand that, you compete on who delivers what the screen promises — not on who has the most filters.",
+    nl: "Thuisgekookt verkopen is geen trend-foto, maar logistiek en vertrouwen. Mensen betalen voor smaak én voor voorspelbaarheid: dezelfde kwaliteit, hetzelfde ophaalmoment, dezelfde communicatie. Als je dat snapt, hoef je niet te concurreren op wie de meeste filters heeft. Je concurreert op wie het beste nakomt wat er op het scherm staat.",
+    en: "Selling home-cooked is not a trend photo, but logistics and trust. People pay for taste and predictability: same quality, same pickup moment, same communication. If you understand that, you compete on who delivers what the screen promises, not on who has the most filters.",
   },
   sec1Title: {
     nl: "Wat “thuisgekookt eten verkopen” praktisch betekent",
@@ -222,8 +222,8 @@ const thuisgekooktEtenVerkopenPage: Record<string, Bi> = {
     en: "Earning from home with meals: margins are time",
   },
   sec3Body: {
-    nl: "Je grootste kostenpost is vaak niet ingrediënten maar tijd en foutmarge. Daarom werkt schaal in herhaling: vaste klanten, vaste rit, minder stress. Naast maaltijden zijn er routes via tuin of creatief werk — hou je focus strak tot je eerste ritme staat.",
-    en: "Your biggest cost is often not ingredients but time and error margin. That is why scale through repetition works: regulars, steady rhythm, less stress. Beyond meals there are routes via garden or creative work — keep focus tight until your first rhythm is stable.",
+    nl: "Je grootste kostenpost is vaak niet ingrediënten maar tijd en foutmarge. Daarom werkt schaal in herhaling: vaste klanten, vaste rit, minder stress. Naast maaltijden zijn er routes via tuin of creatief werk, hou je focus strak tot je eerste ritme staat.",
+    en: "Your biggest cost is often not ingredients but time and error margin. That is why scale through repetition works: regulars, steady rhythm, less stress. Beyond meals there are routes via garden or creative work. Keep focus tight until your first rhythm is stable.",
   },
   sec4Title: {
     nl: "Waarom mensen stoppen met dropshipping (relevant als je “snel online” zocht)",
@@ -238,16 +238,16 @@ const thuisgekooktEtenVerkopenPage: Record<string, Bi> = {
     en: "Why people want to buy closer to home",
   },
   sec5Body: {
-    nl: "Niet omdat alles “hyperlokaal” moet, maar omdat transparantie en nabijheid steeds normaler worden in voedselkeuzes. Buurtplatformen winnen wanneer ze echte makers tonen — niet alleen SKU’s.",
-    en: "Not because everything must be hyper-local, but because transparency and proximity are normalising in food choices. Neighbourhood platforms win when they show real makers — not only SKUs.",
+    nl: "Niet omdat alles “hyperlokaal” moet, maar omdat transparantie en nabijheid steeds normaler worden in voedselkeuzes. Buurtplatformen winnen wanneer ze echte makers tonen, niet alleen SKU’s.",
+    en: "Not because everything must be hyper-local, but because transparency and proximity are normalising in food choices. Neighbourhood platforms win when they show real makers, not only SKUs.",
   },
   sec6Title: {
     nl: "Waarom mensen kiezen voor thuisgekookt eten",
     en: "Why people choose home-cooked food",
   },
   sec6Body: {
-    nl: "Omdat het vaak dichter bij “eten bij iemand thuis” voelt dan bij een anonieme keten: uitlegbaar, bespreekbaar, en vaak kleinschaliger. Dat wil niet zeggen dat elke thuiskok hetzelfde is — juist niet: jouw signatuur is je voordeel.",
-    en: "Because it often feels closer to eating at someone’s home than an anonymous chain: explainable, discussable, often smaller scale. That does not mean every cook is the same — on the contrary: your signature is your edge.",
+    nl: "Omdat het vaak dichter bij “eten bij iemand thuis” voelt dan bij een anonieme keten: uitlegbaar, bespreekbaar, en vaak kleinschaliger. Dat wil niet zeggen dat elke thuiskok hetzelfde is, juist niet: jouw signatuur is je voordeel.",
+    en: "Because it often feels closer to eating at someone’s home than an anonymous chain: explainable, discussable, often smaller scale. That does not mean every cook is the same, on the contrary: your signature is your edge.",
   },
   rp1a: { nl: "Lees ", en: "Read " },
   rp1b: {
@@ -309,24 +309,24 @@ const bijverdienenVanuitHuisPage: Record<string, Bi> = {
     en: "Side income from home | Local and concrete | HomeCheff",
   },
   metaDescription: {
-    nl: "Bijverdienen vanuit huis met eten, tuin of creatief — zonder dropshipping-illusies. Start klein op HomeCheff.",
-    en: "Side income from home with food, garden or creative work — without dropshipping illusions. Start small on HomeCheff.",
+    nl: "Bijverdienen vanuit huis met eten, tuin of creatief, zonder dropshipping-illusies. Start klein op HomeCheff.",
+    en: "Side income from home with food, garden or creative work, without dropshipping illusions. Start small on HomeCheff.",
   },
   title: {
     nl: "Bijverdienen vanuit huis: geld verdienen vanuit huis zonder onrealistische beloftes",
     en: "Side income from home: earning from home without unrealistic promises",
   },
   intro: {
-    nl: "Bijverdienen is geen magische knop: het is tijd inwisselen voor euro’s, met een aanbod dat mensen willen herhalen. Of je nu kookt, oogst of maakt — het patroon is hetzelfde: klein beginnen, duidelijke afspraken, en groei via reputatie in plaats van via advertentie-bidding op identieke producten.",
-    en: "Side income is not a magic button: it is trading time for money with an offer people want to repeat. Whether you cook, harvest or make — the pattern is the same: start small, clear agreements, grow through reputation instead of ad bidding on identical products.",
+    nl: "Bijverdienen is geen magische knop: het is tijd inwisselen voor euro’s, met een aanbod dat mensen willen herhalen. Of je nu kookt, oogst of maakt, het patroon is hetzelfde: klein beginnen, duidelijke afspraken, en groei via reputatie in plaats van via advertentie-bidding op identieke producten.",
+    en: "Side income is not a magic button: it is trading time for money with an offer people want to repeat. Whether you cook, harvest or make, the pattern is the same: start small, clear agreements, grow through reputation instead of ad bidding on identical products.",
   },
   sec1Title: {
     nl: "Geld verdienen vanuit huis: de drie realistische routes op HomeCheff",
     en: "Earning from home: three realistic routes on HomeCheff",
   },
   sec1Body: {
-    nl: "Chef (eten), Garden (tuinproducten), Designer (creatief). Je hoeft niet alles tegelijk. Het sterkste bijverdienen ontstaat wanneer je één route scherp kiest en wekelijks kunt leveren wat je belooft — niet wanneer je profiel een kerstboom van categorieën is.",
-    en: "Chef (food), Garden (produce), Designer (creative). You do not need everything at once. The strongest side income comes when you pick one route sharply and weekly deliver what you promise — not when your profile is a Christmas tree of categories.",
+    nl: "Chef (eten), Garden (tuinproducten), Designer (creatief). Je hoeft niet alles tegelijk. Het sterkste bijverdienen ontstaat wanneer je één route scherp kiest en wekelijks kunt leveren wat je belooft, niet wanneer je profiel een kerstboom van categorieën is.",
+    en: "Chef (food), Garden (produce), Designer (creative). You do not need everything at once. The strongest side income comes when you pick one route sharply and weekly deliver what you promise, not when your profile is a Christmas tree of categories.",
   },
   sec2Title: {
     nl: "Eten verkopen vanuit huis als bijverdienste (waarom het past naast werk)",
@@ -341,8 +341,8 @@ const bijverdienenVanuitHuisPage: Record<string, Bi> = {
     en: "Selling products without a webshop (why it can make you faster)",
   },
   sec3Body: {
-    nl: "Een webshop zonder traffic is een hobby. Een marketplace met buurt-intent is dichter bij vraag. Je richt je op profiel, aanbod en ophalen — niet op payment plugins. Lokale producten en unieke creaties zijn vaak de tweede stap naast eten, niet de eerste dag.",
-    en: "A webshop without traffic is a hobby. A marketplace with neighbourhood intent is closer to demand. You focus on profile, listings and pickup — not payment plugins. Local produce and unique creations are often a second step alongside food, not day one.",
+    nl: "Een webshop zonder traffic is een hobby. Een marketplace met buurt-intent is dichter bij vraag. Je richt je op profiel, aanbod en ophalen, niet op payment plugins. Lokale producten en unieke creaties zijn vaak de tweede stap naast eten, niet de eerste dag.",
+    en: "A webshop without traffic is a hobby. A marketplace with neighbourhood intent is closer to demand. You focus on profile, listings and pickup, not payment plugins. Local produce and unique creations are often a second step alongside food, not day one.",
   },
   sec4Title: {
     nl: "Waarom mensen stoppen met dropshipping",
@@ -357,8 +357,8 @@ const bijverdienenVanuitHuisPage: Record<string, Bi> = {
     en: "Why people want to buy closer to home",
   },
   sec5Body: {
-    nl: "Omdat mensen moe worden van anonieme schaal bij voedsel en creatief werk. Ze zoeken makers, verhalen en duidelijke afspraken — precies wat een buurtmarktplaats kan ondersteunen.",
-    en: "Because people tire of anonymous scale in food and creative work. They look for makers, stories and clear agreements — what a neighbourhood marketplace can support.",
+    nl: "Omdat mensen moe worden van anonieme schaal bij voedsel en creatief werk. Ze zoeken makers, verhalen en duidelijke afspraken, precies wat een buurtmarktplaats kan ondersteunen.",
+    en: "Because people tire of anonymous scale in food and creative work. They look for makers, stories and clear agreements, what a neighbourhood marketplace can support.",
   },
   sec6Title: {
     nl: "Waarom mensen kiezen voor thuisgekookt eten (ook als bijverdienste)",
@@ -429,48 +429,48 @@ const zelfgemaaktEtenVerkopenPage: Record<string, Bi> = {
     en: "Sell homemade food | Portions and pickup | HomeCheff",
   },
   metaDescription: {
-    nl: "Zelfgemaakt eten verkopen: signature, ophalen, foto’s en buurt — zonder generieke webshop-copy.",
-    en: "Sell homemade food: signature, pickup, photos and neighbourhood — without generic webshop copy.",
+    nl: "Zelfgemaakt eten verkopen: signature, ophalen, foto’s en buurt, zonder generieke webshop-copy.",
+    en: "Sell homemade food: signature, pickup, photos and neighbourhood, without generic webshop copy.",
   },
   title: {
     nl: "Zelfgemaakt eten verkopen: signatuur, herhaling en buurt-vertrouwen",
     en: "Selling homemade food: signature, repetition and neighbourhood trust",
   },
   intro: {
-    nl: "Zelfgemaakt is geen synoniem voor “rommelig”. Sterke verkopers maken juist keuzes: welke smaak is van jou, welke portie is standaard, welke dag is ophaaldag. Dat is hoe je thuisgekookt eten verkopen serieus neemt zonder een restaurant te zijn — je bent een maker met een duidelijke belofte.",
-    en: "Homemade is not a synonym for messy. Strong sellers make choices: which taste is yours, which portion is standard, which day is pickup. That is how you take selling home-cooked food seriously without being a restaurant — you are a maker with a clear promise.",
+    nl: "Zelfgemaakt is geen synoniem voor “rommelig”. Sterke verkopers maken juist keuzes: welke smaak is van jou, welke portie is standaard, welke dag is ophaaldag. Dat is hoe je thuisgekookt eten verkopen serieus neemt zonder een restaurant te zijn. Je bent een maker met een duidelijke belofte.",
+    en: "Homemade is not a synonym for messy. Strong sellers make choices: which taste is yours, which portion is standard, which day is pickup. That is how you take selling home-cooked food seriously without being a restaurant. You are a maker with a clear promise.",
   },
   sec1Title: {
     nl: "Zelfgemaakt eten verkopen vs “meal kits” en ketens",
     en: "Homemade food vs meal kits and chains",
   },
   sec1Body: {
-    nl: "Ketens optimaliseren schaal; jij optimaliseert nabijheid en maatwerk binnen grenzen. Je verkoopt geen oneindige variabelen, maar een paar gerechten die je extreem goed kunt. Dat is makkelijker te communiceren en makkelijker te leveren — twee dingen die direct je stress bepalen.",
-    en: "Chains optimise scale; you optimise proximity and bespoke within limits. You sell not infinite variants, but a few dishes you can do extremely well. That is easier to communicate and deliver — two things that directly determine stress.",
+    nl: "Ketens optimaliseren schaal; jij optimaliseert nabijheid en maatwerk binnen grenzen. Je verkoopt geen oneindige variabelen, maar een paar gerechten die je extreem goed kunt. Dat is makkelijker te communiceren en makkelijker te leveren, twee dingen die direct je stress bepalen.",
+    en: "Chains optimise scale; you optimise proximity and bespoke within limits. You sell not infinite variants, but a few dishes you can do extremely well. That is easier to communicate and deliver, two things that directly determine stress.",
   },
   sec2Title: {
     nl: "Eten verkopen vanuit huis met een herkenbare stijl",
     en: "Selling food from home with a recognisable style",
   },
   sec2Body: {
-    nl: "Noem je keukenfilosofie in één zin: zuiderse ovenschotels, gezonde meal-prep, klassiek Nederlands comfort — wat het ook is, maak het herkenbaar. Mensen delen “die ene thuiskok die altijd X doet”. Dat is gratis marketing, mits je kwaliteit constant houdt.",
-    en: "State your kitchen philosophy in one line: southern bakes, healthy meal prep, classic comfort — whatever it is, make it recognisable. People share that one cook who always does X. That is free marketing if quality stays consistent.",
+    nl: "Noem je keukenfilosofie in één zin: zuiderse ovenschotels, gezonde meal-prep, klassiek Nederlands comfort, wat het ook is, maak het herkenbaar. Mensen delen “die ene thuiskok die altijd X doet”. Dat is gratis marketing, mits je kwaliteit constant houdt.",
+    en: "State your kitchen philosophy in one line: southern bakes, healthy meal prep, classic comfort, whatever it is, make it recognisable. People share that one cook who always does X. That is free marketing if quality stays consistent.",
   },
   sec3Title: {
     nl: "Geld verdienen vanuit huis met zelfgemaakt: prijs als spiegel van tijd",
     en: "Earning from home with homemade: price mirrors time",
   },
   sec3Body: {
-    nl: "Als je prijs te laag zet, verbrand je motivatie. Zet prijs op basis van tijd + ingrediënt + verpakking + “foutmarge”. Liever iets duurder en duurzaam dan goedkoop en uitputtend. Combineer prijs met duidelijke ophaal en communicatie — dat is je echte product, niet alleen het bord.",
-    en: "If your price is too low, you burn motivation. Price from time + ingredients + packaging + error margin. Rather slightly expensive and sustainable than cheap and exhausting. Combine price with clear pickup and communication — that is your real product, not only the plate.",
+    nl: "Als je prijs te laag zet, verbrand je motivatie. Zet prijs op basis van tijd + ingrediënt + verpakking + “foutmarge”. Liever iets duurder en duurzaam dan goedkoop en uitputtend. Combineer prijs met duidelijke ophaal en communicatie. Dat is je echte product, niet alleen het bord.",
+    en: "If your price is too low, you burn motivation. Price from time + ingredients + packaging + error margin. Rather slightly expensive and sustainable than cheap and exhausting. Combine price with clear pickup and communication. That is your real product, not only the plate.",
   },
   sec4Title: {
     nl: "Waarom mensen stoppen met dropshipping (en zelfgemaakt het tegenovergestelde is)",
     en: "Why people quit dropshipping (and homemade is the opposite)",
   },
   sec4Body: {
-    nl: "Dropshipping verkoopt iets dat iedereen kan importeren. Zelfgemaakt verkoopt iets dat alleen jij op die manier maakt — mits je het niet verpest door te veel tegelijk te willen.",
-    en: "Dropshipping sells what anyone can import. Homemade sells what only you make that way — unless you ruin it by wanting too much at once.",
+    nl: "Dropshipping verkoopt iets dat iedereen kan importeren. Zelfgemaakt verkoopt iets dat alleen jij op die manier maakt, mits je het niet verpest door te veel tegelijk te willen.",
+    en: "Dropshipping sells what anyone can import. Homemade sells what only you make that way, unless you ruin it by wanting too much at once.",
   },
   sec5Title: {
     nl: "Waarom mensen dichter bij huis willen kopen",
@@ -547,16 +547,16 @@ const lokaalEtenVerkopenPage: Record<string, Bi> = {
     en: "Sell local food | Neighbourhood and pickup | HomeCheff",
   },
   metaDescription: {
-    nl: "Lokaal eten verkopen: minder kilometers, meer verhaal — praktische gids voor thuiskoks en buurt-kopers.",
-    en: "Sell local food: fewer miles, more story — practical guide for cooks and neighbourhood buyers.",
+    nl: "Lokaal eten verkopen: minder kilometers, meer verhaal, praktische gids voor thuiskoks en buurt-kopers.",
+    en: "Sell local food: fewer miles, more story, practical guide for cooks and neighbourhood buyers.",
   },
   title: {
     nl: "Lokaal eten verkopen: nabijheid, vertrouwen en herhaalbare ophaal-logistiek",
     en: "Selling local food: proximity, trust and repeatable pickup logistics",
   },
   intro: {
-    nl: "Lokaal is geen sticker: het is een manier om verwachtingen te managen. Kopers willen weten waar het vandaan komt, hoe laat ze het ophalen, en wat ze moeten doen als iets misgaat. Als jij dat helder maakt, wordt lokaal eten verkopen makkelijker dan landelijke concurrentie — omdat je niet met de hele internet-bubbel vecht, maar met een paar concurrenten in jouw radius.",
-    en: "Local is not a sticker: it is a way to manage expectations. Buyers want to know where it comes from, when they pick up, and what to do if something goes wrong. If you make that clear, selling local food becomes easier than national competition — you do not fight the whole internet bubble, only a few rivals in your radius.",
+    nl: "Lokaal is geen sticker: het is een manier om verwachtingen te managen. Kopers willen weten waar het vandaan komt, hoe laat ze het ophalen, en wat ze moeten doen als iets misgaat. Als jij dat helder maakt, wordt lokaal eten verkopen makkelijker dan landelijke concurrentie, omdat je niet met de hele internet-bubbel vecht, maar met een paar concurrenten in jouw radius.",
+    en: "Local is not a sticker: it is a way to manage expectations. Buyers want to know where it comes from, when they pick up, and what to do if something goes wrong. If you make that clear, selling local food becomes easier than national competition. You do not fight the whole internet bubble, only a few rivals in your radius.",
   },
   sec1Title: {
     nl: "Lokaal eten verkopen en eten verkopen vanuit huis: dezelfde basis",
@@ -579,8 +579,8 @@ const lokaalEtenVerkopenPage: Record<string, Bi> = {
     en: "City pages: selling food in your area (examples)",
   },
   sec3Body: {
-    nl: "We hebben aparte landingspagina’s voor onder andere Rotterdam, Amsterdam, Den Haag en Utrecht — zodat je kunt ranken op lokale intent én doorlinkt naar je algemene kook-gids. Dat versterkt topic authority zonder duplicate rommel: de structuur is hetzelfde, de stad is dynamisch.",
-    en: "We have separate landing pages for Rotterdam, Amsterdam, The Hague and Utrecht — so you can match local intent and link to your general cooking guide. That strengthens topical authority without messy duplication: same structure, city is dynamic.",
+    nl: "We hebben aparte landingspagina’s voor onder andere Rotterdam, Amsterdam, Den Haag en Utrecht, zodat je kunt ranken op lokale intent én doorlinkt naar je algemene kook-gids. Dat versterkt topic authority zonder duplicate rommel: de structuur is hetzelfde, de stad is dynamisch.",
+    en: "We have separate landing pages for Rotterdam, Amsterdam, The Hague and Utrecht, so you can match local intent and link to your general cooking guide. That strengthens topical authority without messy duplication: same structure, city is dynamic.",
   },
   sec4Title: {
     nl: "Waarom mensen stoppen met dropshipping (en lokaal eten de tegenpool is)",
@@ -603,8 +603,8 @@ const lokaalEtenVerkopenPage: Record<string, Bi> = {
     en: "Why people choose home-cooked food",
   },
   sec6Body: {
-    nl: "Omdat buurt-reputatie meetbaar is: mensen praten. Een keten heeft merk; een thuiskok heeft gezicht. Gebruik dat eerlijk — geen oversell.",
-    en: "Because neighbourhood reputation is measurable: people talk. A chain has brand; a cook has a face. Use that honestly — no oversell.",
+    nl: "Omdat buurt-reputatie meetbaar is: mensen praten. Een keten heeft merk; een thuiskok heeft gezicht. Gebruik dat eerlijk, geen oversell.",
+    en: "Because neighbourhood reputation is measurable: people talk. A chain has brand; a cook has a face. Use that honestly, no oversell.",
   },
   rp1a: { nl: "Lees ", en: "Read " },
   rp1b: {

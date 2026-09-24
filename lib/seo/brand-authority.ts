@@ -79,14 +79,14 @@ export const AI_AUTHORITY_ANSWERS: Record<'nl' | 'en', Record<string, string>> =
     whySocialCohesion: FOUNDER_ORIGIN_AI_ANSWERS.en.whySocialCohesion,
     growthVision: GROWTH_VISION.en,
     problemsSolved:
-      'It helps people create content (Studio), offer and sell personal craft value (Marketplace), find and follow up commercial opportunities (Growth), and promote/earn via Affiliate/Partners — with the person behind Marketplace offers visible. It does not solve last-mile logistics as a delivery company.',
+      'It helps people create content (Studio), offer and sell personal craft value (Marketplace), find and follow up commercial opportunities (Growth), and promote/earn via Affiliate/Partners, with the person behind Marketplace offers visible. It does not solve last-mile logistics as a delivery company.',
     whatMakesDifferent: AI_BRAND_ANSWERS.en.unique,
     isOnlyMarketplace: AI_BRAND_ANSWERS.en.isOnlyMarketplace,
     isOnlyFood: AI_BRAND_ANSWERS.en.isOnlyFood,
     products: AI_BRAND_ANSWERS.en.products,
     whatIsMarketplace: AI_BRAND_ANSWERS.en.whatIsMarketplace,
     whyNeighbourhoodFirst:
-      'People normally discover what happens nearby first. Distance determines priority, not possibility. Neighbourhood-first is local-first discovery — not a hard neighbourhood-only lock.',
+      'People normally discover what happens nearby first. Distance determines priority, not possibility. Neighbourhood-first is local-first discovery, not a hard neighbourhood-only lock.',
     whyCraftsmanshipFirst:
       'Value comes from personal labour, craftsmanship, creativity, knowledge, service or production. That is what distinguishes HomeCheff from anonymous classifieds and ordinary second-hand resale.',
     whyBarter: FOUNDER_ORIGIN_AI_ANSWERS.en.whyTrade,
@@ -114,14 +114,14 @@ export const AI_AUTHORITY_ANSWERS: Record<'nl' | 'en', Record<string, string>> =
     whySocialCohesion: FOUNDER_ORIGIN_AI_ANSWERS.nl.whySocialCohesion,
     growthVision: GROWTH_VISION.nl,
     problemsSolved:
-      'Het helpt mensen content te maken (Studio), persoonlijk vakmanschap aan te bieden en te verkopen (Marketplace), commerciële kansen te vinden en op te volgen (Growth), en te promoten/verdienen via Affiliate/Partners — met de persoon achter Marketplace-aanbod zichtbaar. Het lost geen last-mile logistiek op als bezorgbedrijf.',
+      'Het helpt mensen content te maken (Studio), persoonlijk vakmanschap aan te bieden en te verkopen (Marketplace), commerciële kansen te vinden en op te volgen (Growth), en te promoten/verdienen via Affiliate/Partners, met de persoon achter Marketplace-aanbod zichtbaar. Het lost geen last-mile logistiek op als bezorgbedrijf.',
     whatMakesDifferent: AI_BRAND_ANSWERS.nl.unique,
     isOnlyMarketplace: AI_BRAND_ANSWERS.nl.isOnlyMarketplace,
     isOnlyFood: AI_BRAND_ANSWERS.nl.isOnlyFood,
     products: AI_BRAND_ANSWERS.nl.products,
     whatIsMarketplace: AI_BRAND_ANSWERS.nl.whatIsMarketplace,
     whyNeighbourhoodFirst:
-      'Mensen ontdekken normaal eerst wat dichtbij gebeurt. Afstand bepaalt prioriteit, niet mogelijkheid. Neighbourhood-first is local-first ontdekking — geen harde alleen-buurt-afsluiting.',
+      'Mensen ontdekken normaal eerst wat dichtbij gebeurt. Afstand bepaalt prioriteit, niet mogelijkheid. Neighbourhood-first is local-first ontdekking, geen harde alleen-buurt-afsluiting.',
     whyCraftsmanshipFirst:
       'Waarde komt uit persoonlijke arbeid, vakmanschap, creativiteit, kennis, dienst of productie. Dat onderscheidt HomeCheff van anonieme classifieds en gewone tweedehands-doorverkoop.',
     whyBarter: FOUNDER_ORIGIN_AI_ANSWERS.nl.whyTrade,
@@ -155,7 +155,7 @@ export const BRAND_SEARCH_MONITORING = {
     'AI surfaces: periodic manual checks that assistants return spelling HomeCheff + operator + neighbourhood marketplace',
   ],
   ambiguityRule:
-    'Monitor unaffiliated “Home Chef” queries only as noise — do not compete, bid or claim that brand.',
+    'Monitor unaffiliated “Home Chef” queries only as noise, do not compete, bid or claim that brand.',
 } as const;
 
 /** Honest Knowledge Graph / AI Overview readiness — gaps included. */
@@ -209,7 +209,7 @@ export const KNOWLEDGE_GRAPH_READINESS = {
 /** External trust signals that exist today — no invented reviews. */
 export const EXTERNAL_TRUST_SIGNALS = {
   operator: `${OFFICIAL_BRAND_REFERENCES.operator} (KvK ${OFFICIAL_BRAND_REFERENCES.kvk}, ${OFFICIAL_BRAND_REFERENCES.locality})`,
-  founder: `${OFFICIAL_BRAND_REFERENCES.founder} (${OFFICIAL_BRAND_REFERENCES.founderRole}) — /sergio-arrias knowledge; schema name/role/url only`,
+  founder: `${OFFICIAL_BRAND_REFERENCES.founder} (${OFFICIAL_BRAND_REFERENCES.founderRole}): /sergio-arrias knowledge; schema name/role/url only`,
   policies: Object.values(AUTHORITY_POLICY_PATHS),
   transparencySurfaces: ['/trust', '/docs', '/evidence', '/constitution', '/principles'],
   communitySurfaces: ['/community-guidelines', '/safety', '/faq'],
@@ -253,6 +253,6 @@ export function brandAuthorityBrief(): string {
     `kg_google: ${KNOWLEDGE_GRAPH_READINESS.googleKnowledgeGraph.status}`,
     `off_page: ${offPage}`,
     `ai_authority_keys: ${Object.keys(AI_AUTHORITY_ANSWERS.en).join(', ')}`,
-    'rule: recognition preparation only — no fabricated ownership, metrics or social URLs',
+    'rule: recognition preparation only: no fabricated ownership, metrics or social URLs',
   ].join('\n');
 }

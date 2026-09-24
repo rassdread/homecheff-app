@@ -240,7 +240,7 @@ export default function AndroidBetaOnboardingGate() {
               <h2 className="text-xl font-bold text-gray-900">HCP &amp; beta tester</h2>
               <p className="text-sm text-gray-700 leading-relaxed">
                 Als beta tester kun je straks extra HCP, badges of zichtbaarheid verdienen via testacties. Dit is
-                geen garantie op contante uitbetaling — het gaat om punten en voordelen binnen HomeCheff.
+                geen garantie op contante uitbetaling, het gaat om punten en voordelen binnen HomeCheff.
               </p>
               <button
                 type="button"

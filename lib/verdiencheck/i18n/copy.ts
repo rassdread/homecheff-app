@@ -547,7 +547,7 @@ const NL: VerdienCheckCopy = {
   advancedAccuracyExplain:
     'Dit zijn bedragen van je jaaropgave of aangifte. Ze maken de schatting preciezer. Je hoeft ze niet in te vullen.',
   extraResultExplain:
-    'Dit is jouw extra resultaat: wat overblijft nadat relevante kosten eraf zijn — niet je omzet.',
+    'Dit is jouw extra resultaat: wat overblijft nadat relevante kosten eraf zijn, niet je omzet.',
   scenarioResultHint: 'Dit is je extra resultaat nadat relevante kosten eraf zijn.',
   costsCountTitle: 'Je relevante kosten tellen mee',
   costsCountBody:
@@ -933,11 +933,11 @@ const NL: VerdienCheckCopy = {
       title: 'Welke uitkering van UWV krijg je?',
       help: 'Kijk op je UWV-brief als je de naam niet zeker weet. Gok niet. Ziektewet, WIA, Wajong, WAO en WAZ staan meestal op die brief.',
       options: {
-        WIA: 'WIA — arbeidsongeschikt vanuit werk',
-        WAJONG: 'Wajong — vanaf jonge leeftijd arbeidsongeschikt',
+        WIA: 'WIA: arbeidsongeschikt vanuit werk',
+        WAJONG: 'Wajong: vanaf jonge leeftijd arbeidsongeschikt',
         ZW: 'Ziektewet',
-        WAO: 'WAO — oudere arbeidsongeschiktheidsuitkering',
-        WAZ: 'WAZ — arbeidsongeschikt als zelfstandige',
+        WAO: 'WAO: oudere arbeidsongeschiktheidsuitkering',
+        WAZ: 'WAZ: arbeidsongeschikt als zelfstandige',
         UNKNOWN: 'Ik weet het niet',
       },
     },
@@ -1489,7 +1489,7 @@ const EN: VerdienCheckCopy = {
   advancedAccuracyExplain:
     'These figures come from your annual statement or tax return. They make the estimate more precise. You do not have to fill them in.',
   extraResultExplain:
-    'This is your extra result: what remains after relevant costs — not turnover.',
+    'This is your extra result: what remains after relevant costs, not turnover.',
   scenarioResultHint: 'This is your extra result after relevant costs.',
   costsCountTitle: 'Your relevant costs count too',
   costsCountBody:
@@ -1875,11 +1875,11 @@ const EN: VerdienCheckCopy = {
       title: 'Which UWV benefit do you receive?',
       help: 'Check your UWV letter if you are not sure of the name. Do not guess.',
       options: {
-        WIA: 'WIA — disabled from work',
-        WAJONG: 'Wajong — disabled from a young age',
+        WIA: 'WIA: disabled from work',
+        WAJONG: 'Wajong: disabled from a young age',
         ZW: 'Sickness benefit',
-        WAO: 'WAO — older disability benefit',
-        WAZ: 'WAZ — disability benefit for the self-employed',
+        WAO: 'WAO: older disability benefit',
+        WAZ: 'WAZ: disability benefit for the self-employed',
         UNKNOWN: 'I don’t know',
       },
     },

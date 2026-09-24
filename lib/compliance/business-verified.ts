@@ -15,7 +15,7 @@ export function canSetBusinessVerified(
   if (!input.adminAttested) {
     return {
       ok: false,
-      reason: 'Admin attestation required — no auto-verify from KvK/VAT/Stripe/declaration',
+      reason: 'Admin attestation required, no auto-verify from KvK/VAT/Stripe/declaration',
     };
   }
   if (!input.note?.trim() || input.note.trim().length < 8) {
