@@ -8,7 +8,7 @@ import {
   type FeedDisplayRow,
 } from './discovery-section-insertion';
 
-export type DiscoverySaleRow =
+export type DiscoverySaleRow<T extends { id: string } = { id: string }> =
   | { row: 'section'; sectionId: string; titleKey: string }
   | { row: 'sale'; item: T }
   | { row: 'insp'; slot: unknown };

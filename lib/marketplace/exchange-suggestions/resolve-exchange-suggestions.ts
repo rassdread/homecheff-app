@@ -18,6 +18,7 @@ import type {
   ExchangeSuggestionCta,
   ExchangeSuggestionSidebarVariant,
   ExchangeSuggestionSurface,
+  ExchangeSuggestionSurfacePlan,
 } from './exchange-suggestion-contract';
 import {
   EMPTY_EXCHANGE_SUGGESTION_CAP_STATE,

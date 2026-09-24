@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { invokeNativeShareOnce } from '@/lib/share/listing-share';
 
 type Reservation = {

@@ -40,7 +40,14 @@ const fail = (msg) => {
   errors.push(msg);
 };
 
-console.log("\n\x1b[36mHomeCheff smoke-check\x1b[0m (schema, env, DB, route files)\n");
+console.log("\n\x1b[36mHomeCheff smoke-check\x1b[0m (schema, env, DB, route files, unbound hooks)\n");
+
+try {
+  execSync("node scripts/check-unbound-hooks.mjs", { stdio: "inherit", cwd: root });
+  ok("unbound hook check");
+} catch {
+  fail("unbound hook check");
+}
 
 // 1) Prisma schema
 try {

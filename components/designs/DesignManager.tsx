@@ -738,7 +738,6 @@ export default function DesignManager({
 
   const resetDesignFormState = () => {
     localStorage.removeItem('designFormDraft');
-    setHasDraft(false);
     setEditingDesign(null);
     setFormData({
       title: '',

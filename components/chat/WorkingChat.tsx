@@ -37,7 +37,6 @@ interface Message {
 
 export default function WorkingChat({ conversationId, otherParticipant, onBack }: WorkingChatProps) {
   const { t } = useTranslation();
-  const { referralCode } = useAffiliateLink();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);

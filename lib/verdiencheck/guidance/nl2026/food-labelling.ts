@@ -19,6 +19,7 @@ import {
   SRC_NVWA_ALLERGENEN_ONVERPAKT,
   SRC_NVWA_ERKENNING,
   SRC_NVWA_ETIKET,
+  SRC_NVWA_REGISTRATIE,
 } from '../../rulesets/nl/2026/sources';
 import { HOMECHEFF_ALLERGEN_CHANNEL } from '../../adapters/legal2-food';
 

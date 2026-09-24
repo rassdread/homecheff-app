@@ -8,7 +8,11 @@ import { legacyUrlCategoryToMarketplace } from '@/lib/marketplace/listing-taxono
 import { toCanonicalTaxonomyId } from '@/lib/marketplace/taxonomy-normalize';
 import { isRequestListing } from '@/lib/marketplace/product-visibility';
 import { logListingKindDerivation } from './audit';
-import type { DeriveListingKindInput, DeriveListingKindResult } from './types';
+import type {
+  DeriveListingKindInput,
+  DeriveListingKindResult,
+  ListingKindEntityType,
+} from './types';
 
 const COACHING_TAXONOMY_IDS = new Set(['knowledge.coaching']);
 

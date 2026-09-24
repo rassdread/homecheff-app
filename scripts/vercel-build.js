@@ -12,6 +12,16 @@ try {
   execSync("npx prisma generate", { stdio: "inherit", shell: true });
   console.log("✅ Prisma client generated\n");
 
+  console.log("🔎 Blocking unbound hook calls (missing imports)...");
+  execSync("node scripts/check-unbound-hooks.mjs", { stdio: "inherit", shell: true });
+
+  console.log("🔎 Typecheck ratchet (new errors and TS2304 fail the deploy)...");
+  execSync("node scripts/typecheck-ratchet.mjs", {
+    stdio: "inherit",
+    shell: true,
+    env: { ...process.env, TYPECHECK_NODE_OPTIONS: "--max-old-space-size=8192" },
+  });
+
   console.log("🏗️  Building Next.js application...");
   execSync(
     "cross-env NODE_OPTIONS=--max-old-space-size=4096 NEXT_TELEMETRY_DISABLED=1 next build",

@@ -2,6 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import FavoriteButton from '@/components/favorite/FavoriteButton';
+import type { MarketplaceTileMode } from '@/lib/marketplace/tiles/types';
 import { cardActionBoundaryProps } from '@/lib/ui/card-action-boundary';
 
 export default function TileFavoriteAction({
