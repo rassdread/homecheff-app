@@ -105,6 +105,7 @@ describe('affiliate signup production codepath', () => {
     assert.match(src, /acceptAffiliateAgreement/);
     assert.match(src, /focusField\(/);
     assert.match(src, /registrationRedirectingRef/);
+    assert.match(src, /hc_affiliate_signup_owns_redirect/);
     assert.match(src, /clearPendingIntent\(\)/);
   });
 

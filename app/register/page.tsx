@@ -51,6 +51,17 @@ import { PolicyAgreementTermsLabel } from "@/components/legal/PolicyAgreementTer
 import RegisterSocialRedirect from "@/components/auth/RegisterSocialRedirect";
 import { PRIVACY_URL } from "@/lib/legal/policy-urls";
 
+const AFFILIATE_SIGNUP_OWNS_REDIRECT_KEY = 'hc_affiliate_signup_owns_redirect';
+
+function affiliateSignupOwnsRedirect(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return sessionStorage.getItem(AFFILIATE_SIGNUP_OWNS_REDIRECT_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 // User types will be loaded dynamically based on language
 const REGISTER_DRAFT_TTL = 48 * 60 * 60 * 1000;
 
@@ -371,7 +382,7 @@ function RegisterPageContent() {
     let cancelled = false;
 
     const run = async () => {
-      if (registrationRedirectingRef.current) {
+      if (registrationRedirectingRef.current || affiliateSignupOwnsRedirect()) {
         setIsCheckingOnboarding(false);
         return;
       }
@@ -401,7 +412,9 @@ function RegisterPageContent() {
         flags = await fetchOnboardingFlags();
       }
 
-      if (cancelled) return;
+      if (cancelled || registrationRedirectingRef.current || affiliateSignupOwnsRedirect()) {
+        return;
+      }
 
       const resolved =
         flags ?? onboardingFlagsFromSessionUser(session.user as any);
@@ -666,6 +679,11 @@ function RegisterPageContent() {
     setState(prev => ({ ...prev, error: null, success: false, duplicateAccountKind: null }));
 
     const fail = (message: string, focusId?: string) => {
+      try {
+        sessionStorage.removeItem(AFFILIATE_SIGNUP_OWNS_REDIRECT_KEY);
+      } catch {
+        /* ignore */
+      }
       setState(prev => ({
         ...prev,
         error: message,
@@ -679,6 +697,13 @@ function RegisterPageContent() {
     const affiliateJoin = isPersonalAffiliateJoinReturn(
       searchParams?.get('callbackUrl') || searchParams?.get('returnUrl'),
     );
+    if (affiliateJoin) {
+      try {
+        sessionStorage.setItem(AFFILIATE_SIGNUP_OWNS_REDIRECT_KEY, '1');
+      } catch {
+        /* ignore */
+      }
+    }
     
     // Validatie voor privacy en voorwaarden
     if (!state.acceptPrivacyPolicy || !state.acceptTerms) {
@@ -849,6 +874,7 @@ function RegisterPageContent() {
           duplicateAccountKind: duplicateKind ?? null,
           success: false 
         }));
+        try { sessionStorage.removeItem(AFFILIATE_SIGNUP_OWNS_REDIRECT_KEY); } catch { /* ignore */ }
         setIsSubmitting(false);
         focusField('register-form-error');
         return;
@@ -890,6 +916,7 @@ function RegisterPageContent() {
           ...prev, 
           error: t('register.validation.paymentSessionError') 
         }));
+        try { sessionStorage.removeItem(AFFILIATE_SIGNUP_OWNS_REDIRECT_KEY); } catch { /* ignore */ }
         setIsSubmitting(false);
         return;
       }
@@ -1084,6 +1111,7 @@ function RegisterPageContent() {
       
     } catch (error) {
       console.error("Registration error:", error);
+      try { sessionStorage.removeItem(AFFILIATE_SIGNUP_OWNS_REDIRECT_KEY); } catch { /* ignore */ }
       setIsSubmitting(false);
       setState(prev => ({ 
         ...prev, 
