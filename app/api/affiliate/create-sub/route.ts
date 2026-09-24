@@ -18,11 +18,19 @@ import {
   decideMainCanInvite,
   forgedParentRejected,
 } from "@/lib/affiliates/partner-hierarchy";
+import {
+  partnerInviteEmailCopy,
+  type PartnerInviteLocale,
+} from "@/lib/affiliates/partner-invite-email-copy";
 
 export const dynamic = "force-dynamic";
 
 function inviteUrl(token: string): string {
   return `${getPublicAppUrl()}/affiliate/sub-affiliate-signup?token=${encodeURIComponent(token)}`;
+}
+
+function inviteLocale(value: unknown): PartnerInviteLocale {
+  return value === "en" ? "en" : "nl";
 }
 
 async function sendPartnerInviteEmail(input: {
@@ -32,34 +40,32 @@ async function sendPartnerInviteEmail(input: {
   url: string;
   inviteId: string;
   expiresAt: Date;
-}): Promise<boolean> {
-  const who = input.inviterName.trim() || "Een HomeCheff-partner";
+  locale: PartnerInviteLocale;
+}): Promise<{ sent: boolean; subject: string; text: string }> {
+  const expires = input.expiresAt.toLocaleDateString(input.locale === "en" ? "en-GB" : "nl-NL");
+  const copy = partnerInviteEmailCopy({
+    locale: input.locale,
+    inviterName: input.inviterName,
+    url: input.url,
+    expiresLabel: expires,
+  });
   const greeting = input.inviteeName?.trim()
-    ? `Hallo ${input.inviteeName.trim()},`
-    : "Hallo,";
-  const expires = input.expiresAt.toLocaleDateString("nl-NL");
-  const text = [
-    greeting,
-    "",
-    `${who} nodigt je uit voor het HomeCheff partnerprogramma.`,
-    "Je krijgt een eigen partneraccount om HomeCheff te promoten in je eigen netwerk of regio.",
-    "",
-    `Open je uitnodiging: ${input.url}`,
-    "",
-    `De link is persoonlijk en geldig tot ${expires}.`,
-    "HomeCheff vraagt nooit om je wachtwoord per e-mail.",
-  ].join("\n");
-  const html = `
-    <p>${greeting}</p>
-    <p><strong>${who}</strong> nodigt je uit voor het HomeCheff partnerprogramma.</p>
-    <p>Je krijgt een eigen partneraccount om HomeCheff te promoten in je eigen netwerk of regio.</p>
-    <p><a href="${input.url}">Uitnodiging openen</a></p>
-    <p>De link is persoonlijk en geldig tot ${expires}. HomeCheff vraagt nooit om je wachtwoord per e-mail.</p>
-  `;
+    ? input.locale === "en"
+      ? `Hello ${input.inviteeName.trim()},`
+      : `Hallo ${input.inviteeName.trim()},`
+    : input.locale === "en"
+      ? "Hello,"
+      : "Hallo,";
+  const safeGreeting = greeting
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const text = [greeting, "", copy.text].join("\n");
+  const html = `<p>${safeGreeting}</p>${copy.html}`;
   try {
     const result = await sendTransactionalEmail({
       to: input.to,
-      subject: `${who} nodigt je uit als HomeCheff-partner`,
+      subject: copy.subject,
       text,
       html,
       eventType: "partner_invite",
@@ -68,10 +74,10 @@ async function sendPartnerInviteEmail(input: {
       idempotencyKey: `partner-invite:${input.inviteId}`,
       businessEventId: input.inviteId,
     });
-    return result.status === "sent";
+    return { sent: result.status === "sent", subject: copy.subject, text };
   } catch (error) {
     console.error("[partner-invite] email failed");
-    return false;
+    return { sent: false, subject: copy.subject, text };
   }
 }
 
@@ -170,13 +176,14 @@ export async function POST(req: NextRequest) {
       }));
 
     const link = inviteUrl(invite.inviteToken);
-    const emailSent = await sendPartnerInviteEmail({
+    const emailResult = await sendPartnerInviteEmail({
       to: email,
       inviterName: parentUser.name || parentUser.username || "Een HomeCheff-partner",
       inviteeName: name,
       url: link,
       inviteId: invite.id,
       expiresAt: invite.expiresAt,
+      locale: inviteLocale(body?.locale),
     });
 
     return NextResponse.json({
@@ -187,10 +194,12 @@ export async function POST(req: NextRequest) {
         name: invite.name,
         inviteLink: link,
         expiresAt: invite.expiresAt,
-        emailSent,
+        emailSent: emailResult.sent,
+        emailSubject: emailResult.subject,
+        emailText: emailResult.text,
         existingUser: Boolean(targetUser),
       },
-      message: emailSent
+      message: emailResult.sent
         ? "Uitnodiging klaar. We hebben ook een e-mail gestuurd."
         : "Uitnodiging klaar. Deel de link; de e-mail kon niet worden verstuurd.",
     });

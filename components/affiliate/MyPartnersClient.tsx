@@ -38,7 +38,7 @@ function euro(cents: number) {
 }
 
 export default function MyPartnersClient({ openInvite }: { openInvite?: boolean }) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [data, setData] = useState<PartnersPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(Boolean(openInvite));
@@ -79,7 +79,11 @@ export default function MyPartnersClient({ openInvite }: { openInvite?: boolean 
       const res = await fetch('/api/affiliate/create-sub', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name }),
+        body: JSON.stringify({
+          email,
+          name,
+          locale: language === 'en' ? 'en' : 'nl',
+        }),
       });
       const result = await res.json();
       if (!res.ok) {
@@ -179,12 +183,34 @@ export default function MyPartnersClient({ openInvite }: { openInvite?: boolean 
           </div>
         ) : null}
 
+        {canInvite ? (
+          <section className="rounded-2xl border bg-white p-5 sm:p-6 space-y-3">
+            <h2 className="text-xl font-semibold text-gray-900">
+              {t('partners.inviteOffer.title')}
+            </h2>
+            <p className="text-sm leading-relaxed text-gray-700">
+              {t('partners.inviteOffer.intro')}
+            </p>
+            <p className="text-sm font-medium text-gray-800">
+              {t('partners.inviteOffer.earnTitle')}
+            </p>
+            <p className="text-2xl font-semibold tracking-tight text-emerald-800">
+              {t('partners.inviteOffer.rate')}
+            </p>
+            <p className="text-sm leading-relaxed text-gray-700">
+              {t('partners.inviteOffer.detail')}
+            </p>
+            <p className="text-sm leading-relaxed text-gray-700">
+              {t('partners.inviteOffer.notOrder')}
+            </p>
+          </section>
+        ) : null}
+
         {showForm && canInvite ? (
           <form onSubmit={onInvite} className="rounded-2xl border bg-white p-5 sm:p-6 space-y-4">
             <h2 className="text-lg font-semibold text-gray-900">
               {t('partners.myPartners.invite')}
             </h2>
-            <p className="text-sm text-gray-600">{t('partners.helpers.invitePartner')}</p>
             <label className="block text-sm font-medium text-gray-800">
               {t('affiliate.dashboard.subName')}
               <input
