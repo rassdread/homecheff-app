@@ -24,6 +24,7 @@ import {
   writeNativePersistedCache,
 } from '@/lib/native/nativePersistedCache';
 import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
+import { isProposalI18nKey } from '@/lib/proposals/proposal-i18n-keys';
 import { saveScrollPosition } from '@/lib/appResumeCache';
 import { cn } from '@/lib/utils';
 import { isNativeAndroid } from '@/lib/native/capacitor';
@@ -587,7 +588,9 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     } else if (lastMessage.messageType === 'FILE') {
       return '📎 Bestand';
     } else if (lastMessage.messageType === 'SYSTEM' || lastMessage.messageType === 'PROPOSAL_SYSTEM') {
-      return lastMessage.text || 'Systeembericht';
+      const text = lastMessage.text || '';
+      if (isProposalI18nKey(text)) return t(text);
+      return text || 'Systeembericht';
     } else if (lastMessage.messageType === 'PROPOSAL') {
       return '📋 Voorstel';
     }

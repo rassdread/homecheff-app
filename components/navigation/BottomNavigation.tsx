@@ -1088,7 +1088,7 @@ export default function BottomNavigation() {
     createFlowDebug('inspiration-form-opened', {
       targetUrl,
       internalLocation,
-      tab,
+      tab: 'inspiratie',
       location,
       hasPhoto: !!finalPhotoUrl,
     });
