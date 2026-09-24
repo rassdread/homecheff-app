@@ -18,7 +18,7 @@ const PUBLIC_JOURNEYS: Array<{ id: string; path: string; expectText: RegExp }> =
   { id: 'SMOKE_03_SIGNUP', path: '/register/', expectText: /Registreren|Account|E-mail/i },
   { id: 'SMOKE_04_FEED', path: '/dorpsplein/', expectText: /HomeCheff/ },
   { id: 'SMOKE_12_AFFILIATE', path: '/werken-bij/', expectText: /HomeCheff|affiliate|werken/i },
-  { id: 'SMOKE_14_DELIVERY_ENTRY', path: '/bezorger-worden/', expectText: /HomeCheff|bezorg/i },
+  { id: 'SMOKE_14_DELIVERY_DASHBOARD', path: '/delivery/dashboard/', expectText: /bezorg|Inloggen|Dashboard|E-mail/i },
 ];
 
 function watch(page: import('@playwright/test').Page) {
@@ -64,6 +64,51 @@ test('SMOKE_RESERVATIONS does not show the generic error screen', async ({ page 
   expect(response!.status()).toBeLessThan(500);
   await expect(page.getByRole('heading', { name: ERROR_TITLE })).toHaveCount(0);
   await expect(page.locator('body')).toContainText(/Reservering|Afspraken|reserv/i);
+  expect(problems, problems.join('\n')).toEqual([]);
+});
+
+const LOGGED_IN_OR_PUBLIC: Array<{ id: string; path: string; expectText: RegExp }> = [
+  { id: 'SMOKE_06_PROFILE_EDIT', path: '/settings/', expectText: /Instellingen|Inloggen|E-mail/i },
+  { id: 'SMOKE_08_CREATE_LISTING', path: '/sell/new/', expectText: /verkopen|Inloggen|E-mail|aanbod/i },
+  { id: 'SMOKE_09_LISTING_PUBLIC', path: '/product/2ef1c372-be03-430e-8f85-190e6c516c44', expectText: /Foto cert maaltijd/i },
+  { id: 'SMOKE_11_RECIPE', path: '/inspiratie/', expectText: /Inspiratie|HomeCheff/i },
+  { id: 'SMOKE_13_AFFILIATE_DASHBOARD', path: '/affiliate/dashboard/', expectText: /affiliate|Inloggen|E-mail|Verdien/i },
+  { id: 'SMOKE_15_SELLER_DASHBOARD', path: '/verkoper/dashboard/', expectText: /Verkoper|Dashboard|Inloggen|E-mail/i },
+];
+
+for (const journey of LOGGED_IN_OR_PUBLIC) {
+  test(`${journey.id} ${journey.path}`, async ({ page }) => {
+    const problems = watch(page);
+    const response = await page.goto(journey.path, { waitUntil: 'domcontentloaded' });
+    expect(response, 'navigation response').toBeTruthy();
+    expect(response!.status(), 'document status').toBeLessThan(500);
+    await expect(page.getByRole('heading', { name: ERROR_TITLE })).toHaveCount(0);
+    await expect(page.locator('body')).toContainText(journey.expectText);
+    expect(problems, problems.join('\n')).toEqual([]);
+  });
+}
+
+test('SMOKE_07_PHOTO_UPLOAD control is on the profile when signed in', async ({ page }) => {
+  test.skip(!process.env.SMOKE_EMAIL || !process.env.SMOKE_PASSWORD, 'SMOKE_EMAIL/SMOKE_PASSWORD not set');
+  const problems = watch(page);
+  await page.goto('/login/', { waitUntil: 'domcontentloaded' });
+  await page.locator('input[type="email"], input[name="email"]').first().fill(process.env.SMOKE_EMAIL!);
+  await page.locator('input[type="password"]').first().fill(process.env.SMOKE_PASSWORD!);
+  await page.getByRole('button', { name: /inloggen|log in|aanmelden/i }).first().click();
+  await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20_000 });
+  await page.goto('/profile/', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: ERROR_TITLE })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /profielfoto wijzigen/i }).first()).toBeVisible();
+  expect(problems, problems.join('\n')).toEqual([]);
+});
+
+test('SMOKE_10_EDIT_LISTING does not crash', async ({ page }) => {
+  const problems = watch(page);
+  const response = await page.goto('/product/2ef1c372-be03-430e-8f85-190e6c516c44/edit', {
+    waitUntil: 'domcontentloaded',
+  });
+  expect(response!.status()).toBeLessThan(500);
+  await expect(page.getByRole('heading', { name: ERROR_TITLE })).toHaveCount(0);
   expect(problems, problems.join('\n')).toEqual([]);
 });
 
