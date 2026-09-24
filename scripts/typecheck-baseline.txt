@@ -1,4 +1,6 @@
-# Known tsc errors. Do not add lines to silence a new error.
+# Known TypeScript errors. New signatures fail the deploy.
+# Paths inside messages are normalized so the same error matches on every machine.
+# TS2304 is rejected even if listed here.
 app/api/account/date-of-birth/route.ts	TS2339	Property 'id' does not exist on type '{ name?: string | null | undefined; email?: string | null | undefined; image?: string | null | undefined; }'.
 app/api/admin/business-subscriptions/[userId]/route.ts	TS2339	Property 'current_period_end' does not exist on type 'Response<Subscription>'.
 app/api/admin/hc-settlement-exposure/[exposureId]/payout/route.ts	TS2783	'ok' is specified more than once, so this usage will be overwritten.
@@ -38,7 +40,7 @@ app/api/feed/route.ts	TS2353	Object literal may only specify known properties, a
 app/api/feed/route.ts	TS2353	Object literal may only specify known properties, and 'productMetadataMs' does not exist in type 'Partial<{ productsDb: number; listingsDb: number; dishesDb: number; responseItems: number; discoveryPool: number; sellerTrustLookups: number; prismaQueryBatches: number; }>'.
 app/api/feed/route.ts	TS2353	Object literal may only specify known properties, and 'trustTotalMs' does not exist in type 'Partial<{ productsDb: number; listingsDb: number; dishesDb: number; responseItems: number; discoveryPool: number; sellerTrustLookups: number; prismaQueryBatches: number; }>'.
 app/api/marketplace/exchange-suggestions/route.ts	TS2769	No overload matches this call.
-app/api/marketplace/pending-accepted-values/route.ts	TS2322	Type 'typeof import("/Users/sergioarrias/Homecheff-app git/lib/auth")' is not assignable to type '{ auth?: (() => Promise<{ user?: { id?: string | undefined; } | undefined; } | null>) | undefined; }'.
+app/api/marketplace/pending-accepted-values/route.ts	TS2322	Type 'typeof import("/lib/auth")' is not assignable to type '{ auth?: (() => Promise<{ user?: { id?: string | undefined; } | undefined; } | null>) | undefined; }'.
 app/api/products/[id]/route.ts	TS2339	Property 'id' does not exist on type '{ name?: string | null | undefined; email?: string | null | undefined; image?: string | null | undefined; }'.
 app/api/products/create/route.ts	TS2322	Type '{} | null' is not assignable to type 'boolean'.
 app/api/products/create/route.ts	TS2339	Property 'duration' does not exist on type '{}'.
@@ -98,7 +100,7 @@ components/app/AppResumeCoordinator.tsx	TS2322	Type 'number' is not assignable t
 components/business/BusinessDnaProductPreview.tsx	TS2353	Object literal may only specify known properties, and 'averageRating' does not exist in type 'DiscoveryTrustChannelBlock'.
 components/chat/ConversationsList.tsx	TS18047	'lm' is possibly 'null'.
 components/chat/ConversationsList.tsx	TS2322	Type 'number' is not assignable to type 'Timeout'.
-components/chat/EmojiPicker.tsx	TS2322	Type 'import("/Users/sergioarrias/Homecheff-app git/node_modules/emoji-picker-react/dist/types/exposedTypes").Categories' is not assignable to type 'CategoryConfig'.
+components/chat/EmojiPicker.tsx	TS2322	Type 'import("/node_modules/emoji-picker-react/dist/types/exposedTypes").Categories' is not assignable to type 'CategoryConfig'.
 components/chat/proposals/CreateProposalSheet.tsx	TS2339	Property 'orderMethod' does not exist on type 'ConversationHeaderProduct'.
 components/designs/DesignManager.tsx	TS2322	Type 'number' is not assignable to type 'Timeout'.
 components/designs/DesignManager.tsx	TS2345	Argument of type '{ title: string; description: string; materials: string[]; dimensions: string; category: string; subcategory: string; tags: string[]; notes: string; photos: DesignPhoto[]; video: { url: string; thumbnail?: string | null; duration?: number | null; } | null; }' is not assignable to parameter of type 'SetStateAction<DesignFormData>'.
@@ -168,7 +170,7 @@ components/products/marketplace/AcceptedValuesPicker.tsx	TS2345	Argument of type
 components/products/marketplace/MarketplaceOfferForm.tsx	TS2322	Type '{}' is not assignable to type 'string'.
 components/products/marketplace/MarketplaceOfferForm.tsx	TS2339	Property 'showHcpRewardToast' does not exist on type 'Ctx | null'.
 components/products/marketplace/MarketplaceOfferForm.tsx	TS2345	Argument of type '{}' is not assignable to parameter of type 'string'.
-components/products/marketplace/TaxonomyLucideIcon.tsx	TS2352	Conversion of type 'typeof import("/Users/sergioarrias/Homecheff-app git/node_modules/lucide-react/dist/lucide-react")' to type 'Record<string, LucideIcon | undefined>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+components/products/marketplace/TaxonomyLucideIcon.tsx	TS2352	Conversion of type 'typeof import("/node_modules/lucide-react/dist/lucide-react")' to type 'Record<string, LucideIcon | undefined>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
 components/products/marketplace/TaxonomySpecializationPicker.tsx	TS18048	'item' is possibly 'undefined'.
 components/profile/AccountSettings.tsx	TS2345	Argument of type 'string' is not assignable to parameter of type 'SetStateAction<"email" | "delete" | "password">'.
 components/profile/MyDishesManager.tsx	TS2322	Type 'unknown' is not assignable to type 'ReactNode'.

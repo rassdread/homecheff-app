@@ -32,7 +32,8 @@ use that script. Production builds run `scripts/vercel-build.js`.
 1. `scripts/check-unbound-hooks.mjs` — zero tolerance for a hook call with no import.
 2. `scripts/typecheck-ratchet.mjs` — `tsc` must finish. Any error not listed in
    `scripts/typecheck-baseline.txt` fails the build. Any `TS2304` fails even if
-   someone adds it to the baseline.
+   someone adds it to the baseline. Absolute paths inside error messages are
+   stripped before comparison, so the same error matches on a laptop and on Vercel.
 
 `ignoreBuildErrors` stays on until the baseline is empty. Turning it off today
 would reject the deploy for the existing type debt, not only for new crashes.

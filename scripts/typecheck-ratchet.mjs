@@ -20,16 +20,22 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const baselinePath = path.join(root, 'scripts', 'typecheck-baseline.txt');
 const ZERO_TOLERANCE = new Set(['TS2304']);
 
+function normalizePathText(value) {
+  let text = value.replaceAll('\\', '/');
+  const roots = [root.replaceAll('\\', '/'), '/vercel/path0'];
+  for (const prefix of roots) {
+    if (prefix) text = text.split(prefix).join('');
+  }
+  return text.replace(/\/(?:[^'"()\s]+\/)+(?=(?:app|lib|components|node_modules|prisma|hooks|scripts|e2e)\b)/g, '');
+}
+
 function toSignatures(output) {
   const signatures = [];
   for (const line of output.split('\n')) {
     const match = line.match(/^(.*)\(\d+,\d+\): error (TS\d+): (.*)$/);
     if (!match) continue;
-    let file = match[1].replaceAll('\\', '/');
-    if (file.startsWith(root.replaceAll('\\', '/'))) {
-      file = file.slice(root.length).replace(/^\//, '');
-    }
-    signatures.push(`${file}\t${match[2]}\t${match[3]}`);
+    let file = normalizePathText(match[1]).replace(/^\//, '');
+    signatures.push(`${file}\t${match[2]}\t${normalizePathText(match[3])}`);
   }
   return [...new Set(signatures)].sort();
 }
@@ -63,13 +69,26 @@ if (!fs.existsSync(baselinePath)) {
   process.exit(1);
 }
 
+const current = toSignatures(runTsc());
+
+if (process.env.WRITE_TYPECHECK_BASELINE === '1' && !process.env.VERCEL) {
+  const header = [
+    '# Known TypeScript errors. New signatures fail the deploy.',
+    '# Paths inside messages are normalized so the same error matches on every machine.',
+    '# TS2304 is rejected even if listed here.',
+    '',
+  ].join('\n');
+  fs.writeFileSync(baselinePath, `${header}${current.join('\n')}\n`);
+  console.log(`Wrote ${current.length} baseline signatures.`);
+  process.exit(0);
+}
+
 const baseline = fs
   .readFileSync(baselinePath, 'utf8')
   .split('\n')
   .map((line) => line.trim())
   .filter((line) => line && !line.startsWith('#'));
 const baselineSet = new Set(baseline);
-const current = toSignatures(runTsc());
 const added = current.filter((line) => !baselineSet.has(line));
 const zeroTolerance = current.filter((line) => ZERO_TOLERANCE.has(line.split('\t')[1]));
 const removed = baseline.filter((line) => !current.includes(line));
