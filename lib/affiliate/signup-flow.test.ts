@@ -104,6 +104,8 @@ describe('affiliate signup production codepath', () => {
     );
     assert.match(src, /acceptAffiliateAgreement/);
     assert.match(src, /focusField\(/);
+    assert.match(src, /registrationRedirectingRef/);
+    assert.match(src, /clearPendingIntent\(\)/);
   });
 
   it('explains a blocked affiliate continue instead of disabling the click', () => {

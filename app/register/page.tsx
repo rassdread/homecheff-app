@@ -40,7 +40,7 @@ import {
   resolvePathAfterSocialAuth,
   sanitizePostAuthRelativeUrl,
 } from "@/lib/auth/post-auth-redirect";
-import { consumeAndResolvePostAuthUrl, getPendingIntent } from "@/lib/onboarding/pending-intent";
+import { clearPendingIntent, consumeAndResolvePostAuthUrl, getPendingIntent } from "@/lib/onboarding/pending-intent";
 import {
   isPersonalAffiliateJoinReturn,
   resolveAffiliateSignupRedirect,
@@ -184,6 +184,7 @@ function RegisterPageContent() {
   const { t, language } = useTranslation();
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const registrationRedirectingRef = React.useRef(false);
   const [acceptAffiliateAgreement, setAcceptAffiliateAgreement] = useState(false);
   const [googleAuthEnabled, setGoogleAuthEnabled] = useState(false);
   const [googleAuthChecked, setGoogleAuthChecked] = useState(false);
@@ -370,6 +371,10 @@ function RegisterPageContent() {
     let cancelled = false;
 
     const run = async () => {
+      if (registrationRedirectingRef.current) {
+        setIsCheckingOnboarding(false);
+        return;
+      }
       if (status === "loading") {
         return;
       }
@@ -919,6 +924,10 @@ function RegisterPageContent() {
       const affiliateReturnPath =
         searchParams?.get('callbackUrl') || searchParams?.get('returnUrl');
       const signupFallbackUrl = resolveEmailSignupFallbackUrl(data?.redirectUrl);
+      registrationRedirectingRef.current = true;
+      if (isPersonalAffiliateJoinReturn(affiliateReturnPath)) {
+        clearPendingIntent();
+      }
 
       if (data?.needsVerification && typeof window !== 'undefined') {
         safeSessionStorageSetItem(

@@ -31,6 +31,7 @@ function pathSkipsIntentResume(pathname: string | null): boolean {
   if (!pathname) return true;
   if (pathname.startsWith('/login')) return true;
   if (pathname.startsWith('/register')) return true;
+  if (pathname.startsWith('/verify-email')) return true;
   if (pathname.startsWith('/auth/')) return true;
   if (pathname === '/onboarding/complete-profile') return true;
   return false;
