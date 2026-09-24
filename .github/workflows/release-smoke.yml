@@ -34,7 +34,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          # Playwright 1.62 refuses Node 18. This job does not build the app.
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
