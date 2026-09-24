@@ -33,3 +33,27 @@ export function affiliateContinueAfterAuth(options: {
     ? '/affiliate/dashboard'
     : '/affiliate#affiliate-signup';
 }
+
+/**
+ * Affiliate join wins over a stored generic intent.
+ * A newly activated affiliate who still needs email verification continues
+ * to the dashboard after verify, instead of being sent back to /affiliate.
+ */
+export function resolveAffiliateSignupRedirect(options: {
+  returnPath: string | null | undefined;
+  affiliateActivated: boolean;
+  needsVerification: boolean;
+  email: string;
+  consumedIntentUrl: string | null;
+  fallbackUrl: string;
+}): string {
+  const affiliateContinue = affiliateContinueAfterAuth({
+    returnPath: options.returnPath,
+    affiliateActivated: options.affiliateActivated,
+  });
+  const affiliateDestination =
+    affiliateContinue === '/affiliate/dashboard' && options.needsVerification
+      ? buildVerifyEmailPath(options.email, '/affiliate/dashboard')
+      : affiliateContinue;
+  return affiliateDestination || options.consumedIntentUrl || options.fallbackUrl;
+}

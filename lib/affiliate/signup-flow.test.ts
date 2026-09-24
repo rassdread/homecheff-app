@@ -6,6 +6,7 @@ import {
   affiliateContinueAfterAuth,
   buildVerifyEmailPath,
   isPersonalAffiliateJoinReturn,
+  resolveAffiliateSignupRedirect,
 } from '@/lib/affiliate/signup-flow';
 
 const root = resolve(process.cwd());
@@ -53,6 +54,41 @@ describe('affiliate signup return paths', () => {
         affiliateActivated: true,
       }),
       null,
+    );
+  });
+
+  it('does not let a stored join intent override an activated affiliate', () => {
+    const href = resolveAffiliateSignupRedirect({
+      returnPath: '/affiliate',
+      affiliateActivated: true,
+      needsVerification: true,
+      email: 'a@example.com',
+      consumedIntentUrl: '/affiliate',
+      fallbackUrl: '/',
+    });
+    assert.match(href, /^\/verify-email\?/);
+    assert.match(href, /next=%2Faffiliate%2Fdashboard/);
+    assert.equal(
+      resolveAffiliateSignupRedirect({
+        returnPath: '/affiliate',
+        affiliateActivated: false,
+        needsVerification: true,
+        email: 'a@example.com',
+        consumedIntentUrl: '/affiliate',
+        fallbackUrl: '/',
+      }),
+      '/affiliate#affiliate-signup',
+    );
+    assert.equal(
+      resolveAffiliateSignupRedirect({
+        returnPath: '/verkopen',
+        affiliateActivated: false,
+        needsVerification: false,
+        email: 'a@example.com',
+        consumedIntentUrl: '/verkopen',
+        fallbackUrl: '/',
+      }),
+      '/verkopen',
     );
   });
 });

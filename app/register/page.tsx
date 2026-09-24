@@ -42,8 +42,8 @@ import {
 } from "@/lib/auth/post-auth-redirect";
 import { consumeAndResolvePostAuthUrl, getPendingIntent } from "@/lib/onboarding/pending-intent";
 import {
-  affiliateContinueAfterAuth,
   isPersonalAffiliateJoinReturn,
+  resolveAffiliateSignupRedirect,
 } from "@/lib/affiliate/signup-flow";
 import { trackVerdienCheckSignupCompletedIfPending } from "@/lib/verdiencheck/activation-handoff";
 import { HC_PENDING_EMAIL_VERIFICATION_STORAGE_KEY } from "@/lib/email-verification-prompt-storage";
@@ -916,12 +916,9 @@ function RegisterPageContent() {
         safeSessionStorageRemoveItem('pendingRegistration');
       }
       
-      const redirectUrl =
-        affiliateContinueAfterAuth({
-          returnPath:
-            searchParams?.get('callbackUrl') || searchParams?.get('returnUrl'),
-          affiliateActivated: data?.affiliateActivated === true,
-        }) || resolveEmailSignupFallbackUrl(data?.redirectUrl);
+      const affiliateReturnPath =
+        searchParams?.get('callbackUrl') || searchParams?.get('returnUrl');
+      const signupFallbackUrl = resolveEmailSignupFallbackUrl(data?.redirectUrl);
 
       if (data?.needsVerification && typeof window !== 'undefined') {
         safeSessionStorageSetItem(
@@ -992,8 +989,14 @@ function RegisterPageContent() {
             const u0 = currentSession?.user as
               | { username?: string | null; socialOnboardingCompleted?: boolean | null }
               | undefined;
-            const pathAfterSession0 =
-              (u0 && consumeAndResolvePostAuthUrl(u0)) || redirectUrl;
+            const pathAfterSession0 = resolveAffiliateSignupRedirect({
+              returnPath: affiliateReturnPath,
+              affiliateActivated: data?.affiliateActivated === true,
+              needsVerification: data?.needsVerification === true,
+              email: state.email.trim(),
+              consumedIntentUrl: u0 ? consumeAndResolvePostAuthUrl(u0) : null,
+              fallbackUrl: signupFallbackUrl,
+            });
             const finalRedirectUrl =
               pathAfterSession0 +
               (pathAfterSession0.includes('?') ? '&' : '?') +
@@ -1017,7 +1020,14 @@ function RegisterPageContent() {
         const u = currentSession.user as
           | { username?: string | null; socialOnboardingCompleted?: boolean | null }
           | undefined;
-        const pathAfterSession = (u && consumeAndResolvePostAuthUrl(u)) || redirectUrl;
+        const pathAfterSession = resolveAffiliateSignupRedirect({
+          returnPath: affiliateReturnPath,
+          affiliateActivated: data?.affiliateActivated === true,
+          needsVerification: data?.needsVerification === true,
+          email: state.email.trim(),
+          consumedIntentUrl: consumeAndResolvePostAuthUrl(u),
+          fallbackUrl: signupFallbackUrl,
+        });
         const finalRedirectUrl =
           pathAfterSession +
           (pathAfterSession.includes('?') ? '&' : '?') +
