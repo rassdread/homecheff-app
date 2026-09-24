@@ -426,13 +426,17 @@ function RegisterPageContent() {
         searchParams?.get('callbackUrl') || searchParams?.get('returnUrl'),
       );
       const pending = getPendingIntent();
+      const affiliateReturn =
+        isPersonalAffiliateJoinReturn(returnTarget) || pending?.type === 'join_affiliate';
       const affiliateIntent =
         !needsProfileOnboardingFromFlags(resolved) && pending?.type === 'join_affiliate'
           ? consumeAndResolvePostAuthUrl(sessionUser)
           : null;
       const target = needsProfileOnboardingFromFlags(resolved)
         ? resolvePathAfterSocialAuth(resolved)
-        : affiliateIntent || returnTarget || '/';
+        : affiliateReturn
+          ? '/affiliate/dashboard'
+          : affiliateIntent || returnTarget || '/';
 
       resetRegistrationDraft();
       clearRegisterDraftStorage();
