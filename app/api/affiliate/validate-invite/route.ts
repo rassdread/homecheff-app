@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { PARTNER_INVITE_COOKIE } from "@/lib/affiliates/partner-hierarchy";
 
 export const dynamic = 'force-dynamic';
 
@@ -68,23 +69,27 @@ export async function GET(req: NextRequest) {
       include: { affiliate: true },
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       valid: true,
       invite: {
         id: invite.id,
         email: invite.email,
         name: invite.name,
         parentAffiliateName: invite.parentAffiliate.user.name,
-        parentAffiliateEmail: invite.parentAffiliate.user.email,
         expiresAt: invite.expiresAt,
       },
       existingUser: existingUser ? {
-        id: existingUser.id,
-        email: existingUser.email,
-        name: existingUser.name,
         hasAffiliate: !!existingUser.affiliate,
       } : null,
     });
+    response.cookies.set(PARTNER_INVITE_COOKIE, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    });
+    return response;
   } catch (error: any) {
     console.error("Error validating invite:", error);
     return NextResponse.json(

@@ -381,9 +381,9 @@ export default function AffiliateDashboardClient() {
             {/* Upline Info */}
             {data.upline && (
               <div className="bg-white rounded-xl shadow-sm border p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Upline</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Jouw partnerprogramma</h3>
                 <p className="text-gray-600">
-                  {data.upline.name} ({data.upline.email})
+                  Partner via {data.upline.name}
                 </p>
               </div>
             )}

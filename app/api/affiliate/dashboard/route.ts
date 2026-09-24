@@ -11,6 +11,7 @@ import { prisma } from "@/lib/prisma";
 import { CommissionLedgerStatus } from "@prisma/client";
 import { mapOwnedAttributionsToReferralList } from "@/lib/affiliates/affiliate-referrals-view";
 import { buildPersonalReferralUrl } from "@/lib/affiliates/personal-referral";
+import { getPublicAppUrl } from "@/lib/public-app-url";
 
 export const dynamic = 'force-dynamic';
 
@@ -42,9 +43,16 @@ export async function GET(req: NextRequest) {
                   select: {
                     name: true,
                     email: true,
+                    username: true,
                   },
                 },
+                _count: { select: { attributions: true } },
               },
+              orderBy: { createdAt: 'desc' },
+            },
+            subAffiliateInvites: {
+              where: { status: 'PENDING' },
+              orderBy: { createdAt: 'desc' },
             },
             referralLinks: {
               orderBy: { createdAt: 'desc' },
@@ -153,18 +161,46 @@ export async function GET(req: NextRequest) {
 
     // Downline count and sub-affiliates
     const downlineCount = affiliate.childAffiliates.length;
-    const subAffiliates = affiliate.childAffiliates.map((child) => ({
-      id: child.id,
-      userId: child.userId,
-      name: child.user.name,
-      email: child.user.email,
-      status: child.status,
-      createdAt: child.createdAt,
-      customUserCommissionPct: child.customUserCommissionPct,
-      customBusinessCommissionPct: child.customBusinessCommissionPct,
-      customParentUserCommissionPct: child.customParentUserCommissionPct,
-      customParentBusinessCommissionPct: child.customParentBusinessCommissionPct,
-    }));
+    const isSubAffiliate = !!affiliate.parentAffiliateId;
+    const canManagePartners = !isSubAffiliate && affiliate.status === 'ACTIVE';
+    const subAffiliates = isSubAffiliate
+      ? []
+      : affiliate.childAffiliates.map((child) => {
+          const overrideCents = affiliate.commissionLedgers
+            .filter((entry) => {
+              const meta = entry.meta as { tier?: string; subAffiliateId?: string } | null;
+              return meta?.tier === 'PARENT' && meta?.subAffiliateId === child.id;
+            })
+            .reduce((sum, entry) => sum + entry.amountCents, 0);
+          return {
+            id: child.id,
+            userId: child.userId,
+            name: child.user.name,
+            username: child.user.username,
+            email: child.user.email,
+            status: child.status,
+            createdAt: child.createdAt,
+            referralCount: child._count.attributions,
+            overrideCents,
+            customUserCommissionPct: child.customUserCommissionPct,
+            customBusinessCommissionPct: child.customBusinessCommissionPct,
+            customParentUserCommissionPct: child.customParentUserCommissionPct,
+            customParentBusinessCommissionPct: child.customParentBusinessCommissionPct,
+          };
+        });
+    const pendingInvites = isSubAffiliate
+      ? []
+      : affiliate.subAffiliateInvites
+          .filter((invite) => invite.expiresAt > new Date())
+          .map((invite) => ({
+            id: invite.id,
+            email: invite.email,
+            name: invite.name,
+            status: invite.status,
+            createdAt: invite.createdAt,
+            expiresAt: invite.expiresAt,
+            inviteLink: `${getPublicAppUrl()}/affiliate/sub-affiliate-signup?token=${encodeURIComponent(invite.inviteToken)}`,
+          }));
 
     // Calculate parent commissions (if this is a sub-affiliate)
     const parentCommissions = affiliate.parentAffiliateId
@@ -197,7 +233,8 @@ export async function GET(req: NextRequest) {
             : affiliate.stripeConnectOnboardingCompleted,
         ),
         createdAt: affiliate.createdAt,
-        isSubAffiliate: !!affiliate.parentAffiliateId,
+        isSubAffiliate,
+        canManagePartners,
       },
       referralCode: referralLink?.code || null, // Include referral code in dashboard data
       referralLink: referralLinkUrl, // Include full referral link with correct base URL
@@ -221,10 +258,10 @@ export async function GET(req: NextRequest) {
         ? {
             id: affiliate.parentAffiliate.id,
             name: affiliate.parentAffiliate.user.name,
-            email: affiliate.parentAffiliate.user.email,
           }
         : null,
-      subAffiliates, // List of sub-affiliates (if this is a parent)
+      subAffiliates,
+      pendingInvites,
       recentPayouts,
     });
   } catch (error) {

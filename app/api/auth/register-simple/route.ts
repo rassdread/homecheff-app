@@ -20,6 +20,7 @@ import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
 import { getDuplicateSignupKindForUser } from "@/lib/auth/signup-duplicate";
 import { jsonRegisterDuplicate } from "@/lib/auth/register-duplicate-response";
 import { trySendSignupVerificationEmail } from "@/lib/auth/send-signup-verification-email";
+import { maybeAcceptPartnerInviteFromRequest } from "@/lib/affiliates/accept-partner-invite";
 import { Prisma } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
@@ -221,53 +222,11 @@ export async function POST(req: NextRequest) {
 
     void tryAwardAccountCreated(user.id).catch(() => {});
 
-    // Process sub-affiliate invite if token is provided
-    if (subAffiliateInviteToken) {
-      try {
-        const invite = await prisma.subAffiliateInvite.findUnique({
-          where: { inviteToken: subAffiliateInviteToken },
-          include: {
-            parentAffiliate: true,
-          },
-        });
-
-        if (
-          invite &&
-          invite.status === 'PENDING' &&
-          invite.expiresAt > new Date() &&
-          tryNormalizeEmail(invite.email) === normalizedEmail
-        ) {
-          // Create sub-affiliate account
-          const subAffiliate = await prisma.affiliate.create({
-            data: {
-              userId: user.id,
-              parentAffiliateId: invite.parentAffiliateId,
-              status: 'ACTIVE',
-            },
-          });
-
-          // Generate referral link code
-          const { randomBytes: rb } = await import('crypto');
-          const referralCode = `REF${user.id.slice(0, 8).toUpperCase()}${rb(2).toString('hex').toUpperCase()}`;
-          
-          await prisma.referralLink.create({
-            data: {
-              affiliateId: subAffiliate.id,
-              code: referralCode,
-            },
-          });
-
-          // Mark invite as accepted
-          await prisma.subAffiliateInvite.update({
-            where: { id: invite.id },
-            data: { status: 'ACCEPTED' },
-          });
-        }
-      } catch (inviteError) {
-        console.error('Failed to process sub-affiliate invite:', inviteError);
-        // Don't fail registration if invite processing fails
-      }
-    }
+    await maybeAcceptPartnerInviteFromRequest({
+      userId: user.id,
+      bodyToken: subAffiliateInviteToken,
+      cookieHeader: req.headers.get("cookie"),
+    });
 
     // Process affiliate attribution (if referral cookie exists)
     try {

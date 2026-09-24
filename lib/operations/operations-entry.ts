@@ -39,10 +39,9 @@ export const OPERATIONS_ROUTES = {
     promoCodes: '/affiliate/promo-codes',
     promoMedia: '/affiliate/promotiemateriaal',
     landing: '/affiliate',
-    /** Partnernetwerk tab (maps to sub-affiliates in dashboard) */
-    network: '/affiliate/dashboard?tab=network',
-    /** Open invite form on partnernetwerk tab */
-    invitePartner: '/affiliate/dashboard?tab=network&invite=1',
+    network: '/affiliate/partners',
+    /** Open invite form on Mijn partners */
+    invitePartner: '/affiliate/partners?invite=1',
     earnings: '/affiliate/dashboard?tab=earnings',
   },
   finance: {

@@ -7575,7 +7575,7 @@
       "attributionPolicySubscription": "Business subscriptions: commission applies when the referred business subscribes — via your promo code or your ref link at sign-up.",
       "earnings": "Earnings",
       "referrals": "Sign-ups via link",
-      "subAffiliates": "Direct partners",
+      "subAffiliates": "My partners",
       "pending": "Pending",
       "available": "Available",
       "paid": "Paid",
@@ -7625,8 +7625,8 @@
       "noPayouts": "No payouts yet",
       "referralStats": "Sign-ups via link",
       "businessReferrals": "Business sign-ups",
-      "subAffiliatesTitle": "Direct partners",
-      "subAffiliatesDesc": "Direct partners in your network. They can generate sign-ups themselves; you receive override commission.",
+      "subAffiliatesTitle": "My partners",
+      "subAffiliatesDesc": "Partners you invited. They promote HomeCheff in their own network or region.",
       "downlineDesc": "Direct partners you invited as partners",
       "yourDownline": "Direct partners",
       "newSubAffiliate": "+ Invite partner",
@@ -7637,7 +7637,7 @@
       "subAffiliateCreated": "Partner successfully added to your network!",
       "createSubAffiliate": "Invite partner",
       "creating": "Creating...",
-      "noSubAffiliates": "You don't have any partners in your network yet. Click \"Invite partner\" to get started.",
+      "noSubAffiliates": "Build your own partner team. Invite partners who promote HomeCheff in their own network or region.",
       "parentCommissions": "Earnings from partner network",
       "parentCommissionsDesc": "This is the total commission from your partner network:",
       "parentCommissionsList1": "10% of subscriptions brought in by partners in your network",
@@ -7671,7 +7671,12 @@
         "backToAffiliate": "Back to Affiliate Page",
         "login": "Login",
         "register": "Create Account",
-        "noAccount": "Don't have an account? Create one to accept the invitation."
+        "noAccount": "Don't have an account? Create one to accept the invitation.",
+        "invitedBy": "{name} invites you to the HomeCheff partner programme.",
+        "accept": "Become a partner",
+        "accepting": "Working…",
+        "alreadyAffiliate": "This account is already an affiliate. A second account is not created.",
+        "emailMismatch": "Sign in with the email address this invitation was sent to."
       },
       "userCommissions": "User Commissions",
       "userCommissionsDesc": "25% per user (50% if you bring both)",
@@ -7681,7 +7686,7 @@
       "businessCommissionsDesc": "50% of subscription fee",
       "businessCommissionsDescSub": "40% of subscription fee",
       "businessCommissionsSource": "From businesses you referred",
-      "yourUpline": "Your Upline"
+      "yourUpline": "Your partner programme"
     },
     "requiredAcceptances": "Required Acceptances",
     "accountRequired": {
@@ -10778,6 +10783,28 @@
       "showQr": "Show QR code",
       "promoCodes": "Promo codes",
       "networkEarnings": "Network earnings"
+    },
+    "myPartners": {
+      "nav": "My partners",
+      "title": "My partners",
+      "emptyTitle": "Build your own partner team",
+      "emptyBody": "Invite partners who promote HomeCheff in their own network or region.",
+      "invite": "Invite partner",
+      "via": "Partner via {name}",
+      "programTitle": "Your partner programme",
+      "active": "Active",
+      "inactive": "Inactive",
+      "invited": "Invitation open",
+      "joined": "Joined",
+      "referrals": "Sign-ups via link",
+      "override": "Your override",
+      "pendingTitle": "Open invitations",
+      "copyLink": "Copy invitation link",
+      "linkReady": "Invitation link",
+      "emailSent": "We also sent the invitation by email.",
+      "emailMissing": "The email could not be sent. Share the link below.",
+      "suspended": "Your affiliate account is not active, so inviting a partner is unavailable.",
+      "back": "Back to affiliate dashboard"
     }
   },
   "legal3": {

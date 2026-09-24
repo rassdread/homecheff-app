@@ -13,8 +13,8 @@ import { activatePersonalAffiliate } from "@/lib/affiliate/activate-affiliate";
 import { maybeClaimBetaTesterFromSignupCookies } from "@/lib/beta-tester-rewards";
 import { parseMarketplaceUtmFromCookieHeader } from "@/lib/acquisition/utm-persistence";
 import { upsertMarketplaceAcquisitionFirstTouch } from "@/lib/acquisition/marketplace-acquisition";
-import { randomBytes } from "crypto";
 import { generateVerificationToken, generateVerificationCode, getVerificationExpires } from "@/lib/verification";
+import { maybeAcceptPartnerInviteFromRequest } from "@/lib/affiliates/accept-partner-invite";
 import { buildRegistrationFullName } from "@/lib/person-name";
 import { tryNormalizeEmail } from "@/lib/auth/normalize-email";
 import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
@@ -367,52 +367,11 @@ export async function POST(req: NextRequest) {
 
     void tryAwardAccountCreated(user.id).catch(() => {});
 
-    // Process sub-affiliate invite if token is provided
-    if (subAffiliateInviteToken) {
-      try {
-        const invite = await prisma.subAffiliateInvite.findUnique({
-          where: { inviteToken: subAffiliateInviteToken },
-          include: {
-            parentAffiliate: true,
-          },
-        });
-
-        if (
-          invite &&
-          invite.status === 'PENDING' &&
-          invite.expiresAt > new Date() &&
-          tryNormalizeEmail(invite.email) === normalizedEmail
-        ) {
-          // Create sub-affiliate account
-          const subAffiliate = await prisma.affiliate.create({
-            data: {
-              userId: user.id,
-              parentAffiliateId: invite.parentAffiliateId,
-              status: 'ACTIVE',
-            },
-          });
-
-          // Generate referral link code
-          const referralCode = `REF${user.id.slice(0, 8).toUpperCase()}${randomBytes(2).toString('hex').toUpperCase()}`;
-          
-          await prisma.referralLink.create({
-            data: {
-              affiliateId: subAffiliate.id,
-              code: referralCode,
-            },
-          });
-
-          // Mark invite as accepted
-          await prisma.subAffiliateInvite.update({
-            where: { id: invite.id },
-            data: { status: 'ACCEPTED' },
-          });
-        }
-      } catch (inviteError) {
-        console.error('Failed to process sub-affiliate invite:', inviteError);
-        // Don't fail registration if invite processing fails
-      }
-    }
+    await maybeAcceptPartnerInviteFromRequest({
+      userId: user.id,
+      bodyToken: subAffiliateInviteToken,
+      cookieHeader: req.headers.get("cookie"),
+    });
 
     // Process affiliate attribution (if referral cookie exists)
     try {

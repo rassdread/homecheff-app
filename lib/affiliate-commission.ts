@@ -13,10 +13,8 @@ import {
   calculateParentAffiliateBusinessCommission,
   applyDiscountToL1,
   LEDGER_PENDING_DAYS,
-  SUB_AFFILIATE_BUSINESS_COMMISSION_PCT,
-  PARENT_AFFILIATE_BUSINESS_COMMISSION_PCT,
-  AFFILIATE_BUSINESS_COMMISSION_PCT,
 } from './affiliate-config';
+import { splitAffiliateLineForHierarchy } from '@/lib/affiliates/main-partner-split';
 import { CommissionLedgerEventType, CommissionLedgerStatus } from '@prisma/client';
 
 /**
@@ -379,18 +377,13 @@ export async function processCommissionForOrder(
       if (!affiliate) continue;
 
       const isSub = !!affiliate.parentAffiliateId;
-      let directCents = line.commissionCents;
-      let parentCents = 0;
+      const split = splitAffiliateLineForHierarchy({
+        lineCents: line.commissionCents,
+        isPartner: isSub && !!affiliate.parentAffiliateId,
+      });
+      const directCents = split.partnerOrDirectCents;
+      const parentCents = split.mainOverrideCents;
       if (isSub && affiliate.parentAffiliateId) {
-        // MAIN10_SUB40 on the affiliate line: partner 80% / main 20% of line
-        // (full-pool line ⇒ 40%/10% of platform fee — original HomeCheff business split).
-        const partnerShareOfLine =
-          SUB_AFFILIATE_BUSINESS_COMMISSION_PCT / AFFILIATE_BUSINESS_COMMISSION_PCT; // 0.8
-        const mainShareOfLine =
-          PARENT_AFFILIATE_BUSINESS_COMMISSION_PCT / AFFILIATE_BUSINESS_COMMISSION_PCT; // 0.2
-        parentCents = Math.floor(line.commissionCents * mainShareOfLine);
-        directCents = line.commissionCents - parentCents;
-        void partnerShareOfLine;
         // Keep canonical tree in sync with local parent (prospective, non-blocking).
         void prisma.affiliate
           .findUnique({

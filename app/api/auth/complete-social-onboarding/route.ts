@@ -8,6 +8,7 @@ import { processAttributionOnSignup } from '@/lib/affiliate-attribution';
 import { maybeClaimBetaTesterFromSignupCookies } from '@/lib/beta-tester-rewards';
 import { parseMarketplaceUtmFromCookieHeader } from '@/lib/acquisition/utm-persistence';
 import { upsertMarketplaceAcquisitionFirstTouch } from '@/lib/acquisition/marketplace-acquisition';
+import { maybeAcceptPartnerInviteFromRequest } from '@/lib/affiliates/accept-partner-invite';
 import { UserRole } from '@prisma/client';
 import { findUserByCanonicalEmail } from '@/lib/auth/find-user-by-email';
 import { registrationUsernamePasswordConflictMessage } from '@/lib/auth/registrationUsernameGuards';
@@ -125,6 +126,10 @@ export async function POST(request: NextRequest) {
           existingUser.id,
           parseMarketplaceUtmFromCookieHeader(cookieHeader),
         );
+        await maybeAcceptPartnerInviteFromRequest({
+          userId: existingUser.id,
+          cookieHeader,
+        });
       } catch (e) {
         console.error('Affiliate attribution after minimal social onboarding:', e);
       }
@@ -264,6 +269,10 @@ export async function POST(request: NextRequest) {
         existingUser.id,
         parseMarketplaceUtmFromCookieHeader(cookieHeader),
       );
+      await maybeAcceptPartnerInviteFromRequest({
+        userId: existingUser.id,
+        cookieHeader,
+      });
     } catch (e) {
       console.error('Affiliate attribution after social onboarding:', e);
     }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { completeEmailVerificationWithToken } from "@/lib/complete-email-verification";
+import { maybeAcceptPartnerInviteFromRequest } from "@/lib/affiliates/accept-partner-invite";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,10 @@ export async function GET(req: NextRequest) {
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: result.status });
   }
+  await maybeAcceptPartnerInviteFromRequest({
+    userId: result.user.id,
+    cookieHeader: req.headers.get("cookie"),
+  });
   return NextResponse.json({
     success: true,
     message: result.message,

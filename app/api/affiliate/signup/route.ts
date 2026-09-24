@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { activatePersonalAffiliate } from "@/lib/affiliate/activate-affiliate";
+import { maybeAcceptPartnerInviteFromRequest } from "@/lib/affiliates/accept-partner-invite";
 
 export const dynamic = 'force-dynamic';
 
@@ -82,6 +83,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    await maybeAcceptPartnerInviteFromRequest({
+      userId: user.id,
+      cookieHeader: req.headers.get("cookie"),
+    });
     const activated = await activatePersonalAffiliate(user.id);
 
     if (activated.created) {

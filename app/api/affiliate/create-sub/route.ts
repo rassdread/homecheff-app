@@ -1,16 +1,79 @@
 /**
- * Create Sub-Affiliate API
- * 
+ * Create a partner invite under the signed-in MAIN affiliate.
+ *
  * POST /api/affiliate/create-sub
- * Allows an affiliate to create a sub-affiliate account for another user
+ * Reuses SubAffiliateInvite + Affiliate.parentAffiliateId.
+ * Does not create a second hierarchy, User, or Stripe account.
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { randomBytes } from "crypto";
+import { tryNormalizeEmail } from "@/lib/auth/normalize-email";
+import { getPublicAppUrl } from "@/lib/public-app-url";
+import { sendTransactionalEmail } from "@/lib/email/idempotent-send";
+import { EMAIL_PRIORITY } from "@/lib/email/priority";
+import {
+  decideMainCanInvite,
+  forgedParentRejected,
+} from "@/lib/affiliates/partner-hierarchy";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
+
+function inviteUrl(token: string): string {
+  return `${getPublicAppUrl()}/affiliate/sub-affiliate-signup?token=${encodeURIComponent(token)}`;
+}
+
+async function sendPartnerInviteEmail(input: {
+  to: string;
+  inviterName: string;
+  inviteeName: string | null;
+  url: string;
+  inviteId: string;
+  expiresAt: Date;
+}): Promise<boolean> {
+  const who = input.inviterName.trim() || "Een HomeCheff-partner";
+  const greeting = input.inviteeName?.trim()
+    ? `Hallo ${input.inviteeName.trim()},`
+    : "Hallo,";
+  const expires = input.expiresAt.toLocaleDateString("nl-NL");
+  const text = [
+    greeting,
+    "",
+    `${who} nodigt je uit voor het HomeCheff partnerprogramma.`,
+    "Je krijgt een eigen partneraccount om HomeCheff te promoten in je eigen netwerk of regio.",
+    "",
+    `Open je uitnodiging: ${input.url}`,
+    "",
+    `De link is persoonlijk en geldig tot ${expires}.`,
+    "HomeCheff vraagt nooit om je wachtwoord per e-mail.",
+  ].join("\n");
+  const html = `
+    <p>${greeting}</p>
+    <p><strong>${who}</strong> nodigt je uit voor het HomeCheff partnerprogramma.</p>
+    <p>Je krijgt een eigen partneraccount om HomeCheff te promoten in je eigen netwerk of regio.</p>
+    <p><a href="${input.url}">Uitnodiging openen</a></p>
+    <p>De link is persoonlijk en geldig tot ${expires}. HomeCheff vraagt nooit om je wachtwoord per e-mail.</p>
+  `;
+  try {
+    const result = await sendTransactionalEmail({
+      to: input.to,
+      subject: `${who} nodigt je uit als HomeCheff-partner`,
+      text,
+      html,
+      eventType: "partner_invite",
+      priority: EMAIL_PRIORITY.P1,
+      route: "affiliate/create-sub",
+      idempotencyKey: `partner-invite:${input.inviteId}`,
+      businessEventId: input.inviteId,
+    });
+    return result.status === "sent";
+  } catch (error) {
+    console.error("[partner-invite] email failed");
+    return false;
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,140 +83,101 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { email, name } = body;
+    const email = tryNormalizeEmail(body?.email);
+    const name = typeof body?.name === "string" ? body.name.trim() : "";
 
     if (!email || !name) {
       return NextResponse.json(
         { error: "Email en naam zijn verplicht" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Get the current affiliate (parent)
     const parentUser = await prisma.user.findUnique({
       where: { email: session.user.email },
       include: { affiliate: true },
     });
 
-    if (!parentUser || !parentUser.affiliate) {
+    if (!parentUser?.affiliate) {
       return NextResponse.json(
-        { error: "Je moet zelf affiliate zijn om een sub-affiliate aan te maken" },
-        { status: 403 }
+        { error: "Je moet zelf affiliate zijn om een partner uit te nodigen" },
+        { status: 403 },
       );
     }
 
-    // TWO_LEVEL_MAIN_PARTNER: only a main (no parent) may recruit partners.
-    if (parentUser.affiliate.parentAffiliateId) {
+    if (forgedParentRejected(body?.parentAffiliateId, parentUser.affiliate.id)) {
+      return NextResponse.json(
+        { error: "Ongeldige partnerrelatie", code: "FORGED_PARENT" },
+        { status: 403 },
+      );
+    }
+
+    const decision = decideMainCanInvite({
+      parentAffiliateId: parentUser.affiliate.parentAffiliateId,
+      status: parentUser.affiliate.status,
+      email: parentUser.email,
+      targetEmail: email,
+    });
+    if (!decision.ok) {
+      const message =
+        decision.code === "PARENT_IS_PARTNER"
+          ? "Als partner kun je geen verdere partners aanmaken. Alleen een MAIN affiliate kan partners uitnodigen."
+          : decision.code === "SELF_PARENT"
+            ? "Je kunt jezelf niet als partner uitnodigen."
+            : "Je affiliate-account kan nu geen partners uitnodigen.";
+      return NextResponse.json(
+        { error: message, code: decision.code },
+        { status: 422 },
+      );
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { email },
+      include: { affiliate: { select: { id: true, parentAffiliateId: true } } },
+    });
+
+    if (targetUser?.affiliate) {
       return NextResponse.json(
         {
           error:
-            "Als partner kun je geen verdere partners aanmaken. Alleen een hoofd-affiliate kan partners toevoegen.",
-          code: "PARENT_IS_PARTNER",
+            "Deze gebruiker heeft al een affiliate-account. Er wordt geen tweede account of Stripe-koppeling gemaakt.",
+          code: "ALREADY_AFFILIATE",
         },
-        { status: 422 }
+        { status: 409 },
       );
     }
 
-    // Check if target user exists
-    const targetUser = await prisma.user.findUnique({
-      where: { email },
-      include: { affiliate: true },
-    });
-
-    // If user exists and already has affiliate account, return error
-    if (targetUser?.affiliate) {
-      return NextResponse.json(
-        { error: "Deze gebruiker heeft al een affiliate account" },
-        { status: 409 }
-      );
-    }
-
-    // If user exists but doesn't have affiliate account, create it directly
-    if (targetUser && !targetUser.affiliate) {
-      // Create sub-affiliate account with parent relationship
-      const subAffiliate = await prisma.affiliate.create({
-        data: {
-          userId: targetUser.id,
-          parentAffiliateId: parentUser.affiliate.id,
-          status: 'ACTIVE',
-        },
-      });
-
-      // Generate referral link code
-      const referralCode = `REF${targetUser.id.slice(0, 8).toUpperCase()}${randomBytes(2).toString('hex').toUpperCase()}`;
-      
-      await prisma.referralLink.create({
-        data: {
-          affiliateId: subAffiliate.id,
-          code: referralCode,
-        },
-      });
-
-      // Prospective: sync parent edge to canonical centralUserId tree (non-blocking).
-      void import('@/lib/affiliates/ecosystem-attribution-bridge').then(({ bridgeMarketplaceParentEdgeToEcosystem }) =>
-        bridgeMarketplaceParentEdgeToEcosystem({
-          childUserId: targetUser.id,
-          parentUserId: parentUser.id,
-          context: 'marketplace_create_sub_existing_user',
-        }),
-      );
-
-      return NextResponse.json({
-        subAffiliate: {
-          id: subAffiliate.id,
-          userId: targetUser.id,
-          email: targetUser.email,
-          name: targetUser.name,
-          referralCode,
-        },
-        inviteLink: null, // No invite needed, account created directly
-        message: "Sub-affiliate account succesvol aangemaakt",
-      });
-    }
-
-    // User doesn't exist - create invite
-    // Check if invite already exists for this email
     const existingInvite = await prisma.subAffiliateInvite.findFirst({
       where: {
-        email: email.toLowerCase(),
+        email,
         parentAffiliateId: parentUser.affiliate.id,
-        status: 'PENDING',
-        expiresAt: {
-          gt: new Date(), // Not expired
-        },
+        status: "PENDING",
+        expiresAt: { gt: new Date() },
       },
     });
 
-    if (existingInvite) {
-      const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://homecheff.eu'}/affiliate/sub-affiliate-signup?token=${existingInvite.inviteToken}`;
-      return NextResponse.json({
-        subAffiliate: null,
-        invite: {
-          id: existingInvite.id,
-          email: existingInvite.email,
-          inviteToken: existingInvite.inviteToken,
-          inviteLink,
+    const invite =
+      existingInvite ??
+      (await prisma.subAffiliateInvite.create({
+        data: {
+          parentAffiliateId: parentUser.affiliate.id,
+          email,
+          name: name || null,
+          inviteToken: randomBytes(32).toString("hex"),
+          status: "PENDING",
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         },
-        message: "Er bestaat al een actieve uitnodiging voor dit e-mailadres",
-      });
-    }
+      }));
 
-    // Create new invite
-    const inviteToken = randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-
-    const invite = await prisma.subAffiliateInvite.create({
-      data: {
-        parentAffiliateId: parentUser.affiliate.id,
-        email: email.toLowerCase(),
-        name: name || null,
-        inviteToken,
-        status: 'PENDING',
-        expiresAt,
-      },
+    const link = inviteUrl(invite.inviteToken);
+    const emailSent = await sendPartnerInviteEmail({
+      to: email,
+      inviterName: parentUser.name || parentUser.username || "Een HomeCheff-partner",
+      inviteeName: name,
+      url: link,
+      inviteId: invite.id,
+      expiresAt: invite.expiresAt,
     });
-
-    const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://homecheff.eu'}/affiliate/sub-affiliate-signup?token=${inviteToken}`;
 
     return NextResponse.json({
       subAffiliate: null,
@@ -161,17 +185,20 @@ export async function POST(req: NextRequest) {
         id: invite.id,
         email: invite.email,
         name: invite.name,
-        inviteToken: invite.inviteToken,
-        inviteLink,
+        inviteLink: link,
+        expiresAt: invite.expiresAt,
+        emailSent,
+        existingUser: Boolean(targetUser),
       },
-      message: "Uitnodiging verstuurd. De persoon ontvangt een link om zich aan te melden.",
+      message: emailSent
+        ? "Uitnodiging klaar. We hebben ook een e-mail gestuurd."
+        : "Uitnodiging klaar. Deel de link; de e-mail kon niet worden verstuurd.",
     });
-  } catch (error: any) {
-    console.error("Error creating sub-affiliate account:", error);
+  } catch (error) {
+    console.error("Error creating partner invite:", error);
     return NextResponse.json(
-      { error: "Failed to create sub-affiliate account", details: error.message },
-      { status: 500 }
+      { error: "Failed to create partner invite" },
+      { status: 500 },
     );
   }
 }
-

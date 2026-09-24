@@ -74,7 +74,7 @@ interface DashboardData {
   upline: {
     id: string;
     name: string;
-    email: string;
+    email?: string;
   } | null;
   subAffiliates?: Array<{
     id: string;
@@ -120,14 +120,21 @@ export default function AffiliateDashboardClient() {
     // Check for welcome parameter
     if (searchParams?.get('welcome') === 'true') {
       setShowWelcome(true);
-      // Remove parameter from URL
       router.replace('/affiliate/dashboard');
-      // Hide welcome after 5 seconds
       setTimeout(() => setShowWelcome(false), 5000);
       return;
     }
 
     const tabParam = searchParams?.get('tab');
+    if (
+      (tabParam === 'network' || tabParam === 'sub-affiliates') &&
+      searchParams?.get('manage') !== '1'
+    ) {
+      const invite = searchParams?.get('invite') === '1' ? '?invite=1' : '';
+      router.replace(`/affiliate/partners${invite}`);
+      return;
+    }
+
     const tabAlias: Record<string, string> = {
       network: 'sub-affiliates',
       overview: 'overview',
@@ -443,6 +450,14 @@ export default function AffiliateDashboardClient() {
 
   const affiliateQuickActions = (
     <>
+      {!data.affiliate.isSubAffiliate ? (
+        <Link
+          href="/affiliate/partners"
+          className="inline-flex min-h-[44px] items-center gap-2 px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-semibold whitespace-nowrap"
+        >
+          {t('partners.myPartners.nav')}
+        </Link>
+      ) : null}
       <Link
         href="/verdiensten?uitbetaling=1"
         className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors text-sm whitespace-nowrap"
@@ -521,6 +536,34 @@ export default function AffiliateDashboardClient() {
           </div>
         )}
 
+        {data.affiliate.isSubAffiliate ? (
+          <div className="mb-6 rounded-xl border border-emerald-200 bg-white p-5 sm:p-6">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {t('partners.myPartners.programTitle')}
+            </h2>
+            <p className="mt-1 text-sm text-gray-700">
+              {t('partners.myPartners.via', {
+                name: data.upline?.name || 'HomeCheff',
+              })}
+            </p>
+          </div>
+        ) : (
+          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {t('partners.myPartners.title')}
+            </h2>
+            <p className="mt-1 text-sm text-gray-700">
+              {t('partners.myPartners.emptyBody')}
+            </p>
+            <Link
+              href="/affiliate/partners?invite=1"
+              className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+              {t('partners.myPartners.invite')}
+            </Link>
+          </div>
+        )}
+
         <HomecheffEcosystemAffiliatePanel />
         <div className="mt-6">
           <AffiliateShareCenter />
@@ -563,16 +606,12 @@ export default function AffiliateDashboardClient() {
               {t('affiliate.dashboard.referrals')}
             </button>
             {!data?.affiliate?.isSubAffiliate && (
-              <button
-                onClick={() => setActiveTab('sub-affiliates')}
-                className={`py-2 px-2 sm:px-1 border-b-2 font-medium text-sm sm:text-base whitespace-nowrap flex-shrink-0 ${
-                  activeTab === 'sub-affiliates'
-                    ? 'border-emerald-500 text-emerald-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+              <Link
+                href="/affiliate/partners"
+                className="py-2 px-2 sm:px-1 border-b-2 font-medium text-sm sm:text-base whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700"
               >
-                {t('affiliate.dashboard.subAffiliates')}
-              </button>
+                {t('partners.myPartners.nav')}
+              </Link>
             )}
           </nav>
         </div>
@@ -653,16 +692,12 @@ export default function AffiliateDashboardClient() {
                       {data.stats.downlineCount} {t('partners.network.statsDirect')}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpenNetworkInvite(true);
-                      setActiveTab('sub-affiliates');
-                    }}
+                  <Link
+                    href="/affiliate/partners?invite=1"
                     className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
                   >
                     {t('partners.actions.invitePartner')}
-                  </button>
+                  </Link>
                 </div>
               </div>
             ) : null}
@@ -861,9 +896,9 @@ export default function AffiliateDashboardClient() {
             {/* Upline Info */}
             {data.upline && (
               <div className="bg-white rounded-xl shadow-sm border p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('affiliate.dashboard.yourUpline')}</h3>
-                <p className="text-gray-600">
-                  {data.upline.name} ({data.upline.email})
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('partners.myPartners.programTitle')}</h3>
+                <p className="text-gray-700">
+                  {t('partners.myPartners.via', { name: data.upline.name || 'HomeCheff' })}
                 </p>
               </div>
             )}
