@@ -128,6 +128,7 @@ describe('affiliate signup production codepath', () => {
   it('preserves affiliate continue through email verification', () => {
     const verify = read('app/verify-email/page.tsx');
     assert.match(verify, /sanitizePostAuthRelativeUrl/);
+    assert.match(verify, /startedTokenRef/);
     const dash = read('app/affiliate/dashboard/page.tsx');
     assert.match(dash, /buildVerifyEmailPath/);
   });

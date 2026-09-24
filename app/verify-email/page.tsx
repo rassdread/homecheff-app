@@ -35,6 +35,7 @@ function VerifyEmailContent() {
   const [hasRequestedCode, setHasRequestedCode] = useState(false);
 
   const lastResendAtRef = useRef(0);
+  const startedTokenRef = useRef<string | null>(null);
   const MAIL_DOWN_COOLDOWN_MS = 45_000;
 
   const verifyEmail = useCallback(
@@ -86,9 +87,9 @@ function VerifyEmailContent() {
   );
 
   useEffect(() => {
-    if (token) {
-      verifyEmail(token);
-    }
+    if (!token || startedTokenRef.current === token) return;
+    startedTokenRef.current = token;
+    void verifyEmail(token);
   }, [token, verifyEmail]);
 
   const resendVerification = async () => {
