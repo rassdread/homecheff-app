@@ -4,12 +4,13 @@ import { redirect } from 'next/navigation';
 import OperationsShell from '@/components/operations/OperationsShell';
 import AffiliatePromoLibraryClient from '@/components/affiliate/AffiliatePromoLibraryClient';
 import { getPlatformAdmin } from '@/lib/admin-guard';
+import { buildVerifyEmailPath } from '@/lib/affiliate/signup-flow';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AffiliatePromoLibraryPage() {
   const session = await auth();
-  if (!session?.user?.email) redirect('/login');
+  if (!session?.user?.email) redirect('/login?callbackUrl=/affiliate/promotiemateriaal');
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
@@ -20,7 +21,7 @@ export default async function AffiliatePromoLibraryPage() {
     },
   });
   if (!user?.emailVerified) {
-    redirect(`/verify-email?email=${encodeURIComponent(session.user.email)}`);
+    redirect(buildVerifyEmailPath(session.user.email, '/affiliate/promotiemateriaal'));
   }
   const admin = await getPlatformAdmin();
   const isAffiliate = user?.affiliate?.status === 'ACTIVE';

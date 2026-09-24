@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -11,6 +11,9 @@ import {
   onboardingFlagsFromSessionUser,
 } from '@/lib/auth/post-auth-redirect';
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
+import {
+  consumeAndResolvePostAuthUrl,
+} from '@/lib/onboarding/pending-intent';
 import { PolicyAgreementTermsLabel } from '@/components/legal/PolicyAgreementTermsLabel';
 import { PRIVACY_URL, SAFETY_STANDARDS_URL, COMMUNITY_GUIDELINES_URL, TERMS_URL } from '@/lib/legal/policy-urls';
 
@@ -24,6 +27,7 @@ export default function CompleteProfilePage() {
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const finishingRef = useRef(false);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -46,7 +50,12 @@ export default function CompleteProfilePage() {
       }
       const resolved = flags ?? onboardingFlagsFromSessionUser(u);
       if (!needsProfileOnboardingFromFlags(resolved)) {
-        router.replace('/');
+        if (finishingRef.current) return;
+        const intentUrl = consumeAndResolvePostAuthUrl({
+          username: u.username,
+          socialOnboardingCompleted: true,
+        });
+        router.replace(intentUrl || '/');
         return;
       }
       trackOnboardingEvent('ONBOARDING_STARTED', { surface: 'complete_profile' });
@@ -90,10 +99,15 @@ export default function CompleteProfilePage() {
         setError(data?.message || t('register.validation.socialOnboardingError'));
         return;
       }
+      finishingRef.current = true;
+      const intentUrl = consumeAndResolvePostAuthUrl({
+        username: uTrim,
+        socialOnboardingCompleted: true,
+      });
       trackOnboardingEvent('ONBOARDING_COMPLETED', { surface: 'complete_profile_minimal' });
       await update({});
       await new Promise((r) => setTimeout(r, 400));
-      window.location.replace('/onboarding/interests?profile_gate=done');
+      window.location.replace(intentUrl || '/onboarding/interests?profile_gate=done');
     } finally {
       setSaving(false);
     }

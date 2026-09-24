@@ -36,6 +36,7 @@ type Props = {
   setAcceptAffiliateAgreement: (v: boolean) => void;
   handleSignup: () => void;
   isSigningUp: boolean;
+  signupError?: string | null;
 };
 
 const FAQ_COUNT = 13;
@@ -52,13 +53,14 @@ export default function AffiliateGrowthLanding({
   setAcceptAffiliateAgreement,
   handleSignup,
   isSigningUp,
+  signupError,
 }: Props) {
   const { t } = useTranslation();
   const signupRef = useRef<HTMLDivElement>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const scrollToSignup = useCallback(() => {
-    signupRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    signupRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, []);
 
   const faqItems = useMemo(() => {
@@ -76,6 +78,28 @@ export default function AffiliateGrowthLanding({
     acceptTerms &&
     acceptAffiliateAgreement &&
     !isMainAffiliate;
+
+  const attemptContinue = useCallback(() => {
+    if (!canSubmit) {
+      scrollToSignup();
+      const focusId = !acceptPrivacyPolicy
+        ? 'affiliate-accept-privacy'
+        : !acceptTerms
+          ? 'affiliate-accept-terms'
+          : 'affiliate-accept-agreement';
+      window.setTimeout(() => {
+        document.getElementById(focusId)?.focus();
+      }, 250);
+    }
+    handleSignup();
+  }, [
+    acceptAffiliateAgreement,
+    acceptPrivacyPolicy,
+    acceptTerms,
+    canSubmit,
+    handleSignup,
+    scrollToSignup,
+  ]);
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24 sm:pb-10">
@@ -155,7 +179,7 @@ export default function AffiliateGrowthLanding({
                 {session?.user ? (
                   <button
                     type="button"
-                    onClick={scrollToSignup}
+                    onClick={attemptContinue}
                     className="inline-flex min-h-[46px] flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 sm:max-w-xs"
                   >
                     {t('affiliate.growth.ctaPrimary')}
@@ -352,6 +376,7 @@ export default function AffiliateGrowthLanding({
               <div className="mt-3 space-y-3">
                 <label className="flex cursor-pointer items-start gap-2.5">
                   <input
+                    id="affiliate-accept-privacy"
                     type="checkbox"
                     checked={acceptPrivacyPolicy}
                     onChange={(e) => setAcceptPrivacyPolicy(e.target.checked)}
@@ -366,6 +391,7 @@ export default function AffiliateGrowthLanding({
                 </label>
                 <label className="flex cursor-pointer items-start gap-2.5">
                   <input
+                    id="affiliate-accept-terms"
                     type="checkbox"
                     checked={acceptTerms}
                     onChange={(e) => setAcceptTerms(e.target.checked)}
@@ -380,6 +406,7 @@ export default function AffiliateGrowthLanding({
                 </label>
                 <label className="flex cursor-pointer items-start gap-2.5">
                   <input
+                    id="affiliate-accept-agreement"
                     type="checkbox"
                     checked={acceptAffiliateAgreement}
                     onChange={(e) => setAcceptAffiliateAgreement(e.target.checked)}
@@ -410,8 +437,9 @@ export default function AffiliateGrowthLanding({
               <div className="mt-4 text-center">
                 <button
                   type="button"
-                  onClick={handleSignup}
-                  disabled={isSigningUp || !canSubmit}
+                  onClick={attemptContinue}
+                  disabled={isSigningUp}
+                  aria-describedby={signupError ? 'affiliate-signup-error' : undefined}
                   className="inline-flex min-h-[48px] w-full max-w-sm items-center justify-center rounded-xl bg-emerald-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isSigningUp ? (
@@ -424,7 +452,12 @@ export default function AffiliateGrowthLanding({
                   )}
                 </button>
                 {!canSubmit ? (
-                  <p className="mt-2 text-[11px] text-amber-800">{t('affiliate.acceptAllRequired')}</p>
+                  <p className="mt-2 text-sm font-medium text-amber-800">{t('affiliate.acceptAllRequired')}</p>
+                ) : null}
+                {signupError ? (
+                  <p id="affiliate-signup-error" role="alert" className="mt-2 text-sm font-medium text-red-700">
+                    {signupError}
+                  </p>
                 ) : null}
                 <p className="mt-2 text-[10px] text-slate-500">
                   {t('affiliate.free')} · {t('affiliate.noObligations')} · {t('affiliate.directActive')}
@@ -502,7 +535,7 @@ export default function AffiliateGrowthLanding({
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-2.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-6px_24px_rgba(0,0,0,0.06)] backdrop-blur sm:hidden">
           <button
             type="button"
-            onClick={scrollToSignup}
+            onClick={attemptContinue}
             className="flex w-full min-h-[46px] items-center justify-center rounded-xl bg-emerald-700 text-sm font-semibold text-white"
           >
             {t('affiliate.growth.stickyCta')}

@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle, AlertCircle, Mail, ArrowRight, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "@/hooks/useTranslation";
+import { sanitizePostAuthRelativeUrl } from "@/lib/auth/post-auth-redirect";
 
 type VerificationState = {
   status: "loading" | "success" | "error" | "expired" | "pending";
@@ -20,6 +21,8 @@ function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams?.get("token");
   const email = searchParams?.get("email");
+  const continueHref =
+    sanitizePostAuthRelativeUrl(searchParams?.get("next")) || "/";
 
   const [state, setState] = useState<VerificationState>({
     status: "pending",
@@ -57,7 +60,7 @@ function VerifyEmailContent() {
             isResending: false,
           });
           setTimeout(() => {
-            router.push("/");
+            router.push(continueHref);
           }, 3000);
         } else {
           setState({
@@ -79,7 +82,7 @@ function VerifyEmailContent() {
         });
       }
     },
-    [t, router, email],
+    [t, router, email, continueHref],
   );
 
   useEffect(() => {
@@ -296,13 +299,17 @@ function VerifyEmailContent() {
             {state.status === "success" && (
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-4">
-                  {t("verifyEmailPage.redirectHome")}
+                  {continueHref === "/"
+                    ? t("verifyEmailPage.redirectHome")
+                    : t("register.continue")}
                 </p>
                 <Link
-                  href="/"
+                  href={continueHref}
                   className="inline-flex items-center justify-center w-full px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-medium"
                 >
-                  {t("verifyEmailPage.toHome")}
+                  {continueHref === "/"
+                    ? t("verifyEmailPage.toHome")
+                    : t("register.continue")}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </div>

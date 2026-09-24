@@ -8,7 +8,9 @@ import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
+    const body = await req.json();
+    const email = body?.email;
+    const context = body?.context === 'delivery' ? 'delivery' : 'account';
 
     if (!email) {
       return NextResponse.json({ 
@@ -33,7 +35,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingUser) {
-      if (!existingUser.DeliveryProfile) {
+      if (context === 'delivery' && !existingUser.DeliveryProfile) {
         return NextResponse.json({
           valid: false,
           incompleteDeliveryOnboarding: true,

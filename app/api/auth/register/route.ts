@@ -9,6 +9,7 @@ import { geocodeAddress } from "@/lib/global-geocoding";
 import { tryAwardAccountCreated } from "@/lib/gamification/award-account-created";
 import { stripe, PLAN_TO_PRICE, normalizeSubscriptionName } from "@/lib/stripe";
 import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
+import { activatePersonalAffiliate } from "@/lib/affiliate/activate-affiliate";
 import { maybeClaimBetaTesterFromSignupCookies } from "@/lib/beta-tester-rewards";
 import { parseMarketplaceUtmFromCookieHeader } from "@/lib/acquisition/utm-persistence";
 import { upsertMarketplaceAcquisitionFirstTouch } from "@/lib/acquisition/marketplace-acquisition";
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest) {
       acceptMarketing,
       // Belastingverantwoordelijkheid
       acceptTaxResponsibility,
+      acceptAffiliateAgreement,
       // Sub-affiliate invite token
       subAffiliateInviteToken,
       confirmPassword,
@@ -427,6 +429,29 @@ export async function POST(req: NextRequest) {
       // Don't fail registration if attribution fails
     }
 
+    // Explicit affiliate agreement only — a normal account is not an affiliate.
+    let affiliateActivated = false;
+    if (acceptAffiliateAgreement === true) {
+      try {
+        const activated = await activatePersonalAffiliate(user.id);
+        affiliateActivated = true;
+        if (activated.created) {
+          await import('@/lib/analytics/record-acquisition-event.server')
+            .then(({ recordAcquisitionEvent }) =>
+              recordAcquisitionEvent({
+                eventName: 'affiliate_activated',
+                dedupeKey: `affiliate:${activated.affiliateId}`,
+                userId: user.id,
+                properties: { affiliate_id: activated.affiliateId },
+              }),
+            )
+            .catch((e) => console.warn('[acquisition] affiliate_activated', e));
+        }
+      } catch (affiliateError) {
+        console.error('Failed to activate affiliate during register:', affiliateError);
+      }
+    }
+
     // Generate email verification token and code
     const verificationToken = generateVerificationToken();
     const verificationCode = generateVerificationCode();
@@ -474,6 +499,7 @@ export async function POST(req: NextRequest) {
       checkoutUrl, // Als bedrijf met abonnement: Stripe Checkout URL
       requiresPayment,
       needsVerification: true,
+      affiliateActivated,
       verificationEmailSent,
       verificationEmailSkippedReason,
       user: {

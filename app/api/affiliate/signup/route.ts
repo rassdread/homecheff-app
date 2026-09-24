@@ -1,14 +1,15 @@
 /**
  * Affiliate Signup API
- * 
+ *
  * POST /api/affiliate/signup
- * Creates a new affiliate account for the authenticated user
+ * Creates a personal affiliate for the authenticated user after explicit agreement.
+ * Does not grant seller, delivery, admin, or other roles.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { randomBytes } from "crypto";
+import { activatePersonalAffiliate } from "@/lib/affiliate/activate-affiliate";
 
 export const dynamic = 'force-dynamic';
 
@@ -35,59 +36,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Check if user already has an ACTIVE affiliate account
-    // Only ACTIVE affiliates are considered as "already having an account"
-    // SUSPENDED affiliates can sign up again (we'll update their existing record)
-    if (user.affiliate && user.affiliate.status === 'ACTIVE') {
-      return NextResponse.json(
-        { error: "User already has an active affiliate account" },
-        { status: 409 }
-      );
-    }
-    
-    // If user has a SUSPENDED affiliate account, reactivate it instead of creating a new one
-    // This preserves historical data (commissions, attributions, etc.)
-    if (user.affiliate && user.affiliate.status === 'SUSPENDED') {
-      // Reactivate the existing affiliate account
-      const reactivatedAffiliate = await prisma.affiliate.update({
-        where: { id: user.affiliate.id },
-        data: { 
-          status: 'ACTIVE',
-          // Reset any fields if needed
-        },
-      });
-
-      // Check if they have a referral link, if not create one
-      const existingLink = await prisma.referralLink.findFirst({
-        where: { affiliateId: reactivatedAffiliate.id },
-      });
-
-      let referralCode = existingLink?.code;
-      
-      if (!existingLink) {
-        // Generate new referral link code
-        referralCode = `REF${user.id.slice(0, 8).toUpperCase()}${randomBytes(2).toString('hex').toUpperCase()}`;
-        
-        await prisma.referralLink.create({
-          data: {
-            affiliateId: reactivatedAffiliate.id,
-            code: referralCode,
-          },
-        });
-      }
-
-      return NextResponse.json({
-        affiliate: {
-          id: reactivatedAffiliate.id,
-          referralCode: referralCode || 'N/A',
-        },
-        message: "Affiliate account succesvol gereactiveerd",
-        reactivated: true,
-      });
-    }
-
-    // Validate required acceptances
-    // For existing users, check if they already accepted, otherwise require new acceptance
     const needsPrivacyAcceptance = !user.privacyPolicyAccepted && !acceptPrivacyPolicy;
     const needsTermsAcceptance = !user.termsAccepted && !acceptTerms;
 
@@ -105,15 +53,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!acceptAffiliateAgreement) {
+    if (!acceptAffiliateAgreement && user.affiliate?.status !== 'ACTIVE') {
       return NextResponse.json(
         { error: "Je moet het affiliate programma overeenkomst accepteren om door te gaan" },
         { status: 400 }
       );
     }
 
-    // Update user acceptances if provided (for existing users who haven't accepted yet)
-    const updateData: any = {};
+    const updateData: {
+      privacyPolicyAccepted?: boolean;
+      privacyPolicyAcceptedAt?: Date;
+      termsAccepted?: boolean;
+      termsAcceptedAt?: Date;
+    } = {};
     if (acceptPrivacyPolicy && !user.privacyPolicyAccepted) {
       updateData.privacyPolicyAccepted = true;
       updateData.privacyPolicyAcceptedAt = new Date();
@@ -123,7 +75,6 @@ export async function POST(req: NextRequest) {
       updateData.termsAcceptedAt = new Date();
     }
 
-    // Update user if needed
     if (Object.keys(updateData).length > 0) {
       await prisma.user.update({
         where: { id: user.id },
@@ -131,47 +82,36 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Create affiliate account
-    const affiliate = await prisma.affiliate.create({
-      data: {
-        userId: user.id,
-        status: 'ACTIVE',
-      },
-    });
+    const activated = await activatePersonalAffiliate(user.id);
 
-    // Generate referral link code
-    const referralCode = `REF${user.id.slice(0, 8).toUpperCase()}${randomBytes(2).toString('hex').toUpperCase()}`;
-    
-    await prisma.referralLink.create({
-      data: {
-        affiliateId: affiliate.id,
-        code: referralCode,
-      },
-    });
+    if (activated.created) {
+      await import('@/lib/analytics/record-acquisition-event.server')
+        .then(({ recordAcquisitionEvent }) =>
+          recordAcquisitionEvent({
+            eventName: 'affiliate_activated',
+            dedupeKey: `affiliate:${activated.affiliateId}`,
+            userId: user.id,
+            properties: { affiliate_id: activated.affiliateId },
+          }),
+        )
+        .catch((e) => console.warn('[acquisition] affiliate_activated', e));
+    }
 
-    await import('@/lib/analytics/record-acquisition-event.server')
-      .then(({ recordAcquisitionEvent }) =>
-        recordAcquisitionEvent({
-          eventName: 'affiliate_activated',
-          dedupeKey: `affiliate:${affiliate.id}`,
-          userId: user.id,
-          properties: { affiliate_id: affiliate.id },
-        }),
-      )
-      .catch((e) => console.warn('[acquisition] affiliate_activated', e));
-
-    // Update session to include affiliate flag
-    // This will be picked up on next session refresh
-    // For immediate update, we could trigger a session update, but NextAuth handles this automatically
-    
     return NextResponse.json({
       affiliate: {
-        id: affiliate.id,
-        referralCode,
+        id: activated.affiliateId,
+        referralCode: activated.referralCode,
       },
-      message: "Affiliate account successfully created",
+      alreadyActive: activated.alreadyActive,
+      reactivated: activated.reactivated,
+      needsEmailVerification: !user.emailVerified,
+      message: activated.created
+        ? "Affiliate account successfully created"
+        : activated.reactivated
+          ? "Affiliate account succesvol gereactiveerd"
+          : "Affiliate account bestaat al",
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating affiliate account:", error);
     return NextResponse.json(
       { error: "Failed to create affiliate account" },
@@ -179,4 +119,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

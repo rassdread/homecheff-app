@@ -9,7 +9,7 @@ export default async function PromoCodesPage() {
   const session = await auth();
   
   if (!session?.user) {
-    redirect('/login');
+    redirect('/login?callbackUrl=/affiliate/promo-codes');
   }
 
   const user = await prisma.user.findUnique({

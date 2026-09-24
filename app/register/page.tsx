@@ -35,11 +35,16 @@ import {
   buildSocialSuccessCallbackUrl,
   clearRegisterDraftStorage,
   fetchOnboardingFlags,
+  needsProfileOnboardingFromFlags,
   onboardingFlagsFromSessionUser,
   resolvePathAfterSocialAuth,
   sanitizePostAuthRelativeUrl,
 } from "@/lib/auth/post-auth-redirect";
-import { consumeAndResolvePostAuthUrl } from "@/lib/onboarding/pending-intent";
+import { consumeAndResolvePostAuthUrl, getPendingIntent } from "@/lib/onboarding/pending-intent";
+import {
+  affiliateContinueAfterAuth,
+  isPersonalAffiliateJoinReturn,
+} from "@/lib/affiliate/signup-flow";
 import { trackVerdienCheckSignupCompletedIfPending } from "@/lib/verdiencheck/activation-handoff";
 import { HC_PENDING_EMAIL_VERIFICATION_STORAGE_KEY } from "@/lib/email-verification-prompt-storage";
 import { PolicyAgreementTermsLabel } from "@/components/legal/PolicyAgreementTermsLabel";
@@ -178,6 +183,8 @@ function RegisterPageContent() {
   const { data: session, status, update: updateSession } = useSession();
   const { t, language } = useTranslation();
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [acceptAffiliateAgreement, setAcceptAffiliateAgreement] = useState(false);
   const [googleAuthEnabled, setGoogleAuthEnabled] = useState(false);
   const [googleAuthChecked, setGoogleAuthChecked] = useState(false);
   const nativeMounted = useIsNativeAppMounted();
@@ -393,7 +400,21 @@ function RegisterPageContent() {
 
       const resolved =
         flags ?? onboardingFlagsFromSessionUser(session.user as any);
-      const target = resolvePathAfterSocialAuth(resolved);
+      const sessionUser = session.user as {
+        username?: string | null;
+        socialOnboardingCompleted?: boolean | null;
+      };
+      const returnTarget = sanitizePostAuthRelativeUrl(
+        searchParams?.get('callbackUrl') || searchParams?.get('returnUrl'),
+      );
+      const pending = getPendingIntent();
+      const affiliateIntent =
+        !needsProfileOnboardingFromFlags(resolved) && pending?.type === 'join_affiliate'
+          ? consumeAndResolvePostAuthUrl(sessionUser)
+          : null;
+      const target = needsProfileOnboardingFromFlags(resolved)
+        ? resolvePathAfterSocialAuth(resolved)
+        : affiliateIntent || returnTarget || '/';
 
       resetRegistrationDraft();
       clearRegisterDraftStorage();
@@ -414,6 +435,7 @@ function RegisterPageContent() {
     status,
     resetRegistrationDraft,
     updateSession,
+    searchParams,
   ]);
 
   // Gebruikersnaam validatie functie
@@ -626,89 +648,99 @@ function RegisterPageContent() {
     }
   }
 
+  function focusField(id: string) {
+    if (typeof document === 'undefined') return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    if (el instanceof HTMLElement) el.focus();
+  }
+
   async function handleRegister() {
-    setState(prev => ({ ...prev, error: null, success: false }));
+    if (isSubmitting) return;
+    setState(prev => ({ ...prev, error: null, success: false, duplicateAccountKind: null }));
+
+    const fail = (message: string, focusId?: string) => {
+      setState(prev => ({
+        ...prev,
+        error: message,
+        success: false,
+      }));
+      if (focusId) {
+        requestAnimationFrame(() => focusField(focusId));
+      }
+    };
+
+    const affiliateJoin = isPersonalAffiliateJoinReturn(
+      searchParams?.get('callbackUrl') || searchParams?.get('returnUrl'),
+    );
     
     // Validatie voor privacy en voorwaarden
     if (!state.acceptPrivacyPolicy || !state.acceptTerms) {
-      setState(prev => ({ 
-        ...prev, 
-        error: t('register.mustAcceptPrivacyTerms') 
-      }));
+      fail(t('register.mustAcceptPrivacyTerms'), state.acceptPrivacyPolicy ? 'acceptTerms-light' : 'acceptPrivacyPolicy-light');
+      return;
+    }
+
+    if (affiliateJoin && !acceptAffiliateAgreement) {
+      fail(t('affiliate.mustAcceptAffiliate'), 'affiliate-agreement-register');
       return;
     }
 
     // Validatie voor gebruikersnaam
     if (!state.username || state.username.trim().length === 0) {
-      setState(prev => ({ 
-        ...prev, 
-        error: t('register.validation.usernameRequiredError') 
-      }));
+      fail(t('register.validation.usernameRequiredError'), 'hc-register-light-username');
+      return;
+    }
+
+    if (state.usernameValidation.isChecking || state.emailValidation.isChecking) {
+      fail(t('common.loading') || 'Even geduld, we controleren je gegevens.');
       return;
     }
 
     if (state.usernameValidation.isValid !== true) {
-      setState(prev => ({ 
-        ...prev, 
-        error: t('register.validation.usernameRequired') 
-      }));
+      fail(
+        state.usernameValidation.message || t('register.validation.usernameRequired'),
+        'hc-register-light-username',
+      );
       return;
     }
     
     try {
       if (!state.firstName?.trim()) {
-        setState((prev) => ({
-          ...prev,
-          error: t('register.validation.firstNameRequired'),
-        }));
+        fail(t('register.validation.firstNameRequired'), 'hc-register-light-first');
         return;
       }
 
       if (!state.lastName?.trim()) {
-        setState((prev) => ({
-          ...prev,
-          error: t('register.validation.lastNameRequired'),
-        }));
+        fail(t('register.validation.lastNameRequired'), 'hc-register-light-last');
         return;
       }
 
       if (!state.email?.trim()) {
-        setState((prev) => ({
-          ...prev,
-          error: t('register.validation.emailRequired'),
-        }));
+        fail(t('register.validation.emailRequired'), 'hc-register-light-email');
         return;
       }
 
       if (state.emailValidation.isValid !== true) {
-        setState((prev) => ({
-          ...prev,
-          error: t('register.validation.emailInvalid'),
-        }));
+        fail(
+          state.emailValidation.message || t('register.validation.emailInvalid'),
+          'hc-register-light-email',
+        );
         return;
       }
 
       if (!state.password || state.password.length < 6) {
-        setState((prev) => ({
-          ...prev,
-          error: t('register.validation.passwordMinLength'),
-        }));
+        fail(t('register.validation.passwordMinLength'), 'hc-register-light-password');
         return;
       }
 
       if (state.password && state.username.trim() === state.password.trim()) {
-        setState((prev) => ({
-          ...prev,
-          error: t('register.validation.usernameEqualsPassword'),
-        }));
+        fail(t('register.validation.usernameEqualsPassword'), 'hc-register-light-password');
         return;
       }
 
       if (state.password !== state.confirmPassword) {
-        setState((prev) => ({
-          ...prev,
-          error: t('register.validation.passwordMismatch'),
-        }));
+        fail(t('register.validation.passwordMismatch'), 'hc-register-light-confirm');
         return;
       }
 
@@ -748,6 +780,7 @@ function RegisterPageContent() {
         acceptMarketing: state.acceptMarketing,
         // Belastingverantwoordelijkheid
         acceptTaxResponsibility: state.acceptTaxResponsibility,
+        acceptAffiliateAgreement: affiliateJoin && acceptAffiliateAgreement,
         // Sub-affiliate invite token (from URL)
         subAffiliateInviteToken: inviteToken || null,
         locale: language === 'en' ? 'en' : 'nl',
@@ -762,6 +795,7 @@ function RegisterPageContent() {
       
       setState((prev) => ({ ...prev, error: null, duplicateAccountKind: null }));
 
+      setIsSubmitting(true);
       const response = await fetch("/api/auth/register", {
         method: "POST",
         credentials: "include",
@@ -810,6 +844,8 @@ function RegisterPageContent() {
           duplicateAccountKind: duplicateKind ?? null,
           success: false 
         }));
+        setIsSubmitting(false);
+        focusField('register-form-error');
         return;
       }
       
@@ -849,6 +885,7 @@ function RegisterPageContent() {
           ...prev, 
           error: t('register.validation.paymentSessionError') 
         }));
+        setIsSubmitting(false);
         return;
       }
       
@@ -879,7 +916,12 @@ function RegisterPageContent() {
         safeSessionStorageRemoveItem('pendingRegistration');
       }
       
-      const redirectUrl = resolveEmailSignupFallbackUrl(data?.redirectUrl);
+      const redirectUrl =
+        affiliateContinueAfterAuth({
+          returnPath:
+            searchParams?.get('callbackUrl') || searchParams?.get('returnUrl'),
+          affiliateActivated: data?.affiliateActivated === true,
+        }) || resolveEmailSignupFallbackUrl(data?.redirectUrl);
 
       if (data?.needsVerification && typeof window !== 'undefined') {
         safeSessionStorageSetItem(
@@ -1023,6 +1065,7 @@ function RegisterPageContent() {
       
     } catch (error) {
       console.error("Registration error:", error);
+      setIsSubmitting(false);
       setState(prev => ({ 
         ...prev, 
         error: t('register.validation.networkError'), 
@@ -1085,7 +1128,7 @@ function RegisterPageContent() {
         )}
 
         {state.error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <div id="register-form-error" role="alert" className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
             <div className="flex items-center">
               <AlertCircle className="h-5 w-5 text-red-600 mr-3 shrink-0" />
               <div className="text-sm text-red-800 space-y-2">
@@ -1189,7 +1232,14 @@ function RegisterPageContent() {
                 </div>
 
                 {/* E-mail registratie (licht) */}
-                <div className="max-w-lg mx-auto space-y-5 text-left">
+                <form
+                  className="max-w-lg mx-auto space-y-5 text-left"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void handleRegister();
+                  }}
+                  noValidate
+                >
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
                     <div className="md:col-span-4">
                       <label className="mb-2 block text-sm font-medium text-gray-700" htmlFor="hc-register-light-first">
@@ -1408,6 +1458,11 @@ function RegisterPageContent() {
                         autoCorrect="off"
                         spellCheck="false"
                       />
+                      {state.password !== state.confirmPassword && state.confirmPassword ? (
+                        <p id="register-password-mismatch" className="mt-2 text-sm text-red-600">
+                          {t('register.validation.passwordMismatch')}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
 
@@ -1459,32 +1514,49 @@ function RegisterPageContent() {
                     </label>
                   </div>
 
+                  {isPersonalAffiliateJoinReturn(
+                    searchParams?.get('callbackUrl') || searchParams?.get('returnUrl'),
+                  ) ? (
+                    <label className="flex items-start gap-2 text-sm text-gray-700" htmlFor="affiliate-agreement-register">
+                      <input
+                        type="checkbox"
+                        id="affiliate-agreement-register"
+                        checked={acceptAffiliateAgreement}
+                        onChange={(e) => setAcceptAffiliateAgreement(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <span>
+                        <span className="font-medium">{t('affiliate.acceptAffiliate')} *</span>
+                        <span className="block text-xs text-gray-500">{t('affiliate.mustAcceptAffiliate')}</span>
+                      </span>
+                    </label>
+                  ) : null}
+
                   <Button
-                    type="button"
-                    onClick={handleRegister}
-                    disabled={
-                      !state.firstName?.trim() ||
-                      !state.lastName?.trim() ||
-                      !state.email?.trim() ||
-                      !state.username?.trim() ||
-                      !state.password ||
-                      state.password.length < 6 ||
-                      state.password !== state.confirmPassword ||
-                      !state.acceptPrivacyPolicy ||
-                      !state.acceptTerms ||
-                      state.usernameValidation.isChecking ||
-                      state.usernameValidation.isValid !== true ||
-                      state.emailValidation.isChecking ||
-                      state.emailValidation.isValid !== true
-                    }
+                    type="submit"
+                    disabled={isSubmitting}
+                    aria-busy={isSubmitting}
                     className="w-full px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {t('register.createAccount')}
+                    {isSubmitting ? t('common.loading') : t('register.createAccount')}
                   </Button>
-                </div>
+                </form>
 
                 <div className="mt-6 text-sm text-gray-500 text-center">
-                  <p>{t('register.alreadyHaveAccount')} <Link href="/login" className="text-emerald-600 hover:text-emerald-700 font-medium">{t('register.login')}</Link></p>
+                  <p>{t('register.alreadyHaveAccount')}{' '}
+                    <Link
+                      href={(() => {
+                        const back =
+                          searchParams?.get('callbackUrl') || searchParams?.get('returnUrl');
+                        return back
+                          ? `/login?callbackUrl=${encodeURIComponent(back)}`
+                          : '/login';
+                      })()}
+                      className="text-emerald-600 hover:text-emerald-700 font-medium"
+                    >
+                      {t('register.login')}
+                    </Link>
+                  </p>
                 </div>
               </div>
           </>

@@ -6,12 +6,14 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import AffiliateGrowthLanding from '@/components/affiliate/AffiliateGrowthLanding';
+import { buildVerifyEmailPath } from '@/lib/affiliate/signup-flow';
 
 export default function AffiliatePageClient() {
   const router = useRouter();
   const { data: session } = useSession();
   const { t } = useTranslation();
   const [isSigningUp, setIsSigningUp] = useState(false);
+  const [signupError, setSignupError] = useState<string | null>(null);
   const [isSubAffiliate, setIsSubAffiliate] = useState(false);
   const [isMainAffiliate, setIsMainAffiliate] = useState(false);
   const [userData, setUserData] = useState<{
@@ -66,18 +68,19 @@ export default function AffiliatePageClient() {
 
   const handleSignup = async () => {
     if (!acceptPrivacyPolicy) {
-      alert(t('affiliate.mustAcceptPrivacy'));
+      setSignupError(t('affiliate.mustAcceptPrivacy'));
       return;
     }
     if (!acceptTerms) {
-      alert(t('affiliate.mustAcceptTerms'));
+      setSignupError(t('affiliate.mustAcceptTerms'));
       return;
     }
     if (!acceptAffiliateAgreement) {
-      alert(t('affiliate.mustAcceptAffiliate'));
+      setSignupError(t('affiliate.mustAcceptAffiliate'));
       return;
     }
 
+    setSignupError(null);
     setIsSigningUp(true);
     try {
       const response = await fetch('/api/affiliate/signup', {
@@ -90,19 +93,22 @@ export default function AffiliatePageClient() {
         }),
       });
 
+      const data = await response.json().catch(() => ({}));
       if (response.ok) {
-        setTimeout(() => {
-          router.push('/affiliate/dashboard?welcome=true');
-          router.refresh();
-        }, 500);
+        const email = session?.user?.email || '';
+        if (data?.needsEmailVerification && email) {
+          router.push(buildVerifyEmailPath(email, '/affiliate/dashboard'));
+          return;
+        }
+        router.push('/affiliate/dashboard?welcome=true');
+        router.refresh();
       } else {
-        const error = await response.json();
-        alert(error.error || t('affiliate.signupError'));
+        setSignupError(data?.error || t('affiliate.signupError'));
         setIsSigningUp(false);
       }
     } catch (error) {
       console.error('Error signing up:', error);
-      alert(t('affiliate.signupError'));
+      setSignupError(t('affiliate.signupError'));
       setIsSigningUp(false);
     }
   };
@@ -185,6 +191,7 @@ export default function AffiliatePageClient() {
         setAcceptAffiliateAgreement={setAcceptAffiliateAgreement}
         handleSignup={handleSignup}
         isSigningUp={isSigningUp}
+        signupError={signupError}
       />
     </div>
   );

@@ -190,7 +190,7 @@ export default function DeliverySignupPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, context: 'delivery' }),
       });
 
       const data = await response.json();
