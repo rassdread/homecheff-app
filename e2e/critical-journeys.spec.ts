@@ -34,6 +34,36 @@ const PUBLIC_JOURNEYS: Array<{ id: string; path: string; expectText: RegExp }> =
   { id: 'SMOKE_14_DELIVERY_DASHBOARD', path: '/delivery/dashboard/', expectText: /bezorg|Inloggen|Dashboard|E-mail/i },
 ];
 
+/** Login just left /login while the home page is still prefetching. A goto in that window is aborted. */
+async function waitForPostLoginSettle(page: import('@playwright/test').Page) {
+  await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+}
+
+/**
+ * Logged-out protected routes render the login form.
+ * NL/BE/SR visitors get Dutch copy; every other country gets English.
+ * The gate is the form, not one language's wording.
+ */
+async function expectLoginGateOrContent(
+  page: import('@playwright/test').Page,
+  expectText: RegExp,
+) {
+  await expect
+    .poll(async () => {
+      const path = new URL(page.url()).pathname;
+      if (path === '/login' || path === '/login/') return 'login';
+      const body = await page.locator('body').innerText().catch(() => '');
+      return expectText.test(body) ? 'content' : '';
+    }, { timeout: 15_000 })
+    .not.toBe('');
+
+  const path = new URL(page.url()).pathname;
+  if (path === '/login' || path === '/login/') {
+    await expect(page.locator('input[type="email"], input[name="email"]').first()).toBeVisible();
+    await expect(page.locator('input[type="password"]').first()).toBeVisible();
+  }
+}
+
 function watch(page: import('@playwright/test').Page) {
   const problems: string[] = [];
   page.on('pageerror', (error) => problems.push(`pageerror: ${error.message}`));
@@ -58,7 +88,7 @@ for (const journey of PUBLIC_JOURNEYS) {
     expect(response, 'navigation response').toBeTruthy();
     expect(response!.status(), 'document status').toBeLessThan(400);
     await expect(page.getByRole('heading', { name: ERROR_TITLE })).toHaveCount(0);
-    await expect(page.locator('body')).toContainText(journey.expectText);
+    await expectLoginGateOrContent(page, journey.expectText);
     expect(problems, problems.join('\n')).toEqual([]);
   });
 }
@@ -96,7 +126,7 @@ for (const journey of LOGGED_IN_OR_PUBLIC) {
     expect(response, 'navigation response').toBeTruthy();
     expect(response!.status(), 'document status').toBeLessThan(500);
     await expect(page.getByRole('heading', { name: ERROR_TITLE })).toHaveCount(0);
-    await expect(page.locator('body')).toContainText(journey.expectText);
+    await expectLoginGateOrContent(page, journey.expectText);
     expect(problems, problems.join('\n')).toEqual([]);
   });
 }
@@ -115,9 +145,12 @@ test('SMOKE_07_PHOTO_UPLOAD control is on the profile when signed in', async ({ 
   await page.locator('input[type="password"]').first().fill(process.env.SMOKE_PASSWORD!);
   await page.getByRole('button', { name: /inloggen|log in|aanmelden/i }).first().click();
   await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20_000 });
+  await waitForPostLoginSettle(page);
   await page.goto('/profile/', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: ERROR_TITLE })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: /profielfoto wijzigen/i }).first()).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: /profielfoto wijzigen|change profile photo/i }).first(),
+  ).toBeVisible();
   expect(problems, problems.join('\n')).toEqual([]);
 });
 
@@ -140,10 +173,11 @@ test('SMOKE_05 authenticated profile', async ({ page }) => {
   await page.locator('input[type="password"]').first().fill(process.env.SMOKE_PASSWORD!);
   await page.getByRole('button', { name: /inloggen|log in|aanmelden/i }).first().click();
   await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20_000 });
+  await waitForPostLoginSettle(page);
   for (const route of [
-    { path: '/profile/', text: /Profielfoto|profiel/i },
+    { path: '/profile/', text: /profielfoto|change profile photo|profiel/i },
     { path: '/reservations/', text: /Reservering|Afspraken|reserv/i },
-    { path: '/settings/', text: /Instellingen|profiel/i },
+    { path: '/settings/', text: /Instellingen|Settings/i },
   ]) {
     await page.goto(route.path, { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { name: ERROR_TITLE })).toHaveCount(0);
