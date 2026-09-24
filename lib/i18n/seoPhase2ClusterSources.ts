@@ -92,8 +92,8 @@ const etenVerkopenVanuitHuisPage: Record<string, Bi> = {
     en: "Dropshipping hits identical products, low margins and no relationship. Food from home is the opposite: tangible, personal and repeatable in the same postcode. You build reputation on quality and agreements — not on who buys the fastest ads.",
   },
   sec5Title: {
-    nl: "Waarom lokaal verkopen groeit in 2026",
-    en: "Why local selling keeps growing in 2026",
+    nl: "Waarom mensen dichter bij huis willen kopen",
+    en: "Why people want to buy closer to home",
   },
   sec5Body: {
     nl: "Mensen zoeken kortere ketens en meer zeggenschap: wie kookt, waar komt het vandaan, kan ik vragen stellen. Dat is geen hype-cyclus maar gedrag. Marktplaatsen die buurt en ophalen serieus nemen, passen daarbij — niet omdat “lokaal” een sticker is, maar omdat het de enige manier is om vertrouwen schaalbaar te maken zonder fabriek.",
@@ -234,8 +234,8 @@ const thuisgekooktEtenVerkopenPage: Record<string, Bi> = {
     en: "Many makers came from dropshipping because there was no brand or relationship. Home-cooked is the opposite: face, neighbourhood, repeat. Your competition is then not who has the cheapest import, but who delivers most reliably in the same postcode.",
   },
   sec5Title: {
-    nl: "Waarom lokaal verkopen groeit in 2026",
-    en: "Why local selling keeps growing in 2026",
+    nl: "Waarom mensen dichter bij huis willen kopen",
+    en: "Why people want to buy closer to home",
   },
   sec5Body: {
     nl: "Niet omdat alles “hyperlokaal” moet, maar omdat transparantie en nabijheid steeds normaler worden in voedselkeuzes. Buurtplatformen winnen wanneer ze echte makers tonen — niet alleen SKU’s.",
@@ -353,8 +353,8 @@ const bijverdienenVanuitHuisPage: Record<string, Bi> = {
     en: "Because scale without differentiation eats your margin. Local side income is slow at first, but you build something a catalogue cannot copy overnight.",
   },
   sec5Title: {
-    nl: "Waarom lokaal verkopen groeit in 2026",
-    en: "Why local selling keeps growing in 2026",
+    nl: "Waarom mensen dichter bij huis willen kopen",
+    en: "Why people want to buy closer to home",
   },
   sec5Body: {
     nl: "Omdat mensen moe worden van anonieme schaal bij voedsel en creatief werk. Ze zoeken makers, verhalen en duidelijke afspraken — precies wat een buurtmarktplaats kan ondersteunen.",
@@ -473,8 +473,8 @@ const zelfgemaaktEtenVerkopenPage: Record<string, Bi> = {
     en: "Dropshipping sells what anyone can import. Homemade sells what only you make that way — unless you ruin it by wanting too much at once.",
   },
   sec5Title: {
-    nl: "Waarom lokaal verkopen groeit in 2026",
-    en: "Why local selling keeps growing in 2026",
+    nl: "Waarom mensen dichter bij huis willen kopen",
+    en: "Why people want to buy closer to home",
   },
   sec5Body: {
     nl: "Omdat makers zichtbaar willen zijn en kopers uitleg willen. Zelfgemaakt + lokaal is een combinatie die past bij ophalen en korte lijnen.",
@@ -591,8 +591,8 @@ const lokaalEtenVerkopenPage: Record<string, Bi> = {
     en: "Dropshipping avoids physical complexity; local food embraces pickup and temperature as part of the product. That is heavier, but it builds a wall against endless price competition.",
   },
   sec5Title: {
-    nl: "Waarom lokaal verkopen groeit in 2026",
-    en: "Why local selling keeps growing in 2026",
+    nl: "Waarom mensen dichter bij huis willen kopen",
+    en: "Why people want to buy closer to home",
   },
   sec5Body: {
     nl: "Omdat kopers steeds vaker “wie maakt dit?” vragen. Lokaal eten verkopen werkt als je antwoord geeft met daden: herkomst, hygiëne-communicatie, vaste ophaal.",
@@ -674,48 +674,48 @@ const etenVerkopenCityPage: Record<string, Bi> = {
     en: "Sell food in {{city}} | Home cooks | HomeCheff",
   },
   metaDescription: {
-    nl: "Eten verkopen in {{city}}: lokaal ophalen, buurt-klanten en praktische start — via HomeCheff.",
-    en: "Sell food in {{city}}: local pickup, neighbourhood customers and a practical start — on HomeCheff.",
+    nl: "Eten verkopen in {{city}} via HomeCheff: jij bepaalt het gerecht, de prijs en of mensen ophalen of jij bezorgt.",
+    en: "Sell food in {{city}} on HomeCheff: you choose the dish, the price, and whether people collect it or you deliver.",
   },
   title: {
-    nl: "Eten verkopen in {{city}}: lokaal starten met thuisgekookt en vaste ophaal",
-    en: "Selling food in {{city}}: start locally with home-cooked meals and fixed pickup",
+    nl: "Eten verkopen in {{city}}",
+    en: "Sell food in {{city}}",
   },
   intro: {
-    nl: "In {{city}} is de vraag naar lokaal eten niet “of”, maar “waar haal ik het op en bij wie”. Als je hier eten wilt verkopen vanuit huis, win je niet met de mooiste landingspagina, maar met betrouwbare afspraken en herhaling in dezelfde wijk. HomeCheff helpt je zichtbaar te worden voor mensen die al zoeken naar buurt-aanbod — zonder dat je eerst een complete webshop hoeft te bouwen.",
-    en: "In {{city}} the question for local food is not if, but where to pick up and from whom. If you want to sell food from home here, you win not with the prettiest landing page, but with reliable agreements and repeat in the same area. HomeCheff helps you become visible to people already looking for neighbourhood offers — without building a full webshop first.",
+    nl: "Op HomeCheff kun je eten aanbieden aan mensen in en rond {{city}}. Je bepaalt zelf wat je maakt, wat het kost en of mensen het ophalen of dat je bezorgt. Of er kopers zijn, hangt af van wie er op dat moment zoekt. Een gegarandeerde vraag is er niet.",
+    en: "On HomeCheff you can offer food to people in and around {{city}}. You decide what you make, what it costs, and whether people collect it or you deliver. Whether anyone buys depends on who is looking at the time. There is no guaranteed demand.",
   },
   sec1Title: {
-    nl: "Waarom {{city}} anders is dan “Nederland” als doelgroep",
-    en: "Why {{city}} is different from targeting the whole Netherlands",
+    nl: "Wat je zelf vastlegt",
+    en: "What you decide yourself",
   },
   sec1Body: {
-    nl: "Postcodes, verkeer en sociale netwerken verschillen per stad. Wat werkt is een radius die je eerlijk kunt bedienen: vaste ophaal, duidelijke tijdvensters en communicatie die past bij drukte in {{city}}. Liever een kleine zone die je perfect doet dan een grote belofte die je niet waar maakt.",
-    en: "Postcodes, traffic and social networks differ per city. What works is a radius you can honestly serve: fixed pickup, clear time windows and communication that fits busy life in {{city}}. Prefer a small zone done perfectly over a big promise you cannot keep.",
+    nl: "Kies een gebied dat je echt kunt bedienen, een duidelijke ophaal- of bezorgafspraak, en een prijs waar je zelf achter staat. HomeCheff vult dat niet voor je in, ook niet voor {{city}}.",
+    en: "Pick an area you can actually serve, a clear pickup or delivery arrangement, and a price you are comfortable with. HomeCheff does not fill that in for you, including in {{city}}.",
   },
   sec2Title: {
-    nl: "Thuisgekookt eten verkopen in {{city}}: start met herkenning",
-    en: "Selling home-cooked food in {{city}}: start with recognition",
+    nl: "Zichtbaar met jouw naam erbij",
+    en: "Visible, with your name on it",
   },
   sec2Body: {
-    nl: "Mensen in {{city}} kopen vaker als ze weten wat ze krijgen. Eén signature-lijn, vaste weekdag, duidelijke foto’s: dat bouwt sneller vertrouwen dan tien losse experimenten. Koppel je profiel aan duidelijke labels en gebruik buurtkanalen waar {{city}}-bewoners al zitten.",
-    en: "People in {{city}} buy more when they know what they get. One signature line, fixed weekday, clear photos: that builds trust faster than ten random experiments. Tie your profile to clear labels and use neighbourhood channels where {{city}} residents already are.",
+    nl: "Je gerecht staat op het dorpsplein, met jouw profiel erbij. Mensen in en rond {{city}} zien het als ze daar kijken. Hoeveel dat er zijn, is van tevoren niet te zeggen.",
+    en: "Your dish sits on the village square, with your profile next to it. People in and around {{city}} see it when they look there. How many that will be is not something we can say in advance.",
   },
   sec3Title: {
-    nl: "Geld verdienen vanuit huis: koppel lokaal aan je eerste 20 kopers",
-    en: "Earning from home: tie local to your first 20 buyers",
+    nl: "Wat je overhoudt",
+    en: "What you keep",
   },
   sec3Body: {
-    nl: "Je eerste kopers in {{city}} zijn je distributie-engine: reviews, doorverwijzingen en vaste rit. Lees ook de algemene gidsen over geld verdienen met koken en Growth — het principe is hetzelfde, alleen is je netwerk hier concreter benoemd.",
-    en: "Your first buyers in {{city}} are your distribution engine: reviews, referrals and steady rhythm. Read the general guides on earning with cooking and Growth — the principle is the same, only your network is more concrete here.",
+    nl: "Wat kopers betalen is je omzet. Daar gaan je kosten en de platformfee vanaf. Belasting en toeslagen hangen van je eigen situatie af. De pagina over geld verdienen met koken legt dat uit, zonder een bedrag te beloven.",
+    en: "What buyers pay is your revenue. Your costs and the platform fee come off that. Tax and benefits depend on your own situation. The page about earning money by cooking explains that, without promising an amount.",
   },
   sec4Title: {
-    nl: "Producten verkopen zonder webshop (ook in {{city}})",
-    en: "Selling products without a webshop (also in {{city}})",
+    nl: "Geen eigen webshop nodig",
+    en: "No webshop of your own required",
   },
   sec4Body: {
-    nl: "Een marketplace-profiel is vaak sneller dan een custom shop omdat intent al bestaat: mensen zoeken eten en makers. Focus op ophalen, prijs en communicatie — dat is waar je concurrentie wint in {{city}}, niet op checkout-thema’s.",
-    en: "A marketplace profile is often faster than a custom shop because intent already exists: people search for food and makers. Focus on pickup, price and communication — that is where you win in {{city}}, not on checkout themes.",
+    nl: "Je publiceert het gerecht op HomeCheff. Een eigen webshop is daar niet voor nodig, in {{city}} niet en elders niet.",
+    en: "You publish the dish on HomeCheff. You do not need a webshop of your own for that, in {{city}} or anywhere else.",
   },
   rp1a: { nl: "Lees ", en: "Read " },
   rp1b: {
@@ -745,8 +745,8 @@ const etenVerkopenCityPage: Record<string, Bi> = {
     en: "Publish on HomeCheff with clear photos.",
   },
   step4: {
-    nl: "Werven via buurtkanalen in {{city}}.",
-    en: "Acquire via neighbourhood channels in {{city}}.",
+    nl: "Zeg duidelijk hoe mensen in {{city}} het kunnen ophalen of laten bezorgen.",
+    en: "Say clearly how people in {{city}} can collect it or have it delivered.",
   },
   step5: {
     nl: "Optimaliseer ritme en reviews.",
@@ -754,8 +754,8 @@ const etenVerkopenCityPage: Record<string, Bi> = {
   },
   mistakesTitle: { nl: "Veelgemaakte fouten", en: "Common mistakes" },
   mistakesBody: {
-    nl: "Heel {{city}} beloven zonder logistiek, geen vaste ophaal, prijs zonder tijd meegerekend.",
-    en: "Promising all of {{city}} without logistics, no fixed pickup, price without time baked in.",
+    nl: "Heel {{city}} beloven terwijl je dat niet kunt waarmaken, geen duidelijke ophaal, en een prijs waar je tijd niet in zit.",
+    en: "Promising all of {{city}} when you cannot actually cover it, no clear pickup, and a price that ignores your time.",
   },
   cta: {
     nl: "Start in {{city}} met HomeCheff",

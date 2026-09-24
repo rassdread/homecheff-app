@@ -225,8 +225,8 @@ const homeEarningPage: Record<string, Bi> = {
     en: "Because identical products and low margins put you on a hamster wheel: more ads, less brand, zero buyer relationship. Making locally on HomeCheff is about neighbourhood repeat: people know who you are and what you deliver.",
   },
   authorityLocal2026Title: {
-    nl: "Waarom lokaal verkopen groeit in 2026",
-    en: "Why local selling keeps growing in 2026",
+    nl: "Waarom mensen dichter bij huis willen kopen",
+    en: "Why people want to buy closer to home",
   },
   authorityLocal2026Body: {
     nl: "Kopers vragen vaker naar herkomst en korte keten — niet als modegrap, maar omdat ze controle willen over wat ze eten en bij wie ze kopen. Platforms die ophalen en buurt-serieus nemen, passen daar beter bij dan anonieme schaal.",
@@ -383,8 +383,8 @@ const cookingEarningPage: Record<string, Bi> = {
     en: "Dropshipping pushes you to identical SKUs and low margin. Cooking for the neighbourhood is the opposite: the product changes weekly but stays recognisable through your style and agreements.",
   },
   authorityLocal2026Title: {
-    nl: "Waarom lokaal verkopen groeit in 2026",
-    en: "Why local selling keeps growing in 2026",
+    nl: "Waarom mensen dichter bij huis willen kopen",
+    en: "Why people want to buy closer to home",
   },
   authorityLocal2026Body: {
     nl: "Mensen willen kortere ketens en duidelijkheid: wie kookt dit, hoe haal ik op. Dat past bij vaste ophaal en buurt-reviews — niet bij anonieme schaal-import.",
@@ -547,8 +547,8 @@ const localProductsPage: Record<string, Bi> = {
     en: "Garden sales are not import catalogues — but the same pitfall applies: if you are anonymous and price-only, you lose. Local garden goods are story plus pickup.",
   },
   authorityLocal2026Title: {
-    nl: "Waarom lokaal verkopen groeit in 2026",
-    en: "Why local selling keeps growing in 2026",
+    nl: "Waarom mensen dichter bij huis willen kopen",
+    en: "Why people want to buy closer to home",
   },
   authorityLocal2026Body: {
     nl: "Mensen zoeken transparantie bij voedsel en planten: wie teelt dit, hoe vers is het. Dat is geen medische claim — wél een verwachting aan uitleg.",
@@ -680,8 +680,8 @@ const uniqueProductsPage: Record<string, Bi> = {
     en: "Unique bespoke work is the opposite of dropshipping: no SKU shared by ten thousand shops. If you set boundaries and deliver what you promise, you build margin through trust.",
   },
   authorityLocal2026Title: {
-    nl: "Waarom lokaal verkopen groeit in 2026",
-    en: "Why local selling keeps growing in 2026",
+    nl: "Waarom mensen dichter bij huis willen kopen",
+    en: "Why people want to buy closer to home",
   },
   authorityLocal2026Body: {
     nl: "Lokaal creatief werk schaalt via referrals: mensen laten fysiek zien wat je maakte. Dat werkt beter met ophalen dan met wereldwijde verzendstress.",
@@ -811,8 +811,8 @@ const deliveryPartnerPage: Record<string, Bi> = {
     en: "Delivery is physical work — not a set-and-forget webshop. That is healthy: you see immediately if a run works and if communication is honest.",
   },
   authorityLocal2026Title: {
-    nl: "Waarom lokaal verkopen groeit in 2026",
-    en: "Why local selling keeps growing in 2026",
+    nl: "Waarom mensen dichter bij huis willen kopen",
+    en: "Why people want to buy closer to home",
   },
   authorityLocal2026Body: {
     nl: "Lokale ritten houden euro’s in de buurt en verlagen faal-afstand: als iets misgaat, los je het sneller op dan bij anonieme schaal.",
@@ -950,8 +950,8 @@ const dropshippingAlternativePage: Record<string, Bi> = {
     en: "Because scale without brand and service exhausts you. A local alternative means tangible product, real agreements, repeatable neighbourhood.",
   },
   authorityLocal2026Title: {
-    nl: "Waarom lokaal verkopen groeit in 2026",
-    en: "Why local selling keeps growing in 2026",
+    nl: "Waarom mensen dichter bij huis willen kopen",
+    en: "Why people want to buy closer to home",
   },
   authorityLocal2026Body: {
     nl: "Kopers zoeken makers en korte ketens — niet alleen lagere prijs. Platforms die ophalen en profielen serieus nemen, passen bij die shift.",

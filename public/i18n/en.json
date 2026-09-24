@@ -7875,7 +7875,7 @@
       "timelineY710Body": "Partners who grow with the mission could sit inside a much larger international network of businesses, creators, and neighbourhoods—if strategy, regulation, and adoption align.",
       "narrativeFutureDisclaimer": "Illustrative storyline only. No guaranteed income, tenure, timing, or lifetime commissions.",
       "commissionDetailsToggle": "How transaction commission works",
-      "commissionDetailsBody": "You earn 25% of HomeCheff's platform fee per referred transaction side (50% when you refer both buyer and seller). Buyers count too. Example stacks often use about 12% platform fee for private sellers and about 7% for Pro business transactions—actual fees depend on plans and live activity.",
+      "commissionDetailsBody": "If you are the only affiliate on an order, you can receive the whole pool: at most 50% of the platform fee. If two different affiliates qualify, each receives half of that pool. With no affiliate, commission is €0. This is a scenario, not a promise that every referral pays the maximum.",
       "calculatePotential": "Your inputs",
       "subscriptionsPerMonth": "Subscriptions per month",
       "avgPricePerSubscription": "Average price per subscription (€/month)",
@@ -7913,7 +7913,16 @@
       "ctaSlimSubtitle": "Transparent terms · Dashboard-tracked commissions · Creator- and community-first, built to scale internationally",
       "legalFootnote": "Exact percentages, caps, and windows are defined in your affiliate agreement and general terms.",
       "becomeAffiliate": "Become an affiliate — start free",
-      "readyToStartDesc": "Become an affiliate and build recurring commission with your community over time, within your agreement."
+      "readyToStartDesc": "Become an affiliate and build recurring commission with your community over time, within your agreement.",
+      "growthPlan": "Business subscription",
+      "growthPlanHint": "Commission is 50% of what remains after that plan’s HC reserve, not 50% of the price. There is no minimum.",
+      "orderScenario": "Affiliates on an order",
+      "scenarioSingle": "Only you (buyer, seller, or both)",
+      "scenarioTwo": "You and a different affiliate",
+      "scenarioNone": "No affiliate on the order",
+      "perOrderFee": "Platform fee on one private order",
+      "perOrderPool": "Affiliate pool",
+      "perOrderYours": "Your share"
     },
     "growth": {
       "heroEyebrow": "HomeCheff ecosystem",

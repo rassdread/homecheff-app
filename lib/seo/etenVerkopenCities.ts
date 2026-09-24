@@ -1,4 +1,4 @@
-/** Statische city-slugs voor `/eten-verkopen-[stad]`. */
+/** City slugs for the literal routes `/eten-verkopen-<stad>`. */
 export const ETEN_VERKOPEN_CITY_SLUGS = [
   "rotterdam",
   "amsterdam",

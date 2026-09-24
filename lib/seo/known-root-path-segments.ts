@@ -22,7 +22,7 @@ const EN_SEO_SLUGS: readonly string[] = EN_SEO_PAGE_SLUGS;
 
 /**
  * First URL segment of every `app/<segment>` route except `[seoSlug]`
- * and `eten-verkopen-[stad]` (handled via city prefix).
+ * and the four literal `eten-verkopen-<stad>` routes (also matched by city prefix).
  */
 export const APP_FIRST_SEGMENTS = [
   '.well-known',
@@ -56,6 +56,10 @@ export const APP_FIRST_SEGMENTS = [
   'docs',
   'dorpsplein',
   'en',
+  'eten-verkopen-amsterdam',
+  'eten-verkopen-den-haag',
+  'eten-verkopen-rotterdam',
+  'eten-verkopen-utrecht',
   'eten-verkopen-vanuit-huis',
   'ecosystem',
   'evidence',
@@ -64,7 +68,6 @@ export const APP_FIRST_SEGMENTS = [
   'favorites',
   'forgot-password',
   'garden',
-  'geld-verdienen-met-koken',
   'gemeenschap',
   'glossary',
   'hc-http-404',

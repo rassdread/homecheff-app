@@ -4,6 +4,17 @@ import { useState } from 'react';
 import { TrendingUp, DollarSign, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
+import { calculatePlatformFeeCents } from '@/lib/fees';
+import { PUBLIC_GROWTH_PLANS } from '@/lib/earn/public-economics';
+import {
+  CALCULATOR_BUSINESS_FEE_PERCENT,
+  CALCULATOR_GROWTH_PLAN_KEYS,
+  CALCULATOR_INDIVIDUAL_FEE_PERCENT,
+  type CalculatorGrowthPlanKey,
+  type OrderAffiliateScenario,
+  growthPlanAffiliateCents,
+  viewerOrderAffiliateForSale,
+} from '@/lib/earn/passive-income-scenario';
 
 const p = 'affiliate.passiveIncomeCalculator';
 
@@ -11,25 +22,29 @@ export default function PassiveIncomeCalculator() {
   const { t } = useTranslation();
   const [months, setMonths] = useState(12);
   const [subscriptionsPerMonth, setSubscriptionsPerMonth] = useState(2);
-  const [avgSubscriptionPrice, setAvgSubscriptionPrice] = useState(99);
+  const [growthPlan, setGrowthPlan] = useState<CalculatorGrowthPlanKey>('starter');
   const [sellersPerMonth, setSellersPerMonth] = useState(10);
   const [transactionsPerSellerPerMonth, setTransactionsPerSellerPerMonth] = useState(5);
   const [businessTransactionsPerMonth, setBusinessTransactionsPerMonth] = useState(20);
   const [avgTransactionValue, setAvgTransactionValue] = useState(100);
-
-  const sellerTransactionFeePct = 12;
-  const businessTransactionFeePct = 4;
-
-  const affiliateCommissionPct = 0.5;
-  const transactionCommissionPct = 0.25;
+  const [orderScenario, setOrderScenario] = useState<OrderAffiliateScenario>('single');
 
   const totalSubscriptions = subscriptionsPerMonth * months;
-
-  const sellerTransactionFee = (avgTransactionValue * sellerTransactionFeePct) / 100;
-  const commissionPerSellerTransaction = sellerTransactionFee * transactionCommissionPct;
-
-  const businessTransactionFee = (avgTransactionValue * businessTransactionFeePct) / 100;
-  const commissionPerBusinessTransaction = businessTransactionFee * transactionCommissionPct;
+  const saleCents = Math.round(avgTransactionValue * 100);
+  const sellerOrder = viewerOrderAffiliateForSale({
+    saleCents,
+    feePercent: CALCULATOR_INDIVIDUAL_FEE_PERCENT,
+    scenario: orderScenario,
+  });
+  const businessOrder = viewerOrderAffiliateForSale({
+    saleCents,
+    feePercent: CALCULATOR_BUSINESS_FEE_PERCENT,
+    scenario: orderScenario,
+  });
+  const subscriptionCommissionCents = growthPlanAffiliateCents(growthPlan);
+  const commissionPerSellerTransaction = sellerOrder.viewerCommissionCents / 100;
+  const commissionPerBusinessTransaction = businessOrder.viewerCommissionCents / 100;
+  const subscriptionCommissionEur = subscriptionCommissionCents / 100;
 
   let cumulativeRevenue = 0;
   let totalMonthlyRevenue = 0;
@@ -50,10 +65,10 @@ export default function PassiveIncomeCalculator() {
 
   for (let month = 1; month <= months; month++) {
     const newSubscriptions = subscriptionsPerMonth;
-    const newSubscriptionRevenue = newSubscriptions * avgSubscriptionPrice * affiliateCommissionPct;
+    const newSubscriptionRevenue = newSubscriptions * subscriptionCommissionEur;
 
     const activeSubscriptions = Math.min(month * subscriptionsPerMonth, 12 * subscriptionsPerMonth);
-    const activeSubscriptionRevenue = activeSubscriptions * avgSubscriptionPrice * affiliateCommissionPct;
+    const activeSubscriptionRevenue = activeSubscriptions * subscriptionCommissionEur;
 
     const activeBusinesses = Math.min(month * subscriptionsPerMonth, 12 * subscriptionsPerMonth);
     const monthlyBusinessTransactionRevenue =
@@ -91,7 +106,7 @@ export default function PassiveIncomeCalculator() {
 
   const totalRevenue = monthlyBreakdown.reduce((sum, item) => sum + item.activeRevenue, 0);
 
-  const month12PlusSubscriptionRevenue = 12 * subscriptionsPerMonth * avgSubscriptionPrice * affiliateCommissionPct;
+  const month12PlusSubscriptionRevenue = 12 * subscriptionsPerMonth * subscriptionCommissionEur;
   const month12PlusBusinessTransactionRevenue =
     12 * subscriptionsPerMonth * businessTransactionsPerMonth * commissionPerBusinessTransaction;
   const month12PlusSellerTransactionRevenue =
@@ -158,17 +173,25 @@ export default function PassiveIncomeCalculator() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1.5">
-                {t(`${p}.avgPricePerSubscription`)}
+              <label className="block text-xs font-medium text-slate-600 mb-1.5" htmlFor="growth-plan">
+                {t(`${p}.growthPlan`)}
               </label>
-              <input
-                type="number"
-                min={39}
-                max={199}
-                value={avgSubscriptionPrice}
-                onChange={(e) => setAvgSubscriptionPrice(Number(e.target.value))}
+              <select
+                id="growth-plan"
+                value={growthPlan}
+                onChange={(e) => setGrowthPlan(e.target.value as CalculatorGrowthPlanKey)}
                 className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
-              />
+              >
+                {CALCULATOR_GROWTH_PLAN_KEYS.map((key) => {
+                  const row = PUBLIC_GROWTH_PLANS.find((item) => item.key === key);
+                  return (
+                    <option key={key} value={key}>
+                      {key} — €{row?.monthlyEurExVat ?? 0}
+                    </option>
+                  );
+                })}
+              </select>
+              <p className="text-xs text-slate-500 mt-1">{t(`${p}.growthPlanHint`)}</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">{t(`${p}.sellersPerMonth`)}</label>
@@ -216,12 +239,28 @@ export default function PassiveIncomeCalculator() {
               </label>
               <input
                 type="number"
-                min={10}
+                min={1}
                 max={500}
+                step="0.01"
                 value={avgTransactionValue}
                 onChange={(e) => setAvgTransactionValue(Number(e.target.value))}
                 className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
               />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-slate-600 mb-1.5" htmlFor="order-scenario">
+                {t(`${p}.orderScenario`)}
+              </label>
+              <select
+                id="order-scenario"
+                value={orderScenario}
+                onChange={(e) => setOrderScenario(e.target.value as OrderAffiliateScenario)}
+                className="w-full max-w-xl px-3 py-2.5 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
+              >
+                <option value="single">{t(`${p}.scenarioSingle`)}</option>
+                <option value="two">{t(`${p}.scenarioTwo`)}</option>
+                <option value="none">{t(`${p}.scenarioNone`)}</option>
+              </select>
             </div>
             <div className="sm:col-span-2">
               <label className="block text-xs font-medium text-slate-600 mb-1.5">{t(`${p}.periodMonths`)}</label>
@@ -235,6 +274,29 @@ export default function PassiveIncomeCalculator() {
               />
             </div>
           </div>
+
+          <dl
+            className="mb-6 grid gap-3 sm:grid-cols-3 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-4 text-sm"
+            data-hc-order-example
+            data-platform-fee-cents={sellerOrder.platformFeeCents}
+            data-pool-cents={sellerOrder.poolCents}
+            data-commission-cents={sellerOrder.viewerCommissionCents}
+            data-affiliate-count={orderScenario === 'none' ? 0 : orderScenario === 'single' ? 1 : 2}
+            data-sale-cents={saleCents}
+          >
+            <div>
+              <dt className="text-xs font-medium text-slate-500">{t(`${p}.perOrderFee`)}</dt>
+              <dd className="text-lg font-semibold text-slate-900">€{(sellerOrder.platformFeeCents / 100).toFixed(2)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium text-slate-500">{t(`${p}.perOrderPool`)}</dt>
+              <dd className="text-lg font-semibold text-slate-900">€{(sellerOrder.poolCents / 100).toFixed(2)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium text-slate-500">{t(`${p}.perOrderYours`)}</dt>
+              <dd className="text-lg font-semibold text-emerald-800">€{(sellerOrder.viewerCommissionCents / 100).toFixed(2)}</dd>
+            </div>
+          </dl>
 
           <details className="rounded-xl border border-slate-100 bg-slate-50/90 px-4 py-3 group mb-6">
             <summary className="cursor-pointer text-sm font-medium text-slate-800 list-none flex items-center justify-between [&::-webkit-details-marker]:hidden">

@@ -76,7 +76,7 @@ assert.equal(guidelinesSrc.includes('new Date()'), false);
 
 // --- B. Known-root allowlist vs filesystem ---
 const appDir = path.join(ROOT, 'app');
-const skipDirNames = new Set(['[seoSlug]', 'eten-verkopen-[stad]', 'api']);
+const skipDirNames = new Set(['[seoSlug]', 'api']);
 const fsSegments = fs
   .readdirSync(appDir, { withFileTypes: true })
   .filter((d) => d.isDirectory() && !skipDirNames.has(d.name))
