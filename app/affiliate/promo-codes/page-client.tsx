@@ -68,21 +68,22 @@ export default function PromoCodesClient() {
           maxRedemptions: number | null;
           createdAt: string;
           validUntil: string | null;
-          effectiveCustomerDiscountPctOnTotal: number;
+          affiliateDiscountSharePct: number;
+          customerDiscountSummary?: string;
           earnedCommissionCents: number;
           applicablePlanKeys?: string[];
         }) => ({
           id: item.id,
           code: item.code,
           product: 'GROWTH' as const,
-          discountSharePct: item.effectiveCustomerDiscountPctOnTotal,
+          discountSharePct: item.affiliateDiscountSharePct,
           startsAt: item.createdAt,
           endsAt: item.validUntil,
           maxRedemptions: item.maxRedemptions,
           redemptionCount: item.uses,
           status: item.status === 'ACTIVE' ? 'ACTIVE' : 'DISABLED',
           createdAt: item.createdAt,
-          customerBenefit: String(item.effectiveCustomerDiscountPctOnTotal),
+          customerBenefit: item.customerDiscountSummary || undefined,
           earnedCents: item.earnedCommissionCents,
           planLabel: (item.applicablePlanKeys || []).join(', ') || 'Starter, Pro, Business',
         }));
@@ -256,8 +257,8 @@ export default function PromoCodesClient() {
                       <p className="text-xs text-emerald-800 mt-1">
                         {tOr(
                           'affiliate.dashboard.promoCodes.growthBenefit',
-                          `Customer benefit about ${code.customerBenefit}% of the Growth price, funded from your commission.`,
-                          `Klantvoordeel circa ${code.customerBenefit}% van de Growth-prijs, uit jouw commissie.`,
+                          `Customer discount ex VAT, funded from your commission: ${code.customerBenefit}.`,
+                          `Klantkorting excl. btw, uit jouw commissie: ${code.customerBenefit}.`,
                         )}
                       </p>
                     ) : (
@@ -594,7 +595,16 @@ function CreatePromoCodeModal({
                 </p>
               )}
             </div>
-            {discountSharePct > 0 && (
+            {product === 'GROWTH' && discountSharePct > 0 ? (
+              <p className="mt-3 text-xs text-blue-900 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                {tOr(
+                  'affiliate.dashboard.promoCodes.growthDiscountServer',
+                  'The customer discount is calculated on the server from your commission share of the price excluding VAT, after HC capacity. It is not a percentage of the full list price.',
+                  'De klantkorting wordt op de server berekend uit jouw commissie-aandeel van de prijs excl. btw, na aftrek van de HC-capacity. Het is geen percentage van de volledige lijstprijs.',
+                )}
+              </p>
+            ) : null}
+            {discountSharePct > 0 && product !== 'GROWTH' && (
               <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
                 <p className="font-semibold text-blue-900 mb-2">{t('affiliate.dashboard.promoCodes.exampleTitle')}</p>
                 <div className="space-y-1 text-blue-800">
