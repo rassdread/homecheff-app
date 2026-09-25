@@ -113,7 +113,6 @@ test('SMOKE_RESERVATIONS does not show the generic error screen', async ({ page 
 const LOGGED_IN_OR_PUBLIC: Array<{ id: string; path: string; expectText: RegExp }> = [
   { id: 'SMOKE_06_PROFILE_EDIT', path: '/settings/', expectText: /Instellingen|Inloggen|E-mail/i },
   { id: 'SMOKE_08_CREATE_LISTING', path: '/sell/new/', expectText: /verkopen|Inloggen|E-mail|aanbod/i },
-  { id: 'SMOKE_09_LISTING_PUBLIC', path: '/product/2ef1c372-be03-430e-8f85-190e6c516c44', expectText: /Foto cert maaltijd/i },
   { id: 'SMOKE_11_RECIPE', path: '/inspiratie/', expectText: /Inspiratie|HomeCheff/i },
   { id: 'SMOKE_13_AFFILIATE_DASHBOARD', path: '/affiliate/dashboard/', expectText: /affiliate|Inloggen|E-mail|Verdien/i },
   { id: 'SMOKE_15_SELLER_DASHBOARD', path: '/verkoper/dashboard/', expectText: /Verkoper|Dashboard|Inloggen|E-mail/i },
@@ -154,13 +153,37 @@ test('SMOKE_07_PHOTO_UPLOAD control is on the profile when signed in', async ({ 
   expect(problems, problems.join('\n')).toEqual([]);
 });
 
+test('SMOKE_09_LISTING_PUBLIC live marketplace item', async ({ page }) => {
+  const problems = watch(page);
+  const feed = await page.request.get('/api/products/feed?limit=20');
+  expect(feed.status()).toBeLessThan(400);
+  const data = await feed.json();
+  const items = Array.isArray(data?.items) ? data.items : [];
+  const item = items.find(
+    (entry: { id?: string; title?: string }) =>
+      entry?.id &&
+      entry?.title &&
+      !/certific|foto cert/i.test(entry.title),
+  );
+  expect(item, 'a public listing exists').toBeTruthy();
+  const response = await page.goto(`/product/${item.id}`, { waitUntil: 'domcontentloaded' });
+  expect(response!.status()).toBeLessThan(400);
+  await expect(page.getByRole('heading', { name: ERROR_TITLE })).toHaveCount(0);
+  await expect(page.locator('body')).toContainText(item.title);
+  await expect(page.locator('body')).not.toContainText(
+    /Foto cert maaltijd|HC Certification|Certificaat lasagne/i,
+  );
+  expect(problems, problems.join('\n')).toEqual([]);
+});
+
 test('SMOKE_10_EDIT_LISTING does not crash', async ({ page }) => {
   const problems = watch(page);
   const response = await page.goto('/product/2ef1c372-be03-430e-8f85-190e6c516c44/edit', {
     waitUntil: 'domcontentloaded',
   });
-  expect(response!.status()).toBeLessThan(500);
+  expect(response!.status()).toBe(404);
   await expect(page.getByRole('heading', { name: ERROR_TITLE })).toHaveCount(0);
+  await expect(page.locator('body')).not.toContainText(/Foto cert maaltijd/i);
   expect(problems, problems.join('\n')).toEqual([]);
 });
 

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { CERTIFICATION_FIXTURE_EMAIL_SUFFIXES } from '@/lib/marketplace/public-listing-eligibility';
+import { INTERNAL_TEST_KEEP_EMAILS } from '@/lib/certification/internal-test-identities';
 
 export const dynamic = 'force-static';
 export const revalidate = 3600; // 1 hour cache like big platforms
@@ -31,7 +33,22 @@ export async function GET(request: NextRequest) {
       // Always exclude ADMIN users from search results
       role: {
         not: 'ADMIN'
-      }
+      },
+      // Same non-public identities already excluded from discovery and public profiles.
+      NOT: {
+        OR: [
+          ...CERTIFICATION_FIXTURE_EMAIL_SUFFIXES.map((suffix) => ({
+            email: { endsWith: suffix },
+          })),
+          { email: { contains: 'homecheff-validation.test' } },
+          { email: { startsWith: 'deleted+' } },
+          { email: { startsWith: 'cleaned-' } },
+          { bio: { contains: 'certificationFixture=true' } },
+          ...INTERNAL_TEST_KEEP_EMAILS.map((email) => ({
+            email: { equals: email },
+          })),
+        ],
+      },
     };
 
     // Add text search conditions
