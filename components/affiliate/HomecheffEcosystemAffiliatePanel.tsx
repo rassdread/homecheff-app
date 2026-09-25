@@ -27,8 +27,8 @@ function productLabel(
   const map: Record<string, [string, string, string]> = {
     MARKETPLACE: [
       'affiliateDashboard.ecosystem.product.marketplace',
-      'Marketplace',
-      'Marketplace',
+      'HomeCheff Marketplace',
+      'HomeCheff Marketplace',
     ],
     GROWTH: ['affiliateDashboard.ecosystem.product.growth', 'Growth', 'Growth'],
     STUDIO: ['affiliateDashboard.ecosystem.product.studio', 'Studio', 'Studio'],

@@ -10,6 +10,7 @@ import OperationsShell from '@/components/operations/OperationsShell';
 interface PromoCode {
   id: string;
   code: string;
+  product: 'HOMECHEFF' | 'GROWTH';
   discountSharePct: number;
   startsAt: string;
   endsAt: string | null;
@@ -17,11 +18,14 @@ interface PromoCode {
   redemptionCount: number;
   status: string;
   createdAt: string;
+  customerBenefit?: string;
+  earnedCents?: number;
+  planLabel?: string;
 }
 
 export default function PromoCodesClient() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, tOr } = useTranslation();
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -35,17 +39,55 @@ export default function PromoCodesClient() {
   const fetchPromoCodes = async () => {
     try {
       setLoadError(null);
-      const response = await fetch('/api/affiliate/promo-codes');
-      if (response.ok) {
-        const data = await response.json();
-        setPromoCodes(data.promoCodes || []);
-      } else {
+      const [homeRes, growthRes] = await Promise.all([
+        fetch('/api/affiliate/promo-codes'),
+        fetch('/api/affiliate/growth-promo-codes'),
+      ]);
+      if (!homeRes.ok) {
         setPromoCodes([]);
         setLoadError(
           t('affiliate.dashboard.promoCodes.loadError') ||
             'Promocodes konden niet worden geladen.'
         );
+        return;
       }
+      const data = await homeRes.json();
+      const homeCodes: PromoCode[] = (data.promoCodes || []).map((code: PromoCode) => ({
+        ...code,
+        product: 'HOMECHEFF' as const,
+          customerBenefit: undefined,
+      }));
+      let growthCodes: PromoCode[] = [];
+      if (growthRes.ok) {
+        const growth = await growthRes.json();
+        growthCodes = (growth.items || []).map((item: {
+          id: string;
+          code: string;
+          status: string;
+          uses: number;
+          maxRedemptions: number | null;
+          createdAt: string;
+          validUntil: string | null;
+          effectiveCustomerDiscountPctOnTotal: number;
+          earnedCommissionCents: number;
+          applicablePlanKeys?: string[];
+        }) => ({
+          id: item.id,
+          code: item.code,
+          product: 'GROWTH' as const,
+          discountSharePct: item.effectiveCustomerDiscountPctOnTotal,
+          startsAt: item.createdAt,
+          endsAt: item.validUntil,
+          maxRedemptions: item.maxRedemptions,
+          redemptionCount: item.uses,
+          status: item.status === 'ACTIVE' ? 'ACTIVE' : 'DISABLED',
+          createdAt: item.createdAt,
+          customerBenefit: String(item.effectiveCustomerDiscountPctOnTotal),
+          earnedCents: item.earnedCommissionCents,
+          planLabel: (item.applicablePlanKeys || []).join(', ') || 'Starter, Pro, Business',
+        }));
+      }
+      setPromoCodes([...growthCodes, ...homeCodes]);
     } catch (error) {
       console.error('Error fetching promo codes:', error);
       setPromoCodes([]);
@@ -69,9 +111,12 @@ export default function PromoCodesClient() {
     }
 
     try {
-      const response = await fetch(`/api/affiliate/promo-codes/${code.id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        code.product === 'GROWTH'
+          ? `/api/affiliate/growth-promo-codes/${code.id}`
+          : `/api/affiliate/promo-codes/${code.id}`,
+        { method: code.product === 'GROWTH' ? 'POST' : 'DELETE' },
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -169,18 +214,73 @@ export default function PromoCodesClient() {
             </button>
           </div>
         ) : (
+          <div className="space-y-6">
+            <div className="overflow-x-auto rounded-xl border bg-white">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-slate-50 text-slate-500">
+                  <tr>
+                    <th className="px-3 py-2">{tOr('affiliate.dashboard.promoCodes.code', 'Code', 'Code')}</th>
+                    <th className="px-3 py-2">{tOr('affiliate.dashboard.promoCodes.product', 'Product', 'Product')}</th>
+                    <th className="px-3 py-2">{tOr('affiliate.dashboard.promoCodes.status', 'Status', 'Status')}</th>
+                    <th className="px-3 py-2">{tOr('affiliate.dashboard.promoCodes.uses', 'Uses', 'Gebruik')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {promoCodes.map((code) => (
+                    <tr key={`${code.product}-${code.id}`} className="border-t">
+                      <td className="px-3 py-2 font-mono font-medium">{code.code}</td>
+                      <td className="px-3 py-2">{code.product === 'GROWTH' ? 'Growth' : 'HomeCheff'}</td>
+                      <td className="px-3 py-2">{code.status === 'ACTIVE' ? tOr('affiliate.dashboard.promoCodes.active', 'Active', 'Actief') : code.status}</td>
+                      <td className="px-3 py-2">{code.redemptionCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {promoCodes.map((code) => (
-              <div key={code.id} className="bg-white rounded-xl shadow-sm border p-6">
+              <div key={`${code.product}-${code.id}`} className="bg-white rounded-xl shadow-sm border p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">{code.code}</h3>
-                    <p className="text-sm text-gray-600">
-                      {code.discountSharePct}{t('affiliate.dashboard.promoCodes.discountFromCommission')}
-                    </p>
+                    {code.product === 'HOMECHEFF' ? (
+                      <p className="text-sm text-gray-600">
+                        {code.discountSharePct}{t('affiliate.dashboard.promoCodes.discountFromCommission')}
+                      </p>
+                    ) : null}
                     <p className="text-xs text-gray-500 mt-1">
-                      {t('affiliate.dashboard.promoCodes.forBusinessSubscriptions')}
+                      {code.product === 'GROWTH' ? 'Growth' : 'HomeCheff'}
+                      {code.planLabel ? ` · ${code.planLabel}` : ''}
                     </p>
+                    {code.product === 'GROWTH' && code.customerBenefit ? (
+                      <p className="text-xs text-emerald-800 mt-1">
+                        {tOr(
+                          'affiliate.dashboard.promoCodes.growthBenefit',
+                          `Customer benefit about ${code.customerBenefit}% of the Growth price, funded from your commission.`,
+                          `Klantvoordeel circa ${code.customerBenefit}% van de Growth-prijs, uit jouw commissie.`,
+                        )}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-emerald-800 mt-1">
+                        {tOr(
+                          'affiliate.dashboard.promoCodes.homeBenefit',
+                          'Discount comes from your commission share.',
+                          'Korting komt uit je commissie-aandeel.',
+                        )}
+                      </p>
+                    )}
+                    {code.product === 'GROWTH' ? (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {tOr(
+                          'affiliate.dashboard.promoCodes.growthAttribution',
+                          'Attribution: your affiliate account',
+                          'Attributie: jouw affiliate-account',
+                        )}
+                        {typeof code.earnedCents === 'number'
+                          ? ` · €${(code.earnedCents / 100).toFixed(2)}`
+                          : ''}
+                      </p>
+                    ) : null}
                   </div>
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -254,6 +354,7 @@ export default function PromoCodesClient() {
               </div>
             ))}
           </div>
+          </div>
         )}
       </div>
 
@@ -278,8 +379,10 @@ function CreatePromoCodeModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, tOr } = useTranslation();
   const [code, setCode] = useState('');
+  const [product, setProduct] = useState<'HOMECHEFF' | 'GROWTH'>('HOMECHEFF');
+  const [growthPlans, setGrowthPlans] = useState<string[]>(['starter', 'pro', 'growth']);
   const [discountSharePct, setDiscountSharePct] = useState(0);
   const [endsAt, setEndsAt] = useState('');
   const [maxRedemptions, setMaxRedemptions] = useState('');
@@ -331,6 +434,12 @@ function CreatePromoCodeModal({
     setSubmitting(true);
 
     // Validate discount percentage doesn't exceed maximum
+    if (product === 'GROWTH' && growthPlans.length === 0) {
+      alert(tOr('affiliate.dashboard.promoCodes.pickGrowthPlan', 'Choose at least one Growth plan.', 'Kies minstens één Growth-plan.'));
+      setSubmitting(false);
+      return;
+    }
+
     if (discountSharePct > maxDiscountPct) {
       const errorMsg = isSubAffiliate 
         ? t('affiliate.dashboard.promoCodes.maxDiscountErrorSub', { max: maxDiscountPct })
@@ -341,15 +450,27 @@ function CreatePromoCodeModal({
     }
 
     try {
-      const response = await fetch('/api/affiliate/promo-codes', {
+      const response = await fetch(
+        product === 'GROWTH' ? '/api/affiliate/growth-promo-codes' : '/api/affiliate/promo-codes',
+        {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          code,
-          discountSharePct,
-          endsAt: endsAt || null,
-          maxRedemptions: maxRedemptions ? parseInt(maxRedemptions) : null,
-        }),
+        body: JSON.stringify(
+          product === 'GROWTH'
+            ? {
+                code,
+                discountSharePct,
+                applicablePlanKeys: growthPlans,
+                validUntil: endsAt ? new Date(endsAt).toISOString() : null,
+                maxRedemptions: maxRedemptions ? parseInt(maxRedemptions) : null,
+              }
+            : {
+                code,
+                discountSharePct,
+                endsAt: endsAt || null,
+                maxRedemptions: maxRedemptions ? parseInt(maxRedemptions) : null,
+              },
+        ),
       });
 
       if (response.ok) {
@@ -371,6 +492,57 @@ function CreatePromoCodeModal({
       <div className="bg-white rounded-xl shadow-lg p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold text-gray-900 mb-4">{t('affiliate.dashboard.promoCodes.createPromoCode')}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {tOr('affiliate.dashboard.promoCodes.product', 'Product', 'Product')}
+            </label>
+            <select
+              value={product}
+              onChange={(e) => setProduct(e.target.value === 'GROWTH' ? 'GROWTH' : 'HOMECHEFF')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            >
+              <option value="HOMECHEFF">HomeCheff</option>
+              <option value="GROWTH">Growth</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              {product === 'GROWTH'
+                ? tOr(
+                    'affiliate.dashboard.promoCodes.growthHint',
+                    'Growth plans (Starter, Pro, Business). Not Enterprise seats. The discount cap follows your affiliate role.',
+                    'Growth-abonnementen (Starter, Pro, Business). Geen Enterprise-seats. De kortingslimiet volgt je affiliate-rol.',
+                  )
+                : tOr(
+                    'affiliate.dashboard.promoCodes.homeHint',
+                    'HomeCheff business visibility. Discount only from your commission share.',
+                    'HomeCheff zakelijke zichtbaarheid. Korting alleen uit je commissie-aandeel.',
+                  )}
+            </p>
+          </div>
+          {product === 'GROWTH' ? (
+            <fieldset className="space-y-1">
+              <legend className="text-sm font-medium text-gray-700">
+                {tOr('affiliate.dashboard.promoCodes.growthPlans', 'Growth plans', 'Growth-plannen')}
+              </legend>
+              {[
+                ['starter', 'Starter'],
+                ['pro', 'Pro'],
+                ['growth', 'Business'],
+              ].map(([key, label]) => (
+                <label key={key} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={growthPlans.includes(key)}
+                    onChange={(e) => {
+                      setGrowthPlans((current) =>
+                        e.target.checked ? [...current, key] : current.filter((item) => item !== key),
+                      );
+                    }}
+                  />
+                  {label}
+                </label>
+              ))}
+            </fieldset>
+          ) : null}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('affiliate.dashboard.promoCodes.code')}
