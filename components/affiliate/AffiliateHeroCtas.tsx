@@ -7,7 +7,7 @@ import { savePendingIntent } from '@/lib/onboarding/pending-intent';
 
 export default function AffiliateHeroCtas({ lang }: { lang: 'nl' | 'en' }) {
   const en = lang === 'en';
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [isAffiliate, setIsAffiliate] = useState(false);
 
   useEffect(() => {
@@ -29,10 +29,6 @@ export default function AffiliateHeroCtas({ lang }: { lang: 'nl' | 'en' }) {
       cancelled = true;
     };
   }, [session]);
-
-  if (status === 'loading') {
-    return <div className="mt-6 h-12" aria-hidden />;
-  }
 
   if (isAffiliate) {
     return (
