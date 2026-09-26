@@ -108,6 +108,12 @@ export default function AffiliateProgramControl() {
         <button type="button" className="rounded border px-3 py-1" onClick={() => act({ action: 'setProgramFlags', programCode: 'EARLY_AFFILIATE_V1', publicEarlyEnabled: true })}>
           Zet vroege tekst aan
         </button>
+        <button type="button" className="rounded border px-3 py-1" onClick={() => act({ action: 'createProgram', programCode: 'STANDARD_AFFILIATE_V2', name: 'Standaard' })}>
+          Maak Standaard-programma
+        </button>
+        <button type="button" className="rounded border px-3 py-1" onClick={() => act({ action: 'setPublicAvailability', countryCode: 'NL', programCode: 'STANDARD_AFFILIATE_V2', publicMain: false, publicNetwork: false, publicPromo: true })}>
+          NL openbaar: Standaard, zonder MAIN/netwerk
+        </button>
         <button type="button" className="rounded border px-3 py-1" onClick={() => act({ action: 'setPublicAvailability', countryCode: 'NL', publicMain: false, publicNetwork: false })}>
           Publieke MAIN en netwerk uit
         </button>

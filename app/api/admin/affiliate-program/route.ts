@@ -114,8 +114,10 @@ export async function POST(req: Request) {
       publicPromo: typeof body.publicPromo === 'boolean' ? body.publicPromo : undefined,
       desiredMainCount: typeof body.desiredMainCount === 'number' ? body.desiredMainCount : undefined,
       desiredActiveCount: typeof body.desiredActiveCount === 'number' ? body.desiredActiveCount : undefined,
+      programCode: typeof body.programCode === 'string' ? body.programCode : undefined,
       reason,
     });
+    if (!result.ok) return NextResponse.json({ error: result.reason }, { status: 400 });
     const mains = await prisma.affiliate.count({ where: { parentAffiliateId: null } });
     return NextResponse.json({
       ...result,

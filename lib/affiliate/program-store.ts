@@ -432,9 +432,16 @@ export async function setPublicAvailability(input: {
   publicPromo?: boolean;
   desiredMainCount?: number | null;
   desiredActiveCount?: number | null;
+  programCode?: string;
   reason: string;
 }) {
   const previous = await loadMarket(input.countryCode);
+  const nextProgram = input.programCode
+    ? await prisma.affiliateProgram.findUnique({ where: { code: input.programCode } })
+    : null;
+  if (input.programCode && !nextProgram) {
+    return { ok: false as const, reason: 'Dit programma bestaat niet.' };
+  }
   const next = await prisma.affiliateMarketRecruitment.update({
     where: { countryCode_regionCode: { countryCode: input.countryCode, regionCode: '' } },
     data: {
@@ -443,6 +450,7 @@ export async function setPublicAvailability(input: {
       publicPromoAvailable: input.publicPromo,
       desiredMainCount: input.desiredMainCount,
       desiredActiveCount: input.desiredActiveCount,
+      programId: nextProgram?.id,
     },
   });
   await audit({
@@ -462,7 +470,7 @@ export async function setPublicAvailability(input: {
     },
     reason: input.reason,
   });
-  return { market: next, enrollmentsRewritten: 0 as const };
+  return { ok: true as const, market: next, enrollmentsRewritten: 0 as const };
 }
 
 export async function saveCommercialPolicyDraft(input: {
