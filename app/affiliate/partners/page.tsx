@@ -36,6 +36,14 @@ export default async function MyPartnersPage({
   if (user.affiliate.parentAffiliateId) {
     redirect('/affiliate/dashboard');
   }
+  const { resolveStoredAffiliateCapabilities } = await import('@/lib/affiliate/program-store');
+  const rights = await resolveStoredAffiliateCapabilities(user.affiliate.id);
+  if (
+    !rights.capabilities.CAN_ACCESS_NETWORK_DASHBOARD.value &&
+    !rights.capabilities.CAN_INVITE_SUB_AFFILIATES.value
+  ) {
+    redirect('/affiliate/dashboard');
+  }
 
   return <MyPartnersClient openInvite={searchParams?.invite === '1'} />;
 }

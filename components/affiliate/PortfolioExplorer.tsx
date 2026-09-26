@@ -20,7 +20,13 @@ const PRESETS: { id: PortfolioPresetId; nl: string; en: string }[] = [
   { id: 'organisation', nl: 'Grotere affiliateorganisatie', en: 'Larger affiliate organisation' },
 ];
 
-export default function PortfolioExplorer({ lang }: { lang: 'nl' | 'en' }) {
+export default function PortfolioExplorer({
+  lang,
+  showNetwork = true,
+}: {
+  lang: 'nl' | 'en';
+  showNetwork?: boolean;
+}) {
   const en = lang === 'en';
   const [months, setMonths] = useState(12);
   const [perMonth, setPerMonth] = useState(2);
@@ -38,10 +44,10 @@ export default function PortfolioExplorer({ lang }: { lang: 'nl' | 'en' }) {
         retention,
         studioCrossSellRate: studio,
         marketplaceOrdersPerActiveCustomer: orders,
-        subAffiliates: subs,
-        subNewGrowthStarterPerMonth: subPerMonth,
+        subAffiliates: showNetwork ? subs : 0,
+        subNewGrowthStarterPerMonth: showNetwork ? subPerMonth : 0,
       }),
-    [months, perMonth, retention, studio, orders, subs, subPerMonth],
+    [months, perMonth, retention, studio, orders, subs, subPerMonth, showNetwork],
   );
 
   function applyPreset(id: PortfolioPresetId) {
@@ -83,7 +89,7 @@ export default function PortfolioExplorer({ lang }: { lang: 'nl' | 'en' }) {
   return (
     <div id="portefeuille-rekenvoorbeeld" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex flex-wrap gap-2">
-        {PRESETS.map((preset) => (
+        {PRESETS.filter((preset) => showNetwork || preset.id !== 'organisation').map((preset) => (
           <button
             key={preset.id}
             type="button"
@@ -154,7 +160,7 @@ export default function PortfolioExplorer({ lang }: { lang: 'nl' | 'en' }) {
             className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
           />
         </label>
-        <label className="text-sm">
+        {showNetwork ? <label className="text-sm">
           {en ? 'Invited sub-affiliates' : 'Uitgenodigde sub-affiliates'}
           <input
             type="number"
@@ -175,7 +181,7 @@ export default function PortfolioExplorer({ lang }: { lang: 'nl' | 'en' }) {
             onChange={(event) => setSubPerMonth(Number(event.target.value))}
             className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
           />
-        </label>
+        </label> : null}
       </div>
       <dl className="mt-4 space-y-1 text-sm text-slate-800">
         <div className="flex justify-between gap-3">
@@ -186,10 +192,10 @@ export default function PortfolioExplorer({ lang }: { lang: 'nl' | 'en' }) {
           <dt>{en ? 'Own customers' : 'Eigen klanten'}</dt>
           <dd>{eur(quote.ownCents)}</dd>
         </div>
-        <div className="flex justify-between gap-3">
+        {showNetwork ? <div className="flex justify-between gap-3">
           <dt>{en ? 'Network' : 'Netwerk'}</dt>
           <dd>{eur(quote.networkCents)}</dd>
-        </div>
+        </div> : null}
         <div className="flex justify-between gap-3 border-t border-slate-200 pt-2 font-semibold">
           <dt>{en ? 'Scenario total / month' : 'Scenario totaal / maand'}</dt>
           <dd>{eur(quote.totalCents)}</dd>

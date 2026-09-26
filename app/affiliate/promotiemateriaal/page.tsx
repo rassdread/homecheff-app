@@ -28,6 +28,13 @@ export default async function AffiliatePromoLibraryPage() {
   if (!isAffiliate && !admin.ok) {
     redirect('/affiliate');
   }
+  if (isAffiliate && user.affiliate) {
+    const { resolveStoredAffiliateCapabilities } = await import('@/lib/affiliate/program-store');
+    const rights = await resolveStoredAffiliateCapabilities(user.affiliate.id);
+    if (!rights.capabilities.CAN_USE_PROMO_LIBRARY.value && !admin.ok) {
+      redirect('/affiliate/dashboard');
+    }
+  }
 
   return (
     <OperationsShell>

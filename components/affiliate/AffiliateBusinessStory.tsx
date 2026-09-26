@@ -15,6 +15,7 @@ import {
   growthStarterShareCents,
 } from '@/lib/affiliate/portfolio-scenario';
 import { affiliatePropositionFaqs } from '@/lib/affiliate/proposition-faqs';
+import { publicFaqs } from '@/lib/affiliate/program-control';
 
 function eur(cents: number): string {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(cents / 100);
@@ -33,16 +34,24 @@ export default function AffiliateBusinessStory({
   lang,
   programName = 'Vroege instap',
   showEarly = true,
+  showNetwork = true,
+  showPromo = true,
 }: {
   lang: 'nl' | 'en';
   programName?: string;
   showEarly?: boolean;
+  showNetwork?: boolean;
+  showPromo?: boolean;
 }) {
   const en = lang === 'en';
   const stages = alongsideWorkJourneyStages();
   const share = growthStarterShareCents();
   const sales = individualSaleExamples();
-  const faqs = affiliatePropositionFaqs(lang);
+  const faqs = publicFaqs(affiliatePropositionFaqs(lang), {
+    main: showNetwork,
+    network: showNetwork,
+    promo: showPromo,
+  });
   const catalog = buildAffiliateCommissionCatalog();
 
   return (
@@ -201,7 +210,7 @@ export default function AffiliateBusinessStory({
         <h2 className="text-xl font-semibold text-slate-900">
           {en ? 'Try the assumptions' : 'Bekijk de aannames'}
         </h2>
-        <PortfolioExplorer lang={lang} />
+        <PortfolioExplorer lang={lang} showNetwork={showNetwork} />
       </section>
 
       <section>
@@ -219,7 +228,7 @@ export default function AffiliateBusinessStory({
             : 'Hoge commissie is nuttig. Of het product bij de klant past, telt meer voor een portefeuille die blijft. Op elke kaart staat voor wie het bedoeld is.'}
         </p>
         <div className="mt-4">
-          <AffiliateCommissionCatalog rows={catalog} lang={lang} />
+          <AffiliateCommissionCatalog rows={catalog} lang={lang} showNetwork={showNetwork} showPromo={showPromo} />
         </div>
       </section>
 
@@ -243,7 +252,7 @@ export default function AffiliateBusinessStory({
         </ul>
       </section>
 
-      <section>
+      {showPromo ? <section>
         <h2 className="text-xl font-semibold text-slate-900">
           {en ? 'Your own tools' : 'Je eigen hulpmiddelen'}
         </h2>
@@ -252,9 +261,9 @@ export default function AffiliateBusinessStory({
             ? 'You get tools to win your own customers: your affiliate link, promo codes for Growth and Marketplace business subscriptions, and a promo library in your dashboard. Not every product has a promo code.'
             : 'Je krijgt hulpmiddelen om je eigen klanten te werven: je affiliatelink, actiecodes voor Growth en zakelijke Marketplace-abonnementen, en een promotiebibliotheek in je dashboard. Niet elk product heeft een actiecode.'}
         </p>
-      </section>
+      </section> : null}
 
-      <section>
+      {showNetwork ? <section>
         <h2 className="text-xl font-semibold text-slate-900">
           {en ? 'Own customers and network' : 'Eigen klanten en netwerk'}
         </h2>
@@ -265,8 +274,8 @@ export default function AffiliateBusinessStory({
           {en
             ? `On a Growth Starter customer the direct share is ${eur(share.directCents)}. Where MAIN/SUB applies, the sub share is ${eur(share.subCents)} and the main share is ${eur(share.mainCents)}. The calculator keeps those lines separate.`
             : `Op een Growth Starter-klant is het directe aandeel ${eur(share.directCents)}. Waar MAIN/SUB geldt, is het sub-aandeel ${eur(share.subCents)} en het main-aandeel ${eur(share.mainCents)}. De rekenhulp houdt die regels apart.`}
-        </p>
-      </section>
+          </p>
+        </section> : null}
 
       <section>
         <h2 className="text-xl font-semibold text-slate-900">

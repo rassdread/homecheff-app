@@ -171,6 +171,8 @@ export default async function AffiliatePage() {
             lang={en ? 'en' : 'nl'}
             programName={presentation?.programName}
             showEarly={early}
+            showNetwork={presentation ? presentation.publicMain || presentation.publicNetwork : true}
+            showPromo={presentation ? presentation.publicPromo : true}
           />
           <div className="mt-6 space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6">
             <h2 className="text-lg font-semibold text-emerald-950">

@@ -23,6 +23,12 @@ export default async function PromoCodesPage() {
     redirect('/affiliate');
   }
 
+  const { resolveStoredAffiliateCapabilities } = await import('@/lib/affiliate/program-store');
+  const rights = await resolveStoredAffiliateCapabilities(user.affiliate.id);
+  if (!rights.capabilities.CAN_CREATE_PROMO_CODES.value) {
+    redirect('/affiliate/dashboard');
+  }
+
   return <PromoCodesClient />;
 }
 

@@ -15,9 +15,13 @@ type SortId = 'commission' | 'price' | 'recurring' | 'platform';
 export default function AffiliateCommissionCatalog({
   rows,
   lang,
+  showNetwork = true,
+  showPromo = true,
 }: {
   rows: CatalogRow[];
   lang: 'nl' | 'en';
+  showNetwork?: boolean;
+  showPromo?: boolean;
 }) {
   const en = lang === 'en';
   const [platform, setPlatform] = useState<CatalogPlatform | 'all'>('all');
@@ -112,13 +116,15 @@ export default function AffiliateCommissionCatalog({
         >
           {en ? 'Promo code' : 'Actiecode'}
         </button>
-        <button
-          type="button"
-          onClick={() => setNetworkOnly((value) => !value)}
-          className={`rounded-full px-3 py-1 text-sm ${networkOnly ? 'bg-emerald-700 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200'}`}
-        >
-          MAIN/SUB
-        </button>
+        {showNetwork ? (
+          <button
+            type="button"
+            onClick={() => setNetworkOnly((value) => !value)}
+            className={`rounded-full px-3 py-1 text-sm ${networkOnly ? 'bg-emerald-700 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200'}`}
+          >
+            MAIN/SUB
+          </button>
+        ) : null}
       </div>
       <p className="mt-3 text-xs leading-relaxed text-slate-500">
         {en
@@ -154,27 +160,33 @@ export default function AffiliateCommissionCatalog({
               </div>
             </dl>
             <p className="mt-2 text-xs text-slate-500">
-              {row.promo
-                ? en
-                  ? 'Own promo code where the dashboard offers it.'
-                  : 'Eigen actiecode waar het dashboard dat aanbiedt.'
-                : en
-                  ? 'No promo code on this item.'
-                  : 'Geen actiecode op dit onderdeel.'}{' '}
-              {row.network
-                ? en
-                  ? 'MAIN/SUB can apply.'
-                  : 'MAIN/SUB kan gelden.'
-                : en
-                  ? 'No extra MAIN/SUB layer in this view.'
-                  : 'Geen extra MAIN/SUB-laag in dit overzicht.'}
+              {showPromo
+                ? row.promo
+                  ? en
+                    ? 'Own promo code where the dashboard offers it.'
+                    : 'Eigen actiecode waar het dashboard dat aanbiedt.'
+                  : en
+                    ? 'No promo code on this item.'
+                    : 'Geen actiecode op dit onderdeel.'
+                : null}{' '}
+              {showNetwork
+                ? row.network
+                  ? en
+                    ? 'MAIN/SUB can apply.'
+                    : 'MAIN/SUB kan gelden.'
+                  : en
+                    ? 'No extra MAIN/SUB layer in this view.'
+                    : 'Geen extra MAIN/SUB-laag in dit overzicht.'
+                : null}
             </p>
             <details className="mt-3">
               <summary className="cursor-pointer text-sm font-semibold text-emerald-800">
                 {en ? 'How this amount is built' : 'Hoe dit bedrag is opgebouwd'}
               </summary>
               <ul className="mt-2 space-y-1 text-sm leading-relaxed text-slate-700">
-                {(en ? row.detailEn : row.detailNl).map((line) => (
+                {(en ? row.detailEn : row.detailNl)
+                  .filter((line) => showNetwork || !/\bMAIN\b|\bSUB\b/i.test(line))
+                  .map((line) => (
                   <li key={line}>{line}</li>
                 ))}
               </ul>

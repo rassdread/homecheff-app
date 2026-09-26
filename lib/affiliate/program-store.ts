@@ -9,7 +9,11 @@ import {
   type RecruitmentState,
   decidePublicEnrollment,
   publicProposition,
+  publicSignupCapabilities,
   resolveAffiliateCapabilities,
+  validateCommercialPolicy,
+  decidePolicyWrite,
+  type CommercialPolicyDraft,
   type ResolvedAffiliateCapabilities,
 } from '@/lib/affiliate/program-control';
 
@@ -43,9 +47,17 @@ export async function loadPublicPresentation(countryCode = 'NL') {
     publicEarlyEnabled: program?.publicEarlyEnabled ?? true,
     programName: program?.name ?? EARLY_PROGRAM_DEFAULTS.name,
   });
+  const rights = {
+    main: market?.publicMainAvailable ?? true,
+    network: market?.publicNetworkAvailable ?? true,
+    promo: market?.publicPromoAvailable ?? true,
+  };
   return {
     countryCode,
     recruitmentState,
+    publicMain: rights.main,
+    publicNetwork: rights.network,
+    publicPromo: rights.promo,
     programCode: program?.code ?? EARLY_PROGRAM_DEFAULTS.code,
     programName: program?.name ?? EARLY_PROGRAM_DEFAULTS.name,
     commissionPolicyRef: program?.commissionPolicyRef ?? EARLY_PROGRAM_DEFAULTS.commissionPolicyRef,
@@ -63,6 +75,7 @@ function contextFromRows(input: {
   status: string;
   programCaps: unknown;
   programSubLimit: number | null;
+  enrollmentGrant: unknown;
   override: {
     directCommission: boolean | null;
     promoCodes: boolean | null;
@@ -76,6 +89,7 @@ function contextFromRows(input: {
     newMarket: boolean | null;
     subLimitMode: string;
     subLimit: number | null;
+    privateCollaboration: boolean;
   } | null;
 }): CapabilityContext {
   const capabilities: Partial<CapabilityMap> = {};
@@ -101,11 +115,13 @@ function contextFromRows(input: {
       capabilities: asCaps(input.programCaps),
       subAffiliateLimit: input.programSubLimit,
     },
+    enrollmentGrant: input.enrollmentGrant ? asCaps(input.enrollmentGrant) : null,
     adminOverride: input.override
       ? {
           capabilities,
           subLimitMode: mode === 'LIMITED' || mode === 'UNLIMITED' ? mode : 'INHERIT',
           subLimit: input.override.subLimit,
+          privateCollaboration: input.override.privateCollaboration,
         }
       : null,
   };
@@ -134,6 +150,7 @@ export async function resolveStoredAffiliateCapabilities(
       status: affiliate.status,
       programCaps: program?.capabilities ?? EARLY_PROGRAM_DEFAULTS.capabilities,
       programSubLimit: program?.subAffiliateLimit ?? EARLY_PROGRAM_DEFAULTS.subAffiliateLimit,
+      enrollmentGrant: affiliate.programEnrollment?.capturedCapabilities ?? null,
       override: affiliate.capabilityOverride,
     }),
   );
@@ -159,6 +176,15 @@ export async function enrollAffiliate(input: {
     ? await prisma.affiliateProgram.findUnique({ where: { code: input.programCode } })
     : await prisma.affiliateProgram.findFirst({ where: { isPublicDefault: true, status: 'ACTIVE' } });
   if (!program) return null;
+  let capturedCapabilities: Prisma.InputJsonValue | typeof Prisma.JsonNull = Prisma.JsonNull;
+  if (input.source === 'SIGNUP') {
+    const presentation = await loadPublicPresentation(input.countryCode ?? 'NL');
+    capturedCapabilities = publicSignupCapabilities(asCaps(program.capabilities), {
+      main: presentation.publicMain,
+      network: presentation.publicNetwork,
+      promo: presentation.publicPromo,
+    }) as Prisma.InputJsonValue;
+  }
   return prisma.affiliateProgramEnrollment.create({
     data: {
       affiliateId: input.affiliateId,
@@ -167,6 +193,7 @@ export async function enrollAffiliate(input: {
       source: input.source,
       termsVersion: program.termsVersion,
       termsAcceptedAt: input.acceptedTerms ? new Date() : null,
+      capturedCapabilities,
     },
   });
 }
@@ -249,6 +276,7 @@ export async function setAffiliateOverride(input: {
     promoLibrary?: boolean | null;
     subLimitMode?: 'INHERIT' | 'LIMITED' | 'UNLIMITED';
     subLimit?: number | null;
+    privateCollaboration?: boolean;
   };
   reason: string;
 }) {
@@ -266,6 +294,7 @@ export async function setAffiliateOverride(input: {
     newMarket: input.patch.newMarket,
     subLimitMode: input.patch.subLimitMode,
     subLimit: input.patch.subLimitMode === 'UNLIMITED' ? null : input.patch.subLimit,
+    privateCollaboration: input.patch.privateCollaboration,
   };
   const next = await prisma.affiliateCapabilityOverride.upsert({
     where: { affiliateId: input.affiliateId },
@@ -377,7 +406,11 @@ export async function reassignAffiliateProgram(input: {
       termsVersion: program.termsVersion,
       termsAcceptedAt: null,
     },
-    update: { programId: program.id, termsVersion: program.termsVersion },
+    update: {
+      programId: program.id,
+      termsVersion: program.termsVersion,
+      capturedCapabilities: Prisma.JsonNull,
+    },
   });
   await audit({
     adminUserId: input.adminUserId,
@@ -389,4 +422,124 @@ export async function reassignAffiliateProgram(input: {
     reason: input.reason,
   });
   return { ok: true as const, ledgerTouched: false as const };
+}
+
+export async function setPublicAvailability(input: {
+  adminUserId: string;
+  countryCode: string;
+  publicMain?: boolean;
+  publicNetwork?: boolean;
+  publicPromo?: boolean;
+  desiredMainCount?: number | null;
+  desiredActiveCount?: number | null;
+  reason: string;
+}) {
+  const previous = await loadMarket(input.countryCode);
+  const next = await prisma.affiliateMarketRecruitment.update({
+    where: { countryCode_regionCode: { countryCode: input.countryCode, regionCode: '' } },
+    data: {
+      publicMainAvailable: input.publicMain,
+      publicNetworkAvailable: input.publicNetwork,
+      publicPromoAvailable: input.publicPromo,
+      desiredMainCount: input.desiredMainCount,
+      desiredActiveCount: input.desiredActiveCount,
+    },
+  });
+  await audit({
+    adminUserId: input.adminUserId,
+    targetType: 'MARKET',
+    targetId: input.countryCode,
+    action: 'SET_PUBLIC_AVAILABILITY',
+    previous: {
+      publicMain: previous?.publicMainAvailable ?? null,
+      publicNetwork: previous?.publicNetworkAvailable ?? null,
+      publicPromo: previous?.publicPromoAvailable ?? null,
+    },
+    next: {
+      publicMain: next.publicMainAvailable,
+      publicNetwork: next.publicNetworkAvailable,
+      publicPromo: next.publicPromoAvailable,
+    },
+    reason: input.reason,
+  });
+  return { market: next, enrollmentsRewritten: 0 as const };
+}
+
+export async function saveCommercialPolicyDraft(input: {
+  adminUserId: string;
+  draft: CommercialPolicyDraft;
+  reason: string;
+}) {
+  const existing = await prisma.affiliateCommercialPolicy.findUnique({ where: { code: input.draft.code } });
+  const gate = decidePolicyWrite(existing ? { status: existing.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT' } : null, 'EDIT');
+  if (!gate.ok) return gate;
+  const check = validateCommercialPolicy({ ...input.draft, status: 'DRAFT' });
+  if (!check.ok) return check;
+  const saved = await prisma.affiliateCommercialPolicy.upsert({
+    where: { code: input.draft.code },
+    create: {
+      code: input.draft.code,
+      status: 'DRAFT',
+      durationMode: input.draft.durationMode,
+      durationMonths: input.draft.durationMonths,
+      durationClock: input.draft.durationClock,
+      directPoolBps: input.draft.directPoolBps,
+      subPoolBps: input.draft.subPoolBps,
+      mainPoolBps: input.draft.mainPoolBps,
+    },
+    update: {
+      durationMode: input.draft.durationMode,
+      durationMonths: input.draft.durationMonths,
+      durationClock: input.draft.durationClock,
+      directPoolBps: input.draft.directPoolBps,
+      subPoolBps: input.draft.subPoolBps,
+      mainPoolBps: input.draft.mainPoolBps,
+    },
+  });
+  await audit({
+    adminUserId: input.adminUserId,
+    targetType: 'POLICY',
+    targetId: saved.id,
+    action: 'SAVE_POLICY_DRAFT',
+    previous: existing ? { status: existing.status } : null,
+    next: { code: saved.code, status: saved.status },
+    reason: input.reason,
+  });
+  return { ok: true as const, code: saved.code, currentEconomicsChanged: false as const };
+}
+
+export async function publishCommercialPolicy(input: {
+  adminUserId: string;
+  code: string;
+  reason: string;
+}) {
+  const existing = await prisma.affiliateCommercialPolicy.findUnique({ where: { code: input.code } });
+  if (!existing) return { ok: false as const, reason: 'Dit concept bestaat niet.' };
+  const gate = decidePolicyWrite({ status: existing.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT' }, 'PUBLISH');
+  if (!gate.ok) return gate;
+  const check = validateCommercialPolicy({
+    code: existing.code,
+    status: 'DRAFT',
+    durationMode: existing.durationMode === 'FIXED_DURATION' ? 'FIXED_DURATION' : 'WHILE_QUALIFYING',
+    durationMonths: existing.durationMonths,
+    durationClock: existing.durationClock as CommercialPolicyDraft['durationClock'],
+    directPoolBps: existing.directPoolBps,
+    subPoolBps: existing.subPoolBps,
+    mainPoolBps: existing.mainPoolBps,
+  });
+  if (!check.ok) return check;
+  const published = await prisma.affiliateCommercialPolicy.update({
+    where: { code: input.code },
+    data: { status: 'PUBLISHED', publishedAt: new Date() },
+  });
+  await audit({
+    adminUserId: input.adminUserId,
+    targetType: 'POLICY',
+    targetId: published.id,
+    action: 'PUBLISH_POLICY',
+    previous: { status: existing.status },
+    next: { status: published.status },
+    reason: input.reason,
+  });
+  return { ok: true as const, earlyPolicyUntouched: true as const };
 }

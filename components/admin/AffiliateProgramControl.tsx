@@ -108,6 +108,29 @@ export default function AffiliateProgramControl() {
         <button type="button" className="rounded border px-3 py-1" onClick={() => act({ action: 'setProgramFlags', programCode: 'EARLY_AFFILIATE_V1', publicEarlyEnabled: true })}>
           Zet vroege tekst aan
         </button>
+        <button type="button" className="rounded border px-3 py-1" onClick={() => act({ action: 'setPublicAvailability', countryCode: 'NL', publicMain: false, publicNetwork: false })}>
+          Publieke MAIN en netwerk uit
+        </button>
+        <button type="button" className="rounded border px-3 py-1" onClick={() => act({ action: 'setPublicAvailability', countryCode: 'NL', publicMain: true, publicNetwork: true, publicPromo: true })}>
+          Publieke Vroege rechten aan
+        </button>
+        <button type="button" className="rounded border px-3 py-1" onClick={() => act({ action: 'setPublicAvailability', countryCode: 'NL', desiredMainCount: 10 })}>
+          Dekkingsdoel MAIN 10
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-2 text-sm">
+        <button type="button" className="rounded border px-3 py-1" onClick={() => act({ action: 'applyPreset', affiliateId, preset: 'MAIN_NETWORK' })}>
+          Privé: MAIN / netwerk, onbeperkt
+        </button>
+        <button type="button" className="rounded border px-3 py-1" onClick={() => act({ action: 'applyPreset', affiliateId, preset: 'MAIN_NETWORK', subLimitMode: 'LIMITED', subLimit: 10 })}>
+          Privé: 10 SUB
+        </button>
+        <button type="button" className="rounded border px-3 py-1" onClick={() => act({ action: 'savePolicyDraft', code: 'STANDARD_AFFILIATE_V2_POLICY', durationMode: 'FIXED_DURATION', durationMonths: 24, durationClock: 'FROM_FIRST_QUALIFYING_PAYMENT', directPoolBps: 10000, subPoolBps: 8000, mainPoolBps: 2000 })}>
+          Concept toekomstige polis
+        </button>
+        <button type="button" className="rounded border px-3 py-1" onClick={() => act({ action: 'publishPolicy', code: 'STANDARD_AFFILIATE_V2_POLICY' })}>
+          Publiceer die polis
+        </button>
       </div>
       <div className="flex flex-wrap gap-2 text-sm">
         <input className="rounded border px-2 py-1" placeholder="affiliate-id" value={affiliateId} onChange={(e) => setAffiliateId(e.target.value)} />

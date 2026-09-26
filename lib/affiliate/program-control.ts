@@ -26,8 +26,8 @@ export const CAPABILITY_KEYS = [
 
 export type CapabilityKey = (typeof CAPABILITY_KEYS)[number];
 export type CapabilitySource =
-  | 'SUSPENSION'
   | 'ADMIN_OVERRIDE'
+  | 'ENROLLMENT'
   | 'PROGRAM'
   | 'MARKET'
   | 'GLOBAL';
@@ -53,20 +53,6 @@ export const GLOBAL_DEFAULT_CAPABILITIES: CapabilityMap = {
 
 export const GLOBAL_DEFAULT_SUB_LIMIT: number | null = null;
 
-const OPERATIONAL_KEYS: CapabilityKey[] = [
-  'CAN_EARN_DIRECT_COMMISSION',
-  'CAN_CREATE_PROMO_CODES',
-  'CAN_USE_PROMO_LIBRARY',
-  'CAN_INVITE_SUB_AFFILIATES',
-  'CAN_HAVE_SUB_AFFILIATES',
-  'CAN_BECOME_MAIN',
-  'CAN_EARN_MAIN_OVERRIDE',
-  'CAN_ACCESS_NETWORK_DASHBOARD',
-  'CAN_ACCESS_COMMISSION_CATALOG',
-  'CAN_ACCESS_ADVANCED_AFFILIATE_TOOLS',
-  'CAN_REQUEST_NEW_MARKET',
-];
-
 export type PartialCaps = Partial<CapabilityMap>;
 
 export type SubLimitSetting = {
@@ -76,13 +62,17 @@ export type SubLimitSetting = {
 };
 
 export type CapabilityContext = {
+  /** HomeCheff can lift this. It blocks the affiliate's own actions. It does not erase grants. */
   suspended: boolean;
   program: { capabilities: PartialCaps; subAffiliateLimit: number | null };
   market?: { capabilities?: PartialCaps; subAffiliateLimit?: number | null };
+  /** Rights captured when this affiliate joined. Null inherits the program. */
+  enrollmentGrant?: PartialCaps | null;
   adminOverride?: {
     capabilities: PartialCaps;
     subLimitMode: 'INHERIT' | 'LIMITED' | 'UNLIMITED';
     subLimit: number | null;
+    privateCollaboration?: boolean;
   } | null;
 };
 
@@ -100,11 +90,13 @@ export type ResolvedAffiliateCapabilities = {
     configured: number | null | 'UNLIMITED' | 'INHERIT';
   };
   precedence: string[];
+  operationsBlocked: boolean;
+  privateCollaboration: boolean;
 };
 
 export const CAPABILITY_PRECEDENCE = [
-  'SUSPENSION',
   'ADMIN_OVERRIDE',
+  'ENROLLMENT',
   'PROGRAM',
   'MARKET',
   'GLOBAL',
@@ -116,29 +108,21 @@ function pickBoolean(
 ): ResolvedCapability {
   const override = ctx.adminOverride?.capabilities[key];
   if (typeof override === 'boolean') {
-    if (ctx.suspended) {
-      return { value: false, source: 'SUSPENSION', configured: override };
-    }
     return { value: override, source: 'ADMIN_OVERRIDE', configured: override };
+  }
+  const enrolled = ctx.enrollmentGrant?.[key];
+  if (typeof enrolled === 'boolean') {
+    return { value: enrolled, source: 'ENROLLMENT', configured: enrolled };
   }
   const program = ctx.program.capabilities[key];
   if (typeof program === 'boolean') {
-    if (ctx.suspended) {
-      return { value: false, source: 'SUSPENSION', configured: program };
-    }
     return { value: program, source: 'PROGRAM', configured: program };
   }
   const market = ctx.market?.capabilities?.[key];
   if (typeof market === 'boolean') {
-    if (ctx.suspended) {
-      return { value: false, source: 'SUSPENSION', configured: market };
-    }
     return { value: market, source: 'MARKET', configured: market };
   }
   const global = GLOBAL_DEFAULT_CAPABILITIES[key];
-  if (ctx.suspended) {
-    return { value: false, source: 'SUSPENSION', configured: global };
-  }
   return { value: global, source: 'GLOBAL', configured: global };
 }
 
@@ -176,17 +160,13 @@ export function resolveAffiliateCapabilities(
     sub = { value: GLOBAL_DEFAULT_SUB_LIMIT, source: 'GLOBAL', configured: null };
   }
 
-  if (ctx.suspended) {
-    for (const key of OPERATIONAL_KEYS) {
-      capabilities[key] = {
-        ...capabilities[key],
-        value: false,
-        source: 'SUSPENSION',
-      };
-    }
-  }
-
-  return { capabilities, subAffiliateLimit: sub, precedence: [...CAPABILITY_PRECEDENCE] };
+  return {
+    capabilities,
+    subAffiliateLimit: sub,
+    precedence: [...CAPABILITY_PRECEDENCE],
+    operationsBlocked: ctx.suspended,
+    privateCollaboration: Boolean(ctx.adminOverride?.privateCollaboration),
+  };
 }
 
 export function effectiveSubLimitLabel(value: number | null): string {
@@ -251,6 +231,9 @@ export function decideSubInvite(input: {
   pendingInvites: number;
   adminForce: boolean;
 }): { ok: true } | { ok: false; code: string } {
+  if (input.resolved.operationsBlocked && !input.adminForce) {
+    return { ok: false, code: 'SUSPENDED' };
+  }
   if (!input.resolved.capabilities.CAN_INVITE_SUB_AFFILIATES.value && !input.adminForce) {
     return { ok: false, code: 'INVITE_DISABLED' };
   }
@@ -393,3 +376,263 @@ export const EARLY_PROGRAM_DEFAULTS = {
   capabilities: { ...GLOBAL_DEFAULT_CAPABILITIES },
   publicEarlyEnabled: true,
 };
+
+export type PublicCommercialRights = {
+  main: boolean;
+  network: boolean;
+  promo: boolean;
+};
+
+/** What a new public signup receives. Existing enrollments are not rewritten. */
+export function publicSignupCapabilities(
+  program: PartialCaps,
+  rights: PublicCommercialRights,
+): PartialCaps {
+  const grant: PartialCaps = { ...program };
+  if (!rights.main) {
+    grant.CAN_BECOME_MAIN = false;
+    grant.CAN_EARN_MAIN_OVERRIDE = false;
+  }
+  if (!rights.network) {
+    grant.CAN_INVITE_SUB_AFFILIATES = false;
+    grant.CAN_HAVE_SUB_AFFILIATES = false;
+    grant.CAN_ACCESS_NETWORK_DASHBOARD = false;
+  }
+  if (!rights.promo) {
+    grant.CAN_CREATE_PROMO_CODES = false;
+    grant.CAN_USE_PROMO_LIBRARY = false;
+  }
+  return grant;
+}
+
+export type AdminPresetId =
+  | 'STANDARD'
+  | 'MAIN_NETWORK'
+  | 'REGIONAL'
+  | 'COUNTRY'
+  | 'CUSTOM';
+
+export function adminCapabilityPreset(id: AdminPresetId): {
+  privateCollaboration: boolean;
+  capabilities: PartialCaps;
+  subLimitMode: 'INHERIT' | 'LIMITED' | 'UNLIMITED';
+  subLimit: number | null;
+} {
+  if (id === 'MAIN_NETWORK') {
+    return {
+      privateCollaboration: true,
+      subLimitMode: 'UNLIMITED',
+      subLimit: null,
+      capabilities: {
+        CAN_BECOME_MAIN: true,
+        CAN_EARN_MAIN_OVERRIDE: true,
+        CAN_INVITE_SUB_AFFILIATES: true,
+        CAN_HAVE_SUB_AFFILIATES: true,
+        CAN_ACCESS_NETWORK_DASHBOARD: true,
+        CAN_CREATE_PROMO_CODES: true,
+        CAN_USE_PROMO_LIBRARY: true,
+        CAN_ACCESS_ADVANCED_AFFILIATE_TOOLS: true,
+      },
+    };
+  }
+  if (id === 'REGIONAL' || id === 'COUNTRY') {
+    return {
+      privateCollaboration: true,
+      subLimitMode: 'UNLIMITED',
+      subLimit: null,
+      capabilities: {
+        CAN_BECOME_MAIN: true,
+        CAN_INVITE_SUB_AFFILIATES: true,
+        CAN_ACCESS_NETWORK_DASHBOARD: true,
+        CAN_CREATE_PROMO_CODES: true,
+        CAN_REQUEST_NEW_MARKET: id === 'COUNTRY',
+        CAN_ACCESS_ADVANCED_AFFILIATE_TOOLS: true,
+      },
+    };
+  }
+  if (id === 'STANDARD') {
+    return {
+      privateCollaboration: false,
+      subLimitMode: 'LIMITED',
+      subLimit: 0,
+      capabilities: {
+        CAN_BECOME_MAIN: false,
+        CAN_EARN_MAIN_OVERRIDE: false,
+        CAN_INVITE_SUB_AFFILIATES: false,
+        CAN_ACCESS_NETWORK_DASHBOARD: false,
+      },
+    };
+  }
+  return {
+    privateCollaboration: false,
+    subLimitMode: 'INHERIT',
+    subLimit: null,
+    capabilities: {},
+  };
+}
+
+export function catalogShowsNetwork(input: {
+  audience: 'PUBLIC' | 'AFFILIATE' | 'ADMIN';
+  publicMain: boolean;
+  publicNetwork: boolean;
+  effectiveMain: boolean;
+  effectiveNetwork: boolean;
+}): boolean {
+  if (input.audience === 'ADMIN') return true;
+  if (input.audience === 'AFFILIATE') return input.effectiveMain || input.effectiveNetwork;
+  return input.publicMain || input.publicNetwork;
+}
+
+export function publicFacingLines(lines: string[], showNetwork: boolean): string[] {
+  if (showNetwork) return lines;
+  return lines.filter((line) => !/\bMAIN\b|\bSUB\b|netwerk|network/i.test(line));
+}
+
+export function publicFaqs<T extends { q: string; a: string }>(
+  faqs: T[],
+  rights: PublicCommercialRights,
+): T[] {
+  return faqs.filter((item) => {
+    const text = `${item.q} ${item.a}`.toLowerCase();
+    const networkTopic = /sub-affiliate|affiliates opbouwen|main-aandeel|main share|main\/sub/.test(text);
+    const promoTopic = /promo/.test(text);
+    if (!rights.main && !rights.network && networkTopic) return false;
+    if (!rights.promo && promoTopic) return false;
+    return true;
+  });
+}
+
+export function publicPayload(value: Record<string, unknown>): Record<string, unknown> {
+  const hidden = ['privateCollaboration', 'adminOverride', 'overrides', 'capturedCapabilities'];
+  const out: Record<string, unknown> = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (!hidden.includes(key)) out[key] = item;
+  }
+  return out;
+}
+
+export function coverageDecision(target: number | null, current: number): {
+  targetReached: boolean;
+  blocksAdmin: false;
+  autoClose: false;
+} {
+  return {
+    targetReached: target != null && current >= target,
+    blocksAdmin: false,
+    autoClose: false,
+  };
+}
+
+export type DurationMode = 'WHILE_QUALIFYING' | 'FIXED_DURATION';
+export type DurationClock =
+  | 'FROM_CUSTOMER_ATTRIBUTION'
+  | 'FROM_FIRST_QUALIFYING_PAYMENT'
+  | 'PER_PRODUCT_RELATIONSHIP';
+
+export type CommercialPolicyDraft = {
+  code: string;
+  status: 'DRAFT' | 'PUBLISHED';
+  durationMode: DurationMode;
+  durationMonths: number | null;
+  durationClock: DurationClock | null;
+  /** Basis points of the existing affiliate pool. Null keeps the certified product split. */
+  directPoolBps: number | null;
+  subPoolBps: number | null;
+  mainPoolBps: number | null;
+};
+
+export function validateCommercialPolicy(
+  draft: CommercialPolicyDraft,
+): { ok: true } | { ok: false; reason: string } {
+  const shares = [draft.directPoolBps, draft.subPoolBps, draft.mainPoolBps];
+  for (const share of shares) {
+    if (share != null && (share < 0 || share > 10000)) {
+      return {
+        ok: false,
+        reason: 'Een aandeel moet tussen 0 en 100% van de bestaande affiliate-pool blijven. Een hoger aandeel maakt het HomeCheff-restant of de HC-reserve ongeldig.',
+      };
+    }
+  }
+  const sub = draft.subPoolBps ?? 0;
+  const main = draft.mainPoolBps ?? 0;
+  if (draft.subPoolBps != null || draft.mainPoolBps != null) {
+    if (sub + main > 10000) {
+      return {
+        ok: false,
+        reason: `SUB ${sub} plus MAIN ${main} basispunten is ${sub + main}. Dat is meer dan 100% van de affiliate-pool, dus het HomeCheff-restant zou negatief worden.`,
+      };
+    }
+  }
+  if (draft.durationMode === 'FIXED_DURATION') {
+    if (!draft.durationMonths || draft.durationMonths < 1) {
+      return { ok: false, reason: 'Een vaste duur heeft een aantal maanden nodig.' };
+    }
+    if (!draft.durationClock) {
+      return { ok: false, reason: 'Een vaste duur heeft een expliciete klok nodig.' };
+    }
+  }
+  return { ok: true };
+}
+
+export function decidePolicyWrite(
+  existing: { status: 'DRAFT' | 'PUBLISHED' } | null,
+  action: 'EDIT' | 'PUBLISH',
+): { ok: true } | { ok: false; reason: string } {
+  if (existing?.status === 'PUBLISHED') {
+    return {
+      ok: false,
+      reason: 'Een gepubliceerde financiële versie wordt niet ter plaatse gewijzigd. Maak een nieuwe versie.',
+    };
+  }
+  if (action === 'PUBLISH' && existing && existing.status !== 'DRAFT') {
+    return { ok: false, reason: 'Alleen een concept kan worden gepubliceerd.' };
+  }
+  return { ok: true };
+}
+
+export function sliceAffiliatePool(input: {
+  affiliateCents: number;
+  homeCheffCents: number;
+  hcCents: number;
+  directPoolBps: number | null;
+  subPoolBps: number | null;
+  mainPoolBps: number | null;
+}): {
+  affiliateCents: number;
+  subCents: number | null;
+  mainCents: number | null;
+  homeCheffCents: number;
+  hcCents: number;
+} {
+  const affiliate = input.directPoolBps == null
+    ? input.affiliateCents
+    : Math.floor((input.affiliateCents * input.directPoolBps) / 10000);
+  const sub = input.subPoolBps == null ? null : Math.floor((input.affiliateCents * input.subPoolBps) / 10000);
+  const main = input.mainPoolBps == null ? null : Math.floor((input.affiliateCents * input.mainPoolBps) / 10000);
+  const used = Math.max(affiliate, (sub ?? 0) + (main ?? 0));
+  return {
+    affiliateCents: affiliate,
+    subCents: sub,
+    mainCents: main,
+    homeCheffCents: input.homeCheffCents + Math.max(0, input.affiliateCents - used),
+    hcCents: input.hcCents,
+  };
+}
+
+export const EARLY_DURATION_POLICY: CommercialPolicyDraft = {
+  code: CERTIFIED_COMMISSION_POLICY_REF,
+  status: 'PUBLISHED',
+  durationMode: 'WHILE_QUALIFYING',
+  durationMonths: null,
+  durationClock: null,
+  directPoolBps: null,
+  subPoolBps: null,
+  mainPoolBps: null,
+};
+
+export function durationForEnrollment(input: {
+  enrolledPolicy: CommercialPolicyDraft;
+  publicPolicy: CommercialPolicyDraft;
+}): CommercialPolicyDraft {
+  return input.enrolledPolicy;
+}

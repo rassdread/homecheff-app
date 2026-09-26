@@ -3306,6 +3306,10 @@ model AffiliateMarketRecruitment {
   programId         String?
   desiredMainCount  Int?
   desiredActiveCount Int?
+  desiredRegionalCount Int?
+  publicMainAvailable Boolean @default(true)
+  publicNetworkAvailable Boolean @default(true)
+  publicPromoAvailable Boolean @default(true)
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
   program           AffiliateProgram? @relation(fields: [programId], references: [id])
@@ -3322,6 +3326,8 @@ model AffiliateProgramEnrollment {
   source           String
   termsVersion     String
   termsAcceptedAt  DateTime?
+  /// Null means: inherit the program. Set only for a new public signup.
+  capturedCapabilities Json?
   enrolledAt       DateTime @default(now())
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -3348,8 +3354,27 @@ model AffiliateCapabilityOverride {
   /// INHERIT | LIMITED | UNLIMITED
   subLimitMode       String   @default("INHERIT")
   subLimit           Int?
+  privateCollaboration Boolean @default(false)
   updatedAt          DateTime @updatedAt
   affiliate          Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+}
+
+/// A published financial version is not edited in place. Draft a new code instead.
+model AffiliateCommercialPolicy {
+  id              String    @id @default(uuid())
+  code            String    @unique
+  status          String    @default("DRAFT")
+  durationMode    String    @default("WHILE_QUALIFYING")
+  durationMonths  Int?
+  durationClock   String?
+  directPoolBps   Int?
+  subPoolBps      Int?
+  mainPoolBps     Int?
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status])
 }
 
 model AffiliateCommercialAudit {

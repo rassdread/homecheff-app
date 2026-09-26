@@ -33,9 +33,11 @@ export async function GET() {
     source: user.affiliate.programEnrollment?.source ?? null,
     portfolio,
     promo: resolved.capabilities.CAN_CREATE_PROMO_CODES.value,
+    promoLibrary: resolved.capabilities.CAN_USE_PROMO_LIBRARY.value,
     network: resolved.capabilities.CAN_INVITE_SUB_AFFILIATES.value,
     subLimit: effectiveSubLimitLabel(resolved.subAffiliateLimit.value),
     main: resolved.capabilities.CAN_BECOME_MAIN.value,
+    networkDashboard: resolved.capabilities.CAN_ACCESS_NETWORK_DASHBOARD.value,
     duration: durationCopy(resolved.programName || 'jouw affiliateprogramma'),
   });
 }

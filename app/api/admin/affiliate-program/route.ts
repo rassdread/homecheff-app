@@ -12,12 +12,16 @@ import {
 import {
   enrollAffiliate,
   createAffiliateProgram,
+  publishCommercialPolicy,
   reassignAffiliateProgram,
   resolveStoredAffiliateCapabilities,
+  saveCommercialPolicyDraft,
   setAffiliateOverride,
   setMarketRecruitment,
   setProgramFlags,
+  setPublicAvailability,
 } from '@/lib/affiliate/program-store';
+import { adminCapabilityPreset, coverageDecision, validateCommercialPolicy, type AdminPresetId } from '@/lib/affiliate/program-control';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,6 +103,94 @@ export async function POST(req: Request) {
       },
       { status: 409 },
     );
+  }
+
+  if (action === 'setPublicAvailability') {
+    const result = await setPublicAvailability({
+      adminUserId: actor.id,
+      countryCode: String(body.countryCode || 'NL').toUpperCase(),
+      publicMain: typeof body.publicMain === 'boolean' ? body.publicMain : undefined,
+      publicNetwork: typeof body.publicNetwork === 'boolean' ? body.publicNetwork : undefined,
+      publicPromo: typeof body.publicPromo === 'boolean' ? body.publicPromo : undefined,
+      desiredMainCount: typeof body.desiredMainCount === 'number' ? body.desiredMainCount : undefined,
+      desiredActiveCount: typeof body.desiredActiveCount === 'number' ? body.desiredActiveCount : undefined,
+      reason,
+    });
+    const mains = await prisma.affiliate.count({ where: { parentAffiliateId: null } });
+    return NextResponse.json({
+      ...result,
+      coverage: coverageDecision(result.market.desiredMainCount, mains),
+      existingEnrollmentsChanged: 0,
+      financialHistoryPreserved: true,
+    });
+  }
+
+  if (action === 'applyPreset') {
+    const preset = adminCapabilityPreset(String(body.preset || 'CUSTOM') as AdminPresetId);
+    const limit = typeof body.subLimit === 'number' ? body.subLimit : preset.subLimit;
+    const mode = body.subLimitMode || preset.subLimitMode;
+    const saved = await setAffiliateOverride({
+      adminUserId: actor.id,
+      affiliateId: String(body.affiliateId || ''),
+      patch: {
+        becomeMain: preset.capabilities.CAN_BECOME_MAIN,
+        earnMainOverride: preset.capabilities.CAN_EARN_MAIN_OVERRIDE,
+        inviteSubs: preset.capabilities.CAN_INVITE_SUB_AFFILIATES,
+        networkDashboard: preset.capabilities.CAN_ACCESS_NETWORK_DASHBOARD,
+        promoCodes: preset.capabilities.CAN_CREATE_PROMO_CODES,
+        promoLibrary: preset.capabilities.CAN_USE_PROMO_LIBRARY,
+        advancedTools: preset.capabilities.CAN_ACCESS_ADVANCED_AFFILIATE_TOOLS,
+        newMarket: preset.capabilities.CAN_REQUEST_NEW_MARKET,
+        subLimitMode: mode,
+        subLimit: limit,
+        privateCollaboration: preset.privateCollaboration,
+      },
+      reason,
+    });
+    return NextResponse.json({ saved, publicProgramUnchanged: true, ledgerTouched: false });
+  }
+
+  if (action === 'validatePolicy') {
+    const result = validateCommercialPolicy({
+      code: String(body.code || 'DRAFT'),
+      status: 'DRAFT',
+      durationMode: body.durationMode === 'FIXED_DURATION' ? 'FIXED_DURATION' : 'WHILE_QUALIFYING',
+      durationMonths: typeof body.durationMonths === 'number' ? body.durationMonths : null,
+      durationClock: body.durationClock || null,
+      directPoolBps: typeof body.directPoolBps === 'number' ? body.directPoolBps : null,
+      subPoolBps: typeof body.subPoolBps === 'number' ? body.subPoolBps : null,
+      mainPoolBps: typeof body.mainPoolBps === 'number' ? body.mainPoolBps : null,
+    });
+    return NextResponse.json(result, { status: result.ok ? 200 : 422 });
+  }
+
+  if (action === 'savePolicyDraft') {
+    const result = await saveCommercialPolicyDraft({
+      adminUserId: actor.id,
+      reason,
+      draft: {
+        code: String(body.code || ''),
+        status: 'DRAFT',
+        durationMode: body.durationMode === 'FIXED_DURATION' ? 'FIXED_DURATION' : 'WHILE_QUALIFYING',
+        durationMonths: typeof body.durationMonths === 'number' ? body.durationMonths : null,
+        durationClock: body.durationClock || null,
+        directPoolBps: typeof body.directPoolBps === 'number' ? body.directPoolBps : null,
+        subPoolBps: typeof body.subPoolBps === 'number' ? body.subPoolBps : null,
+        mainPoolBps: typeof body.mainPoolBps === 'number' ? body.mainPoolBps : null,
+      },
+    });
+    if (!result.ok) return NextResponse.json(result, { status: 422 });
+    return NextResponse.json(result);
+  }
+
+  if (action === 'publishPolicy') {
+    const result = await publishCommercialPolicy({
+      adminUserId: actor.id,
+      code: String(body.code || ''),
+      reason,
+    });
+    if (!result.ok) return NextResponse.json(result, { status: 422 });
+    return NextResponse.json(result);
   }
 
   if (action === 'setRecruitment') {

@@ -95,7 +95,7 @@ describe('affiliate program control', () => {
     assert.equal(reset.subAffiliateLimit.source, 'PROGRAM');
   });
 
-  it('lets suspension beat an affiliate override', () => {
+  it('keeps an admin grant while suspension only blocks the affiliate until HomeCheff restores them', () => {
     const resolved = resolveAffiliateCapabilities({
       suspended: true,
       program: early,
@@ -105,8 +105,26 @@ describe('affiliate program control', () => {
         subLimit: null,
       },
     });
-    assert.equal(resolved.capabilities.CAN_INVITE_SUB_AFFILIATES.value, false);
-    assert.equal(resolved.capabilities.CAN_INVITE_SUB_AFFILIATES.source, 'SUSPENSION');
+    assert.equal(resolved.capabilities.CAN_INVITE_SUB_AFFILIATES.value, true);
+    assert.equal(resolved.capabilities.CAN_INVITE_SUB_AFFILIATES.source, 'ADMIN_OVERRIDE');
+    assert.equal(resolved.operationsBlocked, true);
+    assert.equal(
+      decideSubInvite({ resolved, hasParent: false, childCount: 0, pendingInvites: 0, adminForce: false }).ok,
+      false,
+    );
+    const restored = resolveAffiliateCapabilities({ ...{
+      suspended: false,
+      program: early,
+      adminOverride: {
+        capabilities: { CAN_INVITE_SUB_AFFILIATES: true },
+        subLimitMode: 'UNLIMITED' as const,
+        subLimit: null,
+      },
+    } });
+    assert.equal(
+      decideSubInvite({ resolved: restored, hasParent: false, childCount: 0, pendingInvites: 0, adminForce: false }).ok,
+      true,
+    );
   });
 
   it('blocks public signup when closed and allows admin admission', () => {

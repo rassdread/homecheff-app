@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { OPERATIONS_ROUTES } from '@/lib/operations/operations-entry';
 import { MY_HOMECHEFF_HUB_PATH } from '@/lib/navigation/my-homecheff-hub';
@@ -51,6 +52,29 @@ const AFFILIATE_TABS: Tab[] = [
 export default function AffiliateAreaNav({ className }: { className?: string }) {
   const pathname = usePathname() ?? '';
   const { t } = useTranslation();
+  const [ownTools, setOwnTools] = useState<{ promo: boolean; promoLibrary: boolean } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/affiliate/my-program')
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (!cancelled && payload) {
+          setOwnTools({ promo: Boolean(payload.promo), promoLibrary: Boolean(payload.promoLibrary) });
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const tabs = AFFILIATE_TABS.filter((tab) => {
+    if (!ownTools) return true;
+    if (tab.id === 'promo' && !ownTools.promo) return false;
+    if (tab.id === 'promoMedia' && !ownTools.promoLibrary) return false;
+    return true;
+  });
 
   const onAffiliateRoute =
     pathname.startsWith('/affiliate') || pathname.startsWith('/aviliate');
@@ -69,7 +93,7 @@ export default function AffiliateAreaNav({ className }: { className?: string }) 
     >
       <MyHomeCheffBackLink compact />
       <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-        {AFFILIATE_TABS.map((tab) => {
+        {tabs.map((tab) => {
           const active = tab.match(pathname);
           return (
             <Link
