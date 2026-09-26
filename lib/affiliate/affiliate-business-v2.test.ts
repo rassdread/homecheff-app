@@ -203,7 +203,7 @@ describe('affiliate business v2', () => {
     assert.equal(landing.includes('€1,750'), false);
     assert.equal(landing.includes('€1,80'), false);
     const redirect = readFileSync(`${root}/next.config.mjs`, 'utf8');
-    assert.match(redirect, /\/aviliate.*\/affiliate/s);
+    assert.equal(redirect.includes("source: '/aviliate'") && redirect.includes("destination: '/affiliate'"), true);
   });
 
   it('classifies the live network and does not change economics flags', () => {

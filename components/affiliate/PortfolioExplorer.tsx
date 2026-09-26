@@ -45,9 +45,8 @@ export default function PortfolioExplorer({ lang }: { lang: 'nl' | 'en' }) {
   );
 
   function applyPreset(id: PortfolioPresetId) {
-    const preset = presetQuote(id);
-    setMonths(preset.months);
     if (id === 'alongside') {
+      setMonths(12);
       setPerMonth(1);
       setRetention(1);
       setStudio(0);
@@ -55,6 +54,7 @@ export default function PortfolioExplorer({ lang }: { lang: 'nl' | 'en' }) {
       setSubs(0);
       setSubPerMonth(0);
     } else if (id === 'active') {
+      setMonths(12);
       setPerMonth(2);
       setRetention(1);
       setStudio(JOURNEY_STUDIO_CROSS_SELL_RATE);
@@ -62,6 +62,7 @@ export default function PortfolioExplorer({ lang }: { lang: 'nl' | 'en' }) {
       setSubs(0);
       setSubPerMonth(0);
     } else if (id === 'growing') {
+      setMonths(24);
       setPerMonth(8);
       setRetention(1);
       setStudio(JOURNEY_STUDIO_CROSS_SELL_RATE);
@@ -69,6 +70,7 @@ export default function PortfolioExplorer({ lang }: { lang: 'nl' | 'en' }) {
       setSubs(0);
       setSubPerMonth(0);
     } else {
+      setMonths(36);
       setPerMonth(8);
       setRetention(1);
       setStudio(JOURNEY_STUDIO_CROSS_SELL_RATE);
