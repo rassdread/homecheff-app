@@ -160,28 +160,32 @@ export default function PortfolioExplorer({
             className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
           />
         </label>
-        {showNetwork ? <label className="text-sm">
-          {en ? 'Invited sub-affiliates' : 'Uitgenodigde sub-affiliates'}
-          <input
-            type="number"
-            min={0}
-            max={200}
-            value={subs}
-            onChange={(event) => setSubs(Number(event.target.value))}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-          />
-        </label>
-        <label className="text-sm">
-          {en ? 'New Starter customers / sub / month' : 'Nieuwe Starter-klanten / sub / maand'}
-          <input
-            type="number"
-            min={0}
-            max={100}
-            value={subPerMonth}
-            onChange={(event) => setSubPerMonth(Number(event.target.value))}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-          />
-        </label> : null}
+        {showNetwork ? (
+          <>
+            <label className="text-sm">
+              {en ? 'Invited sub-affiliates' : 'Uitgenodigde sub-affiliates'}
+              <input
+                type="number"
+                min={0}
+                max={200}
+                value={subs}
+                onChange={(event) => setSubs(Number(event.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              />
+            </label>
+            <label className="text-sm">
+              {en ? 'New Starter customers / sub / month' : 'Nieuwe Starter-klanten / sub / maand'}
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={subPerMonth}
+                onChange={(event) => setSubPerMonth(Number(event.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              />
+            </label>
+          </>
+        ) : null}
       </div>
       <dl className="mt-4 space-y-1 text-sm text-slate-800">
         <div className="flex justify-between gap-3">
