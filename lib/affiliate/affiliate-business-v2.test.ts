@@ -210,17 +210,23 @@ describe('affiliate business v2', () => {
   it('puts the public story behind named disclosures and keeps catalog amounts', () => {
     const story = readFileSync(`${root}/components/affiliate/AffiliateBusinessStory.tsx`, 'utf8');
     const page = readFileSync(`${root}/app/affiliate/page.tsx`, 'utf8');
+    const goals = readFileSync(`${root}/components/affiliate/AffiliateGoalExperience.tsx`, 'utf8');
     for (const label of [
       'Bekijk alle producten en commissies',
-      'Bereken mijn mogelijke portefeuille',
-      'Bekijk voorbeelden van €3.000, €10.000 en €20.000 per maand',
+      'Wat wil jij opbouwen?',
       'Zo werkt verdienen over meerdere HomeCheff-diensten',
       'Bekijk de promotiemogelijkheden',
       'Bekijk hoe het partnernetwerk werkt',
-      'Ik wil HomeCheff in mijn land opbouwen',
+      'Ik zie kansen voor HomeCheff in een ander land',
+      'HomeCheff in een ander land',
     ]) {
       assert.match(story, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     }
+    assert.match(goals, /Pas de aannames aan/);
+    assert.match(goals, /Gemengd/);
+    assert.equal(story.includes('Bekijk voorbeelden van €3.000'), false);
+    assert.equal(story.includes('PortfolioExplorer'), false);
+    assert.equal(/één sub-affiliate|one sub-affiliate|keurt je niet goed|geen goedkeuring/i.test(story + goals), false);
     assert.equal(/Je krijgt 50% van het Growth-abonnement/.test(story), false);
     assert.equal(/12 maanden|365 dagen/.test(story + page), false);
     assert.match(page, /Bouw je eigen klantenportefeuille/);

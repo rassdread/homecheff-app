@@ -4,16 +4,7 @@ import dynamic from 'next/dynamic';
 import { useId, useState } from 'react';
 import { buildAffiliateCommissionCatalog, type CatalogRow } from '@/lib/affiliate/commission-catalog';
 import { NETWORK_CAPABILITY } from '@/lib/affiliate/network-capability';
-import {
-  JOURNEY_NEW_GROWTH_STARTER_PER_MONTH,
-  JOURNEY_RETENTION,
-  JOURNEY_STUDIO_CROSS_SELL_RATE,
-  JOURNEY_STUDIO_FROM_MONTH,
-  SCALE_TARGET_EUR,
-  alongsideWorkJourneyStages,
-  growthStarterCustomersForMonthlyTarget,
-  growthStarterShareCents,
-} from '@/lib/affiliate/portfolio-scenario';
+import { growthStarterShareCents } from '@/lib/affiliate/portfolio-scenario';
 import { affiliatePropositionFaqs } from '@/lib/affiliate/proposition-faqs';
 import { publicFaqs } from '@/lib/affiliate/program-control';
 
@@ -21,9 +12,10 @@ const AffiliateCommissionCatalog = dynamic(
   () => import('@/components/affiliate/AffiliateCommissionCatalog'),
   { ssr: false },
 );
-const PortfolioExplorer = dynamic(() => import('@/components/affiliate/PortfolioExplorer'), {
-  ssr: false,
-});
+const AffiliateGoalExperience = dynamic(
+  () => import('@/components/affiliate/AffiliateGoalExperience'),
+  { ssr: false },
+);
 const AffiliateCountryInterestForm = dynamic(
   () => import('@/components/affiliate/AffiliateCountryInterestForm'),
   { ssr: false },
@@ -32,15 +24,6 @@ const AffiliateCountryInterestForm = dynamic(
 function eur(cents: number): string {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 }
-
-const STAGE_LABELS: Record<number, { nl: string; en: string }> = {
-  1: { nl: 'Maand 1', en: 'Month 1' },
-  3: { nl: 'Maand 3', en: 'Month 3' },
-  6: { nl: 'Maand 6', en: 'Month 6' },
-  12: { nl: 'Maand 12', en: 'Month 12' },
-  24: { nl: 'Jaar 2', en: 'Year 2' },
-  36: { nl: 'Jaar 3', en: 'Year 3' },
-};
 
 const PREVIEW_IDS = ['growth-starter', 'marketplace-buyer', 'studio-creator', 'delivery-fee'] as const;
 
@@ -113,7 +96,6 @@ export default function AffiliateBusinessStory({
   const catalog = buildAffiliateCommissionCatalog();
   const byId = new Map(catalog.map((row) => [row.id, row]));
   const preview = PREVIEW_IDS.map((id) => byId.get(id)).filter((row): row is CatalogRow => Boolean(row));
-  const stages = alongsideWorkJourneyStages();
   const share = growthStarterShareCents();
   const faqs = publicFaqs(affiliatePropositionFaqs(lang), {
     main: showNetwork,
@@ -218,72 +200,20 @@ export default function AffiliateBusinessStory({
 
       <section aria-labelledby="affiliate-portfolio">
         <h2 id="affiliate-portfolio" className="text-xl font-semibold text-slate-900">
-          {en ? 'Build something that can keep going' : 'Bouw iets op dat kan blijven doorlopen'}
+          {en ? 'What do you want to build?' : 'Wat wil jij opbouwen?'}
         </h2>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-700">
           {en
-            ? 'You do not start over every month. What you build today can keep working for years, for as long as the customer keeps making qualifying use of HomeCheff. That is not guaranteed income.'
-            : 'Je begint niet iedere maand opnieuw. Wat je vandaag opbouwt, kan jaren voor je blijven werken, zolang de klant kwalificerend gebruik blijft maken van HomeCheff. Dat is geen gegarandeerd inkomen.'}
+            ? 'From an extra income stream to a large customer portfolio. Choose a goal and see roughly what that would take, based on the current commissions.'
+            : 'Van een extra inkomstenstroom tot een grote klantenportefeuille. Kies een doel en bekijk wat daar ongeveer voor nodig is op basis van de huidige commissies.'}
         </p>
-        <div className="mt-4 space-y-3">
-          <NamedDisclosure title={en ? 'Calculate my possible portfolio' : 'Bereken mijn mogelijke portefeuille'}>
-            <PortfolioExplorer lang={lang} showNetwork={showNetwork} />
-          </NamedDisclosure>
-          <NamedDisclosure
-            title={
-              en
-                ? 'View examples of €3,000, €10,000 and €20,000 a month'
-                : 'Bekijk voorbeelden van €3.000, €10.000 en €20.000 per maand'
-            }
-          >
-            <p className="text-sm text-slate-600">
-              {en
-                ? 'Scenarios, not a promise and not a timeline. They show how many qualifying Growth Starter customers the current commission would require.'
-                : 'Scenario’s, geen belofte en geen termijn. Ze laten zien hoeveel kwalificerende Growth Starter-klanten de huidige commissie daarvoor vraagt.'}
-            </p>
-            <ul className="mt-3 space-y-2 text-sm text-slate-800">
-              {SCALE_TARGET_EUR.map((target) => {
-                const need = growthStarterCustomersForMonthlyTarget(target);
-                return (
-                  <li key={target} className="rounded-xl bg-slate-50 px-3 py-2">
-                    {en
-                      ? `About €${target.toLocaleString('en-GB')} / month from Growth Starter alone: ${need.customers} active qualifying customers × ${eur(need.perCustomerCents)}.`
-                      : `Ongeveer €${target.toLocaleString('nl-NL')} / maand uit alleen Growth Starter: ${need.customers} actieve kwalificerende klanten × ${eur(need.perCustomerCents)}.`}
-                  </li>
-                );
-              })}
-            </ul>
-            <p className="mt-4 text-sm font-medium text-slate-900">
-              {en ? 'A smaller example, with the assumptions visible' : 'Een kleiner voorbeeld, met de aannames erbij'}
-            </p>
-            <ul className="mt-2 space-y-1 text-sm text-slate-600">
-              <li>
-                {en
-                  ? `${JOURNEY_NEW_GROWTH_STARTER_PER_MONTH} new Growth Starter customers per month, and this scenario keeps ${Math.round(JOURNEY_RETENTION * 100)}% qualifying.`
-                  : `${JOURNEY_NEW_GROWTH_STARTER_PER_MONTH} nieuwe Growth Starter-klanten per maand, en dit scenario houdt ${Math.round(JOURNEY_RETENTION * 100)}% kwalificerend.`}
-              </li>
-              <li>
-                {en
-                  ? `From month ${JOURNEY_STUDIO_FROM_MONTH}, ${Math.round(JOURNEY_STUDIO_CROSS_SELL_RATE * 100)}% also pay Studio Creator.`
-                  : `Vanaf maand ${JOURNEY_STUDIO_FROM_MONTH} betaalt ${Math.round(JOURNEY_STUDIO_CROSS_SELL_RATE * 100)}% ook Studio Creator.`}
-              </li>
-              <li>
-                {en
-                  ? `Each Starter customer is ${eur(share.directCents)} per qualifying billing period. That is half of the margin after the HC reserve, not half of the customer price.`
-                  : `Elke Starter-klant is ${eur(share.directCents)} per kwalificerende betaalperiode. Dat is de helft van de marge na de HC-reserve, niet de helft van de klantprijs.`}
-              </li>
-            </ul>
-            <ol className="mt-3 space-y-2">
-              {stages.map((stage) => (
-                <li key={stage.months} className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="text-slate-600">
-                    {en ? STAGE_LABELS[stage.months]?.en : STAGE_LABELS[stage.months]?.nl}
-                  </span>
-                  <span className="font-semibold text-slate-900">{eur(stage.ownCents)}</span>
-                </li>
-              ))}
-            </ol>
-          </NamedDisclosure>
+        <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-600">
+          {en
+            ? 'From your first customer to a portfolio that runs across several HomeCheff services. These are goals you can explore, not promised earnings.'
+            : 'Van je eerste klant tot een portefeuille die over meerdere HomeCheff-diensten doorloopt. Dit zijn doelen die je kunt verkennen, geen beloofde inkomsten.'}
+        </p>
+        <div className="mt-5">
+          <AffiliateGoalExperience lang={lang} showNetwork={showNetwork} />
         </div>
       </section>
 
@@ -360,18 +290,20 @@ export default function AffiliateBusinessStory({
           </h2>
           <p className="mt-2 text-sm text-slate-600">
             {en
-              ? 'Most people start by earning on their own customers. The partner network is a later step.'
-              : 'De meeste mensen beginnen met verdienen op hun eigen klanten. Het partnernetwerk is een latere stap.'}
+              ? 'Most affiliates start with their own customers. The partner network is a next step.'
+              : 'De meeste affiliates beginnen met hun eigen klanten. Het partnernetwerk is een volgende stap.'}
           </p>
           <div className="mt-4">
             <NamedDisclosure title={en ? 'See how the partner network works' : 'Bekijk hoe het partnernetwerk werkt'}>
-              <p className="text-sm leading-relaxed text-slate-700">
-                {en ? NETWORK_CAPABILITY.publicNoteEn : NETWORK_CAPABILITY.publicNoteNl}
-              </p>
+              <div className="space-y-3 text-sm leading-relaxed text-slate-700">
+                {(en ? NETWORK_CAPABILITY.publicParagraphsEn : NETWORK_CAPABILITY.publicParagraphsNl).map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+              </div>
               <p className="mt-3 text-sm leading-relaxed text-slate-700">
                 {en
-                  ? `On a Growth Starter customer the direct share is ${eur(share.directCents)}. Where MAIN and SUB apply, the sub share is ${eur(share.subCents)} and the main share is ${eur(share.mainCents)}, from the same margin after the HC reserve.`
-                  : `Op een Growth Starter-klant is het directe aandeel ${eur(share.directCents)}. Waar MAIN en SUB gelden, is het sub-aandeel ${eur(share.subCents)} en het main-aandeel ${eur(share.mainCents)}, uit dezelfde marge na de HC-reserve.`}
+                  ? `On a Growth Starter customer the direct affiliate share is ${eur(share.directCents)}. Where MAIN and SUB apply, the SUB receives ${eur(share.subCents)} and the MAIN receives ${eur(share.mainCents)}. Together this remains the same available affiliate margin.`
+                  : `Bij een Growth Starter-klant is het directe affiliate-aandeel ${eur(share.directCents)}. Wanneer MAIN en SUB van toepassing zijn, ontvangt de SUB ${eur(share.subCents)} en de MAIN ${eur(share.mainCents)}. Samen blijft dit dezelfde beschikbare affiliate-marge.`}
               </p>
             </NamedDisclosure>
           </div>
@@ -380,14 +312,20 @@ export default function AffiliateBusinessStory({
 
       <section aria-labelledby="affiliate-country">
         <h2 id="affiliate-country" className="text-xl font-semibold text-slate-900">
-          {en ? 'Another country' : 'Een ander land'}
+          {en ? 'HomeCheff in another country' : 'HomeCheff in een ander land'}
         </h2>
         <div className="mt-4">
-          <NamedDisclosure title={en ? 'I want to build HomeCheff in my country' : 'Ik wil HomeCheff in mijn land opbouwen'}>
+          <NamedDisclosure
+            title={
+              en
+                ? 'I see an opportunity for HomeCheff in another country'
+                : 'Ik zie kansen voor HomeCheff in een ander land'
+            }
+          >
             <p className="text-sm leading-relaxed text-slate-700">
               {en
-                ? 'If HomeCheff is not fully active where you live or work, you can register your interest. That request does not approve you and does not open the country.'
-                : 'Als HomeCheff nog niet volledig actief is waar je woont of werkt, kun je je interesse doorgeven. Die aanvraag keurt je niet goed en opent het land niet.'}
+                ? "See an opportunity for HomeCheff in a country where we're not active yet? Tell us where. We'll look at what it would take to make HomeCheff possible there and get in touch about the opportunities."
+                : 'Zie jij kansen voor HomeCheff in een land waar we nog niet actief zijn? Laat ons weten welk land. We bekijken dan wat er nodig is om HomeCheff daar mogelijk te maken en nemen contact met je op over de mogelijkheden.'}
             </p>
             <AffiliateCountryInterestForm lang={lang} />
           </NamedDisclosure>

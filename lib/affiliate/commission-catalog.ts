@@ -46,6 +46,10 @@ export type CatalogRow = {
   network: boolean;
   detailNl: string[];
   detailEn: string[];
+  /** MAIN share when this product has a network layer. Null when it does not. */
+  networkMainCents?: number | null;
+  /** SUB share of the same affiliate margin. Null when this product has no network layer. */
+  networkSubCents?: number | null;
 };
 
 function eur(cents: number): string {
@@ -120,6 +124,8 @@ function growthRows(): CatalogRow[] {
         STOP_NL,
         REFUND_NL,
       ],
+      networkMainCents: main,
+      networkSubCents: sub,
       detailEn: [
         `Customer price ex VAT: ${eur(Math.round(plan.priceEurExVat * 100))}.`,
         `HC reserve in the formula: ${eur(Math.round(plan.hcReserveEur * 100))} (${plan.affiliateCapacityHc} HC). That is not the HC the customer receives (${plan.customerEntitlementHc}).`,
@@ -257,6 +263,8 @@ function businessPlanRows(): CatalogRow[] {
           STOP_NL,
           REFUND_NL,
         ],
+        networkMainCents: main,
+        networkSubCents: sub.affiliateCommissionCents,
         detailEn: [
           `This is a Marketplace business subscription, not Growth. This formula has no HC reserve.`,
           `Subscription fee: ${eur(cents)}. Direct affiliate: ${eur(direct.affiliateCommissionCents)}. HomeCheff: ${eur(direct.homecheffShareCents)}.`,

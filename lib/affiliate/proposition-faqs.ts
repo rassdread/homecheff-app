@@ -37,15 +37,15 @@ export function affiliatePropositionFaqs(lang: 'nl' | 'en'): PropositionFaq[] {
       },
       {
         q: 'Can I invite other partners?',
-        a: 'Where the partner network is open, an active affiliate without a parent can invite one sub-affiliate from the dashboard. You receive the MAIN share on their qualifying revenue. A SUB cannot invite another layer. MAIN/SUB is not the starting point for a new affiliate.',
+        a: 'During the first growth phase, affiliates in Early access can invite direct sub-affiliates. There is no fixed cap on that direct layer. They each build their own customer portfolio. You receive the MAIN share on their qualifying revenue. A SUB cannot invite another layer. Recruiting is not required. This option belongs to the first growth phase and does not have to stay open by default for new affiliates later. HomeCheff can then give selected partners MAIN rights. Existing Early access rights continue to apply.',
       },
       {
-        q: 'Can I build HomeCheff in another country?',
-        a: 'If HomeCheff is not fully active in that country yet, you can send an interest request. That request is not an approval and does not activate the country.',
+        q: 'Can I tell HomeCheff about another country?',
+        a: 'If you see an opportunity for HomeCheff in a country where we are not active yet, you can tell us which country. We will look at what it would take to make HomeCheff possible there and can get in touch if we see concrete opportunities.',
       },
       {
-        q: 'Can I earn €10,000 or €20,000 a month?',
-        a: 'Those amounts are scenarios, not a promise. The catalog and the example show how many qualifying Growth Starter customers that would require at the current commission. A large successful portfolio can reach thousands of euros a month only if the assumptions hold.',
+        q: 'Can I choose €2,000, €5,000, €10,000 or €20,000 a month as a goal?',
+        a: 'Those amounts are goals you can explore, not a forecast and not a promise. The example shows what kind of portfolio the current commissions would roughly require. A mixed example is the starting point. A Growth Starter-only comparison stays available. Your result depends on what you build and what your customers actually use.',
       },
     ];
   }
@@ -84,15 +84,15 @@ export function affiliatePropositionFaqs(lang: 'nl' | 'en'): PropositionFaq[] {
       },
       {
         q: 'Kan ik andere partners uitnodigen?',
-        a: 'Waar het partnernetwerk openstaat, kan een actieve affiliate zonder parent vanuit het dashboard één sub-affiliate uitnodigen. Jij ontvangt het main-aandeel op hun kwalificerende omzet. Een SUB kan zelf geen laag daaronder uitnodigen. MAIN/SUB is niet het startpunt voor een nieuwe affiliate.',
+        a: 'Tijdens de eerste groeifase kunnen affiliates binnen Vroege instap directe sub-affiliates uitnodigen. Er is geen vaste limiet op die directe laag. Zij bouwen ieder hun eigen klantenportefeuille. Jij ontvangt het MAIN-aandeel op hun kwalificerende omzet. Een SUB kan zelf geen volgende laag uitnodigen. Werven is niet verplicht. Deze mogelijkheid hoort bij de eerste groeifase en hoeft later niet standaard open te staan voor nieuwe affiliates. HomeCheff kan dan geselecteerde partners MAIN-rechten geven. Bestaande rechten binnen Vroege instap blijven gelden.',
       },
       {
-        q: 'Kan ik HomeCheff in een ander land opbouwen?',
-      a: 'Als HomeCheff in dat land nog niet volledig actief is, kun je je interesse doorgeven. Die aanvraag is geen goedkeuring en activeert het land niet.',
-    },
-    {
-      q: 'Kan ik €10.000 of €20.000 per maand verdienen?',
-      a: 'Dat zijn scenario’s, geen belofte. De catalogus en het voorbeeld laten zien hoeveel kwalificerende Growth Starter-klanten daar bij de huidige commissie voor nodig zijn. Bij een grote succesvolle portefeuille kunnen duizenden euro’s per maand ontstaan, alleen als die aannames kloppen.',
-    },
+        q: 'Kan ik HomeCheff wijzen op een ander land?',
+        a: 'Zie jij kansen voor HomeCheff in een land waar we nog niet actief zijn, dan kun je dat land doorgeven. We bekijken wat er nodig is om HomeCheff daar mogelijk te maken en kunnen contact opnemen als we concrete mogelijkheden zien.',
+      },
+      {
+        q: 'Kan ik €2.000, €5.000, €10.000 of €20.000 per maand als doel kiezen?',
+        a: 'Die bedragen zijn doelen die je kunt verkennen, geen voorspelling en geen belofte. Het rekenvoorbeeld laat zien welke voorbeeldportefeuille daar bij de huidige commissies ongeveer voor nodig is. Een gemengd rekenvoorbeeld is het startpunt. Een vergelijking met alleen Growth Starter blijft beschikbaar. Je resultaat hangt af van wat jij opbouwt en wat jouw klanten daadwerkelijk gebruiken.',
+      },
   ];
 }
