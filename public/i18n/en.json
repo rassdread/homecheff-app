@@ -3014,6 +3014,7 @@
       "dashboard": "Dashboard",
       "promoCodes": "Promo codes",
       "promoMedia": "Promo library",
+      "commissions": "Commissions",
       "earnings": "Earnings"
     },
     "cards": {
@@ -3476,8 +3477,8 @@
         "answer": "The affiliate programme pays recurring commission for as long as a referred customer uses qualifying paid products, under that product's commission rules. No guaranteed income.\n\nYou receive a personal referral link and can promote through your own channels. HomeCheff is built for long-term creator and community partnerships: many customers stay active, helping strong partners build structural recurring income potential."
       },
       "1": {
-        "question": "Does commission stop after one calendar year?",
-        "answer": "Commission does not stop merely because a calendar year has passed. For as long as a customer you referred uses qualifying paid products, you receive recurring commission under that product's commission rules. No guaranteed income. HomeCheff focuses on long-term partnerships and a scalable ecosystem."
+        "question": "How long can commission continue?",
+        "answer": "For as long as a customer you referred keeps using qualifying paid products, you receive recurring commission under that product's rules. If they stay qualifying for 2, 5 or 20 years, commission can continue through that period. No guaranteed income."
       },
       "2": {
         "question": "How much commission do I earn as an affiliate?",
@@ -7849,7 +7850,7 @@
     "monthlyCosts": "Monthly costs:",
     "totalInvestment": "Total investment",
     "whatYouEarn": "What You Earn",
-    "whatYouEarnSubline": "A scenario with many active business subscriptions and orders after twelve months. What you earn depends on who actually becomes active through your link. There is no minimum.",
+    "whatYouEarnSubline": "An example scenario, not an income promise. The amount depends on who becomes qualifying through your link.",
     "whatYouEarnBadge": "Realistic example",
     "year1": "Year 1 (building):",
     "year1Breakdown": "* €7,722 subscriptions + €2,280 transactions",
@@ -7973,7 +7974,7 @@
       "monthlyDetailsToggle": "Month-by-month breakdown",
       "ctaSlimTitle": "Grow the ecosystem with us",
       "ctaSlimSubtitle": "Transparent terms · Dashboard-tracked commissions · Creator- and community-first, built to scale internationally",
-      "legalFootnote": "Exact percentages are in your affiliate agreement. A calendar year does not by itself stop commission. The cookie lasts 30 days. A promo code lasts only while that code is valid.",
+      "legalFootnote": "Exact percentages are in your affiliate agreement. Commission continues for as long as the customer stays qualifying. The cookie lasts 30 days. A promo code lasts only while that code is valid.",
       "becomeAffiliate": "Become an affiliate. Start free",
       "readyToStartDesc": "Become an affiliate and build recurring commission with your community over time, within your agreement.",
       "growthPlan": "Business subscription",
@@ -8068,9 +8069,9 @@
       "faq7Q": "Do I need to be a seller on HomeCheff?",
       "faq7A": "No. Affiliates are separate from selling on the marketplace. Many partners promote without listing products themselves.",
       "faq8Q": "How does recurring commission work?",
-      "faq8A": "For referred business subscriptions, you receive a monthly share within the standard model; a calendar year does not by itself stop that commission. No guaranteed income.",
-      "faq12Q": "Does commission stop after one calendar year?",
-      "faq12A": "No. A valid original partner relationship does not stop merely because a calendar year has passed. Commission is generated on qualifying paid revenue under that product's rules. No guaranteed income. Exact terms are in your agreement.",
+      "faq8A": "For referred business subscriptions, you receive a share of the subscription for as long as it stays qualifying and paid. No guaranteed income.",
+      "faq12Q": "How long can commission continue?",
+      "faq12A": "For as long as the customer you referred keeps using qualifying paid products. If they stay qualifying for 2, 5 or 20 years, commission can continue through that period. No guaranteed income.",
       "faq13Q": "Can partnerships expand later?",
       "faq13A": "That may be possible, but it is not guaranteed. HomeCheff may extend or adjust partnership models; updates are communicated in advance and reflected in your terms.",
       "faq9Q": "How does Stripe Connect work?",

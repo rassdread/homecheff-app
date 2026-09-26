@@ -3271,6 +3271,28 @@ enum PrintPermission {
   NOBODY
 }
 
+model AffiliateMarketInterest {
+  id                String   @id @default(cuid())
+  name              String
+  email             String
+  countryCode       String
+  countryName       String
+  region            String?
+  phone             String?
+  languages         String?
+  profileUrl        String?
+  salesExperience   String?
+  networkReach      String?
+  wantsOwnCustomers Boolean?
+  wantsNetwork      Boolean?
+  motivation        String?
+  locale            String
+  status            String   @default("NEW")
+  createdAt         DateTime @default(now())
+
+  @@index([email, countryCode, status])
+}
+
 enum Role {
   BUYER
   SELLER

@@ -120,8 +120,11 @@ export default function AffiliateGrowthLanding({
             omzet is. Niet 50% van het verkopersdeel, het hele orderbedrag of HomeCheff Credits (HC).
           </p>
           <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
-            Voorbeeld: order €20, platformfee 9% = €1,80 → affiliate-aandeel €0,90. Geen commissie over
-            btw, seller principal of HC zelf.
+            <a href="#commissies" className="font-semibold text-emerald-900 underline-offset-2 hover:underline">
+              Bekijk wat je kunt verdienen
+            </a>
+            . De bedragen daar komen uit de huidige commissieregels. Geen commissie over btw, het
+            verkopersdeel of HC zelf.
           </p>
           <nav className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-emerald-900" aria-label={t('affiliate.growth.ecosystemBandTitle')}>
             <Link href="/" className="underline-offset-2 hover:underline">{t('affiliate.growth.ecosystemLinkMarketplace')}</Link>
@@ -240,7 +243,11 @@ export default function AffiliateGrowthLanding({
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-800">
                   {t('affiliate.growth.modelExampleHint')}
                 </p>
-                <p className="mt-1 text-2xl font-bold text-emerald-800">€1,750{t('affiliate.perMonth')}</p>
+                <p className="mt-1 text-sm font-semibold text-emerald-900">
+                  <a href="#portefeuille-groei" className="underline-offset-2 hover:underline">
+                    {t('affiliate.calculatePotential')}
+                  </a>
+                </p>
                 <p className="text-xs text-slate-600">{t('affiliate.whatYouEarnSubline')}</p>
               </div>
               <div className="border-t border-emerald-100/80 pt-2">
@@ -334,13 +341,11 @@ export default function AffiliateGrowthLanding({
             <div>
               <h3 className="font-bold text-emerald-950">{t('affiliate.businessCommission')}</h3>
               <p className="mt-1 text-xs text-slate-600">{t('affiliate.businessCommissionDesc')}</p>
-              <ul className="mt-2 space-y-1 text-xs">
-                <li>{t('affiliate.basicExample')}</li>
-                <li>{t('affiliate.proExample')}</li>
-                <li>{t('affiliate.premiumExample')}</li>
-                <li>{t('affiliate.homecheffAlways50')}</li>
-                <li>{t('affiliate.canGiveDiscount')}</li>
-              </ul>
+              <p className="mt-2 text-xs">
+                <a href="#commissies" className="font-semibold text-emerald-900 underline-offset-2 hover:underline">
+                  Bekijk wat je kunt verdienen
+                </a>
+              </p>
             </div>
             <p className="text-xs text-slate-600">
               <strong className="text-emerald-900">{t('affiliate.twelveTwelveProgram')}:</strong>{' '}

@@ -17,16 +17,6 @@ export const verdienHubNl = {
   "shareTitle": "Verdien met HomeCheff",
   "shareText": "Er zijn verschillende manieren om mee te doen én te verdienen met HomeCheff. Verkoop wat je maakt, bezorg in je buurt, promoot het platform of werk mee aan HomeCheff. Bekijk wat bij jou past.",
   "noIncomePromise": "Geen gegarandeerd inkomen: verdiensten hangen af van activiteit en kwalificerende betaalde omzet.",
-  "portfolio": {
-    "title": "Bouw je eigen klantenportefeuille",
-    "lead": "Je bouwt niet alleen aan losse verkopen, maar aan je eigen klantenportefeuille binnen het HomeCheff-ecosysteem.",
-    "how": "Breng je een klant aan bij HomeCheff, dan blijft die klant gekoppeld aan jouw partnerrelatie zolang die relatie geldig is. Gebruikt die klant later ook andere kwalificerende HomeCheff-producten, dan kan ook daar terugkerende commissie uit ontstaan volgens de regels van dat product.",
-    "keep": "Zolang jouw aangebrachte klanten kwalificerende betaalde producten blijven gebruiken, kun je terugkerende commissie blijven ontvangen.",
-    "later": "Wat je vandaag opbouwt, kan ook later waarde blijven opleveren.",
-    "alongside": "Je kunt klein beginnen, bijvoorbeeld naast je huidige werk, en stap voor stap een eigen klantenportefeuille opbouwen.",
-    "scale": "Hoe groter je actieve klantenportefeuille wordt, hoe groter de mogelijkheid op terugkerende commissie.",
-    "notSalary": "Dit is geen dienstverband en geen vast salaris. Niet elke klantactie levert commissie op."
-  },
   "orientTitle": "Ik wil…",
   "cardsHeading": "Mogelijkheden",
   "orient": {
@@ -66,10 +56,10 @@ export const verdienHubNl = {
     },
     "affiliate": {
       "title": "Affiliate",
-      "proposition": "Breng klanten aan en bouw een portefeuille op. Blijven zij betalen, dan kan jouw commissie blijven doorlopen.",
-      "forWhom": "Voor wie HomeCheff wil delen, ook naast een bestaande baan.",
-      "howStart": "Word affiliate en deel je link of kansen.",
-      "cta": "Word affiliate",
+      "proposition": "Bouw je eigen klantenportefeuille op. Breng klanten naar HomeCheff en bouw aan terugkerende commissie zolang jouw klanten kwalificerend actief blijven.",
+      "forWhom": "Voor wie een eigen commerciële activiteit wil opbouwen, ook een paar uur per week naast een baan.",
+      "howStart": "Dit is de affiliate-route, niet het verdienmodel voor verkopers of bezorgers.",
+      "cta": "Ontdek de affiliate-mogelijkheden",
       "share": "Deel HomeCheff"
     },
     "affiliateCompany": {
@@ -151,16 +141,6 @@ export const verdienHubEn = {
   "shareTitle": "Earn with HomeCheff",
   "shareText": "There are several ways to take part and earn with HomeCheff. Sell what you make, deliver nearby, promote the platform, or help build HomeCheff. See what fits you.",
   "noIncomePromise": "No guaranteed income: earnings depend on activity and qualifying paid revenue.",
-  "portfolio": {
-    "title": "Build your own customer portfolio",
-    "lead": "You are not only chasing one-off sales. You build your own customer portfolio inside the HomeCheff ecosystem.",
-    "how": "When you introduce a customer to HomeCheff, that customer stays linked to your partner relationship for as long as the relationship is valid. If they later use other qualifying HomeCheff products, commission can arise there too, under that product's rules.",
-    "keep": "For as long as the customers you referred keep using qualifying paid products, you can keep receiving recurring commission.",
-    "later": "What you build today can still be worth something later.",
-    "alongside": "You can start small, for example alongside your current work, and build a customer portfolio step by step.",
-    "scale": "The larger your active customer portfolio becomes, the larger the possibility of recurring commission.",
-    "notSalary": "This is not employment and not a fixed salary. Not every customer action generates commission."
-  },
   "orientTitle": "I want to…",
   "cardsHeading": "Opportunities",
   "orient": {
@@ -200,10 +180,10 @@ export const verdienHubEn = {
     },
     "affiliate": {
       "title": "Affiliate",
-      "proposition": "Introduce customers and build a portfolio. If they keep paying, your commission can continue.",
-      "forWhom": "Anyone who wants to share HomeCheff, including alongside an existing job.",
-      "howStart": "Become an affiliate and share your link or opportunities.",
-      "cta": "Become an affiliate",
+      "proposition": "Build your own customer portfolio. Bring customers to HomeCheff and build recurring commission for as long as those customers stay qualifying.",
+      "forWhom": "For people who want their own commercial activity, including a few hours a week alongside a job.",
+      "howStart": "This is the affiliate path, not the earning model for sellers or couriers.",
+      "cta": "Explore the affiliate opportunity",
       "share": "Share HomeCheff"
     },
     "affiliateCompany": {

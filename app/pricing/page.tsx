@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { PRICING_TIERS, type PricingTier } from '@/lib/pricing';
 import Image from 'next/image';
 import { useTranslation } from '@/hooks/useTranslation';
+import SellerKeepCalculator from '@/components/earn/SellerKeepCalculator';
 
 export default function BusinessProfilePage() {
   const { t } = useTranslation();
@@ -103,6 +104,9 @@ export default function BusinessProfilePage() {
             Kies het pakket dat het beste bij jouw behoeften past. 
             Schaal op naarmate je groeit en profiteer van lagere fees.
           </p>
+          <div className="mt-8">
+            <SellerKeepCalculator />
+          </div>
         </div>
 
         {/* Tab Navigation */}

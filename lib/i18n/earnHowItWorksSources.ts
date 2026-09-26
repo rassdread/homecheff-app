@@ -162,7 +162,7 @@ export const earnHowItWorksNl = {
       'Niet elk percentage geldt over dezelfde grondslag. “50% affiliate” betekent dus niet “50% van het bestelbedrag”.',
   },
   partner: {
-    title: 'Je klantenportefeuille',
+    title: 'Affiliate: je klantenportefeuille',
     lead: 'Je bouwt niet alleen aan losse verkopen, maar aan je eigen klantenportefeuille binnen het HomeCheff-ecosysteem.',
     how: 'Breng je een klant aan, dan blijft die klant gekoppeld aan jouw partnerrelatie zolang die relatie geldig is. Zolang die klant kwalificerende betaalde producten blijft gebruiken, kun je terugkerende commissie blijven ontvangen.',
     crossSell:
@@ -406,7 +406,7 @@ export const earnHowItWorksEn = {
       'Not every percentage uses the same base. “50% affiliate” does not mean “50% of the order value”.',
   },
   partner: {
-    title: 'Your customer portfolio',
+    title: 'Affiliate: your customer portfolio',
     lead: 'You are not only chasing one-off sales. You build your own customer portfolio inside the HomeCheff ecosystem.',
     how: 'When you introduce a customer, that customer stays linked to your partner relationship for as long as the relationship is valid. For as long as they keep using qualifying paid products, you can keep receiving recurring commission.',
     crossSell:

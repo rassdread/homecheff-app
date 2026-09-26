@@ -35,6 +35,12 @@ const AFFILIATE_TABS: Tab[] = [
     match: (path) => path.startsWith('/affiliate/promotiemateriaal'),
   },
   {
+    id: 'commissions',
+    href: '/affiliate#commissies',
+    labelKey: 'myHomeCheffHub.affiliateNav.commissions',
+    match: (path) => path === '/affiliate',
+  },
+  {
     id: 'earnings',
     href: OPERATIONS_ROUTES.finance.home,
     labelKey: 'myHomeCheffHub.affiliateNav.earnings',

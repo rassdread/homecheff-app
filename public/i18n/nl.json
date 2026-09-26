@@ -1696,6 +1696,7 @@
       "dashboard": "Dashboard",
       "promoCodes": "Promocodes",
       "promoMedia": "Promotiemateriaal",
+      "commissions": "Commissies",
       "earnings": "Verdiensten"
     },
     "cards": {
@@ -3884,8 +3885,8 @@
         "answer": "Het affiliateprogramma keert terugkerende commissie uit zolang een aangebrachte klant kwalificerende betaalde producten gebruikt, volgens de commissieregels van het betreffende product. Geen gegarandeerd inkomen.\n\nJe krijgt een persoonlijke referral-link en kunt promoten via je eigen kanalen. HomeCheff is gebouwd voor langdurige creator- en community-partnerships: veel klanten blijven actief, waardoor sterke partners op termijn structureel terugkerende inkomsten kunnen opbouwen."
       },
       "1": {
-        "question": "Stopt commissie na een kalenderjaar?",
-        "answer": "Commissie stopt niet alleen omdat er een kalenderjaar voorbij is. Zolang jouw aangebrachte klant kwalificerende betaalde producten gebruikt, ontvang je volgens de commissieregels van het betreffende product terugkerende commissie. Geen gegarandeerd inkomen. HomeCheff zet in op langdurige partnerships en een schaalbaar ecosystem."
+        "question": "Hoe lang kan commissie doorlopen?",
+        "answer": "Zolang jouw aangebrachte klant kwalificerende betaalde producten blijft gebruiken, ontvang je volgens de commissieregels van het betreffende product terugkerende commissie. Blijft die klant 2, 5 of 20 jaar kwalificerend actief, dan kan dat zo blijven. Geen gegarandeerd inkomen."
       },
       "2": {
         "question": "Hoeveel commissie verdien ik als affiliate?",
@@ -7844,7 +7845,7 @@
     "monthlyCosts": "Maandelijkse kosten:",
     "totalInvestment": "Totaal investering",
     "whatYouEarn": "Wat Je Verdient",
-    "whatYouEarnSubline": "Een scenario met veel actieve zakelijke abonnementen en bestellingen na twaalf maanden. Wat jij verdient, hangt af van wie er via jouw link echt actief wordt. Een minimum is er niet.",
+    "whatYouEarnSubline": "Een voorbeeldscenario, geen inkomensbelofte. Het bedrag hangt af van wie er via jouw link kwalificerend actief wordt.",
     "whatYouEarnBadge": "Realistisch voorbeeld",
     "year1": "Jaar 1 (opbouw):",
     "year1Breakdown": "* €7,722 subscriptions + €2,280 transacties",
@@ -7968,7 +7969,7 @@
       "monthlyDetailsToggle": "Maand-voor-maand overzicht",
       "ctaSlimTitle": "Groei mee met het ecosysteem",
       "ctaSlimSubtitle": "Heldere voorwaarden · Wekelijkse Stripe-uitbetalingen · Creator- en community-first, internationaal schaalbaar",
-      "legalFootnote": "Exacte percentages staan in je affiliate-overeenkomst. Een kalenderjaar stopt de commissie niet vanzelf. De cookie duurt 30 dagen. Een actiecode geldt alleen zolang die code geldig is.",
+      "legalFootnote": "Exacte percentages staan in je affiliate-overeenkomst. Commissie loopt door zolang de klant kwalificerend actief blijft. De cookie duurt 30 dagen. Een actiecode geldt alleen zolang die code geldig is.",
       "becomeAffiliate": "Word affiliate: gratis starten",
       "readyToStartDesc": "Word affiliate en bouw samen met je community aan terugkerende commissie, binnen je overeenkomst.",
       "growthPlan": "Zakelijk abonnement",
@@ -8068,9 +8069,9 @@
       "faq7Q": "Moet ik verkoper zijn op HomeCheff?",
       "faq7A": "Nee. Affiliate zijn staat los van een verkopersprofiel. Veel partners promoten zonder zelf producten te verkopen.",
       "faq8Q": "Hoe werkt terugkerende commissie precies?",
-      "faq8A": "Bij door jou aangebrachte zakelijke abonnementen ontvang je binnen het standaardmodel maandelijks een deel van het abonnement; een kalenderjaar laat die commissie niet vanzelf stoppen. Geen gegarandeerd inkomen.",
-      "faq12Q": "Stopt commissie na een kalenderjaar?",
-      "faq12A": "Nee. Een geldige oorspronkelijke partnerrelatie stopt niet alleen omdat er een kalenderjaar voorbij is. Commissie ontstaat bij kwalificerende betaalde omzet volgens de regels van dat product. Geen gegarandeerd inkomen. Exacte voorwaarden staan in je overeenkomst.",
+      "faq8A": "Bij door jou aangebrachte zakelijke abonnementen ontvang je een deel van het abonnement zolang dat kwalificerend betaald blijft. Geen gegarandeerd inkomen.",
+      "faq12Q": "Hoe lang kan commissie doorlopen?",
+      "faq12A": "Zolang jouw aangebrachte klant kwalificerende betaalde producten blijft gebruiken. Blijft die klant 2, 5 of 20 jaar kwalificerend actief, dan kan de commissie gedurende die periode blijven doorlopen. Geen gegarandeerd inkomen.",
       "faq13Q": "Kunnen samenwerkingen later uitbreiden?",
       "faq13A": "Dat kan in theorie, maar het is geen garantie. HomeCheff kan partnermodellen uitbreiden of aanpassen; wijzigingen communiceren we vooraf en leggen we vast in de voorwaarden.",
       "faq9Q": "Hoe werkt Stripe Connect?",

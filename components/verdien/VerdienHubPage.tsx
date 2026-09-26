@@ -203,17 +203,6 @@ export default function VerdienHubPage({ copy: serverCopy, initialLang }: Props)
           <p className="mt-4 text-xs text-slate-500">{copy.noIncomePromise}</p>
         </header>
 
-        <section className="mb-10 rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm sm:p-6">
-          <h2 className="text-xl font-semibold text-slate-900">{copy.portfolio.title}</h2>
-          <p className="mt-3 text-base leading-relaxed text-slate-700">{copy.portfolio.lead}</p>
-          <p className="mt-3 text-sm leading-relaxed text-slate-700">{copy.portfolio.how}</p>
-          <p className="mt-3 text-sm leading-relaxed text-slate-700">{copy.portfolio.keep}</p>
-          <p className="mt-3 text-sm leading-relaxed text-slate-700">{copy.portfolio.later}</p>
-          <p className="mt-3 text-sm leading-relaxed text-slate-700">{copy.portfolio.alongside}</p>
-          <p className="mt-3 text-sm leading-relaxed text-slate-600">{copy.portfolio.scale}</p>
-          <p className="mt-3 text-xs leading-relaxed text-slate-500">{copy.portfolio.notSalary}</p>
-        </section>
-
         <section aria-labelledby="orient-heading" className="mb-10 md:mb-12">
           <h2 id="orient-heading" className="mb-3 text-lg font-semibold text-slate-900">
             {copy.orientTitle}
