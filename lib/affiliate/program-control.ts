@@ -64,6 +64,11 @@ export type SubLimitSetting = {
 export type CapabilityContext = {
   /** HomeCheff can lift this. It blocks the affiliate's own actions. It does not erase grants. */
   suspended: boolean;
+  /**
+   * Technical, review and excluded identities do not inherit program or global rights.
+   * Absence of a parent is not a MAIN grant.
+   */
+  withholdProgramRights?: boolean;
   program: { capabilities: PartialCaps; subAffiliateLimit: number | null };
   market?: { capabilities?: PartialCaps; subAffiliateLimit?: number | null };
   /** Rights captured when this affiliate joined. Null inherits the program. */
@@ -129,6 +134,33 @@ function pickBoolean(
 export function resolveAffiliateCapabilities(
   ctx: CapabilityContext,
 ): ResolvedAffiliateCapabilities {
+  if (ctx.withholdProgramRights) {
+    const capabilities = {} as Record<CapabilityKey, ResolvedCapability>;
+    for (const key of CAPABILITY_KEYS) {
+      const override = ctx.adminOverride?.capabilities[key];
+      capabilities[key] = typeof override === 'boolean'
+        ? { value: override, source: 'ADMIN_OVERRIDE', configured: override }
+        : { value: false, source: 'GLOBAL', configured: null };
+    }
+    const mode = ctx.adminOverride?.subLimitMode ?? 'INHERIT';
+    const sub = mode === 'UNLIMITED'
+      ? { value: null, source: 'ADMIN_OVERRIDE' as const, configured: 'UNLIMITED' as const }
+      : mode === 'LIMITED'
+        ? {
+            value: ctx.adminOverride?.subLimit ?? 0,
+            source: 'ADMIN_OVERRIDE' as const,
+            configured: ctx.adminOverride?.subLimit ?? 0,
+          }
+        : { value: 0, source: 'GLOBAL' as const, configured: 0 as const };
+    return {
+      capabilities,
+      subAffiliateLimit: sub,
+      precedence: [...CAPABILITY_PRECEDENCE],
+      operationsBlocked: ctx.suspended,
+      privateCollaboration: Boolean(ctx.adminOverride?.privateCollaboration),
+    };
+  }
+
   const capabilities = {} as Record<CapabilityKey, ResolvedCapability>;
   for (const key of CAPABILITY_KEYS) {
     capabilities[key] = pickBoolean(key, ctx);

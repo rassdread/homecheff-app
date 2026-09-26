@@ -1,6 +1,14 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import {
+  POPULATION_COMMERCIAL,
+  SOURCE_ADMIN_ADMISSION,
+  SOURCE_PUBLIC_SIGNUP,
+  receivesProgramRights,
+  summarizeAffiliatePopulation,
+  type PopulationRow,
+} from '@/lib/affiliate/population';
+import {
   CAPABILITY_KEYS,
   EARLY_PROGRAM_DEFAULTS,
   type CapabilityContext,
@@ -127,9 +135,46 @@ function contextFromRows(input: {
   };
 }
 
-export async function resolveStoredAffiliateCapabilities(
-  affiliateId: string,
-): Promise<ResolvedAffiliateCapabilities & { programCode: string | null; programName: string | null }> {
+export function resolveLoadedAffiliate(affiliate: {
+  status: string;
+  populationClass: string;
+  capabilityOverride: Parameters<typeof contextFromRows>[0]['override'];
+  programEnrollment: {
+    source: string;
+    termsAcceptedAt: Date | null;
+    capturedCapabilities: unknown;
+    program: {
+      code: string;
+      name: string;
+      capabilities: unknown;
+      subAffiliateLimit: number | null;
+    } | null;
+  } | null;
+}) {
+  const program = affiliate.programEnrollment?.program;
+  const grantProgram = Boolean(program) && receivesProgramRights(affiliate.populationClass);
+  const resolved = resolveAffiliateCapabilities({
+    ...contextFromRows({
+      status: affiliate.status,
+      programCaps: grantProgram ? program?.capabilities : {},
+      programSubLimit: grantProgram ? (program ? program.subAffiliateLimit : 0) : 0,
+      enrollmentGrant: grantProgram ? affiliate.programEnrollment?.capturedCapabilities ?? null : null,
+      override: affiliate.capabilityOverride,
+    }),
+    withholdProgramRights: !grantProgram,
+  });
+  return {
+    ...resolved,
+    programCode: program?.code ?? null,
+    programName: program?.name ?? null,
+    populationClass: affiliate.populationClass,
+    enrollmentSource: affiliate.programEnrollment?.source ?? null,
+    termsAcceptedAt: affiliate.programEnrollment?.termsAcceptedAt ?? null,
+    commercialParticipant: affiliate.populationClass === POPULATION_COMMERCIAL && Boolean(program),
+  };
+}
+
+export async function resolveStoredAffiliateCapabilities(affiliateId: string) {
   const affiliate = await prisma.affiliate.findUnique({
     where: { id: affiliateId },
     include: {
@@ -140,44 +185,55 @@ export async function resolveStoredAffiliateCapabilities(
   if (!affiliate) {
     const empty = resolveAffiliateCapabilities({
       suspended: true,
+      withholdProgramRights: true,
       program: { capabilities: {}, subAffiliateLimit: 0 },
     });
-    return { ...empty, programCode: null, programName: null };
+    return {
+      ...empty,
+      programCode: null,
+      programName: null,
+      populationClass: null,
+      enrollmentSource: null,
+      termsAcceptedAt: null,
+      commercialParticipant: false,
+    };
   }
-  const program = affiliate.programEnrollment?.program;
-  const resolved = resolveAffiliateCapabilities(
-    contextFromRows({
-      status: affiliate.status,
-      programCaps: program?.capabilities ?? EARLY_PROGRAM_DEFAULTS.capabilities,
-      programSubLimit: program?.subAffiliateLimit ?? EARLY_PROGRAM_DEFAULTS.subAffiliateLimit,
-      enrollmentGrant: affiliate.programEnrollment?.capturedCapabilities ?? null,
-      override: affiliate.capabilityOverride,
-    }),
-  );
-  return {
-    ...resolved,
-    programCode: program?.code ?? null,
-    programName: program?.name ?? null,
-  };
+  return resolveLoadedAffiliate(affiliate);
 }
 
 export async function enrollAffiliate(input: {
   affiliateId: string;
   countryCode?: string;
-  source: 'SIGNUP' | 'ADMIN' | 'MIGRATED_EXISTING';
+  source: 'SIGNUP' | 'PUBLIC_SIGNUP' | 'ADMIN' | 'ADMIN_ADMISSION' | 'PARTNER_INVITE' | 'MIGRATED_EXISTING';
   acceptedTerms: boolean;
   programCode?: string;
+  populationClass?: string;
 }) {
+  const populationClass = input.populationClass ?? POPULATION_COMMERCIAL;
   const existing = await prisma.affiliateProgramEnrollment.findUnique({
     where: { affiliateId: input.affiliateId },
   });
-  if (existing) return existing;
+  if (existing) {
+    if (input.acceptedTerms && populationClass === POPULATION_COMMERCIAL) {
+      await prisma.affiliate.update({
+        where: { id: input.affiliateId },
+        data: { populationClass },
+      });
+      if (!existing.termsAcceptedAt) {
+        await prisma.affiliateProgramEnrollment.update({
+          where: { affiliateId: input.affiliateId },
+          data: { termsAcceptedAt: new Date() },
+        });
+      }
+    }
+    return existing;
+  }
   const program = input.programCode
     ? await prisma.affiliateProgram.findUnique({ where: { code: input.programCode } })
     : await prisma.affiliateProgram.findFirst({ where: { isPublicDefault: true, status: 'ACTIVE' } });
   if (!program) return null;
   let capturedCapabilities: Prisma.InputJsonValue | typeof Prisma.JsonNull = Prisma.JsonNull;
-  if (input.source === 'SIGNUP') {
+  if (input.source === 'SIGNUP' || input.source === SOURCE_PUBLIC_SIGNUP) {
     const presentation = await loadPublicPresentation(input.countryCode ?? 'NL');
     capturedCapabilities = publicSignupCapabilities(asCaps(program.capabilities), {
       main: presentation.publicMain,
@@ -185,17 +241,43 @@ export async function enrollAffiliate(input: {
       promo: presentation.publicPromo,
     }) as Prisma.InputJsonValue;
   }
+  await prisma.affiliate.update({
+    where: { id: input.affiliateId },
+    data: { populationClass },
+  });
   return prisma.affiliateProgramEnrollment.create({
     data: {
       affiliateId: input.affiliateId,
       programId: program.id,
       marketCountry: input.countryCode ?? 'NL',
-      source: input.source,
+      source: input.source === 'SIGNUP' ? SOURCE_PUBLIC_SIGNUP : input.source === 'ADMIN' ? SOURCE_ADMIN_ADMISSION : input.source,
       termsVersion: program.termsVersion,
       termsAcceptedAt: input.acceptedTerms ? new Date() : null,
       capturedCapabilities,
     },
   });
+}
+
+export async function loadAffiliatePopulationSummary() {
+  const rows = await prisma.affiliate.findMany({
+    include: {
+      programEnrollment: { include: { program: true } },
+      capabilityOverride: true,
+    },
+  });
+  const populationRows: PopulationRow[] = rows.map((affiliate) => {
+    const resolved = resolveLoadedAffiliate(affiliate);
+    return {
+      populationClass: affiliate.populationClass,
+      parentAffiliateId: affiliate.parentAffiliateId,
+      enrollmentSource: affiliate.programEnrollment?.source ?? null,
+      termsAcceptedAt: affiliate.programEnrollment?.termsAcceptedAt ?? null,
+      canBecomeMain: resolved.capabilities.CAN_BECOME_MAIN.value,
+      mainSource: resolved.capabilities.CAN_BECOME_MAIN.source,
+      canInviteSubs: resolved.capabilities.CAN_INVITE_SUB_AFFILIATES.value,
+    };
+  });
+  return summarizeAffiliatePopulation(populationRows);
 }
 
 export async function publicSignupAllowed(countryCode = 'NL') {
@@ -402,7 +484,7 @@ export async function reassignAffiliateProgram(input: {
     create: {
       affiliateId: input.affiliateId,
       programId: program.id,
-      source: 'ADMIN',
+      source: 'ADMIN_ADMISSION',
       termsVersion: program.termsVersion,
       termsAcceptedAt: null,
     },

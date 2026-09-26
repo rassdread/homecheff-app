@@ -118,15 +118,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const { resolveStoredAffiliateCapabilities } = await import("@/lib/affiliate/program-store");
+    const { decideSubInvite } = await import("@/lib/affiliate/program-control");
+    const resolved = await resolveStoredAffiliateCapabilities(parentUser.affiliate.id);
     const decision = decideMainCanInvite({
       parentAffiliateId: parentUser.affiliate.parentAffiliateId,
       status: parentUser.affiliate.status,
       email: parentUser.email,
       targetEmail: email,
+      canInviteSubs: resolved.capabilities.CAN_INVITE_SUB_AFFILIATES.value,
     });
-    const { resolveStoredAffiliateCapabilities } = await import("@/lib/affiliate/program-store");
-    const { decideSubInvite } = await import("@/lib/affiliate/program-control");
-    const resolved = await resolveStoredAffiliateCapabilities(parentUser.affiliate.id);
     const [childCount, pendingInvites] = await Promise.all([
       prisma.affiliate.count({ where: { parentAffiliateId: parentUser.affiliate.id } }),
       prisma.subAffiliateInvite.count({

@@ -399,14 +399,12 @@ export async function POST(req: NextRequest) {
           affiliateActivated = false;
         } else {
         const activated = await activatePersonalAffiliate(user.id);
-        if (activated.created) {
-          await enrollAffiliate({
-            affiliateId: activated.affiliateId,
-            source: "SIGNUP",
-            acceptedTerms: true,
-            countryCode: "NL",
-          });
-        }
+        await enrollAffiliate({
+          affiliateId: activated.affiliateId,
+          source: "PUBLIC_SIGNUP",
+          acceptedTerms: true,
+          countryCode: "NL",
+        });
         affiliateActivated = true;
         if (activated.created) {
           await import('@/lib/analytics/record-acquisition-event.server')

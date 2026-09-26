@@ -13,30 +13,32 @@ export default function InviteNeighbourPanel({ className = '' }: InviteNeighbour
   const [link, setLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [enrollmentRequired, setEnrollmentRequired] = useState(false);
   const [copied, setCopied] = useState(false);
   const canNativeShare =
     typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError(false);
-    try {
-      const res = await fetch('/api/affiliate/referral-link', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        setError(true);
-        setLink(null);
-        return;
-      }
-      const json = (await res.json()) as { link?: string | null };
-      if (!json.link) {
-        setError(true);
-        setLink(null);
-        return;
-      }
-      setLink(json.link);
+      setError(false);
+      setEnrollmentRequired(false);
+      try {
+        const res = await fetch('/api/affiliate/referral-link', {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (!res.ok) {
+          setError(true);
+          setLink(null);
+          return;
+        }
+        const json = (await res.json()) as { link?: string | null; enrollmentRequired?: boolean };
+        if (json.enrollmentRequired || !json.link) {
+          setEnrollmentRequired(Boolean(json.enrollmentRequired || !json.link));
+          setLink(null);
+          return;
+        }
+        setLink(json.link);
     } catch {
       setError(true);
       setLink(null);
@@ -88,6 +90,8 @@ export default function InviteNeighbourPanel({ className = '' }: InviteNeighbour
           <div className="h-12 rounded-xl bg-gray-100" />
           <div className="h-11 rounded-xl bg-gray-100" />
         </div>
+      ) : enrollmentRequired ? (
+        <p className="mt-5 text-sm text-gray-600">{t('inviteNeighbour.enrollmentRequired')}</p>
       ) : error || !link ? (
         <p className="mt-5 text-sm text-gray-600">{t('inviteNeighbour.unavailable')}</p>
       ) : (

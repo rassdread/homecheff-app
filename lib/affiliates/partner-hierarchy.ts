@@ -66,7 +66,10 @@ export function decideMainCanInvite(input: {
   status: string;
   email: string;
   targetEmail: string;
-}): { ok: true } | { ok: false; code: HierarchyRejectCode } {
+  /** Explicit program or admin grant. A missing parent is not this grant. */
+  canInviteSubs?: boolean;
+}): { ok: true } | { ok: false; code: HierarchyRejectCode | 'INVITE_DISABLED' } {
+  if (input.canInviteSubs === false) return { ok: false, code: 'INVITE_DISABLED' };
   if (input.parentAffiliateId) return { ok: false, code: 'PARENT_IS_PARTNER' };
   if (input.status !== 'ACTIVE') return { ok: false, code: 'PARENT_INACTIVE' };
   if (

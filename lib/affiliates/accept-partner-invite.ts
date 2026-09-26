@@ -51,6 +51,7 @@ export async function acceptPartnerInviteForUser(input: {
           userId: true,
           parentAffiliateId: true,
           status: true,
+          populationClass: true,
         },
       },
     },
@@ -113,11 +114,13 @@ export async function acceptPartnerInviteForUser(input: {
       where: { affiliateId: decision.parentAffiliateId },
       include: { program: { select: { code: true } } },
     });
+    const { childPopulationClass } = await import('@/lib/affiliate/population');
     await enrollAffiliate({
       affiliateId: affiliate.id,
-      source: 'SIGNUP',
+      source: 'PARTNER_INVITE',
       acceptedTerms: false,
       programCode: parentEnrollment?.program.code,
+      populationClass: childPopulationClass(invite.parentAffiliate.populationClass),
     });
     await prisma.subAffiliateInvite.update({
       where: { id: invite.id },

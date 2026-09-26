@@ -10788,7 +10788,8 @@
     "copied": "Copied",
     "share": "Share",
     "shareText": "Join HomeCheff in your neighbourhood:",
-    "unavailable": "Your invite link is not available right now. Try again later."
+    "unavailable": "Your invite link is not available right now. Try again later.",
+    "enrollmentRequired": "A personal invite link is available after you join the affiliate program yourself. This page does not make you an affiliate."
   },
   "roleQuickLinks": {
     "title": "Quick actions",

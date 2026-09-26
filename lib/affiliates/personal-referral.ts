@@ -43,7 +43,8 @@ export type EnsuredPersonalReferral = {
 };
 
 /**
- * Ensure the user has an Affiliate seat + ReferralLink so they can share a personal invite.
+ * Return an existing affiliate's referral link.
+ * Does not create an Affiliate row and does not enroll anyone.
  * Does not reactivate SUSPENDED seats. Does not alter commission config.
  */
 export async function ensurePersonalReferralLink(
@@ -53,18 +54,14 @@ export async function ensurePersonalReferralLink(
   const uid = String(userId || '').trim();
   if (!uid) return null;
 
-  let createdAffiliate = false;
-  let affiliate = await prisma.affiliate.findUnique({
+  const createdAffiliate = false;
+  const affiliate = await prisma.affiliate.findUnique({
     where: { userId: uid },
     select: { id: true, status: true },
   });
 
   if (!affiliate) {
-    affiliate = await prisma.affiliate.create({
-      data: { userId: uid, status: 'ACTIVE' },
-      select: { id: true, status: true },
-    });
-    createdAffiliate = true;
+    return null;
   }
 
   const existing = await prisma.referralLink.findFirst({

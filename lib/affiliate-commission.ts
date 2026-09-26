@@ -298,7 +298,7 @@ export async function processCommissionForOrder(
       const existing = await prisma.affiliate.findUnique({ where: { userId } });
       if (existing) return existing;
       return prisma.affiliate.create({
-        data: { userId, status: 'ACTIVE' },
+        data: { userId, status: 'ACTIVE', populationClass: 'TECHNICAL' },
       });
     }
 

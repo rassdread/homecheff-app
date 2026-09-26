@@ -14,6 +14,7 @@ import {
   createAffiliateProgram,
   publishCommercialPolicy,
   reassignAffiliateProgram,
+  loadAffiliatePopulationSummary,
   resolveStoredAffiliateCapabilities,
   saveCommercialPolicyDraft,
   setAffiliateOverride,
@@ -40,13 +41,11 @@ export async function GET(req: Request) {
   const actor = await staff();
   if (!actor) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 });
   const affiliateId = new URL(req.url).searchParams.get('affiliateId');
-  const [programs, markets, affiliates, mains, subs, enrollments, migrated, promos, attributions, ledgers] =
+  const [programs, markets, population, enrollments, migrated, promos, attributions, ledgers] =
     await Promise.all([
       prisma.affiliateProgram.findMany({ orderBy: { effectiveFrom: 'asc' } }),
       prisma.affiliateMarketRecruitment.findMany({ include: { program: true } }),
-      prisma.affiliate.count(),
-      prisma.affiliate.count({ where: { parentAffiliateId: null } }),
-      prisma.affiliate.count({ where: { parentAffiliateId: { not: null } } }),
+      loadAffiliatePopulationSummary(),
       prisma.affiliateProgramEnrollment.count(),
       prisma.affiliateProgramEnrollment.count({ where: { source: 'MIGRATED_EXISTING' } }),
       prisma.promoCode.count({ where: { affiliateId: { not: null } } }),
@@ -64,9 +63,9 @@ export async function GET(req: Request) {
     programs,
     markets,
     counts: {
-      affiliates,
-      mains,
-      subs,
+      affiliates: population.rawRows,
+      mains: population.explicitEffectiveMain,
+      subs: population.activeCommercialSubs,
       active,
       enrollments,
       migrated,
@@ -74,6 +73,7 @@ export async function GET(req: Request) {
       attributions,
       ledgers,
     },
+    population,
     detail,
     preview,
   });
@@ -118,7 +118,8 @@ export async function POST(req: Request) {
       reason,
     });
     if (!result.ok) return NextResponse.json({ error: result.reason }, { status: 400 });
-    const mains = await prisma.affiliate.count({ where: { parentAffiliateId: null } });
+    const populationNow = await loadAffiliatePopulationSummary();
+    const mains = populationNow.explicitEffectiveMain;
     return NextResponse.json({
       ...result,
       coverage: coverageDecision(result.market.desiredMainCount, mains),
@@ -298,15 +299,19 @@ export async function POST(req: Request) {
     const decision = decideAdminAdmission({
       actorRole: actor.role,
       userExists: Boolean(user),
-      alreadyAffiliate: Boolean(user?.affiliate),
+      alreadyAffiliate: user?.affiliate?.populationClass === 'COMMERCIAL',
     });
     if (!decision.ok) {
       return NextResponse.json({ error: decision.reason, code: decision.code }, { status: 409 });
     }
     const activated = await activatePersonalAffiliate(user!.id);
+    await prisma.affiliate.update({
+      where: { id: activated.affiliateId },
+      data: { populationClass: 'COMMERCIAL' },
+    });
     await enrollAffiliate({
       affiliateId: activated.affiliateId,
-      source: 'ADMIN',
+      source: 'ADMIN_ADMISSION',
       acceptedTerms: false,
       programCode: body.programCode ? String(body.programCode) : undefined,
       countryCode: String(body.countryCode || 'NL'),

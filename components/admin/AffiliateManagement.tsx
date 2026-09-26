@@ -46,7 +46,8 @@ interface Affiliate {
   id: string;
   userId: string;
   status: string;
-  affiliateRole?: 'MAIN' | 'SUB';
+  affiliateRole?: 'MAIN' | 'SUB' | 'AFFILIATE';
+  populationClass?: string;
   parentAffiliateId: string | null;
   parentAffiliate: {
     id: string;
@@ -759,8 +760,8 @@ export default function AffiliateManagement() {
       aff.user.username?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || aff.status === statusFilter;
     const matchesType = typeFilter === 'all' || 
-      (typeFilter === 'sub' && aff.parentAffiliateId !== null) ||
-      (typeFilter === 'main' && aff.parentAffiliateId === null);
+      (typeFilter === 'sub' && aff.affiliateRole === 'SUB') ||
+      (typeFilter === 'main' && aff.affiliateRole === 'MAIN');
     return matchesSearch && matchesStatus && matchesType;
   });
 
@@ -782,7 +783,7 @@ export default function AffiliateManagement() {
                 <strong>
                   {hierarchyModal.affiliate.parentAffiliateId
                     ? `SUB van ${hierarchyModal.affiliate.parentAffiliate?.name || 'MAIN'}`
-                    : 'Independent MAIN'}
+                    : 'Geen parent'}
                 </strong>
               </p>
               <p>
@@ -790,7 +791,7 @@ export default function AffiliateManagement() {
                 <strong>
                   {hierarchyModal.action === 'PROMOTE_TO_MAIN' ||
                   hierarchyModal.action === 'DETACH'
-                    ? 'Independent MAIN'
+                    ? 'Geen parent'
                     : hierarchyModal.action === 'REPARENT'
                       ? 'SUB van gekozen MAIN'
                       : 'SUB van gekozen MAIN'}
@@ -1231,7 +1232,11 @@ export default function AffiliateManagement() {
                               Rol:{' '}
                               <span className="font-medium">
                                 {affiliate.affiliateRole ||
-                                  (affiliate.parentAffiliateId ? 'SUB' : 'MAIN')}
+                                  (affiliate.affiliateRole === 'SUB'
+                                    ? 'SUB'
+                                    : affiliate.affiliateRole === 'MAIN'
+                                      ? 'MAIN'
+                                      : 'Affiliate')}
                               </span>
                               {affiliate.ownership ? ` · ${affiliate.ownership}` : ''}
                             </p>
@@ -2413,7 +2418,7 @@ export default function AffiliateManagement() {
                   .map((aff) => (
                     <option key={aff.id} value={aff.id}>
                       {aff.user.name} ({aff.user.email})
-                      {aff.parentAffiliateId ? ' [Sub]' : ' [Main]'}
+                      {aff.affiliateRole === 'SUB' ? ' [Sub]' : aff.affiliateRole === 'MAIN' ? ' [Main]' : ''}
                     </option>
                   ))}
               </select>

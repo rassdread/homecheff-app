@@ -16,6 +16,24 @@ type Overview = {
     attributions: number;
     ledgers: number;
   };
+  population?: {
+    rawRows: number;
+    commercialParticipants: number;
+    confirmedPublicSignups: number;
+    confirmedAdminAdmissions: number;
+    likelyHistorical: number;
+    reviewRequired: number;
+    internalIdentities: number;
+    technicalIdentities: number;
+    testCertification: number;
+    excludedFromBusinessMetrics: number;
+    explicitEffectiveMain: number;
+    mainFromProgram: number;
+    mainFromAdminOverride: number;
+    totalSubRelationships: number;
+    activeCommercialSubs: number;
+    testSubsExcluded: number;
+  };
   preview: { newAffiliatesAffected: string; existingAffiliatesRewritten: number; grandfatheredPreserved: number };
 };
 
@@ -65,12 +83,17 @@ export default function AffiliateProgramControl() {
         </p>
       </div>
       <dl className="grid gap-2 text-sm sm:grid-cols-3">
-        <div>Affiliates: {data.counts.affiliates} · actief {data.counts.active}</div>
-        <div>MAIN {data.counts.mains} · SUB {data.counts.subs}</div>
-        <div>Inschrijvingen {data.counts.enrollments} · migratie {data.counts.migrated}</div>
-        <div>Portefeuilles {data.counts.attributions}</div>
-        <div>Promocodes {data.counts.promos}</div>
-        <div>Grootboek {data.counts.ledgers}</div>
+        <div>Affiliate-rijen: {data.population?.rawRows ?? data.counts.affiliates}</div>
+        <div>Commerciële affiliates: {data.population?.commercialParticipants ?? '—'}</div>
+        <div>Waarschijnlijk historisch: {data.population?.likelyHistorical ?? '—'}</div>
+        <div>Nog beoordelen: {data.population?.reviewRequired ?? '—'}</div>
+        <div>MAIN (expliciet): {data.population?.explicitEffectiveMain ?? data.counts.mains} · bron programma {data.population?.mainFromProgram ?? '—'}</div>
+        <div>SUB commercieel: {data.population?.activeCommercialSubs ?? data.counts.subs} · test-SUB buiten telling {data.population?.testSubsExcluded ?? '—'}</div>
+        <div>Intern: {data.population?.internalIdentities ?? '—'} · technisch: {data.population?.technicalIdentities ?? '—'}</div>
+        <div>Test/certificatie buiten telling: {data.population?.testCertification ?? '—'}</div>
+        <div>Bevestigde openbare aanmeldingen: {data.population?.confirmedPublicSignups ?? 0}</div>
+        <div>Beheerderstoelatingen: {data.population?.confirmedAdminAdmissions ?? 0}</div>
+        <div>Portefeuilles {data.counts.attributions} · promocodes {data.counts.promos} · grootboek {data.counts.ledgers}</div>
       </dl>
       <div className="text-sm">
         {data.programs.map((program) => (
@@ -161,9 +184,14 @@ export default function AffiliateProgramControl() {
               return `${key}: ${row.value ? 'aan' : 'uit'} · bron ${row.source}`;
             });
             const limit = payload.detail?.subAffiliateLimit;
-            setDetail(
-              [`SUB-limiet effectief ${limit?.value === null ? 'onbeperkt' : limit?.value} · bron ${limit?.source}`, ...lines].join('\n'),
-            );
+            const head = [
+              `Klasse ${payload.detail?.populationClass || 'onbekend'}`,
+              `Deelnemer ${payload.detail?.commercialParticipant ? 'commercieel' : 'niet commercieel'}`,
+              `Herkomst ${payload.detail?.enrollmentSource || 'geen inschrijving'}`,
+              `Voorwaarden ${payload.detail?.termsAcceptedAt ? 'vastgelegd' : 'niet vastgelegd'}`,
+              `SUB-limiet effectief ${limit?.value === null ? 'onbeperkt' : limit?.value} · bron ${limit?.source}`,
+            ];
+            setDetail([...head, ...lines].join('\n'));
           }}
         >
           Toon effectief en bron

@@ -10788,7 +10788,8 @@
     "copied": "Gekopieerd",
     "share": "Delen",
     "shareText": "Doe mee met HomeCheff in de buurt:",
-    "unavailable": "Je uitnodigingslink is nu niet beschikbaar. Probeer het later opnieuw."
+    "unavailable": "Je uitnodigingslink is nu niet beschikbaar. Probeer het later opnieuw.",
+    "enrollmentRequired": "Een persoonlijke uitnodigingslink krijg je pas nadat je je zelf als affiliate aanmeldt. Deze pagina maakt je niet automatisch affiliate."
   },
   "roleQuickLinks": {
     "title": "Snelle acties",

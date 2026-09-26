@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { CommissionLedgerStatus, AffiliatePayoutStatus } from '@prisma/client';
+import { resolveLoadedAffiliate } from '@/lib/affiliate/program-store';
 import { resolveAffiliateConnectDestination } from '@/lib/stripe/affiliate-connect-mirror';
 import { deriveConnectAccountStatusFromDb } from '@/lib/stripe/connect-account-status';
 
@@ -64,6 +65,8 @@ export async function GET(req: NextRequest) {
             },
           },
         },
+        programEnrollment: { include: { program: true } },
+        capabilityOverride: true,
         referralLinks: {
           orderBy: {
             createdAt: 'desc',
@@ -331,14 +334,25 @@ export async function GET(req: NextRequest) {
           stripeConnectAccountId: connect.accountId,
           stripeConnectOnboardingCompleted: connect.onboardingCompleted,
         });
-        const isMain = !aff.parentAffiliateId;
+        const resolved = resolveLoadedAffiliate(aff);
+        const explicitMain = resolved.capabilities.CAN_BECOME_MAIN.value && resolved.commercialParticipant;
+        const affiliateRole = aff.parentAffiliateId
+          ? 'SUB'
+          : explicitMain
+            ? 'MAIN'
+            : 'AFFILIATE';
         const userIsAdmin =
           aff.user.role === 'ADMIN' || aff.user.role === 'SUPERADMIN';
         return {
         id: aff.id,
         userId: aff.userId,
         status: aff.status,
-        affiliateRole: isMain ? 'MAIN' : 'SUB',
+        populationClass: aff.populationClass,
+        enrollmentSource: resolved.enrollmentSource,
+        termsAcceptedAt: resolved.termsAcceptedAt,
+        commercialParticipant: resolved.commercialParticipant,
+        mainSource: resolved.capabilities.CAN_BECOME_MAIN.source,
+        affiliateRole,
         parentAffiliateId: aff.parentAffiliateId,
         parentAffiliate: aff.parentAffiliate
           ? {

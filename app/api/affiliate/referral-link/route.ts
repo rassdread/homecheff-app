@@ -42,10 +42,11 @@ export async function POST(req: NextRequest) {
 
     const ensured = await ensurePersonalReferralLink(user.id);
     if (!ensured) {
-      return NextResponse.json(
-        { error: "Referral link unavailable" },
-        { status: 409 },
-      );
+      return NextResponse.json({
+        code: null,
+        link: null,
+        enrollmentRequired: true,
+      });
     }
 
     return NextResponse.json({

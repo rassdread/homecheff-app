@@ -288,6 +288,9 @@ model Affiliate {
   userId                            String               @unique
   parentAffiliateId                 String?
   status                            AffiliateStatus      @default(ACTIVE)
+  /// COMMERCIAL | REVIEW_REQUIRED | INTERNAL | TECHNICAL | EXCLUDED_TEST
+  /// A row is not a signup. Only COMMERCIAL counts as a program participant.
+  populationClass                   String               @default("TECHNICAL")
   stripeConnectAccountId            String?
   stripeConnectOnboardingCompleted  Boolean              @default(false)
   // Custom commission percentages (optional, only for sub-affiliates)
@@ -315,6 +318,7 @@ model Affiliate {
   @@index([userId])
   @@index([parentAffiliateId])
   @@index([status])
+  @@index([populationClass])
 }
 
 enum AffiliateMediaKind {

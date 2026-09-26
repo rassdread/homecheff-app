@@ -162,7 +162,12 @@ export async function GET(req: NextRequest) {
     // Downline count and sub-affiliates
     const downlineCount = affiliate.childAffiliates.length;
     const isSubAffiliate = !!affiliate.parentAffiliateId;
-    const canManagePartners = !isSubAffiliate && affiliate.status === 'ACTIVE';
+    const { resolveStoredAffiliateCapabilities } = await import('@/lib/affiliate/program-store');
+    const resolvedCapabilities = await resolveStoredAffiliateCapabilities(affiliate.id);
+    const canManagePartners =
+      !isSubAffiliate &&
+      affiliate.status === 'ACTIVE' &&
+      resolvedCapabilities.capabilities.CAN_INVITE_SUB_AFFILIATES.value;
     const subAffiliates = isSubAffiliate
       ? []
       : affiliate.childAffiliates.map((child) => {
