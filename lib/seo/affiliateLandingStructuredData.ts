@@ -9,7 +9,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'How much commission can I earn?',
-            a: 'On orders the affiliate pool is at most 50% of the HomeCheff fee. If you are the only affiliate on the order, because you referred the buyer, the seller or both, you can receive the whole pool. If buyer and seller each have a different affiliate, each gets 25% of the fee. For referred business subscriptions, you earn 50% of the distributable margin after the HC reserve for each qualifying paid period, within the program rules.',
+            a: 'On Marketplace orders the affiliate pool is at most 50% of the HomeCheff platform fee, not of the order amount. One affiliate can receive the whole pool. Two different affiliates split it 25% + 25%. A Marketplace business subscription can pay 50% of the subscription fee, or 40% to SUB and 10% to MAIN. Growth pays 50% of the margin after the HC reserve, not 50% of the customer price. Studio uses its own residual. No guaranteed income.',
           },
           {
             q: 'How long does commission run?',
@@ -41,7 +41,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'What is recurring commission?',
-            a: 'For subscriptions you refer, you can receive a recurring share of the distributable margin after the HC reserve each qualifying paid period the business stays subscribed, under that product’s commission rules. No guaranteed income.',
+            a: 'Commission can recur on each qualifying paid period while the customer keeps paying and your partner relationship stays valid. The percentage depends on the product. A calendar year does not by itself stop it. No guaranteed income.',
           },
           {
             q: 'How does Stripe Connect work here?',
@@ -63,7 +63,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'Hoeveel commissie kan ik verdienen?',
-            a: 'Bij bestellingen is de affiliatepool maximaal 50% van de HomeCheff-fee. Ben jij de enige affiliate op de bestelling, omdat jij de koper, de verkoper of allebei hebt aangebracht, dan kun je die hele pool krijgen. Hebben koper en verkoper elk een andere affiliate, dan krijgt ieder 25% van de fee. Voor zakelijke abonnementen is dat 50% van de deelbare marge na HC-reserve per kwalificerende betaalde periode, volgens programmaregels.',
+            a: 'Bij Marketplace-bestellingen is de affiliatepool maximaal 50% van de HomeCheff-platformfee, niet van het orderbedrag. Eén affiliate kan de hele pool krijgen. Twee verschillende affiliates delen 25% + 25%. Een zakelijk Marketplace-abonnement kan 50% van de abonnementsfee opleveren, of 40% voor SUB en 10% voor MAIN. Growth betaalt 50% van de marge na de HC-reserve, niet 50% van de klantprijs. Studio rekent over een eigen restant. Geen gegarandeerd inkomen.',
           },
           {
             q: 'Hoe lang loopt commissie?',

@@ -201,6 +201,17 @@ export default function EarnHowItWorksPage({ copy: serverCopy, initialLang }: Pr
             <p>{copy.fundamentals.note}</p>
           </Section>
 
+          <Section id="portefeuille" title={copy.partner.title}>
+            <p className="font-medium text-slate-900">{copy.partner.lead}</p>
+            <p>{copy.partner.how}</p>
+            <p>{copy.partner.crossSell}</p>
+            <p>{copy.partner.alongside}</p>
+            <p>{copy.partner.roles}</p>
+            <p>{copy.partner.notAlways50}</p>
+            <p>{copy.partner.cancel}</p>
+            <p className="text-slate-500">{copy.partner.cookie}</p>
+          </Section>
+
           <Section id="marketplace" title={copy.marketplace.title}>
             <p>{copy.marketplace.intro}</p>
             <p>{copy.marketplace.checkoutNote}</p>

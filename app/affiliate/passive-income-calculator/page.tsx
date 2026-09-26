@@ -13,6 +13,7 @@ import {
   type CalculatorGrowthPlanKey,
   type OrderAffiliateScenario,
   growthPlanAffiliateCents,
+  illustratedActiveCount,
   viewerOrderAffiliateForSale,
 } from '@/lib/earn/passive-income-scenario';
 
@@ -67,14 +68,14 @@ export default function PassiveIncomeCalculator() {
     const newSubscriptions = subscriptionsPerMonth;
     const newSubscriptionRevenue = newSubscriptions * subscriptionCommissionEur;
 
-    const activeSubscriptions = Math.min(month * subscriptionsPerMonth, 12 * subscriptionsPerMonth);
+    const activeSubscriptions = illustratedActiveCount(month, subscriptionsPerMonth);
     const activeSubscriptionRevenue = activeSubscriptions * subscriptionCommissionEur;
 
-    const activeBusinesses = Math.min(month * subscriptionsPerMonth, 12 * subscriptionsPerMonth);
+    const activeBusinesses = illustratedActiveCount(month, subscriptionsPerMonth);
     const monthlyBusinessTransactionRevenue =
       activeBusinesses * businessTransactionsPerMonth * commissionPerBusinessTransaction;
 
-    const activeSellers = Math.min(month * sellersPerMonth, 12 * sellersPerMonth);
+    const activeSellers = illustratedActiveCount(month, sellersPerMonth);
     const monthlySellerTransactionRevenue =
       activeSellers * transactionsPerSellerPerMonth * commissionPerSellerTransaction;
 
@@ -106,17 +107,9 @@ export default function PassiveIncomeCalculator() {
 
   const totalRevenue = monthlyBreakdown.reduce((sum, item) => sum + item.activeRevenue, 0);
 
-  const month12PlusSubscriptionRevenue = 12 * subscriptionsPerMonth * subscriptionCommissionEur;
-  const month12PlusBusinessTransactionRevenue =
-    12 * subscriptionsPerMonth * businessTransactionsPerMonth * commissionPerBusinessTransaction;
-  const month12PlusSellerTransactionRevenue =
-    12 * sellersPerMonth * transactionsPerSellerPerMonth * commissionPerSellerTransaction;
-  const month12PlusTotalTransactionRevenue =
-    month12PlusBusinessTransactionRevenue + month12PlusSellerTransactionRevenue;
-  const month12PlusTotalRevenue = month12PlusSubscriptionRevenue + month12PlusTotalTransactionRevenue;
-  const year2Revenue = month12PlusTotalRevenue * 12;
-
   const end = monthlyBreakdown[monthlyBreakdown.length - 1];
+  const illustratedMonthly = end?.activeRevenue ?? 0;
+  const illustratedYear = illustratedMonthly * 12;
 
   const timeline = [
     { title: `${p}.timelineY1Title`, body: `${p}.timelineY1Body` },
@@ -362,8 +355,8 @@ export default function PassiveIncomeCalculator() {
             </li>
             <li>
               {t(`${p}.snapshotRunRate`)
-                .replace('{year}', year2Revenue.toFixed(2))
-                .replace('{monthly}', month12PlusTotalRevenue.toFixed(2))}
+                .replace('{year}', illustratedYear.toFixed(2))
+                .replace('{monthly}', illustratedMonthly.toFixed(2))}
             </li>
           </ul>
           <p className="mt-3 text-xs text-slate-500 leading-relaxed">{t(`${p}.snapshotModelNote`)}</p>

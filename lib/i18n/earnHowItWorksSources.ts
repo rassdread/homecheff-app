@@ -139,13 +139,13 @@ export const earnHowItWorksNl = {
   meta: {
     title: 'Verdienen met HomeCheff | Affiliate, Marketplace, Growth en Studio',
     description:
-      'Zo verdien je met HomeCheff: platformfees, affiliatevergoedingen, berekeningsgrondslag, looptijden en uitbetaling voor Marketplace, Bezorgen, Growth en Studio.',
+      'Zo verdien je met HomeCheff: een klantenportefeuille, productspecifieke commissie en uitbetaling voor Marketplace, Bezorgen, Growth en Studio. Geen vast salaris.',
   },
   hero: {
     eyebrow: 'Verdienen uitgelegd',
     title: 'Zo verdien je met HomeCheff',
     subtitle:
-      'Verkoop, bezorg of promoot HomeCheff, Growth en Studio. Bekijk hoe inkomsten worden berekend, welke percentages gelden en wanneer je uitbetaald kunt worden.',
+      'Je bouwt niet alleen aan losse verkopen, maar aan je eigen klantenportefeuille. Percentages verschillen per product. Er is geen vast salaris.',
     ctaOpportunities: 'Bekijk verdienmogelijkheden',
     ctaAffiliate: 'Word affiliate',
     ctaDashboard: 'Open mijn dashboard',
@@ -160,6 +160,22 @@ export const earnHowItWorksNl = {
     flowReward: 'Jouw affiliatevergoeding',
     note:
       'Niet elk percentage geldt over dezelfde grondslag. “50% affiliate” betekent dus niet “50% van het bestelbedrag”.',
+  },
+  partner: {
+    title: 'Je klantenportefeuille',
+    lead: 'Je bouwt niet alleen aan losse verkopen, maar aan je eigen klantenportefeuille binnen het HomeCheff-ecosysteem.',
+    how: 'Breng je een klant aan, dan blijft die klant gekoppeld aan jouw partnerrelatie zolang die relatie geldig is. Zolang die klant kwalificerende betaalde producten blijft gebruiken, kun je terugkerende commissie blijven ontvangen.',
+    crossSell:
+      'Breng je een klant aan via één HomeCheff-product, dan blijft die klant gekoppeld aan jou. Gaat die klant later ook een ander kwalificerend HomeCheff-product gebruiken, dan kan ook die omzet commissie opleveren volgens de regels van dat product. Een latere link vervangt een bestaande relatie niet.',
+    alongside:
+      'Je kunt klein beginnen, bijvoorbeeld naast je huidige werk. Hoe groter je actieve klantenportefeuille wordt, hoe groter de mogelijkheid op terugkerende commissie. Dat is geen belofte dat je je baan kunt opzeggen.',
+    roles:
+      'Een affiliate brengt HomeCheff onder de aandacht. Een partner bouwt en onderhoudt een klantenportefeuille. MAIN is een netwerkrol boven een partner. SUB is de partner daaronder. Waar die verdeling geldt, is dat 40% voor SUB en 10% voor MAIN van de commissiegrondslag van dat product, samen het affiliate-deel. Niet van de omzet van de klant.',
+    notAlways50:
+      'Je krijgt niet altijd 50% van wat de klant betaalt. Bij Marketplace-bestellingen is de pool maximaal 50% van de platformfee. Bij Growth is 50% het aandeel van de deelbare marge na de HC-reserve. Studio rekent over zijn eigen restant.',
+    cancel:
+      'Zegt een klant op of stopt de betaling, dan stopt de commissie op dat product. Een terugbetaling draait de commissie op die transactie terug.',
+    cookie: `De referral-cookie duurt ${PUBLIC_ATTRIBUTION_COOKIE_DAYS} dagen. Dat is niet de duur van je klantenportefeuille. Een actiecode geldt zolang die code zelf geldig is.`,
   },
   marketplace: {
     title: 'Marketplace: platformfees voor verkopers',
@@ -367,13 +383,13 @@ export const earnHowItWorksEn = {
   meta: {
     title: 'Earn with HomeCheff | Affiliate, Marketplace, Growth and Studio',
     description:
-      'How earning works on HomeCheff: platform fees, affiliate rewards, calculation basis, duration and payout for Marketplace, Delivery, Growth and Studio.',
+      'How earning works on HomeCheff: a customer portfolio, product-specific commission, and payout for Marketplace, Delivery, Growth and Studio. Not a salary.',
   },
   hero: {
     eyebrow: 'Earning explained',
     title: 'How you earn with HomeCheff',
     subtitle:
-      'Sell, deliver or promote HomeCheff, Growth and Studio. See how income is calculated, which percentages apply and when you can get paid out.',
+      'You are not only chasing one-off sales. You build a customer portfolio. Percentages differ by product. There is no fixed salary.',
     ctaOpportunities: 'See earning opportunities',
     ctaAffiliate: 'Become an affiliate',
     ctaDashboard: 'Open my dashboard',
@@ -388,6 +404,22 @@ export const earnHowItWorksEn = {
     flowReward: 'Your affiliate reward',
     note:
       'Not every percentage uses the same base. “50% affiliate” does not mean “50% of the order value”.',
+  },
+  partner: {
+    title: 'Your customer portfolio',
+    lead: 'You are not only chasing one-off sales. You build your own customer portfolio inside the HomeCheff ecosystem.',
+    how: 'When you introduce a customer, that customer stays linked to your partner relationship for as long as the relationship is valid. For as long as they keep using qualifying paid products, you can keep receiving recurring commission.',
+    crossSell:
+      'If you introduce a customer through one HomeCheff product, that customer stays linked to you. If they later use another qualifying HomeCheff product, that revenue can earn commission too, under that product’s rules. A later link does not replace an existing relationship.',
+    alongside:
+      'You can start small, for example alongside your current job. The larger your active portfolio becomes, the larger the possibility of recurring commission. That is not a promise you can quit your job.',
+    roles:
+      'An affiliate introduces HomeCheff. A partner builds and looks after a customer portfolio. MAIN is a network role above a partner. SUB is the partner underneath. Where that split applies, it is 40% for SUB and 10% for MAIN of that product’s commission base, together the affiliate share. Not of the customer’s revenue.',
+    notAlways50:
+      'You do not always receive 50% of what the customer pays. On Marketplace orders the pool is at most 50% of the platform fee. On Growth, 50% is the share of the distributable margin after the HC reserve. Studio uses its own residual.',
+    cancel:
+      'If a customer cancels or payment stops, commission on that product stops. A refund reverses the commission on that transaction.',
+    cookie: `The referral cookie lasts ${PUBLIC_ATTRIBUTION_COOKIE_DAYS} days. That is not how long your customer portfolio lasts. A promo code lasts only as long as that code is valid.`,
   },
   marketplace: {
     title: 'Marketplace: seller platform fees',

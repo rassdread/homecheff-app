@@ -19,8 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
         : 'Verdien met HomeCheff: Verkoop, bezorg, promoot of werk mee',
     description:
       lang === 'en'
-        ? 'See how you can participate in HomeCheff: sell what you make, deliver locally, become an affiliate or Affiliate Company, discover Studio and Growth, or view real HomeCheff jobs.'
-        : 'Ontdek hoe je meedoet met HomeCheff: verkoop wat je maakt, bezorg lokaal, word affiliate of Affiliate Company, ontdek Studio en Growth, of bekijk echte vacatures bij HomeCheff.',
+        ? 'See how you can take part in HomeCheff: sell, deliver, or build a customer portfolio as a partner alongside your work. Real HomeCheff jobs are listed separately. No guaranteed income.'
+        : 'Ontdek hoe je meedoet met HomeCheff: verkopen, bezorgen, of naast je werk een klantenportefeuille opbouwen als partner. Echte vacatures staan apart. Geen gegarandeerd inkomen.',
     alternates: {
       canonical: `${MAIN_DOMAIN}${path}`,
       languages: careersHreflangLanguages('hub'),

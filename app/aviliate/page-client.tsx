@@ -256,7 +256,7 @@ export default function AffiliatePageClient() {
                     <div className="text-3xl font-bold text-emerald-300 mb-2">
                       {t('affiliate.financialSecurity.exampleMonthly')}
                     </div>
-                    <p className="text-sm opacity-75">Blijvend passief inkomen</p>
+                    <p className="text-sm opacity-75">Illustratief maandbedrag, geen garantie</p>
                   </div>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-emerald-300 mb-2">
@@ -467,8 +467,8 @@ export default function AffiliatePageClient() {
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
           <div className="relative z-10">
             <div className="text-center mb-8">
-              <h2 className="text-4xl font-bold mb-4">💰 Realistisch Passief Inkomen</h2>
-              <p className="text-xl opacity-90">Met 2 bedrijven per maand bouw je een blijvend passief inkomen op</p>
+              <h2 className="text-4xl font-bold mb-4">Een klantenportefeuille, geen vast inkomen</h2>
+              <p className="text-xl opacity-90">Wat je vandaag opbouwt, kan later nog waarde hebben als die klanten blijven betalen. Geen garantie.</p>
             </div>
 
             {/* Key Insight */}
@@ -632,7 +632,7 @@ export default function AffiliatePageClient() {
                 <div className="text-center">
                   <div className="text-xs opacity-75 mb-1">Maand 12</div>
                   <div className="font-bold text-xl">€1,338</div>
-                  <div className="text-xs opacity-75 mt-1">Blijvend passief!</div>
+                  <div className="text-xs opacity-75 mt-1">Alleen een voorbeeld</div>
                 </div>
               </div>
             </div>

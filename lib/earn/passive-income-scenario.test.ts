@@ -8,6 +8,7 @@ import {
 import {
   CALCULATOR_INDIVIDUAL_FEE_PERCENT,
   growthPlanAffiliateCents,
+  illustratedActiveCount,
   viewerOrderAffiliateCents,
   viewerOrderAffiliateForSale,
 } from '@/lib/earn/passive-income-scenario';
@@ -67,5 +68,12 @@ describe('passive income scenario uses the marketplace pool', () => {
     assert.equal(cents, canonical);
     assert.equal(cents, 1575);
     assert.notEqual(cents, wrongCustomerHc);
+  });
+
+  it('does not drop referred customers after month 12 in the illustration', () => {
+    assert.equal(illustratedActiveCount(12, 2), 24);
+    assert.equal(illustratedActiveCount(13, 2), 26);
+    assert.equal(illustratedActiveCount(24, 2), 48);
+    assert.equal(illustratedActiveCount(36, 2), 72);
   });
 });

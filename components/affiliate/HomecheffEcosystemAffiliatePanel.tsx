@@ -176,8 +176,8 @@ export function HomecheffEcosystemAffiliatePanel() {
       <p className="mt-1 text-xs text-slate-600">
         {tOr(
           'affiliateDashboard.ecosystem.blurb',
-          'One network: main affiliate (10%) and partner (40%) of eligible HomeCheff platform revenue, together max 50%. No guaranteed income.',
-          'Eén netwerk: hoofd-affiliate (10%) en partner (40%) van eligible HomeCheff-platformomzet, samen max 50%. Geen garantie op inkomsten.',
+          'Where a network split applies: SUB 40% and MAIN 10% of that product’s commission base, together the affiliate share. Not 50% of what the customer pays. No guaranteed income.',
+          'Waar een netwerkverdeling geldt: SUB 40% en MAIN 10% van de commissiegrondslag van dat product, samen het affiliate-deel. Niet 50% van wat de klant betaalt. Geen gegarandeerd inkomen.',
         )}
       </p>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">

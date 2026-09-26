@@ -13,20 +13,79 @@ export const dynamic = 'force-dynamic';
 
 const faqsNl = [
   {
-    q: 'Waarover wordt affiliatecommissie berekend?',
+    q: 'Hoe verdient een HomeCheff-partner geld?',
+    a: 'Je bouwt een klantenportefeuille. Commissie ontstaat alleen als een aangebrachte klant kwalificerende betaalde omzet maakt, volgens de regels van dat product. Geen vast salaris en geen gegarandeerd inkomen.',
+  },
+  {
+    q: 'Hoe lang ontvang ik commissie?',
+    a: 'Zolang de klant kwalificerende betaalde producten blijft gebruiken en de partnerrelatie geldig is. Een kalenderjaar laat die commissie niet vanzelf stoppen.',
+  },
+  {
+    q: 'Wat gebeurt er als mijn klant later een ander HomeCheff-product gebruikt?',
+    a: 'De klant blijft aan jouw partnerrelatie gekoppeld. Ook die omzet kan commissie opleveren, volgens de regels van dat product. Niet elk product betaalt hetzelfde percentage.',
+  },
+  {
+    q: 'Kan ik dit naast mijn baan doen?',
+    a: 'Ja. Je kunt klein beginnen naast je huidige werk. Dat is geen belofte dat je je baan kunt opzeggen.',
+  },
+  {
+    q: 'Krijg ik altijd 50%?',
+    a: 'Nee. Bij Marketplace-bestellingen is de pool maximaal 50% van de HomeCheff-platformfee, niet van het orderbedrag. Bij Growth is 50% het aandeel van de deelbare marge na de HC-reserve. Studio heeft een eigen restant.',
+  },
+  {
+    q: 'Wat is het verschil tussen een affiliate en een partner?',
+    a: 'Een affiliate brengt HomeCheff onder de aandacht. Een partner bouwt en onderhoudt een klantenportefeuille. MAIN en SUB zijn netwerkrollen: waar die verdeling geldt, is dat 40% voor SUB en 10% voor MAIN van de commissiegrondslag, niet van de omzet van de klant.',
+  },
+  {
+    q: 'Waarover wordt Marketplace-commissie berekend?',
     a: 'Over de HomeCheff-platformfee van de order, nooit over het hele orderbedrag, het verkopersdeel of HomeCheff Credits (HC).',
   },
   {
-    q: 'Krijg ik commissie over het hele orderbedrag?',
-    a: 'Nee. De affiliatepool is maximaal 50% van de werkelijke HomeCheff-platformfee.',
+    q: 'Wat gebeurt er als koper en verkoper via verschillende affiliates zijn aangebracht?',
+    a: 'De pool splitst dan 25% + 25% van de fee. Bij dezelfde affiliate ontvangt die affiliate de volledige 50%-pool.',
   },
   {
-    q: 'Wat gebeurt er als koper en verkoper via affiliates zijn aangebracht?',
-    a: 'Bij verschillende affiliates splitst de pool 25% + 25% van de fee. Bij dezelfde affiliate ontvangt die affiliate de volledige 50%-pool.',
+    q: 'Wat gebeurt er als een klant opzegt of een betaling wordt terugbetaald?',
+    a: 'Stopt de betaling, dan stopt de commissie op dat product. Een terugbetaling draait de commissie op die transactie terug.',
+  },
+];
+
+const faqsEn = [
+  {
+    q: 'How does a HomeCheff partner earn?',
+    a: 'You build a customer portfolio. Commission arises only when a referred customer creates qualifying paid revenue, under that product’s rules. No salary and no guaranteed income.',
   },
   {
-    q: 'Tellen Growth en Studio ook mee?',
-    a: 'De oorspronkelijke partner blijft de ecosysteemherkomst. Commissie op Growth of Studio ontstaat alleen bij kwalificerende betaalde omzet van dat product, volgens de regels van dat product.',
+    q: 'How long do I receive commission?',
+    a: 'For as long as the customer keeps using qualifying paid products and the partner relationship stays valid. A calendar year does not by itself stop that commission.',
+  },
+  {
+    q: 'What if my customer later uses another HomeCheff product?',
+    a: 'The customer stays linked to your partner relationship. That revenue can earn commission too, under that product’s rules. Products do not all pay the same percentage.',
+  },
+  {
+    q: 'Can I do this alongside a job?',
+    a: 'Yes. You can start small alongside your current work. That is not a promise you can quit your job.',
+  },
+  {
+    q: 'Do I always get 50%?',
+    a: 'No. On Marketplace orders the pool is at most 50% of the HomeCheff platform fee, not of the order amount. On Growth, 50% is the share of the distributable margin after the HC reserve. Studio uses its own residual.',
+  },
+  {
+    q: 'What is the difference between an affiliate and a partner?',
+    a: 'An affiliate introduces HomeCheff. A partner builds and looks after a customer portfolio. MAIN and SUB are network roles: where that split applies, it is 40% for SUB and 10% for MAIN of the commission base, not of the customer’s revenue.',
+  },
+  {
+    q: 'What is Marketplace commission calculated on?',
+    a: 'On the HomeCheff platform fee of the order, never on the full order amount, the seller share, or HomeCheff Credits (HC).',
+  },
+  {
+    q: 'What if the buyer and seller were referred by different affiliates?',
+    a: 'The pool then splits 25% + 25% of the fee. If it is the same affiliate, that affiliate receives the full 50% pool.',
+  },
+  {
+    q: 'What if a customer cancels or a payment is refunded?',
+    a: 'If payment stops, commission on that product stops. A refund reverses the commission on that transaction.',
   },
 ];
 
@@ -37,7 +96,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   if (lang === 'en') {
     return {
-      title: 'HomeCheff Marketplace Affiliate | 50% platform fee pool',
+      title: 'HomeCheff affiliate | build a customer portfolio',
       description:
         'Refer a HomeCheff user and earn from the eligible HomeCheff platform fee pool for as long as that customer generates qualifying paid revenue. Never from full order value, seller payout, or HomeCheff Credits (HC).',
       keywords: [
@@ -80,7 +139,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
-    title: 'HomeCheff Affiliate | 50% platformfee-pool',
+    title: 'HomeCheff affiliate | bouw een klantenportefeuille',
     description:
       'Breng een gebruiker aan en ontvang een aandeel uit de HomeCheff-platformopbrengst zolang die gebruiker kwalificerende betaalde omzet genereert. Nooit over het hele orderbedrag, het verkopersdeel of HomeCheff Credits (HC).',
     keywords: [
@@ -123,6 +182,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AffiliatePage() {
+  const lang = await getCurrentLanguage();
+  const en = lang === 'en';
+  const faqs = en ? faqsEn : faqsNl;
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -142,7 +204,7 @@ export default async function AffiliatePage() {
       },
       {
         '@type': 'FAQPage',
-        mainEntity: faqsNl.map((f) => ({
+        mainEntity: faqs.map((f) => ({
           '@type': 'Question',
           name: f.q,
           acceptedAnswer: { '@type': 'Answer', text: f.a },
@@ -169,12 +231,12 @@ export default async function AffiliatePage() {
             HomeCheff Affiliate · Marketplace
           </p>
           <h1 className="mt-3 text-center text-3xl font-semibold tracking-tight text-slate-900">
-            Verdien mee met HomeCheff
+            {en ? 'Build your own customer portfolio' : 'Bouw je eigen klantenportefeuille'}
           </h1>
           <p className="mt-4 text-center text-base leading-relaxed text-slate-700">
-            HomeCheff Marketplace is de lokale buurtmarkt van HomeCheff, voor eten, oogst, creaties
-            en diensten dichtbij. Zolang jouw aangebrachte klant kwalificerende betaalde producten gebruikt,
-            ontvang je volgens de commissieregels van het betreffende product terugkerende commissie.
+            {en
+              ? 'You are not only chasing one-off sales. You build a customer portfolio inside HomeCheff. For as long as the customers you referred keep using qualifying paid products, you can keep receiving recurring commission under that product’s rules. No guaranteed income.'
+              : 'Je bouwt niet alleen aan losse verkopen, maar aan je eigen klantenportefeuille binnen HomeCheff. Zolang jouw aangebrachte klanten kwalificerende betaalde producten blijven gebruiken, kun je volgens de regels van dat product terugkerende commissie blijven ontvangen. Geen gegarandeerd inkomen.'}
           </p>
           <div className="mt-6 space-y-3 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-700 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">De affiliatepool</h2>
@@ -217,8 +279,8 @@ export default async function AffiliatePage() {
             </ul>
           </div>
           <div className="mt-8 space-y-3">
-            <h2 className="text-lg font-semibold">Veelgestelde vragen</h2>
-            {faqsNl.map((f) => (
+            <h2 className="text-lg font-semibold">{en ? 'Questions' : 'Veelgestelde vragen'}</h2>
+            {faqs.map((f) => (
               <div key={f.q} className="rounded-xl border border-slate-200 bg-white p-4">
                 <h3 className="text-sm font-semibold">{f.q}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-700">{f.a}</p>

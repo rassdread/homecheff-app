@@ -63,6 +63,16 @@ export function viewerOrderAffiliateForSale(input: {
 export const CALCULATOR_GROWTH_PLAN_KEYS = ['starter', 'pro', 'business', 'enterprise'] as const;
 export type CalculatorGrowthPlanKey = (typeof CALCULATOR_GROWTH_PLAN_KEYS)[number];
 
+/**
+ * Illustration only: customers added so far are still paying.
+ * There is no automatic drop-off after 12 months.
+ */
+export function illustratedActiveCount(month: number, addedPerMonth: number): number {
+  const months = Math.max(0, Math.floor(month));
+  const added = Math.max(0, addedPerMonth);
+  return months * added;
+}
+
 export function growthPlanAffiliateCents(planKey: CalculatorGrowthPlanKey): number {
   const plan = PUBLIC_GROWTH_PLANS.find((row) => row.key === planKey);
   if (!plan) return 0;
