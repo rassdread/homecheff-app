@@ -29,7 +29,15 @@ const STAGE_LABELS: Record<number, { nl: string; en: string }> = {
   36: { nl: 'Jaar 3', en: 'Year 3' },
 };
 
-export default function AffiliateBusinessStory({ lang }: { lang: 'nl' | 'en' }) {
+export default function AffiliateBusinessStory({
+  lang,
+  programName = 'Vroege instap',
+  showEarly = true,
+}: {
+  lang: 'nl' | 'en';
+  programName?: string;
+  showEarly?: boolean;
+}) {
   const en = lang === 'en';
   const stages = alongsideWorkJourneyStages();
   const share = growthStarterShareCents();
@@ -45,6 +53,13 @@ export default function AffiliateBusinessStory({ lang }: { lang: 'nl' | 'en' }) 
             ? 'Build your own commercial activity as an affiliate.'
             : 'Bouw als affiliate je eigen commerciële activiteit op.'}
         </h2>
+        {showEarly ? (
+          <p className="mt-3 text-sm leading-relaxed text-slate-700">
+            {en
+              ? `HomeCheff is building its affiliate network. People who join now, under ${programName}, get the tools to build a customer portfolio and a network.`
+              : `HomeCheff bouwt momenteel zijn affiliate-netwerk op. Daarom krijgen affiliates die nu instappen, in ${programName}, extra mogelijkheden om hun eigen klantenportefeuille en netwerk op te bouwen.`}
+          </p>
+        ) : null}
         <p className="mt-3 text-sm leading-relaxed text-slate-700">
           {en
             ? 'You do not have to start big. A few hours a week alongside your current work is enough to begin. The first months are mostly building. Commission can still be modest. A customer who stays active can remain part of your portfolio later. You build on what you already did.'
@@ -193,6 +208,11 @@ export default function AffiliateBusinessStory({ lang }: { lang: 'nl' | 'en' }) 
         <h2 className="text-xl font-semibold text-slate-900">
           {en ? 'See what you can earn' : 'Bekijk wat je kunt verdienen'}
         </h2>
+        <p className="mt-2 text-sm leading-relaxed text-slate-700">
+          {en
+            ? `These amounts are the public program for a new affiliate: ${programName}. An affiliate who already joined keeps the program they enrolled in.`
+            : `Deze bedragen horen bij het openbare programma voor een nieuwe affiliate: ${programName}. Een affiliate die al is ingestapt, houdt het programma waarin die is ingeschreven.`}
+        </p>
         <p className="mt-2 text-sm leading-relaxed text-slate-700">
           {en
             ? 'High commission is useful. Customer fit matters more for a portfolio that lasts. Each card says who it suits.'

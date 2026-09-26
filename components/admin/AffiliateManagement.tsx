@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import AffiliateProgramControl from './AffiliateProgramControl';
 import Link from 'next/link';
 import {
   Users,
@@ -765,6 +766,7 @@ export default function AffiliateManagement() {
 
   return (
     <div className="space-y-6">
+      <AffiliateProgramControl />
       {hierarchyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl border space-y-4">

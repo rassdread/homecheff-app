@@ -124,6 +124,39 @@ export async function POST(req: NextRequest) {
       email: parentUser.email,
       targetEmail: email,
     });
+    const { resolveStoredAffiliateCapabilities } = await import("@/lib/affiliate/program-store");
+    const { decideSubInvite } = await import("@/lib/affiliate/program-control");
+    const resolved = await resolveStoredAffiliateCapabilities(parentUser.affiliate.id);
+    const [childCount, pendingInvites] = await Promise.all([
+      prisma.affiliate.count({ where: { parentAffiliateId: parentUser.affiliate.id } }),
+      prisma.subAffiliateInvite.count({
+        where: {
+          parentAffiliateId: parentUser.affiliate.id,
+          status: "PENDING",
+          expiresAt: { gt: new Date() },
+        },
+      }),
+    ]);
+    const limitDecision = decideSubInvite({
+      resolved,
+      hasParent: Boolean(parentUser.affiliate.parentAffiliateId),
+      childCount,
+      pendingInvites,
+      adminForce: false,
+    });
+    if (!limitDecision.ok) {
+      return NextResponse.json(
+        {
+          error:
+            limitDecision.code === "SUB_LIMIT"
+              ? "Je hebt het aantal partners bereikt dat bij jouw programma hoort."
+              : "Je affiliate-account kan nu geen partners uitnodigen.",
+          code: limitDecision.code,
+        },
+        { status: 422 },
+      );
+    }
+
     if (!decision.ok) {
       const message =
         decision.code === "PARENT_IS_PARTNER"

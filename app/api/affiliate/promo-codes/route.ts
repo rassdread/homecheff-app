@@ -93,6 +93,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Affiliate account not found" }, { status: 404 });
     }
 
+    const { resolveStoredAffiliateCapabilities } = await import("@/lib/affiliate/program-store");
+    const capabilities = await resolveStoredAffiliateCapabilities(user.affiliate.id);
+    if (!capabilities.capabilities.CAN_CREATE_PROMO_CODES.value) {
+      return NextResponse.json(
+        {
+          error: "Nieuwe promocodes staan voor dit account uit. Bestaande codes blijven staan.",
+          code: "PROMO_CREATION_DISABLED",
+        },
+        { status: 403 },
+      );
+    }
+
     // Affiliate caps only — admins create platform codes via /api/admin/promo-codes.
     const isSubAffiliate = !!user.affiliate.parentAffiliateId;
     const { assertDiscountWithinCap } = await import('@/lib/promo-codes/discount-policy');

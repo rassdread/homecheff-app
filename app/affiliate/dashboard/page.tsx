@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import AffiliateDashboardClient from './page-client';
+import MyAffiliateProgram from '@/components/affiliate/MyAffiliateProgram';
 import { buildVerifyEmailPath } from '@/lib/affiliate/signup-flow';
 
 export const dynamic = 'force-dynamic';
@@ -37,6 +38,13 @@ export default async function AffiliateDashboardPage() {
     redirect('/affiliate');
   }
 
-  return <AffiliateDashboardClient />;
+  return (
+    <>
+      <div className="mx-auto max-w-5xl px-4 pt-6">
+        <MyAffiliateProgram affiliateId={user.affiliate.id} />
+      </div>
+      <AffiliateDashboardClient />
+    </>
+  );
 }
 

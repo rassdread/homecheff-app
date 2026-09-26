@@ -392,7 +392,21 @@ export async function POST(req: NextRequest) {
     let affiliateActivated = false;
     if (acceptAffiliateAgreement === true) {
       try {
+        const { publicSignupAllowed, enrollAffiliate } = await import("@/lib/affiliate/program-store");
+        const invited = Boolean(subAffiliateInviteToken);
+        const open = invited || (await publicSignupAllowed("NL"));
+        if (!open) {
+          affiliateActivated = false;
+        } else {
         const activated = await activatePersonalAffiliate(user.id);
+        if (activated.created) {
+          await enrollAffiliate({
+            affiliateId: activated.affiliateId,
+            source: "SIGNUP",
+            acceptedTerms: true,
+            countryCode: "NL",
+          });
+        }
         affiliateActivated = true;
         if (activated.created) {
           await import('@/lib/analytics/record-acquisition-event.server')
@@ -405,6 +419,7 @@ export async function POST(req: NextRequest) {
               }),
             )
             .catch((e) => console.warn('[acquisition] affiliate_activated', e));
+        }
         }
       } catch (affiliateError) {
         console.error('Failed to activate affiliate during register:', affiliateError);

@@ -108,6 +108,17 @@ export async function acceptPartnerInviteForUser(input: {
       },
     });
     await ensureReferralLink(affiliate.id, user.id);
+    const { enrollAffiliate } = await import('@/lib/affiliate/program-store');
+    const parentEnrollment = await prisma.affiliateProgramEnrollment.findUnique({
+      where: { affiliateId: decision.parentAffiliateId },
+      include: { program: { select: { code: true } } },
+    });
+    await enrollAffiliate({
+      affiliateId: affiliate.id,
+      source: 'SIGNUP',
+      acceptedTerms: false,
+      programCode: parentEnrollment?.program.code,
+    });
     await prisma.subAffiliateInvite.update({
       where: { id: invite.id },
       data: { status: 'ACCEPTED' },

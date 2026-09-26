@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { activatePersonalAffiliate } from "@/lib/affiliate/activate-affiliate";
+import { enrollAffiliate, loadPublicPresentation } from "@/lib/affiliate/program-store";
 import { maybeAcceptPartnerInviteFromRequest } from "@/lib/affiliates/accept-partner-invite";
 
 export const dynamic = 'force-dynamic';
@@ -87,7 +88,28 @@ export async function POST(req: NextRequest) {
       userId: user.id,
       cookieHeader: req.headers.get("cookie"),
     });
+    const existingAffiliate = await prisma.affiliate.findUnique({
+      where: { userId: user.id },
+      select: { id: true },
+    });
+    if (!existingAffiliate) {
+      const presentation = await loadPublicPresentation("NL");
+      if (presentation.signup.allow !== "ENROLL") {
+        return NextResponse.json(
+          { error: presentation.copy.lead, code: presentation.signup.allow },
+          { status: 403 },
+        );
+      }
+    }
     const activated = await activatePersonalAffiliate(user.id);
+    if (activated.created) {
+      await enrollAffiliate({
+        affiliateId: activated.affiliateId,
+        source: "SIGNUP",
+        acceptedTerms: true,
+        countryCode: "NL",
+      });
+    }
 
     if (activated.created) {
       await import('@/lib/analytics/record-acquisition-event.server')

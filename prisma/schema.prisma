@@ -309,6 +309,8 @@ model Affiliate {
   subAffiliateInvites               SubAffiliateInvite[] @relation("SubAffiliateInvites")
   mediaShareEvents                  AffiliateMediaShareEvent[]
   mediaClickEvents                  AffiliateMediaClickEvent[]
+  programEnrollment                 AffiliateProgramEnrollment?
+  capabilityOverride                AffiliateCapabilityOverride?
 
   @@index([userId])
   @@index([parentAffiliateId])
@@ -3269,6 +3271,100 @@ enum PrintPermission {
   FAN_OF_ONLY
   ASK_PERMISSION
   NOBODY
+}
+
+/// Versioned commercial program. Points at certified economics; does not copy formulas.
+model AffiliateProgram {
+  id                   String   @id @default(uuid())
+  code                 String   @unique
+  name                 String
+  status               String   @default("ACTIVE")
+  effectiveFrom        DateTime @default(now())
+  effectiveUntil       DateTime?
+  isPublicDefault      Boolean  @default(false)
+  publicEarlyEnabled   Boolean  @default(false)
+  commissionPolicyRef  String
+  durationPolicyRef    String
+  termsVersion         String
+  subAffiliateLimit    Int?
+  capabilities         Json
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  enrollments          AffiliateProgramEnrollment[]
+  markets              AffiliateMarketRecruitment[]
+
+  @@index([status])
+  @@index([isPublicDefault])
+}
+
+model AffiliateMarketRecruitment {
+  id                String           @id @default(uuid())
+  countryCode       String
+  regionCode        String           @default("")
+  homecheffActive   Boolean          @default(true)
+  recruitmentState  String           @default("OPEN")
+  programId         String?
+  desiredMainCount  Int?
+  desiredActiveCount Int?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  program           AffiliateProgram? @relation(fields: [programId], references: [id])
+
+  @@unique([countryCode, regionCode])
+  @@index([recruitmentState])
+}
+
+model AffiliateProgramEnrollment {
+  id               String   @id @default(uuid())
+  affiliateId      String   @unique
+  programId        String
+  marketCountry    String   @default("NL")
+  source           String
+  termsVersion     String
+  termsAcceptedAt  DateTime?
+  enrolledAt       DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  affiliate        Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  program          AffiliateProgram @relation(fields: [programId], references: [id])
+
+  @@index([programId])
+  @@index([source])
+}
+
+/// Null fields inherit. subLimitMode UNLIMITED uses null subLimit on purpose.
+model AffiliateCapabilityOverride {
+  affiliateId        String   @id
+  directCommission   Boolean?
+  promoCodes         Boolean?
+  promoLibrary       Boolean?
+  inviteSubs         Boolean?
+  becomeMain         Boolean?
+  earnMainOverride   Boolean?
+  networkDashboard   Boolean?
+  commissionCatalog  Boolean?
+  advancedTools      Boolean?
+  newMarket          Boolean?
+  /// INHERIT | LIMITED | UNLIMITED
+  subLimitMode       String   @default("INHERIT")
+  subLimit           Int?
+  updatedAt          DateTime @updatedAt
+  affiliate          Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+}
+
+model AffiliateCommercialAudit {
+  id          String   @id @default(uuid())
+  adminUserId String?
+  targetType  String
+  targetId    String
+  action      String
+  previous    Json?
+  next        Json?
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([createdAt])
 }
 
 model AffiliateMarketInterest {

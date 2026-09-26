@@ -1,5 +1,6 @@
 import AffiliatePageClient from './page-client';
 import AffiliateBusinessStory from '@/components/affiliate/AffiliateBusinessStory';
+import { loadPublicPresentation } from '@/lib/affiliate/program-store';
 import AcquisitionLandingBeacon from '@/components/acquisition/AcquisitionLandingBeacon';
 import type { Metadata } from 'next';
 import {
@@ -132,6 +133,9 @@ export default async function AffiliatePage() {
     ],
   };
 
+  const presentation = await loadPublicPresentation('NL').catch(() => null);
+  const early = presentation?.copy.tone === 'EARLY';
+
   return (
     <div>
       <AcquisitionLandingBeacon eventName="affiliate_landing_view" />
@@ -144,6 +148,17 @@ export default async function AffiliatePage() {
           <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             HomeCheff Affiliate · Marketplace
           </p>
+          {presentation ? (
+            <div className="mx-auto mt-4 max-w-2xl rounded-2xl border border-emerald-200 bg-white p-4 text-left">
+              {presentation.copy.badge ? (
+                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
+                  {presentation.copy.badge}
+                </p>
+              ) : null}
+              <p className="mt-1 text-sm leading-relaxed text-slate-800">{presentation.copy.lead}</p>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">{presentation.copy.follow}</p>
+            </div>
+          ) : null}
           <h1 className="mt-3 text-center text-3xl font-semibold tracking-tight text-slate-900">
             {en ? 'Build your own customer portfolio' : 'Bouw je eigen klantenportefeuille'}
           </h1>
@@ -152,7 +167,11 @@ export default async function AffiliatePage() {
               ? 'You are not only chasing one-off sales. You build a customer portfolio inside HomeCheff. For as long as the customers you referred keep using qualifying paid products, you can keep receiving recurring commission under that product’s rules. No guaranteed income.'
               : 'Je bouwt niet alleen aan losse verkopen, maar aan je eigen klantenportefeuille binnen HomeCheff. Zolang jouw aangebrachte klanten kwalificerende betaalde producten blijven gebruiken, kun je volgens de regels van dat product terugkerende commissie blijven ontvangen. Geen gegarandeerd inkomen.'}
           </p>
-          <AffiliateBusinessStory lang={en ? 'en' : 'nl'} />
+          <AffiliateBusinessStory
+            lang={en ? 'en' : 'nl'}
+            programName={presentation?.programName}
+            showEarly={early}
+          />
           <div className="mt-6 space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6">
             <h2 className="text-lg font-semibold text-emerald-950">
               {en ? 'Earn on other HomeCheff products too' : 'Ook verdienen op andere HomeCheff-producten'}
