@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { activatePersonalAffiliate } from '@/lib/affiliate/activate-affiliate';
@@ -222,7 +223,7 @@ export async function POST(req: Request) {
         targetType: 'AFFILIATE',
         targetId: activated.affiliateId,
         action: 'ADMIN_ADMIT',
-        previous: null,
+        previous: Prisma.JsonNull,
         next: { email, marketUnchanged: true },
         reason,
       },

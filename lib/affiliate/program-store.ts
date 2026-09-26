@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import {
   CAPABILITY_KEYS,
@@ -190,8 +191,12 @@ async function audit(input: {
       targetType: input.targetType,
       targetId: input.targetId,
       action: input.action,
-      previous: input.previous as object,
-      next: input.next as object,
+      previous: input.previous === null || input.previous === undefined
+        ? Prisma.JsonNull
+        : (input.previous as Prisma.InputJsonValue),
+      next: input.next === null || input.next === undefined
+        ? Prisma.JsonNull
+        : (input.next as Prisma.InputJsonValue),
       reason: input.reason,
     },
   });
