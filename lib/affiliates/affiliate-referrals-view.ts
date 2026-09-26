@@ -30,11 +30,12 @@ export type AffiliateReferralListItem = {
   windowStatus: 'active' | 'ended';
 };
 
+/** The stored endsAt is audit history. It does not mark the portfolio ended. */
 export function referralWindowStatus(
-  endsAt: Date,
-  now: Date = new Date(),
+  _endsAt: Date,
+  _now: Date = new Date(),
 ): 'active' | 'ended' {
-  return endsAt.getTime() > now.getTime() ? 'active' : 'ended';
+  return 'active';
 }
 
 export function mapOwnedAttributionsToReferralList(

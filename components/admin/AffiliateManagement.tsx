@@ -2529,11 +2529,7 @@ export default function AffiliateManagement() {
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                           {formatDate(attr.endsAt)}
-                          {new Date(attr.endsAt) > new Date() ? (
-                            <span className="ml-2 text-green-600">✓ Actief</span>
-                          ) : (
-                            <span className="ml-2 text-red-600">✗ Verlopen</span>
-                          )}
+                          <span className="ml-2 text-gray-500">historische datum</span>
                         </td>
                       </tr>
                     ))}

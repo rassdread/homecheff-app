@@ -16,6 +16,7 @@ import {
 } from './affiliate-config';
 import { splitAffiliateLineForHierarchy } from '@/lib/affiliates/main-partner-split';
 import { CommissionLedgerEventType, CommissionLedgerStatus } from '@prisma/client';
+import { marketplaceCalendarWindowBlocksCommission } from '@/lib/affiliate-revenue-window';
 
 /**
  * Process commission for a paid invoice
@@ -53,10 +54,9 @@ export async function processCommissionForInvoice(
       return;
     }
 
-    // Check if revenue share window is still valid
+    // endsAt is a retired 365-day snapshot. It does not stop a paid invoice.
     const now = new Date();
-    if (now > businessSubscription.endsAt) {
-      console.warn(`Revenue share window expired for subscription ${subscriptionId}`);
+    if (marketplaceCalendarWindowBlocksCommission(now, businessSubscription.endsAt)) {
       return;
     }
 
@@ -256,18 +256,18 @@ export async function processCommissionForOrder(
           userId: buyerId,
           type: 'USER_SIGNUP',
           startsAt: { lte: now },
-          endsAt: { gte: now },
         },
         include: { affiliate: true },
+        orderBy: { createdAt: 'asc' },
       }),
       prisma.attribution.findFirst({
         where: {
           userId: sellerId,
           type: 'USER_SIGNUP',
           startsAt: { lte: now },
-          endsAt: { gte: now },
         },
         include: { affiliate: true },
+        orderBy: { createdAt: 'asc' },
       }),
     ]);
 

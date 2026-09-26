@@ -26,7 +26,7 @@ const faqsNl = [
   },
   {
     q: 'Tellen Growth en Studio ook mee?',
-    a: 'Ja. Binnen dezelfde 12 maanden kunnen in aanmerking komende platformopbrengsten op Growth en Studio meetellen.',
+    a: 'De oorspronkelijke partner blijft de ecosysteemherkomst. Commissie op Growth of Studio ontstaat alleen bij kwalificerende betaalde omzet van dat product, volgens de regels van dat product.',
   },
 ];
 
@@ -37,9 +37,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
   if (lang === 'en') {
     return {
-      title: 'HomeCheff Marketplace Affiliate | 50% platform fee pool · 12 months',
+      title: 'HomeCheff Marketplace Affiliate | 50% platform fee pool',
       description:
-        'Refer a HomeCheff user and earn for 12 months from the eligible HomeCheff platform fee pool, never from full order value, seller payout, or HomeCheff Credits (HC).',
+        'Refer a HomeCheff user and earn from the eligible HomeCheff platform fee pool for as long as that customer generates qualifying paid revenue. Never from full order value, seller payout, or HomeCheff Credits (HC).',
       keywords: [
         'HomeCheff affiliate',
         'HomeCheff commissie',
@@ -50,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
       openGraph: {
         title: 'Promote HomeCheff. Earn with it.',
         description:
-          '12 months · share of HomeCheff platform fee revenue. Not GMV, not HC. Growth and Studio can also count. No guaranteed income.',
+          'Share of HomeCheff platform fee revenue while qualifying paid use continues. Not GMV, not HC. No guaranteed income.',
         type: 'website',
         locale: 'en_US',
         url: `${currentDomain}${path}`,
@@ -80,9 +80,9 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
-    title: 'HomeCheff Affiliate | 50% platformfee-pool · 12 maanden',
+    title: 'HomeCheff Affiliate | 50% platformfee-pool',
     description:
-      'Breng een gebruiker aan en ontvang 12 maanden een aandeel uit de HomeCheff-platformopbrengst via die gebruiker. Nooit over het hele orderbedrag, het verkopersdeel of HomeCheff Credits (HC).',
+      'Breng een gebruiker aan en ontvang een aandeel uit de HomeCheff-platformopbrengst zolang die gebruiker kwalificerende betaalde omzet genereert. Nooit over het hele orderbedrag, het verkopersdeel of HomeCheff Credits (HC).',
     keywords: [
       'HomeCheff affiliate',
       'HomeCheff commissie',
@@ -93,7 +93,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: 'Promoot HomeCheff. Verdien mee.',
       description:
-        '12 maanden · aandeel uit de HomeCheff-platformfee. Niet over GMV of HC. Geen gegarandeerd inkomen.',
+        'Aandeel uit de HomeCheff-platformfee zolang kwalificerende betaalde omzet bestaat. Niet over GMV of HC. Geen gegarandeerd inkomen.',
       type: 'website',
       locale: 'nl_NL',
       url: `${currentDomain}${path}`,
@@ -131,7 +131,7 @@ export default async function AffiliatePage() {
         name: 'HomeCheff Marketplace Affiliate',
         url: 'https://homecheff.eu/affiliate',
         description:
-          '12 maanden aandeel uit de HomeCheff-platformfee-pool (max 50% van de fee) per aangebrachte gebruiker.',
+          'Aandeel uit de HomeCheff-platformfee-pool (max 50% van de fee) zolang de aangebrachte gebruiker kwalificerende betaalde omzet genereert.',
       },
       {
         '@type': 'BreadcrumbList',
@@ -173,8 +173,8 @@ export default async function AffiliatePage() {
           </h1>
           <p className="mt-4 text-center text-base leading-relaxed text-slate-700">
             HomeCheff Marketplace is de lokale buurtmarkt van HomeCheff, voor eten, oogst, creaties
-            en diensten dichtbij. Breng een gebruiker aan en ontvang 12 maanden lang een aandeel uit
-            de HomeCheff-platformopbrengst die via die gebruiker wordt gegenereerd.
+            en diensten dichtbij. Zolang jouw aangebrachte klant kwalificerende betaalde producten gebruikt,
+            ontvang je volgens de commissieregels van het betreffende product terugkerende commissie.
           </p>
           <div className="mt-6 space-y-3 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-700 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">De affiliatepool</h2>
@@ -193,8 +193,9 @@ export default async function AffiliatePage() {
               Ook verdienen op andere HomeCheff-platformen
             </h2>
             <p className="text-sm text-slate-700">
-              Gebruikt jouw aangebrachte lid later ook Growth of Studio? Dan kunnen ook daar in
-              aanmerking komende platformopbrengsten meetellen binnen dezelfde 12 maanden.
+              Gebruikt jouw aangebrachte lid later ook Growth of Studio? Dan blijft de oorspronkelijke
+              partner de ecosysteemherkomst. Commissie ontstaat alleen bij kwalificerende betaalde omzet
+              van dat product, volgens de regels van dat product.
             </p>
             <ul className="space-y-2 text-sm font-medium">
               <li>

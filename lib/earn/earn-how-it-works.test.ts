@@ -169,7 +169,7 @@ describe('how-it-works dedicated page', () => {
     assert.match(earnHowItWorksEn.studio.basisBody, /not on the full subscription list price/i);
     assert.match(
       earnHowItWorksNl.growth.planCards[0].recurring,
-      /kwalificerende betaalde abonnementsperiode, maximaal 12 maanden/,
+      /kwalificerende betaalde abonnementsperiode, zolang de klant kwalificerende betaalde omzet genereert/,
     );
   });
 });

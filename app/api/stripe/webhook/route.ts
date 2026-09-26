@@ -153,8 +153,7 @@ export async function POST(req: NextRequest) {
                 const finalPriceCents = parseInt(session.metadata?.final_price_cents || '0') || subscription.priceCents;
 
                 const now = new Date();
-                // Revenue share window is 12 months (365 days) from subscription start
-                // This means affiliate gets commission for 12 months on this subscription
+                // Historical snapshot only. Commission eligibility does not read this date.
                 const { ATTRIBUTION_WINDOW_DAYS } = await import('@/lib/affiliate-config');
                 const endsAt = new Date(now.getTime() + ATTRIBUTION_WINDOW_DAYS * 24 * 60 * 60 * 1000);
 

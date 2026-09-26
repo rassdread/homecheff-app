@@ -478,9 +478,9 @@ export default function AffiliatePageClient() {
                 <div>
                   <p className="font-semibold text-lg mb-2">Het Realistische Voordeel</p>
                   <p className="text-sm opacity-90 leading-relaxed">
-                    <strong>2 bedrijven per maand is haalbaar:</strong> Dat is 1 bedrijf per 2 weken. 
-Na 12 maanden heb je een blijvend passief inkomen van <strong>€1,750/maand</strong>
-                    (€1,400 abonnementen + €350 transacties) — zelfs als je stopt met nieuwe referrals!
+                    <strong>2 bedrijven per maand is een scenario:</strong> dat is 1 bedrijf per 2 weken.
+                    Na 12 maanden werven toont dit voorbeeld een illustratief commissiedeel van <strong>€1.750/maand</strong>
+                    (€1.400 abonnementen + €350 transacties), zolang die klanten kwalificerende betaalde omzet blijven genereren. Geen gegarandeerd inkomen.
                   </p>
                 </div>
               </div>

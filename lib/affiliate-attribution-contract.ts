@@ -42,5 +42,5 @@ export const AFFILIATE_ATTRIBUTION_CONTRACT = {
 } as const;
 
 export function affiliateAttributionPolicySummary(): string {
-  return `First-touch (${COOKIE_TTL_DAYS}d cookie, ${ATTRIBUTION_WINDOW_DAYS}d revenue window). Cross-device: not supported.`;
+  return `First-touch (${COOKIE_TTL_DAYS}d cookie). Stored revenue-window dates are audit history and do not stop commission. Cross-device: not supported.`;
 }

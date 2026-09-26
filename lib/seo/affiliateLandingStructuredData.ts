@@ -9,15 +9,15 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'How much commission can I earn?',
-            a: 'On orders the affiliate pool is at most 50% of the HomeCheff fee. If you are the only affiliate on the order, because you referred the buyer, the seller or both, you can receive the whole pool. If buyer and seller each have a different affiliate, each gets 25% of the fee. For referred business subscriptions, you earn 50% of the distributable margin after the HC reserve for up to 12 months per business, within the program rules.',
+            a: 'On orders the affiliate pool is at most 50% of the HomeCheff fee. If you are the only affiliate on the order, because you referred the buyer, the seller or both, you can receive the whole pool. If buyer and seller each have a different affiliate, each gets 25% of the fee. For referred business subscriptions, you earn 50% of the distributable margin after the HC reserve for each qualifying paid period, within the program rules.',
           },
           {
             q: 'How long does commission run?',
-            a: 'Transaction-based commissions follow active referred usage. The standard subscription model runs per referred business for up to twelve months while the subscription remains active, as described in your affiliate terms.',
+            a: 'Transaction-based commissions follow qualifying paid referred usage. Subscription commission continues for each qualifying paid period while a valid origin exists and the subscription remains paid, as described in your affiliate terms. No guaranteed income.',
           },
           {
-            q: 'What happens after 12 months?',
-            a: 'The standard affiliate window runs for up to twelve months per active referred business subscription. After that, the partnership may be extended or expanded through future incentives, performance milestones, and community goals, without a promise of lifetime payouts. HomeCheff may change rates or terms with notice as set out in your agreement.',
+            q: 'Does commission stop after one calendar year?',
+            a: 'A valid original partner relationship does not stop merely because a calendar year has passed. Commission is generated when qualifying paid revenue exists and that product’s commission rules say the revenue is eligible. HomeCheff may change rates or terms with notice as set out in your agreement. No guaranteed income.',
           },
           {
             q: 'Can partnership models expand over time?',
@@ -41,7 +41,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'What is recurring commission?',
-            a: 'For subscriptions you refer, you can receive a recurring share of the distributable margin after the HC reserve each month the business stays subscribed, for up to twelve months per referred business under the standard model, as defined in your affiliate terms.',
+            a: 'For subscriptions you refer, you can receive a recurring share of the distributable margin after the HC reserve each qualifying paid period the business stays subscribed, under that product’s commission rules. No guaranteed income.',
           },
           {
             q: 'How does Stripe Connect work here?',
@@ -63,15 +63,15 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'Hoeveel commissie kan ik verdienen?',
-            a: 'Bij bestellingen is de affiliatepool maximaal 50% van de HomeCheff-fee. Ben jij de enige affiliate op de bestelling, omdat jij de koper, de verkoper of allebei hebt aangebracht, dan kun je die hele pool krijgen. Hebben koper en verkoper elk een andere affiliate, dan krijgt ieder 25% van de fee. Voor zakelijke abonnementen is dat 50% van de deelbare marge na HC-reserve, tot twaalf maanden per bedrijf, volgens programmaregels.',
+            a: 'Bij bestellingen is de affiliatepool maximaal 50% van de HomeCheff-fee. Ben jij de enige affiliate op de bestelling, omdat jij de koper, de verkoper of allebei hebt aangebracht, dan kun je die hele pool krijgen. Hebben koper en verkoper elk een andere affiliate, dan krijgt ieder 25% van de fee. Voor zakelijke abonnementen is dat 50% van de deelbare marge na HC-reserve per kwalificerende betaalde periode, volgens programmaregels.',
           },
           {
             q: 'Hoe lang loopt commissie?',
-            a: 'Transactiecommissie volgt actief gebruik van door jou aangebrachte gebruikers. Het standaardmodel voor abonnementscommissie loopt per aangebracht bedrijf tot twaalf maanden zolang het abonnement actief is, zoals in je affiliatevoorwaarden staat.',
+            a: 'Transactiecommissie volgt kwalificerende betaalde omzet van door jou aangebrachte gebruikers. Abonnementscommissie loopt per kwalificerende betaalde periode zolang een geldige herkomst bestaat en het abonnement betaald blijft, zoals in je affiliatevoorwaarden staat. Geen gegarandeerd inkomen.',
           },
           {
-            q: 'Wat gebeurt er na 12 maanden?',
-            a: 'Het standaard affiliate-venster loopt tot twaalf maanden per actief aangebracht bedrijfsabonnement. Daarna kan de samenwerking verlengd of uitgebreid worden met toekomstige incentives, prestaties en community-doelen, zonder belofte op lifetime-uitbetalingen. Tarieven of voorwaarden kunnen wijzigen met kennisgeving zoals in je overeenkomst.',
+            q: 'Stopt commissie na één kalenderjaar?',
+            a: 'Een geldige oorspronkelijke partnerrelatie stopt niet alleen omdat er een kalenderjaar voorbij is. Commissie ontstaat wanneer er kwalificerende betaalde omzet is en de commissieregels van dat product die omzet als eligible zien. Tarieven of voorwaarden kunnen wijzigen met kennisgeving zoals in je overeenkomst. Geen gegarandeerd inkomen.',
           },
           {
             q: 'Kunnen samenwerkingen later uitbreiden?',
@@ -95,7 +95,7 @@ export function getAffiliateLandingFaqJsonLd(lang: 'nl' | 'en'): Record<string, 
           },
           {
             q: 'Hoe werkt terugkerende commissie?',
-            a: 'Voor door jou aangebrachte zakelijke abonnementen ontvang je binnen het standaardmodel maandelijks een deel van de deelbare marge na HC-reserve zolang het bedrijf actief geabonneerd blijft, tot twaalf maanden per bedrijf, zoals in je affiliatevoorwaarden staat.',
+            a: 'Zolang jouw aangebrachte klant kwalificerende betaalde producten gebruikt, ontvang je volgens de commissieregels van het betreffende product terugkerende commissie. Geen gegarandeerd inkomen.',
           },
           {
             q: 'Hoe werkt Stripe Connect hier?',

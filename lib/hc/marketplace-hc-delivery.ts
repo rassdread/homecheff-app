@@ -116,18 +116,18 @@ export async function accrueHcDeliveryPlatformFeeAffiliate(input: {
         userId: input.buyerUserId,
         type: 'USER_SIGNUP',
         startsAt: { lte: now },
-        endsAt: { gte: now },
       },
       select: { affiliateId: true },
+      orderBy: { createdAt: 'asc' },
     }),
     db.attribution.findFirst({
       where: {
         userId: input.providerUserId,
         type: 'USER_SIGNUP',
         startsAt: { lte: now },
-        endsAt: { gte: now },
       },
       select: { affiliateId: true },
+      orderBy: { createdAt: 'asc' },
     }),
   ]);
 

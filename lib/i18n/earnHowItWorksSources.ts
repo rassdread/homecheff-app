@@ -9,7 +9,6 @@ import {
   PUBLIC_DEFAULT_INDIVIDUAL_FEE_PERCENT,
   PUBLIC_DELIVERY_PLATFORM_FEE_PERCENT,
   PUBLIC_DIRECT_PERCENT_OF_ELIGIBLE,
-  PUBLIC_GROWTH_COMMISSION_MONTHS,
   PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT,
   PUBLIC_GROWTH_HC_CROSS_PLATFORM_CLAIM,
   PUBLIC_GROWTH_AFFILIATE_CAPACITY_HC,
@@ -20,10 +19,8 @@ import {
   PUBLIC_LEDGER_PENDING_DAYS,
   PUBLIC_MAIN_PERCENT_OF_ELIGIBLE,
   PUBLIC_MARKETPLACE_MIN_PAYOUT_EUR,
-  PUBLIC_MARKETPLACE_REVENUE_WINDOW_DAYS,
   PUBLIC_MARKETPLACE_SELLER_FEES,
   PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL,
-  PUBLIC_STUDIO_COMMISSION_MONTHS,
   PUBLIC_STUDIO_PLAN_ECONOMICS,
   PUBLIC_STUDIO_PLANS,
   PUBLIC_SUB_PERCENT_OF_ELIGIBLE,
@@ -81,7 +78,7 @@ function growthPlanCardsNl(): EarnPlanEconomicsCard[] {
     affiliateShare: `${formatPublicPercentNl(p.affiliatePercentOfBase)}% van de deelbare marge`,
     commission: `€${formatPublicEurNl(p.affiliateCommissionEur)}`,
     recurring:
-      'Je ontvangt deze commissie per kwalificerende betaalde abonnementsperiode, maximaal 12 maanden.',
+      'Je ontvangt deze commissie per kwalificerende betaalde abonnementsperiode, zolang de klant kwalificerende betaalde omzet genereert.',
   }));
 }
 
@@ -100,7 +97,7 @@ function growthPlanCardsEn(): EarnPlanEconomicsCard[] {
     affiliateShare: `${formatPublicPercentEn(p.affiliatePercentOfBase)}% of the distributable margin`,
     commission: `€${formatPublicEurEn(p.affiliateCommissionEur)}`,
     recurring:
-      'You receive this commission for each qualifying paid subscription period, for a maximum of 12 months.',
+      'You receive this commission for each qualifying paid subscription period, for as long as the customer generates qualifying paid revenue.',
   }));
 }
 
@@ -116,7 +113,7 @@ function studioPlanCardsNl(): EarnPlanEconomicsCard[] {
     availableMarginPct: `${formatPublicPercentNl(p.distributableMarginPercentOfGross)}% van de catalogusprijs`,
     affiliateShare: `${formatPublicPercentNl(p.affiliatePercentOfResidual)}% van de beschikbare commissiemarge`,
     commission: `€${formatPublicEurNl(p.affiliateCommissionEur)} per volledig betaalde abonnementsperiode`,
-    recurring: `Zolang de klant een betaald abonnement houdt binnen het venster van ${p.commissionMonths} maanden, ontvang je dit bedrag per qualifying periode.`,
+    recurring: `Zolang de klant een kwalificerend betaald abonnement houdt, ontvang je dit bedrag per qualifying periode.`,
   }));
 }
 
@@ -132,7 +129,7 @@ function studioPlanCardsEn(): EarnPlanEconomicsCard[] {
     availableMarginPct: `${formatPublicPercentEn(p.distributableMarginPercentOfGross)}% of the catalogue price`,
     affiliateShare: `${formatPublicPercentEn(p.affiliatePercentOfResidual)}% of the available commissionable margin`,
     commission: `€${formatPublicEurEn(p.affiliateCommissionEur)} per fully paid subscription period`,
-    recurring: `For as long as the customer keeps a paid subscription within the ${p.commissionMonths}-month window, you receive this amount on each qualifying period.`,
+    recurring: `For as long as the customer keeps a qualifying paid subscription, you receive this amount on each qualifying period.`,
   }));
 }
 
@@ -231,7 +228,7 @@ export const earnHowItWorksNl = {
     flowShare: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliateaandeel`,
     rewardDirect: `Directe affiliate: ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% van de deelbare marge (na aftrek van de HC-face-reserve van de eligible Growth-abonnementsomzet ex. btw)`,
     rewardMainSub: `MAIN/SUB waar van toepassing: Partner ${PUBLIC_SUB_PERCENT_OF_ELIGIBLE}% · MAIN ${PUBLIC_MAIN_PERCENT_OF_ELIGIBLE}% van dezelfde deelbare marge`,
-    duration: `Looptijd: tot ${PUBLIC_GROWTH_COMMISSION_MONTHS} maanden volgens het geldende commissievenster`,
+    duration: `Looptijd: zolang de klant kwalificerende betaalde omzet genereert`,
     packs:
       'Credit packs vallen niet onder affiliate-commissie.',
     planCards: growthPlanCardsNl(),
@@ -261,7 +258,7 @@ export const earnHowItWorksNl = {
       '“50%” betekent dus niet automatisch de helft van de catalogusprijs (bijvoorbeeld niet automatisch €7,50 op Creator).',
     annual: `Jaarlijks (catalogus): €${formatPublicEurNl(PUBLIC_STUDIO_PLANS[0].yearlyEur)} · €${formatPublicEurNl(PUBLIC_STUDIO_PLANS[1].yearlyEur)} · €${formatPublicEurNl(PUBLIC_STUDIO_PLANS[2].yearlyEur)}: commissie volgt de betaalde factuurperiode binnen het venster.`,
     reward: `Voor Studio ontvang je ${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% van de beschikbare commissiemarge (eligible residuale platformopbrengst).`,
-    duration: `Looptijd: tot ${PUBLIC_STUDIO_COMMISSION_MONTHS} maanden`,
+    duration: `Looptijd: zolang het kwalificerende betaalde abonnement doorloopt`,
     flowPayment: 'Studio-betaling (catalogusprijs)',
     flowResidual: 'Beschikbare commissiemarge (residual)',
     flowShare: `${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% affiliateaandeel`,
@@ -296,9 +293,9 @@ export const earnHowItWorksNl = {
     lead:
       'De periode waarin een nieuwe gebruiker aan jouw link kan worden gekoppeld is niet hetzelfde als de periode waarin je na een geldige koppeling inkomsten kunt ontvangen.',
     cookie: `Eerste geldige referral / first-touch cookie: ${PUBLIC_ATTRIBUTION_COOKIE_DAYS} dagen`,
-    marketplace: `Marketplace-verdiensten na geldige koppeling: tot ${PUBLIC_MARKETPLACE_REVENUE_WINDOW_DAYS} dagen`,
-    growth: `Growth: tot ${PUBLIC_GROWTH_COMMISSION_MONTHS} maanden`,
-    studio: `Studio: tot ${PUBLIC_STUDIO_COMMISSION_MONTHS} maanden`,
+    marketplace: `Marketplace-verdiensten na geldige koppeling: zolang de klant kwalificerende betaalde omzet genereert`,
+    growth: `Growth: zolang de kwalificerende klantrelatie betaalde omzet genereert`,
+    studio: `Studio: zolang het kwalificerende betaalde abonnement doorloopt`,
     notLifetime: 'Geen lifetime-commissie. De cookie duurt niet 365 dagen.',
   },
   payout: {
@@ -324,7 +321,7 @@ export const earnHowItWorksNl = {
         promote: 'Kopers / verkopers / eligible Marketplace-activiteit',
         basis: 'HomeCheff-platformfee',
         reward: `Tot ${PUBLIC_AFFILIATE_POOL_MAX_PERCENT_OF_FEE}%`,
-        duration: `${PUBLIC_MARKETPLACE_REVENUE_WINDOW_DAYS} dagen`,
+        duration: `Zolang kwalificerende betaalde omzet bestaat`,
       },
       {
         platform: 'Bezorgen',
@@ -338,14 +335,14 @@ export const earnHowItWorksNl = {
         promote: 'Betaald abonnement',
         basis: 'Deelbare marge = restant na HC-face-reserve van abonnementsomzet ex. btw',
         reward: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% van die marge`,
-        duration: `${PUBLIC_GROWTH_COMMISSION_MONTHS} maanden`,
+        duration: `Zolang de kwalificerende klantrelatie betaalde omzet genereert`,
       },
       {
         platform: 'Studio',
         promote: 'Abonnement / eligible pack',
         basis: 'Commissiemarge = eligible residuale platformopbrengst',
         reward: `${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% van die marge`,
-        duration: `${PUBLIC_STUDIO_COMMISSION_MONTHS} maanden`,
+        duration: `Zolang het kwalificerende betaalde abonnement doorloopt`,
       },
     ],
   },
@@ -459,7 +456,7 @@ export const earnHowItWorksEn = {
     flowShare: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% affiliate share`,
     rewardDirect: `Direct affiliate: ${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% of the distributable margin (after deducting the HC face reserve from eligible Growth subscription revenue ex VAT)`,
     rewardMainSub: `MAIN/SUB where applicable: Partner ${PUBLIC_SUB_PERCENT_OF_ELIGIBLE}% · MAIN ${PUBLIC_MAIN_PERCENT_OF_ELIGIBLE}% of the same distributable margin`,
-    duration: `Duration: up to ${PUBLIC_GROWTH_COMMISSION_MONTHS} months under the certified commission window`,
+    duration: `Duration: for as long as the customer generates qualifying paid revenue`,
     packs:
       'Credit packs are not commissionable.',
     planCards: growthPlanCardsEn(),
@@ -489,7 +486,7 @@ export const earnHowItWorksEn = {
       '“50%” therefore does not automatically mean half the catalogue price (e.g. not automatically €7.50 on Creator).',
     annual: `Annual (catalogue): €${formatPublicEurEn(PUBLIC_STUDIO_PLANS[0].yearlyEur)} · €${formatPublicEurEn(PUBLIC_STUDIO_PLANS[1].yearlyEur)} · €${formatPublicEurEn(PUBLIC_STUDIO_PLANS[2].yearlyEur)}, commission follows the paid invoice period within the window.`,
     reward: `For Studio you receive ${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% of the available commissionable margin (eligible residual platform revenue).`,
-    duration: `Duration: up to ${PUBLIC_STUDIO_COMMISSION_MONTHS} months`,
+    duration: `Duration: for as long as the qualifying paid subscription continues`,
     flowPayment: 'Studio payment (catalogue price)',
     flowResidual: 'Available commissionable margin (residual)',
     flowShare: `${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% affiliate share`,
@@ -524,9 +521,9 @@ export const earnHowItWorksEn = {
     lead:
       'The period in which a new user can be linked to your referral is not the same as the period in which you can earn after a valid link.',
     cookie: `Initial referral / first-touch cookie: ${PUBLIC_ATTRIBUTION_COOKIE_DAYS} days`,
-    marketplace: `Marketplace earnings after a valid link: up to ${PUBLIC_MARKETPLACE_REVENUE_WINDOW_DAYS} days`,
-    growth: `Growth: up to ${PUBLIC_GROWTH_COMMISSION_MONTHS} months`,
-    studio: `Studio: up to ${PUBLIC_STUDIO_COMMISSION_MONTHS} months`,
+    marketplace: `Marketplace earnings after a valid link: for as long as the customer generates qualifying paid revenue`,
+    growth: `Growth: for as long as the qualifying customer relationship generates paid revenue`,
+    studio: `Studio: for as long as the qualifying paid subscription continues`,
     notLifetime: 'No lifetime commission. The cookie does not last 365 days.',
   },
   payout: {
@@ -552,7 +549,7 @@ export const earnHowItWorksEn = {
         promote: 'Buyers / sellers / eligible Marketplace activity',
         basis: 'HomeCheff platform fee',
         reward: `Up to ${PUBLIC_AFFILIATE_POOL_MAX_PERCENT_OF_FEE}%`,
-        duration: `${PUBLIC_MARKETPLACE_REVENUE_WINDOW_DAYS} days`,
+        duration: `While qualifying paid revenue exists`,
       },
       {
         platform: 'Delivery',
@@ -566,14 +563,14 @@ export const earnHowItWorksEn = {
         promote: 'Paid subscription',
         basis: 'Distributable margin = residual after HC face reserve from subscription revenue ex VAT',
         reward: `${PUBLIC_GROWTH_DIRECT_AFFILIATE_PERCENT}% of that margin`,
-        duration: `${PUBLIC_GROWTH_COMMISSION_MONTHS} months`,
+        duration: `For as long as the qualifying customer relationship generates paid revenue`,
       },
       {
         platform: 'Studio',
         promote: 'Subscription / eligible pack',
         basis: 'Commissionable margin = eligible residual platform revenue',
         reward: `${PUBLIC_STUDIO_AFFILIATE_PERCENT_OF_ELIGIBLE_RESIDUAL}% of that margin`,
-        duration: `${PUBLIC_STUDIO_COMMISSION_MONTHS} months`,
+        duration: `For as long as the qualifying paid subscription continues`,
       },
     ],
   },

@@ -13,7 +13,6 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAttribution } from "@/lib/affiliate-attribution";
 import { AttributionType, AttributionSource } from "@prisma/client";
-import { ATTRIBUTION_WINDOW_DAYS } from "@/lib/affiliate-config";
 
 export const dynamic = 'force-dynamic';
 
@@ -100,12 +99,9 @@ export async function POST(req: NextRequest) {
     const existingAttribution = await prisma.attribution.findFirst({
       where: {
         userId,
-        affiliateId,
         type: type as AttributionType,
-        endsAt: {
-          gt: new Date(), // Still active
-        },
       },
+      orderBy: { createdAt: 'asc' },
     });
 
     if (existingAttribution) {

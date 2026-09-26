@@ -532,7 +532,7 @@ model BusinessSubscription {
   promoCodeId          String?
   attributionId        String?
   startsAt             DateTime
-  endsAt               DateTime // Revenue share window (startsAt + 365d)
+  endsAt               DateTime // Retired 365-day snapshot. Not a commission stop.
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   promoCode            PromoCode?         @relation(fields: [promoCodeId], references: [id])

@@ -189,17 +189,15 @@ export const getReferralCookieClient = getReferralCodeFromCookie;
 
 /**
  * Resolve attribution id for BusinessSubscription / Stripe checkout metadata.
- * Uses existing signup attribution (ref link or promo) within revenue window.
+ * The first signup attribution stays attached. Its stored endsAt is not a stop.
  */
 export async function resolveSubscriptionAttributionId(userId: string): Promise<string | null> {
-  const now = new Date();
   const attribution = await prisma.attribution.findFirst({
     where: {
       userId,
       type: {
         in: [AttributionType.USER_SIGNUP, AttributionType.BUSINESS_SIGNUP],
       },
-      endsAt: { gt: now },
     },
     orderBy: { createdAt: 'asc' },
     select: { id: true },
