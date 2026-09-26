@@ -15,6 +15,7 @@ import {
 } from '@/lib/affiliate/goal-scenarios';
 import { growthStarterShareCents } from '@/lib/affiliate/portfolio-scenario';
 import { NETWORK_CAPABILITY } from '@/lib/affiliate/network-capability';
+import { calculatorFocusForFit } from '@/lib/affiliate/network-fit';
 
 const root = '/Users/sergioarrias/HomeCheffProjects/homecheff-app';
 
@@ -135,7 +136,8 @@ describe('affiliate income goals', () => {
     assert.match(note, /directe SUB-affiliates/);
     assert.match(note, /geen volgende laag/);
     assert.match(note, /nieuwe affiliates/);
-    assert.match(note, /geselecteerde partners/);
+    assert.match(note, /MAIN-rechten bij HomeCheff aanvragen/);
+    assert.match(note, /HomeCheff beoordeelt de aanvraag/);
     assert.match(note, /Bestaande rechten binnen Vroege instap blijven gelden/);
     const page = [
       readFileSync(`${root}/components/affiliate/AffiliateBusinessStory.tsx`, 'utf8'),
@@ -146,5 +148,18 @@ describe('affiliate income goals', () => {
     assert.equal(/één sub-affiliate|one sub-affiliate|keurt je niet goed|opent het land niet|geen goedkeuring|geen activering/i.test(page), false);
     assert.match(page, /Geef mijn interesse door/);
     assert.match(page, /HomeCheff is al actief in/);
+    assert.match(note, /beoordeelt de aanvraag/);
+    assert.equal(calculatorFocusForFit(['business']), 'growth');
+    assert.equal(calculatorFocusForFit(['creators']), 'studio');
+    assert.equal(calculatorFocusForFit(['makers']), 'marketplace');
+    assert.equal(calculatorFocusForFit(['buyers']), null);
+    assert.equal(calculatorFocusForFit(['mixed']), 'multi');
+    assert.equal(calculatorFocusForFit(['buyers', 'business']), 'multi');
+    assert.equal(calculatorFocusForFit(['partners']), null);
+    const fit = readFileSync(`${root}/components/affiliate/AffiliateNetworkFit.tsx`, 'utf8');
+    assert.match(fit, /Wie ken jij/);
+    assert.match(fit, /Begin bij wie je al kent/);
+    assert.equal(/werkt voor iedereen|Dit wordt je inkomen/i.test(fit), false);
+    assert.equal(/href=.*main/i.test(fit), false);
   });
 });

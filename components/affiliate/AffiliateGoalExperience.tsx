@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   DEFAULT_PORTFOLIO_FOCUS,
   DEFAULT_SCENARIO_LEVEL,
@@ -105,9 +105,13 @@ function NumberField({
 export default function AffiliateGoalExperience({
   lang,
   showNetwork = true,
+  suggestedFocus = null,
+  suggestedNonce = 0,
 }: {
   lang: 'nl' | 'en';
   showNetwork?: boolean;
+  suggestedFocus?: PortfolioFocus | null;
+  suggestedNonce?: number;
 }) {
   const en = lang === 'en';
   const [goalEur, setGoalEur] = useState<number>(10000);
@@ -143,6 +147,14 @@ export default function AffiliateGoalExperience({
     [goalEur, assumptions],
   );
   const starterOnly = starterOnlyCustomersForGoal(goalEur);
+
+  useEffect(() => {
+    if (!suggestedFocus || suggestedNonce === 0) return;
+    setLevel(DEFAULT_SCENARIO_LEVEL);
+    setFocus(suggestedFocus);
+    setEdited(false);
+    setAssumptions(assumptionsFor(DEFAULT_SCENARIO_LEVEL, suggestedFocus));
+  }, [suggestedFocus, suggestedNonce]);
 
   function selectLevel(next: ScenarioLevel) {
     setLevel(next);

@@ -37,7 +37,7 @@ export function affiliatePropositionFaqs(lang: 'nl' | 'en'): PropositionFaq[] {
       },
       {
         q: 'Can I invite other partners?',
-        a: 'During the first growth phase, affiliates in Early access can invite direct sub-affiliates. There is no fixed cap on that direct layer. They each build their own customer portfolio. You receive the MAIN share on their qualifying revenue. A SUB cannot invite another layer. Recruiting is not required. This option belongs to the first growth phase and does not have to stay open by default for new affiliates later. HomeCheff can then give selected partners MAIN rights. Existing Early access rights continue to apply.',
+        a: 'During the first growth phase, affiliates in Early access can invite direct sub-affiliates. There is no fixed cap on that direct layer. They each build their own customer portfolio. You receive the MAIN share on their qualifying revenue. A SUB cannot invite another layer. Recruiting is not required. Once there is enough coverage, this option will no longer be offered to new affiliates by default. You can then apply to HomeCheff for MAIN rights. HomeCheff reviews the application and can give selected applicants the ability to take on SUB affiliates. Existing Early access rights continue to apply.',
       },
       {
         q: 'Can I tell HomeCheff about another country?',
@@ -84,7 +84,7 @@ export function affiliatePropositionFaqs(lang: 'nl' | 'en'): PropositionFaq[] {
       },
       {
         q: 'Kan ik andere partners uitnodigen?',
-        a: 'Tijdens de eerste groeifase kunnen affiliates binnen Vroege instap directe sub-affiliates uitnodigen. Er is geen vaste limiet op die directe laag. Zij bouwen ieder hun eigen klantenportefeuille. Jij ontvangt het MAIN-aandeel op hun kwalificerende omzet. Een SUB kan zelf geen volgende laag uitnodigen. Werven is niet verplicht. Deze mogelijkheid hoort bij de eerste groeifase en hoeft later niet standaard open te staan voor nieuwe affiliates. HomeCheff kan dan geselecteerde partners MAIN-rechten geven. Bestaande rechten binnen Vroege instap blijven gelden.',
+        a: 'Tijdens de eerste groeifase kunnen affiliates binnen Vroege instap directe sub-affiliates uitnodigen. Er is geen vaste limiet op die directe laag. Zij bouwen ieder hun eigen klantenportefeuille. Jij ontvangt het MAIN-aandeel op hun kwalificerende omzet. Een SUB kan zelf geen volgende laag uitnodigen. Werven is niet verplicht. Zodra er voldoende dekking is, wordt deze mogelijkheid niet meer standaard aangeboden aan nieuwe affiliates. Wil je daarna een eigen partnernetwerk opbouwen, dan kun je MAIN-rechten bij HomeCheff aanvragen. HomeCheff beoordeelt de aanvraag en kan je vervolgens de mogelijkheid geven om SUB-affiliates aan te nemen. Bestaande rechten binnen Vroege instap blijven gelden.',
       },
       {
         q: 'Kan ik HomeCheff wijzen op een ander land?',

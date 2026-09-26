@@ -3,6 +3,8 @@
 import dynamic from 'next/dynamic';
 import { useId, useState } from 'react';
 import { buildAffiliateCommissionCatalog, type CatalogRow } from '@/lib/affiliate/commission-catalog';
+import type { PortfolioFocus } from '@/lib/affiliate/goal-scenarios';
+import AffiliateNetworkFit from '@/components/affiliate/AffiliateNetworkFit';
 import { NETWORK_CAPABILITY } from '@/lib/affiliate/network-capability';
 import { growthStarterShareCents } from '@/lib/affiliate/portfolio-scenario';
 import { affiliatePropositionFaqs } from '@/lib/affiliate/proposition-faqs';
@@ -103,6 +105,8 @@ export default function AffiliateBusinessStory({
     promo: showPromo,
   });
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [fitFocus, setFitFocus] = useState<PortfolioFocus | null>(null);
+  const [fitNonce, setFitNonce] = useState(0);
   const catalogPlatform =
     focusProduct === 'growth' ? 'Growth' : focusProduct === 'studio' ? 'Studio' : focusProduct === 'marketplace' ? 'Marketplace' : 'all';
 
@@ -144,6 +148,16 @@ export default function AffiliateBusinessStory({
           ))}
         </ol>
       </section>
+
+      <AffiliateNetworkFit
+        lang={lang}
+        showNetwork={showNetwork}
+        onExplore={(focus) => {
+          if (!focus) return;
+          setFitFocus(focus);
+          setFitNonce((value) => value + 1);
+        }}
+      />
 
       <section id="commissies" aria-labelledby="affiliate-earn" className="scroll-mt-24">
         <h2 id="affiliate-earn" className="text-xl font-semibold text-slate-900">
@@ -213,7 +227,12 @@ export default function AffiliateBusinessStory({
             : 'Van je eerste klant tot een portefeuille die over meerdere HomeCheff-diensten doorloopt. Dit zijn doelen die je kunt verkennen, geen beloofde inkomsten.'}
         </p>
         <div className="mt-5">
-          <AffiliateGoalExperience lang={lang} showNetwork={showNetwork} />
+          <AffiliateGoalExperience
+            lang={lang}
+            showNetwork={showNetwork}
+            suggestedFocus={fitFocus}
+            suggestedNonce={fitNonce}
+          />
         </div>
       </section>
 
