@@ -55,11 +55,11 @@ export const verdienHubNl = {
       "share": "Deel met een bezorgbedrijf"
     },
     "affiliate": {
-      "title": "Affiliate",
-      "proposition": "Bouw je eigen klantenportefeuille op. Breng klanten naar HomeCheff en bouw aan terugkerende commissie zolang jouw klanten kwalificerend actief blijven.",
-      "forWhom": "Voor wie een eigen commerciële activiteit wil opbouwen, ook een paar uur per week naast een baan.",
-      "howStart": "Dit is de affiliate-route, niet het verdienmodel voor verkopers of bezorgers.",
-      "cta": "Ontdek de affiliate-mogelijkheden",
+      "title": "Affiliate / commerciële partner",
+      "proposition": "Breng mensen en bedrijven naar HomeCheff en verdien mee wanneer zij gebruikmaken van onze diensten.",
+      "forWhom": "Voor wie een eigen commerciële activiteit wil opbouwen, ook een paar uur per week naast ander werk.",
+      "howStart": "Dit is de affiliate-route, niet het verdienmodel voor verkopers of bezorgers en geen dienstverband.",
+      "cta": "Bekijk hoe je met HomeCheff kunt verdienen",
       "share": "Deel HomeCheff"
     },
     "affiliateCompany": {
@@ -179,11 +179,11 @@ export const verdienHubEn = {
       "share": "Share with a delivery company"
     },
     "affiliate": {
-      "title": "Affiliate",
-      "proposition": "Build your own customer portfolio. Bring customers to HomeCheff and build recurring commission for as long as those customers stay qualifying.",
-      "forWhom": "For people who want their own commercial activity, including a few hours a week alongside a job.",
-      "howStart": "This is the affiliate path, not the earning model for sellers or couriers.",
-      "cta": "Explore the affiliate opportunity",
+      "title": "Affiliate / commercial partner",
+      "proposition": "Bring people and businesses to HomeCheff and earn when they use our services.",
+      "forWhom": "For people who want their own commercial activity, including a few hours a week alongside other work.",
+      "howStart": "This is the affiliate path, not the earning model for sellers or couriers, and not employment.",
+      "cta": "See how you can earn with HomeCheff",
       "share": "Share HomeCheff"
     },
     "affiliateCompany": {

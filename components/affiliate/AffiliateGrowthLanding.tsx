@@ -25,6 +25,7 @@ function armAffiliateJoinIntent() {
 }
 
 type Props = {
+  mode?: 'full' | 'signup';
   session: Session | null;
   isMainAffiliate: boolean;
   userData: UserCard | null;
@@ -42,6 +43,7 @@ type Props = {
 const FAQ_COUNT = 13;
 
 export default function AffiliateGrowthLanding({
+  mode = 'full',
   session,
   isMainAffiliate,
   userData,
@@ -102,8 +104,10 @@ export default function AffiliateGrowthLanding({
   ]);
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 sm:pb-10">
-      <div className="mx-auto max-w-3xl px-4 pb-6 pt-1 sm:px-5">
+    <div className={mode === 'full' ? 'min-h-screen bg-slate-50 pb-24 sm:pb-10' : ''}>
+      <div className={mode === 'full' ? 'mx-auto max-w-3xl px-4 pb-6 pt-1 sm:px-5' : ''}>
+        {mode === 'full' ? (
+        <>
         <AppBackBar
           fallbackUrl="/werken-bij"
           label={t('navigation.back')}
@@ -353,9 +357,10 @@ export default function AffiliateGrowthLanding({
             </p>
           </div>
         </details>
+        </>
+        ) : null}
 
-        {/* Signup / account — before FAQ for faster conversion */}
-        <div ref={signupRef} id="affiliate-signup" className="scroll-mt-20 mt-7 sm:mt-8">
+        <div ref={signupRef} id={mode === 'full' ? 'affiliate-signup' : undefined} className={mode === 'full' ? 'scroll-mt-20 mt-7 sm:mt-8' : ''}>
           {!session?.user ? null : isMainAffiliate ? (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-5 text-center">
               <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-700" aria-hidden />
@@ -472,6 +477,8 @@ export default function AffiliateGrowthLanding({
           )}
         </div>
 
+        {mode === 'full' ? (
+        <>
         {/* FAQ */}
         <section className="mt-7 sm:mt-8" aria-labelledby="aff-faq">
           <h2 id="aff-faq" className="text-lg font-bold text-slate-900 sm:text-xl">
@@ -533,10 +540,12 @@ export default function AffiliateGrowthLanding({
             </div>
           </div>
         ) : null}
+        </>
+        ) : null}
       </div>
 
       {/* Sticky mobile CTA */}
-      {session?.user && !isMainAffiliate ? (
+      {mode === 'full' && session?.user && !isMainAffiliate ? (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-2.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-6px_24px_rgba(0,0,0,0.06)] backdrop-blur sm:hidden">
           <button
             type="button"

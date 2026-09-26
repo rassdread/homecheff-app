@@ -22,6 +22,7 @@ import {
 } from '@/lib/affiliate/network-capability';
 import {
   alongsideWorkJourney,
+  alongsideWorkJourneyStages,
   growthStarterCustomersForMonthlyTarget,
   growthStarterShareCents,
 } from '@/lib/affiliate/portfolio-scenario';
@@ -195,7 +196,7 @@ describe('affiliate business v2', () => {
     const sources = readFileSync(`${root}/lib/i18n/verdienHubSources.ts`, 'utf8');
     assert.equal(hub.includes('copy.portfolio'), false);
     assert.equal(sources.includes('"Bouw je eigen klantenportefeuille"'), false);
-    assert.match(sources, /Ontdek de affiliate-mogelijkheden/);
+    assert.match(sources, /Bekijk hoe je met HomeCheff kunt verdienen/);
     const landing = readFileSync(
       `${root}/components/affiliate/AffiliateGrowthLanding.tsx`,
       'utf8',
@@ -204,6 +205,55 @@ describe('affiliate business v2', () => {
     assert.equal(landing.includes('€1,80'), false);
     const redirect = readFileSync(`${root}/next.config.mjs`, 'utf8');
     assert.equal(redirect.includes("source: '/aviliate'") && redirect.includes("destination: '/affiliate'"), true);
+  });
+
+  it('puts the public story behind named disclosures and keeps catalog amounts', () => {
+    const story = readFileSync(`${root}/components/affiliate/AffiliateBusinessStory.tsx`, 'utf8');
+    const page = readFileSync(`${root}/app/affiliate/page.tsx`, 'utf8');
+    for (const label of [
+      'Bekijk alle producten en commissies',
+      'Bereken mijn mogelijke portefeuille',
+      'Bekijk voorbeelden van €3.000, €10.000 en €20.000 per maand',
+      'Zo werkt verdienen over meerdere HomeCheff-diensten',
+      'Bekijk de promotiemogelijkheden',
+      'Bekijk hoe het partnernetwerk werkt',
+      'Ik wil HomeCheff in mijn land opbouwen',
+    ]) {
+      assert.match(story, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    }
+    assert.equal(/Je krijgt 50% van het Growth-abonnement/.test(story), false);
+    assert.equal(/12 maanden|365 dagen/.test(story + page), false);
+    assert.match(page, /Bouw je eigen klantenportefeuille/);
+    assert.match(page, /focusProduct/);
+    const catalog = buildAffiliateCommissionCatalog();
+    const cents = (id: string) => catalog.find((row) => row.id === id)?.affiliateCents;
+    assert.equal(cents('growth-starter'), 1575);
+    assert.equal(cents('growth-pro'), 2550);
+    assert.equal(cents('growth-business'), 4950);
+    assert.equal(cents('growth-enterprise'), 10950);
+    assert.equal(cents('marketplace-plan-basic'), 1950);
+    assert.equal(cents('marketplace-plan-pro'), 4950);
+    assert.equal(cents('marketplace-plan-premium'), 9950);
+    assert.equal(cents('studio-creator'), 170);
+    assert.equal(cents('studio-pro'), 311);
+    assert.equal(cents('studio-studio'), 822);
+    const pack = (priceCents: number) =>
+      catalog.find((row) => row.kind === 'purchase' && row.platform === 'Studio' && row.customerPriceCents === priceCents)
+        ?.affiliateCents;
+    assert.equal(pack(499), 72);
+    assert.equal(pack(999), 156);
+    assert.equal(pack(1999), 325);
+    assert.equal(pack(4999), 831);
+    assert.equal(cents('marketplace-buyer'), 600);
+    assert.equal(cents('delivery-fee'), 60);
+    const stages = alongsideWorkJourneyStages();
+    const byMonth = new Map(stages.map((stage) => [stage.months, stage.ownCents]));
+    assert.equal(byMonth.get(1), 3150);
+    assert.equal(byMonth.get(3), 9450);
+    assert.equal(byMonth.get(6), 19410);
+    assert.equal(byMonth.get(12), 38820);
+    assert.equal(byMonth.get(24), 77640);
+    assert.equal(byMonth.get(36), 116460);
   });
 
   it('classifies the live network and does not change economics flags', () => {

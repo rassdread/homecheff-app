@@ -312,7 +312,7 @@ export const earnHowItWorksNl = {
     marketplace: `Marketplace-verdiensten na geldige koppeling: zolang de klant kwalificerende betaalde omzet genereert`,
     growth: `Growth: zolang de kwalificerende klantrelatie betaalde omzet genereert`,
     studio: `Studio: zolang het kwalificerende betaalde abonnement doorloopt`,
-    notLifetime: 'Geen lifetime-commissie. De cookie duurt niet 365 dagen.',
+    notLifetime: 'Geen lifetime-commissie. De koppelcookie is korter dan de verdienperiode.',
   },
   payout: {
     title: 'Uitbetaling',
@@ -556,7 +556,7 @@ export const earnHowItWorksEn = {
     marketplace: `Marketplace earnings after a valid link: for as long as the customer generates qualifying paid revenue`,
     growth: `Growth: for as long as the qualifying customer relationship generates paid revenue`,
     studio: `Studio: for as long as the qualifying paid subscription continues`,
-    notLifetime: 'No lifetime commission. The cookie does not last 365 days.',
+    notLifetime: 'No lifetime commission. The attribution cookie is shorter than the earning period.',
   },
   payout: {
     title: 'Payout',

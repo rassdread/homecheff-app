@@ -1,5 +1,6 @@
 import AffiliatePageClient from './page-client';
 import AffiliateBusinessStory from '@/components/affiliate/AffiliateBusinessStory';
+import AffiliateHeroCtas from '@/components/affiliate/AffiliateHeroCtas';
 import { loadPublicPresentation } from '@/lib/affiliate/program-store';
 import AcquisitionLandingBeacon from '@/components/acquisition/AcquisitionLandingBeacon';
 import type { Metadata } from 'next';
@@ -105,9 +106,19 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function AffiliatePage() {
+export default async function AffiliatePage({
+  searchParams,
+}: {
+  searchParams?: { product?: string };
+}) {
   const lang = await getCurrentLanguage();
   const en = lang === 'en';
+  const focusProduct =
+    searchParams?.product === 'growth' ||
+    searchParams?.product === 'studio' ||
+    searchParams?.product === 'marketplace'
+      ? searchParams.product
+      : null;
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -148,71 +159,38 @@ export default async function AffiliatePage() {
           <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             HomeCheff Affiliate · Marketplace
           </p>
-          {presentation ? (
-            <div className="mx-auto mt-4 max-w-2xl rounded-2xl border border-emerald-200 bg-white p-4 text-left">
-              {presentation.copy.badge ? (
-                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
-                  {presentation.copy.badge}
-                </p>
-              ) : null}
-              <p className="mt-1 text-sm leading-relaxed text-slate-800">{presentation.copy.lead}</p>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">{presentation.copy.follow}</p>
-            </div>
+          {presentation?.copy.badge ? (
+            <p className="mt-4 text-center text-xs font-semibold uppercase tracking-wide text-emerald-800">
+              {presentation.copy.badge}
+            </p>
           ) : null}
-          <h1 className="mt-3 text-center text-3xl font-semibold tracking-tight text-slate-900">
+          <h1 className="mt-3 text-center text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
             {en ? 'Build your own customer portfolio' : 'Bouw je eigen klantenportefeuille'}
           </h1>
-          <p className="mt-4 text-center text-base leading-relaxed text-slate-700">
+          <p className="mx-auto mt-4 max-w-xl text-center text-base leading-relaxed text-slate-700">
             {en
-              ? 'You are not only chasing one-off sales. You build a customer portfolio inside HomeCheff. For as long as the customers you referred keep using qualifying paid products, you can keep receiving recurring commission under that product’s rules. No guaranteed income.'
-              : 'Je bouwt niet alleen aan losse verkopen, maar aan je eigen klantenportefeuille binnen HomeCheff. Zolang jouw aangebrachte klanten kwalificerende betaalde producten blijven gebruiken, kun je volgens de regels van dat product terugkerende commissie blijven ontvangen. Geen gegarandeerd inkomen.'}
+              ? 'Bring people and businesses to HomeCheff and earn when they use our services.'
+              : 'Breng mensen en bedrijven naar HomeCheff en verdien mee wanneer zij gebruikmaken van onze diensten.'}
           </p>
-          <AffiliateBusinessStory
-            lang={en ? 'en' : 'nl'}
-            programName={presentation?.programName}
-            showEarly={early}
-            showNetwork={presentation ? presentation.publicMain || presentation.publicNetwork : true}
-            showPromo={presentation ? presentation.publicPromo : true}
-          />
-          <div className="mt-6 space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6">
-            <h2 className="text-lg font-semibold text-emerald-950">
-              {en ? 'Earn on other HomeCheff products too' : 'Ook verdienen op andere HomeCheff-producten'}
-            </h2>
-            <p className="text-sm text-slate-700">
-              {en
-                ? 'If a customer you referred later uses Growth or Studio, the original affiliate stays the ecosystem origin. Commission arises only on qualifying paid revenue of that product, under that product’s rules.'
-                : 'Gebruikt een klant die jij hebt aangebracht later ook Growth of Studio? Dan blijft de oorspronkelijke affiliate de ecosysteemherkomst. Commissie ontstaat alleen bij kwalificerende betaalde omzet van dat product, volgens de regels van dat product.'}
-            </p>
-            <ul className="space-y-2 text-sm font-medium">
-              <li>
-                <a
-                  href="https://growth.homecheff.eu/affiliate"
-                  className="text-emerald-900 underline-offset-2 hover:underline"
-                >
-                  {en ? 'Earn as an affiliate with HomeCheff Growth' : 'Affiliate verdienen met HomeCheff Growth'}
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://studio.homecheff.eu/affiliate"
-                  className="text-emerald-900 underline-offset-2 hover:underline"
-                >
-                  {en ? 'Earn as an affiliate with HomeCheff Studio' : 'Affiliate verdienen met HomeCheff Studio'}
-                </a>
-              </li>
-            </ul>
-          </div>
-          <p className="mt-6 text-center text-sm">
-            <a
-              href="/affiliate/dashboard"
-              className="font-semibold text-emerald-800 underline-offset-2 hover:underline"
-            >
-              {en ? 'Open my affiliate dashboard' : 'Bekijk mijn affiliate-dashboard'}
-            </a>
+          <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-slate-600">
+            {en
+              ? 'What you build today can still create income later, for as long as the customer keeps making qualifying use of HomeCheff.'
+              : 'Wat je vandaag opbouwt, kan ook later nog inkomsten opleveren zolang de klant kwalificerend gebruik blijft maken van HomeCheff.'}
           </p>
+          <AffiliateHeroCtas lang={en ? 'en' : 'nl'} />
         </div>
       </section>
-      <AffiliatePageClient />
+      <div className="bg-slate-50 px-4 pb-16 pt-2">
+        <AffiliateBusinessStory
+          lang={en ? 'en' : 'nl'}
+          programName={presentation?.programName}
+          showEarly={early}
+          showNetwork={presentation ? presentation.publicMain || presentation.publicNetwork : true}
+          showPromo={presentation ? presentation.publicPromo : true}
+          focusProduct={focusProduct}
+        />
+        <AffiliatePageClient />
+      </div>
     </div>
   );
 }
