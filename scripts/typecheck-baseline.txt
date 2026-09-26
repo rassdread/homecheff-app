@@ -708,11 +708,11 @@ scripts/test-verdiencheck-baseline-v2-phase12.ts	TS2345	Argument of type 'Calcul
 scripts/test-verdiencheck-employment-extras-2026.ts	TS2322	Type '"AMOUNT"' is not assignable to type '"UNKNOWN" | "NONE" | "KNOWN" | null | undefined'.
 scripts/test-verdiencheck-mobile-bottom-nav-pad.ts	TS1501	This regular expression flag is only available when targeting 'es2018' or later.
 scripts/test-verdiencheck-nl-2026-business-guidance.ts	TS2345	Argument of type '{ group: "EMPLOYEE"; }' is not assignable to parameter of type '{ group: "OTHER" | "NONE" | "EMPLOYEE" | "WW" | "BIJSTAND" | "EXISTING_ENTREPRENEUR" | "OTHER_UWV" | null; uwvBenefit: "ZW" | "WIA" | "WAJONG" | "WAO" | "WAZ" | null; }'.
-scripts/test-verdiencheck-nl-2026-personal-route.ts	TS2322	Type '3000' is not assignable to type '1000 | 500 | "custom" | 5000 | 10000 | 2500 | null | undefined'.
+scripts/test-verdiencheck-nl-2026-personal-route.ts	TS2322	Type '3000' is not assignable to type '1000 | 500 | 10000 | "custom" | 5000 | 2500 | null | undefined'.
 scripts/test-verdiencheck-nl-2026-personal-route.ts	TS2872	This kind of expression is always truthy.
 scripts/test-verdiencheck-official-payroll-2026.ts	TS2367	This comparison appears to be unintentional because the types '300' and '0' have no overlap.
 scripts/test-verdiencheck-phase-5b.ts	TS2345	Argument of type '"/verdiencheck"' is not assignable to parameter of type '"/login" | "/register" | "/admin" | "/delivery" | "/auth" | "/signin"'.
-scripts/test-verdiencheck-toeslagen-live-scenario.ts	TS2322	Type 'number' is not assignable to type '1000 | 500 | "custom" | 5000 | 10000 | 2500 | null | undefined'.
+scripts/test-verdiencheck-toeslagen-live-scenario.ts	TS2322	Type 'number' is not assignable to type '1000 | 500 | 10000 | "custom" | 5000 | 2500 | null | undefined'.
 scripts/test-verdiencheck-toeslagen-live-scenario.ts	TS2740	Type '{ allowancesNone: false; housingTenure: "OWNER_OCCUPIED"; hasChildren: false; usesChildcare: false; assessmentIncomeCents: number | null; employeeLikeZvw: true; }' is missing the following properties from type 'BaselinePresentationFacts': incomeAnnualCents, incomeMonthlyCents, contractualGrossCents, holidayPayCents, and 6 more.
 scripts/test-verdiencheck-toeslagen-live-scenario.ts	TS2740	Type '{ allowancesNone: false; housingTenure: "OWNER_OCCUPIED"; hasChildren: false; usesChildcare: false; employeeLikeZvw: true; }' is missing the following properties from type 'BaselinePresentationFacts': incomeAnnualCents, incomeMonthlyCents, contractualGrossCents, holidayPayCents, and 7 more.
 scripts/test-verdiencheck-usability.ts	TS18048	'nl.steps.foodSellingFrequency.options' is possibly 'undefined'.
