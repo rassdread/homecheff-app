@@ -25,7 +25,6 @@ import LandscapeWorkBarCommands from '@/components/adaptive-workspace/LandscapeW
 import { resolveOrientationExplanation } from '@/lib/adaptive-workspace-react/resolve-orientation-explanation';
 import HomeHeroCollapsible from '@/components/home/HomeHeroCollapsible';
 import HomeIntentNav from '@/components/home/HomeIntentNav';
-import { isVlaardingenPlace } from '@/lib/home/hero-geo-context';
 import { useHeroGeoContext } from '@/lib/home/use-hero-geo-context';
 import HomeValueExplainerDialog from '@/components/home/HomeValueExplainerDialog';
 
@@ -192,11 +191,6 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
               >
                 {whereLabel}
               </h1>
-              {heroGeo.showOriginNote ? (
-                <p data-testid="home-origin-note" className="mt-1 text-[10px] leading-snug text-white/70 sm:text-[11px]">
-                  {t('homePhase1.orientationOrigin')}
-                </p>
-              ) : null}
 
               {explain.showBody && !workToolbar && !explain.singleLine ? (
                 <p
@@ -230,13 +224,7 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
                 <div
                   data-wx-orientation-trust=""
                   className="mt-1.5 flex flex-wrap gap-1.5"
-                  aria-label={t('homePhase1.orientationLocalLaunchNote')}
                 >
-                  {isVlaardingenPlace(heroGeo.city) ? (
-                    <span className="rounded-md bg-white/15 px-2 py-0.5 text-[10px] font-medium text-emerald-50 sm:text-[11px]">
-                      {t('homePhase1.orientationLocalLaunchNote')}
-                    </span>
-                  ) : null}
                   <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/90 sm:text-[11px]">
                     {t('homePhase1.orientationTrustCategories')}
                   </span>

@@ -23,7 +23,9 @@ assert(!orientation.includes('homePhase1.ctaDiscover'), 'discover CTA not restor
 assert(orientation.includes('HomeHeroCollapsible'), 'hero hide/show control on AW orientation strip');
 assert(orientation.includes('homePhase1.ctaShare'), 'seller share CTA on AW orientation strip');
 assert(orientation.includes('data-wx-seller-cta'), 'seller CTA marked');
-assert(orientation.includes('orientationLocalLaunchNote') || orientation.includes('homePhase1.orientationLocalLaunchNote'), 'local launch trust note');
+assert(!orientation.includes('orientationOrigin'), 'origin sentence removed from hero');
+assert(!orientation.includes('orientationLocalLaunchNote'), 'origin place chip removed from hero');
+assert(orientation.includes('orientationTrustCategories'), 'trust chips remain');
 assert(!hero.includes('landscape:sr-only'), 'no icon-only share in landscape');
 assert(hero.includes('homeCompactHeader.supportLine'), 'single support line key');
 

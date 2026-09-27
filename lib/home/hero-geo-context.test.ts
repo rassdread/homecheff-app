@@ -96,9 +96,12 @@ test('hero geo context', async (t) => {
     );
     assert.match(strip, /orientationTitleInCity/);
     assert.match(strip, /orientationIdentityGeneric/);
-    assert.match(strip, /home-origin-note/);
+    assert.match(strip, /orientationExplainSupport/);
+    assert.doesNotMatch(strip, /home-origin-note/);
+    assert.doesNotMatch(strip, /orientationOrigin/);
+    assert.doesNotMatch(strip, /orientationLocalLaunchNote/);
+    assert.doesNotMatch(strip, /isVlaardingenPlace/);
     assert.doesNotMatch(strip, /orientationExplainStandard/);
     assert.doesNotMatch(strip, /t\('homePhase1\.orientationIdentity'\)/);
-    assert.match(strip, /isVlaardingenPlace\(heroGeo\.city\)/);
   });
 });
