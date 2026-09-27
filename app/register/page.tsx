@@ -841,7 +841,7 @@ function RegisterPageContent() {
       
       if (!response.ok) {
         // Vertaal error codes naar gebruiksvriendelijke berichten
-        let errorMessage = data.error || t('register.validation.registrationError');
+        let errorMessage = t('register.validation.registrationError');
         const duplicateKind = data.duplicateKind as
           | 'google_only'
           | 'password_only'

@@ -6,10 +6,12 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import BackButton from '@/components/navigation/BackButton';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function OrderTrackingPage() {
   const params = useParams();
   const orderId = params?.orderId as string;
+  const { tOr } = useTranslation();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -18,7 +20,7 @@ export default function OrderTrackingPage() {
         <div className="mb-6">
           <BackButton 
             fallbackUrl="/orders"
-            label="Terug naar bestellingen"
+            label={tOr('surfaceLang.orderBack', 'Back to orders', 'Terug naar bestellingen')}
             variant="minimal"
           />
         </div>

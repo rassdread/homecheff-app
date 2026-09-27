@@ -9,6 +9,7 @@ import {
   Star,
   UserPlus,
 } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export type NotificationFeedItem = {
   id: string;
@@ -36,8 +37,8 @@ export default function NotificationFeedItems({
   items,
   loading,
   onSelect,
-  emptyTitle = 'Geen meldingen',
-  emptyHint = 'Je bent helemaal bij.',
+  emptyTitle,
+  emptyHint,
 }: {
   items: NotificationFeedItem[];
   loading: boolean;
@@ -45,11 +46,15 @@ export default function NotificationFeedItems({
   emptyTitle?: string;
   emptyHint?: string;
 }) {
+  const { tOr, language } = useTranslation();
+  const dateTag = language === 'nl' ? 'nl-NL' : 'en-GB';
+  const resolvedEmptyTitle = emptyTitle ?? tOr('surfaceLang.notifEmptyTitle', 'No notifications', 'Geen meldingen');
+  const resolvedEmptyHint = emptyHint ?? tOr('surfaceLang.notifEmptyHint', 'You are all caught up.', 'Je bent helemaal bij.');
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <div className="mb-3 h-8 w-8 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
-        <p className="text-sm text-gray-500">Laden…</p>
+        <p className="text-sm text-gray-500">{tOr('surfaceLang.notifLoading', 'Loading…', 'Laden…')}</p>
       </div>
     );
   }
@@ -58,8 +63,8 @@ export default function NotificationFeedItems({
     return (
       <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
         <Bell className="mb-4 h-14 w-14 text-gray-300" />
-        <h3 className="text-lg font-semibold text-gray-900">{emptyTitle}</h3>
-        <p className="mt-1 text-sm text-gray-500">{emptyHint}</p>
+        <h3 className="text-lg font-semibold text-gray-900">{resolvedEmptyTitle}</h3>
+        <p className="mt-1 text-sm text-gray-500">{resolvedEmptyHint}</p>
       </div>
     );
   }
@@ -100,11 +105,11 @@ export default function NotificationFeedItems({
                     dateTime={n.createdAt}
                   >
                     {isToday
-                      ? date.toLocaleTimeString('nl-NL', {
+                      ? date.toLocaleTimeString(dateTag, {
                           hour: '2-digit',
                           minute: '2-digit',
                         })
-                      : date.toLocaleDateString('nl-NL', {
+                      : date.toLocaleDateString(dateTag, {
                           day: 'numeric',
                           month: 'short',
                           hour: '2-digit',

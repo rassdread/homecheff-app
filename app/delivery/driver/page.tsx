@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useTranslation } from '@/hooks/useTranslation';
 import Link from 'next/link';
 import { Loader2, MapPin, Package } from 'lucide-react';
 
@@ -19,6 +20,7 @@ type Job = {
  */
 export default function DeliveryDriverDashboardPage() {
   const { data: session, status } = useSession();
+  const { tOr } = useTranslation();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,17 +33,17 @@ export default function DeliveryDriverDashboardPage() {
       const res = await fetch('/api/delivery/orders?status=ACCEPTED,PICKED_UP,PENDING');
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || 'Kon opdrachten niet laden');
+        setError(tOr('surfaceLang.driverLoadFailed', 'Could not load jobs', 'Kon opdrachten niet laden'));
         setJobs([]);
         return;
       }
       setJobs(Array.isArray(data.orders) ? data.orders : []);
     } catch {
-      setError('Kon opdrachten niet laden');
+      setError(tOr('surfaceLang.driverLoadFailed', 'Could not load jobs', 'Kon opdrachten niet laden'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tOr]);
 
   useEffect(() => {
     if (status === 'authenticated') load();
@@ -56,9 +58,9 @@ export default function DeliveryDriverDashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: next }),
       });
-      const data = await res.json().catch(() => ({}));
+      await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || 'Status bijwerken mislukt');
+        setError(tOr('surfaceLang.driverStatusFailed', 'Could not update the status', 'Status bijwerken mislukt'));
       } else {
         await load();
       }
@@ -79,7 +81,7 @@ export default function DeliveryDriverDashboardPage() {
     return (
       <div className="mx-auto max-w-lg px-4 py-12 text-center">
         <Link href="/login" className="text-emerald-700 underline">
-          Log in
+          {tOr('surfaceLang.driverLogin', 'Log in', 'Inloggen')}
         </Link>
       </div>
     );
@@ -89,11 +91,11 @@ export default function DeliveryDriverDashboardPage() {
     <div className="mx-auto max-w-lg space-y-5 px-4 py-6 pb-24">
       <header className="space-y-1">
         <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-          Chauffeur
+          {tOr('surfaceLang.driverEyebrow', 'Driver', 'Chauffeur')}
         </p>
-        <h1 className="text-2xl font-bold text-gray-900">Mijn opdrachten</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{tOr('surfaceLang.driverTitle', 'My jobs', 'Mijn opdrachten')}</h1>
         <p className="text-sm text-gray-600">
-          Opdrachten die jouw bezorgdienst aan jou heeft toegewezen.
+          {tOr('surfaceLang.driverLead', 'Jobs your delivery service assigned to you.', 'Opdrachten die jouw bezorgdienst aan jou heeft toegewezen.')}
         </p>
       </header>
 
@@ -104,9 +106,9 @@ export default function DeliveryDriverDashboardPage() {
       {jobs.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-center">
           <Package className="mx-auto h-8 w-8 text-gray-400" />
-          <p className="mt-2 font-medium text-gray-900">Er zijn nog geen bezorgopdrachten.</p>
+          <p className="mt-2 font-medium text-gray-900">{tOr('surfaceLang.driverEmptyTitle', 'There are no delivery jobs yet.', 'Er zijn nog geen bezorgopdrachten.')}</p>
           <p className="mt-1 text-sm text-gray-600">
-            Zodra de dispatcher een rit toewijst, verschijnt die hier.
+            {tOr('surfaceLang.driverEmptyHint', 'When a dispatcher assigns a route, it appears here.', 'Zodra de dispatcher een rit toewijst, verschijnt die hier.')}
           </p>
         </div>
       ) : (
@@ -118,12 +120,12 @@ export default function DeliveryDriverDashboardPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-xs font-medium uppercase text-gray-500">
-                      {job.deliveryProfile?.companyDisplayName || 'Bezorgdienst'}
+                      {job.deliveryProfile?.companyDisplayName || tOr('surfaceLang.driverFallbackCompany', 'Delivery service', 'Bezorgdienst')}
                     </p>
                     <p className="font-semibold text-gray-900">
                       {job.order?.orderNumber || job.id.slice(0, 8)}
                     </p>
-                    <p className="mt-1 text-sm text-gray-600">Status: {job.status}</p>
+                    <p className="mt-1 text-sm text-gray-600">{tOr('surfaceLang.driverStatus', 'Status', 'Status')}: {job.status}</p>
                   </div>
                 </div>
                 {job.deliveryAddress && (
@@ -140,7 +142,7 @@ export default function DeliveryDriverDashboardPage() {
                       onClick={() => updateStatus(job.id, 'PICKED_UP')}
                       className="w-full rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
                     >
-                      Opgehaald
+                      {tOr('surfaceLang.driverPickedUp', 'Picked up', 'Opgehaald')}
                     </button>
                   )}
                   {job.status === 'PICKED_UP' && (
@@ -150,7 +152,7 @@ export default function DeliveryDriverDashboardPage() {
                       onClick={() => updateStatus(job.id, 'DELIVERED')}
                       className="w-full rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
                     >
-                      Afgeleverd
+                      {tOr('surfaceLang.driverDelivered', 'Delivered', 'Afgeleverd')}
                     </button>
                   )}
                 </div>
@@ -162,11 +164,11 @@ export default function DeliveryDriverDashboardPage() {
 
       <p className="text-center text-xs text-gray-500">
         <Link href="/delivery/start" className="underline">
-          Bezorgkeuze
+          {tOr('surfaceLang.driverChoice', 'Delivery choice', 'Bezorgkeuze')}
         </Link>
         {' · '}
         <Link href="/mijn-homecheff" className="underline">
-          Dashboard
+          {tOr('surfaceLang.driverDashboard', 'Dashboard', 'Dashboard')}
         </Link>
       </p>
     </div>

@@ -94,7 +94,7 @@ type CheckoutDraft = {
 };
 
 export default function CheckoutPage() {
-  const { t, language } = useTranslation();
+  const { t, tOr, language } = useTranslation();
   const searchParams = useSearchParams();
   const dealCommunityOrderId = searchParams.get('communityOrderId');
   const hcCancelledOrderId = searchParams.get('orderId');
@@ -1445,13 +1445,13 @@ export default function CheckoutPage() {
                                 });
                                 const data = await res.json();
                                 if (!res.ok) {
-                                  setBookingError(data.error || 'Boekingsaanvraag mislukt');
+                                  setBookingError(tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'));
                                   return;
                                 }
                                 setBookingRequestId(data.bookingRequestId);
                                 setBookingStatus(data.status);
                               } catch (e) {
-                                setBookingError('Boekingsaanvraag mislukt');
+                                setBookingError(tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'));
                               } finally {
                                 setBookingBusy(false);
                               }
@@ -1459,13 +1459,13 @@ export default function CheckoutPage() {
                           />
                         ) : (
                           <p className="text-sm text-gray-600">
-                            Valideer eerst je bezorgadres om beschikbare bezorgers te zien.
+                            {tOr('surfaceLang.bookingValidate', 'Validate your delivery address first to see available couriers.', 'Valideer eerst je bezorgadres om beschikbare bezorgers te zien.')}
                           </p>
                         )}
 
                         {bookingBusy && (
                           <p className="text-sm text-blue-700 flex items-center gap-2">
-                            <Loader2 className="w-4 h-4 animate-spin" /> Bevestiging voorbereiden…
+                            <Loader2 className="w-4 h-4 animate-spin" /> {tOr('surfaceLang.bookingPreparing', 'Preparing confirmation…', 'Bevestiging voorbereiden…')}
                           </p>
                         )}
                         {bookingError && (
@@ -1473,7 +1473,7 @@ export default function CheckoutPage() {
                         )}
                         {bookingStatus === 'AUTO_CONFIRMED' && (
                           <p className="text-sm text-green-700 font-medium">
-                            Direct bevestigd. Je kunt doorgaan naar betalen.
+                            {tOr('surfaceLang.bookingConfirmed', 'Confirmed immediately. You can continue to payment.', 'Direct bevestigd. Je kunt doorgaan naar betalen.')}
                           </p>
                         )}
                         {bookingStatus === 'PENDING' && bookingRequestId && (

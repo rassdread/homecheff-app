@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Package, MapPin, Clock, MessageSquare } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface OrderUpdateFormProps {
   orderId: string;
@@ -33,14 +34,15 @@ export default function OrderUpdateForm({
   );
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { tOr } = useTranslation();
 
   const statusOptions = [
-    { value: 'PENDING', label: 'In behandeling', icon: '⏳' },
-    { value: 'CONFIRMED', label: 'Bevestigd', icon: '✅' },
-    { value: 'PROCESSING', label: 'Wordt verwerkt', icon: '🔄' },
-    { value: 'SHIPPED', label: 'Verzonden', icon: '🚚' },
-    { value: 'DELIVERED', label: 'Bezorgd', icon: '🎉' },
-    { value: 'CANCELLED', label: 'Geannuleerd', icon: '❌' }
+    { value: 'PENDING', label: tOr('surfaceLang.orderStatusPending', 'In progress', 'In behandeling'), icon: '⏳' },
+    { value: 'CONFIRMED', label: tOr('surfaceLang.orderStatusConfirmed', 'Confirmed', 'Bevestigd'), icon: '✅' },
+    { value: 'PROCESSING', label: tOr('surfaceLang.orderStatusProcessing', 'Processing', 'Wordt verwerkt'), icon: '🔄' },
+    { value: 'SHIPPED', label: tOr('surfaceLang.orderStatusShipped', 'Shipped', 'Verzonden'), icon: '🚚' },
+    { value: 'DELIVERED', label: tOr('surfaceLang.orderStatusDelivered', 'Delivered', 'Bezorgd'), icon: '🎉' },
+    { value: 'CANCELLED', label: tOr('surfaceLang.orderStatusCancelled', 'Cancelled', 'Geannuleerd'), icon: '❌' }
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,7 +73,7 @@ export default function OrderUpdateForm({
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex items-center space-x-3 mb-6">
         <Package className="w-6 h-6 text-blue-500" />
-        <h3 className="text-lg font-semibold text-gray-900">Bestelling bijwerken</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{tOr('surfaceLang.orderUpdateTitle', 'Update order', 'Bestelling bijwerken')}</h3>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -161,17 +163,17 @@ export default function OrderUpdateForm({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             <MessageSquare className="w-4 h-4 inline mr-1" />
-            Extra opmerkingen
+            {tOr('surfaceLang.orderNotesLabel', 'Extra notes', 'Extra opmerkingen')}
           </label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Voeg extra informatie toe voor de koper..."
+            placeholder={tOr('surfaceLang.orderNotesPlaceholder', 'Add extra information for the buyer...', 'Voeg extra informatie toe voor de koper...')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
             rows={3}
           />
           <p className="text-xs text-gray-500 mt-1">
-            Deze opmerkingen worden naar de koper gestuurd via de chat
+            {tOr('surfaceLang.orderNotesHint', 'These notes are sent to the buyer in the chat', 'Deze opmerkingen worden naar de koper gestuurd via de chat')}
           </p>
         </div>
 
@@ -181,14 +183,19 @@ export default function OrderUpdateForm({
           disabled={isLoading}
           className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {isLoading ? 'Bijwerken...' : 'Bestelling bijwerken en koper informeren'}
+          {isLoading
+            ? tOr('surfaceLang.orderSubmitting', 'Updating...', 'Bijwerken...')
+            : tOr('surfaceLang.orderSubmit', 'Update the order and notify the buyer', 'Bestelling bijwerken en koper informeren')}
         </button>
       </form>
 
       <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-800">
-          <strong>💡 Tip:</strong> Alle wijzigingen worden automatisch naar de koper gestuurd via de chat 
-          met de bestelling hashtag, zodat ze altijd op de hoogte zijn van de status.
+          {tOr(
+            'surfaceLang.orderTip',
+            'Changes are sent to the buyer in the chat with the order hashtag, so they always see the status.',
+            'Alle wijzigingen worden automatisch naar de koper gestuurd via de chat met de bestellinghashtag, zodat die altijd de status ziet.',
+          )}
         </p>
       </div>
     </div>

@@ -14,6 +14,7 @@ import {
 } from '@/lib/auth/post-auth-redirect';
 import { consumeAndResolvePostAuthUrl } from '@/lib/onboarding/pending-intent';
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const MAX_WAIT_MS = 15_000;
 const POLL_MS = 400;
@@ -36,14 +37,17 @@ async function fetchSessionViaApi(): Promise<{ user?: { email?: string | null } 
   }
 }
 
-function oauthErrorMessage(code: string | null): string | null {
+function oauthErrorMessage(
+  code: string | null,
+  tOr: (key: string, fallbackEn: string, fallbackNl: string) => string,
+): string | null {
   if (!code) return null;
   const c = code.toLowerCase();
-  if (c === 'accessdenied') return 'Inloggen geannuleerd of geen toegang.';
+  if (c === 'accessdenied') return tOr('surfaceLang.oauthCancelled', 'Sign-in was cancelled or access was denied.', 'Inloggen geannuleerd of geen toegang.');
   if (c === 'oauthcallback' || c === 'oauth_signin_error')
-    return 'Inloggen met Google is mislukt. Probeer het opnieuw.';
-  if (c === 'configuration') return 'Inloggen is tijdelijk niet beschikbaar (configuratie).';
-  return 'Inloggen is mislukt. Probeer het opnieuw.';
+    return tOr('surfaceLang.oauthGoogleFailed', 'Sign-in with Google failed. Try again.', 'Inloggen met Google is mislukt. Probeer het opnieuw.');
+  if (c === 'configuration') return tOr('surfaceLang.oauthConfig', 'Sign-in is temporarily unavailable (configuration).', 'Inloggen is tijdelijk niet beschikbaar (configuratie).');
+  return tOr('surfaceLang.oauthFailed', 'Sign-in failed. Try again.', 'Inloggen is mislukt. Probeer het opnieuw.');
 }
 
 async function resolvePostAuthPath(): Promise<'/' | '/onboarding/complete-profile'> {
@@ -70,6 +74,7 @@ function SocialSuccessInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { update: updateSession } = useSession();
+  const { tOr } = useTranslation();
   const [phase, setPhase] = useState<Phase>('checking');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const doneRef = useRef(false);
@@ -77,7 +82,7 @@ function SocialSuccessInner() {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const urlError = searchParams?.get('error');
-  const errorHint = urlError ? oauthErrorMessage(urlError) : null;
+  const errorHint = urlError ? oauthErrorMessage(urlError, tOr) : null;
 
   const clearTimers = useCallback(() => {
     if (pollRef.current) {

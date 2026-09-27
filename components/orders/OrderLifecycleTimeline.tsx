@@ -2,17 +2,18 @@
 
 import { buildOrderTimeline } from '@/lib/orders/order-status-transitions';
 import type { OrderStatus } from '@prisma/client';
+import { useTranslation } from '@/hooks/useTranslation';
 
-const LABELS: Record<string, string> = {
-  'orderTimeline.placed': 'Bestelling geplaatst',
-  'orderTimeline.confirmed': 'Bevestigd / betaald',
-  'orderTimeline.processing': 'In behandeling',
-  'orderTimeline.shipped': 'Onderweg / verzonden',
-  'orderTimeline.readyPickup': 'Klaar om op te halen',
-  'orderTimeline.delivered': 'Bezorgd',
-  'orderTimeline.pickedUp': 'Opgehaald',
-  'orderTimeline.cancelled': 'Geannuleerd',
-  'orderTimeline.refunded': 'Terugbetaald',
+const LABEL_KEYS: Record<string, { key: string; en: string; nl: string }> = {
+  'orderTimeline.placed': { key: 'surfaceLang.timelinePlaced', en: 'Order placed', nl: 'Bestelling geplaatst' },
+  'orderTimeline.confirmed': { key: 'surfaceLang.timelineConfirmed', en: 'Confirmed / paid', nl: 'Bevestigd / betaald' },
+  'orderTimeline.processing': { key: 'surfaceLang.timelineProcessing', en: 'In progress', nl: 'In behandeling' },
+  'orderTimeline.shipped': { key: 'surfaceLang.timelineShipped', en: 'On the way / shipped', nl: 'Onderweg / verzonden' },
+  'orderTimeline.readyPickup': { key: 'surfaceLang.timelineReadyPickup', en: 'Ready for pickup', nl: 'Klaar om op te halen' },
+  'orderTimeline.delivered': { key: 'surfaceLang.timelineDelivered', en: 'Delivered', nl: 'Bezorgd' },
+  'orderTimeline.pickedUp': { key: 'surfaceLang.timelinePickedUp', en: 'Picked up', nl: 'Opgehaald' },
+  'orderTimeline.cancelled': { key: 'surfaceLang.timelineCancelled', en: 'Cancelled', nl: 'Geannuleerd' },
+  'orderTimeline.refunded': { key: 'surfaceLang.timelineRefunded', en: 'Refunded', nl: 'Terugbetaald' },
 };
 
 type Props = {
@@ -30,6 +31,8 @@ export default function OrderLifecycleTimeline({
   deliveredAt,
   deliveryMode,
 }: Props) {
+  const { tOr, language } = useTranslation();
+  const dateTag = language === 'nl' ? 'nl-NL' : 'en-GB';
   const steps = buildOrderTimeline({
     status: status as OrderStatus,
     createdAt: new Date(createdAt),
@@ -60,11 +63,13 @@ export default function OrderLifecycleTimeline({
                 step.done || step.active ? 'text-gray-900' : 'text-gray-400'
               }`}
             >
-              {LABELS[step.labelKey] || step.labelKey}
+              {LABEL_KEYS[step.labelKey]
+                ? tOr(LABEL_KEYS[step.labelKey].key, LABEL_KEYS[step.labelKey].en, LABEL_KEYS[step.labelKey].nl)
+                : step.labelKey}
             </p>
             {step.at ? (
               <p className="text-xs text-gray-500">
-                {new Date(step.at).toLocaleString('nl-NL')}
+                {new Date(step.at).toLocaleString(dateTag)}
               </p>
             ) : null}
           </div>
