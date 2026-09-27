@@ -123,9 +123,13 @@ export default function MinorAccountGate({
       {gate.mode === 'MINOR' && gate.consentRequired ? (
         <div>
           <p className="mb-2">
-            {en
-              ? 'Because you are under 18, a parent or legal representative needs to give permission before you can sell or set up payments. Delivery stays available from age 18.'
-              : 'Omdat je jonger bent dan 18, heeft een ouder of wettelijk vertegenwoordiger eerst toestemming nodig voordat je kunt verkopen of betalingen kunt instellen. Bezorgen kan vanaf 18 jaar.'}
+            {gate.consent?.status === 'RENEWAL_REQUIRED'
+              ? en
+                ? 'HomeCheff has updated what this permission covers. Ask a parent or legal representative to give permission again before you sell or set up payments. Delivery stays available from age 18.'
+                : 'HomeCheff heeft aangepast waar deze toestemming over gaat. Vraag een ouder of wettelijk vertegenwoordiger om opnieuw toestemming te geven voordat je verkoopt of betalingen instelt. Bezorgen kan vanaf 18 jaar.'
+              : en
+                ? 'Because you are under 18, a parent or legal representative needs to give permission before you can sell or set up payments. Delivery stays available from age 18.'
+                : 'Omdat je jonger bent dan 18, heeft een ouder of wettelijk vertegenwoordiger eerst toestemming nodig voordat je kunt verkopen of betalingen kunt instellen. Bezorgen kan vanaf 18 jaar.'}
           </p>
           <label className="block text-xs font-medium" htmlFor="guardian-email">
             {en ? 'Their email address' : 'Hun e-mailadres'}

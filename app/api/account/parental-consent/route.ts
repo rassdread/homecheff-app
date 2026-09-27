@@ -67,7 +67,6 @@ export async function POST(req: NextRequest) {
       username: true,
       email: true,
       dateOfBirth: true,
-      preferredLanguage: true,
       stripeConnectAccountId: true,
       sellerActivatedAt: true,
       sellerRoles: true,
@@ -105,7 +104,6 @@ export async function POST(req: NextRequest) {
   });
   const link = `${getPublicAppUrl()}/account/ouderlijke-toestemming?token=${invite.token}`;
   const copy = parentalConsentInviteCopy({
-    en: user.preferredLanguage === 'en',
     username: user.username,
     link,
   });
