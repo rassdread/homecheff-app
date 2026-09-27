@@ -56,6 +56,8 @@ import {
   getAuthoritativeCarrierShippingQuote,
 } from '@/lib/shipping/quote-service';
 import { validateShippingAddressSnapshot } from '@/lib/shipping/address-snapshot';
+import { evaluateMarketplaceEligibility } from '@/lib/age/marketplace-eligibility';
+import { hasActiveParentalConsent } from '@/lib/age/parental-consent';
 
 const prisma = new PrismaClient();
 
@@ -124,6 +126,7 @@ export async function POST(req: NextRequest) {
         passwordHash: true,
         stripeConnectAccountId: true,
         stripeConnectOnboardingCompleted: true,
+        dateOfBirth: true,
         Account: { select: { provider: true } },
       },
     });
@@ -139,6 +142,17 @@ export async function POST(req: NextRequest) {
 
     const checkoutBlock = assertAccountRequirementsOr403(buyer, 'postItem');
     if (checkoutBlock) return checkoutBlock;
+
+    const buyerAge = evaluateMarketplaceEligibility({
+      subject: { dateOfBirth: buyer.dateOfBirth },
+      activity: 'BUY',
+    });
+    if (!buyerAge.allowed) {
+      return NextResponse.json(
+        { error: buyerAge.messageNl, code: buyerAge.code },
+        { status: 403 },
+      );
+    }
 
     const buyerId = buyer.id;
 
@@ -187,7 +201,8 @@ export async function POST(req: NextRequest) {
                   country: true,
                   postalCode: true,
                   address: true,
-                  city: true
+                  city: true,
+                  dateOfBirth: true,
                 }
               }
             }
@@ -197,6 +212,40 @@ export async function POST(req: NextRequest) {
 
       if (products.length !== items.length) {
         return { error: 'Some products not found', products: null };
+      }
+
+      for (const productRow of products) {
+        const sellerUser = productRow.seller?.User;
+        if (!sellerUser) continue;
+        const sellerSubject = {
+          dateOfBirth: sellerUser.dateOfBirth,
+          stripeConnectAccountId: sellerUser.stripeConnectAccountId,
+          country: sellerUser.country,
+          hasSellerProfile: true,
+        };
+        const category = productRow.marketplaceCategory || productRow.category;
+        const preview = evaluateMarketplaceEligibility({
+          subject: sellerSubject,
+          activity: 'RECEIVE_ORDERS',
+          category,
+          parentalConsentActive: true,
+        });
+        if (preview.mode !== 'MINOR') {
+          if (!preview.allowed) {
+            return { error: preview.messageNl, products: null };
+          }
+          continue;
+        }
+        const consent = await hasActiveParentalConsent(prisma, sellerUser.id);
+        const decision = evaluateMarketplaceEligibility({
+          subject: sellerSubject,
+          activity: 'RECEIVE_ORDERS',
+          category,
+          parentalConsentActive: consent,
+        });
+        if (!decision.allowed) {
+          return { error: decision.messageNl, products: null };
+        }
       }
 
       const contactOnlyProducts = products.filter(

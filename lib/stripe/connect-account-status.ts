@@ -108,6 +108,10 @@ const EMPTY: ConnectAccountStatusSnapshot = {
   onboardingCompleted: false,
 };
 
+function uniqueKeys(keys: string[]): string[] {
+  return Array.from(new Set(keys.filter((key) => key.length > 0)));
+}
+
 const PENDING_DISABLED_REASONS = new Set([
   'requirements.pending_verification',
   'pending_verification',
@@ -157,6 +161,8 @@ export function categorizeStripeRequirements(
       k.includes('line1')
     ) {
       cats.add('address');
+    } else if (k.includes('legal_guardian') || k.includes('guardian')) {
+      cats.add('identity');
     } else if (
       k.includes('verification') ||
       k.includes('id_number') ||
@@ -199,6 +205,7 @@ export function canCreateConnectOnboardingLink(
     | 'uiStatus'
     | 'currentlyDueCount'
     | 'pastDueCount'
+    | 'eventuallyDueCount'
     | 'detailsSubmitted'
     | 'hasAccount'
     | 'paymentReady'
@@ -209,6 +216,9 @@ export function canCreateConnectOnboardingLink(
   if (snapshot.uiStatus === 'PAYMENT_READY') return false;
   if (!snapshot.hasAccount) return true;
   if (snapshot.currentlyDueCount > 0 || snapshot.pastDueCount > 0) return true;
+  if ((snapshot.eventuallyDueCount ?? 0) > 0 && snapshot.uiStatus === 'ACTION_REQUIRED') {
+    return true;
+  }
   if (!snapshot.detailsSubmitted) return true;
   return false;
 }
@@ -225,12 +235,22 @@ export function deriveConnectAccountStatusFromStripe(
   }
 
   const requirements = account.requirements;
-  const currentlyDue = [...(requirements?.currently_due ?? [])];
-  const pastDue = [...(requirements?.past_due ?? [])];
+  const future = account.future_requirements;
+  const currentlyDue = uniqueKeys([
+    ...(requirements?.currently_due ?? []),
+    ...(future?.currently_due ?? []),
+  ]);
+  const pastDue = uniqueKeys([
+    ...(requirements?.past_due ?? []),
+    ...(future?.past_due ?? []),
+  ]);
   const pendingVerificationKeys = [
     ...(requirements?.pending_verification ?? []),
   ];
-  const eventuallyDue = [...(requirements?.eventually_due ?? [])];
+  const eventuallyDue = uniqueKeys([
+    ...(requirements?.eventually_due ?? []),
+    ...(future?.eventually_due ?? []),
+  ]);
   const disabledReason = requirements?.disabled_reason ?? null;
   const detailsSubmitted = Boolean(account.details_submitted);
   const chargesEnabled = Boolean(account.charges_enabled);
@@ -275,6 +295,12 @@ export function deriveConnectAccountStatusFromStripe(
   } else if (currentlyDueCount > 0 || pastDueCount > 0) {
     uiStatus = 'ACTION_REQUIRED';
   } else if (
+    eventuallyDue.length > 0 &&
+    pendingVerificationCount === 0 &&
+    !disabledIsPendingOnly
+  ) {
+    uiStatus = 'ACTION_REQUIRED';
+  } else if (
     detailsSubmitted &&
     (pendingVerificationCount > 0 ||
       disabledIsPendingOnly ||
@@ -294,6 +320,7 @@ export function deriveConnectAccountStatusFromStripe(
   const missingCategories = categorizeStripeRequirements([
     ...currentlyDue,
     ...pastDue,
+    ...(!paymentReady ? eventuallyDue : []),
   ]);
 
   const snapshot: ConnectAccountStatusSnapshot = {

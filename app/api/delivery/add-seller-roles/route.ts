@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { validateRoleAddition, ROLE_REQUIREMENTS } from '@/lib/role-requirements';
+import { calculateAgeFromDob } from '@/lib/delivery/delivery-age';
+import { marketplaceAgeResponse, subjectFromUser } from '@/lib/age/listing-age-guard';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,18 +15,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { roles, agreements, age } = body;
+    const { roles, agreements } = body;
 
     // Validate input
     if (!roles || !Array.isArray(roles) || roles.length === 0) {
       return NextResponse.json({ error: 'Geen rollen geselecteerd' }, { status: 400 });
     }
 
-    if (!age || typeof age !== 'number') {
-      return NextResponse.json({ error: 'Leeftijd is vereist' }, { status: 400 });
-    }
-
-    // Get current user
+    // Get current user. Client-supplied age is ignored.
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       select: {
@@ -33,13 +31,29 @@ export async function POST(req: NextRequest) {
         privacyPolicyAccepted: true,
         termsAccepted: true,
         taxResponsibilityAccepted: true,
-        marketingAccepted: true
+        marketingAccepted: true,
+        dateOfBirth: true,
+        stripeConnectAccountId: true,
+        sellerActivatedAt: true,
+        country: true,
       }
     });
 
     if (!user) {
       return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
     }
+
+    const serverAge = calculateAgeFromDob(user.dateOfBirth);
+    if (!serverAge.ok) {
+      return NextResponse.json(
+        {
+          error: 'DOB_REQUIRED',
+          message: 'Vul je echte geboortedatum in. We bepalen je mogelijkheden op HomeCheff daarmee.',
+        },
+        { status: 400 },
+      );
+    }
+    const age = serverAge.ageYears;
 
     // Validate each new role
     const newRoles = roles.filter((role: string) => !user.sellerRoles.includes(role));
@@ -55,6 +69,34 @@ export async function POST(req: NextRequest) {
 
       if (!validation.valid) {
         validationErrors.push(`${ROLE_REQUIREMENTS[roleId]?.name}: ${validation.errors.join(', ')}`);
+      }
+
+      const category =
+        roleId === 'chef' ? 'CHEFF' : roleId === 'garden' ? 'GROW' : roleId === 'designer' ? 'DESIGN' : null;
+      if (category) {
+        const ageBlock = await marketplaceAgeResponse({
+          prisma,
+          userId: user.id,
+          subject: subjectFromUser(user),
+          activity: 'LIST_PRODUCT',
+          category,
+        });
+        if (ageBlock) {
+          const payload = await ageBlock.json();
+          validationErrors.push(payload.message || payload.error || 'Leeftijd past niet bij deze rol');
+        }
+      }
+      if (roleId === 'delivery') {
+        const ageBlock = await marketplaceAgeResponse({
+          prisma,
+          userId: user.id,
+          subject: subjectFromUser(user),
+          activity: 'DELIVERY',
+        });
+        if (ageBlock) {
+          const payload = await ageBlock.json();
+          validationErrors.push(payload.message || 'Bezorging via HomeCheff is beschikbaar vanaf 18 jaar.');
+        }
       }
     }
 

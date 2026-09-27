@@ -23,6 +23,8 @@ import { jsonRegisterDuplicate } from "@/lib/auth/register-duplicate-response";
 import { registrationUsernamePasswordConflictMessage } from "@/lib/auth/registrationUsernameGuards";
 import { trySendSignupVerificationEmail } from "@/lib/auth/send-signup-verification-email";
 import { Prisma } from "@prisma/client";
+import { registrationDobFromBody } from "@/lib/age/registration-dob";
+import { resolveAgeEnforcement } from "@/lib/age/marketplace-eligibility";
 
 export async function POST(req: NextRequest) {
   /** Set after successful normalize; used in catch for P2002 race handling */
@@ -41,8 +43,10 @@ export async function POST(req: NextRequest) {
       company, 
       username, 
       gender,
+      birthDay,
       birthMonth,
       birthYear,
+      dateOfBirth: dateOfBirthRaw,
       phoneNumber,
       userTypes,
       selectedBuyerType,
@@ -228,16 +232,19 @@ export async function POST(req: NextRequest) {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    // Calculate dateOfBirth from birthMonth and birthYear if provided
-    let dateOfBirth: Date | null = null;
-    if (birthMonth && birthYear) {
-      const month = parseInt(birthMonth, 10);
-      const year = parseInt(birthYear, 10);
-      if (month >= 1 && month <= 12 && year >= 1900 && year <= new Date().getFullYear()) {
-        // Use first day of month for privacy (we only need month and year)
-        dateOfBirth = new Date(year, month - 1, 1);
-      }
+    const dobResult = registrationDobFromBody({
+      dateOfBirth: dateOfBirthRaw,
+      birthDay,
+      birthMonth,
+      birthYear,
+    });
+    if (!dobResult.ok) {
+      return NextResponse.json(
+        { error: dobResult.code, message: dobResult.error, messageEn: dobResult.messageEn },
+        { status: dobResult.status },
+      );
     }
+    const dateOfBirth = dobResult.stored;
 
     // Geocode address if provided
     let lat: number | null = null;
@@ -257,8 +264,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Determine user role based on userTypes (light signup = buyer, no seller roles)
-    const hasSellerRole = normalizedUserTypes.length > 0;
+    const registrationAge = resolveAgeEnforcement({ dateOfBirth, country: country || 'NL' });
+    if (registrationAge.mode === 'MINOR' && isBusiness) {
+      return NextResponse.json(
+        {
+          error: 'BUSINESS_18_PLUS',
+          message: 'Een bedrijfsaccount is beschikbaar vanaf 18 jaar. Je kunt HomeCheff als particulier gebruiken.',
+          messageEn: 'A business account is available from age 18. You can use HomeCheff as a private seller.',
+        },
+        { status: 403 },
+      );
+    }
+
+    // Minors get an account first. Seller roles wait until parental consent and a certified category.
+    const hasSellerRole =
+      registrationAge.mode !== 'MINOR' && normalizedUserTypes.length > 0;
     const userRole = hasSellerRole ? 'SELLER' : 'BUYER';
 
     let user;
@@ -390,7 +410,8 @@ export async function POST(req: NextRequest) {
 
     // Explicit affiliate agreement only — a normal account is not an affiliate.
     let affiliateActivated = false;
-    if (acceptAffiliateAgreement === true) {
+    const ageForAffiliate = resolveAgeEnforcement({ dateOfBirth });
+    if (acceptAffiliateAgreement === true && ageForAffiliate.mode !== 'MINOR' && ageForAffiliate.mode !== 'BLOCKED_UNDER_13') {
       try {
         const { publicSignupAllowed, enrollAffiliate } = await import("@/lib/affiliate/program-store");
         const invited = Boolean(subAffiliateInviteToken);

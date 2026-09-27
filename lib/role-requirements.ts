@@ -42,7 +42,7 @@ export const ROLE_REQUIREMENTS: Record<string, RoleRequirement> = {
   garden: {
     id: 'garden',
     name: 'Tuinier',
-    minAge: 16,
+    minAge: 13,
     maxAge: null,
     requiresVerification: false,
     requiresStripe: true,
@@ -54,13 +54,13 @@ export const ROLE_REQUIREMENTS: Record<string, RoleRequirement> = {
       marketing: false
     },
     description: 'Verkoop groenten en planten',
-    ageRestrictionMessage: 'Je moet minimaal 16 jaar zijn om als Tuinier te verkopen'
+    ageRestrictionMessage: 'Je moet minimaal 13 jaar zijn om als Tuinier te verkopen'
   },
   
   designer: {
     id: 'designer',
     name: 'Designer',
-    minAge: 16,
+    minAge: 13,
     maxAge: null,
     requiresVerification: false,
     requiresStripe: true,
@@ -72,7 +72,7 @@ export const ROLE_REQUIREMENTS: Record<string, RoleRequirement> = {
       marketing: false
     },
     description: 'Verkoop handgemaakte items',
-    ageRestrictionMessage: 'Je moet minimaal 16 jaar zijn om als Designer te verkopen'
+    ageRestrictionMessage: 'Je moet minimaal 13 jaar zijn om als Designer te verkopen'
   },
   
   delivery: {

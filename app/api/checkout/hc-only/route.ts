@@ -9,6 +9,7 @@ import {
   resolveHcOnlyCheckoutContext,
 } from '@/lib/hc/marketplace-hc-order-service';
 import { stripSpoofedFeeFields } from '@/lib/hc/marketplace-order-fee-snapshot';
+import { evaluateMarketplaceEligibility } from '@/lib/age/marketplace-eligibility';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest) {
         passwordHash: true,
         stripeConnectAccountId: true,
         stripeConnectOnboardingCompleted: true,
+        dateOfBirth: true,
         Account: { select: { provider: true } },
       },
     });
@@ -49,6 +51,17 @@ export async function POST(req: NextRequest) {
 
     const checkoutBlock = assertAccountRequirementsOr403(buyer, 'postItem');
     if (checkoutBlock) return checkoutBlock;
+
+    const buyerAge = evaluateMarketplaceEligibility({
+      subject: { dateOfBirth: buyer.dateOfBirth },
+      activity: 'BUY',
+    });
+    if (!buyerAge.allowed) {
+      return NextResponse.json(
+        { ok: false, code: buyerAge.code, message: buyerAge.messageNl },
+        { status: 403, headers: NO_STORE },
+      );
+    }
 
     const body = stripSpoofedFeeFields((await req.json()) as Record<string, unknown>);
     const items = body?.items as Array<{ productId: string; quantity: number }> | undefined;

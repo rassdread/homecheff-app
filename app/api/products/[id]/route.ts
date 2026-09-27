@@ -24,6 +24,8 @@ import { placeTextMateriallyChanged } from '@/lib/geo/resolve-place-input';
 import { syncSellerProfileCoordsIfEmpty } from '@/lib/seller/sync-seller-profile-coords';
 import { buildMarketplaceV2PatchFields } from '@/lib/marketplace/patch-v2-fields';
 import { auth } from '@/lib/auth';
+import { marketplaceAgeResponse, subjectFromUser } from '@/lib/age/listing-age-guard';
+import { redactMinorPublicListing, redactMinorSellerRecord } from '@/lib/age/minor-privacy';
 import {
   getInspiratieDetailHref,
   type InspirationCategory,
@@ -91,6 +93,7 @@ export async function GET(
                 lng: true,
                 displayFullName: true,
                 displayNameOption: true,
+                dateOfBirth: true,
                 Business: { select: { verified: true } },
               }
             }
@@ -397,12 +400,30 @@ export async function GET(
         )._sum.quantity ?? 0
       : 0;
 
-    return NextResponse.json({
-      product: {
+    const sellerDob = (product as { seller?: { User?: { dateOfBirth?: Date | null } } }).seller?.User
+      ?.dateOfBirth;
+    const publicProduct = redactMinorPublicListing(
+      {
         ...product,
+        seller: redactMinorSellerRecord((product as { seller?: Record<string, unknown> }).seller, sellerDob),
         Video: sortedVideo,
         reservedStock,
       },
+      { dateOfBirth: sellerDob },
+    ) as unknown as typeof product & { seller?: { User?: Record<string, unknown> } | null };
+    if (publicProduct.seller?.User) {
+      const { dateOfBirth: _hiddenDob, ...userRest } = publicProduct.seller.User as Record<string, unknown> & {
+        dateOfBirth?: unknown;
+      };
+      void _hiddenDob;
+      publicProduct.seller = {
+        ...publicProduct.seller,
+        User: userRest,
+      } as typeof publicProduct.seller;
+    }
+
+    return NextResponse.json({
+      product: publicProduct,
       publicContactChannels,
       checkoutAvailable,
       checkoutBlockedReason,
@@ -476,7 +497,15 @@ export async function PATCH(
 
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, role: true }
+      select: {
+        id: true,
+        role: true,
+        dateOfBirth: true,
+        stripeConnectAccountId: true,
+        sellerActivatedAt: true,
+        sellerRoles: true,
+        country: true,
+      }
     });
 
     if (!user) {
@@ -530,6 +559,23 @@ export async function PATCH(
           return NextResponse.json({ error: "You don't have permission to update this product" }, { status: 403 });
         }
       }
+
+      const nextCategory =
+        (typeof body.marketplaceCategory === 'string' && body.marketplaceCategory) ||
+        (typeof body.category === 'string' && body.category) ||
+        (product as { marketplaceCategory?: string | null }).marketplaceCategory ||
+        (product as { category?: string | null }).category;
+      const ageBlock = await marketplaceAgeResponse({
+        prisma,
+        userId: user.id,
+        subject: subjectFromUser({
+          ...user,
+          SellerProfile: { id: 'existing-seller' },
+        }),
+        activity: 'LIST_PRODUCT',
+        category: nextCategory ?? null,
+      });
+      if (ageBlock) return ageBlock;
     }
 
     // Continue with existing update body (was nested under session email check)

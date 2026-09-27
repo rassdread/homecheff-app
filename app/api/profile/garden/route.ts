@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { marketplaceAgeResponse, subjectFromUser } from "@/lib/age/listing-age-guard";
 import {
   awardDishInspirationContentHcp,
   getDishContentMetrics,
@@ -137,6 +138,15 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
+    const ageBlock = await marketplaceAgeResponse({
+      prisma,
+      userId: user.id,
+      subject: subjectFromUser(user),
+      activity: "LIST_PRODUCT",
+      category: "GROW",
+    });
+    if (ageBlock) return ageBlock;
 
     const body = await req.json();
 

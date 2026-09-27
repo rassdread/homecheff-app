@@ -22,6 +22,8 @@ import { jsonRegisterDuplicate } from "@/lib/auth/register-duplicate-response";
 import { trySendSignupVerificationEmail } from "@/lib/auth/send-signup-verification-email";
 import { maybeAcceptPartnerInviteFromRequest } from "@/lib/affiliates/accept-partner-invite";
 import { Prisma } from "@prisma/client";
+import { registrationDobFromBody } from "@/lib/age/registration-dob";
+import { resolveAgeEnforcement } from "@/lib/age/marketplace-eligibility";
 
 export const dynamic = 'force-dynamic';
 
@@ -119,6 +121,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Deze gebruikersnaam is al in gebruik." }, { status: 400 });
     }
 
+    const dobResult = registrationDobFromBody(body as {
+      dateOfBirth?: unknown;
+      birthDate?: unknown;
+      birthDay?: unknown;
+      birthMonth?: unknown;
+      birthYear?: unknown;
+    });
+    if (!dobResult.ok) {
+      return NextResponse.json(
+        { error: dobResult.code, message: dobResult.error, messageEn: dobResult.messageEn },
+        { status: dobResult.status },
+      );
+    }
+    const dateOfBirth = dobResult.stored;
+    const ageMode = resolveAgeEnforcement({ dateOfBirth }).mode;
+
     const hashed = await bcrypt.hash(password, 10);
     const fn = firstNameTrim;
     const mn = typeof middleName === "string" ? middleName.trim() : "";
@@ -126,7 +144,7 @@ export async function POST(req: NextRequest) {
     const name = buildRegistrationFullName({ firstName: fn, middleName: mn, lastName: ln }) || fn;
 
     // Determine user role
-    const hasSellerRole = userTypes && userTypes.length > 0;
+    const hasSellerRole = ageMode !== 'MINOR' && userTypes && userTypes.length > 0;
     const userRole = hasSellerRole ? 'SELLER' : 'BUYER';
 
     let user;
@@ -140,6 +158,7 @@ export async function POST(req: NextRequest) {
           passwordHash: hashed,
           role: userRole,
           username: usernameTrim,
+          dateOfBirth,
           gender,
           bio: bio || null,
           place: location || null,
@@ -197,7 +216,8 @@ export async function POST(req: NextRequest) {
           email: normalizedEmail,
           passwordHash: hashed,
           role: userRole,
-          username: usernameTrim, 
+          username: usernameTrim,
+          dateOfBirth,
           gender,
           bio: bio || null,
           place: location || null,

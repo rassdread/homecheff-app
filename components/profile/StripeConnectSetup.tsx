@@ -8,6 +8,7 @@ import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-stat
 import { connectCtaModelForStatus } from '@/lib/stripe/connect-account-status';
 import type { ConnectTrack } from '@/lib/stripe/connect-tracks';
 import ConnectTrackSelector from '@/components/seller/ConnectTrackSelector';
+import MinorAccountGate from '@/components/account/MinorAccountGate';
 
 interface StripeConnectSetupProps {
   stripeConnectAccountId?: string | null;
@@ -19,7 +20,7 @@ export default function StripeConnectSetup({
   stripeConnectOnboardingCompleted: initialCompleted,
   onUpdate,
 }: StripeConnectSetupProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uiStatus, setUiStatus] = useState<HomecheffConnectUiStatus | null>(
@@ -29,6 +30,7 @@ export default function StripeConnectSetup({
   const [showTrackPicker, setShowTrackPicker] = useState(false);
   const [recoveryEligible, setRecoveryEligible] = useState(false);
   const [configurationMismatch, setConfigurationMismatch] = useState(false);
+  const [minorBlocked, setMinorBlocked] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -71,6 +73,14 @@ export default function StripeConnectSetup({
   }, [refresh]);
 
   const handleOnboard = async (track?: ConnectTrack, forceReplace?: boolean) => {
+    if (minorBlocked) {
+      setError(
+        language === 'en'
+          ? 'Finish your date of birth and, if needed, a parent’s permission first.'
+          : 'Rond eerst je geboortedatum af en, als dat nodig is, toestemming van een ouder.',
+      );
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -108,6 +118,8 @@ export default function StripeConnectSetup({
 
   if (uiStatus === 'PAYMENT_READY' && !configurationMismatch) {
     return (
+      <div>
+      <MinorAccountGate onBlockedChange={setMinorBlocked} />
       <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -121,11 +133,14 @@ export default function StripeConnectSetup({
           </span>
         </div>
       </div>
+      </div>
     );
   }
 
   if (showTrackPicker) {
     return (
+      <div>
+      <MinorAccountGate onBlockedChange={setMinorBlocked} />
       <div className="bg-white border border-gray-200 rounded-lg p-4">
         <ConnectTrackSelector
           recoveryMode={recoveryEligible || configurationMismatch}
@@ -140,6 +155,7 @@ export default function StripeConnectSetup({
             );
           }}
         />
+      </div>
       </div>
     );
   }
@@ -172,6 +188,8 @@ export default function StripeConnectSetup({
   const cta = model.ctaLabelNl || t('productOrder.payments.setupCta');
 
   return (
+    <div>
+    <MinorAccountGate onBlockedChange={setMinorBlocked} />
     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -209,6 +227,7 @@ export default function StripeConnectSetup({
         <CreditCard className="h-3 w-3 mr-2" />
         {loading ? t('common.loading') : cta}
       </Button>
+    </div>
     </div>
   );
 }

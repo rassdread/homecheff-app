@@ -23,6 +23,7 @@ import {
   fetchSellerTrustBundles,
 } from "@/lib/discovery/trust/batch-enrichment";
 import { publicListingEligibilityWhere } from "@/lib/marketplace/public-listing-eligibility";
+import { redactMinorPublicListing } from "@/lib/age/minor-privacy";
 
 // BALANCED CACHING - snel maar compleet
 // Cache for 30 seconds - balance between freshness and performance
@@ -113,7 +114,8 @@ export async function GET(req: Request) {
                   buyerRoles: true,
                   displayFullName: true,
                   displayNameOption: true,
-                  stripeConnectAccountId: true
+                  stripeConnectAccountId: true,
+                  dateOfBirth: true,
                 },
               }
             }
@@ -519,7 +521,9 @@ export async function GET(req: Request) {
           favoriteCount: favoriteCountMap.get(p.id) || 0,
         },
       );
-      return classified;
+      return redactMinorPublicListing(classified, {
+        dateOfBirth: p.seller?.User?.dateOfBirth ?? null,
+      });
     });
 
     const hasNext = items.length === take;

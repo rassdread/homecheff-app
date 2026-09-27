@@ -28,6 +28,9 @@ import {
   getStripeDashboardType,
   validateConnectAccountShape,
 } from '@/lib/stripe/connect-account-shape';
+import { marketplaceAgeResponse, subjectFromUser } from '@/lib/age/listing-age-guard';
+import { resolveAgeEnforcement } from '@/lib/age/marketplace-eligibility';
+import { propagateCanonicalDobIfStripeEmpty } from '@/lib/stripe/particular-dob';
 
 export async function GET() {
   try {
@@ -43,6 +46,10 @@ export async function GET() {
         stripeConnectAccountId: true,
         stripeConnectOnboardingCompleted: true,
         stripeConnectTrack: true,
+        dateOfBirth: true,
+        sellerActivatedAt: true,
+        sellerRoles: true,
+        country: true,
       },
     });
 
@@ -239,11 +246,32 @@ export async function POST(req: NextRequest) {
         stripeConnectAccountId: true,
         stripeConnectOnboardingCompleted: true,
         stripeConnectTrack: true,
+        dateOfBirth: true,
+        sellerActivatedAt: true,
+        sellerRoles: true,
+        country: true,
       },
     });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const ageBlock = await marketplaceAgeResponse({
+      prisma,
+      userId: user.id,
+      subject: subjectFromUser(user),
+      activity: 'STRIPE_ONBOARDING',
+      connectTrack: parseConnectTrack(body.track) === 'BUSINESS' ? 'BUSINESS' : 'PARTICULAR',
+    });
+    if (ageBlock && !user.stripeConnectAccountId) {
+      return ageBlock;
+    }
+    if (ageBlock && user.stripeConnectAccountId) {
+      const enforcement = resolveAgeEnforcement(subjectFromUser(user));
+      if (enforcement.mode === 'BLOCKED_UNDER_13' || enforcement.mode === 'MINOR') {
+        return ageBlock;
+      }
     }
 
     const dualTrack = isDualTrackConnectEnabled();
@@ -310,8 +338,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const minorEnforcement = resolveAgeEnforcement(subjectFromUser(user));
     let track: ConnectTrack | null = requestedTrack || existingTrack;
-    if (dualTrack) {
+    if (minorEnforcement.mode === 'MINOR' && existingTrack !== 'BUSINESS') {
+      track = 'PARTICULAR';
+    } else if (dualTrack) {
       if (!track) {
         return NextResponse.json(
           {
@@ -779,14 +810,49 @@ export async function POST(req: NextRequest) {
       process.env.NEXTAUTH_URL ||
       'https://homecheff.eu';
 
+    if (track === 'PARTICULAR') {
+      try {
+        const freshForDob = await stripe.accounts.retrieve(accountId);
+        await propagateCanonicalDobIfStripeEmpty({
+          stripe,
+          account: freshForDob,
+          dateOfBirth: user.dateOfBirth,
+        });
+      } catch (dobErr) {
+        console.error('[stripe-onboard] canonical dob propagate failed', dobErr);
+        return NextResponse.json(
+          {
+            error: 'DOB_PROPAGATE_FAILED',
+            message:
+              'Je geboortedatum kon niet naar de betaalprovider worden gestuurd. Probeer het opnieuw.',
+            messageEn:
+              'Your date of birth could not be sent to the payment provider. Try again.',
+          },
+          { status: 502 },
+        );
+      }
+    }
+
     let accountLink;
+    const linkParams = {
+      account: accountId,
+      refresh_url: `${baseUrl}/seller/stripe/refresh`,
+      return_url: `${baseUrl}/seller/stripe/success`,
+      type: 'account_onboarding' as const,
+      collection_options: {
+        fields: 'eventually_due' as const,
+        future_requirements: 'include' as const,
+      },
+    };
     try {
-      accountLink = await stripe.accountLinks.create({
-        account: accountId,
-        refresh_url: `${baseUrl}/seller/stripe/refresh`,
-        return_url: `${baseUrl}/seller/stripe/success`,
-        type: 'account_onboarding',
-      });
+      try {
+        accountLink = await stripe.accountLinks.create(linkParams);
+      } catch (linkOptionsError: any) {
+        const message = String(linkOptionsError?.message || '');
+        if (!/collection_options|future_requirements/i.test(message)) throw linkOptionsError;
+        const { collection_options: _ignored, ...withoutOptions } = linkParams;
+        accountLink = await stripe.accountLinks.create(withoutOptions);
+      }
     } catch (error: any) {
       console.error('❌ Error creating Stripe account link:', error);
       return NextResponse.json(

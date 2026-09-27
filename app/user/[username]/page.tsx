@@ -16,6 +16,7 @@ import { loadPublicContactChannelsForUser } from "@/lib/profile/load-public-cont
 import { buildProfilePageJsonLd } from '@/lib/seo/schema-builders';
 import { getDisplayName } from "@/lib/displayName";
 import { publicListingEligibilityWhere, isCertificationFixtureUser } from "@/lib/marketplace/public-listing-eligibility";
+import { redactMinorPublicProfile, requiresMinorPublicPrivacy } from "@/lib/age/minor-privacy";
 
 export const revalidate = 0;
 
@@ -168,6 +169,7 @@ export default async function PublicProfilePage({
     showFansList: true,
     showProfileToEveryone: true,
     accountDeletedAt: true,
+    dateOfBirth: true,
     createdAt: true,
     profileViews: true,
     Dish: {
@@ -397,10 +399,11 @@ export default async function PublicProfilePage({
         ? product.createdAt.toISOString()
         : String(product.createdAt),
     priceCents: product.priceCents,
-    place:
-      product.pickupAddress?.trim()?.split(',').pop()?.trim() ||
-      user.place ||
-      null,
+    place: requiresMinorPublicPrivacy(user)
+      ? user.place || null
+      : product.pickupAddress?.trim()?.split(',').pop()?.trim() ||
+        user.place ||
+        null,
     category:
       product.category === 'CHEFF'
         ? 'CHEFF'
@@ -450,7 +453,11 @@ export default async function PublicProfilePage({
       />
       <div className="min-h-screen w-full min-w-0 max-w-[100vw] overflow-x-hidden bg-gray-50">
         <PublicProfileClient
-          user={user as any}
+          user={(() => {
+            const safe = redactMinorPublicProfile({ ...(user as Record<string, unknown>) });
+            delete safe.dateOfBirth;
+            return safe;
+          })() as any}
           openNewProducts={false}
           isOwnProfile={isOwnProfile}
           publicHcp={publicHcp}

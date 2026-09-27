@@ -122,6 +122,43 @@ describe('deriveConnectAccountStatusFromStripe', () => {
     assert.match(connectCtaModelForSnapshot(s).titleNl, /gecontroleerd/i);
   });
 
+  it('ACTION_REQUIRED when Stripe later returns a guardian requirement', () => {
+    const s = deriveConnectAccountStatusFromStripe(
+      fakeAccount({
+        details_submitted: true,
+        requirements: {
+          currently_due: [],
+          past_due: [],
+          pending_verification: [],
+          eventually_due: ['legal_guardian.first_name'],
+          disabled_reason: null,
+        } as unknown as Stripe.Account.Requirements,
+      }),
+      { connectTrack: 'PARTICULAR' },
+    );
+    assert.equal(s.uiStatus, 'ACTION_REQUIRED');
+    assert.equal(s.canCreateOnboardingLink, true);
+    assert.equal(s.paymentReady, false);
+    assert.ok(s.missingCategories.includes('identity'));
+  });
+
+  it('does not invent a guardian requirement when Stripe has none', () => {
+    const s = deriveConnectAccountStatusFromStripe(
+      fakeAccount({
+        details_submitted: false,
+        requirements: {
+          currently_due: ['individual.dob.day'],
+          past_due: [],
+          pending_verification: [],
+          eventually_due: [],
+          disabled_reason: null,
+        },
+      }),
+      { connectTrack: 'PARTICULAR' },
+    );
+    assert.equal(s.currentlyDue.some((key) => key.includes('legal_guardian')), false);
+  });
+
   it('ACTION_REQUIRED when currently_due has items', () => {
     const s = deriveConnectAccountStatusFromStripe(
       fakeAccount({

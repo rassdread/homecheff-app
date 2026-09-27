@@ -50,6 +50,7 @@ import { HC_PENDING_EMAIL_VERIFICATION_STORAGE_KEY } from "@/lib/email-verificat
 import { PolicyAgreementTermsLabel } from "@/components/legal/PolicyAgreementTermsLabel";
 import RegisterSocialRedirect from "@/components/auth/RegisterSocialRedirect";
 import { PRIVACY_URL } from "@/lib/legal/policy-urls";
+import DateOfBirthFields, { emptyDateOfBirthParts, isoFromParts, type DateOfBirthParts } from "@/components/account/DateOfBirthFields";
 
 const AFFILIATE_SIGNUP_OWNS_REDIRECT_KEY = 'hc_affiliate_signup_owns_redirect';
 
@@ -74,6 +75,7 @@ type RegisterState = {
   password: string;
   confirmPassword: string;
   gender: string;
+  dateOfBirth: DateOfBirthParts;
   birthMonth: string;
   birthYear: string;
   userTypes: string[];
@@ -136,6 +138,7 @@ const REGISTER_INITIAL_STATE: RegisterState = {
   password: "",
   confirmPassword: "",
   gender: "",
+  dateOfBirth: emptyDateOfBirthParts(),
   birthMonth: "",
   birthYear: "",
   userTypes: [],
@@ -763,6 +766,17 @@ function RegisterPageContent() {
         return;
       }
 
+      const dobIso = isoFromParts(state.dateOfBirth || emptyDateOfBirthParts());
+      if (!dobIso) {
+        fail(
+          language === 'en'
+            ? 'Enter your real date of birth (dd/mm/yyyy).'
+            : 'Vul je echte geboortedatum in (dd/mm/jjjj).',
+          'hc-register-dob-day',
+        );
+        return;
+      }
+
       if (!state.password || state.password.length < 6) {
         fail(t('register.validation.passwordMinLength'), 'hc-register-light-password');
         return;
@@ -787,8 +801,10 @@ function RegisterPageContent() {
         password: state.password,
         confirmPassword: state.confirmPassword,
         gender: '',
-        birthMonth: '',
-        birthYear: '',
+        dateOfBirth: isoFromParts(state.dateOfBirth),
+        birthDay: state.dateOfBirth.day,
+        birthMonth: state.dateOfBirth.month,
+        birthYear: state.dateOfBirth.year,
         userTypes: [] as string[],
         selectedBuyerType: '',
         interests: [] as string[],
@@ -866,10 +882,14 @@ function RegisterPageContent() {
           'VAT_INVALID_FORMAT': t('register.validation.vatInvalidFormatError'),
           'BUSINESS_REGISTRATION_INVALID_FORMAT': t('register.validation.businessRegistrationInvalidFormatError'),
           'ACCOUNT_CREATION_ERROR': t('register.validation.registrationError'),
+          'DOB_REQUIRED': language === 'en' ? 'Enter your real date of birth (dd/mm/yyyy).' : 'Vul je echte geboortedatum in (dd/mm/jjjj).',
+          'UNDER_13': language === 'en' ? 'HomeCheff accounts are available from age 13.' : 'HomeCheff-accounts zijn beschikbaar vanaf 13 jaar.',
         };
         
         if (errorCodeMap[data.error]) {
           errorMessage = errorCodeMap[data.error];
+        } else if (typeof data.message === 'string' && data.message) {
+          errorMessage = language === 'en' && data.messageEn ? data.messageEn : data.message;
         }
         
         setState(prev => ({ 
@@ -1447,6 +1467,23 @@ function RegisterPageContent() {
                         {state.usernameValidation.message}
                       </div>
                     ) : null}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="hc-register-dob-day">
+                      {language === 'en' ? 'Date of birth' : 'Geboortedatum'} *
+                    </label>
+                    <DateOfBirthFields
+                      idPrefix="hc-register-dob"
+                      yearPlaceholder={language === 'en' ? 'YYYY' : 'JJJJ'}
+                      value={state.dateOfBirth || emptyDateOfBirthParts()}
+                      onChange={(dateOfBirth) => setState((prev) => ({ ...prev, dateOfBirth }))}
+                    />
+                    <p className="mt-2 text-xs text-gray-500">
+                      {language === 'en'
+                        ? 'We use this to see what you can do on HomeCheff. It is not shown on your public profile.'
+                        : 'We gebruiken dit om te zien wat je op HomeCheff kunt doen. Het staat niet op je openbare profiel.'}
+                    </p>
                   </div>
 
                   <div>

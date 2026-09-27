@@ -12,6 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { activatePersonalAffiliate } from "@/lib/affiliate/activate-affiliate";
 import { enrollAffiliate, loadPublicPresentation } from "@/lib/affiliate/program-store";
 import { maybeAcceptPartnerInviteFromRequest } from "@/lib/affiliates/accept-partner-invite";
+import { evaluateMarketplaceEligibility } from "@/lib/age/marketplace-eligibility";
 
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +37,23 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const affiliateAge = evaluateMarketplaceEligibility({
+      subject: {
+        dateOfBirth: user.dateOfBirth,
+        stripeConnectAccountId: user.stripeConnectAccountId,
+        sellerActivatedAt: user.sellerActivatedAt,
+        sellerRoles: user.sellerRoles,
+        country: user.country,
+      },
+      activity: "AFFILIATE",
+    });
+    if (!affiliateAge.allowed) {
+      return NextResponse.json(
+        { error: affiliateAge.messageNl, code: affiliateAge.code, messageEn: affiliateAge.messageEn },
+        { status: 403 },
+      );
     }
 
     const needsPrivacyAcceptance = !user.privacyPolicyAccepted && !acceptPrivacyPolicy;

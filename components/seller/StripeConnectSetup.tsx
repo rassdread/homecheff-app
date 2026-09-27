@@ -8,6 +8,7 @@ import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-stat
 import { connectCtaModelForStatus } from '@/lib/stripe/connect-account-status';
 import type { ConnectTrack } from '@/lib/stripe/connect-tracks';
 import ConnectTrackSelector from '@/components/seller/ConnectTrackSelector';
+import MinorAccountGate from '@/components/account/MinorAccountGate';
 
 export default function StripeConnectSetup() {
   const [uiStatus, setUiStatus] = useState<HomecheffConnectUiStatus | null>(null);
@@ -21,6 +22,7 @@ export default function StripeConnectSetup() {
   const [dualTrackEnabled, setDualTrackEnabled] = useState(true);
   const [entryTitle, setEntryTitle] = useState<string | null>(null);
   const [entryBody, setEntryBody] = useState<string | null>(null);
+  const [minorBlocked, setMinorBlocked] = useState(false);
 
   useEffect(() => {
     void checkStatus();
@@ -73,6 +75,10 @@ export default function StripeConnectSetup() {
   };
 
   const startOnboarding = async (track?: ConnectTrack, forceReplace?: boolean) => {
+    if (minorBlocked) {
+      setError('Rond eerst je geboortedatum af en, als dat nodig is, toestemming van een ouder.');
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
@@ -109,6 +115,8 @@ export default function StripeConnectSetup() {
 
   if (uiStatus === 'PAYMENT_READY' && !configurationMismatch) {
     return (
+      <div>
+      <MinorAccountGate onBlockedChange={setMinorBlocked} />
       <div className="bg-green-50 border border-green-200 rounded-xl p-6">
         <div className="flex items-center">
           <CheckCircle className="h-6 w-6 text-green-600 mr-3" />
@@ -124,6 +132,7 @@ export default function StripeConnectSetup() {
             </p>
           </div>
         </div>
+      </div>
       </div>
     );
   }
@@ -182,6 +191,8 @@ export default function StripeConnectSetup() {
   const model = connectCtaModelForStatus(uiStatus || 'NOT_STARTED');
 
   return (
+    <div>
+    <MinorAccountGate onBlockedChange={setMinorBlocked} />
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex items-start">
         <div className="flex-shrink-0">
@@ -239,6 +250,7 @@ export default function StripeConnectSetup() {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }

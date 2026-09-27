@@ -8,6 +8,7 @@ import {
   publicMakerContactSelect,
   type PublicContactChannel,
 } from '@/lib/profile/maker-contact-preferences';
+import { redactMinorPublicContactChannels } from '@/lib/age/minor-privacy';
 
 /** Server-side: alleen gefilterde kanalen — geen ruwe/disabled/locked contactvelden. */
 export async function loadPublicContactChannelsForUser(
@@ -24,6 +25,7 @@ export async function loadPublicContactChannelsForUser(
     where: { id: userId },
     select: {
       ...publicMakerContactSelect,
+      dateOfBirth: true,
       SellerProfile: {
         select: {
           subscriptionId: true,
@@ -42,7 +44,10 @@ export async function loadPublicContactChannelsForUser(
   }
 
   const premium = resolveContactPremiumAvailability(user.SellerProfile);
-  const { SellerProfile: _sellerProfile, ...contactDb } = user;
+  const { SellerProfile: _sellerProfile, dateOfBirth, ...contactDb } = user;
 
-  return buildPublicContactChannels(contactDb, { premium });
+  return redactMinorPublicContactChannels(
+    buildPublicContactChannels(contactDb, { premium }),
+    { dateOfBirth },
+  );
 }

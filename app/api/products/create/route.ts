@@ -46,6 +46,7 @@ import {
 import { maybeActivateSellerFromPublishedListing } from '@/lib/acquisition/marketplace-acquisition';
 import { productToListingQualityInput } from '@/lib/acquisition/product-quality-input';
 import { recordListingPublished } from '@/lib/analytics/record-acquisition-event.server';
+import { marketplaceAgeResponse, subjectFromUser } from '@/lib/age/listing-age-guard';
 
 const CATEGORY_MAP: Record<string, any> = {
   CHEFF: 'CHEFF',
@@ -233,6 +234,18 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
+
+    const listingCategory =
+      (typeof marketplaceCategoryRaw === 'string' && marketplaceCategoryRaw) ||
+      (typeof category === 'string' ? category : null);
+    const ageBlock = await marketplaceAgeResponse({
+      prisma,
+      userId: user.id,
+      subject: subjectFromUser(user),
+      activity: 'LIST_PRODUCT',
+      category: listingCategory,
+    });
+    if (ageBlock) return ageBlock;
 
     let sellerProfileId = user.SellerProfile?.id;
     
