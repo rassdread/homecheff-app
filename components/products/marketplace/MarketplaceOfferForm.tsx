@@ -34,6 +34,7 @@ import BarterOpennessSelector from '@/components/products/marketplace/BarterOpen
 import TaxonomySpecializationPicker from '@/components/products/marketplace/TaxonomySpecializationPicker';
 import { TaxonomyLucideIcon } from '@/components/products/marketplace/TaxonomyLucideIcon';
 import SettlementConnectGuidance from '@/components/products/marketplace/SettlementConnectGuidance';
+import MinorAccountGate from '@/components/account/MinorAccountGate';
 import { normalizeAcceptedTaxonomyIds } from '@/lib/marketplace/taxonomy-normalize';
 import { getMarketplaceTaxonomyItem } from '@/lib/marketplace/taxonomy-resolve';
 import { fulfillmentOptionsToApiString, legacyDeliveryToFulfillment } from '@/lib/marketplace/fulfillment';
@@ -990,6 +991,7 @@ export default function MarketplaceOfferForm({
 
   return (
     <form onSubmit={(e) => void validateAndSubmit(e)} className="space-y-6">
+      <MinorAccountGate />
       <CommerceDeclarationModal
         open={commerceModalOpen}
         busy={commerceBusy}

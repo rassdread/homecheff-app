@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
         dateOfBirth: true,
         stripeConnectAccountId: true,
         sellerActivatedAt: true,
+        createdAt: true,
         country: true,
       }
     });

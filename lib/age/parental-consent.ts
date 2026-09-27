@@ -1,8 +1,8 @@
 /**
  * HomeCheff parental / legal-representative consent.
  *
- * This is not Stripe legal_guardian KYC. Nothing in this module creates a
- * Stripe Person or sends a guardian to Stripe.
+ * This is not a Stripe identity check for a guardian. Nothing in this module
+ * creates a Stripe Person or sends a guardian to Stripe.
  *
  * Records are append-only AuditLog rows so production does not need a new
  * table. Guardian email and IP stay in the audit meta and are not returned
@@ -255,6 +255,7 @@ export async function revokeParentalConsent(params: {
     userId = active?.userId ?? null;
   }
   if (!userId) return { ok: false, reason: 'NOT_FOUND' };
+  // Revocation only appends an audit row. Open and paid orders are left as they are.
   const latest = await getLatestParentalConsent(params.prisma, userId);
   if (!latest || latest.action !== PARENTAL_CONSENT_ACTIVE) {
     return { ok: false, reason: 'NOT_FOUND' };
@@ -275,4 +276,44 @@ export async function revokeParentalConsent(params: {
     },
   });
   return { ok: true, userId };
+}
+
+export function parentalConsentInviteCopy(params: {
+  en: boolean;
+  username?: string | null;
+  link: string;
+}): { subject: string; text: string; html: string } {
+  const who = params.username ? `@${params.username}` : params.en ? 'a HomeCheff account' : 'een HomeCheff-account';
+  if (params.en) {
+    return {
+      subject: 'Permission requested for a HomeCheff account',
+      text: `Someone (${who}) asked for your permission to sell on HomeCheff and set up payments. Open this link to accept, or ignore it if you do not know this request: ${params.link}`,
+      html: `<p>Someone (<strong>${who}</strong>) asked for your permission to sell on HomeCheff and set up payments.</p><p><a href="${params.link}">Give permission</a></p><p>If you do not know this request, you can ignore this email.</p>`,
+    };
+  }
+  return {
+    subject: 'Toestemming gevraagd voor een HomeCheff-account',
+    text: `Iemand (${who}) vraagt jouw toestemming om op HomeCheff te verkopen en betalingen in te stellen. Open deze link om toe te stemmen, of negeer de mail als je dit verzoek niet herkent: ${params.link}`,
+    html: `<p>Iemand (<strong>${who}</strong>) vraagt jouw toestemming om op HomeCheff te verkopen en betalingen in te stellen.</p><p><a href="${params.link}">Toestemming geven</a></p><p>Ken je dit verzoek niet, dan kun je deze e-mail negeren.</p>`,
+  };
+}
+
+export function parentalConsentAcceptedCopy(params: {
+  en: boolean;
+  username?: string | null;
+  revokeLink: string;
+}): { subject: string; text: string; html: string } {
+  const who = params.username ? `@${params.username}` : params.en ? 'the HomeCheff account' : 'het HomeCheff-account';
+  if (params.en) {
+    return {
+      subject: 'Permission recorded — HomeCheff',
+      text: `Your permission for ${who} is recorded. Existing orders stay in place. To withdraw permission for new selling, use: ${params.revokeLink}`,
+      html: `<p>Your permission for <strong>${who}</strong> is recorded. Existing orders stay in place.</p><p><a href="${params.revokeLink}">Withdraw permission</a></p>`,
+    };
+  }
+  return {
+    subject: 'Toestemming vastgelegd — HomeCheff',
+    text: `Je toestemming voor ${who} is vastgelegd. Bestaande bestellingen blijven staan. Nieuwe verkopen pauzeer je via: ${params.revokeLink}`,
+    html: `<p>Je toestemming voor <strong>${who}</strong> is vastgelegd. Bestaande bestellingen blijven staan.</p><p><a href="${params.revokeLink}">Toestemming intrekken</a></p>`,
+  };
 }

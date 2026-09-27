@@ -1,0 +1,168 @@
+{
+  "mode": "test",
+  "age": 16,
+  "testIban": "NL91ABNA0417164300",
+  "note": "Example IBAN accepted or rejected by Stripe test mode. This does not confirm a real minor-owned IBAN.",
+  "manuallyMarkedReady": false,
+  "steps": {
+    "beforeExternalAccount": {
+      "id": "acct_1UKI11RwRUo1tQ2b",
+      "country": "NL",
+      "business_type": "individual",
+      "type": "none",
+      "dashboard": "none",
+      "requirement_collection": "application",
+      "individual_dob": {
+        "day": 27,
+        "month": 9,
+        "year": 2010
+      },
+      "representative": true,
+      "verification_status": "pending",
+      "capabilities": {
+        "card_payments": "pending",
+        "transfers": "pending"
+      },
+      "charges_enabled": false,
+      "payouts_enabled": false,
+      "details_submitted": false,
+      "currently_due": [
+        "external_account"
+      ],
+      "eventually_due": [
+        "external_account"
+      ],
+      "past_due": [
+        "external_account"
+      ],
+      "pending_verification": [
+        "individual.address.city",
+        "individual.address.line1",
+        "individual.address.postal_code",
+        "individual.dob.day",
+        "individual.dob.month",
+        "individual.dob.year",
+        "individual.first_name",
+        "individual.last_name",
+        "individual.phone"
+      ],
+      "disabled_reason": "requirements.past_due",
+      "future_currently_due": [],
+      "legal_guardian_keys": [],
+      "external_accounts": []
+    },
+    "externalAccountCreate": {
+      "ok": true,
+      "id": "ba_1UKI15RwRUo1tQ2bK14GXQ4q",
+      "object": "bank_account",
+      "status": "new"
+    },
+    "identityDocumentToken": {
+      "ok": true
+    },
+    "persons": [
+      {
+        "id": "person_1UKI11RwRUo1tQ2bHSKOYUDC",
+        "representative": true,
+        "legal_guardian": false
+      }
+    ],
+    "after": {
+      "id": "acct_1UKI11RwRUo1tQ2b",
+      "country": "NL",
+      "business_type": "individual",
+      "type": "none",
+      "dashboard": "none",
+      "requirement_collection": "application",
+      "individual_dob": {
+        "day": 27,
+        "month": 9,
+        "year": 2010
+      },
+      "representative": true,
+      "verification_status": "pending",
+      "capabilities": {
+        "card_payments": "pending",
+        "transfers": "pending"
+      },
+      "charges_enabled": false,
+      "payouts_enabled": false,
+      "details_submitted": true,
+      "currently_due": [],
+      "eventually_due": [],
+      "past_due": [],
+      "pending_verification": [
+        "individual.address.city",
+        "individual.address.line1",
+        "individual.address.postal_code",
+        "individual.dob.day",
+        "individual.dob.month",
+        "individual.dob.year",
+        "individual.first_name",
+        "individual.last_name",
+        "individual.phone"
+      ],
+      "disabled_reason": "requirements.pending_verification",
+      "future_currently_due": [],
+      "legal_guardian_keys": [],
+      "external_accounts": [
+        {
+          "object": "bank_account",
+          "country": "NL",
+          "currency": "eur",
+          "status": "new",
+          "last4": "4300"
+        }
+      ]
+    },
+    "afterWait": {
+      "id": "acct_1UKI11RwRUo1tQ2b",
+      "country": "NL",
+      "business_type": "individual",
+      "type": "none",
+      "dashboard": "none",
+      "requirement_collection": "application",
+      "individual_dob": {
+        "day": 27,
+        "month": 9,
+        "year": 2010
+      },
+      "representative": true,
+      "verification_status": "pending",
+      "capabilities": {
+        "card_payments": "pending",
+        "transfers": "pending"
+      },
+      "charges_enabled": false,
+      "payouts_enabled": false,
+      "details_submitted": true,
+      "currently_due": [],
+      "eventually_due": [],
+      "past_due": [],
+      "pending_verification": [
+        "individual.address.city",
+        "individual.address.line1",
+        "individual.address.postal_code",
+        "individual.dob.day",
+        "individual.dob.month",
+        "individual.dob.year",
+        "individual.first_name",
+        "individual.last_name",
+        "individual.phone"
+      ],
+      "disabled_reason": "requirements.pending_verification",
+      "future_currently_due": [],
+      "legal_guardian_keys": [],
+      "external_accounts": [
+        {
+          "object": "bank_account",
+          "country": "NL",
+          "currency": "eur",
+          "status": "new",
+          "last4": "4300"
+        }
+      ]
+    },
+    "deleted": true
+  }
+}

@@ -6,6 +6,7 @@ import { sendTransactionalEmail } from '@/lib/email/idempotent-send';
 import {
   createParentalConsentInvite,
   getParentalConsentPublic,
+  parentalConsentInviteCopy,
   PARENTAL_CONSENT_VERSION,
 } from '@/lib/age/parental-consent';
 import { resolveAgeEnforcement } from '@/lib/age/marketplace-eligibility';
@@ -103,19 +104,16 @@ export async function POST(req: NextRequest) {
     username: user.username,
   });
   const link = `${getPublicAppUrl()}/account/ouderlijke-toestemming?token=${invite.token}`;
-  const en = user.preferredLanguage === 'en';
-  const who = user.username ? `@${user.username}` : 'een HomeCheff-account';
+  const copy = parentalConsentInviteCopy({
+    en: user.preferredLanguage === 'en',
+    username: user.username,
+    link,
+  });
   const sent = await sendTransactionalEmail({
     to: guardianEmail,
-    subject: en
-      ? 'Permission requested for a HomeCheff account'
-      : 'Toestemming gevraagd voor een HomeCheff-account',
-    text: en
-      ? `Someone (${who}) asked for your permission to sell on HomeCheff and set up payments. Open this link to accept or ignore it if you do not know this request: ${link}`
-      : `Iemand (${who}) vraagt jouw toestemming om op HomeCheff te verkopen en betalingen in te stellen. Open deze link om toe te stemmen, of negeer de mail als je dit verzoek niet herkent: ${link}`,
-    html: en
-      ? `<p>Someone (<strong>${who}</strong>) asked for your permission to sell on HomeCheff and set up payments.</p><p><a href="${link}">Give permission</a></p><p>If you do not know this request, you can ignore this email.</p>`
-      : `<p>Iemand (<strong>${who}</strong>) vraagt jouw toestemming om op HomeCheff te verkopen en betalingen in te stellen.</p><p><a href="${link}">Toestemming geven</a></p><p>Ken je dit verzoek niet, dan kun je deze e-mail negeren.</p>`,
+    subject: copy.subject,
+    text: copy.text,
+    html: copy.html,
     eventType: 'parental_consent_invite',
     priority: 'P1',
     idempotencyKey: `parental-consent:${user.id}:${invite.expiresAt.getTime()}`,

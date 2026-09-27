@@ -32,12 +32,21 @@ export type MarketplaceActivity =
   | 'DELIVERY'
   | 'AFFILIATE';
 
+/**
+ * Accounts created before the first 13–17 production deploy may already sell
+ * without a stored date of birth. A SellerProfile alone does not grant that
+ * exception after this moment, so a new Google signup cannot skip the DOB.
+ */
+export const LEGACY_SELLER_WITHOUT_DOB_CUTOFF = new Date('2026-09-27T13:06:35.000Z');
+
 export type AgeSubject = {
   dateOfBirth?: Date | string | null;
   stripeConnectAccountId?: string | null;
   sellerActivatedAt?: Date | string | null;
   sellerRoles?: string[] | null;
   hasSellerProfile?: boolean;
+  /** Account createdAt. Required before a profile-only user can stay on the legacy adult path. */
+  createdAt?: Date | string | null;
   country?: string | null;
 };
 
@@ -63,7 +72,8 @@ export type EligibilityCode =
   | 'DELIVERY_18_PLUS'
   | 'AFFILIATE_18_PLUS'
   | 'NL_ONLY'
-  | 'BUSINESS_18_PLUS';
+  | 'BUSINESS_18_PLUS'
+  | 'STRIPE_NOT_READY';
 
 export type EligibilityDecision = {
   allowed: boolean;
@@ -108,18 +118,26 @@ export function isCategoryCertifiedForMinors(
   return key.length > 0 && MINOR_CERTIFIED_CATEGORIES.has(key);
 }
 
+function profilePredatesDobRequirement(createdAt: Date | string | null | undefined): boolean {
+  if (!createdAt) return false;
+  const created = new Date(createdAt);
+  if (Number.isNaN(created.getTime())) return false;
+  return created.getTime() < LEGACY_SELLER_WITHOUT_DOB_CUTOFF.getTime();
+}
+
 export function resolveAgeEnforcement(
   subject: AgeSubject | null | undefined,
   now: Date = new Date(),
 ): AgeEnforcement {
   const resolved = resolveAgeFromDob(subject?.dateOfBirth, now);
   if (!resolved.ok) {
-    const legacy =
+    const establishedSeller =
       Boolean(subject?.stripeConnectAccountId) ||
       Boolean(subject?.sellerActivatedAt) ||
-      (subject?.sellerRoles?.length ?? 0) > 0 ||
-      Boolean(subject?.hasSellerProfile);
-    if (legacy) {
+      (subject?.sellerRoles?.length ?? 0) > 0;
+    const legacyProfile =
+      Boolean(subject?.hasSellerProfile) && profilePredatesDobRequirement(subject?.createdAt);
+    if (establishedSeller || legacyProfile) {
       return { mode: 'LEGACY_ADULT', ageYears: null, band: null };
     }
     return { mode: 'DOB_REQUIRED', ageYears: null, band: null };
@@ -336,6 +354,16 @@ export function evaluateMarketplaceEligibility(input: {
             'This category is not available under 18 yet. Choose a category that is allowed for your age, such as growing, design, or a creative service.',
         });
       }
+    }
+    if (input.activity === 'RECEIVE_ORDERS' && input.stripePayoutReady !== true) {
+      return decision({
+        allowed: false,
+        code: 'STRIPE_NOT_READY',
+        ...base,
+        messageNl:
+          'Nieuwe bestellingen via HomeCheff kunnen pas binnenkomen als betalingen zijn ingesteld.',
+        messageEn: 'New HomeCheff orders can start once payments are set up.',
+      });
     }
   }
 

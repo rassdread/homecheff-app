@@ -6,6 +6,7 @@ import { Package, Truck } from 'lucide-react';
 import SimpleImageUploader from './SimpleImageUploader';
 import EmojiPickerButton from '@/components/chat/EmojiPicker';
 import { useTranslation } from '@/hooks/useTranslation';
+import MinorAccountGate from '@/components/account/MinorAccountGate';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import { getAddressFormat } from '@/lib/global-geocoding';
 import VideoUploader from '@/components/ui/VideoUploader';
@@ -678,6 +679,7 @@ export default function CompactGardenForm({
       ) : null}
 
       <form onSubmit={onSubmit} className="space-y-4">
+        <MinorAccountGate />
         {/* Video Upload */}
         <div>
           <VideoUploader

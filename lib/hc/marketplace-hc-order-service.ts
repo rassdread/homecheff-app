@@ -9,6 +9,9 @@ import {
   type TrustedOrderPayload,
 } from '@/lib/hc/growth-marketplace-mutation-client';
 import { assertMarketplaceHcOnlyCheckoutAllowed } from '@/lib/hc/marketplace-hc-pilot-gate';
+import { evaluateMarketplaceEligibility } from '@/lib/age/marketplace-eligibility';
+import { hasActiveParentalConsent } from '@/lib/age/parental-consent';
+import { sellerPaymentsReady } from '@/lib/product/order-method';
 import {
   createSettlementExposurePending,
   markSettlementExposureEarned,
@@ -90,7 +93,20 @@ export async function resolveHcOnlyCheckoutContext(input: {
       seller: {
         select: {
           userId: true,
-          User: { select: { id: true, city: true, postalCode: true, country: true } },
+          User: {
+            select: {
+              id: true,
+              city: true,
+              postalCode: true,
+              country: true,
+              dateOfBirth: true,
+              createdAt: true,
+              stripeConnectAccountId: true,
+              stripeConnectOnboardingCompleted: true,
+              sellerActivatedAt: true,
+              sellerRoles: true,
+            },
+          },
         },
       },
     },
@@ -109,6 +125,38 @@ export async function resolveHcOnlyCheckoutContext(input: {
   const sellerUser = product.seller?.User;
   const sellerUserId = product.seller?.userId ?? sellerUser?.id ?? '';
   const sellerCentralUserId = sellerUserId;
+  if (sellerUser?.id) {
+    const category = product.marketplaceCategory || product.category;
+    const stripePayoutReady = sellerPaymentsReady(sellerUser);
+    const sellerSubject = {
+      dateOfBirth: sellerUser.dateOfBirth,
+      stripeConnectAccountId: sellerUser.stripeConnectAccountId,
+      sellerActivatedAt: sellerUser.sellerActivatedAt,
+      sellerRoles: sellerUser.sellerRoles,
+      createdAt: sellerUser.createdAt,
+      country: sellerUser.country,
+      hasSellerProfile: true,
+    };
+    const preview = evaluateMarketplaceEligibility({
+      subject: sellerSubject,
+      activity: 'RECEIVE_ORDERS',
+      category,
+      parentalConsentActive: true,
+      stripePayoutReady,
+    });
+    const consent =
+      preview.mode === 'MINOR' ? await hasActiveParentalConsent(prisma, sellerUser.id) : true;
+    const decision = evaluateMarketplaceEligibility({
+      subject: sellerSubject,
+      activity: 'RECEIVE_ORDERS',
+      category,
+      parentalConsentActive: consent,
+      stripePayoutReady,
+    });
+    if (!decision.allowed) {
+      return { error: decision.messageNl, code: decision.code };
+    }
+  }
 
   try {
     assertMarketplaceHcOnlyCheckoutAllowed({ centralUserId, listingId: product.id });

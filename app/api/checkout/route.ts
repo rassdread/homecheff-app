@@ -203,6 +203,9 @@ export async function POST(req: NextRequest) {
                   address: true,
                   city: true,
                   dateOfBirth: true,
+                  createdAt: true,
+                  sellerActivatedAt: true,
+                  sellerRoles: true,
                 }
               }
             }
@@ -220,15 +223,20 @@ export async function POST(req: NextRequest) {
         const sellerSubject = {
           dateOfBirth: sellerUser.dateOfBirth,
           stripeConnectAccountId: sellerUser.stripeConnectAccountId,
+          sellerActivatedAt: sellerUser.sellerActivatedAt,
+          sellerRoles: sellerUser.sellerRoles,
+          createdAt: sellerUser.createdAt,
           country: sellerUser.country,
           hasSellerProfile: true,
         };
         const category = productRow.marketplaceCategory || productRow.category;
+        const stripePayoutReady = sellerPaymentsReady(sellerUser);
         const preview = evaluateMarketplaceEligibility({
           subject: sellerSubject,
           activity: 'RECEIVE_ORDERS',
           category,
           parentalConsentActive: true,
+          stripePayoutReady,
         });
         if (preview.mode !== 'MINOR') {
           if (!preview.allowed) {
@@ -242,6 +250,7 @@ export async function POST(req: NextRequest) {
           activity: 'RECEIVE_ORDERS',
           category,
           parentalConsentActive: consent,
+          stripePayoutReady,
         });
         if (!decision.allowed) {
           return { error: decision.messageNl, products: null };

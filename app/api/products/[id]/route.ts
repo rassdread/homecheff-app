@@ -504,6 +504,7 @@ export async function PATCH(
         stripeConnectAccountId: true,
         sellerActivatedAt: true,
         sellerRoles: true,
+        createdAt: true,
         country: true,
       }
     });

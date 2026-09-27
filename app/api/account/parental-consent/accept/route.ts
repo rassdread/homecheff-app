@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getPublicAppUrl } from '@/lib/public-app-url';
 import { sendTransactionalEmail } from '@/lib/email/idempotent-send';
-import { acceptParentalConsentToken } from '@/lib/age/parental-consent';
+import { acceptParentalConsentToken, parentalConsentAcceptedCopy } from '@/lib/age/parental-consent';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   const user = await prisma.user.findUnique({
     where: { id: result.userId },
-    select: { username: true },
+    select: { username: true, preferredLanguage: true },
   });
   const pending = await prisma.auditLog.findFirst({
     where: { userId: result.userId, action: 'PARENTAL_CONSENT_ACTIVE' },
@@ -51,12 +51,16 @@ export async function POST(req: NextRequest) {
       : null;
   if (guardianEmail) {
     const revokeLink = `${getPublicAppUrl()}/account/ouderlijke-toestemming?revoke=${result.revokeToken}`;
-    const who = user?.username ? `@${user.username}` : 'het HomeCheff-account';
+    const copy = parentalConsentAcceptedCopy({
+      en: user?.preferredLanguage === 'en',
+      username: user?.username,
+      revokeLink,
+    });
     await sendTransactionalEmail({
       to: guardianEmail,
-      subject: 'Toestemming vastgelegd — HomeCheff',
-      text: `Je toestemming voor ${who} is vastgelegd. Wil je die intrekken, gebruik dan: ${revokeLink}`,
-      html: `<p>Je toestemming voor <strong>${who}</strong> is vastgelegd.</p><p><a href="${revokeLink}">Toestemming intrekken</a></p>`,
+      subject: copy.subject,
+      text: copy.text,
+      html: copy.html,
       eventType: 'parental_consent_accepted',
       priority: 'P1',
       idempotencyKey: `parental-consent-accepted:${result.userId}:${result.revokeToken.slice(0, 12)}`,

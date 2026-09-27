@@ -106,8 +106,8 @@ export default function MinorAccountGate({
         <div>
           <p className="mb-2">
             {en
-              ? 'Enter your real date of birth before setting up payments. It stays private.'
-              : 'Vul je echte geboortedatum in voordat je betalingen instelt. Die blijft privé.'}
+              ? 'Enter your real date of birth before you sell or set up payments. It stays private and is not shown on your public profile.'
+              : 'Vul je echte geboortedatum in voordat je verkoopt of betalingen instelt. Die blijft privé en staat niet op je openbare profiel.'}
           </p>
           <DateOfBirthFields idPrefix="minor-dob" value={dob} onChange={setDob} />
           <button

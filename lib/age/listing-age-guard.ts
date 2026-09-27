@@ -15,6 +15,7 @@ export function subjectFromUser(user: {
   sellerActivatedAt?: Date | string | null;
   sellerRoles?: string[] | null;
   SellerProfile?: { id?: string } | null;
+  createdAt?: Date | string | null;
   country?: string | null;
 }): AgeSubject {
   return {
@@ -23,6 +24,7 @@ export function subjectFromUser(user: {
     sellerActivatedAt: user.sellerActivatedAt,
     sellerRoles: user.sellerRoles,
     hasSellerProfile: Boolean(user.SellerProfile?.id),
+    createdAt: user.createdAt,
     country: user.country,
   };
 }

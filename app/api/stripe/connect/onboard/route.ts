@@ -49,6 +49,7 @@ export async function GET() {
         dateOfBirth: true,
         sellerActivatedAt: true,
         sellerRoles: true,
+        createdAt: true,
         country: true,
       },
     });
@@ -249,6 +250,7 @@ export async function POST(req: NextRequest) {
         dateOfBirth: true,
         sellerActivatedAt: true,
         sellerRoles: true,
+        createdAt: true,
         country: true,
       },
     });
