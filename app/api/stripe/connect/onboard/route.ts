@@ -343,6 +343,26 @@ export async function POST(req: NextRequest) {
     const minorEnforcement = resolveAgeEnforcement(subjectFromUser(user));
     let track: ConnectTrack | null = requestedTrack || existingTrack;
     if (minorEnforcement.mode === 'MINOR' && existingTrack !== 'BUSINESS') {
+      if (requestedTrack === 'BUSINESS') {
+        return NextResponse.json(
+          {
+            error: 'BUSINESS_18_PLUS',
+            message: 'Een bedrijfsaccount kan pas vanaf 18 jaar.',
+          },
+          { status: 403 },
+        );
+      }
+      if (!track) {
+        return NextResponse.json(
+          {
+            error: 'TRACK_REQUIRED',
+            errorKey: 'stripe.connect.trackRequired',
+            message: 'Kies of je HomeCheff als particulier of als bedrijf gebruikt.',
+            needsTrackSelection: true,
+          },
+          { status: 400 },
+        );
+      }
       track = 'PARTICULAR';
     } else if (dualTrack) {
       if (!track) {
@@ -357,8 +377,21 @@ export async function POST(req: NextRequest) {
           { status: 400 },
         );
       }
-    } else {
-      track = track || 'BUSINESS';
+    } else if (!track) {
+      if (user.stripeConnectAccountId) {
+        // Existing Express account from before a track was stored. Resume it; do not create another.
+        track = 'BUSINESS';
+      } else {
+        return NextResponse.json(
+          {
+            error: 'TRACK_REQUIRED',
+            errorKey: 'stripe.connect.trackRequired',
+            message: 'Kies of je HomeCheff als particulier of als bedrijf gebruikt.',
+            needsTrackSelection: true,
+          },
+          { status: 400 },
+        );
+      }
     }
 
     let accountId = user.stripeConnectAccountId;

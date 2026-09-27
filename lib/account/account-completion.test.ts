@@ -51,14 +51,20 @@ describe('account completion checklist', () => {
     assert.equal(model.minorBusinessBlocked, true);
     assert.equal(model.businessSelectable, false);
     assert.equal(model.particularSelectable, true);
-    assert.equal(model.effectiveTrack, 'PARTICULAR');
+    assert.equal(model.effectiveTrack, null);
+    assert.equal(model.accountTypeComplete, false);
     assert.equal(model.showConsent, true);
     assert.equal(model.paymentsBlocked, true);
   });
 
-  it('lets a minor with active consent start particular payments', () => {
-    const model = accountCompletionModel(
+  it('lets a minor with active consent start particular payments only after that choice', () => {
+    const unanswered = accountCompletionModel(
       base({ ageMode: 'MINOR', consentRequired: false }),
+    );
+    assert.equal(unanswered.effectiveTrack, null);
+    assert.equal(unanswered.paymentsBlocked, true);
+    const model = accountCompletionModel(
+      base({ ageMode: 'MINOR', consentRequired: false, selectedTrack: 'PARTICULAR' }),
     );
     assert.equal(model.consentComplete, true);
     assert.equal(model.effectiveTrack, 'PARTICULAR');
@@ -169,5 +175,72 @@ describe('listing inline completion order', () => {
     );
     assert.equal(model.paymentsComplete, true);
     assert.equal(listingCompletionSteps(model).includes('payments'), true);
+  });
+
+  it('A. asks an adult with a stored date of birth and no seller type to choose', () => {
+    const model = accountCompletionModel(base({ connectTrack: null, selectedTrack: null }));
+    assert.equal(model.effectiveTrack, null);
+    assert.equal(model.accountTypeComplete, false);
+    assert.equal(model.particularSelectable, true);
+    assert.equal(model.businessSelectable, true);
+    assert.equal(model.dobRequired, false);
+  });
+
+  it('B/C. keeps a stored particular or business choice and does not ask again', () => {
+    const particular = accountCompletionModel(base({ connectTrack: 'PARTICULAR' }));
+    const business = accountCompletionModel(base({ connectTrack: 'BUSINESS' }));
+    assert.equal(particular.accountTypeComplete, true);
+    assert.equal(particular.effectiveTrack, 'PARTICULAR');
+    assert.equal(business.accountTypeComplete, true);
+    assert.equal(business.effectiveTrack, 'BUSINESS');
+    assert.equal(business.paymentsBlocked, false);
+  });
+
+  it('D/E. asks for a missing date of birth and reuses a valid one', () => {
+    const missing = accountCompletionModel(base({ ageMode: 'DOB_REQUIRED' }));
+    const present = accountCompletionModel(base({ ageMode: 'ADULT' }));
+    assert.equal(missing.dobRequired, true);
+    assert.deepEqual(listingCompletionSteps(missing), ['dob']);
+    assert.equal(present.dobRequired, false);
+    assert.equal(present.dobComplete, true);
+  });
+
+  it('F. keeps grandfathered sellers off the date-of-birth step', () => {
+    const model = accountCompletionModel(
+      base({ ageMode: 'LEGACY_ADULT', connectTrack: 'BUSINESS', hasStripeAccount: true, stripeUiStatus: 'PAYMENT_READY' }),
+    );
+    assert.equal(model.steps.includes('dob'), false);
+    assert.equal(model.dobRequired, false);
+  });
+
+  it('G/H/J. starts when Stripe is absent and resumes the same incomplete account', () => {
+    const absent = accountCompletionModel(base({ selectedTrack: 'PARTICULAR' }));
+    const incomplete = accountCompletionModel(
+      base({
+        hasStripeAccount: true,
+        stripeUiStatus: 'INCOMPLETE',
+        connectTrack: 'PARTICULAR',
+      }),
+    );
+    assert.equal(absent.paymentCta, 'setup');
+    assert.equal(incomplete.paymentCta, 'finish');
+    assert.equal(incomplete.effectiveTrack, 'PARTICULAR');
+    assert.equal(incomplete.paymentsComplete, false);
+  });
+
+  it('N/O/P. a minor cannot take business, and a client claim does not make Stripe ready', () => {
+    const minor = accountCompletionModel(
+      base({ ageMode: 'MINOR', consentRequired: false, selectedTrack: 'BUSINESS' }),
+    );
+    assert.equal(minor.businessSelectable, false);
+    assert.equal(minor.effectiveTrack, null);
+    const fakeReady = accountCompletionModel(
+      base({
+        selectedTrack: 'PARTICULAR',
+        stripeUiStatus: 'NOT_STARTED',
+        hasStripeAccount: false,
+      }),
+    );
+    assert.equal(fakeReady.paymentsComplete, false);
   });
 });

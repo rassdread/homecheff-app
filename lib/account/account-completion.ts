@@ -78,15 +78,14 @@ export function accountCompletionModel(
   const showAccountType = dobKnown && !under13 && (adult || minor);
   const particularSelectable = showAccountType && !lockedType;
   const businessSelectable = showAccountType && adult && !lockedType && !minor;
-  const effectiveTrack: AccountConnectTrack | null = minor
-    ? 'PARTICULAR'
-    : lockedType
-      ? input.connectTrack
-      : input.selectedTrack;
+  // A client BUSINESS pick is ignored for a minor. Null is not PARTICULAR or BUSINESS.
+  const explicitTrack: AccountConnectTrack | null =
+    minor && input.selectedTrack === 'BUSINESS' ? null : input.selectedTrack;
+  const effectiveTrack: AccountConnectTrack | null = lockedType
+    ? input.connectTrack
+    : input.connectTrack ?? explicitTrack;
 
-  const accountTypeComplete =
-    showAccountType &&
-    (minor || lockedType || input.selectedTrack != null || input.connectTrack != null);
+  const accountTypeComplete = showAccountType && effectiveTrack != null;
 
   const showConsent = minor;
   const consentComplete = minor && !input.consentRequired;
@@ -99,7 +98,7 @@ export function accountCompletionModel(
     dobRequired ||
     input.ageMode == null ||
     (minor && input.consentRequired) ||
-    (!lockedType && !minor && input.selectedTrack == null && input.connectTrack == null);
+    (showAccountType && effectiveTrack == null);
 
   let paymentCta: AccountPaymentCta = 'none';
   if (under13 || input.configurationMismatch) {

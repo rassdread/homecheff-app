@@ -1,10 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, AlertCircle, Clock, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { consumeStripeConnectReturnPath } from '@/lib/stripe/stripe-connect-return-path';
+import { useTranslation } from '@/hooks/useTranslation';
+import {
+  clearStripeConnectReturnPath,
+  readStripeConnectReturnPath,
+} from '@/lib/stripe/stripe-connect-return-path';
+import { stripeIncompleteReturn } from '@/lib/stripe/stripe-return-actions';
 import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
 import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-status';
 
@@ -12,13 +17,16 @@ type ViewState = 'loading' | HomecheffConnectUiStatus | 'error';
 
 export default function StripeConnectSuccess() {
   const router = useRouter();
+  const { language } = useTranslation();
+  const en = language === 'en';
   const [status, setStatus] = useState<ViewState>('loading');
   const [canCreateLink, setCanCreateLink] = useState(false);
   const [returnPath, setReturnPath] = useState('/mijn-homecheff');
   const [ctaLoading, setCtaLoading] = useState(false);
+  const resumeLock = useRef(false);
 
   useEffect(() => {
-    setReturnPath(consumeStripeConnectReturnPath('/mijn-homecheff'));
+    setReturnPath(readStripeConnectReturnPath('/mijn-homecheff'));
 
     const checkStatus = async () => {
       try {
@@ -61,15 +69,20 @@ export default function StripeConnectSuccess() {
   };
 
   const resumeOnboarding = async () => {
+    if (resumeLock.current) return;
+    resumeLock.current = true;
     setCtaLoading(true);
     try {
       const result = await startStripeConnectOnboarding({
         returnPath: continueHref(),
       });
-      if (result.statusOnly && !result.redirected) {
-        window.location.reload();
+      if (!result.redirected) {
+        resumeLock.current = false;
+        setCtaLoading(false);
+        if (result.statusOnly) window.location.reload();
       }
-    } finally {
+    } catch {
+      resumeLock.current = false;
       setCtaLoading(false);
     }
   };
@@ -122,12 +135,11 @@ export default function StripeConnectSuccess() {
         : 'Ga naar Mijn HomeCheff';
   } else if (actionNeeded) {
     icon = <AlertCircle className="h-16 w-16 text-amber-600 mx-auto mb-4" />;
-    title = 'Betaalaccount nog niet compleet';
-    body =
-      status === 'ACTION_REQUIRED' || status === 'RESTRICTED'
-        ? 'Stripe heeft nog extra gegevens nodig. Open je betaalaccount om verder te gaan.'
-        : 'Je betaalaccount is nog niet helemaal klaar. Rond de stappen af om betalingen te kunnen ontvangen.';
-    primaryLabel = 'Gegevens afronden';
+    title = en ? 'Payment account not finished' : 'Betaalaccount nog niet compleet';
+    body = en
+      ? 'Stripe still needs a few details before you can receive payments via HomeCheff.'
+      : 'Stripe heeft nog enkele gegevens nodig voordat je betalingen via HomeCheff kunt ontvangen.';
+    primaryLabel = en ? 'Finish your details' : 'Gegevens afronden';
     primaryAction = () => {
       void resumeOnboarding();
     };
@@ -139,6 +151,18 @@ export default function StripeConnectSuccess() {
     primaryLabel = 'Opnieuw controleren';
     primaryAction = () => window.location.reload();
   }
+
+  const incomplete = stripeIncompleteReturn({
+    uiStatus: status,
+    canCreateLink,
+    returnPath,
+  });
+
+  const leaveSetup = () => {
+    const path = incomplete.leavePath;
+    clearStripeConnectReturnPath();
+    router.push(path);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-slate-50 flex items-center justify-center px-4 py-10 pb-[max(2rem,env(safe-area-inset-bottom))]">
@@ -152,9 +176,19 @@ export default function StripeConnectSuccess() {
           disabled={ctaLoading}
           className="w-full inline-flex items-center justify-center min-h-[48px]"
         >
-          {ctaLoading ? 'Bezig…' : primaryLabel}
+          {ctaLoading ? (en ? 'Opening Stripe…' : 'Stripe wordt geopend…') : primaryLabel}
           <ArrowRight className="h-4 w-4 ml-2" />
         </Button>
+
+        {incomplete.showResume ? (
+          <button
+            type="button"
+            onClick={leaveSetup}
+            className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-800"
+          >
+            {en ? incomplete.leaveLabelEn : incomplete.leaveLabelNl}
+          </button>
+        ) : null}
 
         {(ready || pending || restrictedWaiting) && (
           <button

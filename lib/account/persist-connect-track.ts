@@ -20,21 +20,17 @@ export function decideConnectTrackPersist(input: {
   hasStripeAccount: boolean;
   existingTrack: AccountConnectTrack | null;
 }): ConnectTrackPersistDecision {
-  if (input.hasStripeAccount) {
-    if (input.existingTrack && input.existingTrack !== input.requested) {
-      return {
-        ok: false,
-        status: 409,
-        code: 'TRACK_LOCKED',
-        messageNl: 'Je betaalaccount staat al. Het type kan hier niet worden gewisseld.',
-        messageEn: 'Your payment account already exists. The type cannot be switched here.',
-      };
-    }
+  if (input.hasStripeAccount && input.existingTrack && input.existingTrack !== input.requested) {
     return {
-      ok: true,
-      track: input.existingTrack ?? input.requested,
-      unchanged: true,
+      ok: false,
+      status: 409,
+      code: 'TRACK_LOCKED',
+      messageNl: 'Je betaalaccount staat al. Het type kan hier niet worden gewisseld.',
+      messageEn: 'Your payment account already exists. The type cannot be switched here.',
     };
+  }
+  if (input.hasStripeAccount && input.existingTrack === input.requested) {
+    return { ok: true, track: input.existingTrack, unchanged: true };
   }
 
   if (input.ageMode === 'BLOCKED_UNDER_13') {

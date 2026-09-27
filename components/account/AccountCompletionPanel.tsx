@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import DateOfBirthFields, {
@@ -75,6 +75,7 @@ export default function AccountCompletionPanel({
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [needsChoice, setNeedsChoice] = useState(false);
+  const stripeStartLock = useRef(false);
 
   const load = useCallback(async () => {
     const requests: Promise<Response>[] = [
@@ -194,6 +195,7 @@ export default function AccountCompletionPanel({
   }
 
   async function startPayments() {
+    if (stripeStartLock.current || busy === 'payments') return;
     if (!model.effectiveTrack || model.paymentsBlocked) return;
     if (onBeforeStripe?.() === false) {
       setError(
@@ -203,13 +205,17 @@ export default function AccountCompletionPanel({
       );
       return;
     }
+    stripeStartLock.current = true;
     setBusy('payments');
     setError(null);
     const result = await startStripeConnectOnboarding({
       returnPath: stripeReturnPath(variant),
       track: model.effectiveTrack,
     });
-    setBusy(null);
+    if (!result.redirected) {
+      stripeStartLock.current = false;
+      setBusy(null);
+    }
     if (result.needsTrackSelection) {
       setNeedsChoice(true);
       setError(
@@ -372,13 +378,7 @@ export default function AccountCompletionPanel({
                     done={model.accountTypeComplete}
                     label={en ? 'Account type' : 'Accounttype'}
                   />
-                  {model.minorBusinessBlocked ? (
-                    <p className="mt-2 text-sm text-gray-700">
-                      {en
-                        ? 'Individual. A business seller account is available from age 18.'
-                        : 'Particulier. Een bedrijfsaccount kan vanaf 18 jaar.'}
-                    </p>
-                  ) : model.particularSelectable ? (
+                  {model.particularSelectable ? (
                     <fieldset className="mt-2 space-y-2">
                       <legend className="sr-only">{en ? 'Account type' : 'Accounttype'}</legend>
                       <TrackChoice
@@ -406,6 +406,13 @@ export default function AccountCompletionPanel({
                           }
                           onSelect={() => void chooseTrack('BUSINESS')}
                         />
+                      ) : null}
+                      {model.minorBusinessBlocked ? (
+                        <p className="text-xs text-gray-600">
+                          {en
+                            ? 'A business account is available from age 18.'
+                            : 'Een bedrijfsaccount kan vanaf 18 jaar.'}
+                        </p>
                       ) : null}
                     </fieldset>
                   ) : (
@@ -452,7 +459,7 @@ export default function AccountCompletionPanel({
                       onClick={() => void startPayments()}
                       className="mt-2 inline-flex min-h-11 items-center rounded-lg bg-emerald-700 px-3 text-sm font-semibold text-white disabled:opacity-60"
                     >
-                      {busy === 'payments' ? (en ? 'Opening…' : 'Openen…') : paymentLabel}
+                      {busy === 'payments' ? (en ? 'Opening Stripe…' : 'Stripe wordt geopend…') : paymentLabel}
                     </button>
                   ) : null}
                   {model.paymentsBlocked && !model.under13 ? (
@@ -673,30 +680,33 @@ function ListingCompletion({
                 <legend className="text-sm font-medium text-gray-900">
                   {en ? 'How do you use HomeCheff?' : 'Hoe gebruik je HomeCheff?'}
                 </legend>
-                {model.minorBusinessBlocked ? (
-                  <p className="text-sm text-gray-700">{en ? 'Individual' : 'Particulier'}</p>
-                ) : (
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <TrackChoice
+                    name="listing-account-type"
+                    value="PARTICULAR"
+                    checked={model.effectiveTrack === 'PARTICULAR'}
+                    title={en ? 'Individual' : 'Particulier'}
+                    body={en ? 'Selling as an individual.' : 'Verkopen als particulier.'}
+                    onSelect={() => onChooseTrack('PARTICULAR')}
+                  />
+                  {model.businessSelectable ? (
                     <TrackChoice
                       name="listing-account-type"
-                      value="PARTICULAR"
-                      checked={model.effectiveTrack === 'PARTICULAR'}
-                      title={en ? 'Individual' : 'Particulier'}
-                      body={en ? 'Selling as an individual.' : 'Verkopen als particulier.'}
-                      onSelect={() => onChooseTrack('PARTICULAR')}
+                      value="BUSINESS"
+                      checked={model.effectiveTrack === 'BUSINESS'}
+                      title={en ? 'Business' : 'Bedrijf'}
+                      body={en ? 'Selling as a business.' : 'Verkopen als bedrijf.'}
+                      onSelect={() => onChooseTrack('BUSINESS')}
                     />
-                    {model.businessSelectable ? (
-                      <TrackChoice
-                        name="listing-account-type"
-                        value="BUSINESS"
-                        checked={model.effectiveTrack === 'BUSINESS'}
-                        title={en ? 'Business' : 'Bedrijf'}
-                        body={en ? 'Selling as a business.' : 'Verkopen als bedrijf.'}
-                        onSelect={() => onChooseTrack('BUSINESS')}
-                      />
-                    ) : null}
-                  </div>
-                )}
+                  ) : null}
+                </div>
+                {model.minorBusinessBlocked ? (
+                  <p className="text-xs text-gray-600">
+                    {en
+                      ? 'A business account is available from age 18.'
+                      : 'Een bedrijfsaccount kan vanaf 18 jaar.'}
+                  </p>
+                ) : null}
               </fieldset>
             );
           }
@@ -742,7 +752,11 @@ function ListingCompletion({
                 {en ? 'Payments' : 'Betalingen'}
               </p>
               <p className="mt-1 text-xs text-gray-600">
-                {en ? 'Status' : 'Status'}: {paymentStatus}
+                {model.paymentCta === 'finish' || model.paymentCta === 'update'
+                  ? en
+                    ? 'Your payment account is not finished yet.'
+                    : 'Je betaalaccount is nog niet compleet.'
+                  : `${en ? 'Status' : 'Status'}: ${paymentStatus}`}
               </p>
               {model.paymentCta === 'pending' ? (
                 <p className="mt-1 text-xs leading-relaxed text-sky-950">
@@ -757,7 +771,7 @@ function ListingCompletion({
                   onClick={onPayments}
                   className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-emerald-700 px-3 text-sm font-semibold text-white disabled:opacity-60 sm:w-auto"
                 >
-                  {busy === 'payments' ? (en ? 'Opening…' : 'Openen…') : paymentLabel}
+                  {busy === 'payments' ? (en ? 'Opening Stripe…' : 'Stripe wordt geopend…') : paymentLabel}
                 </button>
               ) : null}
             </div>

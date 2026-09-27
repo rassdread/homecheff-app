@@ -20,15 +20,34 @@ export function rememberStripeConnectReturnPath(path: string): void {
   }
 }
 
-export function consumeStripeConnectReturnPath(fallback = '/sell/new'): string {
+function storedReturnPath(fallback: string): string {
   if (typeof window === 'undefined') return fallback;
   try {
     const raw = sessionStorage.getItem(STRIPE_CONNECT_RETURN_PATH_KEY);
-    sessionStorage.removeItem(STRIPE_CONNECT_RETURN_PATH_KEY);
     if (!raw || !raw.startsWith('/')) return fallback;
     if (!ALLOWED_PREFIXES.some((p) => raw === p || raw.startsWith(p))) return fallback;
     return raw;
   } catch {
     return fallback;
   }
+}
+
+/** Read the return path without removing it, so a refresh is not a new onboarding. */
+export function readStripeConnectReturnPath(fallback = '/mijn-homecheff'): string {
+  return storedReturnPath(fallback);
+}
+
+export function clearStripeConnectReturnPath(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem(STRIPE_CONNECT_RETURN_PATH_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function consumeStripeConnectReturnPath(fallback = '/sell/new'): string {
+  const path = storedReturnPath(fallback);
+  clearStripeConnectReturnPath();
+  return path;
 }
