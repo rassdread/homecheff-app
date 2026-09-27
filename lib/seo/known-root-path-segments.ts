@@ -26,6 +26,7 @@ const EN_SEO_SLUGS: readonly string[] = EN_SEO_PAGE_SLUGS;
  */
 export const APP_FIRST_SEGMENTS = [
   '.well-known',
+  'account',
   'admin',
   'affiliate',
   'agreements',

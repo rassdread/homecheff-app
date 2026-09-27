@@ -82,7 +82,7 @@ const fsSegments = fs
   .filter((d) => d.isDirectory() && !skipDirNames.has(d.name))
   .map((d) => d.name)
   .sort();
-const listed = [...APP_FIRST_SEGMENTS].sort();
+const listed: string[] = [...APP_FIRST_SEGMENTS].sort();
 assert.deepEqual(
   fsSegments,
   listed,
@@ -95,9 +95,11 @@ const enFs = fs
   .filter((d) => d.isDirectory() && d.name !== '[seoSlug]')
   .map((d) => d.name)
   .sort();
-assert.deepEqual(enFs, [...EN_APP_FIRST_SEGMENTS].sort());
+const enListed: string[] = [...EN_APP_FIRST_SEGMENTS].sort();
+assert.deepEqual(enFs, enListed);
 
 assert.equal(isKnownHomecheffRootPath('/'), true);
+assert.equal(isKnownHomecheffRootPath('/account/ouderlijke-toestemming'), true);
 assert.equal(isKnownHomecheffRootPath('/terms'), true);
 assert.equal(isKnownHomecheffRootPath('/privacy/'), true);
 assert.equal(isKnownHomecheffRootPath('/over-ons'), true);
