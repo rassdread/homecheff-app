@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { accountCompletionModel, type AccountCompletionInput } from './account-completion';
+import {
+  accountCompletionModel,
+  listingCompletionSteps,
+  type AccountCompletionInput,
+} from './account-completion';
 
 function base(overrides: Partial<AccountCompletionInput> = {}): AccountCompletionInput {
   return {
@@ -118,5 +122,52 @@ describe('account completion checklist', () => {
     );
     assert.equal(model.showChecklist, false);
     assert.equal(model.paymentsComplete, true);
+  });
+});
+
+describe('listing inline completion order', () => {
+  it('asks for date of birth before type or payments', () => {
+    const model = accountCompletionModel(base({ ageMode: 'DOB_REQUIRED' }));
+    assert.deepEqual(listingCompletionSteps(model), ['dob']);
+  });
+
+  it('asks an adult for a type before payments', () => {
+    const model = accountCompletionModel(base());
+    assert.deepEqual(listingCompletionSteps(model), ['dob', 'accountType']);
+    assert.equal(model.businessSelectable, true);
+  });
+
+  it('shows payments once an adult has chosen particular', () => {
+    const model = accountCompletionModel(base({ selectedTrack: 'PARTICULAR' }));
+    assert.deepEqual(listingCompletionSteps(model), ['dob', 'accountType', 'payments']);
+  });
+
+  it('shows particular and consent for a 13–17 seller, and hides business', () => {
+    const model = accountCompletionModel(
+      base({ ageMode: 'MINOR', consentRequired: true }),
+    );
+    assert.equal(model.businessSelectable, false);
+    assert.equal(model.minorBusinessBlocked, true);
+    assert.deepEqual(listingCompletionSteps(model), ['dob', 'accountType', 'consent']);
+  });
+
+  it('opens payments for a minor only after consent is active', () => {
+    const model = accountCompletionModel(
+      base({ ageMode: 'MINOR', consentRequired: false, selectedTrack: 'PARTICULAR' }),
+    );
+    assert.ok(listingCompletionSteps(model).includes('payments'));
+    assert.equal(model.paymentsBlocked, false);
+  });
+
+  it('hides setup once Stripe is ready', () => {
+    const model = accountCompletionModel(
+      base({
+        hasStripeAccount: true,
+        stripeUiStatus: 'PAYMENT_READY',
+        connectTrack: 'BUSINESS',
+      }),
+    );
+    assert.equal(model.paymentsComplete, true);
+    assert.equal(listingCompletionSteps(model).includes('payments'), true);
   });
 });

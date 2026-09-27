@@ -285,9 +285,12 @@ export default function MarketplaceOfferForm({
   }, [session?.user, useProfileLocation, placeName, editMode]);
 
   useEffect(() => {
-    if (editMode || typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return;
+    const resumeAfterStripe =
+      new URLSearchParams(window.location.search).get('hc_resume') === '1';
+    if (editMode && !resumeAfterStripe) return;
     const pendingExport = readPx4aExportVideo();
-    if (!shouldRestorePx4aItemFormDraft() && !pendingExport) return;
+    if (!resumeAfterStripe && !shouldRestorePx4aItemFormDraft() && !pendingExport) return;
     setExportPending(Boolean(pendingExport));
     const snap = readPx4aItemFormDraft();
     if (snap) {
@@ -355,6 +358,15 @@ export default function MarketplaceOfferForm({
           setMessage(t('marketplace.form.videoExportAttachError'));
         });
     }
+    if (!resumeAfterStripe) return;
+    const stripResume = window.setTimeout(() => {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('hc_resume') !== '1') return;
+      url.searchParams.delete('hc_resume');
+      const next = `${url.pathname}${url.search}${url.hash}`;
+      window.history.replaceState(null, '', next);
+    }, 0);
+    return () => window.clearTimeout(stripResume);
   }, [editMode, t]);
 
   const persistItemDraft = (): boolean => {
@@ -1173,7 +1185,14 @@ export default function MarketplaceOfferForm({
         />
       </div>
 
-      <SettlementConnectGuidance active={acceptHomeCheffPayment} />
+      <SettlementConnectGuidance
+        active={acceptHomeCheffPayment}
+        onBeforeStripe={() => {
+          if (images.some((image) => image.uploading)) return false;
+          persistItemDraft();
+          return true;
+        }}
+      />
 
       <div>
         <label className="block text-sm font-semibold text-gray-900 mb-2">

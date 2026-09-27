@@ -152,10 +152,12 @@ assert(!/StripeLogo|stripe[-_ ]?logo|\/stripe/i.test(settlementRowUi), 'no Strip
 console.log('\n7C.4 Stripe Connect guidance + CTA');
 const guidance = read('components/products/marketplace/SettlementConnectGuidance.tsx');
 assert(exists('components/products/marketplace/SettlementConnectGuidance.tsx'), 'settlement Connect guidance component present');
-assert(guidance.includes('marketplace.settlement.needsConnect') && guidance.includes('marketplace.settlement.connectReady'),
-  'guidance shows both needs-connect + connect-ready states');
-assert(guidance.includes('/api/stripe/connect/onboard'), 'CTA targets the existing Connect onboarding route');
-assert(guidance.includes('marketplace.settlement.setupConnectCta'), 'CTA uses the setupConnect i18n key');
+assert(guidance.includes('AccountCompletionPanel') && guidance.includes('variant="listing"'),
+  'guidance reuses the shared account-completion panel inline');
+assert(read('components/account/AccountCompletionPanel.tsx').includes('/api/stripe/connect/onboard'),
+  'CTA targets the existing Connect onboarding route');
+assert(read('components/account/AccountCompletionPanel.tsx').includes('marketplace.settlement.connectReady'),
+  'ready state still uses the connect-ready copy');
 const form = read('components/products/marketplace/MarketplaceOfferForm.tsx');
 assert(form.includes('SettlementConnectGuidance') && form.includes('PaymentMethodCheckboxes'),
   'create/edit form renders guidance where HomeCheff Checkout is chosen');

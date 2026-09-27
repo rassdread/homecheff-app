@@ -6,7 +6,7 @@
 
 export const STRIPE_CONNECT_RETURN_PATH_KEY = 'hc-stripe-connect-return-path';
 
-const ALLOWED_PREFIXES = ['/sell', '/product/', '/verkoper', '/profile', '/mijn-homecheff'];
+const ALLOWED_PREFIXES = ['/sell', '/product/', '/verkoper', '/profile', '/mijn-homecheff', '/settings'];
 
 export function rememberStripeConnectReturnPath(path: string): void {
   if (typeof window === 'undefined') return;

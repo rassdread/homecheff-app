@@ -156,3 +156,15 @@ export function accountCompletionModel(
     under13,
   };
 }
+
+/** Steps that can be completed inside a listing form. Hidden until they are possible. */
+export function listingCompletionSteps(
+  model: AccountCompletionModel,
+): AccountCompletionStepId[] {
+  const order: AccountCompletionStepId[] = ['dob', 'accountType', 'consent', 'payments'];
+  return order.filter((step) => {
+    if (!model.steps.includes(step)) return false;
+    if (step === 'payments' && model.paymentsBlocked && !model.paymentsComplete) return false;
+    return true;
+  });
+}
