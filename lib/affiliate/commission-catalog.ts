@@ -373,6 +373,29 @@ export function buildAffiliateCommissionCatalog(): CatalogRow[] {
   ];
 }
 
+/**
+ * Four public examples. Amounts are the catalog rows, not a second price list.
+ * Order is a mix of value and product type, not highest-to-lowest.
+ * Growth Business is a higher plan, not Starter and not the Enterprise ceiling.
+ * Studio uses the Studio plan, not the cheapest Creator plan.
+ * The €100 marketplace order stays labelled as an example in the page.
+ * Delivery and Studio Creator remain in the full catalog.
+ */
+export const REPRESENTATIVE_COMMISSION_EXAMPLE_IDS = [
+  'marketplace-plan-basic',
+  'growth-business',
+  'marketplace-buyer',
+  'studio-studio',
+] as const;
+
+export function selectRepresentativeCommissionExamples(rows: CatalogRow[]): CatalogRow[] {
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  return REPRESENTATIVE_COMMISSION_EXAMPLE_IDS.flatMap((id) => {
+    const row = byId.get(id);
+    return row ? [row] : [];
+  });
+}
+
 export function sortCatalog(
   rows: CatalogRow[],
   sort: 'commission' | 'price' | 'recurring' | 'platform',

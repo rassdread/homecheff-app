@@ -2,7 +2,11 @@
 
 import dynamic from 'next/dynamic';
 import { useId, useState } from 'react';
-import { buildAffiliateCommissionCatalog, type CatalogRow } from '@/lib/affiliate/commission-catalog';
+import {
+  buildAffiliateCommissionCatalog,
+  selectRepresentativeCommissionExamples,
+  type CatalogRow,
+} from '@/lib/affiliate/commission-catalog';
 import type { PortfolioFocus } from '@/lib/affiliate/goal-scenarios';
 import AffiliateNetworkFit from '@/components/affiliate/AffiliateNetworkFit';
 import { NETWORK_CAPABILITY } from '@/lib/affiliate/network-capability';
@@ -27,13 +31,10 @@ function eur(cents: number): string {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 }
 
-const PREVIEW_IDS = ['growth-starter', 'marketplace-buyer', 'studio-creator', 'delivery-fee'] as const;
-
 function previewTitle(row: CatalogRow, en: boolean): string {
   if (row.id === 'marketplace-buyer') return en ? 'Marketplace order' : 'Marketplace-bestelling';
   if (row.id === 'delivery-fee') return en ? 'Delivery' : 'Bezorging';
-  if (row.id === 'growth-starter') return 'Growth Starter';
-  if (row.id === 'studio-creator') return 'Studio Creator';
+  if (row.id === 'studio-studio') return 'Studio';
   return row.product;
 }
 
@@ -96,8 +97,7 @@ export default function AffiliateBusinessStory({
 }) {
   const en = lang === 'en';
   const catalog = buildAffiliateCommissionCatalog();
-  const byId = new Map(catalog.map((row) => [row.id, row]));
-  const preview = PREVIEW_IDS.map((id) => byId.get(id)).filter((row): row is CatalogRow => Boolean(row));
+  const preview = selectRepresentativeCommissionExamples(catalog);
   const share = growthStarterShareCents();
   const faqs = publicFaqs(affiliatePropositionFaqs(lang), {
     main: showNetwork,
@@ -165,8 +165,8 @@ export default function AffiliateBusinessStory({
         </h2>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-600">
           {en
-            ? 'A few examples from the current program. The full list is one step further.'
-            : 'Een paar voorbeelden uit het huidige programma. De volledige lijst staat één stap verder.'}
+            ? 'A few examples from the current program. View all products and commissions below.'
+            : 'Een paar voorbeelden uit het huidige programma. Bekijk hieronder alle producten en commissies.'}
         </p>
         {focusProduct ? (
           <p className="mt-2 text-sm text-slate-700">
