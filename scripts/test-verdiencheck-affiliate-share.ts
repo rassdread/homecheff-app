@@ -157,8 +157,8 @@ assert.match(read('app/api/affiliate/media/route.ts'), /mergeOfficialVerdienChec
 assert.equal(OPPORTUNITY_DESTINATIONS.verdiencheck.href, '/verdiencheck');
 assert.match(getOpportunityShareCopy('verdiencheck', 'nl').longText, /VerdienCheck/);
 
-for (const key of ['income', 'partnerincome', 'omzet', 'kosten', 'scenario'] as const) {
-  assert.ok(FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS.includes(key) || FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS.includes('income'));
+for (const key of ['income', 'partnerincome', 'omzet', 'kosten', 'scenario']) {
+  assert.ok((FORBIDDEN_VERDIENCHECK_ANALYTICS_KEYS as readonly string[]).includes(key));
 }
 assert.equal(inspectVerdienCheckAnalyticsPayload({ entry_point: 'direct' }).ok, true);
 assert.equal(inspectVerdienCheckAnalyticsPayload({ income: 3200 }).ok, false);

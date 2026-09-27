@@ -63,8 +63,8 @@ export default function MyHomeCheffHubCard({
   const Icon = CARD_ICONS[card.id];
 
   const titleFb = cards[card.id].title;
-  let descriptionFb = cards[card.id].description;
-  let primaryFb = cards[card.id].primary;
+  let descriptionFb: string = cards[card.id].description;
+  let primaryFb: string = cards[card.id].primary;
   if (card.id === 'seller' && card.mode === 'onboarding') {
     descriptionFb = cards.seller.onboardingDescription;
     primaryFb = cards.seller.onboardingPrimary;
