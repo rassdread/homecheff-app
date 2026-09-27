@@ -798,7 +798,7 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
                   <h4 className="font-medium text-blue-900 mb-1">{t('profileSettings.stripeConnect')}</h4>
                   <p className="text-sm text-blue-700">
                     {t('profileSettings.stripeConnectText')}
-                    <a href="/seller/stripe/refresh" className="font-medium underline hover:text-blue-800 ml-1">
+                    <a href="/settings?tab=payments" className="font-medium underline hover:text-blue-800 ml-1">
                       {t('profileSettings.connectWithStripe')}
                     </a>
                   </p>

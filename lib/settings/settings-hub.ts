@@ -77,14 +77,11 @@ export function getVisibleSettingsTabs(ctx: SettingsHubContext): SettingsTabId[]
 
   const tabs: SettingsTabId[] = [
     'profile',
+    'payments',
     'contact',
     'privacy',
     'notifications',
   ];
-
-  if (isSeller) {
-    tabs.push('payments');
-  }
 
   if (ctx.hasDeliveryProfile || role === 'DELIVERY') {
     tabs.push('delivery');

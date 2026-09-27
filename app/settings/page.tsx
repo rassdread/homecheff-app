@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import SettingsHubClient from '@/components/settings/SettingsHubClient';
 import SettingsWorkspaceRoot from '@/components/adaptive-workspace/SettingsWorkspaceRoot';
 import { settingsHubContextFromUser } from '@/lib/settings/settings-hub';
+import { isEmailVerifiedForAccountRequirements } from '@/lib/account-requirements';
 import { resolveSettingsWorkspaceMode } from '@/lib/adaptive-workspace-react/settings-mode';
 
 export const dynamic = 'force-dynamic';
@@ -48,6 +49,7 @@ export default async function SettingsPage({
       emailVerified: true,
       stripeConnectAccountId: true,
       stripeConnectOnboardingCompleted: true,
+      Account: { select: { provider: true } },
       DeliveryProfile: { select: { id: true } },
       affiliate: { select: { id: true, status: true } },
       SellerProfile: {
@@ -66,10 +68,15 @@ export default async function SettingsPage({
     redirect('/login');
   }
 
-  const { passwordHash, DeliveryProfile, affiliate, ...rest } = user;
+  const { passwordHash, DeliveryProfile, affiliate, Account, ...rest } = user;
   const hubUser = {
     ...rest,
     hasPassword: Boolean(passwordHash),
+    emailReady: isEmailVerifiedForAccountRequirements({
+      emailVerified: user.emailVerified,
+      passwordHash,
+      Account,
+    }),
   };
 
   const hubContext = settingsHubContextFromUser({

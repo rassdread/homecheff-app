@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import {
@@ -36,8 +36,12 @@ function pickVisibleSettings(raw: Record<string, unknown>): PrivacySettings {
 }
 
 export default function PrivacySettings({ onClose, embedded = false }: PrivacySettingsProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { data: session } = useSession();
+  const userId = (session as { user?: { id?: string } } | null)?.user?.id ?? null;
+  const loadedForUser = useRef<string | null>(null);
+  const languageRef = useRef(language);
+  languageRef.current = language;
   const [settings, setSettings] = useState<PrivacySettings>({
     messagePrivacy: 'EVERYONE',
     showFansList: true,
@@ -49,26 +53,36 @@ export default function PrivacySettings({ onClose, embedded = false }: PrivacySe
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    const loadSettings = async () => {
-      if (!(session as { user?: { id?: string } })?.user?.id) return;
-
-      setLoading(true);
+    if (!userId || loadedForUser.current === userId) return;
+    let cancelled = false;
+    setLoading(true);
+    void (async () => {
       try {
         const response = await fetch('/api/profile/privacy');
-        if (response.ok) {
-          const data = await response.json();
-          setSettings(pickVisibleSettings(data.settings ?? {}));
-        }
+        if (!response.ok || cancelled) return;
+        const data = await response.json();
+        if (cancelled) return;
+        setSettings(pickVisibleSettings(data.settings ?? {}));
+        loadedForUser.current = userId;
       } catch (error) {
         console.error('Error loading privacy settings:', error);
-        setMessage({ type: 'error', text: t('privacySettingsPage.loadError') });
+        if (!cancelled) {
+          setMessage({
+            type: 'error',
+            text:
+              languageRef.current === 'en'
+                ? 'Could not load privacy settings.'
+                : 'Privacy-instellingen konden niet worden geladen.',
+          });
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
+    })();
+    return () => {
+      cancelled = true;
     };
-
-    loadSettings();
-  }, [session, t]);
+  }, [userId]);
 
   const handleSave = async () => {
     if (!(session as { user?: { id?: string } })?.user?.id) return;

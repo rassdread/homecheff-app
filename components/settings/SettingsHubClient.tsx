@@ -20,7 +20,7 @@ import MakerContactSettings from '@/components/profile/MakerContactSettings';
 import PrivacySettings from '@/components/profile/PrivacySettings';
 import NotificationSettings from '@/components/profile/NotificationSettings';
 import AccountSettings from '@/components/profile/AccountSettings';
-import StripeConnectSetup from '@/components/profile/StripeConnectSetup';
+import AccountCompletionPanel from '@/components/account/AccountCompletionPanel';
 import HelpSettings from '@/components/onboarding/HelpSettings';
 import SellerCommerceDeclarationSettings from '@/components/settings/SellerCommerceDeclarationSettings';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -53,6 +53,7 @@ export type SettingsHubUser = {
   encryptionEnabled: boolean;
   hasPassword: boolean;
   emailVerified: Date | null;
+  emailReady: boolean;
   stripeConnectAccountId: string | null;
   stripeConnectOnboardingCompleted: boolean;
   SellerProfile?: {
@@ -74,7 +75,7 @@ const TAB_DEFS: TabDef[] = [
   { id: 'contact', labelKey: 'makerContact.settingsTitle', fallback: 'Bereikbaarheid', icon: Phone },
   { id: 'privacy', labelKey: 'navbar.privacy', fallback: 'Privacy', icon: Shield },
   { id: 'notifications', labelKey: 'notificationSettings.title', fallback: 'Meldingen', icon: Bell },
-  { id: 'payments', labelKey: 'settingsHub.payments', fallback: 'Betalingen', icon: CreditCard },
+  { id: 'payments', labelKey: 'settingsHub.payments', fallback: 'Betalingen en uitbetalingen', icon: CreditCard },
   { id: 'delivery', labelKey: 'settingsHub.delivery', fallback: 'Bezorging', icon: Truck },
   { id: 'affiliate', labelKey: 'navbar.affiliateDashboard', fallback: 'Affiliate', icon: TrendingUp },
   { id: 'subscription', labelKey: 'settingsHub.subscription', fallback: 'Abonnement', icon: Crown },
@@ -259,12 +260,8 @@ export default function SettingsHubClient({ user, hubContext }: Props) {
 
               {activeTab === 'payments' && (
                 <div className="space-y-6">
+                  <AccountCompletionPanel emailVerified={user.emailReady} />
                   <SellerCommerceDeclarationSettings />
-                  <StripeConnectSetup
-                    stripeConnectAccountId={user.stripeConnectAccountId}
-                    stripeConnectOnboardingCompleted={user.stripeConnectOnboardingCompleted}
-                    onUpdate={() => router.refresh()}
-                  />
                   <Link
                     href="/verkoper/revenue"
                     className="inline-flex items-center gap-2 text-sm font-medium text-emerald-700 hover:underline"
