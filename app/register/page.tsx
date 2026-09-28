@@ -352,6 +352,13 @@ function RegisterPageContent() {
       ],
     });
 
+  useEffect(() => {
+    if (!isRegistrationHydrated) return;
+    const hinted = searchParams?.get("email")?.trim().toLowerCase() ?? "";
+    if (!hinted || !hinted.includes("@") || hinted.length > 254) return;
+    setState((prev) => (prev.email ? prev : { ...prev, email: hinted }));
+  }, [isRegistrationHydrated, searchParams, setState]);
+
   const hasDraft = React.useMemo(() => {
     if (!isRegistrationHydrated) {
       return false;

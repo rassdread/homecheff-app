@@ -614,7 +614,15 @@ function LoginForm() {
             <div className="mt-4 flex items-center justify-center space-x-4">
               <span className="text-sm text-gray-500">{t('login.noAccount')}</span>
               <Link 
-                href="/register" 
+                href={(() => {
+                  const callbackUrl = searchParams?.get('callbackUrl');
+                  const email = searchParams?.get('email');
+                  if (!callbackUrl && !email) return '/register';
+                  const q = new URLSearchParams();
+                  if (callbackUrl) q.set('callbackUrl', callbackUrl);
+                  if (email) q.set('email', email);
+                  return `/register?${q.toString()}`;
+                })()}
                 className="text-primary-brand hover:text-primary-700 font-medium text-sm"
               >
                 {t('login.register')}

@@ -14,8 +14,8 @@ export type SsoStartParams = {
   codeChallengeMethod: string;
   interaction: SsoInteraction;
   loginHint: string | null;
-  /** Provider intent from product (google | password | login). */
-  intent: "google" | "password" | "login" | null;
+  /** Provider intent from product (google | password | login | register). */
+  intent: "google" | "password" | "login" | "register" | null;
 };
 
 export function readSsoStartParams(url: URL): SsoStartParams {
@@ -29,7 +29,10 @@ export function readSsoStartParams(url: URL): SsoStartParams {
   const loginHint = normalizeLoginHint(loginHintRaw);
   const intentRaw = (url.searchParams.get("intent") ?? "").trim().toLowerCase();
   const intent =
-    intentRaw === "google" || intentRaw === "password" || intentRaw === "login"
+    intentRaw === "google" ||
+    intentRaw === "password" ||
+    intentRaw === "login" ||
+    intentRaw === "register"
       ? intentRaw
       : null;
 

@@ -55,5 +55,11 @@ export function resolveAffiliateSignupRedirect(options: {
     affiliateContinue === '/affiliate/dashboard' && options.needsVerification
       ? buildVerifyEmailPath(options.email, '/affiliate/dashboard')
       : affiliateContinue;
-  return affiliateDestination || options.consumedIntentUrl || options.fallbackUrl;
+  const safeReturn = sanitizePostAuthRelativeUrl(options.returnPath);
+  const ssoReturn =
+    safeReturn &&
+    (safeReturn.startsWith('/auth/sso/start') || safeReturn.startsWith('/auth/sso/continue'))
+      ? safeReturn
+      : null;
+  return affiliateDestination || ssoReturn || options.consumedIntentUrl || options.fallbackUrl;
 }

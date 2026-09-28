@@ -84,6 +84,13 @@ export async function GET(req: Request) {
       return withTiming(NextResponse.redirect(dest.toString(), 302), timer);
     }
 
+    if (params.intent === "register") {
+      const register = new URL("/register", originFrom(req));
+      register.searchParams.set("callbackUrl", ssoStartRelativePath(params));
+      if (params.loginHint) register.searchParams.set("email", params.loginHint);
+      return withTiming(NextResponse.redirect(register.toString(), 302), timer);
+    }
+
     const login = new URL("/login", originFrom(req));
     login.searchParams.set("callbackUrl", ssoStartRelativePath(params));
     login.searchParams.set("ssoInteraction", params.interaction);
@@ -103,7 +110,9 @@ export async function GET(req: Request) {
     // After IdP auth succeeds, do NOT show a second "Continue as…" step —
     // that broke ONE_LOGIN (Growth → IdP login → continue → Growth).
     const providerIntentFulfilled =
-      params.intent === "password" || params.intent === "google";
+      params.intent === "password" ||
+      params.intent === "google" ||
+      params.intent === "register";
     if (!providerIntentFulfilled) {
       logSsoEvent("interactive_login", {
         product: params.product,

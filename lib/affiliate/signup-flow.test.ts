@@ -81,6 +81,17 @@ describe('affiliate signup return paths', () => {
     );
     assert.equal(
       resolveAffiliateSignupRedirect({
+        returnPath: '/auth/sso/start?product=growth&state=abc',
+        affiliateActivated: false,
+        needsVerification: true,
+        email: 'invitee@example.com',
+        consumedIntentUrl: null,
+        fallbackUrl: '/',
+      }),
+      '/auth/sso/start?product=growth&state=abc',
+    );
+    assert.equal(
+      resolveAffiliateSignupRedirect({
         returnPath: '/verkopen',
         affiliateActivated: false,
         needsVerification: false,
