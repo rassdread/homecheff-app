@@ -52,7 +52,12 @@ export async function GET(req: Request) {
       "";
     const url = new URL(req.url);
     const source = url.searchParams.get("source") ?? "marketplace";
-    const growthUrl = `${origin}/api/ecosystem/affiliate/dashboard?source=${encodeURIComponent(source)}`;
+    const growthUrl = new URL(`${origin}/api/ecosystem/affiliate/dashboard`);
+    growthUrl.searchParams.set("source", source);
+    for (const key of ["from", "to", "product"] as const) {
+      const value = url.searchParams.get(key);
+      if (value) growthUrl.searchParams.set(key, value);
+    }
 
     if (!secret) {
       return NextResponse.json(
@@ -66,7 +71,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const res = await fetch(growthUrl, {
+    const res = await fetch(growthUrl.toString(), {
       headers: {
         Authorization: `Bearer ${secret}`,
         "x-studio-hc-internal-secret": secret,

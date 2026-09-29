@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Gift, Plus, Edit, Trash2, Copy, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import OperationsShell from '@/components/operations/OperationsShell';
@@ -25,12 +25,22 @@ interface PromoCode {
 
 export default function PromoCodesClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t, tOr } = useTranslation();
+  const productQuery = searchParams?.get('product') === 'GROWTH'
+    ? 'GROWTH'
+    : searchParams?.get('product') === 'HOMECHEFF'
+      ? 'HOMECHEFF'
+      : null;
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingCode, setEditingCode] = useState<PromoCode | null>(null);
+  const visibleCodes = useMemo(
+    () => promoCodes.filter((code) => !productQuery || code.product === productQuery),
+    [promoCodes, productQuery],
+  );
 
   useEffect(() => {
     fetchPromoCodes();
@@ -142,12 +152,19 @@ export default function PromoCodesClient() {
     navigator.clipboard.writeText(code);
   };
 
+  const pageTitle =
+    productQuery === 'GROWTH'
+      ? tOr('affiliate.nav.growthPromo', 'Growth promo codes', 'Growth-actiecodes')
+      : productQuery === 'HOMECHEFF'
+        ? tOr('affiliate.nav.marketplacePromo', 'Marketplace promo codes', 'Marketplace-actiecodes')
+        : t('affiliate.dashboard.promoCodes.title');
+
   if (loading) {
     return (
       <OperationsShell
-        pageTitle={t('affiliate.dashboard.promoCodes.title')}
+        pageTitle={pageTitle}
         pageSubtitle={t('affiliate.dashboard.promoCodes.manage')}
-        breadcrumbLabel={t('operations.tabs.partners')}
+        breadcrumbLabel={tOr('affiliate.nav.label', 'Affiliate', 'Affiliate')}
         contentClassName="flex min-h-[50vh] items-center justify-center py-0"
       >
         <div className="text-center">
@@ -160,9 +177,9 @@ export default function PromoCodesClient() {
 
   return (
     <OperationsShell
-      pageTitle={t('affiliate.dashboard.promoCodes.title')}
+      pageTitle={pageTitle}
       pageSubtitle={t('affiliate.dashboard.promoCodes.manage')}
-      breadcrumbLabel={t('operations.tabs.partners')}
+      breadcrumbLabel={tOr('affiliate.nav.label', 'Affiliate', 'Affiliate')}
       quickActions={
         <>
           <Link
@@ -202,7 +219,7 @@ export default function PromoCodesClient() {
               {t('common.retry') || 'Opnieuw proberen'}
             </button>
           </div>
-        ) : promoCodes.length === 0 ? (
+        ) : visibleCodes.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
             <Gift className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('affiliate.dashboard.promoCodes.noPromoCodes')}</h3>
@@ -227,7 +244,7 @@ export default function PromoCodesClient() {
                   </tr>
                 </thead>
                 <tbody>
-                  {promoCodes.map((code) => (
+                  {visibleCodes.map((code) => (
                     <tr key={`${code.product}-${code.id}`} className="border-t">
                       <td className="px-3 py-2 font-mono font-medium">{code.code}</td>
                       <td className="px-3 py-2">{code.product === 'GROWTH' ? 'Growth' : 'HomeCheff'}</td>
@@ -239,7 +256,7 @@ export default function PromoCodesClient() {
               </table>
             </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {promoCodes.map((code) => (
+            {visibleCodes.map((code) => (
               <div key={`${code.product}-${code.id}`} className="bg-white rounded-xl shadow-sm border p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
@@ -362,6 +379,7 @@ export default function PromoCodesClient() {
       {/* Create Modal - Simplified version, you can expand this */}
       {showCreateModal && (
         <CreatePromoCodeModal
+          initialProduct={productQuery ?? 'HOMECHEFF'}
           onClose={() => setShowCreateModal(false)}
           onSuccess={() => {
             setShowCreateModal(false);
@@ -376,13 +394,15 @@ export default function PromoCodesClient() {
 function CreatePromoCodeModal({
   onClose,
   onSuccess,
+  initialProduct = 'HOMECHEFF',
 }: {
   onClose: () => void;
   onSuccess: () => void;
+  initialProduct?: 'HOMECHEFF' | 'GROWTH';
 }) {
   const { t, tOr } = useTranslation();
   const [code, setCode] = useState('');
-  const [product, setProduct] = useState<'HOMECHEFF' | 'GROWTH'>('HOMECHEFF');
+  const [product, setProduct] = useState<'HOMECHEFF' | 'GROWTH'>(initialProduct);
   const [growthPlans, setGrowthPlans] = useState<string[]>(['starter', 'pro', 'growth']);
   const [discountSharePct, setDiscountSharePct] = useState(0);
   const [endsAt, setEndsAt] = useState('');

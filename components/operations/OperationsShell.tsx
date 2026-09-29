@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { LayoutPanelLeft } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -59,7 +59,8 @@ export default function OperationsShell({
   const { tOr } = useTranslation();
   const pathname = usePathname();
   const bottomNavHidden = isBottomNavigationHidden(pathname);
-  const sidepanelEnabled = useSidepanelEnabled(hideSidepanel);
+  const affiliateArea = Boolean(pathname?.startsWith('/affiliate') || pathname?.startsWith('/aviliate'));
+  const sidepanelEnabled = useSidepanelEnabled(hideSidepanel || affiliateArea);
   const [overviewOpen, setOverviewOpen] = useState(false);
   const [overviewVariant, setOverviewVariant] = useState<'drawer' | 'sheet'>(
     'drawer',
@@ -110,7 +111,9 @@ export default function OperationsShell({
                 <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
                   <MyHomeCheffBackLink compact className="mr-1 hidden sm:inline-flex" />
                   <span className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                    {tOr('operations.workspaceLabel', 'Operations', 'Operations')}
+                    {affiliateArea
+                      ? tOr('affiliate.nav.label', 'Affiliate', 'Affiliate')
+                      : tOr('operations.workspaceLabel', 'Operations', 'Operations')}
                   </span>
                   {breadcrumbLabel ? (
                     <>
@@ -136,12 +139,14 @@ export default function OperationsShell({
                 ) : null}
               </div>
 
-              {!hideSectionNav ? (
+              {!hideSectionNav && !affiliateArea ? (
                 <div className="mt-2 pb-3">
                   <OperationsSectionNav />
                 </div>
               ) : null}
-              <AffiliateAreaNav />
+              <Suspense fallback={null}>
+                <AffiliateAreaNav />
+              </Suspense>
             </div>
           </header>
 

@@ -14,6 +14,8 @@ function pathSkipsUsernameBanner(pathname: string | null): boolean {
   if (pathname.startsWith('/verify-email')) return true;
   if (pathname.startsWith('/profile')) return true;
   if (pathname.startsWith('/onboarding/')) return true;
+  if (pathname.startsWith('/affiliate')) return true;
+  if (pathname.startsWith('/verdiensten')) return true;
   return false;
 }
 

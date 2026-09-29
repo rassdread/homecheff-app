@@ -106,7 +106,7 @@ const SHARE_CARDS: ShareCardDef[] = [
  * Commercial "Deel & verdien" share center for the Affiliate dashboard.
  * URLs stay internal to EcosystemShareAction — never shown as primary labels.
  */
-export default function AffiliateShareCenter() {
+export default function AffiliateShareCenter({ ids }: { ids?: OpportunityId[] } = {}) {
   const { t, tOr, isReady } = useTranslation();
 
   const heading = tOr(
@@ -132,7 +132,7 @@ export default function AffiliateShareCenter() {
       <p className="mt-1 text-sm text-slate-600">{subtitle}</p>
 
       <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {SHARE_CARDS.map((card) => {
+        {SHARE_CARDS.filter((card) => !ids || ids.includes(card.id)).map((card) => {
           const dest = OPPORTUNITY_DESTINATIONS[card.id];
           const Icon = card.icon;
           const title = isReady

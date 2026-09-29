@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
@@ -29,6 +30,10 @@ export default async function PromoCodesPage() {
     redirect('/affiliate/dashboard');
   }
 
-  return <PromoCodesClient />;
+  return (
+    <Suspense fallback={null}>
+      <PromoCodesClient />
+    </Suspense>
+  );
 }
 

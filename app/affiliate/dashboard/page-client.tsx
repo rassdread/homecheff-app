@@ -28,6 +28,8 @@ import { AFFILIATE_ATTRIBUTION_CONTRACT } from '@/lib/affiliate-attribution-cont
 import { HomecheffEcosystemAffiliatePanel } from '@/components/affiliate/HomecheffEcosystemAffiliatePanel';
 import AffiliateShareCenter from '@/components/affiliate/AffiliateShareCenter';
 import AangebrachteBezorgers from '@/components/affiliate/AangebrachteBezorgers';
+import AffiliateOpportunityCatalogue from '@/components/affiliate/AffiliateOpportunityCatalogue';
+import { resolveAffiliateSection } from '@/lib/affiliate/affiliate-sections';
 import { 
   SUB_AFFILIATE_USER_COMMISSION_PCT, 
   SUB_AFFILIATE_BUSINESS_COMMISSION_PCT,
@@ -101,6 +103,7 @@ interface DashboardData {
 export default function AffiliateDashboardClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const section = resolveAffiliateSection(searchParams?.get('section') ?? searchParams?.get('tab'));
   const { t, tOr, language } = useTranslation();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -115,6 +118,10 @@ export default function AffiliateDashboardClient() {
   const [qrCodeUrlSvg, setQrCodeUrlSvg] = useState<string>('');
   const [downloading, setDownloading] = useState(false);
   const [showQRCodeOptions, setShowQRCodeOptions] = useState(false);
+
+  useEffect(() => {
+    void fetch('/api/affiliate/ensure-capabilities', { method: 'POST' }).catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     // Check for welcome parameter
@@ -425,7 +432,7 @@ export default function AffiliateDashboardClient() {
       <OperationsShell
         pageTitle={t('affiliate.dashboard.title')}
         pageSubtitle={t('affiliate.dashboard.manageAccount')}
-        breadcrumbLabel={t('operations.tabs.partners')}
+        breadcrumbLabel={tOr('affiliate.nav.label', 'Affiliate', 'Affiliate')}
         contentClassName="flex min-h-[50vh] items-center justify-center py-0"
       >
         <div className="text-center">
@@ -440,7 +447,7 @@ export default function AffiliateDashboardClient() {
     return (
       <OperationsShell
         pageTitle={t('affiliate.dashboard.title')}
-        breadcrumbLabel={t('operations.tabs.partners')}
+        breadcrumbLabel={tOr('affiliate.nav.label', 'Affiliate', 'Affiliate')}
         contentClassName="flex min-h-[50vh] items-center justify-center py-0"
       >
         <p className="text-red-600">{t('affiliate.dashboard.failedToLoad')}</p>
@@ -477,24 +484,6 @@ export default function AffiliateDashboardClient() {
           )}
         </span>
       </Link>
-      <Link
-        href="/affiliate/promo-codes"
-        className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm whitespace-nowrap"
-        aria-label={tOr(
-          'affiliateDashboard.promoCodes',
-          'Promo codes',
-          'Promocodes',
-        )}
-      >
-        <Gift className="w-4 h-4 shrink-0" aria-hidden />
-        <span>
-          {tOr(
-            'affiliateDashboard.promoCodes',
-            'Promo codes',
-            'Promocodes',
-          )}
-        </span>
-      </Link>
       {!data.affiliate.stripeConnectOnboardingCompleted && (
         <Link
           href="/settings?tab=payments"
@@ -510,7 +499,7 @@ export default function AffiliateDashboardClient() {
     <OperationsShell
       pageTitle={t('affiliate.dashboard.title')}
       pageSubtitle={t('affiliate.dashboard.manageAccount')}
-      breadcrumbLabel={t('operations.tabs.partners')}
+      breadcrumbLabel={tOr('affiliate.nav.label', 'Affiliate', 'Affiliate')}
       quickActions={affiliateQuickActions}
       contentClassName="py-0"
     >
@@ -536,90 +525,64 @@ export default function AffiliateDashboardClient() {
           </div>
         )}
 
-        {data.affiliate.isSubAffiliate ? (
-          <div className="mb-6 rounded-xl border border-emerald-200 bg-white p-5 sm:p-6">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {t('partners.myPartners.programTitle')}
-            </h2>
-            <p className="mt-1 text-sm text-gray-700">
-              {t('partners.myPartners.via', {
-                name: data.upline?.name || 'HomeCheff',
-              })}
-            </p>
+        {section === 'overzicht' ? <HomecheffEcosystemAffiliatePanel variant="summary" /> : null}
+        {section === 'verdiensten' ? <HomecheffEcosystemAffiliatePanel variant="detail" /> : null}
+
+        {section === 'verdienen' ? (
+          <div className="mt-6">
+            <AffiliateOpportunityCatalogue />
           </div>
-        ) : (
-          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {t('partners.myPartners.title')}
-            </h2>
-            <p className="mt-1 text-sm text-gray-700">
-              {t('partners.myPartners.emptyBody')}
-            </p>
-            <Link
-              href="/affiliate/partners?invite=1"
-              className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-            >
-              {t('partners.myPartners.invite')}
+        ) : null}
+
+        {section === 'marketplace' ? (
+          <div className="mt-6 space-y-6">
+            <AffiliateShareCenter ids={['seller', 'delivery_individual', 'delivery_company', 'verdiencheck']} />
+            <Link href="/affiliate/promo-codes?product=HOMECHEFF" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+              {tOr('affiliate.nav.marketplacePromo', 'Marketplace promo codes', 'Marketplace-actiecodes')}
             </Link>
+            <AangebrachteBezorgers />
           </div>
-        )}
+        ) : null}
 
-        <HomecheffEcosystemAffiliatePanel />
-        <div className="mt-6">
-          <AffiliateShareCenter />
-        </div>
-        <div className="mt-6">
-          <AangebrachteBezorgers />
-        </div>
-
-        {/* Tabs */}
-        <div className="mb-6">
-          <nav className="flex gap-2 sm:gap-4 md:gap-8 border-b overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide overflow-y-hidden">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`py-2 px-2 sm:px-1 border-b-2 font-medium text-sm sm:text-base whitespace-nowrap flex-shrink-0 ${
-                activeTab === 'overview'
-                  ? 'border-emerald-500 text-emerald-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {t('affiliate.dashboard.overview')}
-            </button>
-            <button
-              onClick={() => setActiveTab('earnings')}
-              className={`py-2 px-2 sm:px-1 border-b-2 font-medium text-sm sm:text-base whitespace-nowrap flex-shrink-0 ${
-                activeTab === 'earnings'
-                  ? 'border-emerald-500 text-emerald-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {t('affiliate.dashboard.earnings')}
-            </button>
-            <button
-              onClick={() => setActiveTab('referrals')}
-              className={`py-2 px-2 sm:px-1 border-b-2 font-medium text-sm sm:text-base whitespace-nowrap flex-shrink-0 ${
-                activeTab === 'referrals'
-                  ? 'border-emerald-500 text-emerald-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {t('affiliate.dashboard.referrals')}
-            </button>
-            {!data?.affiliate?.isSubAffiliate && (
-              <Link
-                href="/affiliate/partners"
-                className="py-2 px-2 sm:px-1 border-b-2 font-medium text-sm sm:text-base whitespace-nowrap flex-shrink-0 border-transparent text-gray-500 hover:text-gray-700"
-              >
-                {t('partners.myPartners.nav')}
+        {section === 'growth' ? (
+          <div className="mt-6 space-y-4">
+            <AffiliateShareCenter ids={['growth']} />
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Link href="/affiliate/promo-codes?product=GROWTH" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white">
+                {tOr('affiliate.nav.growthPromo', 'Growth promo codes', 'Growth-actiecodes')}
               </Link>
-            )}
-          </nav>
-        </div>
+              <a href="https://growth.homecheff.eu/account/growth-affiliate/demos" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+                {tOr('affiliate.nav.growthDemo', 'Growth demos', 'Growth-demo’s')}
+              </a>
+            </div>
+          </div>
+        ) : null}
+
+        {section === 'studio' ? (
+          <div className="mt-6 space-y-3">
+            <AffiliateShareCenter ids={['studio']} />
+            <p className="text-sm text-slate-600">
+              {tOr(
+                'affiliate.studio.note',
+                'Studio promo codes and demos are not a separate tool yet. Studio promotion uses the share link above.',
+                'Studio heeft nog geen aparte actiecodes of demo’s. Promotie gaat via de link hierboven.',
+              )}
+            </p>
+          </div>
+        ) : null}
 
         {/* Overview Tab */}
-        {activeTab === 'overview' && (
+        {(section === 'overzicht' || section === 'verdiensten' || section === 'marketplace') && (
           <div className="space-y-6">
-            {/* Stats Cards */}
+            {section === 'verdiensten' ? (
+            <div className="space-y-2">
+            <p className="text-sm text-slate-600">
+              {tOr(
+                'affiliate.verdiensten.marketplaceLedger',
+                'Marketplace payout ledger. These amounts are not added again to the ecosystem total above.',
+                'Marketplace-uitbetalingsadministratie. Deze bedragen worden niet nog eens bij het ecosysteemtotaal hierboven opgeteld.',
+              )}
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <div className="flex items-center justify-between">
@@ -677,8 +640,10 @@ export default function AffiliateDashboardClient() {
                 </div>
               </div>
             </div>
+            </div>
+            ) : null}
 
-            {!data?.affiliate?.isSubAffiliate ? (
+            {section === 'overzicht' && !data?.affiliate?.isSubAffiliate ? (
               <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-5 sm:p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -702,8 +667,9 @@ export default function AffiliateDashboardClient() {
               </div>
             ) : null}
 
-            <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 sm:p-5 text-sm text-gray-700 space-y-2">
-              <h3 className="font-semibold text-gray-900">{t('affiliate.dashboard.attributionPolicyTitle')}</h3>
+            {section === 'verdiensten' ? (
+            <details className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 sm:p-5 text-sm text-gray-700 space-y-2">
+              <summary className="cursor-pointer font-semibold text-gray-900">{t('affiliate.dashboard.attributionPolicyTitle')}</summary>
               <p>
                 {t('affiliate.dashboard.attributionPolicyFirstTouch', {
                   days: AFFILIATE_ATTRIBUTION_CONTRACT.cookieTtlDays,
@@ -718,10 +684,11 @@ export default function AffiliateDashboardClient() {
               <p>{t('affiliate.dashboard.attributionPolicyCrossDevice')}</p>
               <p>{t('affiliate.dashboard.attributionPolicyCommission')}</p>
               <p>{t('affiliate.dashboard.attributionPolicySubscription')}</p>
-            </div>
+            </details>
+            ) : null}
 
             {/* Referral Link & QR Code */}
-            {referralCode ? (
+            {section === 'marketplace' && referralCode ? (
               <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 rounded-xl shadow-lg border-2 border-emerald-300 p-4 sm:p-6 lg:p-8 max-w-full">
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-full mb-4 shadow-lg">
@@ -854,7 +821,7 @@ export default function AffiliateDashboardClient() {
               </div>
             ) : null}
 
-            {/* User vs Business Commissions */}
+            {section === 'verdiensten' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -892,9 +859,10 @@ export default function AffiliateDashboardClient() {
                 </p>
               </div>
             </div>
+            ) : null}
 
             {/* Upline Info */}
-            {data.upline && (
+            {section === 'overzicht' && data.upline && (
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('partners.myPartners.programTitle')}</h3>
                 <p className="text-gray-700">
@@ -904,7 +872,7 @@ export default function AffiliateDashboardClient() {
             )}
 
             {/* Direct partners — main partners only */}
-            {!data?.affiliate?.isSubAffiliate ? (
+            {section === 'overzicht' && !data?.affiliate?.isSubAffiliate ? (
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('affiliate.dashboard.yourDownline')}</h3>
               <p className="text-3xl font-bold text-gray-900">{data.stats.downlineCount}</p>
@@ -914,6 +882,7 @@ export default function AffiliateDashboardClient() {
             ) : null}
 
             {/* Belasting Informatie */}
+            {section === 'verdiensten' ? (
             <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <span>⚠️</span>
@@ -934,11 +903,12 @@ export default function AffiliateDashboardClient() {
                 </p>
               </div>
             </div>
+            ) : null}
           </div>
         )}
 
         {/* Earnings Tab */}
-        {activeTab === 'earnings' && (
+        {section === 'verdiensten' && (
           <div className="space-y-6">
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('affiliate.dashboard.recentPayouts')}</h3>
@@ -977,7 +947,7 @@ export default function AffiliateDashboardClient() {
         )}
 
         {/* Referrals Tab */}
-        {activeTab === 'referrals' && (
+        {section === 'aanmeldingen' && (
           <div className="space-y-6">
             <p className="text-sm text-gray-600">
               {t('partners.helpers.partnerLink')}
@@ -1091,7 +1061,7 @@ export default function AffiliateDashboardClient() {
         )}
 
         {/* Sub-Affiliates Tab */}
-        {activeTab === 'sub-affiliates' && !data?.affiliate?.isSubAffiliate && (
+        {section === 'aanmeldingen' && !data?.affiliate?.isSubAffiliate && (
           <SubAffiliatesTab
             data={data}
             initialShowCreateForm={openNetworkInvite}

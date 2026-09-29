@@ -126,6 +126,11 @@ export async function POST(req: NextRequest) {
       acceptedTerms: true,
       countryCode: "NL",
     });
+    await import("@/lib/affiliates/ensure-growth-seat")
+      .then(({ ensureCapabilitiesForMarketplaceUser }) =>
+        ensureCapabilitiesForMarketplaceUser(user.id),
+      )
+      .catch((error) => console.warn("[affiliate/signup] growth seat", error));
 
     if (activated.created) {
       await import('@/lib/analytics/record-acquisition-event.server')
