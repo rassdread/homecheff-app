@@ -348,7 +348,24 @@ export function HomecheffEcosystemAffiliatePanel({
           ))}
         </div>
       ) : null}
-      {kpis ? (
+      {kpis && variant === 'detail' ? (
+        <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2" data-affiliate-earnings-summary>
+          {(
+            [
+              [tOr('affiliateDashboard.earnings.total', 'Total earned', 'Totaal verdiend'), kpis.totalEarnedCents],
+              [tOr('affiliateDashboard.earnings.pending', 'Pending', 'In behandeling'), kpis.pendingCents],
+              [tOr('affiliateDashboard.earnings.available', 'Available', 'Beschikbaar'), kpis.availableCents],
+              [tOr('affiliateDashboard.earnings.paid', 'Paid out', 'Uitbetaald'), kpis.paidCents],
+            ] as const
+          ).map(([label, cents]) => (
+            <div key={label} className="min-w-[8.5rem]">
+              <dt className="text-xs text-slate-500">{label}</dt>
+              <dd className="text-base font-semibold tabular-nums text-slate-900">{eur(cents)}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      {kpis && variant !== 'detail' ? (
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
             [tOr('affiliateDashboard.earnings.total', 'Total earned', 'Totaal verdiend'), kpis.totalEarnedCents],
@@ -381,7 +398,7 @@ export function HomecheffEcosystemAffiliatePanel({
         </p>
       ) : null}
       {variant === 'detail' ? (
-        <div className="mt-4 space-y-3">
+        <div className="mt-6 flex flex-col gap-3" data-affiliate-earnings-platforms="vertical">
           {(platforms.length > 0
             ? [...platforms].sort(
                 (a, b) =>
@@ -399,67 +416,78 @@ export function HomecheffEcosystemAffiliatePanel({
                 uniqueCustomers: 0,
                 activities: [],
               }))
-          ).map((row) => (
-            <article key={row.product} className="rounded-lg border border-slate-200 p-3">
-              <button
-                type="button"
-                className="flex w-full items-center justify-between gap-3 text-left"
-                onClick={() => setOpenProduct((current) => (current === row.product ? null : row.product))}
-              >
-                <span className="font-semibold text-slate-900">{productLabel(row.product, tOr)}</span>
-                <span className="tabular-nums text-sm">{eur(row.generatedCents)}</span>
-              </button>
-              <p className="mt-1 text-xs text-slate-600">
-                {tOr('affiliate.verdiensten.customers', 'Customers', 'Klanten')}: {row.uniqueCustomers}
-                {' · '}
-                {tOr('affiliateDashboard.earnings.pending', 'Pending', 'In behandeling')} {eur(row.pendingCents)}
-                {' · '}
-                {tOr('affiliateDashboard.earnings.available', 'Available', 'Beschikbaar')} {eur(row.availableCents)}
-                {' · '}
-                {tOr('affiliateDashboard.earnings.paid', 'Paid out', 'Uitbetaald')} {eur(row.paidCents)}
-              </p>
-              {row.generatedCents === 0 ? (
-                <p className="mt-1 text-xs text-slate-500">
-                  {tOr(
-                    'affiliate.verdiensten.zero',
-                    'You have no earnings here yet.',
-                    'Je hebt hier nog geen verdiensten.',
-                  )}
-                </p>
-              ) : null}
-              {row.product === 'DELIVERY' ? (
-                <details className="mt-2">
-                  <summary className="min-h-11 cursor-pointer text-sm font-semibold text-emerald-800">
-                    {tOr(
-                      'affiliate.verdiensten.deliveryPeople',
-                      'Couriers and delivery companies you brought in',
-                      'Aangebrachte bezorgers en bezorgbedrijven',
-                    )}
-                  </summary>
-                  <div className="mt-2">
-                    <AangebrachteBezorgers />
-                  </div>
-                </details>
-              ) : null}
-              {openProduct === row.product && row.activities.length > 0 ? (
-                <ul className="mt-2 space-y-1 text-xs">
-                  {row.activities.map((activity) => (
-                    <li key={activity.key} className="flex justify-between gap-2">
-                      <span>
-                        {activity.planKey
-                          ? `${plainActivity(activity.revenueEventType, tOr)} · ${activity.planKey}`
-                          : plainActivity(activity.revenueEventType, tOr)}
-                        {' · '}
-                        {activity.uniqueCustomers}{' '}
-                        {tOr('affiliate.verdiensten.customers', 'Customers', 'Klanten')}
-                      </span>
-                      <span className="tabular-nums">{eur(activity.generatedCents)}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </article>
-          ))}
+          ).map((row) => {
+            const promote =
+              row.product === 'GROWTH'
+                ? affiliatePlaceHref('growth')
+                : row.product === 'STUDIO'
+                  ? affiliatePlaceHref('studio')
+                  : row.product === 'DELIVERY'
+                    ? affiliatePlaceHref('bezorging')
+                    : affiliatePlaceHref('marketplace');
+            const label = productLabel(row.product, tOr);
+            return (
+              <article key={row.product} className="border-t border-slate-200 pt-3" data-affiliate-earnings-row={row.product}>
+                <h3 className="text-base font-semibold text-slate-900">{label}</h3>
+                {row.generatedCents === 0 ? (
+                  <>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {tOr('affiliate.verdiensten.zero', 'No earnings yet.', 'Nog geen verdiensten.')}
+                    </p>
+                    <Link href={promote} className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline">
+                      {tOr(
+                        `affiliate.verdiensten.promote.${row.product}`,
+                        `Promote ${label}`,
+                        `${label} promoten`,
+                      )}
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="mt-1 text-sm font-semibold tabular-nums text-slate-900">
+                      {eur(row.generatedCents)} {tOr('affiliate.verdiensten.earnedWord', 'earned', 'verdiend')}
+                    </p>
+                    <p className="text-sm text-slate-600">
+                      {row.uniqueCustomers} {tOr('affiliate.verdiensten.customers', 'Customers', 'Klanten')}
+                    </p>
+                    <button
+                      type="button"
+                      className="mt-1 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline"
+                      aria-expanded={openProduct === row.product}
+                      onClick={() => setOpenProduct((current) => (current === row.product ? null : row.product))}
+                    >
+                      {tOr('affiliate.verdiensten.details', 'View details', 'Bekijk details')}
+                    </button>
+                    {openProduct === row.product ? (
+                      <div className="mt-2 space-y-2">
+                        {row.activities.length > 0 ? (
+                          <ul className="space-y-1 text-sm">
+                            {row.activities.map((activity) => (
+                              <li key={activity.key} className="flex justify-between gap-3">
+                                <span>
+                                  {activity.planKey
+                                    ? `${plainActivity(activity.revenueEventType, tOr)} · ${activity.planKey}`
+                                    : plainActivity(activity.revenueEventType, tOr)}
+                                  {' · '}
+                                  {activity.uniqueCustomers}
+                                </span>
+                                <span className="tabular-nums">{eur(activity.generatedCents)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-slate-600">
+                            {tOr('affiliate.verdiensten.noBreakdown', 'No further breakdown.', 'Geen verdere uitsplitsing.')}
+                          </p>
+                        )}
+                        {row.product === 'DELIVERY' ? <AangebrachteBezorgers /> : null}
+                      </div>
+                    ) : null}
+                  </>
+                )}
+              </article>
+            );
+          })}
         </div>
       ) : null}
       {variant === 'summary' ? (

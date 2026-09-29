@@ -94,8 +94,12 @@ export async function POST(req: NextRequest) {
     }
 
     const { resolveStoredAffiliateCapabilities } = await import("@/lib/affiliate/program-store");
+    const { affiliateMayUsePromoCodes } = await import("@/lib/affiliate/promo-access");
     const capabilities = await resolveStoredAffiliateCapabilities(user.affiliate.id);
-    if (!capabilities.capabilities.CAN_CREATE_PROMO_CODES.value) {
+    if (!affiliateMayUsePromoCodes({
+      operationsBlocked: capabilities.operationsBlocked,
+      capability: capabilities.capabilities.CAN_CREATE_PROMO_CODES,
+    })) {
       return NextResponse.json(
         {
           error: "Nieuwe promocodes staan voor dit account uit. Bestaande codes blijven staan.",

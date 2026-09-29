@@ -30,6 +30,7 @@ import AffiliateAreaRates from '@/components/affiliate/AffiliateAreaRates';
 import {
   GROWTH_DEMOS_HREF,
   affiliatePlaceHref,
+  affiliatePromoCodesPath,
   type AffiliatePlace,
 } from '@/lib/affiliate/affiliate-sections';
 import { 
@@ -622,6 +623,21 @@ export default function AffiliateDashboardClient({
             <Link href={affiliatePlaceHref('promoten')} className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800">
               {tOr('affiliate.back.promote', 'Back to Promote', 'Terug naar Promoten')}
             </Link>
+            <p className="text-sm text-slate-600">
+              {tOr(
+                'affiliate.marketplace.lead',
+                'Share Marketplace and use promocodes for this platform.',
+                'Deel Marketplace. Promocodes horen bij dit platform.',
+              )}
+            </p>
+            <div className="flex flex-col gap-2">
+              <Link href={affiliatePromoCodesPath('HOMECHEFF')} data-affiliate-promo="HOMECHEFF" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white">
+                {tOr('affiliate.promo.openMarketplace', 'Open promo codes', 'Open promocodes')}
+              </Link>
+              <Link href="/affiliate/promotiemateriaal" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+                {tOr('affiliate.nav.promotiemateriaal', 'Promotional material', 'Promotiemateriaal')}
+              </Link>
+            </div>
             <details id="affiliate-group-promoten" open={openMarketplaceGroup === 'promoten'} onToggle={(event) => { if (event.currentTarget.open) setOpenMarketplaceGroup('promoten'); }} className="rounded-2xl border border-slate-200 bg-white">
               <summary className="min-h-11 cursor-pointer px-4 py-3 text-base font-semibold text-slate-900">
                 {tOr('affiliate.marketplace.start', 'Start here', 'Begin hier')}
@@ -678,28 +694,6 @@ export default function AffiliateDashboardClient({
                 </Link>
               </div>
             </details>
-            <details id="affiliate-group-tools" open={openMarketplaceGroup === 'tools'} onToggle={(event) => { if (event.currentTarget.open) setOpenMarketplaceGroup('tools'); }} className="rounded-2xl border border-slate-200 bg-white">
-              <summary className="min-h-11 cursor-pointer px-4 py-3 text-base font-semibold text-slate-900">
-                {tOr('affiliate.marketplace.tools', 'Tools', 'Tools')}
-              </summary>
-              <div className="px-4 pb-4">
-                <p className="text-sm text-slate-600">
-                  {tOr(
-                    'affiliate.marketplace.toolsIntro',
-                    'A promo code gives the customer a discount. That discount comes from your commission.',
-                    'Een actiecode geeft de klant korting. Die korting komt uit jouw commissie.',
-                  )}
-                </p>
-                <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                  <Link href="/affiliate/promo-codes?product=HOMECHEFF" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
-                    {tOr('affiliate.nav.marketplacePromo', 'Promo codes', 'Actiecodes')}
-                  </Link>
-                  <Link href="/affiliate/promotiemateriaal" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
-                    {tOr('affiliate.nav.promotiemateriaal', 'Promotional material', 'Promotiemateriaal')}
-                  </Link>
-                </div>
-              </div>
-            </details>
             <details id="affiliate-group-delen" open={openMarketplaceGroup === 'delen'} onToggle={(event) => { if (event.currentTarget.open) setOpenMarketplaceGroup('delen'); }} className="rounded-2xl border border-slate-200 bg-white">
               <summary className="min-h-11 cursor-pointer px-4 py-3 text-base font-semibold text-slate-900">
                 {tOr('affiliate.marketplace.other', 'Also share', 'Ook delen')}
@@ -747,7 +741,26 @@ export default function AffiliateDashboardClient({
               {tOr('affiliate.back.promote', 'Back to Promote', 'Terug naar Promoten')}
             </Link>
             <h2 className="text-lg font-semibold text-slate-900">Growth</h2>
+            <p className="text-sm text-slate-600">
+              {tOr(
+                'affiliate.growth.lead',
+                'Business subscriptions. Share Growth, make promo codes, or open a demo.',
+                'Zakelijke abonnementen. Deel Growth, maak promocodes of open een demo.',
+              )}
+            </p>
+            <div className="flex flex-col gap-2">
+              <a href="#growth-delen" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+                {tOr('affiliate.growth.share', 'Share Growth', 'Growth delen')}
+              </a>
+              <Link href={affiliatePromoCodesPath('GROWTH')} data-affiliate-promo="GROWTH" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white">
+                {tOr('affiliate.promo.openGrowth', 'Promo codes', 'Promocodes')}
+              </Link>
+              <a href={GROWTH_DEMOS_HREF} data-affiliate-growth-demo className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+                {tOr('affiliate.nav.growthDemo', 'Open Growth demo', 'Open Growth-demo')}
+              </a>
+            </div>
             <AffiliateAreaRates match={(row) => row.id.startsWith('growth-')} />
+            <div id="growth-delen">
             <AffiliateShareCenter
               ids={['growth']}
               headingEn="Share Growth"
@@ -755,13 +768,6 @@ export default function AffiliateDashboardClient({
               introEn="Send people to Growth."
               introNl="Stuur mensen naar Growth."
             />
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-              <Link href="/affiliate/promo-codes?product=GROWTH" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white">
-                {tOr('affiliate.nav.growthPromo', 'Create a promo code', 'Actiecode maken')}
-              </Link>
-              <a href={GROWTH_DEMOS_HREF} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
-                {tOr('affiliate.nav.growthDemo', 'Use a demo', 'Demo gebruiken')}
-              </a>
             </div>
           </div>
         ) : null}

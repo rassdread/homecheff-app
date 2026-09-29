@@ -5,9 +5,13 @@ import {
   GROWTH_DEMOS_HREF,
   affiliatePlaceFromPathname,
   affiliatePlaceHref,
+  affiliatePromoBackPath,
+  affiliatePromoCodesPath,
+  affiliatePromoProduct,
   canonicalHrefForLegacyToken,
   legacyAffiliateSegmentRedirect,
 } from './affiliate-sections';
+import { affiliateMayUsePromoCodes } from './promo-access';
 
 test('new affiliate destinations are real paths', () => {
   assert.equal(affiliatePlaceHref('overzicht'), '/affiliate/dashboard');
@@ -60,11 +64,56 @@ test('pages render from the path and redirect the old segments', () => {
   assert.match(client, /section === 'bezorging'/);
   assert.match(client, /section === 'promoten'/);
   assert.match(client, /GROWTH_DEMOS_HREF/);
-  assert.match(promo, /\/affiliate\/dashboard\/promoten\/growth/);
-  assert.match(promo, /\/affiliate\/dashboard\/promoten\/marketplace/);
+  assert.match(client, /data-affiliate-growth-demo/);
+  assert.match(client, /data-affiliate-promo="HOMECHEFF"/);
+  assert.match(client, /data-affiliate-promo="GROWTH"/);
+  assert.match(promo, /affiliatePromoBackPath/);
+  const promoPage = readFileSync('app/affiliate/promo-codes/page.tsx', 'utf8');
+  assert.match(promoPage, /affiliateMayUsePromoCodes/);
+  assert.match(promoPage, /affiliatePromoCodesPath/);
+  assert.doesNotMatch(promoPage, /CAN_CREATE_PROMO_CODES\.value\)/);
   assert.doesNotMatch(nav, />Meer</);
   assert.match(nav, /id: 'promoten'/);
   assert.match(nav, /id: 'bezorging'/);
   assert.match(nav, /\/affiliate\/partners/);
   assert.match(nav, /\/affiliate\/promotiemateriaal/);
+});
+
+test('promo product context survives the path and the back link', () => {
+  assert.equal(affiliatePromoProduct('HOMECHEFF'), 'HOMECHEFF');
+  assert.equal(affiliatePromoProduct('marketplace'), 'HOMECHEFF');
+  assert.equal(affiliatePromoProduct('GROWTH'), 'GROWTH');
+  assert.equal(affiliatePromoCodesPath('HOMECHEFF'), '/affiliate/promo-codes?product=HOMECHEFF');
+  assert.equal(affiliatePromoCodesPath('GROWTH'), '/affiliate/promo-codes?product=GROWTH');
+  assert.equal(affiliatePromoBackPath('HOMECHEFF'), '/affiliate/dashboard/promoten/marketplace');
+  assert.equal(affiliatePromoBackPath('GROWTH'), '/affiliate/dashboard/promoten/growth');
+  assert.equal(affiliatePromoBackPath(null), '/affiliate/dashboard');
+  const demoReturn = decodeURIComponent(new URL(GROWTH_DEMOS_HREF).searchParams.get('returnTo') ?? '');
+  assert.equal(demoReturn, '/account/growth-affiliate/demos');
+});
+
+test('a technical affiliate is not bounced off promo codes, an explicit denial is', () => {
+  assert.equal(affiliateMayUsePromoCodes({
+    operationsBlocked: false,
+    capability: { value: false, source: 'GLOBAL' },
+  }), true);
+  assert.equal(affiliateMayUsePromoCodes({
+    operationsBlocked: false,
+    capability: { value: true, source: 'PROGRAM' },
+  }), true);
+  assert.equal(affiliateMayUsePromoCodes({
+    operationsBlocked: false,
+    capability: { value: false, source: 'PROGRAM' },
+  }), false);
+  assert.equal(affiliateMayUsePromoCodes({
+    operationsBlocked: false,
+    capability: { value: false, source: 'ADMIN_OVERRIDE' },
+  }), false);
+  assert.equal(affiliateMayUsePromoCodes({
+    operationsBlocked: true,
+    capability: { value: true, source: 'GLOBAL' },
+  }), false);
+  const earnings = readFileSync('components/affiliate/HomecheffEcosystemAffiliatePanel.tsx', 'utf8');
+  assert.match(earnings, /data-affiliate-earnings-platforms="vertical"/);
+  assert.doesNotMatch(earnings, /grid-cols-2[\s\S]{0,200}data-affiliate-earnings-row/);
 });

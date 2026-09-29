@@ -111,3 +111,24 @@ export function isPromotePlace(place: AffiliatePlace | null): boolean {
 export function isNetworkPlace(place: AffiliatePlace | null): boolean {
   return place === 'netwerk' || place === 'aanmeldingen';
 }
+
+export type AffiliatePromoProduct = 'HOMECHEFF' | 'GROWTH';
+
+/** Keeps Marketplace and Growth promo screens on the same route with a stable product. */
+export function affiliatePromoProduct(raw: string | null | undefined): AffiliatePromoProduct | null {
+  const value = (raw ?? '').trim().toUpperCase();
+  if (value === 'GROWTH') return 'GROWTH';
+  if (value === 'HOMECHEFF' || value === 'MARKETPLACE') return 'HOMECHEFF';
+  return null;
+}
+
+export function affiliatePromoCodesPath(product: AffiliatePromoProduct | null): string {
+  if (!product) return '/affiliate/promo-codes';
+  return `/affiliate/promo-codes?product=${product}`;
+}
+
+export function affiliatePromoBackPath(product: AffiliatePromoProduct | null): string {
+  if (product === 'GROWTH') return HREFS.growth;
+  if (product === 'HOMECHEFF') return HREFS.marketplace;
+  return HREFS.overzicht;
+}

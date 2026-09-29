@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Gift, Plus, Edit, Trash2, Copy, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import OperationsShell from '@/components/operations/OperationsShell';
+import { affiliatePromoBackPath, affiliatePromoProduct } from '@/lib/affiliate/affiliate-sections';
 
 interface PromoCode {
   id: string;
@@ -27,11 +28,7 @@ export default function PromoCodesClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, tOr } = useTranslation();
-  const productQuery = searchParams?.get('product') === 'GROWTH'
-    ? 'GROWTH'
-    : searchParams?.get('product') === 'HOMECHEFF'
-      ? 'HOMECHEFF'
-      : null;
+  const productQuery = affiliatePromoProduct(searchParams?.get('product'));
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -154,10 +151,10 @@ export default function PromoCodesClient() {
 
   const pageTitle =
     productQuery === 'GROWTH'
-      ? tOr('affiliate.nav.growthPromo', 'Growth promo codes', 'Growth-actiecodes')
+      ? tOr('affiliate.promo.growthTitle', 'Growth promo codes', 'Growth-promocodes')
       : productQuery === 'HOMECHEFF'
-        ? tOr('affiliate.nav.marketplacePromo', 'Marketplace promo codes', 'Marketplace-actiecodes')
-        : t('affiliate.dashboard.promoCodes.title');
+        ? tOr('affiliate.promo.marketplaceTitle', 'Marketplace promo codes', 'Marketplace-promocodes')
+        : tOr('affiliate.promo.title', 'Promo codes', 'Promocodes');
 
   if (loading) {
     return (
@@ -183,13 +180,7 @@ export default function PromoCodesClient() {
       quickActions={
         <>
           <Link
-            href={
-              productQuery === 'GROWTH'
-                ? '/affiliate/dashboard/promoten/growth'
-                : productQuery === 'HOMECHEFF'
-                  ? '/affiliate/dashboard/promoten/marketplace'
-                  : '/affiliate/dashboard'
-            }
+            href={affiliatePromoBackPath(productQuery)}
             className="inline-flex min-h-11 items-center px-4 py-2 text-gray-700 hover:text-gray-900 rounded-lg border border-gray-200 bg-white"
           >
             {productQuery === 'GROWTH'

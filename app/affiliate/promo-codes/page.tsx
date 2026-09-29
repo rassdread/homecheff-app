@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import PromoCodesClient from './page-client';
+import { affiliatePromoCodesPath, affiliatePromoProduct } from '@/lib/affiliate/affiliate-sections';
+import { affiliateMayUsePromoCodes } from '@/lib/affiliate/promo-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,13 +13,8 @@ export default async function PromoCodesPage({
 }: {
   searchParams?: { product?: string };
 }) {
-  const product =
-    searchParams?.product === 'GROWTH'
-      ? 'GROWTH'
-      : searchParams?.product === 'HOMECHEFF'
-        ? 'HOMECHEFF'
-        : '';
-  const nextPath = product ? `/affiliate/promo-codes?product=${product}` : '/affiliate/promo-codes';
+  const product = affiliatePromoProduct(searchParams?.product);
+  const nextPath = affiliatePromoCodesPath(product);
   const session = await auth();
   
   if (!session?.user) {
@@ -35,9 +32,16 @@ export default async function PromoCodesPage({
     redirect('/affiliate');
   }
 
+  if (user.affiliate.status !== 'ACTIVE') {
+    redirect('/affiliate/dashboard');
+  }
+
   const { resolveStoredAffiliateCapabilities } = await import('@/lib/affiliate/program-store');
   const rights = await resolveStoredAffiliateCapabilities(user.affiliate.id);
-  if (!rights.capabilities.CAN_CREATE_PROMO_CODES.value) {
+  if (!affiliateMayUsePromoCodes({
+    operationsBlocked: rights.operationsBlocked,
+    capability: rights.capabilities.CAN_CREATE_PROMO_CODES,
+  })) {
     redirect('/affiliate/dashboard');
   }
 
