@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import AangebrachteBezorgers from '@/components/affiliate/AangebrachteBezorgers';
 import { useTranslation } from '@/hooks/useTranslation';
+import { affiliatePlaceHref, type AffiliatePlace } from '@/lib/affiliate/affiliate-sections';
 
 function plainActivity(type: string, tOr: (key: string, en: string, nl: string) => string) {
   if (type.includes('GROWTH')) return tOr('affiliate.activity.growth', 'Growth subscription', 'Growth-abonnement');
@@ -64,7 +65,7 @@ function productLabel(key: string, tOr: (k: string, en: string, nl: string) => s
     MARKETPLACE: ['affiliateDashboard.ecosystem.product.marketplace', 'Marketplace', 'Marketplace'],
     GROWTH: ['affiliateDashboard.ecosystem.product.growth', 'Growth', 'Growth'],
     STUDIO: ['affiliateDashboard.ecosystem.product.studio', 'Studio', 'Studio'],
-    DELIVERY: ['affiliateDashboard.ecosystem.product.delivery', 'Delivery', 'Bezorgen'],
+    DELIVERY: ['affiliateDashboard.ecosystem.product.delivery', 'Delivery', 'Bezorging'],
     STUDIO_HC_PACK: ['affiliateDashboard.ecosystem.product.studioPack', 'Studio credit', 'Studio-tegoed'],
   };
   const row = map[key.toUpperCase()];
@@ -100,10 +101,50 @@ function periodRange(period: Period): { from?: string; to?: string } {
 }
 
 /** Ecosystem ledger inside the central affiliate shell. */
-export function HomecheffEcosystemAffiliatePanel({
-  variant = 'summary',
+function PromoteChoices({
+  tOr,
 }: {
-  variant?: 'summary' | 'detail';
+  tOr: (key: string, en: string, nl: string) => string;
+}) {
+  const areas: { id: AffiliatePlace; title: string; en: string; nl: string }[] = [
+    {
+      id: 'marketplace',
+      title: 'Marketplace',
+      en: 'Sellers, users and subscriptions',
+      nl: 'Verkopers, gebruikers en abonnementen',
+    },
+    { id: 'growth', title: 'Growth', en: 'Business subscriptions', nl: 'Zakelijke abonnementen' },
+    { id: 'studio', title: 'Studio', en: 'Creator tools and credits', nl: 'Creator-tools en tegoed' },
+    {
+      id: 'bezorging',
+      title: 'Bezorging',
+      en: 'Couriers and delivery companies',
+      nl: 'Bezorgers en bezorgbedrijven',
+    },
+  ];
+  return (
+    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      {areas.map((area) => (
+        <Link
+          key={area.id}
+          href={affiliatePlaceHref(area.id)}
+          className="rounded-xl border border-slate-200 bg-white p-3 hover:border-emerald-300"
+        >
+          <span className="block text-sm font-semibold text-slate-900">{area.title}</span>
+          <span className="mt-1 block text-sm text-slate-600">{tOr(`affiliate.promote.${area.id}`, area.en, area.nl)}</span>
+          <span className="mt-2 block text-sm font-semibold text-emerald-800">
+            {tOr('affiliate.promote.open', 'See what you can do', 'Bekijk mogelijkheden')}
+          </span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+export function HomecheffEcosystemAffiliatePanel({
+  variant = 'home',
+}: {
+  variant?: 'home' | 'summary' | 'detail';
 }) {
   const { tOr } = useTranslation();
   const [data, setData] = useState<Dash | null>(null);
@@ -193,25 +234,73 @@ export function HomecheffEcosystemAffiliatePanel({
     !reconciliation ||
     (reconciliation.pending && reconciliation.available && reconciliation.paid && reconciliation.generated);
 
-  if ((state === 'empty' || !kpis) && variant === 'summary') {
+  const mode = variant === 'detail' ? 'detail' : 'home';
+  const started =
+    (kpis?.totalEarnedCents ?? 0) > 0 ||
+    (kpis?.pendingCents ?? 0) > 0 ||
+    (kpis?.availableCents ?? 0) > 0 ||
+    (kpis?.paidCents ?? 0) > 0;
+
+  if (mode === 'home' && (state === 'empty' || !kpis || !started)) {
     return (
-      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">
-          {tOr('affiliateDashboard.ecosystem.title', 'Affiliate earnings', 'Affiliate-verdiensten')}
-        </h2>
-        <p className="mt-2 text-sm text-slate-600">
+      <section className="mt-6" data-affiliate-overview="new">
+        <h2 className="text-lg font-semibold text-slate-900">
           {tOr(
-            'affiliateDashboard.ecosystem.empty',
-            'No affiliate activity yet. Share HomeCheff to get started.',
-            'Nog geen affiliate-activiteit. Deel HomeCheff om te beginnen.',
+            'affiliate.overview.welcomeTitle',
+            'Welcome to the HomeCheff affiliate programme',
+            'Welkom bij het HomeCheff affiliateprogramma',
+          )}
+        </h2>
+        <p className="mt-2 max-w-xl text-sm text-slate-600">
+          {tOr(
+            'affiliate.overview.welcomeBody',
+            'Promote HomeCheff and earn when the people or businesses you bring in have qualifying activity.',
+            'Promoot HomeCheff en verdien mee wanneer de mensen of bedrijven die jij aanbrengt kwalificerende activiteit hebben.',
           )}
         </p>
-        <Link
-          href="/affiliate/dashboard/verdienen"
-          className="mt-3 inline-flex min-h-[40px] items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline"
-        >
-          {tOr('affiliateDashboard.ecosystem.emptyCta', 'See what you can promote', 'Bekijk wat je kunt promoten')}
-        </Link>
+        <h3 className="mt-4 text-sm font-semibold text-slate-900">
+          {tOr('affiliate.overview.whatPromote', 'What do you want to promote?', 'Wat wil je promoten?')}
+        </h3>
+        <PromoteChoices tOr={tOr} />
+      </section>
+    );
+  }
+
+  if (mode === 'home' && kpis) {
+    const activePlatforms = platforms.filter((row) => row.generatedCents > 0);
+    return (
+      <section className="mt-6" data-affiliate-overview="returning">
+        <h2 className="text-sm font-semibold text-slate-900">
+          {tOr('affiliate.overview.soFar', 'So far', 'Tot nu toe')}
+        </h2>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="rounded-xl bg-emerald-50 p-3">
+            <p className="text-xs text-slate-600">{tOr('affiliateDashboard.earnings.total', 'Total earned', 'Totaal verdiend')}</p>
+            <p className="text-lg font-semibold tabular-nums">{eur(kpis.totalEarnedCents)}</p>
+          </div>
+          <div className="rounded-xl bg-slate-50 p-3">
+            <p className="text-xs text-slate-600">{tOr('affiliateDashboard.earnings.available', 'Available', 'Beschikbaar')}</p>
+            <p className="text-lg font-semibold tabular-nums">{eur(kpis.availableCents)}</p>
+          </div>
+        </div>
+        {activePlatforms.length > 0 ? (
+          <ul className="mt-3 space-y-1 text-sm text-slate-800">
+            {activePlatforms.map((row) => (
+              <li key={row.product} className="flex justify-between gap-3">
+                <span>{productLabel(row.product, tOr)}</span>
+                <span className="tabular-nums">{eur(row.generatedCents)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+          <Link href={affiliatePlaceHref('verdiensten')} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white">
+            {tOr('affiliate.overview.earnings', 'View my earnings', 'Verdiensten bekijken')}
+          </Link>
+          <Link href={affiliatePlaceHref('promoten')} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+            {tOr('affiliate.overview.promote', 'Promote something', 'Iets promoten')}
+          </Link>
+        </div>
       </section>
     );
   }
@@ -227,8 +316,8 @@ export function HomecheffEcosystemAffiliatePanel({
         {variant === 'detail'
           ? tOr(
               'affiliate.verdiensten.intro',
-              'Money already earned through people you brought in. Rates for what you can still earn are under Earn.',
-              'Geld dat mensen via jou al hebben opgeleverd. Tarieven voor wat je nog kunt verdienen staan bij Verdienen.',
+              'Money already earned through people you brought in.',
+              'Geld dat mensen via jou al hebben opgeleverd.',
             )
           : tOr(
               'affiliateDashboard.ecosystem.blurb',
@@ -276,7 +365,7 @@ export function HomecheffEcosystemAffiliatePanel({
       ) : null}
       {variant === 'detail' && kpis && kpis.totalEarnedCents === 0 ? (
         <Link
-          href="/affiliate/dashboard/verdienen"
+          href="/affiliate/dashboard/promoten"
           className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline"
         >
           {tOr('affiliateDashboard.ecosystem.emptyCta', 'See what you can promote', 'Bekijk wat je kunt promoten')}

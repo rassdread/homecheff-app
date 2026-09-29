@@ -182,7 +182,7 @@ export default function MyPartnersClient({ openInvite }: { openInvite?: boolean 
               </button>
             ) : null}
             <Link
-              href="/affiliate/dashboard?tab=sub-affiliates&manage=1"
+              href="/affiliate/dashboard/netwerk"
               className="text-sm font-medium text-gray-600 hover:text-gray-900"
             >
               {t('affiliate.dashboard.updateCommissions')}

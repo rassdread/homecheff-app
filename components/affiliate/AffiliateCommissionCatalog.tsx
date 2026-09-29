@@ -89,7 +89,7 @@ export default function AffiliateCommissionCatalog({
         id: 'Bezorging',
         title: en ? 'Delivery' : 'Bezorging',
         intro: en ? 'Couriers and delivery companies.' : 'Bezorgers en bezorgbedrijven.',
-        href: `${affiliateSectionHref('marketplace')}?focus=bezorging`,
+        href: affiliateSectionHref('bezorging'),
       },
     ] as const;
     return (
@@ -114,11 +114,11 @@ export default function AffiliateCommissionCatalog({
                     </p>
                     <Link
                       href={
-                        row.id.startsWith('marketplace-plan-')
-                          ? `${affiliateSectionHref('marketplace')}?focus=zakelijk`
-                          : row.id === 'marketplace-buyer' || row.id === 'marketplace-seller'
-                            ? `${affiliateSectionHref('marketplace')}?focus=promoten`
-                            : area.href
+                        row.id.startsWith('marketplace-plan-') ||
+                        row.id === 'marketplace-buyer' ||
+                        row.id === 'marketplace-seller'
+                          ? affiliateSectionHref('marketplace')
+                          : area.href
                       }
                       className="mt-3 inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-900"
                     >

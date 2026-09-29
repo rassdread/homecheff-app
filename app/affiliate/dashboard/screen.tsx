@@ -4,16 +4,14 @@ import { redirect } from 'next/navigation';
 import AffiliateDashboardClient from './page-client';
 import MyAffiliateProgram from '@/components/affiliate/MyAffiliateProgram';
 import AffiliateEmailNotice from '@/components/affiliate/AffiliateEmailNotice';
-import { affiliateSectionHref, type AffiliateSection } from '@/lib/affiliate/affiliate-sections';
+import { affiliatePlaceHref, type AffiliatePlace } from '@/lib/affiliate/affiliate-sections';
 
 export async function AffiliateDashboardScreen({
-  section,
-  marketplaceFocus = null,
+  place,
 }: {
-  section: AffiliateSection;
-  marketplaceFocus?: string | null;
+  place: AffiliatePlace;
 }) {
-  const nextPath = affiliateSectionHref(section);
+  const nextPath = affiliatePlaceHref(place);
   const session = await auth();
 
   if (!session?.user) {
@@ -50,7 +48,7 @@ export async function AffiliateDashboardScreen({
         ) : null}
         <MyAffiliateProgram affiliateId={user.affiliate.id} />
       </div>
-      <AffiliateDashboardClient section={section} marketplaceFocus={marketplaceFocus} />
+      <AffiliateDashboardClient place={place} />
     </>
   );
 }

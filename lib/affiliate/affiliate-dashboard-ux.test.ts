@@ -27,6 +27,7 @@ describe('affiliate dashboard share center', () => {
         'delivery_individual',
         'growth',
         'hub',
+        'jobs',
         'seller',
         'studio',
         'verdiencheck',

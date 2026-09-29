@@ -26,12 +26,11 @@ import QRCode from 'qrcode';
 import { AFFILIATE_ATTRIBUTION_CONTRACT } from '@/lib/affiliate-attribution-contract';
 import { HomecheffEcosystemAffiliatePanel } from '@/components/affiliate/HomecheffEcosystemAffiliatePanel';
 import AffiliateShareCenter from '@/components/affiliate/AffiliateShareCenter';
-import AangebrachteBezorgers from '@/components/affiliate/AangebrachteBezorgers';
-import AffiliateOpportunityCatalogue from '@/components/affiliate/AffiliateOpportunityCatalogue';
+import AffiliateAreaRates from '@/components/affiliate/AffiliateAreaRates';
 import {
   GROWTH_DEMOS_HREF,
-  affiliateSectionHref,
-  type AffiliateSection,
+  affiliatePlaceHref,
+  type AffiliatePlace,
 } from '@/lib/affiliate/affiliate-sections';
 import { 
   SUB_AFFILIATE_USER_COMMISSION_PCT, 
@@ -103,16 +102,58 @@ interface DashboardData {
   }>;
 }
 
-export default function AffiliateDashboardClient({
-  section,
-  marketplaceFocus = null,
+function AffiliateLocation({
+  place,
+  tOr,
 }: {
-  section: AffiliateSection;
-  marketplaceFocus?: string | null;
+  place: AffiliatePlace;
+  tOr: (key: string, en: string, nl: string) => string;
 }) {
+  const crumbs: { href: string; label: string }[] = [
+    { href: affiliatePlaceHref('overzicht'), label: tOr('affiliate.nav.label', 'Affiliate', 'Affiliate') },
+  ];
+  if (place === 'promoten' || place === 'marketplace' || place === 'growth' || place === 'studio' || place === 'bezorging') {
+    crumbs.push({ href: affiliatePlaceHref('promoten'), label: tOr('affiliate.nav.promoten', 'Promote', 'Promoten') });
+  }
+  if (place === 'marketplace') crumbs.push({ href: affiliatePlaceHref('marketplace'), label: 'Marketplace' });
+  if (place === 'growth') crumbs.push({ href: affiliatePlaceHref('growth'), label: 'Growth' });
+  if (place === 'studio') crumbs.push({ href: affiliatePlaceHref('studio'), label: 'Studio' });
+  if (place === 'bezorging') crumbs.push({ href: affiliatePlaceHref('bezorging'), label: tOr('affiliate.nav.bezorging', 'Delivery', 'Bezorging') });
+  if (place === 'verdiensten') crumbs.push({ href: affiliatePlaceHref('verdiensten'), label: tOr('affiliate.nav.verdiensten', 'Earnings', 'Verdiensten') });
+  if (place === 'netwerk' || place === 'aanmeldingen') {
+    crumbs.push({ href: affiliatePlaceHref('netwerk'), label: tOr('affiliate.nav.netwerk', 'Network', 'Netwerk') });
+  }
+  if (place === 'aanmeldingen') {
+    crumbs.push({ href: affiliatePlaceHref('aanmeldingen'), label: tOr('affiliate.nav.aanmeldingen', 'Sign-ups', 'Aanmeldingen') });
+  }
+  if (crumbs.length < 2) return null;
+  return (
+    <p className="mb-4 text-sm text-slate-600" data-affiliate-location>
+      {crumbs.map((crumb, index) => (
+        <span key={crumb.href}>
+          {index > 0 ? <span className="px-1">/</span> : null}
+          {index === crumbs.length - 1 ? (
+            <span className="font-semibold text-slate-900">{crumb.label}</span>
+          ) : (
+            <Link href={crumb.href} className="font-semibold text-emerald-800 underline-offset-2 hover:underline">
+              {crumb.label}
+            </Link>
+          )}
+        </span>
+      ))}
+    </p>
+  );
+}
+
+export default function AffiliateDashboardClient({
+  place,
+}: {
+  place: AffiliatePlace;
+}) {
+  const section = place;
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [openMarketplaceGroup, setOpenMarketplaceGroup] = useState(marketplaceFocus || 'promoten');
+  const [openMarketplaceGroup, setOpenMarketplaceGroup] = useState('promoten');
   const { t, tOr, language } = useTranslation();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -131,11 +172,6 @@ export default function AffiliateDashboardClient({
   useEffect(() => {
     void fetch('/api/affiliate/ensure-capabilities', { method: 'POST' }).catch(() => undefined);
   }, []);
-
-  useEffect(() => {
-    if (!marketplaceFocus) return;
-    document.getElementById(`affiliate-group-${marketplaceFocus}`)?.scrollIntoView({ block: 'start' });
-  }, [marketplaceFocus]);
 
   useEffect(() => {
     // Check for welcome parameter
@@ -516,52 +552,98 @@ export default function AffiliateDashboardClient({
           </div>
         )}
 
-        {section === 'overzicht' ? <HomecheffEcosystemAffiliatePanel variant="summary" /> : null}
+        <AffiliateLocation place={place} tOr={tOr} />
+        {section === 'overzicht' ? <HomecheffEcosystemAffiliatePanel variant="home" /> : null}
         {section === 'overzicht' ? (
-          <section className="mt-6" aria-labelledby="affiliate-next">
-            <h2 id="affiliate-next" className="text-base font-semibold text-slate-900">
-              {tOr('affiliate.overview.next', 'What do you want to do?', 'Wat wil je doen?')}
+          <section className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
+            <h2 className="text-sm font-semibold text-slate-900">
+              {tOr('affiliate.overview.networkTitle', 'My network', 'Mijn netwerk')}
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              {data.stats.totalReferrals} {tOr('affiliate.nav.aanmeldingen', 'Sign-ups', 'Aanmeldingen')}
+              {!data.affiliate.isSubAffiliate
+                ? ` · ${data.stats.downlineCount ?? 0} ${tOr('affiliate.nav.partners', 'Partners', 'Partners')}`
+                : ''}
+            </p>
+            <Link href={affiliatePlaceHref('netwerk')} className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline">
+              {tOr('affiliate.overview.viewNetwork', 'View network', 'Bekijk netwerk')}
+            </Link>
+          </section>
+        ) : null}
+        {section === 'promoten' ? (
+          <section className="mt-2">
+            <h2 className="text-lg font-semibold text-slate-900">
+              {tOr('affiliate.promote.question', 'What do you want to promote?', 'Wat wil je promoten?')}
             </h2>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <Link href={affiliateSectionHref('verdienen')} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white">
-                {tOr('affiliate.overview.promote', 'Promote something', 'Iets promoten')}
-              </Link>
-              <Link href={affiliateSectionHref('verdiensten')} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
-                {tOr('affiliate.overview.earnings', 'View my earnings', 'Mijn verdiensten bekijken')}
-              </Link>
-              <Link href="/affiliate/promotiemateriaal" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
-                {tOr('affiliate.nav.promotiemateriaal', 'Promotional material', 'Promotiemateriaal')}
-              </Link>
-              {!data.affiliate.isSubAffiliate ? (
-                <Link href="/affiliate/partners?invite=1" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
-                  {tOr('partners.actions.invitePartner', 'Invite a partner', 'Partner uitnodigen')}
+              {(
+                [
+                  ['marketplace', 'Marketplace', 'Sellers, users and subscriptions', 'Verkopers, gebruikers en abonnementen'],
+                  ['growth', 'Growth', 'Business subscriptions', 'Zakelijke abonnementen'],
+                  ['studio', 'Studio', 'Creator tools and credits', 'Creator-tools en tegoed'],
+                  ['bezorging', 'Bezorging', 'Couriers and delivery companies', 'Bezorgers en bezorgbedrijven'],
+                ] as const
+              ).map(([id, title, en, nl]) => (
+                <Link key={id} href={affiliatePlaceHref(id)} className="rounded-xl border border-slate-200 bg-white p-4 hover:border-emerald-300">
+                  <span className="block text-base font-semibold text-slate-900">{title}</span>
+                  <span className="mt-1 block text-sm text-slate-600">{tOr(`affiliate.promote.${id}`, en, nl)}</span>
+                  <span className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800">
+                    {tOr('affiliate.promote.open', 'See what you can do', 'Bekijk mogelijkheden')}
+                  </span>
                 </Link>
-              ) : null}
+              ))}
             </div>
           </section>
         ) : null}
-        {section === 'verdiensten' ? <HomecheffEcosystemAffiliatePanel variant="detail" /> : null}
 
-        {section === 'verdienen' ? (
-          <div className="mt-6">
-            <AffiliateOpportunityCatalogue />
-          </div>
+        {section === 'netwerk' ? (
+          <section className="mt-2 grid gap-2 sm:grid-cols-2">
+            <Link href={affiliatePlaceHref('aanmeldingen')} className="rounded-xl border border-slate-200 bg-white p-4">
+              <span className="block text-base font-semibold text-slate-900">{tOr('affiliate.nav.aanmeldingen', 'Sign-ups', 'Aanmeldingen')}</span>
+              <span className="mt-1 block text-sm text-slate-600">
+                {tOr('affiliate.network.signups', 'People who came in through you.', 'Mensen die via jou binnenkwamen.')}
+              </span>
+            </Link>
+            {!data.affiliate.isSubAffiliate ? (
+              <Link href="/affiliate/partners" className="rounded-xl border border-slate-200 bg-white p-4">
+                <span className="block text-base font-semibold text-slate-900">{tOr('affiliate.nav.partners', 'Partners', 'Partners')}</span>
+                <span className="mt-1 block text-sm text-slate-600">
+                  {tOr('affiliate.network.partners', 'People who promote HomeCheff with you.', 'Mensen die HomeCheff met jou promoten.')}
+                </span>
+              </Link>
+            ) : null}
+          </section>
         ) : null}
 
+        {section === 'verdiensten' ? <HomecheffEcosystemAffiliatePanel variant="detail" /> : null}
+
         {section === 'marketplace' ? (
-          <div className="mt-6 space-y-3">
+          <div className="mt-2 space-y-3">
+            <Link href={affiliatePlaceHref('promoten')} className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800">
+              {tOr('affiliate.back.promote', 'Back to Promote', 'Terug naar Promoten')}
+            </Link>
             <details id="affiliate-group-promoten" open={openMarketplaceGroup === 'promoten'} onToggle={(event) => { if (event.currentTarget.open) setOpenMarketplaceGroup('promoten'); }} className="rounded-2xl border border-slate-200 bg-white">
               <summary className="min-h-11 cursor-pointer px-4 py-3 text-base font-semibold text-slate-900">
-                {tOr('affiliate.marketplace.promote', 'Promote', 'Promoten')}
+                {tOr('affiliate.marketplace.start', 'Start here', 'Begin hier')}
               </summary>
               <div className="px-4 pb-4">
                 <AffiliateShareCenter
                   ids={['seller']}
                   headingEn="Sellers and makers"
                   headingNl="Verkopers en makers"
-                  introEn="Share the seller signup. Order and subscription rates are under Earn."
-                  introNl="Deel de aanmelding voor verkopers en makers. Tarieven staan bij Verdienen."
+                  introEn="Share the seller signup."
+                  introNl="Deel de aanmelding voor verkopers en makers."
                 />
+                <p className="mt-3 text-sm text-slate-600">
+                  {tOr(
+                    'affiliate.marketplace.buyers',
+                    'For buyers and users, share your personal link below.',
+                    'Voor kopers en gebruikers deel je je persoonlijke link hieronder.',
+                  )}
+                </p>
+                <div className="mt-3">
+                  <AffiliateAreaRates match={(row) => row.id === 'marketplace-buyer' || row.id === 'marketplace-seller'} />
+                </div>
               </div>
             </details>
             <details id="affiliate-group-zakelijk" open={openMarketplaceGroup === 'zakelijk'} onToggle={(event) => { if (event.currentTarget.open) setOpenMarketplaceGroup('zakelijk'); }} className="rounded-2xl border border-slate-200 bg-white">
@@ -569,38 +651,14 @@ export default function AffiliateDashboardClient({
                 {tOr('affiliate.marketplace.business', 'Business', 'Zakelijk')}
               </summary>
               <div className="px-4 pb-4">
-                <p className="text-sm text-slate-600">
+                <p className="mb-3 text-sm text-slate-600">
                   {tOr(
                     'affiliate.marketplace.businessIntro',
-                    'Basic, Pro and Premium are business subscriptions. People sign up through the seller link. Rates are under Earn.',
-                    'Basic, Pro en Premium zijn bedrijfsabonnementen. Mensen melden zich aan via de verkoperslink. Tarieven staan bij Verdienen.',
+                    'Basic, Pro and Premium are business subscriptions. People sign up through the seller link.',
+                    'Basic, Pro en Premium zijn bedrijfsabonnementen. Mensen melden zich aan via de verkoperslink.',
                   )}
                 </p>
-                <Link href={affiliateSectionHref('verdienen')} className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline">
-                  {tOr('affiliate.marketplace.seeRates', 'View rates', 'Bekijk tarieven')}
-                </Link>
-              </div>
-            </details>
-            <details id="affiliate-group-bezorging" open={openMarketplaceGroup === 'bezorging'} onToggle={(event) => { if (event.currentTarget.open) setOpenMarketplaceGroup('bezorging'); }} className="rounded-2xl border border-slate-200 bg-white">
-              <summary className="min-h-11 cursor-pointer px-4 py-3 text-base font-semibold text-slate-900">
-                {tOr('affiliate.marketplace.delivery', 'Delivery', 'Bezorging')}
-              </summary>
-              <div className="space-y-4 px-4 pb-4">
-                <AffiliateShareCenter
-                  ids={['delivery_individual', 'delivery_company']}
-                  headingEn="Sign someone up"
-                  headingNl="Iemand aanmelden"
-                  introEn="These are signup links for a courier or a delivery company."
-                  introNl="Dit zijn aanmeldlinks voor een bezorger of een bezorgbedrijf."
-                />
-                <details className="rounded-xl border border-slate-200">
-                  <summary className="min-h-11 cursor-pointer px-3 py-2 text-sm font-semibold text-slate-900">
-                    {tOr('affiliate.marketplace.deliveryReport', 'Couriers you brought in', 'Aangebrachte bezorgers')}
-                  </summary>
-                  <div className="px-3 pb-3">
-                    <AangebrachteBezorgers />
-                  </div>
-                </details>
+                <AffiliateAreaRates match={(row) => row.id.startsWith('marketplace-plan-')} />
               </div>
             </details>
             <details id="affiliate-group-netwerk" open={openMarketplaceGroup === 'netwerk'} onToggle={(event) => { if (event.currentTarget.open) setOpenMarketplaceGroup('netwerk'); }} className="rounded-2xl border border-slate-200 bg-white">
@@ -659,16 +717,37 @@ export default function AffiliateDashboardClient({
           </div>
         ) : null}
 
+        {section === 'bezorging' ? (
+          <div className="mt-2 space-y-4">
+            <Link href={affiliatePlaceHref('promoten')} className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800">
+              {tOr('affiliate.back.promote', 'Back to Promote', 'Terug naar Promoten')}
+            </Link>
+            <h2 className="text-lg font-semibold text-slate-900">
+              {tOr('affiliate.nav.bezorging', 'Delivery', 'Bezorging')}
+            </h2>
+            <AffiliateShareCenter
+              ids={['delivery_individual', 'delivery_company']}
+              headingEn="Invite someone"
+              headingNl="Iemand uitnodigen"
+              introEn="Invite a courier or a delivery company."
+              introNl="Nodig een bezorger of een bezorgbedrijf uit."
+            />
+            <AffiliateAreaRates match={(row) => row.id === 'delivery-fee'} />
+            <p className="text-sm text-slate-600">
+              <Link href={affiliatePlaceHref('verdiensten')} className="font-semibold text-emerald-800 underline-offset-2 hover:underline">
+                {tOr('affiliate.delivery.earningsLink', 'Delivery earnings are under Earnings.', 'Verdiensten uit bezorging staan bij Verdiensten.')}
+              </Link>
+            </p>
+          </div>
+        ) : null}
+
         {section === 'growth' ? (
           <div className="mt-6 space-y-4">
+            <Link href={affiliatePlaceHref('promoten')} className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800">
+              {tOr('affiliate.back.promote', 'Back to Promote', 'Terug naar Promoten')}
+            </Link>
             <h2 className="text-lg font-semibold text-slate-900">Growth</h2>
-            <p className="text-sm text-slate-600">
-              {tOr(
-                'affiliate.growth.lead',
-                'Earn commission on Growth subscriptions.',
-                'Verdien commissie op Growth-abonnementen.',
-              )}
-            </p>
+            <AffiliateAreaRates match={(row) => row.id.startsWith('growth-')} />
             <AffiliateShareCenter
               ids={['growth']}
               headingEn="Share Growth"
@@ -683,23 +762,17 @@ export default function AffiliateDashboardClient({
               <a href={GROWTH_DEMOS_HREF} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
                 {tOr('affiliate.nav.growthDemo', 'Use a demo', 'Demo gebruiken')}
               </a>
-              <Link href={affiliateSectionHref('verdienen')} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
-                {tOr('affiliate.marketplace.seeRates', 'View rates', 'Bekijk tarieven')}
-              </Link>
             </div>
           </div>
         ) : null}
 
         {section === 'studio' ? (
           <div className="mt-6 space-y-4">
+            <Link href={affiliatePlaceHref('promoten')} className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800">
+              {tOr('affiliate.back.promote', 'Back to Promote', 'Terug naar Promoten')}
+            </Link>
             <h2 className="text-lg font-semibold text-slate-900">HomeCheff Studio</h2>
-            <p className="text-sm text-slate-600">
-              {tOr(
-                'affiliate.studio.lead',
-                'Promote Studio to makers, creators and businesses.',
-                'Promoot Studio bij makers, creators en bedrijven.',
-              )}
-            </p>
+            <AffiliateAreaRates match={(row) => row.id.startsWith('studio-')} />
             <AffiliateShareCenter
               ids={['studio']}
               headingEn="Share Studio"
@@ -707,9 +780,6 @@ export default function AffiliateDashboardClient({
               introEn="Send people to Studio."
               introNl="Stuur mensen naar Studio."
             />
-            <Link href={affiliateSectionHref('verdienen')} className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline">
-              {tOr('affiliate.studio.rates', 'View rates', 'Bekijk tarieven')}
-            </Link>
           </div>
         ) : null}
 
@@ -1068,6 +1138,9 @@ export default function AffiliateDashboardClient({
         {/* Referrals Tab */}
         {section === 'aanmeldingen' && (
           <div className="space-y-6">
+            <Link href={affiliatePlaceHref('netwerk')} className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800">
+              {tOr('affiliate.back.network', 'Back to Network', 'Terug naar Netwerk')}
+            </Link>
             <h2 className="text-lg font-semibold text-slate-900">
               {tOr('affiliate.signups.title', 'People you brought in', 'Door jou aangebracht')}
             </h2>
@@ -1187,7 +1260,7 @@ export default function AffiliateDashboardClient({
         )}
 
         {/* Sub-Affiliates Tab */}
-        {section === 'aanmeldingen' && !data?.affiliate?.isSubAffiliate && (
+        {section === 'netwerk' && !data?.affiliate?.isSubAffiliate && (
           <SubAffiliatesTab
             data={data}
             initialShowCreateForm={openNetworkInvite}

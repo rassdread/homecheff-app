@@ -1,6 +1,10 @@
 import { redirect } from 'next/navigation';
 import { AffiliateDashboardScreen } from '../screen';
-import { AFFILIATE_SECTIONS, type AffiliateSection } from '@/lib/affiliate/affiliate-sections';
+import {
+  affiliatePlaceHref,
+  legacyAffiliateSegmentRedirect,
+  type AffiliatePlace,
+} from '@/lib/affiliate/affiliate-sections';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,6 +12,12 @@ function one(value: string | string[] | undefined): string | null {
   if (Array.isArray(value)) return value[0] ?? null;
   return value ?? null;
 }
+
+const DIRECT: Record<string, AffiliatePlace> = {
+  promoten: 'promoten',
+  verdiensten: 'verdiensten',
+  netwerk: 'netwerk',
+};
 
 export default async function AffiliateDashboardSectionPage({
   params,
@@ -17,13 +27,14 @@ export default async function AffiliateDashboardSectionPage({
   searchParams?: Record<string, string | string[] | undefined>;
 }) {
   const value = (params.section || '').trim().toLowerCase();
-  if (!(AFFILIATE_SECTIONS as readonly string[]).includes(value) || value === 'overzicht') {
-    redirect('/affiliate/dashboard');
+  if (value === 'marketplace' && one(searchParams?.focus) === 'bezorging') {
+    redirect(affiliatePlaceHref('bezorging'));
   }
-  return (
-    <AffiliateDashboardScreen
-      section={value as AffiliateSection}
-      marketplaceFocus={value === 'marketplace' ? one(searchParams?.focus) : null}
-    />
-  );
+  const legacy = legacyAffiliateSegmentRedirect(value);
+  if (legacy && legacy !== `/affiliate/dashboard/${value}`) {
+    redirect(legacy);
+  }
+  const place = DIRECT[value];
+  if (!place) redirect('/affiliate/dashboard');
+  return <AffiliateDashboardScreen place={place} />;
 }

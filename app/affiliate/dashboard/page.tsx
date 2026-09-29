@@ -1,9 +1,6 @@
 import { redirect } from 'next/navigation';
 import { AffiliateDashboardScreen } from './screen';
-import {
-  affiliateSectionHref,
-  resolveAffiliateSection,
-} from '@/lib/affiliate/affiliate-sections';
+import { canonicalHrefForLegacyToken } from '@/lib/affiliate/affiliate-sections';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,8 +22,8 @@ export default async function AffiliateDashboardPage({
 
   const raw = one(searchParams?.section) ?? tab;
   if (raw) {
-    redirect(affiliateSectionHref(resolveAffiliateSection(raw)));
+    redirect(canonicalHrefForLegacyToken(raw));
   }
 
-  return <AffiliateDashboardScreen section="overzicht" />;
+  return <AffiliateDashboardScreen place="overzicht" />;
 }

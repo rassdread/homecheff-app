@@ -185,9 +185,9 @@ export default function PromoCodesClient() {
           <Link
             href={
               productQuery === 'GROWTH'
-                ? '/affiliate/dashboard/growth'
+                ? '/affiliate/dashboard/promoten/growth'
                 : productQuery === 'HOMECHEFF'
-                  ? '/affiliate/dashboard/marketplace'
+                  ? '/affiliate/dashboard/promoten/marketplace'
                   : '/affiliate/dashboard'
             }
             className="inline-flex min-h-11 items-center px-4 py-2 text-gray-700 hover:text-gray-900 rounded-lg border border-gray-200 bg-white"

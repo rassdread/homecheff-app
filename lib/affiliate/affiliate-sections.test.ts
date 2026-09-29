@@ -3,56 +3,68 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import {
   GROWTH_DEMOS_HREF,
-  affiliateSectionFromPathname,
-  affiliateSectionHref,
-  resolveAffiliateSection,
+  affiliatePlaceFromPathname,
+  affiliatePlaceHref,
+  canonicalHrefForLegacyToken,
+  legacyAffiliateSegmentRedirect,
 } from './affiliate-sections';
 
-test('default landing is the ecosystem overview', () => {
-  assert.equal(resolveAffiliateSection(null), 'overzicht');
-  assert.equal(resolveAffiliateSection('overview'), 'overzicht');
-  assert.equal(resolveAffiliateSection('earnings'), 'verdiensten');
-  assert.equal(resolveAffiliateSection('verdienen'), 'verdienen');
+test('new affiliate destinations are real paths', () => {
+  assert.equal(affiliatePlaceHref('overzicht'), '/affiliate/dashboard');
+  assert.equal(affiliatePlaceHref('promoten'), '/affiliate/dashboard/promoten');
+  assert.equal(affiliatePlaceHref('marketplace'), '/affiliate/dashboard/promoten/marketplace');
+  assert.equal(affiliatePlaceHref('growth'), '/affiliate/dashboard/promoten/growth');
+  assert.equal(affiliatePlaceHref('studio'), '/affiliate/dashboard/promoten/studio');
+  assert.equal(affiliatePlaceHref('bezorging'), '/affiliate/dashboard/promoten/bezorging');
+  assert.equal(affiliatePlaceHref('verdiensten'), '/affiliate/dashboard/verdiensten');
+  assert.equal(affiliatePlaceHref('netwerk'), '/affiliate/dashboard/netwerk');
+  assert.equal(affiliatePlaceHref('aanmeldingen'), '/affiliate/dashboard/netwerk/aanmeldingen');
+  assert.equal(affiliatePlaceFromPathname('/affiliate/dashboard'), 'overzicht');
+  assert.equal(affiliatePlaceFromPathname('/affiliate/dashboard/promoten/growth'), 'growth');
+  assert.equal(affiliatePlaceFromPathname('/affiliate/dashboard/netwerk/aanmeldingen'), 'aanmeldingen');
+  assert.equal(affiliatePlaceFromPathname('/affiliate/partners'), null);
+  assert.equal(affiliatePlaceFromPathname('/affiliate/dashboard/verdienen'), null);
 });
 
-test('central sections use a path, and old query links redirect', () => {
-  assert.equal(affiliateSectionHref('overzicht'), '/affiliate/dashboard');
-  assert.equal(affiliateSectionHref('verdienen'), '/affiliate/dashboard/verdienen');
-  assert.equal(affiliateSectionHref('verdiensten'), '/affiliate/dashboard/verdiensten');
-  assert.equal(affiliateSectionHref('marketplace'), '/affiliate/dashboard/marketplace');
-  assert.equal(affiliateSectionHref('growth'), '/affiliate/dashboard/growth');
-  assert.equal(affiliateSectionHref('studio'), '/affiliate/dashboard/studio');
-  assert.equal(affiliateSectionHref('aanmeldingen'), '/affiliate/dashboard/aanmeldingen');
-  assert.equal(affiliateSectionFromPathname('/affiliate/dashboard'), 'overzicht');
-  assert.equal(affiliateSectionFromPathname('/affiliate/dashboard/growth'), 'growth');
-  assert.equal(affiliateSectionFromPathname('/affiliate/partners'), null);
+test('old routes and query aliases resolve to the new paths', () => {
+  assert.equal(legacyAffiliateSegmentRedirect('verdienen'), '/affiliate/dashboard/promoten');
+  assert.equal(legacyAffiliateSegmentRedirect('marketplace'), '/affiliate/dashboard/promoten/marketplace');
+  assert.equal(legacyAffiliateSegmentRedirect('growth'), '/affiliate/dashboard/promoten/growth');
+  assert.equal(legacyAffiliateSegmentRedirect('studio'), '/affiliate/dashboard/promoten/studio');
+  assert.equal(legacyAffiliateSegmentRedirect('aanmeldingen'), '/affiliate/dashboard/netwerk/aanmeldingen');
+  assert.equal(canonicalHrefForLegacyToken('verdienen'), '/affiliate/dashboard/promoten');
+  assert.equal(canonicalHrefForLegacyToken('earnings'), '/affiliate/dashboard/verdiensten');
+  assert.equal(canonicalHrefForLegacyToken('growth'), '/affiliate/dashboard/promoten/growth');
+  assert.equal(canonicalHrefForLegacyToken('referrals'), '/affiliate/dashboard/netwerk/aanmeldingen');
   assert.match(GROWTH_DEMOS_HREF, /auth\/sso\/silent/);
   assert.match(GROWTH_DEMOS_HREF, /growth-affiliate%2Fdemos/);
-
-  const page = readFileSync('app/affiliate/dashboard/page.tsx', 'utf8');
-  assert.match(page, /affiliateSectionHref\(resolveAffiliateSection/);
-  const screen = readFileSync('app/affiliate/dashboard/screen.tsx', 'utf8');
-  assert.match(screen, /callbackUrl=\$\{encodeURIComponent\(nextPath\)\}/);
-  const client = readFileSync('app/affiliate/dashboard/page-client.tsx', 'utf8');
-  assert.match(client, /data-affiliate-section=\{section\}/);
-  assert.doesNotMatch(client, /section=verdienen/);
-  assert.match(client, /GROWTH_DEMOS_HREF/);
 });
 
-test('affiliate nav lists the ecosystem tree without a second dashboard', () => {
+test('pages render from the path and redirect the old segments', () => {
+  const page = readFileSync('app/affiliate/dashboard/page.tsx', 'utf8');
+  const section = readFileSync('app/affiliate/dashboard/[section]/page.tsx', 'utf8');
+  const nested = readFileSync('app/affiliate/dashboard/[section]/[area]/page.tsx', 'utf8');
+  const screen = readFileSync('app/affiliate/dashboard/screen.tsx', 'utf8');
+  const client = readFileSync('app/affiliate/dashboard/page-client.tsx', 'utf8');
   const nav = readFileSync('components/my-homecheff/AffiliateAreaNav.tsx', 'utf8');
-  for (const id of [
-    'overzicht',
-    'verdienen',
-    'verdiensten',
-    'marketplace',
-    'growth',
-    'studio',
-    'aanmeldingen',
-  ]) {
-    assert.match(nav, new RegExp(id));
-  }
+  const promo = readFileSync('app/affiliate/promo-codes/page-client.tsx', 'utf8');
+
+  assert.match(page, /canonicalHrefForLegacyToken/);
+  assert.match(section, /legacyAffiliateSegmentRedirect/);
+  assert.match(nested, /place="aanmeldingen"|place=\{PROMOTE/);
+  assert.match(screen, /callbackUrl=\$\{encodeURIComponent\(nextPath\)\}/);
+  assert.match(screen, /place=\{place\}/);
+  assert.match(client, /const section = place/);
+  assert.match(client, /data-affiliate-section=\{section\}/);
+  assert.doesNotMatch(client, /useSearchParams\(\)[\s\S]{0,400}setSection/);
+  assert.match(client, /section === 'bezorging'/);
+  assert.match(client, /section === 'promoten'/);
+  assert.match(client, /GROWTH_DEMOS_HREF/);
+  assert.match(promo, /\/affiliate\/dashboard\/promoten\/growth/);
+  assert.match(promo, /\/affiliate\/dashboard\/promoten\/marketplace/);
+  assert.doesNotMatch(nav, />Meer</);
+  assert.match(nav, /id: 'promoten'/);
+  assert.match(nav, /id: 'bezorging'/);
   assert.match(nav, /\/affiliate\/partners/);
   assert.match(nav, /\/affiliate\/promotiemateriaal/);
-  assert.doesNotMatch(nav, /operations\.tabs/);
 });
