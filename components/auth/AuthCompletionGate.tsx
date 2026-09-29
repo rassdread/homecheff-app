@@ -24,6 +24,9 @@ function pathSkipsOnboardingGate(pathname: string | null): boolean {
   if (pathname.startsWith('/forgot-password')) return true;
   if (pathname.startsWith('/reset-password')) return true;
   if (pathname.startsWith('/verify-email')) return true;
+  // Affiliate area is an authenticated destination. A missing public @handle
+  // must not replace it with a profile form that looks like a code gate.
+  if (pathname.startsWith('/affiliate')) return true;
   return false;
 }
 

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import AffiliateDashboardClient from './page-client';
 import MyAffiliateProgram from '@/components/affiliate/MyAffiliateProgram';
-import { buildVerifyEmailPath } from '@/lib/affiliate/signup-flow';
+import AffiliateEmailNotice from '@/components/affiliate/AffiliateEmailNotice';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,12 +28,12 @@ export default async function AffiliateDashboardPage() {
     },
   });
 
-  // Check email verification - redirect if not verified
-  if (!user || !user.emailVerified) {
-    redirect(buildVerifyEmailPath(session.user.email || '', '/affiliate/dashboard'));
+  if (!user) {
+    redirect('/login?callbackUrl=/affiliate/dashboard');
   }
 
-  // Redirect to signup if no affiliate account
+  // An existing affiliate is already authenticated. Do not turn the dashboard
+  // into an email-code gate. Confirmation stays optional for payouts.
   if (!user.affiliate) {
     redirect('/affiliate');
   }
@@ -41,6 +41,9 @@ export default async function AffiliateDashboardPage() {
   return (
     <>
       <div className="mx-auto max-w-5xl px-4 pt-6">
+        {!user.emailVerified && user.email ? (
+          <AffiliateEmailNotice email={user.email} nextPath="/affiliate/dashboard" />
+        ) : null}
         <MyAffiliateProgram affiliateId={user.affiliate.id} />
       </div>
       <AffiliateDashboardClient />

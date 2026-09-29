@@ -1,7 +1,6 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
-import { buildVerifyEmailPath } from '@/lib/affiliate/signup-flow';
 import MyPartnersClient from '@/components/affiliate/MyPartnersClient';
 
 export const dynamic = 'force-dynamic';
@@ -19,18 +18,13 @@ export default async function MyPartnersPage({
   const user = await prisma.user.findUnique({
     where: { email: session.user.email! },
     select: {
-      email: true,
-      emailVerified: true,
       affiliate: {
         select: { id: true, parentAffiliateId: true },
       },
     },
   });
 
-  if (!user || !user.emailVerified) {
-    redirect(buildVerifyEmailPath(session.user.email || '', '/affiliate/partners'));
-  }
-  if (!user.affiliate) {
+  if (!user?.affiliate) {
     redirect('/affiliate');
   }
   if (user.affiliate.parentAffiliateId) {

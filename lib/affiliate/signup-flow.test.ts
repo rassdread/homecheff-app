@@ -140,8 +140,12 @@ describe('affiliate signup production codepath', () => {
     const verify = read('app/verify-email/page.tsx');
     assert.match(verify, /sanitizePostAuthRelativeUrl/);
     assert.match(verify, /startedTokenRef/);
+    const signup = read('app/affiliate/page-client.tsx');
+    assert.match(signup, /buildVerifyEmailPath/);
     const dash = read('app/affiliate/dashboard/page.tsx');
-    assert.match(dash, /buildVerifyEmailPath/);
+    assert.doesNotMatch(dash, /buildVerifyEmailPath/);
+    const gate = read('components/auth/AuthCompletionGate.tsx');
+    assert.match(gate, /pathname\.startsWith\('\/affiliate'\)/);
   });
 
   it('activates an affiliate idempotently without extra roles', () => {

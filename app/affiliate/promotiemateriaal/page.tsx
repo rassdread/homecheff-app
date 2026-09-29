@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation';
 import OperationsShell from '@/components/operations/OperationsShell';
 import AffiliatePromoLibraryClient from '@/components/affiliate/AffiliatePromoLibraryClient';
 import { getPlatformAdmin } from '@/lib/admin-guard';
-import { buildVerifyEmailPath } from '@/lib/affiliate/signup-flow';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,12 +15,11 @@ export default async function AffiliatePromoLibraryPage() {
     where: { email: session.user.email },
     select: {
       id: true,
-      emailVerified: true,
       affiliate: { select: { id: true, status: true } },
     },
   });
-  if (!user?.emailVerified) {
-    redirect(buildVerifyEmailPath(session.user.email, '/affiliate/promotiemateriaal'));
+  if (!user) {
+    redirect('/login?callbackUrl=/affiliate/promotiemateriaal');
   }
   const admin = await getPlatformAdmin();
   const isAffiliate = user?.affiliate?.status === 'ACTIVE';

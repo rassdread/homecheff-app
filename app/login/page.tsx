@@ -220,7 +220,8 @@ function LoginForm() {
       username?: string | null;
       socialOnboardingCompleted?: boolean | null;
     };
-    if (needsProfileOnboardingFromFlags(onboardingFlagsFromSessionUser(u))) {
+    const affiliateReturn = typeof callbackUrl === 'string' && callbackUrl.startsWith('/affiliate');
+    if (needsProfileOnboardingFromFlags(onboardingFlagsFromSessionUser(u)) && !affiliateReturn) {
       router.replace('/onboarding/complete-profile');
       return;
     }
