@@ -775,30 +775,6 @@ export default function AffiliateDashboardClient() {
             </details>
             ) : null}
 
-            {section === 'overzicht' && !data?.affiliate?.isSubAffiliate ? (
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-5 sm:p-6">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {t('partners.network.title')}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-700">
-                      {t('partners.helpers.invitePartner')}
-                    </p>
-                    <p className="mt-2 text-sm text-emerald-900">
-                      {data.stats.downlineCount} {t('partners.network.statsDirect')}
-                    </p>
-                  </div>
-                  <Link
-                    href="/affiliate/partners?invite=1"
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-                  >
-                    {t('partners.actions.invitePartner')}
-                  </Link>
-                </div>
-              </div>
-            ) : null}
-
             {section === 'verdiensten' ? (
             <details className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 sm:p-5 text-sm text-gray-700 space-y-2">
               <summary className="cursor-pointer font-semibold text-gray-900">{t('affiliate.dashboard.attributionPolicyTitle')}</summary>
@@ -1002,26 +978,6 @@ export default function AffiliateDashboardClient() {
               </div>
             </div>
             </details>
-            ) : null}
-
-            {/* Upline Info */}
-            {section === 'overzicht' && data.upline && (
-              <div className="bg-white rounded-xl shadow-sm border p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('partners.myPartners.programTitle')}</h3>
-                <p className="text-gray-700">
-                  {t('partners.myPartners.via', { name: data.upline.name || 'HomeCheff' })}
-                </p>
-              </div>
-            )}
-
-            {/* Direct partners — main partners only */}
-            {section === 'overzicht' && !data?.affiliate?.isSubAffiliate ? (
-            <div className="bg-white rounded-xl shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('affiliate.dashboard.yourDownline')}</h3>
-              <p className="text-3xl font-bold text-gray-900">{data.stats.downlineCount}</p>
-              <p className="text-sm text-gray-600 mt-2">{t('affiliate.dashboard.downlineDesc')}</p>
-              <p className="text-xs text-gray-500 mt-2">{t('partners.helpers.directPartners')}</p>
-            </div>
             ) : null}
 
             {section === 'verdiensten' ? (
