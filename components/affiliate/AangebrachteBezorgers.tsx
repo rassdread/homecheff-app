@@ -23,7 +23,7 @@ type ProviderRow = {
 
 const FILTERS = [
   { id: 'ALL', label: 'Alle' },
-  { id: 'ONBOARDING', label: 'Onboarding' },
+  { id: 'ONBOARDING', label: 'Bezig met starten' },
   { id: 'ACTIEF', label: 'Actief' },
   { id: 'EERSTE_ACTIVITEIT', label: 'Eerste activiteit' },
   { id: 'BEZORGBEDRIJF', label: 'Bezorgbedrijf' },
@@ -113,8 +113,7 @@ export default function AangebrachteBezorgers({
             Aangebrachte bezorgers
           </h2>
           <p className="mt-1 text-sm text-slate-600">
-            Alleen door jou aangebrachte bezorgers en bezorgbedrijven. Geen
-            privéadressen of KYC.
+            Alleen door jou aangebrachte bezorgers en bezorgbedrijven. Geen privéadressen.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -142,7 +141,7 @@ export default function AangebrachteBezorgers({
       </div>
 
       <div
-        className="mt-4 flex gap-2 overflow-x-auto pb-1"
+        className="mt-4 flex flex-wrap gap-2"
         role="tablist"
         aria-label="Filter aangebrachte bezorgers"
       >
@@ -153,7 +152,7 @@ export default function AangebrachteBezorgers({
             role="tab"
             aria-selected={filter === f.id}
             onClick={() => setFilter(f.id)}
-            className={`shrink-0 rounded-lg px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 ${
+            className={`min-h-11 rounded-lg px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 ${
               filter === f.id
                 ? 'bg-sky-600 text-white'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -199,7 +198,7 @@ export default function AangebrachteBezorgers({
       ) : (
         <>
           {/* Mobile cards */}
-          <ul className="mt-4 space-y-3 md:hidden">
+          <ul className="mt-4 space-y-3">
             {rows.map((r) => (
               <li
                 key={r.attributionId}
@@ -226,40 +225,6 @@ export default function AangebrachteBezorgers({
               </li>
             ))}
           </ul>
-
-          {/* Desktop table */}
-          <div className="mt-4 hidden overflow-x-auto md:block">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-500">
-                  <th className="py-2 pr-3 font-medium">Naam</th>
-                  <th className="py-2 pr-3 font-medium">Type</th>
-                  <th className="py-2 pr-3 font-medium">Status</th>
-                  <th className="py-2 pr-3 font-medium">Aangebracht</th>
-                  <th className="py-2 pr-3 font-medium">Bron</th>
-                  <th className="py-2 font-medium">Affiliate-inkomsten</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.attributionId} className="border-b border-slate-100">
-                    <td className="py-2.5 pr-3 font-medium text-slate-900">{r.displayName}</td>
-                    <td className="py-2.5 pr-3 text-slate-600">{r.providerTypeLabel}</td>
-                    <td className="py-2.5 pr-3 text-slate-700">{statusLabel(r.status)}</td>
-                    <td className="py-2.5 pr-3 text-slate-600">
-                      {new Date(r.referredAt).toLocaleDateString('nl-NL')}
-                    </td>
-                    <td className="max-w-[10rem] truncate py-2.5 pr-3 text-slate-500">
-                      {r.sourceCampaign || '—'}
-                    </td>
-                    <td className="py-2.5 font-medium text-slate-900">
-                      {euro(r.eligibleAffiliateEarningsCents)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </>
       )}
     </section>

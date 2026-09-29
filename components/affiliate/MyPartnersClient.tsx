@@ -38,7 +38,7 @@ function euro(cents: number) {
 }
 
 export default function MyPartnersClient({ openInvite }: { openInvite?: boolean }) {
-  const { t, language } = useTranslation();
+  const { t, tOr, language } = useTranslation();
   const [data, setData] = useState<PartnersPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(Boolean(openInvite));
@@ -128,10 +128,17 @@ export default function MyPartnersClient({ openInvite }: { openInvite?: boolean 
       <div className="max-w-3xl py-6 sm:py-8 space-y-6">
         <Link
           href="/affiliate/dashboard"
-          className="inline-flex text-sm font-medium text-emerald-800 hover:underline"
+          className="inline-flex min-h-11 items-center text-sm font-medium text-emerald-800 hover:underline"
         >
           {t('partners.myPartners.back')}
         </Link>
+        <p className="text-sm text-slate-700">
+          {tOr(
+            'partners.myPartners.plain',
+            'Invite someone who will also promote HomeCheff.',
+            'Nodig iemand uit die HomeCheff ook gaat promoten.',
+          )}
+        </p>
 
         {loading ? (
           <p className="text-sm text-gray-600">{t('affiliate.dashboard.loading')}</p>
@@ -184,7 +191,11 @@ export default function MyPartnersClient({ openInvite }: { openInvite?: boolean 
         ) : null}
 
         {canInvite ? (
-          <section className="rounded-2xl border bg-white p-5 sm:p-6 space-y-3">
+          <details className="rounded-2xl border bg-white p-5 sm:p-6">
+            <summary className="min-h-11 cursor-pointer text-base font-semibold text-gray-900">
+              {tOr('partners.network.how', 'How does my partner network work?', 'Hoe werkt mijn partnernetwerk?')}
+            </summary>
+            <div className="mt-3 space-y-3">
             <h2 className="text-xl font-semibold text-gray-900">
               {t('partners.inviteOffer.title')}
             </h2>
@@ -203,7 +214,8 @@ export default function MyPartnersClient({ openInvite }: { openInvite?: boolean 
             <p className="text-sm leading-relaxed text-gray-700">
               {t('partners.inviteOffer.notOrder')}
             </p>
-          </section>
+            </div>
+          </details>
         ) : null}
 
         {showForm && canInvite ? (

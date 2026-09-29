@@ -18,12 +18,14 @@ export default function AffiliateCommissionCatalog({
   showNetwork = true,
   showPromo = true,
   initialPlatform = 'all',
+  presentation = 'filters',
 }: {
   rows: CatalogRow[];
   lang: 'nl' | 'en';
   showNetwork?: boolean;
   showPromo?: boolean;
   initialPlatform?: CatalogPlatform | 'Delivery' | 'all';
+  presentation?: 'filters' | 'grouped';
 }) {
   const en = lang === 'en';
   const [platform, setPlatform] = useState<CatalogPlatform | 'Delivery' | 'all'>(initialPlatform);
@@ -58,6 +60,82 @@ export default function AffiliateCommissionCatalog({
     if (value === 'purchase') return 'Per aankoop';
     return 'Per transactie';
   };
+
+  if (presentation === 'grouped') {
+    const areaOf = (row: CatalogRow) => (row.id === 'delivery-fee' ? 'Bezorging' : row.platform);
+    const areas = [
+      {
+        id: 'Marketplace',
+        title: 'Marketplace',
+        intro: en
+          ? 'Orders, sellers and Marketplace subscriptions.'
+          : 'Bestellingen, verkopers en Marketplace-abonnementen.',
+        href: '/affiliate/dashboard?section=marketplace',
+      },
+      {
+        id: 'Growth',
+        title: 'Growth',
+        intro: en ? 'Subscriptions for businesses that want leads.' : 'Abonnementen voor bedrijven die leads willen.',
+        href: '/affiliate/dashboard?section=growth',
+      },
+      {
+        id: 'Studio',
+        title: 'Studio',
+        intro: en ? 'Subscriptions and credit packs for makers.' : 'Abonnementen en creditpakketten voor makers.',
+        href: '/affiliate/dashboard?section=studio',
+      },
+      {
+        id: 'Bezorging',
+        title: en ? 'Delivery' : 'Bezorging',
+        intro: en ? 'Couriers and delivery companies.' : 'Bezorgers en bezorgbedrijven.',
+        href: '/affiliate/dashboard?section=marketplace',
+      },
+    ] as const;
+    return (
+      <div className="space-y-8">
+        {areas.map((area) => {
+          const items = rows.filter((row) => areaOf(row) === area.id);
+          if (items.length === 0) return null;
+          return (
+            <section key={area.id} aria-labelledby={`earn-${area.id}`}>
+              <h3 id={`earn-${area.id}`} className="text-base font-semibold text-slate-900">
+                {area.title}
+              </h3>
+              <p className="mt-1 text-sm text-slate-600">{area.intro}</p>
+              <ul className="mt-3 space-y-3">
+                {items.map((row) => (
+                  <li key={row.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <h4 className="text-base font-semibold text-slate-900">{row.product}</h4>
+                    <p className="mt-1 text-sm text-slate-700">{en ? row.fitEn : row.fitNl}</p>
+                    <p className="mt-2 text-sm text-slate-600">{kindLabel(row.kind)}</p>
+                    <p className="mt-2 text-sm font-semibold text-emerald-900">
+                      {en ? 'Rate' : 'Tarief'}: {en ? row.earningLabelEn : row.earningLabelNl}
+                    </p>
+                    <Link
+                      href={area.href}
+                      className="mt-3 inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-900"
+                    >
+                      {en ? 'Promote' : 'Promoten'}
+                    </Link>
+                    <details className="mt-3">
+                      <summary className="min-h-11 cursor-pointer text-sm font-semibold text-emerald-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800">
+                        {en ? 'See how this is calculated' : 'Bekijk hoe dit wordt berekend'}
+                      </summary>
+                      <ul className="mt-2 space-y-1 text-sm leading-relaxed text-slate-700">
+                        {(en ? row.detailEn : row.detailNl).map((line) => (
+                          <li key={line}>{line}</li>
+                        ))}
+                      </ul>
+                    </details>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div>

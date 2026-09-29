@@ -18,11 +18,11 @@ export default function AffiliateOpportunityCatalogue() {
       <p className="text-sm text-slate-600">
         {tOr(
           'affiliate.verdienen.intro',
-          'Current opportunities and rates. This is not a statement of money already earned.',
-          'Huidige mogelijkheden en tarieven. Dit is geen overzicht van al verdiende commissie.',
+          'Compare what you can promote and what you can earn. This is not money already earned.',
+          'Vergelijk wat je kunt promoten en wat je daarmee kunt verdienen. Dit is geen overzicht van al verdiend geld.',
         )}
       </p>
-      <AffiliateCommissionCatalog rows={rows} lang={lang} />
+      <AffiliateCommissionCatalog rows={rows} lang={lang} presentation="grouped" />
     </section>
   );
 }

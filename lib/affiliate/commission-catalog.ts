@@ -337,9 +337,11 @@ function deliveryRow(): CatalogRow {
   return {
     id: 'delivery-fee',
     platform: 'Marketplace',
-    product: 'Bezorgfee',
-    fitNl: 'Een klant van wie de bestelling met HomeCheff-bezorging gaat.',
-    fitEn: 'A customer whose order uses HomeCheff delivery.',
+    product: 'Bezorging',
+    fitNl:
+      'Breng een bezorger of bezorgbedrijf aan. Jij verdient mee wanneer die kwalificerende bezorgingen uitvoert.',
+    fitEn:
+      'Bring in a courier or a delivery company. You earn when they complete qualifying deliveries.',
     customerPriceCents: null,
     priceLabelNl: `Voorbeeld bij ${eur(deliveryCents)} bezorgkosten.`,
     priceLabelEn: `Example on ${eur(deliveryCents)} delivery cost.`,
