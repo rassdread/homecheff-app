@@ -28,7 +28,11 @@ import { HomecheffEcosystemAffiliatePanel } from '@/components/affiliate/Homeche
 import AffiliateShareCenter from '@/components/affiliate/AffiliateShareCenter';
 import AangebrachteBezorgers from '@/components/affiliate/AangebrachteBezorgers';
 import AffiliateOpportunityCatalogue from '@/components/affiliate/AffiliateOpportunityCatalogue';
-import { resolveAffiliateSection } from '@/lib/affiliate/affiliate-sections';
+import {
+  GROWTH_DEMOS_HREF,
+  affiliateSectionHref,
+  type AffiliateSection,
+} from '@/lib/affiliate/affiliate-sections';
 import { 
   SUB_AFFILIATE_USER_COMMISSION_PCT, 
   SUB_AFFILIATE_BUSINESS_COMMISSION_PCT,
@@ -99,10 +103,16 @@ interface DashboardData {
   }>;
 }
 
-export default function AffiliateDashboardClient() {
+export default function AffiliateDashboardClient({
+  section,
+  marketplaceFocus = null,
+}: {
+  section: AffiliateSection;
+  marketplaceFocus?: string | null;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const section = resolveAffiliateSection(searchParams?.get('section') ?? searchParams?.get('tab'));
+  const [openMarketplaceGroup, setOpenMarketplaceGroup] = useState(marketplaceFocus || 'promoten');
   const { t, tOr, language } = useTranslation();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -121,6 +131,11 @@ export default function AffiliateDashboardClient() {
   useEffect(() => {
     void fetch('/api/affiliate/ensure-capabilities', { method: 'POST' }).catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    if (!marketplaceFocus) return;
+    document.getElementById(`affiliate-group-${marketplaceFocus}`)?.scrollIntoView({ block: 'start' });
+  }, [marketplaceFocus]);
 
   useEffect(() => {
     // Check for welcome parameter
@@ -479,7 +494,7 @@ export default function AffiliateDashboardClient() {
       quickActions={affiliateQuickActions}
       contentClassName="py-0"
     >
-      <div className="max-w-full py-8">
+      <div className="max-w-full py-8" data-affiliate-section={section}>
         {/* Welcome Message */}
         {showWelcome && (
           <div className="mb-6 p-6 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-xl shadow-lg animate-fade-in">
@@ -508,10 +523,10 @@ export default function AffiliateDashboardClient() {
               {tOr('affiliate.overview.next', 'What do you want to do?', 'Wat wil je doen?')}
             </h2>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <Link href="/affiliate/dashboard?section=verdienen" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white">
+              <Link href={affiliateSectionHref('verdienen')} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white">
                 {tOr('affiliate.overview.promote', 'Promote something', 'Iets promoten')}
               </Link>
-              <Link href="/affiliate/dashboard?section=verdiensten" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+              <Link href={affiliateSectionHref('verdiensten')} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
                 {tOr('affiliate.overview.earnings', 'View my earnings', 'Mijn verdiensten bekijken')}
               </Link>
               <Link href="/affiliate/promotiemateriaal" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
@@ -535,7 +550,7 @@ export default function AffiliateDashboardClient() {
 
         {section === 'marketplace' ? (
           <div className="mt-6 space-y-3">
-            <details open className="rounded-2xl border border-slate-200 bg-white">
+            <details id="affiliate-group-promoten" open={openMarketplaceGroup === 'promoten'} onToggle={(event) => { if (event.currentTarget.open) setOpenMarketplaceGroup('promoten'); }} className="rounded-2xl border border-slate-200 bg-white">
               <summary className="min-h-11 cursor-pointer px-4 py-3 text-base font-semibold text-slate-900">
                 {tOr('affiliate.marketplace.promote', 'Promote', 'Promoten')}
               </summary>
@@ -549,7 +564,7 @@ export default function AffiliateDashboardClient() {
                 />
               </div>
             </details>
-            <details className="rounded-2xl border border-slate-200 bg-white">
+            <details id="affiliate-group-zakelijk" open={openMarketplaceGroup === 'zakelijk'} onToggle={(event) => { if (event.currentTarget.open) setOpenMarketplaceGroup('zakelijk'); }} className="rounded-2xl border border-slate-200 bg-white">
               <summary className="min-h-11 cursor-pointer px-4 py-3 text-base font-semibold text-slate-900">
                 {tOr('affiliate.marketplace.business', 'Business', 'Zakelijk')}
               </summary>
@@ -561,12 +576,12 @@ export default function AffiliateDashboardClient() {
                     'Basic, Pro en Premium zijn bedrijfsabonnementen. Mensen melden zich aan via de verkoperslink. Tarieven staan bij Verdienen.',
                   )}
                 </p>
-                <Link href="/affiliate/dashboard?section=verdienen" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline">
+                <Link href={affiliateSectionHref('verdienen')} className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline">
                   {tOr('affiliate.marketplace.seeRates', 'View rates', 'Bekijk tarieven')}
                 </Link>
               </div>
             </details>
-            <details className="rounded-2xl border border-slate-200 bg-white">
+            <details id="affiliate-group-bezorging" open={openMarketplaceGroup === 'bezorging'} onToggle={(event) => { if (event.currentTarget.open) setOpenMarketplaceGroup('bezorging'); }} className="rounded-2xl border border-slate-200 bg-white">
               <summary className="min-h-11 cursor-pointer px-4 py-3 text-base font-semibold text-slate-900">
                 {tOr('affiliate.marketplace.delivery', 'Delivery', 'Bezorging')}
               </summary>
@@ -588,7 +603,7 @@ export default function AffiliateDashboardClient() {
                 </details>
               </div>
             </details>
-            <details className="rounded-2xl border border-slate-200 bg-white">
+            <details id="affiliate-group-netwerk" open={openMarketplaceGroup === 'netwerk'} onToggle={(event) => { if (event.currentTarget.open) setOpenMarketplaceGroup('netwerk'); }} className="rounded-2xl border border-slate-200 bg-white">
               <summary className="min-h-11 cursor-pointer px-4 py-3 text-base font-semibold text-slate-900">
                 {tOr('affiliate.marketplace.network', 'Network', 'Netwerk')}
               </summary>
@@ -605,7 +620,7 @@ export default function AffiliateDashboardClient() {
                 </Link>
               </div>
             </details>
-            <details className="rounded-2xl border border-slate-200 bg-white">
+            <details id="affiliate-group-tools" open={openMarketplaceGroup === 'tools'} onToggle={(event) => { if (event.currentTarget.open) setOpenMarketplaceGroup('tools'); }} className="rounded-2xl border border-slate-200 bg-white">
               <summary className="min-h-11 cursor-pointer px-4 py-3 text-base font-semibold text-slate-900">
                 {tOr('affiliate.marketplace.tools', 'Tools', 'Tools')}
               </summary>
@@ -627,7 +642,7 @@ export default function AffiliateDashboardClient() {
                 </div>
               </div>
             </details>
-            <details className="rounded-2xl border border-slate-200 bg-white">
+            <details id="affiliate-group-delen" open={openMarketplaceGroup === 'delen'} onToggle={(event) => { if (event.currentTarget.open) setOpenMarketplaceGroup('delen'); }} className="rounded-2xl border border-slate-200 bg-white">
               <summary className="min-h-11 cursor-pointer px-4 py-3 text-base font-semibold text-slate-900">
                 {tOr('affiliate.marketplace.other', 'Also share', 'Ook delen')}
               </summary>
@@ -665,10 +680,10 @@ export default function AffiliateDashboardClient() {
               <Link href="/affiliate/promo-codes?product=GROWTH" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white">
                 {tOr('affiliate.nav.growthPromo', 'Create a promo code', 'Actiecode maken')}
               </Link>
-              <a href="https://growth.homecheff.eu/account/growth-affiliate/demos" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+              <a href={GROWTH_DEMOS_HREF} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
                 {tOr('affiliate.nav.growthDemo', 'Use a demo', 'Demo gebruiken')}
               </a>
-              <Link href="/affiliate/dashboard?section=verdienen" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+              <Link href={affiliateSectionHref('verdienen')} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
                 {tOr('affiliate.marketplace.seeRates', 'View rates', 'Bekijk tarieven')}
               </Link>
             </div>
@@ -692,7 +707,7 @@ export default function AffiliateDashboardClient() {
               introEn="Send people to Studio."
               introNl="Stuur mensen naar Studio."
             />
-            <Link href="/affiliate/dashboard?section=verdienen" className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline">
+            <Link href={affiliateSectionHref('verdienen')} className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline">
               {tOr('affiliate.studio.rates', 'View rates', 'Bekijk tarieven')}
             </Link>
           </div>
@@ -778,6 +793,11 @@ export default function AffiliateDashboardClient() {
             {section === 'verdiensten' ? (
             <details className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 sm:p-5 text-sm text-gray-700 space-y-2">
               <summary className="cursor-pointer font-semibold text-gray-900">{t('affiliate.dashboard.attributionPolicyTitle')}</summary>
+              <p>
+                <a href="/werken-bij/hoe-werkt-het" className="font-semibold text-emerald-800 underline-offset-2 hover:underline">
+                  {tOr('affiliateDashboard.howItWorksCta', 'How it works', 'Hoe werkt het?')}
+                </a>
+              </p>
               <p>
                 {t('affiliate.dashboard.attributionPolicyFirstTouch', {
                   days: AFFILIATE_ATTRIBUTION_CONTRACT.cookieTtlDays,

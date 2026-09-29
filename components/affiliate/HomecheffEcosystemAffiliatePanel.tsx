@@ -207,7 +207,7 @@ export function HomecheffEcosystemAffiliatePanel({
           )}
         </p>
         <Link
-          href="/affiliate/dashboard?section=verdienen"
+          href="/affiliate/dashboard/verdienen"
           className="mt-3 inline-flex min-h-[40px] items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline"
         >
           {tOr('affiliateDashboard.ecosystem.emptyCta', 'See what you can promote', 'Bekijk wat je kunt promoten')}
@@ -276,7 +276,7 @@ export function HomecheffEcosystemAffiliatePanel({
       ) : null}
       {variant === 'detail' && kpis && kpis.totalEarnedCents === 0 ? (
         <Link
-          href="/affiliate/dashboard?section=verdienen"
+          href="/affiliate/dashboard/verdienen"
           className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline"
         >
           {tOr('affiliateDashboard.ecosystem.emptyCta', 'See what you can promote', 'Bekijk wat je kunt promoten')}
@@ -375,7 +375,7 @@ export function HomecheffEcosystemAffiliatePanel({
       ) : null}
       {variant === 'summary' ? (
         <p className="mt-3 text-xs">
-          <Link href="/affiliate/dashboard?section=verdiensten" className="font-medium text-emerald-800 underline-offset-2 hover:underline">
+          <Link href="/affiliate/dashboard/verdiensten" className="font-medium text-emerald-800 underline-offset-2 hover:underline">
             {tOr('affiliate.verdiensten.open', 'View earnings', 'Bekijk verdiensten')}
           </Link>
         </p>

@@ -42,7 +42,7 @@ export const OPERATIONS_ROUTES = {
     network: '/affiliate/partners',
     /** Open invite form on Mijn partners */
     invitePartner: '/affiliate/partners?invite=1',
-    earnings: '/affiliate/dashboard?tab=earnings',
+    earnings: '/affiliate/dashboard/verdiensten',
   },
   finance: {
     home: '/verdiensten',

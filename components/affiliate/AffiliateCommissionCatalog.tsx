@@ -9,6 +9,7 @@ import {
   type CatalogPlatform,
   type CatalogRow,
 } from '@/lib/affiliate/commission-catalog';
+import { affiliateSectionHref } from '@/lib/affiliate/affiliate-sections';
 
 type SortId = 'commission' | 'price' | 'recurring' | 'platform';
 
@@ -70,25 +71,25 @@ export default function AffiliateCommissionCatalog({
         intro: en
           ? 'Orders, sellers and Marketplace subscriptions.'
           : 'Bestellingen, verkopers en Marketplace-abonnementen.',
-        href: '/affiliate/dashboard?section=marketplace',
+        href: affiliateSectionHref('marketplace'),
       },
       {
         id: 'Growth',
         title: 'Growth',
         intro: en ? 'Subscriptions for businesses that want leads.' : 'Abonnementen voor bedrijven die leads willen.',
-        href: '/affiliate/dashboard?section=growth',
+        href: affiliateSectionHref('growth'),
       },
       {
         id: 'Studio',
         title: 'Studio',
         intro: en ? 'Subscriptions and credit packs for makers.' : 'Abonnementen en creditpakketten voor makers.',
-        href: '/affiliate/dashboard?section=studio',
+        href: affiliateSectionHref('studio'),
       },
       {
         id: 'Bezorging',
         title: en ? 'Delivery' : 'Bezorging',
         intro: en ? 'Couriers and delivery companies.' : 'Bezorgers en bezorgbedrijven.',
-        href: '/affiliate/dashboard?section=marketplace',
+        href: `${affiliateSectionHref('marketplace')}?focus=bezorging`,
       },
     ] as const;
     return (
@@ -112,7 +113,13 @@ export default function AffiliateCommissionCatalog({
                       {en ? 'Rate' : 'Tarief'}: {en ? row.earningLabelEn : row.earningLabelNl}
                     </p>
                     <Link
-                      href={area.href}
+                      href={
+                        row.id.startsWith('marketplace-plan-')
+                          ? `${affiliateSectionHref('marketplace')}?focus=zakelijk`
+                          : row.id === 'marketplace-buyer' || row.id === 'marketplace-seller'
+                            ? `${affiliateSectionHref('marketplace')}?focus=promoten`
+                            : area.href
+                      }
                       className="mt-3 inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-900"
                     >
                       {en ? 'Promote' : 'Promoten'}

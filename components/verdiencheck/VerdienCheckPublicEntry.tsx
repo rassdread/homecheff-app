@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { isVerdienCheckPublicCtaEnabled } from '@/lib/verdiencheck/flags';
 import {
   sanitizeVerdienCheckEntryPoint,
@@ -69,12 +68,6 @@ export default function VerdienCheckPublicEntry({
       <p className="text-base font-semibold text-emerald-950">{copy.title}</p>
       <p className="mt-1 text-sm leading-relaxed text-emerald-900/80">{copy.body}</p>
       <VerdienCheckQuickInsight copy={insight} startHref={`/verdiencheck?from=${from}`} />
-      <Link
-        href={`/verdiencheck?from=${from}`}
-        className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900"
-      >
-        {copy.cta}
-      </Link>
     </aside>
   );
 }

@@ -183,10 +183,20 @@ export default function PromoCodesClient() {
       quickActions={
         <>
           <Link
-            href="/affiliate/dashboard"
-            className="px-4 py-2 text-gray-700 hover:text-gray-900 rounded-lg border border-gray-200 bg-white"
+            href={
+              productQuery === 'GROWTH'
+                ? '/affiliate/dashboard/growth'
+                : productQuery === 'HOMECHEFF'
+                  ? '/affiliate/dashboard/marketplace'
+                  : '/affiliate/dashboard'
+            }
+            className="inline-flex min-h-11 items-center px-4 py-2 text-gray-700 hover:text-gray-900 rounded-lg border border-gray-200 bg-white"
           >
-            {t('affiliate.dashboard.title')}
+            {productQuery === 'GROWTH'
+              ? tOr('affiliate.nav.backGrowth', 'Back to Growth', 'Terug naar Growth')
+              : productQuery === 'HOMECHEFF'
+                ? tOr('affiliate.nav.backMarketplace', 'Back to Marketplace', 'Terug naar Marketplace')
+                : tOr('affiliate.nav.overzicht', 'Overview', 'Overzicht')}
           </Link>
           <button
             type="button"

@@ -6,11 +6,22 @@ import PromoCodesClient from './page-client';
 
 export const dynamic = 'force-dynamic';
 
-export default async function PromoCodesPage() {
+export default async function PromoCodesPage({
+  searchParams,
+}: {
+  searchParams?: { product?: string };
+}) {
+  const product =
+    searchParams?.product === 'GROWTH'
+      ? 'GROWTH'
+      : searchParams?.product === 'HOMECHEFF'
+        ? 'HOMECHEFF'
+        : '';
+  const nextPath = product ? `/affiliate/promo-codes?product=${product}` : '/affiliate/promo-codes';
   const session = await auth();
   
   if (!session?.user) {
-    redirect('/login?callbackUrl=/affiliate/promo-codes');
+    redirect(`/login?callbackUrl=${encodeURIComponent(nextPath)}`);
   }
 
   const user = await prisma.user.findUnique({

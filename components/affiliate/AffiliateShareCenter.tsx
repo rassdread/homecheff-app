@@ -18,6 +18,7 @@ import {
   OPPORTUNITY_DESTINATIONS,
   type OpportunityId,
 } from '@/lib/share/ecosystem-opportunities';
+import { localizePublicCareersHref } from '@/lib/navigation/public-careers-nav';
 
 type ShareCardDef = {
   id: OpportunityId;
@@ -141,7 +142,7 @@ export default function AffiliateShareCenter({
   introEn?: string;
   introNl?: string;
 } = {}) {
-  const { t, tOr, isReady } = useTranslation();
+  const { t, tOr, isReady, language } = useTranslation();
 
   const heading = tOr(
     headingKey || 'affiliateDashboard.share.title',
@@ -168,6 +169,7 @@ export default function AffiliateShareCenter({
       <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {SHARE_CARDS.filter((card) => !ids || ids.includes(card.id)).map((card) => {
           const dest = OPPORTUNITY_DESTINATIONS[card.id];
+          const pageHref = localizePublicCareersHref(dest.href, language === 'en' ? 'en' : 'nl');
           const Icon = card.icon;
           const title = isReady
             ? t(card.titleKey) || fallbackTitle(card.id)
@@ -211,7 +213,13 @@ export default function AffiliateShareCenter({
                   ) : null}
                 </div>
               </div>
-              <div className="mt-auto">
+              <div className="mt-auto flex flex-col gap-2">
+                <a
+                  href={pageHref}
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-3 text-sm font-semibold text-white"
+                >
+                  {tOr('affiliate.openPage', 'Open page', 'Open pagina')}
+                </a>
                 <EcosystemShareAction
                   destinationHref={dest.href}
                   title={title}

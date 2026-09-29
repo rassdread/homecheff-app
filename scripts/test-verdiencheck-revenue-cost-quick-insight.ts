@@ -198,7 +198,7 @@ assert.doesNotMatch(catSrc, /healthcare-allowance|housing-allowance|child-budget
 
 const insightSrc = read('components/verdiencheck/VerdienCheckQuickInsight.tsx');
 assert.match(insightSrc, /quickInsightTitle/);
-assert.match(insightSrc, /variant="example"/);
+assert.match(insightSrc, /data-verdiencheck-omzet-kosten-result="example"/);
 assert.doesNotMatch(insightSrc, /netExtra|netKeep|€X|echt extra over/i);
 assert.match(insightSrc, /startForMySituation/);
 

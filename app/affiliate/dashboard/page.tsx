@@ -1,53 +1,32 @@
-import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
-import AffiliateDashboardClient from './page-client';
-import MyAffiliateProgram from '@/components/affiliate/MyAffiliateProgram';
-import AffiliateEmailNotice from '@/components/affiliate/AffiliateEmailNotice';
+import { AffiliateDashboardScreen } from './screen';
+import {
+  affiliateSectionHref,
+  resolveAffiliateSection,
+} from '@/lib/affiliate/affiliate-sections';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AffiliateDashboardPage() {
-  const session = await auth();
-  
-  if (!session?.user) {
-    redirect('/login?callbackUrl=/affiliate/dashboard');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email! },
-    select: {
-      id: true,
-      email: true,
-      emailVerified: true,
-      affiliate: {
-        select: {
-          id: true,
-        },
-      },
-    },
-  });
-
-  if (!user) {
-    redirect('/login?callbackUrl=/affiliate/dashboard');
-  }
-
-  // An existing affiliate is already authenticated. Do not turn the dashboard
-  // into an email-code gate. Confirmation stays optional for payouts.
-  if (!user.affiliate) {
-    redirect('/affiliate');
-  }
-
-  return (
-    <>
-      <div className="mx-auto max-w-5xl px-4 pt-6">
-        {!user.emailVerified && user.email ? (
-          <AffiliateEmailNotice email={user.email} nextPath="/affiliate/dashboard" />
-        ) : null}
-        <MyAffiliateProgram affiliateId={user.affiliate.id} />
-      </div>
-      <AffiliateDashboardClient />
-    </>
-  );
+function one(value: string | string[] | undefined): string | null {
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value ?? null;
 }
 
+export default async function AffiliateDashboardPage({
+  searchParams,
+}: {
+  searchParams?: Record<string, string | string[] | undefined>;
+}) {
+  const tab = one(searchParams?.tab);
+  if ((tab === 'network' || tab === 'sub-affiliates') && one(searchParams?.manage) !== '1') {
+    const invite = one(searchParams?.invite) === '1' ? '?invite=1' : '';
+    redirect(`/affiliate/partners${invite}`);
+  }
+
+  const raw = one(searchParams?.section) ?? tab;
+  if (raw) {
+    redirect(affiliateSectionHref(resolveAffiliateSection(raw)));
+  }
+
+  return <AffiliateDashboardScreen section="overzicht" />;
+}

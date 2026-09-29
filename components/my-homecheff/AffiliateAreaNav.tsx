@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
-import { affiliateSectionHref, resolveAffiliateSection } from '@/lib/affiliate/affiliate-sections';
+import { affiliateSectionFromPathname, affiliateSectionHref } from '@/lib/affiliate/affiliate-sections';
 import { cn } from '@/lib/utils';
 
 type Item = {
@@ -23,15 +23,14 @@ const linkClass = (active: boolean) =>
 
 export default function AffiliateAreaNav({ className }: { className?: string }) {
   const pathname = usePathname() ?? '';
-  const searchParams = useSearchParams();
   const { tOr } = useTranslation();
   const onAffiliateRoute = pathname.startsWith('/affiliate') || pathname.startsWith('/aviliate');
-  const section = resolveAffiliateSection(searchParams?.get('section') ?? searchParams?.get('tab'));
-  const onDashboard = pathname.startsWith('/affiliate/dashboard');
+  const section = affiliateSectionFromPathname(pathname);
   const secondaryActive =
     pathname.startsWith('/affiliate/partners') ||
     pathname.startsWith('/affiliate/promotiemateriaal') ||
-    (onDashboard && !['overzicht', 'verdienen', 'verdiensten'].includes(section));
+    pathname.startsWith('/affiliate/promo-codes') ||
+    (section != null && !['overzicht', 'verdienen', 'verdiensten'].includes(section));
   const [moreOpen, setMoreOpen] = useState(secondaryActive);
 
   if (!onAffiliateRoute) return null;
@@ -42,21 +41,21 @@ export default function AffiliateAreaNav({ className }: { className?: string }) 
       href: affiliateSectionHref('overzicht'),
       labelEn: 'Overview',
       labelNl: 'Overzicht',
-      active: onDashboard && section === 'overzicht',
+      active: section === 'overzicht',
     },
     {
       id: 'verdienen',
       href: affiliateSectionHref('verdienen'),
       labelEn: 'Earn',
       labelNl: 'Verdienen',
-      active: onDashboard && section === 'verdienen',
+      active: section === 'verdienen',
     },
     {
       id: 'verdiensten',
       href: affiliateSectionHref('verdiensten'),
       labelEn: 'Earnings',
       labelNl: 'Verdiensten',
-      active: onDashboard && section === 'verdiensten',
+      active: section === 'verdiensten',
     },
   ];
 
@@ -71,21 +70,21 @@ export default function AffiliateAreaNav({ className }: { className?: string }) 
           href: affiliateSectionHref('marketplace'),
           labelEn: 'Marketplace',
           labelNl: 'Marketplace',
-          active: onDashboard && section === 'marketplace',
+          active: section === 'marketplace',
         },
         {
           id: 'growth',
           href: affiliateSectionHref('growth'),
           labelEn: 'Growth',
           labelNl: 'Growth',
-          active: onDashboard && section === 'growth',
+          active: section === 'growth',
         },
         {
           id: 'studio',
           href: affiliateSectionHref('studio'),
           labelEn: 'Studio',
           labelNl: 'Studio',
-          active: onDashboard && section === 'studio',
+          active: section === 'studio',
         },
       ],
     },
@@ -99,7 +98,7 @@ export default function AffiliateAreaNav({ className }: { className?: string }) 
           href: affiliateSectionHref('aanmeldingen'),
           labelEn: 'Sign-ups',
           labelNl: 'Aanmeldingen',
-          active: onDashboard && section === 'aanmeldingen',
+          active: section === 'aanmeldingen',
         },
         {
           id: 'partners',
@@ -140,6 +139,7 @@ export default function AffiliateAreaNav({ className }: { className?: string }) 
             prefetch={false}
             data-affiliate-nav={item.id}
             aria-current={item.active ? 'page' : undefined}
+            onClick={() => setMoreOpen(false)}
             className={linkClass(item.active)}
           >
             {tOr(`affiliate.nav.${item.id}`, item.labelEn, item.labelNl)}
@@ -168,6 +168,7 @@ export default function AffiliateAreaNav({ className }: { className?: string }) 
                   prefetch={false}
                   data-affiliate-nav={item.id}
                   aria-current={item.active ? 'page' : undefined}
+                  onClick={() => setMoreOpen(false)}
                   className={linkClass(item.active)}
                 >
                   {tOr(`affiliate.nav.${item.id}`, item.labelEn, item.labelNl)}
