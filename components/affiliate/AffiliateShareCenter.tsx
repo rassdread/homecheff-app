@@ -9,6 +9,7 @@ import {
   Store,
   TrendingUp,
   Users,
+  Briefcase,
   type LucideIcon,
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -100,24 +101,57 @@ const SHARE_CARDS: ShareCardDef[] = [
     descriptionKey: 'affiliateDashboard.share.verdiencheck.description',
     shareCopyKey: 'verdiencheck',
   },
+  {
+    id: 'jobs',
+    icon: Briefcase,
+    accent: 'bg-slate-100 text-slate-700',
+    titleKey: 'affiliateDashboard.share.jobs.title',
+    descriptionKey: 'affiliateDashboard.share.jobs.description',
+    shareCopyKey: 'jobs',
+  },
 ];
+
+/** Share destinations with no rate in the commission catalogue. */
+const SHARE_ONLY = new Set<OpportunityId>([
+  'hub',
+  'jobs',
+  'verdiencheck',
+  'affiliate',
+  'affiliate_company',
+]);
 
 /**
  * Commercial "Deel & verdien" share center for the Affiliate dashboard.
  * URLs stay internal to EcosystemShareAction — never shown as primary labels.
  */
-export default function AffiliateShareCenter({ ids }: { ids?: OpportunityId[] } = {}) {
+export default function AffiliateShareCenter({
+  ids,
+  headingKey,
+  headingEn,
+  headingNl,
+  introKey,
+  introEn,
+  introNl,
+}: {
+  ids?: OpportunityId[];
+  headingKey?: string;
+  headingEn?: string;
+  headingNl?: string;
+  introKey?: string;
+  introEn?: string;
+  introNl?: string;
+} = {}) {
   const { t, tOr, isReady } = useTranslation();
 
   const heading = tOr(
-    'affiliateDashboard.share.title',
-    'Share & earn',
-    'Deel & verdien',
+    headingKey || 'affiliateDashboard.share.title',
+    headingEn || 'Share & earn',
+    headingNl || 'Deel & verdien',
   );
   const subtitle = tOr(
-    'affiliateDashboard.share.subtitle',
-    'Choose what to promote. HomeCheff creates the right affiliate link for you.',
-    'Kies wat je wilt promoten. HomeCheff maakt automatisch de juiste affiliate-link voor je.',
+    introKey || 'affiliateDashboard.share.subtitle',
+    introEn || 'Choose what to promote. HomeCheff creates the right affiliate link for you.',
+    introNl || 'Kies wat je wilt promoten. HomeCheff maakt automatisch de juiste affiliate-link voor je.',
   );
 
   return (
@@ -166,6 +200,15 @@ export default function AffiliateShareCenter({ ids }: { ids?: OpportunityId[] } 
                   <p className="mt-1 text-xs leading-relaxed text-slate-600 break-words">
                     {description}
                   </p>
+                  {SHARE_ONLY.has(card.id) ? (
+                    <p className="mt-1 text-xs font-medium text-slate-500">
+                      {tOr(
+                        'affiliate.shareOnly',
+                        'Share. This step has no commission rate of its own.',
+                        'Delen. Op deze stap zelf staat geen commissietarief.',
+                      )}
+                    </p>
+                  ) : null}
                 </div>
               </div>
               <div className="mt-auto">
@@ -209,6 +252,8 @@ function fallbackTitle(id: OpportunityId): string {
       return 'HomeCheff Growth';
     case 'verdiencheck':
       return 'VerdienCheck';
+    case 'jobs':
+      return 'Vacatures';
     default:
       return 'HomeCheff';
   }
@@ -234,6 +279,8 @@ function fallbackDescription(id: OpportunityId): string {
       return 'Promoot Growth bij bedrijven die zakelijke leads zoeken.';
     case 'verdiencheck':
       return 'Laat mensen zelf ontdekken wat extra verdienen na kosten, belasting en toeslagen ongeveer oplevert.';
+    case 'jobs':
+      return 'Deel de HomeCheff-vacatures. Een sollicitatie levert geen affiliatecommissie op.';
     default:
       return 'Deel deze HomeCheff-mogelijkheid.';
   }

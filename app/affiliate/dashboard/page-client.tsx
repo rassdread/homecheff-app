@@ -536,11 +536,83 @@ export default function AffiliateDashboardClient() {
 
         {section === 'marketplace' ? (
           <div className="mt-6 space-y-6">
-            <AffiliateShareCenter ids={['seller', 'delivery_individual', 'delivery_company', 'verdiencheck']} />
-            <Link href="/affiliate/promo-codes?product=HOMECHEFF" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
-              {tOr('affiliate.nav.marketplacePromo', 'Marketplace promo codes', 'Marketplace-actiecodes')}
-            </Link>
+            <AffiliateShareCenter
+              ids={['seller']}
+              headingKey="affiliate.marketplace.promote"
+              headingEn="Promote"
+              headingNl="Promoten"
+              introKey="affiliate.marketplace.promoteIntro"
+              introEn="Seller and maker signup. Order and subscription rates are in Earn."
+              introNl="Aanmelden van verkopers en makers. Order- en abonnementstarieven staan bij Verdienen."
+            />
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+              <h2 className="text-lg font-semibold text-slate-900">
+                {tOr('affiliate.marketplace.business', 'Business', 'Zakelijk')}
+              </h2>
+              <p className="mt-1 text-sm text-slate-600">
+                {tOr(
+                  'affiliate.marketplace.businessIntro',
+                  'Marketplace Basic, Pro and Premium are commissionable business subscriptions. The signup path is the seller link above. Rates stay in Earn.',
+                  'Marketplace Basic, Pro en Premium zijn commissiegevende bedrijfsabonnementen. De aanmeldroute is de verkoperslink hierboven. De tarieven staan bij Verdienen.',
+                )}
+              </p>
+              <Link href="/affiliate/dashboard?section=verdienen" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline">
+                {tOr('affiliate.marketplace.seeRates', 'View rates', 'Bekijk tarieven')}
+              </Link>
+            </section>
+            <AffiliateShareCenter
+              ids={['delivery_individual', 'delivery_company']}
+              headingKey="affiliate.marketplace.delivery"
+              headingEn="Delivery"
+              headingNl="Bezorging"
+              introKey="affiliate.marketplace.deliveryIntro"
+              introEn="Courier and delivery-company signup. Commission is on the qualifying delivery fee, shown in Earn."
+              introNl="Aanmelden van bezorgers en bezorgbedrijven. Commissie zit op de kwalificerende bezorgfee en staat bij Verdienen."
+            />
             <AangebrachteBezorgers />
+            <AffiliateShareCenter
+              ids={['affiliate', 'affiliate_company']}
+              headingKey="affiliate.marketplace.network"
+              headingEn="Network"
+              headingNl="Netwerk"
+              introKey="affiliate.marketplace.networkIntro"
+              introEn="Invite affiliates and business partners. There is no signup bounty. Partner commission follows the rates in Earn."
+              introNl="Nodig affiliates en zakelijke partners uit. Er is geen aanmeldbonus. Partnercommissie volgt de tarieven bij Verdienen."
+            />
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <Link href="/affiliate/partners" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white">
+                {tOr('affiliate.nav.partners', 'Partners', 'Partners')}
+              </Link>
+            </div>
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+              <h2 className="text-lg font-semibold text-slate-900">
+                {tOr('affiliate.marketplace.tools', 'Tools', 'Tools')}
+              </h2>
+              <p className="mt-1 text-sm text-slate-600">
+                {tOr(
+                  'affiliate.marketplace.toolsIntro',
+                  'Marketplace promo codes apply to Marketplace subscriptions. Your referral link and QR are on this page. Promotional material is the shared library.',
+                  'Marketplace-actiecodes gelden voor Marketplace-abonnementen. Je verwijslink en QR staan op deze pagina. Promotiemateriaal is de gedeelde bibliotheek.',
+                )}
+              </p>
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                <Link href="/affiliate/promo-codes?product=HOMECHEFF" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+                  {tOr('affiliate.nav.marketplacePromo', 'Marketplace promo codes', 'Marketplace-actiecodes')}
+                </Link>
+                <Link href="/affiliate/promotiemateriaal" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+                  {tOr('affiliate.nav.promotiemateriaal', 'Promotional material', 'Promotiemateriaal')}
+                </Link>
+              </div>
+            </section>
+            <AffiliateShareCenter
+              ids={['verdiencheck', 'hub', 'jobs']}
+              headingKey="affiliate.marketplace.other"
+              headingEn="Also share"
+              headingNl="Ook delen"
+              introKey="affiliate.marketplace.otherIntro"
+              introEn="VerdienCheck, Careers and jobs can be shared. They are not a commission rate."
+              introNl="VerdienCheck, Werken bij en vacatures kun je delen. Dat is geen commissietarief."
+            />
           </div>
         ) : null}
 
