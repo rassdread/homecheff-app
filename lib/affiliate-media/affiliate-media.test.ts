@@ -14,6 +14,7 @@ import { sanitizeDestinationPath } from './destination';
 import { inspectImage, stripJpegExif } from './image-inspect';
 import { inspectMp4 } from './mp4-inspect';
 import { attributedPromoUrl, canonicalPromoUrl, isValidShareSlug } from './share-url';
+import { inferPromoPlatform, promoContinueHref, promoLibraryPath, promoShareAbsolute } from './platform';
 import { validateCommunityConsent } from './validate-meta';
 import { validatePromoImage, validatePromoVideo } from './validate-file';
 import { checkAffiliateMediaUploadRateLimit, _resetAffiliateMediaRateLimitForTests } from './rate-limit';
@@ -330,6 +331,42 @@ describe('storage + security contracts', () => {
       isTrustedAffiliateMediaBlobUrl('https://example.public.blob.vercel-storage.com/affiliate-media/x/image.jpg'),
       true,
     );
+  });
+
+  it('one library classifies platform without baking a creator referral', () => {
+    assert.equal(inferPromoPlatform({ destinationPath: '/onboarding/seller' }), 'MARKETPLACE');
+    assert.equal(inferPromoPlatform({ destinationPath: '/delivery/signup' }), 'DELIVERY');
+    assert.equal(inferPromoPlatform({ destinationPath: '/verdiencheck' }), 'ECOSYSTEM');
+    assert.equal(inferPromoPlatform({ destinationPath: '/' }), 'ECOSYSTEM');
+    assert.equal(inferPromoPlatform({ campaignTag: 'GROWTH', destinationPath: '/' }), 'GROWTH');
+    const growth = promoShareAbsolute({ platform: 'GROWTH', shareSlug: 'abcdefgh' });
+    assert.equal(growth.includes('ref='), false);
+    assert.equal(growth, 'https://growth.homecheff.eu/');
+    const shared = attributedPromoUrl({ shareSlug: 'abcdefgh', sharingReferralCode: 'VIEWER' });
+    assert.match(shared, /ref=VIEWER/);
+    assert.equal(shared.includes('CREATOR'), false);
+    const studio = promoContinueHref({ campaignTag: 'STUDIO', sharingReferralCode: 'VIEWER' });
+    assert.match(studio, /studio\.homecheff\.eu\/signup/);
+    assert.match(studio, /ref=VIEWER/);
+    assert.equal(promoLibraryPath({ platform: 'DELIVERY' }), '/affiliate/promotiemateriaal?platform=delivery');
+    assert.equal(promoLibraryPath({}), '/affiliate/promotiemateriaal');
+    const client = read('components/affiliate/AffiliatePromoLibraryClient.tsx');
+    assert.match(client, /Materiaal toevoegen/);
+    assert.match(client, /Deel met mijn link/);
+    assert.match(client, /Afbeelding gebruiken/);
+    assert.doesNotMatch(client, /overflow-x-auto/);
+    const api = read('app/api/affiliate/media/route.ts');
+    assert.match(api, /tab === 'all'/);
+    assert.match(api, /creatorUserId: actor\.userId/);
+    assert.doesNotMatch(api, /CommissionLedger/);
+    const page = read('app/affiliate/promotiemateriaal/page.tsx');
+    assert.match(page, /affiliateMayUsePromoLibrary/);
+    const dash = read('app/affiliate/dashboard/page-client.tsx');
+    assert.match(dash, /data-affiliate-library="marketplace"/);
+    assert.match(dash, /data-affiliate-library="growth"/);
+    assert.match(dash, /data-affiliate-library="studio"/);
+    assert.match(dash, /data-affiliate-library="delivery"/);
+    assert.match(dash, /GROWTH_DEMOS_HREF/);
   });
 
   it('client blob token route is authenticated and namespace-scoped', () => {

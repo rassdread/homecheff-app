@@ -1,15 +1,30 @@
+import { Suspense } from 'react';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import OperationsShell from '@/components/operations/OperationsShell';
 import AffiliatePromoLibraryClient from '@/components/affiliate/AffiliatePromoLibraryClient';
 import { getPlatformAdmin } from '@/lib/admin-guard';
+import { affiliateMayUsePromoLibrary } from '@/lib/affiliate/promo-access';
+import { promoLibraryPath, parsePromoPlatform } from '@/lib/affiliate-media/platform';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AffiliatePromoLibraryPage() {
+export default async function AffiliatePromoLibraryPage({
+  searchParams,
+}: {
+  searchParams?: { platform?: string; source?: string };
+}) {
+  const platform = parsePromoPlatform(searchParams?.platform);
+  const source =
+    searchParams?.source === 'official' ||
+    searchParams?.source === 'community' ||
+    searchParams?.source === 'mine'
+      ? searchParams.source
+      : 'all';
+  const nextPath = promoLibraryPath({ platform, source });
   const session = await auth();
-  if (!session?.user?.email) redirect('/login?callbackUrl=/affiliate/promotiemateriaal');
+  if (!session?.user?.email) redirect(`/login?callbackUrl=${encodeURIComponent(nextPath)}`);
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
@@ -19,7 +34,7 @@ export default async function AffiliatePromoLibraryPage() {
     },
   });
   if (!user) {
-    redirect('/login?callbackUrl=/affiliate/promotiemateriaal');
+    redirect(`/login?callbackUrl=${encodeURIComponent(nextPath)}`);
   }
   const admin = await getPlatformAdmin();
   const isAffiliate = user?.affiliate?.status === 'ACTIVE';
@@ -29,7 +44,13 @@ export default async function AffiliatePromoLibraryPage() {
   if (isAffiliate && user.affiliate) {
     const { resolveStoredAffiliateCapabilities } = await import('@/lib/affiliate/program-store');
     const rights = await resolveStoredAffiliateCapabilities(user.affiliate.id);
-    if (!rights.capabilities.CAN_USE_PROMO_LIBRARY.value && !admin.ok) {
+    if (
+      !affiliateMayUsePromoLibrary({
+        operationsBlocked: rights.operationsBlocked,
+        capability: rights.capabilities.CAN_USE_PROMO_LIBRARY,
+      }) &&
+      !admin.ok
+    ) {
       redirect('/affiliate/dashboard');
     }
   }
@@ -37,14 +58,9 @@ export default async function AffiliatePromoLibraryPage() {
   return (
     <OperationsShell>
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
-        <h1 className="text-2xl font-bold text-slate-900">Promotiemateriaal</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Deel officiële HomeCheff-beelden of je eigen foto’s en korte video’s. Dit materiaal komt niet
-          in de Marketplace-feed.
-        </p>
-        <div className="mt-6">
+        <Suspense fallback={null}>
           <AffiliatePromoLibraryClient />
-        </div>
+        </Suspense>
       </div>
     </OperationsShell>
   );

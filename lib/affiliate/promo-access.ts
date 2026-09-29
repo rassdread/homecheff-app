@@ -14,3 +14,6 @@ export function affiliateMayUsePromoCodes(input: {
   if (input.capability.value) return true;
   return input.capability.source === 'GLOBAL';
 }
+
+/** Same rule as promo codes: a withheld GLOBAL capability is not an explicit denial. */
+export const affiliateMayUsePromoLibrary = affiliateMayUsePromoCodes;

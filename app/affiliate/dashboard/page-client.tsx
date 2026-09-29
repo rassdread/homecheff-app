@@ -33,6 +33,7 @@ import {
   affiliatePromoCodesPath,
   type AffiliatePlace,
 } from '@/lib/affiliate/affiliate-sections';
+import { promoLibraryPath } from '@/lib/affiliate-media/platform';
 import { 
   SUB_AFFILIATE_USER_COMMISSION_PCT, 
   SUB_AFFILIATE_BUSINESS_COMMISSION_PCT,
@@ -634,7 +635,7 @@ export default function AffiliateDashboardClient({
               <Link href={affiliatePromoCodesPath('HOMECHEFF')} data-affiliate-promo="HOMECHEFF" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white">
                 {tOr('affiliate.promo.openMarketplace', 'Open promo codes', 'Open promocodes')}
               </Link>
-              <Link href="/affiliate/promotiemateriaal" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+              <Link href={promoLibraryPath({ platform: 'MARKETPLACE' })} data-affiliate-library="marketplace" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
                 {tOr('affiliate.nav.promotiemateriaal', 'Promotional material', 'Promotiemateriaal')}
               </Link>
             </div>
@@ -727,6 +728,9 @@ export default function AffiliateDashboardClient({
               introNl="Nodig een bezorger of een bezorgbedrijf uit."
             />
             <AffiliateAreaRates match={(row) => row.id === 'delivery-fee'} />
+            <Link href={promoLibraryPath({ platform: 'DELIVERY' })} data-affiliate-library="delivery" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+              {tOr('affiliate.nav.promotiemateriaal', 'Promotional material', 'Promotiemateriaal')}
+            </Link>
             <p className="text-sm text-slate-600">
               <Link href={affiliatePlaceHref('verdiensten')} className="font-semibold text-emerald-800 underline-offset-2 hover:underline">
                 {tOr('affiliate.delivery.earningsLink', 'Delivery earnings are under Earnings.', 'Verdiensten uit bezorging staan bij Verdiensten.')}
@@ -758,6 +762,9 @@ export default function AffiliateDashboardClient({
               <a href={GROWTH_DEMOS_HREF} data-affiliate-growth-demo className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
                 {tOr('affiliate.nav.growthDemo', 'Open Growth demo', 'Open Growth-demo')}
               </a>
+              <Link href={promoLibraryPath({ platform: 'GROWTH' })} data-affiliate-library="growth" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+                {tOr('affiliate.nav.promotiemateriaal', 'Promotional material', 'Promotiemateriaal')}
+              </Link>
             </div>
             <AffiliateAreaRates match={(row) => row.id.startsWith('growth-')} />
             <div id="growth-delen">
@@ -778,7 +785,16 @@ export default function AffiliateDashboardClient({
               {tOr('affiliate.back.promote', 'Back to Promote', 'Terug naar Promoten')}
             </Link>
             <h2 className="text-lg font-semibold text-slate-900">HomeCheff Studio</h2>
+            <div className="flex flex-col gap-2">
+              <a href="#studio-delen" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+                {tOr('affiliate.studio.share', 'Share Studio', 'Studio delen')}
+              </a>
+              <Link href={promoLibraryPath({ platform: 'STUDIO' })} data-affiliate-library="studio" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+                {tOr('affiliate.nav.promotiemateriaal', 'Promotional material', 'Promotiemateriaal')}
+              </Link>
+            </div>
             <AffiliateAreaRates match={(row) => row.id.startsWith('studio-')} />
+            <div id="studio-delen">
             <AffiliateShareCenter
               ids={['studio']}
               headingEn="Share Studio"
@@ -786,6 +802,7 @@ export default function AffiliateDashboardClient({
               introEn="Send people to Studio."
               introNl="Stuur mensen naar Studio."
             />
+            </div>
           </div>
         ) : null}
 

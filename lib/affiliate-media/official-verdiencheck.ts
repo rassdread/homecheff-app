@@ -15,6 +15,7 @@ export type OfficialVerdienCheckPromoAsset = {
   moderationStatus: 'ACTIVE';
   shareSlug: string;
   destinationPath: '/verdiencheck';
+  platform: 'ECOSYSTEM';
   createdAt: string;
   durationMs: null;
   shareCount: number;
@@ -39,6 +40,7 @@ export function officialVerdienCheckPromoAsset(
     moderationStatus: 'ACTIVE',
     shareSlug: 'vcheck01',
     destinationPath: '/verdiencheck',
+    platform: 'ECOSYSTEM',
     createdAt: '2026-01-01T00:00:00.000Z',
     durationMs: null,
     shareCount: 0,

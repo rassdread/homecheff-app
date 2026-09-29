@@ -1,4 +1,5 @@
 import { getDisplayName } from '@/lib/displayName';
+import { inferPromoPlatform } from '@/lib/affiliate-media/platform';
 import type { AffiliateMediaAsset } from '@prisma/client';
 
 type Creator = {
@@ -30,6 +31,7 @@ export function serializePromoAsset(
     | 'moderationStatus'
     | 'shareSlug'
     | 'destinationPath'
+    | 'campaignTag'
     | 'createdAt'
     | 'creatorUserId'
     | 'durationMs'
@@ -49,6 +51,7 @@ export function serializePromoAsset(
     moderationStatus: asset.moderationStatus,
     shareSlug: asset.shareSlug,
     destinationPath: asset.destinationPath,
+    platform: inferPromoPlatform(asset),
     createdAt: asset.createdAt,
     durationMs: asset.durationMs,
     shareCount: asset.shareCount ?? 0,

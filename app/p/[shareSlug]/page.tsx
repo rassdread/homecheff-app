@@ -7,6 +7,7 @@ import { REFERRAL_COOKIE_NAME } from '@/lib/affiliate-attribution-contract';
 import { isPublicLandingEligible, isSafeForOpenGraphMedia } from '@/lib/affiliate-media/access';
 import { sanitizeDestinationPath } from '@/lib/affiliate-media/destination';
 import { creatorCreditLabel } from '@/lib/affiliate-media/serialize';
+import { promoContinueHref } from '@/lib/affiliate-media/platform';
 import { canonicalPromoUrl, isValidShareSlug } from '@/lib/affiliate-media/share-url';
 import { MAIN_DOMAIN } from '@/lib/seo/constants';
 
@@ -106,7 +107,13 @@ export default async function PromoLandingPage({ params }: Props) {
   }
 
   const credit = creatorCreditLabel({ visibility: asset.visibility, creator: asset.creator });
-  const href = sanitizeDestinationPath(asset.destinationPath) || '/';
+  const internal = sanitizeDestinationPath(asset.destinationPath) || '/';
+  const href = promoContinueHref({
+    campaignTag: asset.campaignTag,
+    destinationPath: internal,
+    sharingReferralCode: refCode,
+  });
+  const external = href.startsWith('http');
   const poster = asset.kind === 'VIDEO' ? asset.posterUrl : asset.mediaUrl;
 
   return (
@@ -136,12 +143,21 @@ export default async function PromoLandingPage({ params }: Props) {
           <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{asset.caption}</p>
         ) : null}
 
-        <Link
-          href={href}
-          className="mt-6 inline-flex min-h-[48px] w-full items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
-        >
-          {asset.ctaText?.trim() || 'Ontdek HomeCheff'}
-        </Link>
+        {external ? (
+          <a
+            href={href}
+            className="mt-6 inline-flex min-h-[48px] w-full items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
+          >
+            {asset.ctaText?.trim() || 'Ontdek HomeCheff'}
+          </a>
+        ) : (
+          <Link
+            href={href}
+            className="mt-6 inline-flex min-h-[48px] w-full items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
+          >
+            {asset.ctaText?.trim() || 'Ontdek HomeCheff'}
+          </Link>
+        )}
       </article>
     </main>
   );

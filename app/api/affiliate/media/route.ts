@@ -16,8 +16,10 @@ import {
 import { sanitizeDestinationPath } from '@/lib/affiliate-media/destination';
 import { checkAffiliateMediaUploadRateLimit } from '@/lib/affiliate-media/rate-limit';
 import { serializePromoAsset } from '@/lib/affiliate-media/serialize';
-import { mergeOfficialVerdienCheckPromo } from '@/lib/affiliate-media/official-verdiencheck';
+import { destinationForPlatform, inferPromoPlatform, parsePromoPlatform, type PromoPlatform } from '@/lib/affiliate-media/platform';
 import { newAffiliateMediaShareSlug } from '@/lib/affiliate-media/share-url';
+import { mergeOfficialVerdienCheckPromo } from '@/lib/affiliate-media/official-verdiencheck';
+import type { Prisma } from '@prisma/client';
 import { affiliateMediaObjectKey, deleteAffiliateMediaBlob, putAffiliateMediaBlob } from '@/lib/affiliate-media/storage';
 import { fetchTrustedAffiliateMediaBlob, isTrustedAffiliateMediaBlobUrl } from '@/lib/affiliate-media/trusted-blob';
 import { validatePromoImage, validatePromoPoster, validatePromoVideo } from '@/lib/affiliate-media/validate-file';
@@ -39,38 +41,128 @@ const CREATOR_SELECT = {
   displayNameOption: true,
 } as const;
 
+const LIST_INCLUDE = {
+  creator: { select: CREATOR_SELECT },
+  _count: { select: { shareEvents: true } },
+} as const;
+
+function platformWhere(platform: PromoPlatform | null): Prisma.AffiliateMediaAssetWhereInput {
+  if (!platform) return {};
+  if (platform === 'MARKETPLACE') {
+    return {
+      OR: [
+        { campaignTag: 'MARKETPLACE' },
+        { campaignTag: null, destinationPath: '/onboarding/seller' },
+      ],
+    };
+  }
+  if (platform === 'DELIVERY') {
+    return {
+      OR: [
+        { campaignTag: 'DELIVERY' },
+        { campaignTag: null, destinationPath: { in: ['/delivery/signup', '/delivery/company/signup'] } },
+      ],
+    };
+  }
+  if (platform === 'ECOSYSTEM') {
+    return {
+      OR: [
+        { campaignTag: 'ECOSYSTEM' },
+        {
+          campaignTag: null,
+          destinationPath: { notIn: ['/onboarding/seller', '/delivery/signup', '/delivery/company/signup'] },
+        },
+      ],
+    };
+  }
+  return { campaignTag: platform };
+}
+
+function actorPayload(actor: { isAdmin: boolean; isAffiliate: boolean; referralCode: string | null }) {
+  return { isAdmin: actor.isAdmin, isAffiliate: actor.isAffiliate, referralCode: actor.referralCode };
+}
+
 export async function GET(req: Request) {
   const actor = await getPromoActor();
   if (!actor || !canAccessPromoLibrary(actor)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const tab = new URL(req.url).searchParams.get('tab') || 'official';
+  const url = new URL(req.url);
+  const tab = url.searchParams.get('tab') || 'all';
+  const platform = parsePromoPlatform(url.searchParams.get('platform'));
+  const scoped = platformWhere(platform);
+
+  if (tab === 'review') {
+    if (!actor.isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    const rows = await prisma.affiliateMediaAsset.findMany({
+      where: { AND: [{ deletedAt: null, visibility: 'AFFILIATE_COMMUNITY', moderationStatus: 'UNDER_REVIEW' }, scoped] },
+      orderBy: { createdAt: 'asc' },
+      take: 80,
+      include: LIST_INCLUDE,
+    });
+    return NextResponse.json({
+      actor: actorPayload(actor),
+      assets: rows.map((r) =>
+        serializePromoAsset({ ...r, shareCount: r._count.shareEvents }, r.creator, actor.userId),
+      ),
+    });
+  }
+
+  if (tab === 'all') {
+    const rows = await prisma.affiliateMediaAsset.findMany({
+      where: {
+        AND: [
+          {
+            OR: [
+              { visibility: 'OFFICIAL', moderationStatus: 'ACTIVE', deletedAt: null },
+              { visibility: 'AFFILIATE_COMMUNITY', moderationStatus: 'ACTIVE', deletedAt: null },
+              { creatorUserId: actor.userId, deletedAt: null },
+            ],
+          },
+          scoped,
+        ],
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 120,
+      include: LIST_INCLUDE,
+    });
+    const listed = rows
+      .filter(
+        (row) =>
+          isListedOfficial(row) || isListedCommunity(row) || isOwnerLibraryItem(row, actor.userId),
+      )
+      .map((r) => serializePromoAsset({ ...r, shareCount: r._count.shareEvents }, r.creator, actor.userId));
+    return NextResponse.json({
+      actor: actorPayload(actor),
+      assets: platform && platform !== 'ECOSYSTEM' ? listed : mergeOfficialVerdienCheckPromo(listed),
+    });
+  }
 
   if (tab === 'official') {
     const rows = await prisma.affiliateMediaAsset.findMany({
-      where: { deletedAt: null, visibility: 'OFFICIAL', moderationStatus: 'ACTIVE' },
+      where: { AND: [{ deletedAt: null, visibility: 'OFFICIAL', moderationStatus: 'ACTIVE' }, scoped] },
       orderBy: { createdAt: 'desc' },
       take: 80,
-      include: { creator: { select: CREATOR_SELECT }, _count: { select: { shareEvents: true } } },
+      include: LIST_INCLUDE,
     });
     const listed = rows.filter(isListedOfficial).map((r) =>
       serializePromoAsset({ ...r, shareCount: r._count.shareEvents }, r.creator, actor.userId),
     );
     return NextResponse.json({
-      actor: { isAdmin: actor.isAdmin, isAffiliate: actor.isAffiliate, referralCode: actor.referralCode },
-      assets: mergeOfficialVerdienCheckPromo(listed),
+      actor: actorPayload(actor),
+      assets: platform && platform !== 'ECOSYSTEM' ? listed : mergeOfficialVerdienCheckPromo(listed),
     });
   }
 
   if (tab === 'community') {
     const rows = await prisma.affiliateMediaAsset.findMany({
-      where: { deletedAt: null, visibility: 'AFFILIATE_COMMUNITY', moderationStatus: 'ACTIVE' },
+      where: { AND: [{ deletedAt: null, visibility: 'AFFILIATE_COMMUNITY', moderationStatus: 'ACTIVE' }, scoped] },
       orderBy: { createdAt: 'desc' },
       take: 80,
-      include: { creator: { select: CREATOR_SELECT }, _count: { select: { shareEvents: true } } },
+      include: LIST_INCLUDE,
     });
     return NextResponse.json({
-      actor: { isAdmin: actor.isAdmin, isAffiliate: actor.isAffiliate, referralCode: actor.referralCode },
+      actor: actorPayload(actor),
       assets: rows.filter(isListedCommunity).map((r) =>
         serializePromoAsset({ ...r, shareCount: r._count.shareEvents }, r.creator, actor.userId),
       ),
@@ -79,33 +171,18 @@ export async function GET(req: Request) {
 
   if (tab === 'mine') {
     const rows = await prisma.affiliateMediaAsset.findMany({
-      where: { deletedAt: null, creatorUserId: actor.userId },
+      where: { AND: [{ deletedAt: null, creatorUserId: actor.userId }, scoped] },
       orderBy: { createdAt: 'desc' },
       take: 80,
-      include: { creator: { select: CREATOR_SELECT }, _count: { select: { shareEvents: true } } },
+      include: LIST_INCLUDE,
     });
     return NextResponse.json({
-      actor: { isAdmin: actor.isAdmin, isAffiliate: actor.isAffiliate, referralCode: actor.referralCode },
+      actor: actorPayload(actor),
       assets: rows
         .filter((r) => isOwnerLibraryItem(r, actor.userId))
         .map((r) =>
           serializePromoAsset({ ...r, shareCount: r._count.shareEvents }, r.creator, actor.userId),
         ),
-    });
-  }
-
-  if (tab === 'review' && actor.isAdmin) {
-    const rows = await prisma.affiliateMediaAsset.findMany({
-      where: { deletedAt: null, visibility: 'AFFILIATE_COMMUNITY', moderationStatus: 'UNDER_REVIEW' },
-      orderBy: { createdAt: 'asc' },
-      take: 80,
-      include: { creator: { select: CREATOR_SELECT }, _count: { select: { shareEvents: true } } },
-    });
-    return NextResponse.json({
-      actor: { isAdmin: actor.isAdmin, isAffiliate: actor.isAffiliate, referralCode: actor.referralCode },
-      assets: rows.map((r) =>
-        serializePromoAsset({ ...r, shareCount: r._count.shareEvents }, r.creator, actor.userId),
-      ),
     });
   }
 
@@ -158,8 +235,15 @@ export async function POST(req: Request) {
   const consent = validateCommunityConsent({ visibility, reuseConsent });
   if (!consent.ok) return NextResponse.json({ error: consent.error }, { status: 400 });
 
-  const destinationPath = sanitizeDestinationPath(String(form.get('destinationPath') || '/'));
-  if (!destinationPath) return NextResponse.json({ error: 'invalid_destination' }, { status: 400 });
+  const platform =
+    parsePromoPlatform(String(form.get('platform') || '')) ??
+    inferPromoPlatform({ destinationPath: String(form.get('destinationPath') || '/') });
+  const requestedDestination = sanitizeDestinationPath(String(form.get('destinationPath') || ''));
+  const destinationPath =
+    requestedDestination &&
+    inferPromoPlatform({ destinationPath: requestedDestination, campaignTag: platform }) === platform
+      ? requestedDestination
+      : destinationForPlatform(platform);
 
   const copy = normalizeAssetCopy({
     title: String(form.get('title') || ''),
@@ -325,6 +409,7 @@ export async function POST(req: Request) {
       reuseConsentAt: visibility === 'AFFILIATE_COMMUNITY' ? new Date() : null,
       shareSlug,
       destinationPath,
+      campaignTag: platform,
     },
     include: { creator: { select: CREATOR_SELECT } },
   });

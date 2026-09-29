@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { canAccessPromoLibrary, getPromoActor } from '@/lib/affiliate-media/actor';
 import { sanitizeDestinationPath } from '@/lib/affiliate-media/destination';
+import { destinationForPlatform, parsePromoPlatform } from '@/lib/affiliate-media/platform';
 import { serializePromoAsset } from '@/lib/affiliate-media/serialize';
-import { deleteAffiliateMediaBlob } from '@/lib/affiliate-media/storage';
 import { normalizeAssetCopy, parseAffiliateVisibility, validateCommunityConsent } from '@/lib/affiliate-media/validate-meta';
 
 export const dynamic = 'force-dynamic';
@@ -37,6 +37,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     reuseConsent?: boolean;
     destinationPath?: string;
     moderationStatus?: string;
+    platform?: string;
   };
 
   if (body.action === 'APPROVE' || body.action === 'REJECT') {
@@ -83,7 +84,15 @@ export async function PATCH(req: Request, ctx: Ctx) {
   }
 
   let destinationPath = asset.destinationPath;
-  if (body.destinationPath) {
+  let campaignTag = asset.campaignTag;
+  const nextPlatform = body.platform ? parsePromoPlatform(body.platform) : null;
+  if (body.platform && !nextPlatform) {
+    return NextResponse.json({ error: 'invalid_platform' }, { status: 400 });
+  }
+  if (nextPlatform) {
+    campaignTag = nextPlatform;
+    destinationPath = destinationForPlatform(nextPlatform);
+  } else if (body.destinationPath) {
     const dest = sanitizeDestinationPath(body.destinationPath);
     if (!dest) return NextResponse.json({ error: 'invalid_destination' }, { status: 400 });
     destinationPath = dest;
@@ -106,6 +115,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       ctaText: copy.ctaText,
       visibility,
       destinationPath,
+      campaignTag,
       moderationStatus,
       reuseConsentAt:
         visibility === 'AFFILIATE_COMMUNITY'
@@ -134,7 +144,5 @@ export async function DELETE(_req: Request, ctx: Ctx) {
     where: { id },
     data: { deletedAt: new Date(), moderationStatus: 'ARCHIVED' },
   });
-  await deleteAffiliateMediaBlob(asset.mediaUrl);
-  await deleteAffiliateMediaBlob(asset.posterUrl);
   return NextResponse.json({ ok: true });
 }
