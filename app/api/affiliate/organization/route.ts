@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  normalizeAffiliateCompanyKvk,
+  suggestOwnedCompanyIdentity,
+} from "@/lib/affiliate/affiliate-company-kvk";
 
 export const dynamic = "force-dynamic";
 const NO_STORE = { "Cache-Control": "private, no-store, max-age=0" } as const;
@@ -68,7 +72,36 @@ export async function GET(req: Request) {
     },
   );
   const json = await res.json().catch(() => ({ ok: false, code: "GROWTH_ERROR" }));
+  if (!organizationId) {
+    const hints = await loadOwnedCompanyHints(user.id);
+    return NextResponse.json({ ...json, ...hints }, { status: res.status, headers: NO_STORE });
+  }
   return NextResponse.json(json, { status: res.status, headers: NO_STORE });
+}
+
+async function loadOwnedCompanyHints(userId: string) {
+  const [affiliate, profile] = await Promise.all([
+    prisma.affiliate.findUnique({
+      where: { userId },
+      select: { status: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        Business: { select: { name: true, kvkNumber: true } },
+        SellerProfile: { select: { companyName: true, kvk: true } },
+      },
+    }),
+  ]);
+  return {
+    personalAffiliateActive: affiliate?.status === "ACTIVE",
+    suggestedCompany: suggestOwnedCompanyIdentity({
+      businessName: profile?.Business?.name,
+      businessKvk: profile?.Business?.kvkNumber,
+      sellerCompanyName: profile?.SellerProfile?.companyName,
+      sellerKvk: profile?.SellerProfile?.kvk,
+    }),
+  };
 }
 
 export async function POST(req: Request) {
@@ -89,7 +122,30 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, code: "GROWTH_SECRET_MISSING" }, { status: 503, headers: NO_STORE });
   }
 
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+  const action = String(body.action || "CREATE_ORG");
+  if (action === "CREATE_ORG" || action === "UPDATE_COMPANY_DETAILS") {
+    const affiliate = await prisma.affiliate.findUnique({
+      where: { userId: user.id },
+      select: { status: true },
+    });
+    if (affiliate?.status !== "ACTIVE") {
+      return NextResponse.json(
+        { ok: false, code: "PERSONAL_AFFILIATE_REQUIRED" },
+        { status: 403, headers: NO_STORE },
+      );
+    }
+    const kvkNumber = normalizeAffiliateCompanyKvk(body.kvkNumber);
+    if (!kvkNumber) {
+      const raw = typeof body.kvkNumber === "string" ? body.kvkNumber.trim() : "";
+      return NextResponse.json(
+        { ok: false, code: raw ? "KVK_INVALID_FORMAT" : "KVK_REQUIRED" },
+        { status: 422, headers: NO_STORE },
+      );
+    }
+    body.kvkNumber = kvkNumber;
+    if (action === "CREATE_ORG") body.isCertificationOnly = false;
+  }
   const res = await fetch(`${growthBase()}/api/internal/ecosystem/affiliate/organization`, {
     method: "POST",
     headers: {

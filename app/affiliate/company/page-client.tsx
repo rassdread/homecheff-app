@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type Membership = {
   role: string;
@@ -14,7 +15,13 @@ type Membership = {
     displayName: string;
     status: string;
     isCertificationOnly?: boolean;
+    kvkNumber?: string | null;
   };
+};
+
+type SuggestedCompany = {
+  companyName: string;
+  kvkNumber: string;
 };
 
 type PayoutInfo = {
@@ -24,13 +31,19 @@ type PayoutInfo = {
 
 export default function AffiliateCompanyPageClient() {
   const { data: session, status } = useSession();
+  const { language } = useTranslation();
+  const en = language === 'en';
   const searchParams = useSearchParams();
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
   const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
   const [analytics, setAnalytics] = useState<Record<string, unknown> | null>(null);
   const [companyName, setCompanyName] = useState('');
+  const [kvkNumber, setKvkNumber] = useState('');
+  const [existingKvk, setExistingKvk] = useState('');
+  const [personalAffiliateActive, setPersonalAffiliateActive] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
+  const prefilledCompany = useRef(false);
   const [message, setMessage] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
   const [lastInviteToken, setLastInviteToken] = useState<string | null>(null);
@@ -39,6 +52,15 @@ export default function AffiliateCompanyPageClient() {
   async function refreshList() {
     const res = await fetch('/api/affiliate/organization');
     const json = await res.json();
+    if (typeof json.personalAffiliateActive === 'boolean') {
+      setPersonalAffiliateActive(json.personalAffiliateActive);
+    }
+    const suggested = json.suggestedCompany as SuggestedCompany | null | undefined;
+    if (!prefilledCompany.current && suggested?.kvkNumber) {
+      prefilledCompany.current = true;
+      setCompanyName(suggested.companyName || '');
+      setKvkNumber(suggested.kvkNumber);
+    }
     if (json.ok && Array.isArray(json.memberships)) {
       setMemberships(json.memberships);
       if (!selectedId && json.memberships[0]?.organization?.id) {
@@ -145,18 +167,62 @@ export default function AffiliateCompanyPageClient() {
         body: JSON.stringify({
           action: 'CREATE_ORG',
           companyName,
+          kvkNumber,
           isCertificationOnly: false,
         }),
       });
       const json = await res.json();
       if (!json.ok) {
-        setMessage(json.code || 'Aanmaken mislukt');
+        setMessage(companyMessage(json.code, en));
         return;
       }
       setCompanyName('');
-      setMessage('Bedrijf aangemaakt');
+      setKvkNumber('');
+      setMessage(
+        json.reused
+          ? en
+            ? 'This KvK number is already on your business affiliate profile.'
+            : 'Dit KvK-nummer staat al op je zakelijke affiliateprofiel.'
+          : kvkNote(json.kvkLookup, en) ||
+              (en ? 'Business affiliate profile saved.' : 'Zakelijk affiliateprofiel opgeslagen.'),
+      );
       await refreshList();
       if (json.organization?.id) setSelectedId(json.organization.id);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveExistingKvk() {
+    if (!selectedId) return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      const res = await fetch('/api/affiliate/organization', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_COMPANY_DETAILS',
+          organizationId: selectedId,
+          kvkNumber: existingKvk,
+        }),
+      });
+      const json = await res.json();
+      if (!json.ok) {
+        setMessage(companyMessage(json.code, en));
+        return;
+      }
+      setMessage(
+        json.reused
+          ? en
+            ? 'This KvK number is already on another profile you own. That profile was kept.'
+            : 'Dit KvK-nummer staat al op een ander profiel van jou. Dat profiel blijft staan.'
+          : kvkNote(json.kvkLookup, en) ||
+              (en ? 'KvK number saved.' : 'KvK-nummer opgeslagen.'),
+      );
+      if (json.reused && json.organization?.id) setSelectedId(json.organization.id);
+      await refreshList();
+      await refreshDetail(json.organization?.id || selectedId);
     } finally {
       setBusy(false);
     }
@@ -296,14 +362,20 @@ export default function AffiliateCompanyPageClient() {
           <Link href="/affiliate" className="underline">
             Affiliate
           </Link>{' '}
-          / Bedrijf
+          / {en ? 'Business' : 'Zakelijk'}
         </p>
         <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight break-words">
-          Affiliatebedrijf
+          {en ? 'Business affiliate profile' : 'Zakelijk affiliateprofiel'}
         </h1>
         <p className="text-neutral-600 max-w-2xl text-sm sm:text-base">
-          Beheer campagnes, marketeers en verdiensten. Referrals horen economisch bij het bedrijf —
-          niet bij de individuele marketeer.
+          {en
+            ? 'This company participates in the HomeCheff affiliate programme.'
+            : 'Dit bedrijf doet mee aan het HomeCheff-affiliateprogramma.'}
+        </p>
+        <p className="text-neutral-600 max-w-2xl text-sm sm:text-base">
+          {en
+            ? "You don't need a HomeCheff subscription to participate as a business affiliate."
+            : 'Je hebt geen HomeCheff-abonnement nodig om zakelijk affiliate te zijn.'}
         </p>
       </header>
 
@@ -317,23 +389,54 @@ export default function AffiliateCompanyPageClient() {
       )}
 
       <section className="space-y-3 border-t border-neutral-200 pt-6">
-        <h2 className="text-lg sm:text-xl font-medium">Nieuw bedrijf</h2>
-        <div className="flex flex-col gap-2 sm:flex-row min-w-0">
-          <input
-            className="min-w-0 flex-1 rounded border border-neutral-300 px-3 py-2 text-base"
-            placeholder="Bedrijfsnaam"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-          />
-          <button
-            type="button"
-            disabled={busy || companyName.trim().length < 2}
-            onClick={() => void createCompany()}
-            className="rounded bg-neutral-900 px-4 py-2.5 text-white disabled:opacity-50 shrink-0"
+        <h2 className="text-lg sm:text-xl font-medium">
+          {en ? 'Company details' : 'Bedrijfsgegevens'}
+        </h2>
+        {personalAffiliateActive === false ? (
+          <p className="text-sm text-neutral-700">
+            {en ? 'Become an affiliate first. ' : 'Word eerst affiliate. '}
+            <Link href="/affiliate" className="font-semibold text-emerald-800 underline">
+              {en ? 'Become an affiliate' : 'Word affiliate'}
+            </Link>
+          </p>
+        ) : (
+          <form
+            className="flex flex-col gap-3 max-w-xl"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void createCompany();
+            }}
           >
-            Bedrijf aanmaken
-          </button>
-        </div>
+            <label className="block text-sm font-medium text-neutral-800">
+              {en ? 'Company name' : 'Bedrijfsnaam'}
+              <input
+                className="mt-1 w-full rounded border border-neutral-300 px-3 py-2 text-base font-normal"
+                name="companyName"
+                autoComplete="organization"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+              />
+            </label>
+            <label className="block text-sm font-medium text-neutral-800">
+              {en ? 'KvK number' : 'KvK-nummer'}
+              <input
+                className="mt-1 w-full rounded border border-neutral-300 px-3 py-2 text-base font-normal"
+                name="kvkNumber"
+                inputMode="numeric"
+                autoComplete="off"
+                value={kvkNumber}
+                onChange={(e) => setKvkNumber(e.target.value)}
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={busy || companyName.trim().length < 2 || kvkNumber.trim().length < 8}
+              className="w-full sm:w-auto rounded bg-neutral-900 px-4 py-2.5 text-white disabled:opacity-50"
+            >
+              {en ? 'Save business affiliate profile' : 'Zakelijk affiliateprofiel opslaan'}
+            </button>
+          </form>
+        )}
       </section>
 
       {memberships.length > 0 && (
@@ -398,7 +501,47 @@ export default function AffiliateCompanyPageClient() {
 
           {role === 'OWNER' && (
             <section className="space-y-3 border-t border-neutral-200 pt-6">
-              <h2 className="text-lg sm:text-xl font-medium">Uitbetaling</h2>
+              <h2 className="text-lg sm:text-xl font-medium">{en ? 'KvK number' : 'KvK-nummer'}</h2>
+              {typeof org.kvkNumber === 'string' && org.kvkNumber.trim() ? (
+                <p className="text-sm text-neutral-800">{String(org.kvkNumber)}</p>
+              ) : (
+                <form
+                  className="flex flex-col gap-3 max-w-xl"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void saveExistingKvk();
+                  }}
+                >
+                  <p className="text-sm text-neutral-600">
+                    {en
+                      ? 'Add the KvK number for this affiliate company. This does not start a Marketplace subscription.'
+                      : 'Voeg het KvK-nummer van dit affiliatebedrijf toe. Dit start geen Marketplace-abonnement.'}
+                  </p>
+                  <label className="block text-sm font-medium text-neutral-800">
+                    {en ? 'KvK number' : 'KvK-nummer'}
+                    <input
+                      className="mt-1 w-full rounded border border-neutral-300 px-3 py-2 text-base font-normal"
+                      name="existingKvkNumber"
+                      inputMode="numeric"
+                      value={existingKvk}
+                      onChange={(e) => setExistingKvk(e.target.value)}
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={busy || existingKvk.trim().length < 8}
+                    className="w-full sm:w-auto rounded bg-neutral-900 px-4 py-2.5 text-white disabled:opacity-50"
+                  >
+                    {en ? 'Save KvK number' : 'KvK-nummer opslaan'}
+                  </button>
+                </form>
+              )}
+            </section>
+          )}
+
+          {role === 'OWNER' && (
+            <section className="space-y-3 border-t border-neutral-200 pt-6">
+              <h2 className="text-lg sm:text-xl font-medium">{en ? 'Payout' : 'Uitbetaling'}</h2>
               <p className="text-sm text-neutral-600">
                 Commissies lopen altijd op. Cashout vereist Stripe Connect op de bedrijkszitting —
                 alleen de eigenaar kan dit instellen.
@@ -514,6 +657,37 @@ export default function AffiliateCompanyPageClient() {
       {!session && null}
     </main>
   );
+}
+
+function companyMessage(code: unknown, en: boolean): string {
+  switch (code) {
+    case 'KVK_INVALID_FORMAT':
+      return en ? 'Enter a KvK number of 8 digits.' : 'Vul een KvK-nummer van 8 cijfers in.';
+    case 'KVK_REQUIRED':
+      return en ? 'A KvK number is required for a business affiliate.' : 'Een KvK-nummer is nodig voor een zakelijke affiliate.';
+    case 'KVK_ALREADY_SET':
+      return en
+        ? 'This profile already has a different KvK number.'
+        : 'Dit profiel heeft al een ander KvK-nummer.';
+    case 'PERSONAL_AFFILIATE_REQUIRED':
+      return en ? 'Become an affiliate before saving a company profile.' : 'Word eerst affiliate voordat je een bedrijfsprofiel opslaat.';
+    case 'INVALID_NAME':
+      return en ? 'Enter the company name.' : 'Vul de bedrijfsnaam in.';
+    default:
+      return en ? 'Saving failed.' : 'Opslaan mislukt.';
+  }
+}
+
+function kvkNote(
+  lookup: { status?: string; registeredName?: string | null } | null | undefined,
+  en: boolean,
+): string | null {
+  if (lookup?.status === 'confirmed' && lookup.registeredName) {
+    return en
+      ? `KvK lists this company as ${lookup.registeredName}.`
+      : `KvK vermeldt dit bedrijf als ${lookup.registeredName}.`;
+  }
+  return null;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
