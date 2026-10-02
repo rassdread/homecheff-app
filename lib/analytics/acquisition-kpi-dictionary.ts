@@ -472,7 +472,8 @@ export const ACQUISITION_KPI_DICTIONARY: readonly AcquisitionKpi[] = [
     dedupe: 'purchase:{orderId} or purchase:stripe-session:{sessionId}',
     consent: 'Operational. Not sent to GA4 from the server.',
     transport: 'server',
-    adsDestination: 'None. The unused client trackPurchase helper is not called.',
+    adsDestination:
+      'Meta Pixel Purchase on /payment/success only when Stripe payment_status is paid and amount_total > 0. The GA trackPurchase helper is still unused. No Conversions API.',
     implementation: 'WIRED',
   },
   {

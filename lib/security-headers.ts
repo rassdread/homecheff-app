@@ -5,15 +5,16 @@
  */
 
 /**
- * GA4 gtag.js is loaded only after cookie consent.
- * script-src must name the exact host. connect-src already allows https:,
- * so collect beacons are not given an extra wildcard.
- * Meta, Google Ads and LinkedIn are not loaded and are not allowlisted.
+ * GA4 gtag.js is loaded only after analytics cookie consent.
+ * Meta Pixel (fbevents.js) is loaded only after a separate marketing consent.
+ * script-src names the exact script hosts. connect-src and img-src already
+ * allow https:, which covers Meta beacons to www.facebook.com. No wildcard
+ * script host is added. LinkedIn remains blocked.
  */
 export const HOMECHEFF_CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "frame-src 'self' https://challenges.cloudflare.com",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com https://www.googletagmanager.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://maps.googleapis.com https://*.gstatic.com https://challenges.cloudflare.com https://www.googletagmanager.com https://connect.facebook.net",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.gstatic.com",
   "img-src 'self' data: https: blob: https://maps.gstatic.com https://maps.googleapis.com https://www.google-analytics.com https://www.googletagmanager.com",
   "media-src 'self' blob: data: https: http:",

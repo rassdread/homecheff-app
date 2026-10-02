@@ -14,6 +14,7 @@ import {
 } from '@/lib/auth/post-auth-redirect';
 import { consumeAndResolvePostAuthUrl } from '@/lib/onboarding/pending-intent';
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
+import { consumeSocialRegistrationForMeta } from '@/lib/meta/browser';
 import { useTranslation } from '@/hooks/useTranslation';
 
 const MAX_WAIT_MS = 15_000;
@@ -140,6 +141,11 @@ function SocialSuccessInner() {
       }
     }
     trackOnboardingEvent('SOCIAL_AUTH_SUCCESS', { target });
+    try {
+      consumeSocialRegistrationForMeta();
+    } catch {
+      /* Meta must not block sign-in */
+    }
     const isIOSDevice = isIOS();
     const isSafariOnIOS = isSafariIOS();
     // Soft navigation when session is already confirmed — avoids remount guest-flash.

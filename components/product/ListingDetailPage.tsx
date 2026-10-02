@@ -45,6 +45,7 @@ import {
   EXCHANGE_FUNNEL_EVENTS,
   trackExchangeFunnelEvent,
 } from '@/lib/marketplace/exchange/exchange-funnel-analytics';
+import { trackMetaViewContent } from '@/lib/meta/browser';
 import ProductSaleReviewEmpty from '@/components/product/detail/ProductSaleReviewEmpty';
 import ReportContentButton from '@/components/reporting/ReportContentButton';
 import ProductIntegrityUnavailable from '@/components/trust/ProductIntegrityUnavailable';
@@ -253,6 +254,22 @@ export default function ListingDetailPage({
   const [product, setProduct] = useState<Product | null>(
     () => (mappedInitial?.product as Product) ?? null,
   );
+
+  useEffect(() => {
+    if (!product?.id) return;
+    try {
+      trackMetaViewContent({
+        contentId: product.id,
+        contentName: product.title,
+        contentCategory: product.marketplaceCategory || product.category || null,
+        valueCents: product.priceCents,
+      });
+    } catch {
+      /* Meta must not break the listing page */
+    }
+    // One ViewContent per listing id. Later field updates must not emit another event.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.id]);
   const [stats, setStats] = useState<ProductStats>(() =>
     mappedInitial?.stats
       ? (mappedInitial.stats as ProductStats)

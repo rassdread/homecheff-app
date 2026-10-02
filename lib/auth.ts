@@ -24,6 +24,7 @@ import {
 import { NEXTAUTH_SESSION_COOKIE_NAME } from "./auth/session-cookie-name";
 import { withPrismaRetry } from "./auth/prisma-retry";
 import { sanitizePostAuthRelativeUrl } from "./auth/post-auth-redirect";
+import { markNewAccountForMeta } from "./meta/mark-new-account.server";
 
 type Role = UserRole | 'SUPERADMIN';
 type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
@@ -305,6 +306,7 @@ export const authOptions: NextAuthOptions = {
           // These will be used to pre-fill the registration form
           // We remove them from token after onboarding to keep token size minimal
           if ((user as any).isNewSocialUser) {
+            markNewAccountForMeta(minimalToken.id);
             const firstName = (user as any).firstName || '';
             const lastName = (user as any).lastName || '';
             // Only store if they exist and are reasonable length (max 50 chars each)

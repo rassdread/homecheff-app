@@ -10,11 +10,12 @@ import { ACQUISITION_KPI_DICTIONARY } from './analytics/acquisition-kpi-dictiona
 import { orderEconomicsDecision } from './analytics/order-economics';
 
 describe('acquisition readiness', () => {
-  it('allows the GA4 script host and does not allowlist ads pixels', () => {
+  it('allows the GA4 script host and the Meta pixel script host only', () => {
     assert.match(HOMECHEFF_CONTENT_SECURITY_POLICY, /script-src[^;]*https:\/\/www\.googletagmanager\.com/);
-    assert.doesNotMatch(HOMECHEFF_CONTENT_SECURITY_POLICY, /facebook\.net/);
+    assert.match(HOMECHEFF_CONTENT_SECURITY_POLICY, /script-src[^;]*https:\/\/connect\.facebook\.net/);
     assert.doesNotMatch(HOMECHEFF_CONTENT_SECURITY_POLICY, /snap\.licdn\.com/);
     assert.doesNotMatch(HOMECHEFF_CONTENT_SECURITY_POLICY, /script-src[^;]*https:\/\/\*(?:\s|;|$)/);
+    assert.doesNotMatch(HOMECHEFF_CONTENT_SECURITY_POLICY, /frame-src[^;]*facebook/);
   });
 
   it('builds a product sitemap loc with the listing slug marker', () => {

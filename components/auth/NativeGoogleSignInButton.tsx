@@ -11,6 +11,7 @@ import {
   setRememberPreference,
 } from '@/lib/session-mode';
 import { trackLogin, trackRegistration } from '@/components/GoogleAnalytics';
+import { trackMetaCompleteRegistration } from '@/lib/meta/browser';
 import { logGoogleLoginDiag } from '@/lib/auth/google-login-diagnostics';
 import { parseGoogleSignInError } from '@/lib/auth/parse-google-sign-in-error';
 import { buildSocialSuccessCallbackUrl } from '@/lib/auth/post-auth-redirect';
@@ -302,6 +303,8 @@ export function NativeGoogleSignInButton({
     const payload = (await post.json().catch(() => ({}))) as {
       ok?: boolean;
       code?: string;
+      accountCreated?: boolean;
+      registrationEventId?: string;
     };
     if (!post.ok || !payload.ok) {
       const code = typeof payload.code === 'string' ? payload.code : '';
@@ -325,6 +328,18 @@ export function NativeGoogleSignInButton({
     } else {
       try {
         trackRegistration({ method: 'google' });
+      } catch {
+        /* ignore */
+      }
+      try {
+        const userId = payload.registrationEventId?.startsWith('reg:')
+          ? payload.registrationEventId.slice(4)
+          : null;
+        trackMetaCompleteRegistration({
+          surface: 'register',
+          accountCreated: payload.accountCreated === true,
+          userId,
+        });
       } catch {
         /* ignore */
       }

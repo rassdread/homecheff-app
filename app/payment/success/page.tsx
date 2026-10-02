@@ -9,12 +9,32 @@ import {
   EXCHANGE_FUNNEL_EVENTS,
   trackExchangeFunnelEvent,
 } from '@/lib/marketplace/exchange/exchange-funnel-analytics';
+import { trackMetaPurchase } from '@/lib/meta/browser';
 
 type ViewState = 'loading' | 'missing' | 'error' | 'success';
 
 type PolledOrderItem = {
   product?: { id?: string; title?: string | null } | null;
 };
+
+function listingIdsFromStripeMetadata(
+  metadata: Record<string, string> | null | undefined,
+): string[] {
+  if (!metadata) return [];
+  const ids: string[] = [];
+  const compactKeys = Object.keys(metadata)
+    .filter((key) => key.startsWith('items_compact_'))
+    .sort();
+  for (const key of compactKeys) {
+    for (const entry of metadata[key].split(';')) {
+      const productId = entry.split('|')[0]?.trim();
+      if (productId) ids.push(productId);
+    }
+  }
+  const direct = metadata.productId?.trim();
+  if (ids.length === 0 && direct) ids.push(direct);
+  return ids;
+}
 
 function firstListingIdFromStripeMetadata(
   metadata: Record<string, string> | null | undefined,
@@ -77,6 +97,18 @@ function PaymentSuccessContent() {
         setSession(payload);
         setViewState('success');
         clearCartRef.current?.();
+
+        try {
+          trackMetaPurchase({
+            paymentStatus: typeof payload?.payment_status === 'string' ? payload.payment_status : null,
+            amountTotalCents: typeof payload?.amount_total === 'number' ? payload.amount_total : null,
+            currency: typeof payload?.currency === 'string' ? payload.currency : null,
+            stripeSessionId: typeof payload?.id === 'string' ? payload.id : null,
+            contentIds: listingIdsFromStripeMetadata(payload?.metadata),
+          });
+        } catch {
+          /* Meta must not block payment confirmation */
+        }
 
         if (!checkoutCompletedTracked.current) {
           const listingId = firstListingIdFromStripeMetadata(payload?.metadata);

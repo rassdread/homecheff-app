@@ -12,6 +12,7 @@ import { getHintsForPage } from "@/lib/onboarding/hints";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useTranslation } from "@/hooks/useTranslation";
 import { trackRegistration } from "@/components/GoogleAnalytics";
+import { markMetaRegisterIntent, trackMetaCompleteRegistration } from "@/lib/meta/browser";
 import EmailVerificationModal from "@/components/auth/EmailVerificationModal";
 import { NativeGoogleSignInButton } from "@/components/auth/NativeGoogleSignInButton";
 import {
@@ -662,6 +663,7 @@ function RegisterPageContent() {
       if (provider === "google") {
         logGoogleLoginDiag("google_login_web_start", { surface: "register" });
       }
+      markMetaRegisterIntent();
       await signIn(provider, {
         callbackUrl: buildSocialSuccessCallbackUrl(
           searchParams?.get('callbackUrl') || searchParams?.get('returnUrl'),
@@ -964,6 +966,11 @@ function RegisterPageContent() {
           sellerRoles: [],
           hasDelivery: false,
           isBusiness: false,
+        });
+        trackMetaCompleteRegistration({
+          surface: 'register',
+          accountCreated: data?.ok === true && Boolean(data?.user?.id),
+          userId: typeof data?.user?.id === 'string' ? data.user.id : null,
         });
         trackVerdienCheckSignupCompletedIfPending();
       } catch (gaError) {

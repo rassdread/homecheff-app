@@ -58,7 +58,16 @@ export async function POST(req: NextRequest) {
 
   console.info(LOG_PREFIX, { verifySuccess: true, sessionCookieSet: true });
   headers.append('Set-Cookie', result.setCookie);
-  return new NextResponse(JSON.stringify({ ok: true }), { status: 200, headers });
+  return new NextResponse(
+    JSON.stringify({
+      ok: true,
+      accountCreated: result.accountCreated === true,
+      ...(result.registrationEventId
+        ? { registrationEventId: result.registrationEventId }
+        : {}),
+    }),
+    { status: 200, headers },
+  );
 }
 
 export async function OPTIONS(req: NextRequest) {
