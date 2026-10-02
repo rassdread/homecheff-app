@@ -45,6 +45,31 @@ assert(
 const startChat = readRepoFile('components/chat/StartChatButton.tsx');
 assert(startChat.includes('openProposalAfterStart'), 'StartChatButton supports openProposalAfterStart');
 assert(startChat.includes('buildMessagesWithProposalOpenUrl'), 'StartChatButton uses proposal deep-link URL');
+assert(startChat.includes('data-hc-first-contact-proposal'), 'first contact shows Voorstel doen');
+assert(startChat.includes('data-hc-first-contact-quick'), 'first contact keeps quick message');
+assert(startChat.includes('data-hc-first-contact-write'), 'first contact keeps free message');
+assert(
+  startChat.includes('submitConversation(null, { openProposal: true })'),
+  'first-contact proposal opens existing sheet without a text message',
+);
+const firstContactChoices = startChat.slice(
+  startChat.indexOf('data-hc-first-contact-choices'),
+  startChat.indexOf('data-hc-first-contact-quick-panel'),
+);
+assert(
+  firstContactChoices.includes('data-hc-first-contact-proposal') &&
+    !firstContactChoices.includes('lg:hidden') &&
+    !firstContactChoices.includes('hidden lg:') &&
+    !firstContactChoices.includes('sm:hidden') &&
+    !firstContactChoices.includes('md:hidden'),
+  'first-contact proposal choice is not desktop-only',
+);
+const nlCommon = JSON.parse(readRepoFile('public/i18n/nl.json')).common as Record<string, string>;
+const enCommon = JSON.parse(readRepoFile('public/i18n/en.json')).common as Record<string, string>;
+assert(nlCommon.contactChoiceProposal === 'Voorstel doen', 'NL label Voorstel doen');
+assert(enCommon.contactChoiceProposal === 'Make a proposal', 'EN label Make a proposal');
+assert(Boolean(nlCommon.contactChoiceQuick && enCommon.contactChoiceQuick), 'quick choice i18n');
+assert(Boolean(nlCommon.contactChoiceWrite && enCommon.contactChoiceWrite), 'write choice i18n');
 
 const proposalAction = readRepoFile('components/product/detail/ProductSaleProposalAction.tsx');
 assert(proposalAction.includes('openProposalAfterStart'), 'ProductSaleProposalAction enables proposal deep-link');
@@ -89,9 +114,11 @@ assert(!suggestionCard.includes('messages?user='), 'suggestion no longer uses br
 console.log('\nPhase 5E-E mobile sticky + context');
 const stickyCta = readRepoFile('components/product/detail/ProductSaleStickyCta.tsx');
 assert(stickyCta.includes('StartChatButton'), 'sticky CTA uses StartChatButton for proposal-first');
-assert(stickyCta.includes('openProposalAfterStart'), 'sticky CTA opens proposal deep-link');
+assert(
+  !/StartChatButton[\s\S]{0,500}skipModal/.test(stickyCta),
+  'sticky contact opens the choice modal instead of skipping it',
+);
 assert(!stickyCta.includes("scrollToCta('commerce-proposal-cta')"), 'sticky no longer scrolls to proposal button');
-assert(stickyCta.includes('skipModal'), 'sticky skips chat modal');
 
 assert(startChat.includes('skipModal'), 'StartChatButton supports skipModal');
 assert(startChat.includes('buildMessagesConversationUrl'), 'StartChatButton uses conversation URL helper');

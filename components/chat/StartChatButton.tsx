@@ -81,6 +81,7 @@ export default function StartChatButton({
   const nativeMounted = useIsNativeAppMounted();
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [contactMode, setContactMode] = useState<'quick' | 'write'>('quick');
   const [initialMessage, setInitialMessage] = useState('');
   const [successConversationId, setSuccessConversationId] = useState<
     string | null
@@ -113,7 +114,16 @@ export default function StartChatButton({
     });
   };
 
-  const submitConversation = async (rawMessage: string | null) => {
+  const closeContactModal = () => {
+    setShowModal(false);
+    setInitialMessage('');
+    setContactMode('quick');
+  };
+
+  const submitConversation = async (
+    rawMessage: string | null,
+    options?: { openProposal?: boolean },
+  ) => {
     const endpoint = productId
       ? '/api/conversations/start'
       : '/api/conversations/start-seller';
@@ -131,8 +141,7 @@ export default function StartChatButton({
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       if (tryShowAccountRequirementsFromApiBody(response.status, errorData)) {
-        setShowModal(false);
-        setInitialMessage('');
+        closeContactModal();
         return;
       }
       throw new Error(
@@ -154,7 +163,8 @@ export default function StartChatButton({
     onConversationStarted?.(convId);
     onMessageSent?.(convId);
 
-    if (openProposalAfterStart && productId) {
+    const shouldOpenProposal = Boolean(productId) && (options?.openProposal || openProposalAfterStart);
+    if (shouldOpenProposal && productId) {
       const merged = mergeProposalPrefillForStorage(proposalPrefill);
       if (merged) {
         storeProposalPrefill(merged);
@@ -164,7 +174,9 @@ export default function StartChatButton({
           ...funnelListing,
           listingId: funnelListing.listingId || productId,
           surface: funnelSurface,
-          entrypoint: funnelEntrypoint,
+          entrypoint: options?.openProposal
+            ? 'first_contact_proposal'
+            : funnelEntrypoint,
         });
       }
       router.push(buildMessagesWithProposalOpenUrl(convId));
@@ -173,15 +185,13 @@ export default function StartChatButton({
           detail: { conversationId: convId },
         })
       );
-      setShowModal(false);
-      setInitialMessage('');
+      closeContactModal();
       return;
     }
 
     if (showSuccessMessage) {
       setSuccessConversationId(convId);
-      setShowModal(false);
-      setInitialMessage('');
+      closeContactModal();
     } else {
       router.push(buildMessagesConversationUrl(convId));
       window.dispatchEvent(
@@ -189,8 +199,7 @@ export default function StartChatButton({
           detail: { conversationId: convId },
         })
       );
-      setShowModal(false);
-      setInitialMessage('');
+      closeContactModal();
     }
   };
 
@@ -220,6 +229,24 @@ export default function StartChatButton({
     setInitialMessage(message);
     try {
       await submitConversation(message);
+    } catch (error) {
+      alert(
+        `Fout bij starten van gesprek: ${error instanceof Error ? error.message : 'Onbekende fout'}`
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStartProposal = async () => {
+    if (!session?.user) {
+      goToLoginForChat();
+      return;
+    }
+    if (!productId) return;
+    setIsLoading(true);
+    try {
+      await submitConversation(null, { openProposal: true });
     } catch (error) {
       alert(
         `Fout bij starten van gesprek: ${error instanceof Error ? error.message : 'Onbekende fout'}`
@@ -369,8 +396,7 @@ export default function StartChatButton({
           role="presentation"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              setShowModal(false);
-              setInitialMessage('');
+              closeContactModal();
             }
           }}
         >
@@ -391,10 +417,7 @@ export default function StartChatButton({
                 </h2>
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    setInitialMessage('');
-                  }}
+                  onClick={closeContactModal}
                   className="shrink-0 rounded-full p-2 text-gray-700 hover:bg-gray-100 border border-gray-200"
                   aria-label={t('common.close')}
                 >
@@ -403,12 +426,62 @@ export default function StartChatButton({
               </div>
             </div>
 
+            {productId ? (
+              <div
+                className="shrink-0 border-b border-gray-200 bg-white px-3 py-3 sm:px-4"
+                data-hc-first-contact-choices=""
+              >
+                <div
+                  className="grid grid-cols-3 gap-1.5"
+                  role="group"
+                  aria-label={t('common.contactChoiceAria')}
+                >
+                  <button
+                    type="button"
+                    data-hc-first-contact-quick=""
+                    aria-pressed={contactMode === 'quick'}
+                    onClick={() => setContactMode('quick')}
+                    className={`min-h-[48px] rounded-xl border px-1 py-2 text-center text-[11px] font-semibold leading-tight touch-manipulation sm:text-xs ${
+                      contactMode === 'quick'
+                        ? 'border-blue-600 bg-blue-600 text-white'
+                        : 'border-gray-300 bg-white text-gray-900 hover:border-blue-400 hover:bg-blue-50'
+                    }`}
+                  >
+                    {t('common.contactChoiceQuick')}
+                  </button>
+                  <button
+                    type="button"
+                    data-hc-first-contact-write=""
+                    aria-pressed={contactMode === 'write'}
+                    onClick={() => setContactMode('write')}
+                    className={`min-h-[48px] rounded-xl border px-1 py-2 text-center text-[11px] font-semibold leading-tight touch-manipulation sm:text-xs ${
+                      contactMode === 'write'
+                        ? 'border-blue-600 bg-blue-600 text-white'
+                        : 'border-gray-300 bg-white text-gray-900 hover:border-blue-400 hover:bg-blue-50'
+                    }`}
+                  >
+                    {t('common.contactChoiceWrite')}
+                  </button>
+                  <button
+                    type="button"
+                    data-hc-first-contact-proposal=""
+                    onClick={() => void handleStartProposal()}
+                    disabled={isLoading}
+                    className="min-h-[48px] rounded-xl border border-emerald-700 bg-emerald-600 px-1 py-2 text-center text-[11px] font-semibold leading-tight text-white touch-manipulation hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 sm:text-xs"
+                  >
+                    {t('common.contactChoiceProposal')}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
             <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3 sm:p-4 space-y-3">
               <p className="text-sm text-gray-800 bg-sky-50 border border-sky-200 rounded-lg p-3">
                 {productId ? t('common.chatIntroProduct') : t('common.chatIntroGeneral')}
               </p>
 
-              <div>
+              {(!productId || contactMode === 'quick') ? (
+              <div data-hc-first-contact-quick-panel="">
                 <h3 className="text-sm font-semibold text-gray-900 mb-2">
                   {t('common.quickMessages')}
                   <span className="block text-xs font-normal text-gray-600 mt-0.5">
@@ -429,14 +502,18 @@ export default function StartChatButton({
                   ))}
                 </div>
               </div>
+              ) : null}
 
+              {!productId ? (
               <div className="flex items-center gap-2 py-1">
                 <div className="h-px flex-1 bg-gray-200" />
                 <span className="text-xs font-medium text-gray-600">OF</span>
                 <div className="h-px flex-1 bg-gray-200" />
               </div>
+              ) : null}
 
-              <div>
+              {(!productId || contactMode === 'write') ? (
+              <div data-hc-first-contact-write-panel="">
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
                   {t('common.typeYourMessage')}
                 </label>
@@ -462,15 +539,13 @@ export default function StartChatButton({
                   <span>{isLoading ? t('common.sending') : t('common.sendMessage')}</span>
                 </button>
               </div>
+              ) : null}
             </div>
 
             <div className="shrink-0 p-3 sm:p-4 border-t border-gray-200 bg-gray-100">
               <button
                 type="button"
-                onClick={() => {
-                  setShowModal(false);
-                  setInitialMessage('');
-                }}
+                onClick={closeContactModal}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3.5 min-h-[48px] border-2 border-gray-400 bg-white text-gray-900 rounded-xl hover:bg-gray-50 font-semibold"
               >
                 <X className="w-5 h-5 text-gray-800" />

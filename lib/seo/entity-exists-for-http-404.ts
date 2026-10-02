@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
 import { isListingPubliclyDiscoverable } from '@/lib/marketplace/product-visibility';
+import { isCertificationFixtureUser } from '@/lib/marketplace/public-listing-eligibility';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -32,11 +33,19 @@ export async function entityExistsForHttp404(pathname: string): Promise<boolean 
 
     const product = await prisma.product.findUnique({
       where: { id },
-      select: { id: true, isActive: true, integrityStatus: true },
+      select: {
+        id: true,
+        isActive: true,
+        integrityStatus: true,
+        seller: { select: { User: { select: { email: true, bio: true } } } },
+      },
     });
     if (product) {
       if (isEditRoute) return true;
-      return isListingPubliclyDiscoverable(product);
+      if (isListingPubliclyDiscoverable(product)) return true;
+      // Inactive certification fixtures stay out of discovery, but an
+      // authenticated viewer must reach the page so it can enforce access.
+      return isCertificationFixtureUser(product.seller?.User ?? {});
     }
     if (first === 'listing') {
       const legacy = await prisma.listing.findUnique({

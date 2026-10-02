@@ -146,8 +146,6 @@ export default function ProductSaleStickyCta({
             productId={product.id}
             sellerId={sellerId}
             sellerName={sellerName}
-            skipModal
-            openProposalAfterStart
             label={t(cta.proposalLabelKey)}
             funnelListing={{
               listingId: product.id,

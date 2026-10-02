@@ -473,6 +473,12 @@ export default function ProposalCard({
             </p>
           ) : null}
 
+          {proposal.status === "PENDING" && isCreator ? (
+            <p className="text-[11px] leading-relaxed text-gray-600">
+              {t("proposal.card.awaitingCounterpart")}
+            </p>
+          ) : null}
+
           {canAct && authorName ? (
             <p className="text-sm font-semibold text-gray-900">
               {t("proposal.card.fromName", { name: authorName })}
