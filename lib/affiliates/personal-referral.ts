@@ -9,6 +9,7 @@
  */
 
 import { randomBytes } from 'crypto';
+import { POPULATION_EXCLUDED_TEST, POPULATION_TECHNICAL } from '@/lib/affiliate/population';
 
 /** Inviter-facing share page (logged-in). Visitor landing stays /welkom/{code}. */
 export const PERSONAL_INVITE_PATH = '/invite';
@@ -42,8 +43,13 @@ export type EnsuredPersonalReferral = {
   createdLink: boolean;
 };
 
+const COMMISSION_SEAT_ONLY = new Set([POPULATION_TECHNICAL, POPULATION_EXCLUDED_TEST]);
+
 /**
- * Return an existing affiliate's referral link.
+ * Return an existing personal referral link.
+ * Creates a link only for an affiliate who is not a commission-only seat.
+ * A TECHNICAL or test seat keeps its commissions and does not gain a public
+ * code here. Explicit personal activation uses activatePersonalAffiliate.
  * Does not create an Affiliate row and does not enroll anyone.
  * Does not reactivate SUSPENDED seats. Does not alter commission config.
  */
@@ -57,7 +63,7 @@ export async function ensurePersonalReferralLink(
   const createdAffiliate = false;
   const affiliate = await prisma.affiliate.findUnique({
     where: { userId: uid },
-    select: { id: true, status: true },
+    select: { id: true, status: true, populationClass: true },
   });
 
   if (!affiliate) {
@@ -79,6 +85,10 @@ export async function ensurePersonalReferralLink(
   }
 
   if (affiliate.status !== 'ACTIVE') {
+    return null;
+  }
+
+  if (COMMISSION_SEAT_ONLY.has(affiliate.populationClass)) {
     return null;
   }
 

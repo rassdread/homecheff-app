@@ -112,6 +112,13 @@ describe('affiliate population semantics', () => {
     assert.equal(resolved.capabilities.CAN_CREATE_PROMO_CODES.value, false);
     const seat = readFileSync(new URL('../affiliate-commission.ts', import.meta.url), 'utf8');
     assert.match(seat, /populationClass: 'TECHNICAL'/);
+    assert.doesNotMatch(seat, /activatePersonalAffiliate/);
+    const referral = readFileSync(new URL('../affiliates/personal-referral.ts', import.meta.url), 'utf8');
+    assert.match(referral, /POPULATION_TECHNICAL/);
+    assert.match(referral, /COMMISSION_SEAT_ONLY/);
+    const activation = readFileSync(new URL('./activate-affiliate.ts', import.meta.url), 'utf8');
+    assert.match(activation, /findFirst/);
+    assert.match(activation, /if \(existing\?\.code\) return existing.code/);
   });
 
   it('does not enroll someone because they open the invite page', () => {

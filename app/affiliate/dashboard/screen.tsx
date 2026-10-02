@@ -49,11 +49,13 @@ export async function AffiliateDashboardScreen({
     redirect('/affiliate');
   }
 
-  const showPersonalShare = place === 'overzicht' || place === 'promoten';
   const existingCode = user.affiliate.referralLinks[0]?.code ?? null;
   const existingShareLink = existingCode
     ? buildPersonalReferralUrl(getPublicAppUrl(), existingCode)
     : null;
+  // A commission seat without a personal ReferralLink is not a personal affiliate.
+  // The share card appears only after canonical activation has created that link.
+  const showPersonalShare = (place === 'overzicht' || place === 'promoten') && Boolean(existingCode);
 
   return (
     <AffiliatePersonalShareProvider

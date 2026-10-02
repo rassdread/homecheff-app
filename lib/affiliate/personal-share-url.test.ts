@@ -100,6 +100,7 @@ describe('affiliate share placement', () => {
     const screen = read('app/affiliate/dashboard/screen.tsx');
     assert.match(screen, /AffiliatePersonalShareCard/);
     assert.match(screen, /place === 'overzicht' \|\| place === 'promoten'/);
+    assert.match(screen, /Boolean\(existingCode\)/);
     assert.match(screen, /referralLinks/);
     assert.match(screen, /referralCode=\{existingCode\}/);
     assert.match(screen, /referralLink=\{existingShareLink\}/);
