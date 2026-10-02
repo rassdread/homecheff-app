@@ -15,6 +15,7 @@ import QRCodeSVG from 'react-qr-code';
 import QRCode from 'qrcode';
 import { useOverlayHistoryBack } from '@/hooks/useOverlayHistoryBack';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useAffiliatePersonalShareSeed } from '@/components/affiliate/AffiliatePersonalShareProvider';
 import { resolveAffiliatePersonalShareUrl } from '@/lib/affiliate/personal-share-url';
 import { canUseWebShare, invokeNativeShareOnce } from '@/lib/share/listing-share';
 import { buildSingleUrlWhatsAppHref } from '@/lib/share/exactly-once-share';
@@ -40,6 +41,9 @@ export default function AffiliatePersonalShareSheet({
   referralLink,
   referralCode,
 }: Props) {
+  const seed = useAffiliatePersonalShareSeed();
+  const knownLink = referralLink || seed.referralLink;
+  const knownCode = referralCode || seed.referralCode;
   const { t, tOr, language } = useTranslation();
   const titleId = useId();
   const [fetchedUrl, setFetchedUrl] = useState('');
@@ -53,12 +57,12 @@ export default function AffiliatePersonalShareSheet({
       typeof window !== 'undefined' ? window.location.origin : 'https://homecheff.eu';
     return (
       resolveAffiliatePersonalShareUrl({
-        referralLink,
-        referralCode,
+        referralLink: knownLink,
+        referralCode: knownCode,
         origin,
       }) || fetchedUrl
     );
-  }, [fetchedUrl, referralCode, referralLink]);
+  }, [fetchedUrl, knownCode, knownLink]);
 
   const title = tOr(
     'affiliate.dashboard.personalShareCta',
@@ -116,12 +120,12 @@ export default function AffiliatePersonalShareSheet({
     setCopied(false);
     setNativeReady(canUseWebShare());
     const provided = resolveAffiliatePersonalShareUrl({
-      referralLink,
-      referralCode,
+      referralLink: knownLink,
+      referralCode: knownCode,
       origin: window.location.origin,
     });
     if (!provided) void load();
-  }, [open, load, referralCode, referralLink]);
+  }, [open, load, knownCode, knownLink]);
 
   useEffect(() => {
     if (!open) return;

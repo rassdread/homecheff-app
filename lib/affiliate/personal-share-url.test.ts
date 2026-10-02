@@ -100,6 +100,14 @@ describe('affiliate share placement', () => {
     const screen = read('app/affiliate/dashboard/screen.tsx');
     assert.match(screen, /AffiliatePersonalShareCard/);
     assert.match(screen, /place === 'overzicht' \|\| place === 'promoten'/);
+    assert.match(screen, /referralLinks/);
+    assert.match(screen, /referralCode=\{existingCode\}/);
+    assert.match(screen, /referralLink=\{existingShareLink\}/);
+    assert.doesNotMatch(screen, /ensurePersonalReferralLink/);
+    const route = read('app/api/affiliate/referral-link/route.ts');
+    assert.match(route, /Cache-Control': 'private, no-store, max-age=0'/);
+    const sheet = read('components/affiliate/AffiliatePersonalShareSheet.tsx');
+    assert.match(sheet, /useAffiliatePersonalShareSeed/);
     const shell = read('components/operations/OperationsShell.tsx');
     const leadAt = shell.indexOf('{lead ?');
     const stripAt = shell.indexOf('<OperationsInlineStrip');

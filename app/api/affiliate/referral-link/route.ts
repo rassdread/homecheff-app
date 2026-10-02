@@ -85,24 +85,27 @@ export async function GET(req: NextRequest) {
 
     // Geen affiliate of nog geen link: 200 + null voorkomt 404-spam voor gewone gebruikers
     if (!user?.affiliate) {
-      return NextResponse.json({ code: null, link: null });
+      return NextResponse.json(
+        { code: null, link: null },
+        { headers: { 'Cache-Control': 'private, no-store, max-age=0' } },
+      );
     }
 
     const referralLink = user.affiliate.referralLinks[0];
     if (!referralLink) {
-      return NextResponse.json({ code: null, link: null });
+      return NextResponse.json(
+        { code: null, link: null },
+        { headers: { 'Cache-Control': 'private, no-store, max-age=0' } },
+      );
     }
 
-    // Detect language from referrer header or cookie
-    // API routes don't have /en/ in pathname, so check referrer or cookie
-    const referer = req.headers.get('referer') || '';
-    const isEnglish = referer.includes('/en/') || req.cookies.get('homecheff-language')?.value === 'en';
-    const langPrefix = isEnglish ? '/en' : '';
-    
-    return NextResponse.json({
-      code: referralLink.code,
-      link: `${req.nextUrl.origin}${langPrefix}/welkom/${referralLink.code}`,
-    });
+    return NextResponse.json(
+      {
+        code: referralLink.code,
+        link: buildPersonalReferralUrl(referralOrigin(req), referralLink.code),
+      },
+      { headers: { 'Cache-Control': 'private, no-store, max-age=0' } },
+    );
   } catch (error) {
     console.error("Error fetching referral link:", error);
     return NextResponse.json(

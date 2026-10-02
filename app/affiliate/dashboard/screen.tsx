@@ -5,7 +5,10 @@ import AffiliateDashboardClient from './page-client';
 import MyAffiliateProgram from '@/components/affiliate/MyAffiliateProgram';
 import AffiliateEmailNotice from '@/components/affiliate/AffiliateEmailNotice';
 import AffiliatePersonalShareCard from '@/components/affiliate/AffiliatePersonalShareCard';
+import { AffiliatePersonalShareProvider } from '@/components/affiliate/AffiliatePersonalShareProvider';
 import { affiliatePlaceHref, type AffiliatePlace } from '@/lib/affiliate/affiliate-sections';
+import { buildPersonalReferralUrl } from '@/lib/affiliates/personal-referral';
+import { getPublicAppUrl } from '@/lib/public-app-url';
 
 export async function AffiliateDashboardScreen({
   place,
@@ -28,6 +31,11 @@ export async function AffiliateDashboardScreen({
       affiliate: {
         select: {
           id: true,
+          referralLinks: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: { code: true },
+          },
         },
       },
     },
@@ -42,12 +50,22 @@ export async function AffiliateDashboardScreen({
   }
 
   const showPersonalShare = place === 'overzicht' || place === 'promoten';
+  const existingCode = user.affiliate.referralLinks[0]?.code ?? null;
+  const existingShareLink = existingCode
+    ? buildPersonalReferralUrl(getPublicAppUrl(), existingCode)
+    : null;
 
   return (
-    <>
+    <AffiliatePersonalShareProvider
+      referralCode={existingCode}
+      referralLink={existingShareLink}
+    >
       {showPersonalShare ? (
         <div className="mx-auto max-w-5xl px-4 pt-6">
-          <AffiliatePersonalShareCard />
+          <AffiliatePersonalShareCard
+            referralCode={existingCode}
+            referralLink={existingShareLink}
+          />
         </div>
       ) : null}
       <div className="mx-auto max-w-5xl px-4 pt-6">
@@ -57,6 +75,6 @@ export async function AffiliateDashboardScreen({
         <MyAffiliateProgram affiliateId={user.affiliate.id} />
       </div>
       <AffiliateDashboardClient place={place} />
-    </>
+    </AffiliatePersonalShareProvider>
   );
 }
