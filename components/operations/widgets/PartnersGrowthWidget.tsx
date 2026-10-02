@@ -16,7 +16,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { OPERATIONS_ROUTES } from '@/lib/operations/operations-entry';
 
 export default function PartnersGrowthWidget({ compact }: OperationsWidgetProps) {
-  const { t, language } = useTranslation();
+  const { t, tOr, language } = useTranslation();
   const { sectionExtras } = useOperationsSidepanel();
   const [qrOpen, setQrOpen] = useState(false);
 
@@ -63,11 +63,13 @@ export default function PartnersGrowthWidget({ compact }: OperationsWidgetProps)
             onClick={() => setQrOpen(true)}
             primary
             icon={<QrCode className="h-3.5 w-3.5" aria-hidden />}
+            className="min-h-[44px] touch-manipulation"
           />
           <WidgetActionButton
-            label={t('partners.actions.shareLink')}
+            label={tOr('affiliate.dashboard.shareAction', 'Share', 'Delen')}
             onClick={() => setQrOpen(true)}
             icon={<Share2 className="h-3.5 w-3.5" aria-hidden />}
+            className="min-h-[44px] touch-manipulation"
           />
           {!compact ? (
             <WidgetCta

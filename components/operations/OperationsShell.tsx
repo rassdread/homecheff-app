@@ -29,6 +29,8 @@ export type OperationsShellProps = {
   fullBleed?: boolean;
   /** Disable sidepanel entirely on this page */
   hideSidepanel?: boolean;
+  /** First block in the page body, before the mobile overview strip */
+  lead?: ReactNode;
 };
 
 function useSidepanelEnabled(hideSidepanel: boolean): boolean {
@@ -55,6 +57,7 @@ export default function OperationsShell({
   hideSectionNav = false,
   fullBleed = false,
   hideSidepanel = false,
+  lead,
 }: OperationsShellProps) {
   const { tOr } = useTranslation();
   const pathname = usePathname();
@@ -185,6 +188,7 @@ export default function OperationsShell({
                   contentClassName,
                 )}
               >
+                {lead ? <div className="mb-4 max-w-full overflow-x-hidden">{lead}</div> : null}
                 {sidepanelEnabled ? (
                   <div className="mb-4 sm:hidden">
                     <OperationsInlineStrip

@@ -43,7 +43,7 @@ const NL = {
       primary: 'Open Affiliate & netwerk',
       secondary: 'Promocodes',
       onboardingPrimary: 'Word affiliate',
-      shareLink: 'Deel mijn link',
+      shareLink: 'Deel mijn affiliate-link',
     },
     delivery: {
       title: 'Bezorging',
@@ -123,7 +123,7 @@ const EN = {
       primary: 'Open Affiliate & network',
       secondary: 'Promo codes',
       onboardingPrimary: 'Become an affiliate',
-      shareLink: 'Share my link',
+      shareLink: 'Share my affiliate link',
     },
     delivery: {
       title: 'Delivery',

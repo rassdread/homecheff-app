@@ -1,9 +1,12 @@
 'use client';
 
 import { useEffect } from 'react';
-import { X } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { QrCode, X } from 'lucide-react';
 import OperationsSidepanelContent from '@/components/operations/OperationsSidepanelContent';
 import { useTranslation } from '@/hooks/useTranslation';
+import { OPERATIONS_ROUTES } from '@/lib/operations/operations-entry';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -19,6 +22,8 @@ export default function OperationsOverviewDrawer({
   variant = 'drawer',
 }: Props) {
   const { tOr } = useTranslation();
+  const pathname = usePathname() ?? '';
+  const onAffiliate = pathname.startsWith('/affiliate');
 
   const title = tOr(
     'operations.sidepanel.overview',
@@ -76,6 +81,73 @@ export default function OperationsOverviewDrawer({
             <X className="h-4 w-4" aria-hidden />
           </button>
         </div>
+
+        {onAffiliate ? (
+          <nav
+            className="shrink-0 space-y-1.5 border-b border-emerald-100 bg-emerald-50/80 px-4 py-3"
+            aria-label={tOr('myHomeCheffHub.affiliateNav.label', 'Affiliate navigation', 'Affiliate navigatie')}
+          >
+            {(
+              [
+                {
+                  href: OPERATIONS_ROUTES.affiliate.home,
+                  testId: 'affiliate-menu-overview',
+                  label: tOr('myHomeCheffHub.affiliateNav.dashboard', 'Overview', 'Overzicht'),
+                },
+                {
+                  href: '/affiliate/dashboard/promoten',
+                  testId: 'affiliate-menu-promote',
+                  label: tOr('myHomeCheffHub.affiliateNav.promote', 'Promote', 'Promoten'),
+                  hint: tOr(
+                    'affiliate.dashboard.personalShareMenuHint',
+                    'QR code and affiliate link',
+                    'QR-code en affiliatelink',
+                  ),
+                },
+                {
+                  href: '/affiliate/dashboard/verdiensten',
+                  testId: 'affiliate-menu-earnings',
+                  label: tOr('myHomeCheffHub.affiliateNav.earnings', 'Earnings', 'Verdiensten'),
+                },
+                {
+                  href: '/affiliate/dashboard/netwerk',
+                  testId: 'affiliate-menu-network',
+                  label: tOr('myHomeCheffHub.affiliateNav.network', 'Network', 'Netwerk'),
+                },
+                {
+                  href: OPERATIONS_ROUTES.affiliate.promoMedia,
+                  testId: 'affiliate-menu-promo-media',
+                  label: tOr(
+                    'myHomeCheffHub.affiliateNav.promoMedia',
+                    'Promo library',
+                    'Promotiemateriaal',
+                  ),
+                },
+              ] as const
+            ).map((item) => (
+              <Link
+                key={item.testId}
+                href={item.href}
+                onClick={(event) => {
+                  event.preventDefault();
+                  window.location.assign(item.href);
+                }}
+                data-testid={item.testId}
+                className="flex min-h-[44px] touch-manipulation items-center gap-3 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-emerald-950 shadow-sm"
+              >
+                {item.testId === 'affiliate-menu-promote' ? (
+                  <QrCode className="h-5 w-5 shrink-0 text-emerald-700" aria-hidden />
+                ) : null}
+                <span className="min-w-0">
+                  <span className="block">{item.label}</span>
+                  {'hint' in item && item.hint ? (
+                    <span className="block text-xs font-medium text-emerald-800">{item.hint}</span>
+                  ) : null}
+                </span>
+              </Link>
+            ))}
+          </nav>
+        ) : null}
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
           <OperationsSidepanelContent

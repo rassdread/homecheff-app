@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import AffiliateDashboardClient from './page-client';
 import MyAffiliateProgram from '@/components/affiliate/MyAffiliateProgram';
 import AffiliateEmailNotice from '@/components/affiliate/AffiliateEmailNotice';
+import AffiliatePersonalShareCard from '@/components/affiliate/AffiliatePersonalShareCard';
 import { affiliatePlaceHref, type AffiliatePlace } from '@/lib/affiliate/affiliate-sections';
 
 export async function AffiliateDashboardScreen({
@@ -40,8 +41,15 @@ export async function AffiliateDashboardScreen({
     redirect('/affiliate');
   }
 
+  const showPersonalShare = place === 'overzicht' || place === 'promoten';
+
   return (
     <>
+      {showPersonalShare ? (
+        <div className="mx-auto max-w-5xl px-4 pt-6">
+          <AffiliatePersonalShareCard />
+        </div>
+      ) : null}
       <div className="mx-auto max-w-5xl px-4 pt-6">
         {!user.emailVerified && user.email ? (
           <AffiliateEmailNotice email={user.email} nextPath={nextPath} />

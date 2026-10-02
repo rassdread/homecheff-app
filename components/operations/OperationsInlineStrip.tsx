@@ -45,31 +45,37 @@ export default function OperationsInlineStrip({
   }, [loading, totals?.totalAvailable, formatCurrency]);
 
   return (
-    <button
-      type="button"
-      onClick={onOpenOverview}
+    <div
       className={cn(
-        'w-full rounded-2xl border border-emerald-200/60 bg-white/95 p-3 text-left shadow-sm transition active:scale-[0.99]',
+        'w-full rounded-2xl border border-emerald-200/60 bg-white/95 p-3 text-left shadow-sm',
         className,
       )}
-      aria-label={overviewLabel}
     >
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <button
+        type="button"
+        onClick={onOpenOverview}
+        className="mb-2 flex min-h-[44px] w-full touch-manipulation items-center justify-between gap-2"
+        aria-label={overviewLabel}
+      >
         <span className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
           {overviewLabel}
         </span>
         <ChevronRight className="h-4 w-4 text-emerald-600" aria-hidden />
-      </div>
+      </button>
 
       <OperationsTasksSection surface="inline" compactHeader className="mb-2 border-0 bg-transparent p-0 shadow-none" />
 
-      <div className="flex items-center justify-between gap-2 rounded-xl border border-amber-200/50 bg-gradient-to-r from-[#faf8f4] to-primary-50/30 px-3 py-2">
-        <div className="flex items-center gap-2 min-w-0">
+      <button
+        type="button"
+        onClick={onOpenOverview}
+        className="flex min-h-[44px] w-full touch-manipulation items-center justify-between gap-2 rounded-xl border border-amber-200/50 bg-gradient-to-r from-[#faf8f4] to-primary-50/30 px-3 py-2"
+      >
+        <div className="flex min-w-0 items-center gap-2">
           <Wallet className="h-4 w-4 shrink-0 text-amber-700" aria-hidden />
           <span className="text-xs font-medium text-gray-600">{availableLabel}</span>
         </div>
         <span className="text-sm font-bold text-emerald-800">{financeLine}</span>
-      </div>
-    </button>
+      </button>
+    </div>
   );
 }

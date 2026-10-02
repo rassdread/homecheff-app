@@ -3011,7 +3011,9 @@
     },
     "affiliateNav": {
       "label": "Affiliate navigation",
-      "dashboard": "Dashboard",
+      "dashboard": "Overview",
+      "promote": "Promote",
+      "network": "Network",
       "promoCodes": "Promo codes",
       "promoMedia": "Promo library",
       "commissions": "Commissions",
@@ -3041,7 +3043,7 @@
         "primary": "Open Affiliate & network",
         "secondary": "Promo codes",
         "onboardingPrimary": "Become an affiliate",
-        "shareLink": "Share my link"
+        "shareLink": "Share my affiliate link"
       },
       "delivery": {
         "title": "Delivery",
@@ -3593,7 +3595,11 @@
     "quickMessagesHint": "(click = send immediately)",
     "typeYourMessage": "Type your own message:",
     "typeMessagePlaceholder": "Type your message here...",
-    "chatIntroProduct": "Choose a quick message and it will be sent immediately, or type your own message below.",
+    "contactChoiceAria": "Choose how to get in touch",
+    "contactChoiceQuick": "Quick message",
+    "contactChoiceWrite": "Write your own",
+    "contactChoiceProposal": "Make a proposal",
+    "chatIntroProduct": "Choose a quick message, write your own, or make a proposal right away. You do not need to send a chat message first.",
     "chatIntroGeneral": "Choose a quick message or type your own message to start the conversation.",
     "noFavoritesYet": "No favorites yet",
     "favoritesEmptyHint": "When you mark a product as favorite, it will appear here.",
@@ -7622,6 +7628,16 @@
       "yourReferralLink": "Your partner link",
       "copy": "Copy",
       "copyLink": "Copy link",
+      "copyLinkAction": "Copy link",
+      "linkCopied": "Link copied",
+      "shareAction": "Share",
+      "personalShareTitle": "Your affiliate link",
+      "personalShareHint": "Share HomeCheff and earn when your network uses the platform.",
+      "personalShareCta": "Share my affiliate link",
+      "personalShareScan": "Scan to view HomeCheff through me",
+      "personalShareText": "Join HomeCheff",
+      "personalShareUnavailable": "Your affiliate link is not available yet.",
+      "personalShareMenuHint": "QR code and affiliate link",
       "copied": "Copied!",
       "referralLinkTitle": "Your partner link & QR code",
       "qrCodeTitle": "QR Code",
@@ -11083,7 +11099,7 @@
   "affiliateDashboard": {
     "share": {
       "title": "Share & earn",
-      "subtitle": "Choose what to promote. HomeCheff creates the right affiliate link for you.",
+      "subtitle": "Your personal QR code and affiliate link are above. Then choose a platform, such as Marketplace, Growth, Studio or Delivery.",
       "hub": {
         "title": "All opportunities",
         "description": "Share the overview of every way to take part in HomeCheff."

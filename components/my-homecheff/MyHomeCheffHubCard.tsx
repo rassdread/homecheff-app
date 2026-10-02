@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import AffiliatePersonalShareSheet from '@/components/affiliate/AffiliatePersonalShareSheet';
 import {
   Package,
   Store,
@@ -58,6 +60,7 @@ export default function MyHomeCheffHubCard({
   referralLink,
 }: Props) {
   const { t, tOr, language } = useTranslation();
+  const [shareOpen, setShareOpen] = useState(false);
   const hubLang: HubLang = language === 'en' ? 'en' : 'nl';
   const cards = hubCopy(hubLang).cards;
   const Icon = CARD_ICONS[card.id];
@@ -315,15 +318,21 @@ export default function MyHomeCheffHubCard({
         {card.id === 'affiliate' && referralLink && card.mode === 'active' && shareLabel ? (
           <button
             type="button"
+            data-affiliate-open-share
             className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 touch-manipulation"
-            onClick={() => {
-              void navigator.clipboard?.writeText(referralLink);
-            }}
+            onClick={() => setShareOpen(true)}
           >
             {shareLabel}
           </button>
         ) : null}
       </div>
+      {card.id === 'affiliate' && referralLink ? (
+        <AffiliatePersonalShareSheet
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          referralLink={referralLink}
+        />
+      ) : null}
     </article>
   );
 }

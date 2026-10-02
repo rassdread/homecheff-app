@@ -1693,7 +1693,9 @@
     },
     "affiliateNav": {
       "label": "Affiliate navigatie",
-      "dashboard": "Dashboard",
+      "dashboard": "Overzicht",
+      "promote": "Promoten",
+      "network": "Netwerk",
       "promoCodes": "Promocodes",
       "promoMedia": "Promotiemateriaal",
       "commissions": "Commissies",
@@ -1723,7 +1725,7 @@
         "primary": "Open Affiliate & netwerk",
         "secondary": "Promocodes",
         "onboardingPrimary": "Word affiliate",
-        "shareLink": "Deel mijn link"
+        "shareLink": "Deel mijn affiliate-link"
       },
       "delivery": {
         "title": "Bezorging",
@@ -2738,7 +2740,11 @@
     "quickMessagesHint": "(klik = direct verzenden)",
     "typeYourMessage": "Typ je eigen bericht:",
     "typeMessagePlaceholder": "Typ je bericht hier...",
-    "chatIntroProduct": "Kies een snelbericht en het wordt direct verzonden, of typ je eigen bericht onderaan.",
+    "contactChoiceAria": "Kies hoe je contact opneemt",
+    "contactChoiceQuick": "Snel bericht",
+    "contactChoiceWrite": "Zelf schrijven",
+    "contactChoiceProposal": "Voorstel doen",
+    "chatIntroProduct": "Kies een snel bericht, schrijf zelf een bericht, of doe direct een voorstel. Je hoeft niet eerst een chatbericht te sturen.",
     "chatIntroGeneral": "Kies een snelbericht of typ je eigen bericht om het gesprek te starten.",
     "noFavoritesYet": "Nog geen favorieten",
     "favoritesEmptyHint": "Zodra je een product als favoriet markeert, verschijnt het hier.",
@@ -7617,6 +7623,16 @@
       "yourReferralLink": "Your Referral Link",
       "copy": "Copy",
       "copyLink": "Kopieer link",
+      "copyLinkAction": "Link kopiëren",
+      "linkCopied": "Link gekopieerd",
+      "shareAction": "Delen",
+      "personalShareTitle": "Jouw affiliatelink",
+      "personalShareHint": "Deel HomeCheff en verdien wanneer jouw netwerk gebruikmaakt van het platform.",
+      "personalShareCta": "Deel mijn affiliate-link",
+      "personalShareScan": "Scan om HomeCheff via mij te bekijken",
+      "personalShareText": "Doe mee met HomeCheff",
+      "personalShareUnavailable": "Je affiliatelink is nog niet beschikbaar.",
+      "personalShareMenuHint": "QR-code en affiliatelink",
       "copied": "Gekopieerd!",
       "referralLinkTitle": "Jouw partnerlink & QR-code",
       "qrCodeTitle": "QR Code",
@@ -11083,7 +11099,7 @@
   "affiliateDashboard": {
     "share": {
       "title": "Deel & verdien",
-      "subtitle": "Kies wat je wilt promoten. HomeCheff maakt automatisch de juiste affiliate-link voor je.",
+      "subtitle": "Je persoonlijke QR-code en affiliatelink staan hierboven. Kies daarna een platform, zoals Marketplace, Growth, Studio of Bezorging.",
       "hub": {
         "title": "Alle mogelijkheden",
         "description": "Deel het overzicht van alle manieren om mee te doen met HomeCheff."
