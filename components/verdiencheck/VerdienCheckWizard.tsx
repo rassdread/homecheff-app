@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import Link from 'next/link';
 import { runCalculator } from '@/lib/verdiencheck/calculator/engine';
 import type {
   AssetsEligibility,
@@ -62,6 +63,10 @@ import {
   type VerdienCheckEntryPoint,
 } from '@/lib/analytics/verdiencheck-funnel';
 import { verdienCheckProgressBucket } from '@/lib/verdiencheck/privacy/analytics-guard';
+import {
+  referrerPathFromUrl,
+  resolveVerdienCheckReturnPath,
+} from '@/lib/verdiencheck/return-path';
 import {
   EMPTY_WIZARD_STATE,
   applyActivityChoice,
@@ -193,6 +198,22 @@ function persist(step: WizardStepId, state: WizardState) {
   writeVerdienCheckSession({ version: 1, currentStep: step, state });
 }
 
+/** Choice steps only continue once an answer exists. Other steps use goNext guards. */
+function wizardFooterContinueEnabled(step: WizardStepId, state: WizardState): boolean {
+  switch (step) {
+    case 'jurisdiction':
+      return state.taxResidence != null;
+    case 'activity':
+      return state.activityChoice != null;
+    case 'growthStart':
+      return state.growthStart != null;
+    case 'situation':
+      return state.situationGroup != null;
+    default:
+      return true;
+  }
+}
+
 function StepHelp(props: { copy: VerdienCheckCopy; step: string }) {
   const help = props.copy.steps[props.step]?.help;
   if (!help) return null;
@@ -229,6 +250,7 @@ export default function VerdienCheckWizard(props: {
   const [state, setState] = useState<WizardState>(EMPTY_WIZARD_STATE);
   const [infoDialog, setInfoDialog] = useState<'interest' | 'woz' | 'ownerCalc' | null>(null);
   const [entryPoint, setEntryPoint] = useState<VerdienCheckEntryPoint>('direct');
+  const [returnPath, setReturnPath] = useState('/');
   const [restartOpen, setRestartOpen] = useState(false);
   const [showResumeHint, setShowResumeHint] = useState(false);
   const [currentIncomeError, setCurrentIncomeError] = useState(false);
@@ -255,6 +277,14 @@ export default function VerdienCheckWizard(props: {
       }
     }
     setHydrated(true);
+    const params = new URLSearchParams(window.location.search);
+    setReturnPath(
+      resolveVerdienCheckReturnPath({
+        returnTo: params.get('returnTo'),
+        from: params.get('from'),
+        referrerPath: referrerPathFromUrl(document.referrer, window.location.origin),
+      }),
+    );
   }, []);
 
   useEffect(() => {
@@ -546,6 +576,13 @@ export default function VerdienCheckWizard(props: {
     if (n) setStep(n);
   }
 
+  function leaveCheck() {
+    trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.exitToHomecheff, {
+      entry_point: entryPoint,
+      action: 'RETURN_TO_HOMECHEFF',
+    });
+  }
+
   function goBack() {
     if (step === 'payslipDeductions' && state.moneyDepthCompleted) {
       setStep('result');
@@ -723,6 +760,15 @@ export default function VerdienCheckWizard(props: {
         id={VERDIENCHECK_ACTIVE_STEP_ID}
         className={`mx-auto w-full min-w-0 max-w-md px-4 pt-2 break-words scroll-mt-[calc(var(--hc-top-nav-height,4rem)+0.75rem)] ${HC_PAGE_BOTTOM_NAV_PAD} xl:pb-10`}
       >
+        <Link
+          href={returnPath}
+          data-verdiencheck-exit=""
+          onClick={leaveCheck}
+          className="mt-1 inline-flex min-h-11 w-full max-w-full items-center gap-1.5 text-sm font-semibold text-emerald-800 hover:text-emerald-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+        >
+          <span aria-hidden="true">←</span>
+          <span className="truncate">{copy.exitToHomecheff}</span>
+        </Link>
         <div className="mt-2 flex min-w-0 items-start justify-between gap-3">
           <p className="min-w-0 flex-1 text-sm font-medium text-gray-600">
             {progressPhrase({
@@ -3162,6 +3208,7 @@ export default function VerdienCheckWizard(props: {
                 <VerdienCheckResultCta
                   copy={copy}
                   entryPoint={entryPoint}
+                  leaveHref={returnPath}
                   primaryStartSelling={resultCtaMode === 'SELL_PRIMARY'}
                   secondaryStartSelling={resultCtaMode === 'SELL_SECONDARY'}
                   ctaMode={resultCtaMode}
@@ -3175,6 +3222,7 @@ export default function VerdienCheckWizard(props: {
               <VerdienCheckResultCta
                 copy={copy}
                 entryPoint={entryPoint}
+                leaveHref={returnPath}
                 primaryStartSelling={false}
                 secondaryStartSelling={false}
                 onRestart={requestRestart}
@@ -3193,6 +3241,7 @@ export default function VerdienCheckWizard(props: {
             <VerdienCheckResultCta
               copy={copy}
               entryPoint={entryPoint}
+              leaveHref={returnPath}
               primaryStartSelling={false}
               secondaryStartSelling={false}
               onRestart={requestRestart}
@@ -3204,13 +3253,27 @@ export default function VerdienCheckWizard(props: {
         {step !== 'result' ? <StepHelp copy={copy} step={step} /> : null}
 
         {step !== 'jurisdiction' && (
-          <button
-            type="button"
-            onClick={goBack}
-            className="relative z-[80] mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-lg text-gray-800 pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
-          >
-            {copy.back}
-          </button>
+          <div className="mt-6 flex gap-3" data-verdiencheck-step-nav="">
+            <button
+              type="button"
+              onClick={goBack}
+              data-verdiencheck-previous=""
+              className="relative z-[80] inline-flex min-h-12 flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-lg text-gray-800 pointer-events-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+            >
+              {copy.previousStep}
+            </button>
+            {step !== 'result' ? (
+              <button
+                type="button"
+                onClick={goNext}
+                disabled={!wizardFooterContinueEnabled(step, state)}
+                data-verdiencheck-next=""
+                className="relative z-[80] inline-flex min-h-12 flex-1 items-center justify-center rounded-xl bg-emerald-800 px-4 py-3 text-lg font-semibold text-white pointer-events-auto hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+              >
+                {copy.continueStep}
+              </button>
+            ) : null}
+          </div>
         )}
 
         <div className="mt-10">

@@ -40,6 +40,7 @@ export default function VerdienCheckResultCta(props: {
   activity?: ActivityChoice | null;
   moneyCompleted?: boolean;
   includeShare?: boolean;
+  leaveHref?: string;
 }) {
   const { requireAuthAction, guestAuthPanel, isGuest } = useGuestAuthGate();
   const variant = props.variant ?? 'all';
@@ -205,7 +206,7 @@ export default function VerdienCheckResultCta(props: {
       {showNav ? (
         <>
           <Link
-            href="/"
+            href={props.leaveHref || '/'}
             className="relative z-[80] inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-lg text-gray-800 pointer-events-auto"
             onClick={() =>
               trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.exitToHomecheff, {

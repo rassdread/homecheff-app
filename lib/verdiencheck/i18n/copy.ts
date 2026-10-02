@@ -8,6 +8,12 @@ export type VerdienCheckCopy = {
   introGrowth: string;
   disclaimer: string;
   back: string;
+  /** One step back inside the check. Not an exit. */
+  previousStep: string;
+  /** Leave the check for HomeCheff. Not a completion. */
+  exitToHomecheff: string;
+  /** Footer continue, beside previousStep. */
+  continueStep: string;
   leaveProduct: string;
   startSelling: string;
   discoverHomecheff: string;
@@ -418,6 +424,9 @@ const NL: VerdienCheckCopy = {
   disclaimer:
     'Dit is een schatting en persoonlijke uitleg op basis van wat je hebt ingevuld. Jij blijft verantwoordelijk voor wat je doorgeeft en regelt. Schatting voor 2026.',
   back: 'Terug',
+  previousStep: 'Vorige',
+  exitToHomecheff: 'Terug naar HomeCheff',
+  continueStep: 'Volgende',
   leaveProduct: 'VerdienCheck afsluiten',
   startSelling: 'Maak je eerste aanbod',
   discoverHomecheff: 'Ontdek HomeCheff',
@@ -1360,6 +1369,9 @@ const EN: VerdienCheckCopy = {
   disclaimer:
     'This is an estimate and personal explanation based on what you entered. You remain responsible for what you report and arrange. Estimate for 2026.',
   back: 'Back',
+  previousStep: 'Previous',
+  exitToHomecheff: 'Back to HomeCheff',
+  continueStep: 'Next',
   leaveProduct: 'Close VerdienCheck',
   startSelling: 'Create your first listing',
   discoverHomecheff: 'Discover HomeCheff',

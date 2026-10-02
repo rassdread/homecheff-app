@@ -166,7 +166,7 @@ async function runCase(page: Page, name: string, navExpected: boolean): Promise<
   const table = page.locator('[data-verdiencheck-personal-delta]');
   const lastControl = page
     .locator('#verdiencheck-active-step button')
-    .filter({ hasText: /^(Terug|Back)$/ });
+    .filter({ hasText: /^(Vorige|Previous|Terug|Back)$/ });
 
   const presetHit = await clearOfNav(page, lastPreset, navExpected);
   const tableHit = await clearOfNav(page, table, navExpected);
