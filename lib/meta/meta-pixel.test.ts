@@ -204,8 +204,9 @@ describe('Meta Pixel', () => {
     assert.match(checkout, /trackMetaInitiateCheckout/);
     assert.match(checkout, /\/api\/checkout/);
     assert.equal(checkout.includes('hc_ref'), false);
-    const pixel = read('components/meta/MetaPixel.tsx');
+    const pixel = read('components/ConsentAwareAnalytics.tsx');
     assert.match(pixel, /usePathname/);
+    assert.match(pixel, /trackMetaPageView/);
     assert.equal(pixel.includes('useSearchParams'), false);
   });
 });
