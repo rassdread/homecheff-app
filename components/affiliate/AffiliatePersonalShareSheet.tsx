@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   CheckCircle,
@@ -47,22 +47,22 @@ export default function AffiliatePersonalShareSheet({
   const { t, tOr, language } = useTranslation();
   const titleId = useId();
   const [fetchedUrl, setFetchedUrl] = useState('');
+  const latchedUrl = useRef('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [nativeReady, setNativeReady] = useState(false);
 
-  const shareUrl = useMemo(() => {
-    const origin =
-      typeof window !== 'undefined' ? window.location.origin : 'https://homecheff.eu';
-    return (
-      resolveAffiliatePersonalShareUrl({
-        referralLink: knownLink,
-        referralCode: knownCode,
-        origin,
-      }) || fetchedUrl
-    );
-  }, [fetchedUrl, knownCode, knownLink]);
+  const origin =
+    typeof window !== 'undefined' ? window.location.origin : 'https://homecheff.eu';
+  const liveUrl =
+    resolveAffiliatePersonalShareUrl({
+      referralLink: knownLink,
+      referralCode: knownCode,
+      origin,
+    }) || fetchedUrl;
+  if (liveUrl) latchedUrl.current = liveUrl;
+  const shareUrl = liveUrl || latchedUrl.current;
 
   const title = tOr(
     'affiliate.dashboard.personalShareCta',
@@ -102,14 +102,14 @@ export default function AffiliatePersonalShareSheet({
       if (!res.ok) return;
       const json = await res.json();
       const origin = window.location.origin;
-      setFetchedUrl(
-        resolveAffiliatePersonalShareUrl({
-          referralCode: json.code,
-          origin,
-        }),
-      );
+      const next = resolveAffiliatePersonalShareUrl({
+        referralLink: json.link,
+        referralCode: json.code,
+        origin,
+      });
+      if (next) setFetchedUrl(next);
     } catch {
-      setFetchedUrl('');
+      /* a failed request must not clear a code we already have */
     } finally {
       setLoading(false);
     }

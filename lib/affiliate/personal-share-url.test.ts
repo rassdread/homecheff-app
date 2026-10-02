@@ -103,7 +103,14 @@ describe('affiliate share placement', () => {
     assert.match(screen, /referralLinks/);
     assert.match(screen, /referralCode=\{existingCode\}/);
     assert.match(screen, /referralLink=\{existingShareLink\}/);
+    assert.match(screen, /serverShareState=\{existingCode \? 'present' : 'missing'\}/);
     assert.doesNotMatch(screen, /ensurePersonalReferralLink/);
+    const card = read('components/affiliate/AffiliatePersonalShareCard.tsx');
+    assert.match(card, /latchedUrl/);
+    assert.match(card, /data-affiliate-share-next-to-link/);
+    assert.match(card, /data-affiliate-share-with-qr/);
+    assert.doesNotMatch(card, /setFetchedCode\(json\.code \|\| null\)/);
+    assert.doesNotMatch(card, /json\.code \|\| null/);
     const route = read('app/api/affiliate/referral-link/route.ts');
     assert.match(route, /Cache-Control': 'private, no-store, max-age=0'/);
     const sheet = read('components/affiliate/AffiliatePersonalShareSheet.tsx');

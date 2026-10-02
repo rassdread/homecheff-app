@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CheckCircle, Copy, Download, QrCode, Share2 } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
 import QRCode from 'qrcode';
@@ -11,6 +11,8 @@ import { resolveAffiliatePersonalShareUrl } from '@/lib/affiliate/personal-share
 type Props = {
   referralLink?: string | null;
   referralCode?: string | null;
+  /** Set by the dashboard after it has read ReferralLink. Missing means not yet known. */
+  serverShareState?: 'present' | 'missing';
   loading?: boolean;
 };
 
@@ -22,54 +24,52 @@ type Props = {
 export default function AffiliatePersonalShareCard({
   referralLink,
   referralCode,
+  serverShareState,
   loading = false,
 }: Props) {
   const { t, tOr } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [fetchedLink, setFetchedLink] = useState<string | null>(null);
-  const [fetchedCode, setFetchedCode] = useState<string | null>(null);
-  const [fetching, setFetching] = useState(!referralLink && !referralCode);
+  const [filledUrl, setFilledUrl] = useState('');
+  const latchedUrl = useRef('');
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://homecheff.eu';
+  const serverUrl = resolveAffiliatePersonalShareUrl({
+    referralLink,
+    referralCode,
+    origin,
+  });
+  const liveUrl = serverUrl || filledUrl;
+  if (liveUrl) latchedUrl.current = liveUrl;
+  const shareUrl = liveUrl || latchedUrl.current;
+  const [filling, setFilling] = useState(false);
 
   useEffect(() => {
-    if (referralLink || referralCode) {
-      setFetching(false);
-      return;
-    }
+    if (shareUrl || serverShareState === 'present' || serverShareState === 'missing') return;
     let cancelled = false;
+    setFilling(true);
     (async () => {
       try {
         const response = await fetch('/api/affiliate/referral-link');
         if (!response.ok) return;
         const json = await response.json();
         if (cancelled) return;
-        setFetchedCode(json.code || null);
-        setFetchedLink(
-          resolveAffiliatePersonalShareUrl({
-            referralCode: json.code,
-            origin: window.location.origin,
-          }),
-        );
+        const next = resolveAffiliatePersonalShareUrl({
+          referralLink: json.link,
+          referralCode: json.code,
+          origin: window.location.origin,
+        });
+        if (next) setFilledUrl(next);
       } catch {
-        /* the card shows the unavailable state */
+        /* a failed request must not clear a code we already have */
       } finally {
-        if (!cancelled) setFetching(false);
+        if (!cancelled) setFilling(false);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [referralLink, referralCode]);
-
-  const shareUrl = useMemo(() => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://homecheff.eu';
-    return resolveAffiliatePersonalShareUrl({
-      referralLink: referralLink || fetchedLink,
-      referralCode: referralCode || fetchedCode,
-      origin,
-    });
-  }, [fetchedCode, fetchedLink, referralCode, referralLink]);
+  }, [serverShareState, shareUrl]);
 
   const title = tOr(
     'affiliate.dashboard.personalShareTitle',
@@ -81,7 +81,8 @@ export default function AffiliatePersonalShareCard({
     'Share HomeCheff and earn when your network uses the platform.',
     'Deel HomeCheff en verdien wanneer jouw netwerk gebruikmaakt van het platform.',
   );
-  const openLabel = tOr(
+  const openLabel = tOr('affiliate.dashboard.shareAction', 'Share', 'Delen');
+  const openName = tOr(
     'affiliate.dashboard.personalShareCta',
     'Share my affiliate link',
     'Deel mijn affiliate-link',
@@ -155,12 +156,7 @@ export default function AffiliatePersonalShareCard({
         </div>
       </div>
 
-      {(loading || fetching) && !shareUrl ? (
-        <div className="mt-5 animate-pulse space-y-3" aria-busy="true">
-          <div className="mx-auto h-[220px] w-[220px] max-w-full rounded-xl bg-emerald-100" />
-          <div className="h-12 rounded-xl bg-emerald-100" />
-        </div>
-      ) : !shareUrl ? (
+      {!shareUrl && serverShareState === 'missing' && !loading && !filling ? (
         <p className="mt-5 text-sm text-gray-600">
           {tOr(
             'affiliate.dashboard.personalShareUnavailable',
@@ -168,6 +164,11 @@ export default function AffiliatePersonalShareCard({
             'Je affiliatelink is nog niet beschikbaar.',
           )}
         </p>
+      ) : !shareUrl ? (
+        <div className="mt-5 animate-pulse space-y-3" aria-busy="true">
+          <div className="mx-auto h-[220px] w-[220px] max-w-full rounded-xl bg-emerald-100" />
+          <div className="h-12 rounded-xl bg-emerald-100" />
+        </div>
       ) : (
         <div className="mt-5 grid max-w-full grid-cols-1 gap-5 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center">
           <div
@@ -182,6 +183,17 @@ export default function AffiliatePersonalShareCard({
               fgColor="#000000"
               style={{ width: '100%', height: 'auto' }}
             />
+            <button
+              type="button"
+              onClick={() => setSheetOpen(true)}
+              data-affiliate-open-share
+              data-affiliate-share-with-qr
+              aria-label={openName}
+              className="mt-3 inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+              <Share2 className="h-4 w-4" aria-hidden />
+              {openLabel}
+            </button>
           </div>
 
           <div className="min-w-0">
@@ -191,38 +203,38 @@ export default function AffiliatePersonalShareCard({
             >
               {shareUrl}
             </p>
-            <div className="mt-3 grid grid-cols-1 gap-2">
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => void copyLink()}
+                data-affiliate-copy-link
+                className="inline-flex min-h-[48px] touch-manipulation items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
+              >
+                {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                <span role="status">{copied ? copiedLabel : copyLabel}</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setSheetOpen(true)}
                 data-affiliate-open-share
+                data-affiliate-share-next-to-link
+                aria-label={openName}
                 className="inline-flex min-h-[48px] touch-manipulation items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
               >
                 <Share2 className="h-4 w-4" aria-hidden />
                 {openLabel}
               </button>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => void copyLink()}
-                  data-affiliate-copy-link
-                  className="inline-flex min-h-[48px] touch-manipulation items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
-                >
-                  {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  <span role="status">{copied ? copiedLabel : copyLabel}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void downloadQr()}
-                  disabled={downloading}
-                  data-affiliate-download-qr
-                  className="inline-flex min-h-[48px] touch-manipulation items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  <Download className="h-4 w-4" />
-                  {downloading ? t('affiliate.dashboard.downloading') || '…' : downloadLabel}
-                </button>
-              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => void downloadQr()}
+              disabled={downloading}
+              data-affiliate-download-qr
+              className="mt-2 inline-flex min-h-[44px] w-full touch-manipulation items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+            >
+              <Download className="h-4 w-4" />
+              {downloading ? t('affiliate.dashboard.downloading') || '…' : downloadLabel}
+            </button>
           </div>
         </div>
       )}
@@ -231,7 +243,7 @@ export default function AffiliatePersonalShareCard({
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
         referralLink={shareUrl || referralLink}
-        referralCode={referralCode || fetchedCode}
+        referralCode={referralCode}
       />
     </section>
   );

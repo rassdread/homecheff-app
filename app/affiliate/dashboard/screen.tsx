@@ -65,6 +65,7 @@ export async function AffiliateDashboardScreen({
           <AffiliatePersonalShareCard
             referralCode={existingCode}
             referralLink={existingShareLink}
+            serverShareState={existingCode ? 'present' : 'missing'}
           />
         </div>
       ) : null}
