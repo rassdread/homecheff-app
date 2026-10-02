@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { runCalculator } from '@/lib/verdiencheck/calculator/engine';
 import type {
@@ -576,11 +576,19 @@ export default function VerdienCheckWizard(props: {
     if (n) setStep(n);
   }
 
-  function leaveCheck() {
+  function leaveCheck(event: MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
     trackVerdienCheckFunnelEvent(VERDIENCHECK_FUNNEL_EVENTS.exitToHomecheff, {
       entry_point: entryPoint,
       action: 'RETURN_TO_HOMECHEFF',
     });
+    const params = new URLSearchParams(window.location.search);
+    const path = resolveVerdienCheckReturnPath({
+      returnTo: params.get('returnTo'),
+      from: params.get('from'),
+      referrerPath: referrerPathFromUrl(document.referrer, window.location.origin),
+    });
+    window.location.assign(path);
   }
 
   function goBack() {
