@@ -776,7 +776,7 @@ export default function VerdienCheckWizard(props: {
           href={returnPath}
           data-verdiencheck-exit=""
           onClick={leaveCheck}
-          className="mt-1 inline-flex min-h-11 w-full max-w-full items-center gap-1.5 text-sm font-semibold text-emerald-800 hover:text-emerald-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+          className="mt-1 inline-flex min-h-11 min-h-[44px] w-full max-w-full items-center gap-1.5 py-2 text-sm font-semibold text-emerald-800 hover:text-emerald-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
         >
           <span aria-hidden="true">←</span>
           <span className="truncate">{copy.exitToHomecheff}</span>
