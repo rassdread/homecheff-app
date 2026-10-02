@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { usernameContainsTempPlaceholder } from '@/lib/username-placeholder';
 
 export async function GET(req: NextRequest) {
   try {
@@ -24,7 +25,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const hasTempUsername = dbUser.username?.startsWith('temp_');
+    const hasTempUsername = usernameContainsTempPlaceholder(dbUser.username);
     const onboardingCompleted = dbUser.socialOnboardingCompleted === true;
 
     return NextResponse.json({

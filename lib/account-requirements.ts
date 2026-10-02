@@ -74,13 +74,10 @@ const MISSING_STRIPE: MissingRequirement = {
   actionHref: '/seller/stripe/refresh',
 };
 
-/** Lege of tijdelijke patronen (temp_…, user_123) tellen niet als definitieve username. */
+/** Empty or a generated placeholder (temp_…, user_123) is not a definitive username. */
 export function needsDefinitiveUsername(username: string | null | undefined): boolean {
   if (!username?.trim()) return true;
-  const t = username.trim();
-  if (usernameContainsTempPlaceholder(t)) return true;
-  if (/^user_\d+$/i.test(t)) return true;
-  return false;
+  return usernameContainsTempPlaceholder(username);
 }
 
 /** @deprecated Gebruik needsDefinitiveUsername; alias voor duidelijkheid in specs. */

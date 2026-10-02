@@ -3,6 +3,8 @@
  * Keeps social-success, native Google, and /register aligned on the same rules.
  */
 
+import { usernameContainsTempPlaceholder } from '@/lib/username-placeholder';
+
 export const REGISTER_DRAFT_STORAGE_KEY = 'homecheff_register_draft_v1';
 
 const AUTH_PATH_DENYLIST = [
@@ -60,10 +62,8 @@ export function onboardingFlagsFromSessionUser(user: {
   username?: string | null;
   socialOnboardingCompleted?: boolean | null;
 }): OnboardingFlags {
-  const username = user.username ?? '';
   return {
-    hasTempUsername:
-      typeof username === 'string' && username.startsWith('temp_'),
+    hasTempUsername: usernameContainsTempPlaceholder(user.username),
     onboardingCompleted: user.socialOnboardingCompleted === true,
   };
 }

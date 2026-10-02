@@ -8,7 +8,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import { PlaceResolveFeedback } from '@/components/geo/PlaceResolveFeedback';
 import { usePlaceAutoResolve } from '@/hooks/usePlaceAutoResolve';
-import { usernameContainsTempPlaceholder } from '@/lib/username-placeholder';
+import { needsDefinitiveUsername } from '@/lib/account-requirements';
 
 export interface ProfileSettingsRef {
   handleSave: () => Promise<void>;
@@ -107,7 +107,7 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
   });
   const [formData, setFormData] = useState({
     name: user?.name || user?.username || '',
-    username: user?.username || user?.name || '',
+    username: user?.username?.trim() || '',
     bio: user?.bio || '',
     quote: user?.quote || '',
     place: user?.place || '',
@@ -132,7 +132,7 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const canRenameUsername = usernameContainsTempPlaceholder(user?.username);
+  const canRenameUsername = needsDefinitiveUsername(user?.username);
 
   const profilePlaceResolveEnabled =
     isEditing &&
@@ -173,7 +173,7 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
         ...formData,
         username: canRenameUsername
           ? formData.username.trim()
-          : (user?.username || formData.username || "").trim(),
+          : (user?.username || "").trim(),
       };
       await onSave(dataToSave);
       setSuccess(t('profileSettings.profileUpdated'));
@@ -357,7 +357,7 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
   const handleCancel = () => {
     setFormData({
       name: user?.name || user?.username || '',
-      username: user?.username || user?.name || '',
+      username: user?.username?.trim() || '',
       bio: user?.bio || '',
       quote: user?.quote || '',
       place: user?.place || '',

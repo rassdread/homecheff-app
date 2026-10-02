@@ -25,6 +25,7 @@ import { NEXTAUTH_SESSION_COOKIE_NAME } from "./auth/session-cookie-name";
 import { withPrismaRetry } from "./auth/prisma-retry";
 import { sanitizePostAuthRelativeUrl } from "./auth/post-auth-redirect";
 import { markNewAccountForMeta } from "./meta/mark-new-account.server";
+import { usernameContainsTempPlaceholder } from "./username-placeholder";
 
 type Role = UserRole | 'SUPERADMIN';
 type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
@@ -389,7 +390,7 @@ export const authOptions: NextAuthOptions = {
             dbUser.role !== 'SUPERADMIN' && Boolean(dbUser.suspendedAt);
           
           // Only store boolean flags (1 byte each) - no strings
-          const hasTempUsername = dbUser.username?.startsWith('temp_');
+          const hasTempUsername = usernameContainsTempPlaceholder(dbUser.username);
           const onboardingNotCompleted = !dbUser.socialOnboardingCompleted;
           
           minimalToken.needsOnboarding = onboardingNotCompleted && hasTempUsername;

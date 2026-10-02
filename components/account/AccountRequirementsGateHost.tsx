@@ -26,7 +26,6 @@ export default function AccountRequirementsGateHost() {
   const nativeMounted = useIsNativeAppMounted();
   const [open, setOpen] = useState(false);
   const [missing, setMissing] = useState<OpenAccountRequirementsGateDetail['missing']>([]);
-  const [hintKey, setHintKey] = useState<string | null>(null);
   const [stripeBusy, setStripeBusy] = useState(false);
   const [stripeError, setStripeError] = useState<string | null>(null);
 
@@ -34,7 +33,6 @@ export default function AccountRequirementsGateHost() {
     const ce = e as CustomEvent<OpenAccountRequirementsGateDetail>;
     const next = ce.detail?.missing;
     setMissing(Array.isArray(next) ? next : []);
-    setHintKey(typeof ce.detail?.hintKey === 'string' ? ce.detail.hintKey : null);
     setStripeError(null);
     setOpen(true);
   }, []);
@@ -49,7 +47,6 @@ export default function AccountRequirementsGateHost() {
   if (!open) return null;
 
   const notice = aggregateRequirementNotice(noticesForAccountMissing(missing));
-  const showUsernameHint = missing.some((m) => m.key === 'username');
 
   const runStripeOnboard = async () => {
     setStripeBusy(true);
@@ -93,84 +90,60 @@ export default function AccountRequirementsGateHost() {
             <X className="w-5 h-5" />
           </button>
         </div>
-        <p className="whitespace-pre-line px-5 pt-4 text-sm leading-relaxed text-slate-600">
+        <p className="px-5 pt-4 text-sm leading-relaxed text-slate-600">
           {notice?.bodyNl || missing[0]?.bodyNl || t('accountRequirementsGate.body')}
         </p>
-        {hintKey ? (
-          <p className="px-5 pt-3 text-sm leading-relaxed text-slate-700 border-b border-slate-100 pb-3">
-            {t(`accountRequirementsHints.${hintKey}` as never)}
-          </p>
-        ) : null}
-        {showUsernameHint ? (
-          <p className="px-5 pt-2 text-sm font-medium text-amber-800 bg-amber-50 border-y border-amber-100">
-            {t('accountRequirementsGate.subtitleUsername')}
-          </p>
-        ) : null}
-        <ul className="px-5 py-4 space-y-3">
+        <div className="px-5 py-4 space-y-2">
           {missing.map((item) => {
             const copy = userCopyKeysForMissingRequirement(item.key);
+            const label = item.ctaLabelNl || t(copy.ctaKey as never);
+            if (copy.actionKind === 'emailVerify' && session?.user?.email) {
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    window.dispatchEvent(
+                      new CustomEvent(HC_EMAIL_VERIFICATION_REQUIRED_EVENT, {
+                        detail: {
+                          email: String(session.user.email),
+                          reason: 'generic',
+                        },
+                      }),
+                    );
+                  }}
+                  className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700"
+                >
+                  {label}
+                </button>
+              );
+            }
+            if (copy.actionKind === 'stripeOnboard') {
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  disabled={stripeBusy}
+                  onClick={() => void runStripeOnboard()}
+                  className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700 disabled:opacity-60"
+                >
+                  {stripeBusy ? t('accountRequirementsUx.stripeOnboarding.busy') : label}
+                </button>
+              );
+            }
             return (
-              <li
+              <Link
                 key={item.key}
-                className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-3"
+                href={copy.actionHref ?? item.actionHref}
+                onClick={() => setOpen(false)}
+                className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700"
               >
-                <span className="text-sm font-semibold text-slate-900">
-                  {item.titleNl || t(copy.titleKey as never)}
-                </span>
-                <span className="text-sm leading-relaxed text-slate-600">
-                  {item.bodyNl || t(copy.bodyKey as never)}
-                </span>
-                {copy.actionKind === 'emailVerify' && session?.user?.email ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpen(false);
-                      window.dispatchEvent(
-                        new CustomEvent(HC_EMAIL_VERIFICATION_REQUIRED_EVENT, {
-                          detail: {
-                            email: String(session.user.email),
-                            reason: 'generic',
-                          },
-                        }),
-                      );
-                    }}
-                    className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700"
-                  >
-                    {t(copy.ctaKey as never)}
-                  </button>
-                ) : copy.actionKind === 'stripeOnboard' ? (
-                  <button
-                    type="button"
-                    disabled={stripeBusy}
-                    onClick={() => void runStripeOnboard()}
-                    className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700 disabled:opacity-60"
-                  >
-                    {stripeBusy
-                      ? t('accountRequirementsUx.stripeOnboarding.busy')
-                      : t(copy.ctaKey as never)}
-                  </button>
-                ) : (
-                  <Link
-                    href={copy.actionHref ?? item.actionHref}
-                    onClick={() => setOpen(false)}
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-teal-700"
-                  >
-                    {item.ctaLabelNl || t(copy.ctaKey as never)}
-                  </Link>
-                )}
-                {item.key === 'emailVerified' ? (
-                  <Link
-                    href="/verify-email"
-                    onClick={() => setOpen(false)}
-                    className="block text-center text-xs text-slate-500 underline hover:text-slate-700 min-h-[44px] leading-[44px]"
-                  >
-                    {t('emailVerification.openVerifyPage')}
-                  </Link>
-                ) : null}
-              </li>
+                {label}
+              </Link>
             );
           })}
-        </ul>
+        </div>
         {stripeError ? (
           <p className="px-5 pb-2 text-sm text-red-700" role="alert">
             {stripeError}

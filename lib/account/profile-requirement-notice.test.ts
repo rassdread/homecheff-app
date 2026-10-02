@@ -86,7 +86,7 @@ describe('profile requirements engine — exact missing reasons', () => {
 
   it('missing username is blocking for postItem with exact CTA', () => {
     const result = evaluateProfileRequirements({
-      user: { ...readyUser, username: 'temp_abc' },
+      user: { ...readyUser, username: 'temp_1763833239379_g0ctb9e2x' },
       action: 'postItem',
     });
     assert.equal(result.isComplete, false);

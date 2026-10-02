@@ -1,17 +1,20 @@
 /**
- * Tijdelijke Google/social-gebruikersnamen (o.a. temp_…) mogen eenmalig naar een definitieve naam.
+ * Generated placeholders only.
+ * `temp_<timestamp>_<random>` from Google sign-up, or `user_<digits>`.
+ * A real username that merely contains the letters "temp" is definitive.
  */
+const GENERATED_TEMP_USERNAME = /^temp_\d+_/i;
+const GENERATED_USER_DIGITS = /^user_\d+$/i;
+
 export function usernameContainsTempPlaceholder(
   username: string | null | undefined
 ): boolean {
-  if (!username) return false;
-  return username.toLowerCase().includes("temp");
+  const t = username?.trim() ?? "";
+  if (!t) return false;
+  return GENERATED_TEMP_USERNAME.test(t) || GENERATED_USER_DIGITS.test(t);
 }
 
-/** Definitieve naam na hernoemen mag het woord "temp" niet bevatten (éénmalige overstap). */
+/** A chosen final username may not itself be a generated placeholder. */
 export function isDisallowedFinalUsername(username: string): boolean {
-  const t = username.trim();
-  if (t.toLowerCase().includes("temp")) return true;
-  if (/^user_\d+$/i.test(t)) return true;
-  return false;
+  return usernameContainsTempPlaceholder(username);
 }
