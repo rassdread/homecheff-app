@@ -345,7 +345,13 @@ assert.match(faq, /variant="faq"/);
 
 const page = read('app/verdiencheck/page.tsx');
 assert.match(page, /VerdienCheckErrorBoundary/);
-assert.doesNotMatch(page, /searchParams/);
+assert.match(page, /resolveVerdienCheckReturnPath/);
+assert.match(page, /oneParam\(query\.from\)/);
+assert.match(page, /oneParam\(query\.returnTo\)/);
+assert.doesNotMatch(page, /console\.log/);
+assert.doesNotMatch(page, /prisma/);
+assert.doesNotMatch(page, /\{\.\.\.searchParams\}/);
+assert.doesNotMatch(page, /\{\.\.\.query\}/);
 
 const session = read('lib/verdiencheck/privacy/session-client.ts');
 assert.match(session, /sessionStorage/);

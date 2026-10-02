@@ -66,6 +66,7 @@ import { verdienCheckProgressBucket } from '@/lib/verdiencheck/privacy/analytics
 import {
   referrerPathFromUrl,
   resolveVerdienCheckReturnPath,
+  safeInternalReturnPath,
 } from '@/lib/verdiencheck/return-path';
 import {
   EMPTY_WIZARD_STATE,
@@ -243,6 +244,7 @@ function progressPhrase(input: {
 export default function VerdienCheckWizard(props: {
   copy: VerdienCheckCopy;
   language: 'nl' | 'en';
+  initialReturnPath?: string;
 }) {
   const { copy, language } = props;
   const [hydrated, setHydrated] = useState(false);
@@ -250,7 +252,9 @@ export default function VerdienCheckWizard(props: {
   const [state, setState] = useState<WizardState>(EMPTY_WIZARD_STATE);
   const [infoDialog, setInfoDialog] = useState<'interest' | 'woz' | 'ownerCalc' | null>(null);
   const [entryPoint, setEntryPoint] = useState<VerdienCheckEntryPoint>('direct');
-  const [returnPath, setReturnPath] = useState('/');
+  const [returnPath, setReturnPath] = useState(
+    () => safeInternalReturnPath(props.initialReturnPath) ?? '/',
+  );
   const [restartOpen, setRestartOpen] = useState(false);
   const [showResumeHint, setShowResumeHint] = useState(false);
   const [currentIncomeError, setCurrentIncomeError] = useState(false);
