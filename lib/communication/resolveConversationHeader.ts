@@ -217,6 +217,18 @@ async function buildProductHeader(product: {
   };
 }
 
+/** Read-only listing header for a private proposal draft. Does not create a conversation. */
+export async function loadProductProposalHeader(productId: string) {
+  const id = productId.trim();
+  if (!id) return null;
+  const product = await prisma.product.findUnique({
+    where: { id },
+    select: PRODUCT_SELECT,
+  });
+  if (!product) return null;
+  return buildProductHeader(product);
+}
+
 /**
  * Load context header data for a conversation thread.
  */

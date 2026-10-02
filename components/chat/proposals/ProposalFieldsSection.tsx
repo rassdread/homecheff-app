@@ -224,7 +224,7 @@ export default function ProposalFieldsSection({
             {t(preferenceKey)}
           </p>
         ) : null}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2" data-hc-proposal-settlement={form.settlementMode}>
           {allowedSettlementModes.map((mode) => (
             <button
               key={mode}

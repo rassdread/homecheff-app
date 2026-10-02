@@ -10,7 +10,11 @@ import Spinner from '@/components/ui/Spinner';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate';
 import { tryShowAccountRequirementsFromApiBody } from '@/lib/client/consume-account-requirements-response';
-import { buildMessagesWithProposalOpenUrl, buildMessagesConversationUrl } from '@/lib/proposals/proposal-deep-link';
+import { missingRequirementsForAction } from '@/lib/account-requirements';
+import { openAccountRequirementsGate } from '@/lib/onboarding/open-account-requirements-gate';
+import { buildMessagesConversationUrl } from '@/lib/proposals/proposal-deep-link';
+import CreateProposalSheet from '@/components/chat/proposals/CreateProposalSheet';
+import type { ResolvedConversationHeader } from '@/lib/communication/resolveConversationHeader';
 import { storeProposalPrefill } from '@/lib/proposals/proposal-prefill-storage';
 import type { ProposalPrefillInput } from '@/lib/proposals/proposal-prefill';
 import { peekReverseDiscoveryOfferIds } from '@/lib/marketplace/discovery/reverse-discovery-session';
@@ -86,6 +90,9 @@ export default function StartChatButton({
   const [successConversationId, setSuccessConversationId] = useState<
     string | null
   >(null);
+  const [proposalOpen, setProposalOpen] = useState(false);
+  const [proposalHeader, setProposalHeader] =
+    useState<ResolvedConversationHeader | null>(null);
   const { data: session, status } = useSession();
 
   const openModalAfterSessionRef = useRef(false);
@@ -120,10 +127,7 @@ export default function StartChatButton({
     setContactMode('quick');
   };
 
-  const submitConversation = async (
-    rawMessage: string | null,
-    options?: { openProposal?: boolean },
-  ) => {
+  const submitConversation = async (rawMessage: string | null) => {
     const endpoint = productId
       ? '/api/conversations/start'
       : '/api/conversations/start-seller';
@@ -162,32 +166,6 @@ export default function StartChatButton({
     }
     onConversationStarted?.(convId);
     onMessageSent?.(convId);
-
-    const shouldOpenProposal = Boolean(productId) && (options?.openProposal || openProposalAfterStart);
-    if (shouldOpenProposal && productId) {
-      const merged = mergeProposalPrefillForStorage(proposalPrefill);
-      if (merged) {
-        storeProposalPrefill(merged);
-      }
-      if (funnelListing) {
-        trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.proposalDeepLinkClick, {
-          ...funnelListing,
-          listingId: funnelListing.listingId || productId,
-          surface: funnelSurface,
-          entrypoint: options?.openProposal
-            ? 'first_contact_proposal'
-            : funnelEntrypoint,
-        });
-      }
-      router.push(buildMessagesWithProposalOpenUrl(convId));
-      window.dispatchEvent(
-        new CustomEvent('conversationUpdated', {
-          detail: { conversationId: convId },
-        })
-      );
-      closeContactModal();
-      return;
-    }
 
     if (showSuccessMessage) {
       setSuccessConversationId(convId);
@@ -238,6 +216,52 @@ export default function StartChatButton({
     }
   };
 
+  const openPrivateProposalSheet = async () => {
+    if (!productId) return;
+    const meRes = await fetch('/api/profile/me', { credentials: 'include' });
+    if (meRes.ok) {
+      const me = (await meRes.json().catch(() => ({}))) as {
+      user?: {
+        accountRequirements?: {
+          canSendMessage?: boolean;
+          missing?: Parameters<typeof missingRequirementsForAction>[1];
+        };
+      };
+    };
+    const snap = me.user?.accountRequirements;
+      if (snap && snap.canSendMessage === false) {
+        openAccountRequirementsGate({
+          action: 'sendMessage',
+          missing: missingRequirementsForAction('sendMessage', snap.missing ?? []),
+        });
+        closeContactModal();
+        return;
+      }
+    }
+    const merged = mergeProposalPrefillForStorage(proposalPrefill);
+    if (merged) storeProposalPrefill(merged);
+    if (funnelListing) {
+      trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.proposalDeepLinkClick, {
+        ...funnelListing,
+        listingId: funnelListing.listingId || productId,
+        surface: funnelSurface,
+        entrypoint: 'first_contact_proposal',
+      });
+    }
+    const ctxRes = await fetch(
+      `/api/products/${encodeURIComponent(productId)}/proposal-context`,
+      { credentials: 'include' },
+    );
+    if (!ctxRes.ok) {
+      throw new Error('proposal context');
+    }
+    const ctx = (await ctxRes.json()) as { contextHeader?: ResolvedConversationHeader | null };
+    if (!ctx.contextHeader) throw new Error('proposal context');
+    setProposalHeader(ctx.contextHeader);
+    closeContactModal();
+    setProposalOpen(true);
+  };
+
   const handleStartProposal = async () => {
     if (!session?.user) {
       goToLoginForChat();
@@ -246,7 +270,7 @@ export default function StartChatButton({
     if (!productId) return;
     setIsLoading(true);
     try {
-      await submitConversation(null, { openProposal: true });
+      await openPrivateProposalSheet();
     } catch (error) {
       alert(
         `Fout bij starten van gesprek: ${error instanceof Error ? error.message : 'Onbekende fout'}`
@@ -282,11 +306,11 @@ export default function StartChatButton({
       openModalAfterSessionRef.current = true;
       return;
     }
-    if (skipModal && productId) {
-      void handleDirectStart();
+    if (openProposalAfterStart && productId) {
+      void handleStartProposal();
       return;
     }
-    if (openProposalAfterStart && productId) {
+    if (skipModal && productId) {
       void handleDirectStart();
       return;
     }
@@ -555,6 +579,21 @@ export default function StartChatButton({
           </div>
         </div>
       )}
+      {proposalOpen && proposalHeader && productId ? (
+        <CreateProposalSheet
+          open
+          conversationId={`listing:${productId}`}
+          listingProductId={productId}
+          contextHeader={proposalHeader}
+          peerDisplayName={sellerName}
+          onClose={() => setProposalOpen(false)}
+          onCreated={() => setProposalOpen(false)}
+          onSubmitted={({ conversationId }) => {
+            setProposalOpen(false);
+            router.push(buildMessagesConversationUrl(conversationId));
+          }}
+        />
+      ) : null}
     </>
   );
 }

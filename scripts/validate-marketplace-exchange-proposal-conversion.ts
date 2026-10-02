@@ -44,13 +44,14 @@ assert(
 
 const startChat = readRepoFile('components/chat/StartChatButton.tsx');
 assert(startChat.includes('openProposalAfterStart'), 'StartChatButton supports openProposalAfterStart');
-assert(startChat.includes('buildMessagesWithProposalOpenUrl'), 'StartChatButton uses proposal deep-link URL');
+assert(startChat.includes('CreateProposalSheet'), 'StartChatButton reuses CreateProposalSheet');
+assert(startChat.includes('listingProductId'), 'first-contact proposal stays a private draft until send');
 assert(startChat.includes('data-hc-first-contact-proposal'), 'first contact shows Voorstel doen');
 assert(startChat.includes('data-hc-first-contact-quick'), 'first contact keeps quick message');
 assert(startChat.includes('data-hc-first-contact-write'), 'first contact keeps free message');
 assert(
-  startChat.includes('submitConversation(null, { openProposal: true })'),
-  'first-contact proposal opens existing sheet without a text message',
+  !startChat.includes('submitConversation(null, { openProposal: true })'),
+  'first-contact proposal does not create a conversation before send',
 );
 const firstContactChoices = startChat.slice(
   startChat.indexOf('data-hc-first-contact-choices'),

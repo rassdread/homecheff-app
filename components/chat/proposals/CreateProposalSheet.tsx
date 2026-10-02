@@ -20,6 +20,10 @@ import {
   trackProposalFlowEvent,
 } from "@/lib/proposals/proposal-analytics";
 import { resolveProposalPrefill } from "@/lib/proposals/proposal-prefill";
+import {
+  proposalFormInitKey,
+  shouldApplyProposalFormInit,
+} from "@/lib/proposals/proposal-form-init";
 import { consumeProposalPrefill } from "@/lib/proposals/proposal-prefill-storage";
 import type { ProposalFormValues } from "@/lib/proposals/proposal-form-types";
 import {
@@ -45,7 +49,13 @@ type Props = {
   /** Fired when a buyer-private concept draft is saved or cleared. */
   onDraftChanged?: () => void;
   conversationId: string;
+  /**
+   * When set, the sheet is a private listing draft.
+   * The conversation is created only when the buyer submits.
+   */
+  listingProductId?: string | null;
   contextHeader?: ResolvedConversationHeader | null;
+  onSubmitted?: (info: { conversationId: string }) => void;
   /** Counterparty display name for “Voorstel aan …”. */
   peerDisplayName?: string | null;
 };
@@ -63,8 +73,10 @@ export default function CreateProposalSheet({
   onCreated,
   onDraftChanged,
   conversationId,
+  listingProductId = null,
   contextHeader,
   peerDisplayName = null,
+  onSubmitted,
 }: Props) {
   const { t } = useTranslation();
   const { status: sessionStatus } = useSession();
@@ -72,6 +84,11 @@ export default function CreateProposalSheet({
     contextHeader?.kind === "PRODUCT" ? contextHeader.product : null;
   const submitLockRef = useRef(false);
   const initialFormRef = useRef<ProposalFormValues | null>(null);
+  const headerRef = useRef(contextHeader);
+  headerRef.current = contextHeader;
+  const initKeyRef = useRef<string | null>(null);
+  const userEditedRef = useRef(false);
+  const productId = product?.id ?? "";
 
   const [form, setForm] = useState<ProposalFormValues>(() =>
     resolveProposalPrefill({ source: "listing", contextHeader }).form,
@@ -85,24 +102,40 @@ export default function CreateProposalSheet({
   const [keyboardInset, setKeyboardInset] = useState(0);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      initKeyRef.current = null;
+      userEditedRef.current = false;
+      return;
+    }
 
+    const nextKey = proposalFormInitKey(conversationId, productId);
+    if (!shouldApplyProposalFormInit(initKeyRef.current, nextKey)) return;
+    if (userEditedRef.current && initKeyRef.current) {
+      initKeyRef.current = nextKey;
+      return;
+    }
+
+    const header = headerRef.current;
     submitLockRef.current = false;
     const stored = consumeProposalPrefill();
     const existingDraft = loadProposalDraft(conversationId);
     const result = resolveProposalPrefill({
       source: stored?.source ?? "listing",
-      contextHeader,
+      contextHeader: header,
       exchangeSuggestion: stored?.exchangeSuggestion,
       parentProposal: stored?.parentProposal,
       reverseDiscoveryOfferIds: stored?.reverseDiscoveryOfferIds,
     });
 
+    const headerProduct = header?.kind === "PRODUCT" ? header.product : null;
+
     // Prefer explicit exchange/session prefill; otherwise restore buyer concept draft.
     const useDraft =
       !stored &&
       existingDraft &&
-      (!product || !existingDraft.productId || existingDraft.productId === product.id);
+      (!headerProduct ||
+        !existingDraft.productId ||
+        existingDraft.productId === headerProduct.id);
 
     if (useDraft && existingDraft) {
       result.form = { ...result.form, ...existingDraft.form };
@@ -111,17 +144,17 @@ export default function CreateProposalSheet({
       setEditingDraft(false);
     }
 
-    if (product) {
+    if (headerProduct) {
       const allowed = allowedBuyerProposalSettlementModes(
-        product.barterOpenness,
+        headerProduct.barterOpenness,
       );
       if (!allowed.includes(result.form.settlementMode)) {
         result.form.settlementMode = allowed[0] ?? "MONEY";
       }
-      // Listing identity is immutable for product-bound proposals.
-      result.form.title = product.title;
+      result.form.title = headerProduct.title;
     }
 
+    initKeyRef.current = nextKey;
     setForm(result.form);
     initialFormRef.current = result.form;
     setPrefillMeta(result.meta);
@@ -147,19 +180,18 @@ export default function CreateProposalSheet({
       });
     }
 
-    if (product) {
+    if (headerProduct) {
       trackExchangeFunnelEvent(EXCHANGE_FUNNEL_EVENTS.proposalSheetOpened, {
-        listingId: product.id,
-        barterOpenness: product.barterOpenness,
-        acceptedSpecializations: product.acceptedSpecializations,
-        orderMethod: product.orderMethod,
+        listingId: headerProduct.id,
+        barterOpenness: headerProduct.barterOpenness,
+        acceptedSpecializations: headerProduct.acceptedSpecializations,
         surface: "chat",
         entrypoint: result.meta.exchangeSuggestionUsed
           ? "exchange_suggestion_proposal_sheet"
           : "create_proposal_sheet_open",
       });
     }
-  }, [open, contextHeader, product, conversationId]);
+  }, [open, conversationId, productId]);
 
   // Keep sticky CTA above the soft keyboard only — ignore URL-bar / chrome jitter
   // (false positives in portrait Safari can collapse the sheet off-screen).
@@ -208,6 +240,11 @@ export default function CreateProposalSheet({
     (form.settlementMode === "MONEY" ||
       form.settlementMode === "MONEY_AND_VALUE") &&
     Boolean(product);
+
+  const updateForm = (next: ProposalFormValues) => {
+    userEditedRef.current = true;
+    setForm(next);
+  };
 
   const sendLabelKey = resolveProposalSendLabelKey(product?.marketplaceCategory);
 
@@ -305,7 +342,9 @@ export default function CreateProposalSheet({
           : `proposal-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
       const res = await fetch(
-        `/api/conversations/${conversationId}/proposals`,
+        listingProductId
+          ? `/api/products/${listingProductId}/proposals`
+          : `/api/conversations/${conversationId}/proposals`,
         {
           method: "POST",
           headers: {
@@ -356,6 +395,11 @@ export default function CreateProposalSheet({
       clearProposalDraft(conversationId);
       setEditingDraft(false);
       onDraftChanged?.();
+      const submittedConversationId =
+        typeof data.conversationId === "string" && data.conversationId
+          ? data.conversationId
+          : conversationId;
+      onSubmitted?.({ conversationId: submittedConversationId });
       onCreated();
       onClose();
     } catch {
@@ -474,7 +518,7 @@ export default function CreateProposalSheet({
 
             <ProposalFieldsSection
               form={form}
-              onChange={setForm}
+              onChange={updateForm}
               allowedSettlementModes={allowedSettlementModes}
               lockListingTitle={Boolean(product)}
               product={
