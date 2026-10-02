@@ -21,7 +21,6 @@ import {
   EXCHANGE_FUNNEL_EVENTS,
   trackExchangeFunnelEvent,
 } from '@/lib/marketplace/exchange/exchange-funnel-analytics';
-import { trackMetaInitiateCheckout } from '@/lib/meta/browser';
 import {
   isLocalProviderCheckoutSelection,
   isSellerDeliveryCheckoutSelection,
@@ -942,17 +941,6 @@ export default function CheckoutPage() {
         if (!isDealCheckout) clearCart();
         setIsRedirecting(true);
         didRedirect = true;
-        try {
-          trackMetaInitiateCheckout({
-            ok: true,
-            checkoutUrl: mixedData.checkoutUrl,
-            valueCents: remainingAfterHc,
-            contentIds: checkoutItems.map((item) => item.productId),
-            numItems: checkoutItems.reduce((sum, item) => sum + item.quantity, 0),
-          });
-        } catch {
-          /* Meta must not block checkout */
-        }
         window.location.href = mixedData.checkoutUrl;
         return;
       }
@@ -1014,21 +1002,6 @@ export default function CheckoutPage() {
               ? `${data.error}${data?.details ? `: ${data.details}` : ''}`
               : `HTTP ${response.status}: ${response.statusText}`;
         throw new Error(message);
-      }
-
-      if (data.url || data.sessionId) {
-        try {
-          trackMetaInitiateCheckout({
-            ok: response.ok,
-            checkoutUrl: typeof data.url === 'string' ? data.url : null,
-            sessionId: typeof data.sessionId === 'string' ? data.sessionId : null,
-            valueCents: subtotalCents,
-            contentIds: checkoutItems.map((item) => item.productId),
-            numItems: checkoutItems.reduce((sum, item) => sum + item.quantity, 0),
-          });
-        } catch {
-          /* Meta must not block checkout */
-        }
       }
 
       if (data.url) {

@@ -473,7 +473,7 @@ export const ACQUISITION_KPI_DICTIONARY: readonly AcquisitionKpi[] = [
     consent: 'Operational. Not sent to GA4 from the server.',
     transport: 'server',
     adsDestination:
-      'Meta Pixel Purchase on /payment/success only when Stripe payment_status is paid and amount_total > 0. The GA trackPurchase helper is still unused. No Conversions API.',
+      'Meta Pixel Purchase count only, after marketing consent, when Stripe payment_status is paid and amount_total > 0. No order value, no listing id, no Stripe id, and no customer data are sent. No PageView, ViewContent, or InitiateCheckout. No Conversions API.',
     implementation: 'WIRED',
   },
   {

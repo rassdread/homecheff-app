@@ -13,28 +13,11 @@ import { trackMetaPurchase } from '@/lib/meta/browser';
 
 type ViewState = 'loading' | 'missing' | 'error' | 'success';
 
+let retainedPaymentSessionId: string | null = null;
+
 type PolledOrderItem = {
   product?: { id?: string; title?: string | null } | null;
 };
-
-function listingIdsFromStripeMetadata(
-  metadata: Record<string, string> | null | undefined,
-): string[] {
-  if (!metadata) return [];
-  const ids: string[] = [];
-  const compactKeys = Object.keys(metadata)
-    .filter((key) => key.startsWith('items_compact_'))
-    .sort();
-  for (const key of compactKeys) {
-    for (const entry of metadata[key].split(';')) {
-      const productId = entry.split('|')[0]?.trim();
-      if (productId) ids.push(productId);
-    }
-  }
-  const direct = metadata.productId?.trim();
-  if (ids.length === 0 && direct) ids.push(direct);
-  return ids;
-}
 
 function firstListingIdFromStripeMetadata(
   metadata: Record<string, string> | null | undefined,
@@ -56,7 +39,9 @@ function firstListingIdFromStripeMetadata(
 function PaymentSuccessContent() {
   const { t, language } = useTranslation();
   const searchParams = useSearchParams();
-  const sessionId = searchParams?.get('session_id');
+  const urlSessionId = searchParams?.get('session_id') ?? null;
+  if (urlSessionId) retainedPaymentSessionId = urlSessionId;
+  const sessionId = urlSessionId || retainedPaymentSessionId;
   const { clearCart } = useCart();
   const clearCartRef = useRef(clearCart);
 
@@ -102,9 +87,7 @@ function PaymentSuccessContent() {
           trackMetaPurchase({
             paymentStatus: typeof payload?.payment_status === 'string' ? payload.payment_status : null,
             amountTotalCents: typeof payload?.amount_total === 'number' ? payload.amount_total : null,
-            currency: typeof payload?.currency === 'string' ? payload.currency : null,
-            stripeSessionId: typeof payload?.id === 'string' ? payload.id : null,
-            contentIds: listingIdsFromStripeMetadata(payload?.metadata),
+            stripeSessionId: typeof payload?.id === 'string' ? payload.id : sessionId,
           });
         } catch {
           /* Meta must not block payment confirmation */

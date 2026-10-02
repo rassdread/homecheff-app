@@ -62,9 +62,6 @@ export async function POST(req: NextRequest) {
     JSON.stringify({
       ok: true,
       accountCreated: result.accountCreated === true,
-      ...(result.registrationEventId
-        ? { registrationEventId: result.registrationEventId }
-        : {}),
     }),
     { status: 200, headers },
   );

@@ -15,7 +15,6 @@ import {
 } from '@/lib/auth/google-oauth-clients';
 
 import { NEXTAUTH_SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie-name';
-import { registrationEventId } from '@/lib/meta/commerce';
 
 const SESSION_MAX_AGE_SEC = 30 * 24 * 60 * 60;
 const SESSION_COOKIE_NAME = NEXTAUTH_SESSION_COOKIE_NAME;
@@ -42,7 +41,6 @@ export type NativeGoogleSessionResult =
       ok: true;
       setCookie: string;
       accountCreated: boolean;
-      registrationEventId?: string;
     }
   | { ok: false; status: number; code: string };
 
@@ -160,12 +158,10 @@ export async function createSessionFromNativeGoogleIdToken(
     ].join('; ');
 
     console.info(LOG_PREFIX, { verifySuccess: true });
-    const eventId = sync.isNewSocialUser ? registrationEventId(sync.userId) : null;
     return {
       ok: true,
       setCookie,
       accountCreated: sync.isNewSocialUser === true,
-      ...(eventId ? { registrationEventId: eventId } : {}),
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);

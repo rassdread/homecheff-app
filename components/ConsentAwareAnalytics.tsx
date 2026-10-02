@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
-import { flushPendingMetaEvents, revokeMetaPixelConsent, trackMetaPageView } from '@/lib/meta/browser';
+import { flushPendingMetaEvents, rememberAdClickAfterConsent, withdrawMetaMarketingConsent } from '@/lib/meta/browser';
 import { ANALYTICS_CONSENT_KEY, analyticsConsentGranted, MARKETING_CONSENT_KEY, marketingConsentState } from '@/lib/meta/commerce';
 
 const VercelAnalytics = dynamic(() => import('@/components/VercelAnalytics'), { ssr: false });
@@ -30,13 +30,20 @@ export default function ConsentAwareAnalytics() {
   }, []);
 
   useEffect(() => {
-    if (!marketingConsent) {
-      revokeMetaPixelConsent();
+    let state: 'granted' | 'denied' | 'unknown' = 'unknown';
+    try {
+      state = marketingConsentState(localStorage.getItem(MARKETING_CONSENT_KEY));
+    } catch {
+      state = 'unknown';
+    }
+    if (state === 'denied') {
+      withdrawMetaMarketingConsent();
       return;
     }
+    if (state !== 'granted') return;
     try {
+      rememberAdClickAfterConsent();
       flushPendingMetaEvents();
-      trackMetaPageView(pathname);
     } catch {
       /* Meta must not break the app */
     }

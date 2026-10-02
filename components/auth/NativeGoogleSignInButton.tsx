@@ -304,7 +304,6 @@ export function NativeGoogleSignInButton({
       ok?: boolean;
       code?: string;
       accountCreated?: boolean;
-      registrationEventId?: string;
     };
     if (!post.ok || !payload.ok) {
       const code = typeof payload.code === 'string' ? payload.code : '';
@@ -332,13 +331,9 @@ export function NativeGoogleSignInButton({
         /* ignore */
       }
       try {
-        const userId = payload.registrationEventId?.startsWith('reg:')
-          ? payload.registrationEventId.slice(4)
-          : null;
         trackMetaCompleteRegistration({
           surface: 'register',
           accountCreated: payload.accountCreated === true,
-          userId,
         });
       } catch {
         /* ignore */

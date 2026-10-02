@@ -1,27 +1,34 @@
 /**
  * Client-only Meta Pixel delivery.
  * Failures are swallowed. HomeCheff flows must not depend on fbq.
- * Automatic Advanced Matching is not enabled: init receives the pixel id only,
- * and autoConfig is off so the pixel does not scrape form fields.
+ *
+ * The pixel loads only after marketing consent and only for an approved
+ * conversion event. Automatic Advanced Matching stays off: init receives
+ * the pixel id only, and autoConfig is off so the pixel does not scrape forms.
  */
 import {
-  decidePageView,
-  initiateCheckoutEventId,
+  fbclidFromSearch,
+  fbcCookieValue,
+  isNewAccountCookieSignal,
+  isStripeCheckoutSessionId,
   MARKETING_CONSENT_KEY,
   marketingConsentState,
-  META_STANDARD_EVENTS,
+  maySendMetaFromLocation,
+  META_APPROVED_EVENTS,
+  META_CLICK_STORAGE_KEY,
+  metaCookieClearDirectives,
+  metaLocalDedupeKey,
+  metaWirePayload,
   NEW_ACCOUNT_COOKIE,
-  purchaseEventId,
+  opaqueMetaEventId,
+  redactUrlForMeta,
   REGISTER_INTENT_KEY,
-  registrationEventId,
   resolveMetaPixelId,
   sanitizeMetaParams,
   shouldFireCompleteRegistration,
-  shouldFireInitiateCheckout,
   shouldFirePurchase,
-  stripeSessionIdFromCheckoutUrl,
+  type MetaApprovedEventName,
   type MetaParams,
-  type MetaStandardEventName,
 } from '@/lib/meta/commerce';
 
 type Fbq = ((...args: unknown[]) => void) & {
@@ -43,31 +50,28 @@ const PENDING_KEY = 'hc_meta_pending_events';
 const SCRIPT_SRC = 'https://connect.facebook.net/en_US/fbevents.js';
 
 type PendingEvent = {
-  name: MetaStandardEventName;
+  name: MetaApprovedEventName;
   params: MetaParams;
-  eventId?: string;
+  eventId: string;
 };
 
-let lastPageViewPath: string | null = null;
 let initializedPixelId: string | null = null;
 let scriptFailed = false;
 const recentEventIds = new Map<string, number>();
 
-function claimEventDelivery(eventId: string | undefined, persist: boolean): boolean {
-  if (!eventId) return false;
+function claimEventDelivery(dedupeKey: string | undefined): boolean {
+  if (!dedupeKey) return false;
   const now = Date.now();
-  const previous = recentEventIds.get(eventId);
+  const previous = recentEventIds.get(dedupeKey);
   if (previous && now - previous < 2500) return true;
-  if (persist) {
-    try {
-      const key = `hc_meta_once:${eventId}`;
-      if (window.sessionStorage.getItem(key) === '1') return true;
-      window.sessionStorage.setItem(key, '1');
-    } catch {
-      /* still allow a single in-memory send */
-    }
+  try {
+    const key = `hc_meta_once:${dedupeKey}`;
+    if (window.sessionStorage.getItem(key) === '1') return true;
+    window.sessionStorage.setItem(key, '1');
+  } catch {
+    /* still allow a single in-memory send */
   }
-  recentEventIds.set(eventId, now);
+  recentEventIds.set(dedupeKey, now);
   return false;
 }
 
@@ -79,12 +83,7 @@ function readMarketingRaw(): string | null {
   }
 }
 
-export function getLastMetaPageViewPath(): string | null {
-  return lastPageViewPath;
-}
-
 export function resetMetaBrowserStateForTests(): void {
-  lastPageViewPath = null;
   initializedPixelId = null;
   scriptFailed = false;
   recentEventIds.clear();
@@ -175,6 +174,18 @@ export function initMetaPixel(pixelId: string): void {
   document.head.appendChild(script);
 }
 
+function clearMetaBrowserCookies(): void {
+  if (typeof document === 'undefined') return;
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  for (const directive of metaCookieClearDirectives(host)) {
+    try {
+      document.cookie = directive;
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 export function revokeMetaPixelConsent(): void {
   if (typeof window === 'undefined' || typeof window.fbq !== 'function') return;
   try {
@@ -184,39 +195,95 @@ export function revokeMetaPixelConsent(): void {
   }
 }
 
-function deliver(name: MetaStandardEventName, params: MetaParams, eventId?: string): void {
+/** Stop future events and delete Meta cookies this site can reach. */
+export function withdrawMetaMarketingConsent(): void {
+  revokeMetaPixelConsent();
+  clearPendingMetaEvents();
+  clearMetaBrowserCookies();
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.removeItem(META_CLICK_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * After marketing consent, keep the ad click id on this device so a later
+ * conversion can be attributed. This does not load the pixel and does not
+ * set a Meta cookie. Nothing is stored before consent.
+ */
+export function rememberAdClickAfterConsent(): void {
+  if (typeof window === 'undefined') return;
+  if (marketingConsentState(readMarketingRaw()) !== 'granted') return;
+  try {
+    const fbclid = fbclidFromSearch(window.location.search);
+    if (!fbclid) return;
+    window.sessionStorage.setItem(META_CLICK_STORAGE_KEY, fbclid);
+  } catch {
+    /* ignore */
+  }
+}
+
+function redactCurrentLocation(): void {
+  try {
+    const next = redactUrlForMeta(window.location.href);
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (next !== current) {
+      window.history.replaceState(window.history.state, '', next);
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+function attachClickCookie(): void {
+  try {
+    const fbclid = window.sessionStorage.getItem(META_CLICK_STORAGE_KEY);
+    const value = fbcCookieValue(fbclid ?? '', Date.now());
+    if (!value) return;
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `_fbc=${value}; Path=/; Max-Age=7776000; SameSite=Lax${secure}`;
+  } catch {
+    /* ignore */
+  }
+}
+
+function deliver(name: MetaApprovedEventName, eventId: string, hiddenSources: string[]): void {
+  if (marketingConsentState(readMarketingRaw()) !== 'granted') return;
+  if (!maySendMetaFromLocation(window.location.href)) return;
+  const wire = metaWirePayload({ eventId, hiddenSources });
+  if (!wire) return;
   const pixelId = resolveMetaPixelId(process.env.NEXT_PUBLIC_META_PIXEL_ID);
   if (!pixelId) return;
+  redactCurrentLocation();
+  attachClickCookie();
   initMetaPixel(pixelId);
   if (scriptFailed && typeof window.fbq !== 'function') return;
-  const options = eventId ? { eventID: eventId } : undefined;
-  callFbq(['track', name, params, options]);
+  callFbq(['track', name, wire.params, { eventID: wire.eventId }]);
 }
 
 export function trackMetaEvent(
-  name: MetaStandardEventName,
-  params?: Record<string, unknown> | null,
-  eventId?: string | null,
+  name: MetaApprovedEventName,
+  dedupeKey: string,
+  hiddenSources: string[],
 ): void {
   if (typeof window === 'undefined') return;
-  if (!META_STANDARD_EVENTS.includes(name)) return;
+  if (!(META_APPROVED_EVENTS as readonly string[]).includes(name)) return;
   try {
-    const safe = sanitizeMetaParams(params);
-    const id = eventId?.trim() || undefined;
-    const persistOnce = name === 'Purchase' || name === 'CompleteRegistration';
-    if (claimEventDelivery(id, persistOnce)) return;
+    const eventId = opaqueMetaEventId();
+    if (!eventId) return;
+    sanitizeMetaParams(null);
+    if (claimEventDelivery(dedupeKey)) return;
     const state = marketingConsentState(readMarketingRaw());
     if (state !== 'granted') {
       if (state === 'denied') return;
-      if (name === 'PageView') return;
-      const pending = readPending().filter(
-        (event) => name !== 'ViewContent' || event.name !== 'ViewContent',
-      );
-      pending.push({ name, params: safe, eventId: id });
+      const pending = readPending().filter((event) => event.name !== name);
+      pending.push({ name, params: {}, eventId });
       writePending(pending);
       return;
     }
-    deliver(name, safe, id);
+    deliver(name, eventId, hiddenSources);
   } catch {
     /* tracking must never break the app */
   }
@@ -229,21 +296,11 @@ export function flushPendingMetaEvents(): void {
     const pending = readPending();
     writePending([]);
     for (const event of pending) {
-      deliver(event.name, event.params, event.eventId);
+      deliver(event.name, event.eventId, []);
     }
   } catch {
     /* ignore */
   }
-}
-
-export function trackMetaPageView(pathname: string | null | undefined): void {
-  const decision = decidePageView({ pathname, lastPathname: lastPageViewPath });
-  if (decision !== 'fire') return;
-  if (!resolveMetaPixelId(process.env.NEXT_PUBLIC_META_PIXEL_ID)) return;
-  if (marketingConsentState(readMarketingRaw()) !== 'granted') return;
-  const path = (pathname ?? '').trim();
-  lastPageViewPath = path;
-  trackMetaEvent('PageView', undefined, `pv:${path}:${Date.now()}`);
 }
 
 export function markMetaRegisterIntent(): void {
@@ -269,17 +326,19 @@ export function consumeSocialRegistrationForMeta(): void {
       }
     }
     document.cookie = `${NEW_ACCOUNT_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
-    const userId = raw.startsWith('reg:') ? raw.slice(4) : '';
+    if (!isNewAccountCookieSignal(raw)) return;
     if (
       !shouldFireCompleteRegistration({
-        accountCreated: Boolean(userId),
+        accountCreated: true,
         surface: 'social',
         registerIntent: intent,
       })
     ) {
       return;
     }
-    trackMetaEvent('CompleteRegistration', undefined, registrationEventId(userId));
+    const dedupeKey = metaLocalDedupeKey('registration', 'social');
+    if (!dedupeKey) return;
+    trackMetaEvent('CompleteRegistration', dedupeKey, [raw]);
   } catch {
     /* ignore */
   }
@@ -298,85 +357,21 @@ export function trackMetaCompleteRegistration(input: {
   ) {
     return;
   }
-  trackMetaEvent('CompleteRegistration', undefined, registrationEventId(input.userId));
-}
-
-export function trackMetaViewContent(input: {
-  contentId: string;
-  contentName?: string | null;
-  contentCategory?: string | null;
-  valueCents?: number | null;
-}): void {
-  const contentId = input.contentId.trim();
-  if (!contentId) return;
-  const value =
-    typeof input.valueCents === 'number' && input.valueCents > 0
-      ? Math.round(input.valueCents) / 100
-      : undefined;
-  trackMetaEvent(
-    'ViewContent',
-    {
-      content_ids: [contentId],
-      content_type: 'product',
-      content_name: input.contentName ?? undefined,
-      content_category: input.contentCategory ?? undefined,
-      value,
-      currency: value ? 'EUR' : undefined,
-    },
-    `vc:${contentId}`,
-  );
-}
-
-export function trackMetaInitiateCheckout(input: {
-  ok: boolean;
-  checkoutUrl?: string | null;
-  sessionId?: string | null;
-  hcOnly?: boolean;
-  valueCents?: number | null;
-  contentIds?: string[];
-  numItems?: number;
-}): void {
-  if (!shouldFireInitiateCheckout(input)) return;
-  const sessionId =
-    (input.sessionId && input.sessionId.trim()) ||
-    stripeSessionIdFromCheckoutUrl(input.checkoutUrl) ||
-    '';
-  const value =
-    typeof input.valueCents === 'number' && input.valueCents > 0
-      ? Math.round(input.valueCents) / 100
-      : undefined;
-  trackMetaEvent(
-    'InitiateCheckout',
-    {
-      value,
-      currency: 'EUR',
-      content_ids: input.contentIds,
-      content_type: 'product',
-      num_items: input.numItems,
-    },
-    initiateCheckoutEventId(sessionId) ?? undefined,
-  );
+  const userId = (input.userId ?? '').trim();
+  const dedupeKey = metaLocalDedupeKey('registration', userId || input.surface);
+  if (!dedupeKey) return;
+  trackMetaEvent('CompleteRegistration', dedupeKey, userId ? [userId] : []);
 }
 
 export function trackMetaPurchase(input: {
   paymentStatus: string | null | undefined;
   amountTotalCents: number | null | undefined;
-  currency?: string | null;
   stripeSessionId?: string | null;
-  contentIds?: string[];
 }): void {
   if (!shouldFirePurchase(input)) return;
-  const eventId = purchaseEventId(input.stripeSessionId);
-  if (!eventId) return;
-  const currency = (input.currency || 'eur').toUpperCase();
-  trackMetaEvent(
-    'Purchase',
-    {
-      value: Math.round(input.amountTotalCents as number) / 100,
-      currency: /^[A-Z]{3}$/.test(currency) ? currency : 'EUR',
-      content_ids: input.contentIds,
-      content_type: 'product',
-    },
-    eventId,
-  );
+  const sessionId = (input.stripeSessionId ?? '').trim();
+  if (!isStripeCheckoutSessionId(sessionId)) return;
+  const dedupeKey = metaLocalDedupeKey('purchase', sessionId);
+  if (!dedupeKey) return;
+  trackMetaEvent('Purchase', dedupeKey, [sessionId]);
 }
