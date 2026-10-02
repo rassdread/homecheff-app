@@ -192,6 +192,13 @@ describe('Meta Pixel', () => {
     assert.match(HOMECHEFF_CONTENT_SECURITY_POLICY, /script-src[^;]*https:\/\/connect\.facebook\.net/);
     assert.match(HOMECHEFF_CONTENT_SECURITY_POLICY, /script-src[^;]*https:\/\/www\.googletagmanager\.com/);
     assert.doesNotMatch(HOMECHEFF_CONTENT_SECURITY_POLICY, /snap\.licdn\.com/);
+    const metaInit = metaBrowser.slice(
+      metaBrowser.indexOf('export function initMetaPixel'),
+      metaBrowser.indexOf('export function revokeMetaPixelConsent'),
+    );
+    assert.equal(metaInit.includes("['consent', 'revoke']"), false);
+    assert.match(metaInit, /autoConfig', false/);
+    assert.match(metaInit, /\['consent', 'grant'\]/);
     assert.match(read('lib/meta/browser.ts'), /autoConfig', false/);
     assert.doesNotMatch(read('lib/meta/browser.ts'), /fbq\('init', pixelId,/);
   });

@@ -157,7 +157,9 @@ export function initMetaPixel(pixelId: string): void {
     return;
   }
   initializedPixelId = pixelId;
-  callFbq(['consent', 'revoke']);
+  // Do not queue consent-revoke before grant. fbevents stops draining its
+  // queue when it sees revoke, so the grant (and every event behind it)
+  // would stay stuck until a later live fbq('consent','grant').
   callFbq(['set', 'autoConfig', false, pixelId]);
   callFbq(['init', pixelId]);
   callFbq(['consent', 'grant']);

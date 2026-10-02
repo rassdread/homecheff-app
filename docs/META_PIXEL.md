@@ -20,6 +20,8 @@ Marketing consent is a separate key, `hc-marketing-consent` (`granted` / `denied
 
 Meta loads only when marketing consent is `granted`. The pixel is initialized with the id only. `autoConfig` is off. No email, phone, name, or other user fields are sent. Automatic Advanced Matching is not enabled in code.
 
+Do not queue `consent: revoke` before `init` and `consent: grant`. Current `fbevents.js` stops draining the command queue when it sees revoke, so a grant sitting behind that revoke never runs and no browser event is sent until a later live `fbq('consent','grant')`. Revoke stays on the explicit opt-out path.
+
 ## Events
 
 | Event | When |
