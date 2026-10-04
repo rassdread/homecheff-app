@@ -7,9 +7,7 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestBottomNavPanel } from '@/hooks/useGuestBottomNavPanel';
-import HomepageEcosystemNavLinks from '@/components/home/HomepageEcosystemNavLinks';
 import HomeHeroCollapsible from '@/components/home/HomeHeroCollapsible';
-import HomeIntentNav from '@/components/home/HomeIntentNav';
 import { useHeroGeoContext } from '@/lib/home/use-hero-geo-context';
 
 const ctaPrimaryClass = cn(
@@ -58,12 +56,9 @@ export default function HomeHeroSection() {
 
         <div className="relative z-[1] px-3 py-2 sm:px-4 sm:py-2.5 xl:px-5 xl:py-3">
           {/* Row 1 — identity + ecosystem navigation */}
-          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-            <p className="text-[11px] sm:text-xs font-semibold text-white/95 tracking-tight">
-              HomeCheff. {t('homePhase1.orientationIdentityGeneric')}
-            </p>
-            <HomepageEcosystemNavLinks tone="onHero" className="sm:justify-end" />
-          </div>
+          <p className="text-[11px] sm:text-xs font-semibold text-white/95 tracking-tight">
+            HomeCheff. {t('homePhase1.orientationIdentityGeneric')}
+          </p>
 
           {/* Row 2 — title + supporting line (single explanation block) */}
           <div className="mt-1.5 sm:mt-2 min-w-0">
@@ -93,8 +88,6 @@ export default function HomeHeroSection() {
               <span>{t('homePhase1.ctaShare')}</span>
             </button>
           </div>
-
-          <HomeIntentNav />
 
           {/* Crawlable SEO copy — not a second visual band */}
           <p className="sr-only">{seoEverybodyEats}</p>

@@ -38,11 +38,6 @@ export default function OperationsFinanceHero({
     'In processing',
     'In behandeling',
   );
-  const emptyLabel = tOr(
-    'operations.sidepanel.finance.empty',
-    'No earnings yet',
-    'Nog geen inkomsten',
-  );
   const payoutCta = tOr(
     'operations.sidepanel.finance.payoutCta',
     'Request payout',
@@ -99,26 +94,7 @@ export default function OperationsFinanceHero({
   const hasEarnings = available > 0 || pending > 0 || (totals?.totalEarnings ?? 0) > 0;
 
   if (!hasEarnings) {
-    return (
-      <section
-        className={cn(
-          'hc-dorpsplein-card hc-dorpsplein-card-warm px-5 py-5 sm:px-6',
-          className,
-        )}
-      >
-        <div className="flex items-center gap-2 text-amber-800">
-          <Wallet className="h-5 w-5" aria-hidden />
-          <p className="text-sm font-medium text-gray-600">{emptyLabel}</p>
-        </div>
-        <Link
-          href={OPERATIONS_ROUTES.finance.home}
-          prefetch
-          className="mt-3 inline-flex text-sm font-semibold text-emerald-700 hover:text-emerald-900"
-        >
-          {tOr('operations.tabs.finance', 'Finance', 'Financiën')} →
-        </Link>
-      </section>
-    );
+    return null;
   }
 
   return (

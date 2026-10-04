@@ -192,7 +192,7 @@ export async function POST(req: NextRequest) {
     // Determine redirect URL based on role
     let redirectUrl = "/";
     if (roleValue === UserRole.SELLER) {
-      redirectUrl = "/verkoper/dashboard?welcome=true&newUser=true";
+      redirectUrl = "/operations/vandaag?welcome=true&newUser=true";
     } else if (roleValue === UserRole.DELIVERY) {
       redirectUrl = "/delivery/dashboard?welcome=true&newUser=true";
     } else if (roleValue === UserRole.BUYER) {

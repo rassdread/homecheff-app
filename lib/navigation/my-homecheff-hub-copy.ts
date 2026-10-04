@@ -11,6 +11,9 @@ const NL = {
   activityTitle: 'Jouw werk',
   modulesTitle: 'Meer van HomeCheff',
   modulesSupport: 'Andere HomeCheff-producten. Kies waar je naartoe wilt.',
+  discoverTitle: 'Meer mogelijkheden met HomeCheff',
+  discoverSupport: 'Verkopen, doorverwijzen of bezorgen. Open dit wanneer je eraan toe bent.',
+  discoverEcosystem: 'Ontdek HomeCheff',
   cards: {
     orders: {
       title: 'Mijn bestellingen',
@@ -92,6 +95,9 @@ const EN = {
   activityTitle: 'Your work',
   modulesTitle: 'More from HomeCheff',
   modulesSupport: 'Other HomeCheff products: choose where to go.',
+  discoverTitle: 'More you can do with HomeCheff',
+  discoverSupport: 'Sell, refer or deliver. Open this when you are ready.',
+  discoverEcosystem: 'Discover HomeCheff',
   cards: {
     orders: {
       title: 'My orders',

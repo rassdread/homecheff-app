@@ -15,7 +15,7 @@ export default function SellerActionCenter({ variant = 'dashboard', className }:
       variant={variant}
       className={className}
       apiEndpoint="/api/seller/action-center"
-      viewAllHref="/verkoper/dashboard"
+      viewAllHref="/operations/vandaag"
     />
   );
 }

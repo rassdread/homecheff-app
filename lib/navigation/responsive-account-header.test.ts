@@ -29,13 +29,15 @@ describe('responsive account header — no half-visible names', () => {
     assert.equal(src.includes('Verdiensten'), false); // finance is not top-level
   });
 
-  it('primary dashboard resolves to /mijn-homecheff', () => {
+  it('primary dashboard keeps the hub and sends earning roles to Vandaag', () => {
     const src = readFileSync(
       join(root, 'lib/navigation/primary-dashboard.ts'),
       'utf8',
     );
     assert.match(src, /MY_HOMECHEFF_HUB_PATH/);
     assert.match(src, /return MY_HOMECHEFF_HUB_PATH/);
+    assert.match(src, /\/operations\/vandaag/);
+    assert.match(src, /userHasEarningRole/);
   });
 
   it('hub includes HC card and account secondary is profile not wallet', () => {

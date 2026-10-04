@@ -44,13 +44,18 @@ export function primaryDashboardContextFromUser(
 }
 
 /**
- * Canonical Dashboard landing = Mijn HomeCheff hub.
- * Role-specific ops live as hub modules (not competing top-level menu items).
+ * Dashboard landing.
+ * Earning roles (seller, delivery, affiliate) open the existing action-first
+ * workspace at /operations/vandaag. Everyone else keeps the simple hub.
+ * Incomplete-profile gates stay in AuthCompletionGate — this href does not bypass them.
  */
 export function resolvePrimaryDashboardHrefFromUser(
   user: Record<string, unknown> | null | undefined
 ): string {
-  void user;
+  const ctx = primaryDashboardContextFromUser(user);
+  if (ctx && userHasEarningRole(ctx)) {
+    return '/operations/vandaag';
+  }
   return MY_HOMECHEFF_HUB_PATH;
 }
 

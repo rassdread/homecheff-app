@@ -2975,6 +2975,9 @@
     "greeting": "Welcome, {{name}}",
     "modulesTitle": "More from HomeCheff",
     "modulesSupport": "Other HomeCheff products. Choose where you want to go.",
+    "discoverTitle": "More you can do with HomeCheff",
+    "discoverSupport": "Sell, refer or deliver. Open this when you are ready.",
+    "discoverEcosystem": "Discover HomeCheff",
     "activityTitle": "Your work",
     "modules": {
       "marketplace": {
@@ -3654,6 +3657,8 @@
       "seller": "Seller",
       "dashboard": "Seller Dashboard",
       "dashboardDescription": "Overview of your sales activities and performance",
+      "performanceTitle": "Performance",
+      "performanceDescription": "Figures, period and management. Open actions live under Today.",
       "actionCenter": {
         "title": "Action required",
         "subtitle": "Items that need your attention",
@@ -5295,7 +5300,7 @@
     "signUpBuyLocal": "Sign up and buy local",
     "earn": "Earn",
     "dashboard": "Dashboard",
-    "earnDesc": "Start selling today. List products in less than 2 minutes.",
+    "earnDesc": "Your overview: messages, listings and what needs attention.",
     "quickAdd": {
       "platformTitle": "What would you like to add?",
       "marketplaceOfferTitle": "Post an offer or request",
@@ -10711,7 +10716,7 @@
       "profileLink": "View profile",
       "tasks": {
         "title": "Tasks",
-        "healthy": "Everything looks good",
+        "healthy": "You're up to date.",
         "viewMore": "View more",
         "showLess": "Show less"
       },

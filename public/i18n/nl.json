@@ -1657,6 +1657,9 @@
     "greeting": "Welkom, {{name}}",
     "modulesTitle": "Meer van HomeCheff",
     "modulesSupport": "Andere HomeCheff-producten. Kies waar je naartoe wilt.",
+    "discoverTitle": "Meer mogelijkheden met HomeCheff",
+    "discoverSupport": "Verkopen, doorverwijzen of bezorgen. Open dit wanneer je eraan toe bent.",
+    "discoverEcosystem": "Ontdek HomeCheff",
     "activityTitle": "Jouw werk",
     "modules": {
       "marketplace": {
@@ -2795,6 +2798,8 @@
       "seller": "Verkoper",
       "dashboard": "Verkoper Dashboard",
       "dashboardDescription": "Overzicht van je verkoopactiviteiten en prestaties",
+      "performanceTitle": "Prestaties",
+      "performanceDescription": "Cijfers, periode en beheer. Openstaande acties staan bij Vandaag.",
       "actionCenter": {
         "title": "Acties vereist",
         "subtitle": "Items die jouw aandacht nodig hebben",
@@ -4431,7 +4436,7 @@
     "signUpBuyLocal": "Meld je aan en koop lokaal",
     "earn": "Verdienen",
     "dashboard": "Dashboard",
-    "earnDesc": "Start vandaag nog met verkopen. Plaats producten in minder dan 2 minuten.",
+    "earnDesc": "Je overzicht: berichten, aanbod en wat aandacht nodig heeft.",
     "quickAdd": {
       "platformTitle": "Wat wil je toevoegen?",
       "marketplaceOfferTitle": "Aanbod of vraag plaatsen",
@@ -10711,7 +10716,7 @@
       "profileLink": "Bekijk profiel",
       "tasks": {
         "title": "Taken",
-        "healthy": "Alles ziet er goed uit",
+        "healthy": "Alles bijgewerkt.",
         "viewMore": "Bekijk meer",
         "showLess": "Minder tonen"
       },

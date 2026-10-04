@@ -5,6 +5,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import HomeHeroSection from "@/components/home/HomeHeroSection";
+import HomepageEcosystemNavLinks from "@/components/home/HomepageEcosystemNavLinks";
 import { scrollToHomeFeed } from "@/lib/guest/guest-explanation-panels";
 import {
   readScrollPosition,
@@ -292,6 +293,12 @@ export default function HomePageClient({
           ) : null}
 
           {!stickyTestMode ? (layoutVisible ? visibleWorkspaceTree : legacyFeedTree) : null}
+        </div>
+        <div className="mx-auto max-w-3xl px-3 pb-6 pt-2">
+          <HomepageEcosystemNavLinks
+            tone="onBand"
+            className="justify-center text-[11px] font-medium text-gray-500"
+          />
         </div>
       </div>
       <OnboardingTour pageId="home" autoStart={false} />

@@ -427,9 +427,9 @@ export default function SellerDashboardClient() {
   if (isLoading) {
     return (
       <OperationsShell
-        pageTitle={t('seller.dashboard')}
-        pageSubtitle={t('seller.dashboardDescription')}
-        breadcrumbLabel={t('operations.tabs.today')}
+        pageTitle={t('seller.performanceTitle')}
+        pageSubtitle={t('seller.performanceDescription')}
+        breadcrumbLabel={t('seller.performanceTitle')}
         contentClassName="py-0"
       >
         <div className="py-8">
@@ -454,9 +454,9 @@ export default function SellerDashboardClient() {
 
   return (
     <OperationsShell
-      pageTitle={t('seller.dashboard')}
-      pageSubtitle={t('seller.dashboardDescription')}
-      breadcrumbLabel={t('operations.tabs.today')}
+      pageTitle={t('seller.performanceTitle')}
+      pageSubtitle={t('seller.performanceDescription')}
+      breadcrumbLabel={t('seller.performanceTitle')}
       contentClassName="py-0"
     >
       <div className="py-8">
@@ -560,7 +560,7 @@ export default function SellerDashboardClient() {
                 } whitespace-nowrap py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors flex items-center gap-1.5 sm:gap-0`}
               >
                 <LayoutGrid className="w-4 h-4 sm:hidden" />
-                <span>{t('seller.dashboard')}</span>
+                <span>{t('seller.performanceTitle')}</span>
               </button>
               <Link
                 href="/verkoper/orders"

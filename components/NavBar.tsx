@@ -25,6 +25,7 @@ import { navDebug } from '@/lib/nav-debug';
 import { useAppUpdateStatus } from '@/components/app/AppUpdateStatusProvider';
 import {
   ADMIN_WORKSPACE_HREF,
+  resolvePrimaryDashboardHrefFromUser,
   userHasAdminWorkspace,
 } from '@/lib/navigation/primary-dashboard';
 import { NavbarLegalContactLinks } from '@/components/nav/NavbarLegalContactLinks';
@@ -34,7 +35,6 @@ import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestAuthGate } from '@/hooks/useGuestAuthGate';
 import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
 import { DEALS_PROFILE_PATH } from '@/lib/profile/deals-navigation';
-import { MY_HOMECHEFF_HUB_PATH } from '@/lib/navigation/my-homecheff-hub';
 import {
   careersPath,
   PUBLIC_CAREERS_NAV_TESTID,
@@ -218,6 +218,15 @@ export default function NavBar() {
     session && 'user' in session
       ? (session.user as typeof session['user'] & { image?: string })
       : undefined;
+  const quietOnboarding = pathname === '/onboarding/complete-profile';
+  const dashboardHref = resolvePrimaryDashboardHrefFromUser(
+    user
+      ? ({
+          ...(user as Record<string, unknown>),
+          ...(bootstrapProfile ?? {}),
+        } as Record<string, unknown>)
+      : null,
+  );
 
   const handleMobileCreate = useCallback(() => {
     closeMobileMenu();
@@ -488,6 +497,7 @@ export default function NavBar() {
               <Home className={desktopNavIconClass} aria-hidden />
               <span className="whitespace-nowrap">{t('navbar.home')}</span>
             </Link>
+            {!quietOnboarding ? (
             <Link
               href={careersHref}
               prefetch={false}
@@ -499,14 +509,15 @@ export default function NavBar() {
               <Briefcase className={desktopNavIconClass} aria-hidden />
               <span className="whitespace-nowrap">{t('navbar.werkenBij')}</span>
             </Link>
+            ) : null}
             {/* Account destinations only exist for signed-in users; guests get Inloggen/Aanmelden. */}
             {user ? (
               <Link
-                href={MY_HOMECHEFF_HUB_PATH}
+                href={dashboardHref}
                 prefetch={false}
                 data-wx-desktop-account-nav="hub"
                 className={desktopNavGhostClass}
-                onClick={() => navDebug('navbar:desktop', { href: MY_HOMECHEFF_HUB_PATH })}
+                onClick={() => navDebug('navbar:desktop', { href: dashboardHref })}
               >
                 <User className={desktopNavIconClass} aria-hidden />
                 <span className="whitespace-nowrap">{t('myHomeCheffHub.nav.hubShort')}</span>
@@ -532,6 +543,7 @@ export default function NavBar() {
                       </span>
                     ) : null}
                   </Link>
+                  {!quietOnboarding ? (
                   <Link
                     href="/mijn-hcp"
                     prefetch={false}
@@ -542,9 +554,11 @@ export default function NavBar() {
                     <Award className={desktopNavIconClass} aria-hidden />
                     <span className="whitespace-nowrap">{t('bottomNav.reputationTab')}</span>
                   </Link>
+                  ) : null}
                 </>
               ) : null}
               {/* WX 1A.1 / WDL P6 — primary action; never truncate */}
+              {!quietOnboarding ? (
               <button
                 type="button"
                 data-wx-primary-action=""
@@ -569,6 +583,7 @@ export default function NavBar() {
                 <Plus className="w-4 h-4 shrink-0" aria-hidden />
                 <span className="whitespace-nowrap">{t('homePhase1.ctaShare')}</span>
               </button>
+              ) : null}
             </div>
           </nav>
 
@@ -578,7 +593,7 @@ export default function NavBar() {
             className="ml-auto flex items-center justify-end gap-1 sm:gap-1.5 shrink-0 pl-1 min-w-0 overflow-x-clip"
           >
             {/* WX 1C.1 P0 — Landscape Create invariant (xl+ already has desktop primary). */}
-            {showLandscapeCreate ? (
+            {showLandscapeCreate && !quietOnboarding ? (
               <button
                 type="button"
                 data-wx-primary-action=""
@@ -613,6 +628,7 @@ export default function NavBar() {
               <LanguageSwitcher compact />
             </div>
             {/* Ecosystem discovery — only from 2xl, where the widened row leaves room next to auth. */}
+            {!quietOnboarding ? (
             <div className="hidden 2xl:block shrink-0">
               <OntdekHomeCheffMenu
                 currentProduct={ecosystemCurrentProduct}
@@ -622,6 +638,7 @@ export default function NavBar() {
                 showCurrentModule={false}
               />
             </div>
+            ) : null}
             {status === 'loading' && !user ? (
               <div
                 className="hidden xl:flex shrink-0 items-center gap-2"
@@ -707,6 +724,7 @@ export default function NavBar() {
                     >
                       <SimplifiedAccountMenu
                         currentProduct={ecosystemCurrentProduct}
+                        dashboardHref={dashboardHref}
                         displayUser={userProfile ?? user}
                         unreadCount={unreadCount}
                         showAdminLink={showAdminLink}
@@ -779,6 +797,7 @@ export default function NavBar() {
                 <Home className="w-4 h-4 shrink-0" aria-hidden />
                 <span>{t('navbar.home')}</span>
               </Link>
+              {!quietOnboarding ? (
               <Link
                 href={careersHref}
                 prefetch={false}
@@ -793,9 +812,10 @@ export default function NavBar() {
                 <Briefcase className="w-4 h-4 shrink-0" aria-hidden />
                 <span>{t('navbar.werkenBij')}</span>
               </Link>
+              ) : null}
 
               {/* Primary create — hidden when bottom nav (+) is visible */}
-              {!bottomNavReachable ? (
+              {!bottomNavReachable && !quietOnboarding ? (
                 <button
                   type="button"
                   data-wx-mobile-create=""
@@ -937,6 +957,7 @@ export default function NavBar() {
 
                   <SimplifiedAccountMenu
                     currentProduct={ecosystemCurrentProduct}
+                    dashboardHref={dashboardHref}
                     displayUser={userProfile ?? user}
                     unreadCount={unreadCount}
                     showAdminLink={showAdminLink}
@@ -969,6 +990,8 @@ export default function NavBar() {
                 </>
               )}
 
+              {!quietOnboarding ? (
+              <>
               <div className="my-2 border-t border-gray-200" />
               <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
                 {t('navbar.earnWithHomecheff')}
@@ -997,6 +1020,8 @@ export default function NavBar() {
                     variant="inline"
                   />
                 </div>
+              ) : null}
+              </>
               ) : null}
 
               {/* Canonical Over HomeCheff / legal — once per mobile menu (not also inside account). */}

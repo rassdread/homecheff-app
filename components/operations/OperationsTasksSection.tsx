@@ -48,8 +48,8 @@ export default function OperationsTasksSection({
   );
   const healthyTitle = tOr(
     'operations.sidepanel.tasks.healthy',
-    'Everything looks good',
-    'Alles ziet er goed uit',
+    "You're up to date.",
+    'Alles bijgewerkt.',
   );
   const viewMoreLabel = tOr(
     'operations.sidepanel.tasks.viewMore',

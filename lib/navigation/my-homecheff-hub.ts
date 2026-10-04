@@ -49,7 +49,56 @@ function isAffiliate(ctx: SettingsHubContext): boolean {
   return Boolean(ctx.hasAffiliate);
 }
 
-/** Role-aware hub cards — only real destinations or clear onboarding paths. */
+export type MyHomeCheffOpportunityId = 'seller' | 'affiliate' | 'delivery';
+
+/** Inactive roles — one secondary discovery list, not primary dashboard cards. */
+export type MyHomeCheffOpportunity = {
+  id: MyHomeCheffOpportunityId;
+  href: string;
+  titleKey: string;
+  labelKey: string;
+};
+
+/**
+ * Roles the account does not have yet.
+ * Shown together under "Meer mogelijkheden", never as equal hub modules.
+ */
+export function listMyHomeCheffOpportunities(
+  ctx: SettingsHubContext,
+): MyHomeCheffOpportunity[] {
+  const items: MyHomeCheffOpportunity[] = [];
+
+  if (!isSeller(ctx)) {
+    items.push({
+      id: 'seller',
+      href: '/onboarding/seller',
+      titleKey: 'myHomeCheffHub.cards.seller.title',
+      labelKey: 'myHomeCheffHub.cards.seller.onboardingPrimary',
+    });
+  }
+
+  if (!isAffiliate(ctx)) {
+    items.push({
+      id: 'affiliate',
+      href: OPERATIONS_ROUTES.affiliate.landing,
+      titleKey: 'myHomeCheffHub.cards.affiliate.title',
+      labelKey: 'myHomeCheffHub.cards.affiliate.onboardingPrimary',
+    });
+  }
+
+  if (!isDelivery(ctx)) {
+    items.push({
+      id: 'delivery',
+      href: '/delivery/start',
+      titleKey: 'myHomeCheffHub.cards.delivery.title',
+      labelKey: 'myHomeCheffHub.cards.delivery.onboardingPrimary',
+    });
+  }
+
+  return items;
+}
+
+/** Role-aware hub cards — active work only. Inactive roles use listMyHomeCheffOpportunities. */
 export function listMyHomeCheffCards(ctx: SettingsHubContext): MyHomeCheffCardDef[] {
   const cards: MyHomeCheffCardDef[] = [];
 
@@ -85,15 +134,6 @@ export function listMyHomeCheffCards(ctx: SettingsHubContext): MyHomeCheffCardDe
       secondaryHref: '/sell/new',
       secondaryLabelKey: 'myHomeCheffHub.cards.seller.secondary',
     });
-  } else {
-    cards.push({
-      id: 'seller',
-      mode: 'onboarding',
-      titleKey: 'myHomeCheffHub.cards.seller.title',
-      descriptionKey: 'myHomeCheffHub.cards.seller.onboardingDescription',
-      primaryHref: '/onboarding/seller',
-      primaryLabelKey: 'myHomeCheffHub.cards.seller.onboardingPrimary',
-    });
   }
 
   if (isAffiliate(ctx)) {
@@ -108,15 +148,6 @@ export function listMyHomeCheffCards(ctx: SettingsHubContext): MyHomeCheffCardDe
       secondaryHref: OPERATIONS_ROUTES.affiliate.promoCodes,
       secondaryLabelKey: 'myHomeCheffHub.cards.affiliate.secondary',
     });
-  } else {
-    cards.push({
-      id: 'affiliate',
-      mode: 'onboarding',
-      titleKey: 'myHomeCheffHub.cards.affiliate.title',
-      descriptionKey: 'myHomeCheffHub.cards.affiliate.onboardingDescription',
-      primaryHref: OPERATIONS_ROUTES.affiliate.landing,
-      primaryLabelKey: 'myHomeCheffHub.cards.affiliate.onboardingPrimary',
-    });
   }
 
   if (isDelivery(ctx)) {
@@ -128,15 +159,6 @@ export function listMyHomeCheffCards(ctx: SettingsHubContext): MyHomeCheffCardDe
       emptyKey: 'myHomeCheffHub.cards.delivery.empty',
       primaryHref: OPERATIONS_ROUTES.delivery.home,
       primaryLabelKey: 'myHomeCheffHub.cards.delivery.primary',
-    });
-  } else {
-    cards.push({
-      id: 'delivery',
-      mode: 'onboarding',
-      titleKey: 'myHomeCheffHub.cards.delivery.title',
-      descriptionKey: 'myHomeCheffHub.cards.delivery.onboardingDescription',
-      primaryHref: '/delivery/start',
-      primaryLabelKey: 'myHomeCheffHub.cards.delivery.onboardingPrimary',
     });
   }
 
@@ -194,7 +216,7 @@ export function listMyHomeCheffNavItems(ctx: SettingsHubContext): MyHomeCheffNav
     items.push({
       id: 'seller',
       labelKey: 'myHomeCheffHub.nav.seller',
-      href: OPERATIONS_ROUTES.seller.home,
+      href: OPERATIONS_ROUTES.seller.orders,
     });
   }
 

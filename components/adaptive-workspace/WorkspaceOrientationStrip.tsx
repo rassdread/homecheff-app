@@ -24,7 +24,6 @@ import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/Workspa
 import LandscapeWorkBarCommands from '@/components/adaptive-workspace/LandscapeWorkBarCommands';
 import { resolveOrientationExplanation } from '@/lib/adaptive-workspace-react/resolve-orientation-explanation';
 import HomeHeroCollapsible from '@/components/home/HomeHeroCollapsible';
-import HomeIntentNav from '@/components/home/HomeIntentNav';
 import { useHeroGeoContext } from '@/lib/home/use-hero-geo-context';
 import HomeValueExplainerDialog from '@/components/home/HomeValueExplainerDialog';
 
@@ -46,9 +45,9 @@ const ctaPrimaryClass = cn(
 );
 
 const ctaExplainClass = cn(
-  'inline-flex min-h-[40px] items-center justify-center rounded-xl px-3.5 py-1.5 text-left',
-  'text-sm font-semibold text-white border border-white/60 bg-white/0',
-  'hover:bg-white/10 touch-manipulation transition-colors',
+  'inline-flex min-h-[44px] items-center text-left',
+  'text-xs font-medium text-white/80 underline-offset-2 hover:underline',
+  'touch-manipulation',
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
 );
 
@@ -282,9 +281,6 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
             ) : null}
           </div>
         )}
-        <div className="px-3 pb-2 sm:px-4">
-          <HomeIntentNav />
-        </div>
       </div>
       </HomeHeroCollapsible>
       {guestBottomNavPanelEl}

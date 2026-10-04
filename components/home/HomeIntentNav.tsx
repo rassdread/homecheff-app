@@ -3,7 +3,11 @@
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 
-/** Four existing flows. Visible on the live orientation strip and the legacy hero. */
+/**
+ * Kept for reuse. Not mounted above the feed: Growth and Affiliate stay in
+ * Ontdek HomeCheff and the page-end ecosystem links. The seller CTA is
+ * "Verkoop of deel" on the orientation strip.
+ */
 export default function HomeIntentNav() {
   const { tOr } = useTranslation();
   return (

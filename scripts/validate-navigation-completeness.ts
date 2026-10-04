@@ -83,7 +83,10 @@ const hubLib = read('lib/navigation/my-homecheff-hub.ts');
 assert(hubLib.includes("MY_HOMECHEFF_HUB_PATH = '/mijn-homecheff'"), 'hub path constant');
 const hubClient = read('components/my-homecheff/MyHomeCheffHubClient.tsx');
 assert(hubClient.includes('listMyHomeCheffCards'), 'hub client uses card list');
-assert(navbar.includes('MY_HOMECHEFF_HUB_PATH'), 'NavBar links to Mijn HomeCheff hub');
+assert(
+  navbar.includes('resolvePrimaryDashboardHrefFromUser'),
+  'NavBar dashboard uses role-aware landing',
+);
 assert(navbar.includes('SimplifiedAccountMenu'), 'NavBar uses SimplifiedAccountMenu');
 const accountMenu = read('components/navigation/SimplifiedAccountMenu.tsx');
 assert(accountMenu.includes('DEALS_PROFILE_PATH'), 'account menu links Mijn Afspraken');

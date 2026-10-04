@@ -14,6 +14,7 @@ export default function Footer() {
   const { t, language } = useTranslation();
   const pathname = usePathname();
   const compactPath = isCompactMobileFooterPath(pathname);
+  const profileGate = pathname === '/onboarding/complete-profile';
 
   /**
    * WX 1A.1, site footer Logo/bar sits below the Adaptive Workspace shell and
@@ -22,6 +23,35 @@ export default function Footer() {
    */
   if (pathname === '/') {
     return null;
+  }
+
+  if (profileGate) {
+    return (
+      <footer
+        data-homecheff-site-footer
+        className="mt-auto border-t border-gray-200 bg-white"
+      >
+        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
+          <nav
+            className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-gray-600"
+            aria-label="Footer navigatie"
+          >
+            <Link href="/terms" className="hover:text-emerald-700">
+              {t('siteFooter.terms')}
+            </Link>
+            <Link href="/privacy" className="hover:text-emerald-700">
+              {t('siteFooter.privacy')}
+            </Link>
+            <Link href={COMMUNITY_GUIDELINES_URL} className="hover:text-emerald-700">
+              {t('siteFooter.communityGuidelines')}
+            </Link>
+            <Link href={SAFETY_STANDARDS_URL} className="hover:text-emerald-700">
+              {t('siteFooter.safety')}
+            </Link>
+          </nav>
+        </div>
+      </footer>
+    );
   }
 
   const links = [

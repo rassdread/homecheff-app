@@ -33,6 +33,8 @@ import { DEALS_PROFILE_PATH } from '@/lib/profile/deals-navigation';
 
 type Props = {
   currentProduct: EcosystemProductId;
+  /** Role-aware Dashboard destination. Buyers stay on the hub; earning roles open Vandaag. */
+  dashboardHref?: string;
   displayUser: { name?: string | null; username?: string | null; email?: string | null } | null;
   unreadCount: number;
   showAdminLink: boolean;
@@ -56,6 +58,7 @@ type Props = {
  */
 export default function SimplifiedAccountMenu({
   currentProduct,
+  dashboardHref = MY_HOMECHEFF_HUB_PATH,
   displayUser,
   unreadCount,
   showAdminLink,
@@ -86,7 +89,7 @@ export default function SimplifiedAccountMenu({
       ) : null}
 
       <Link
-        href={MY_HOMECHEFF_HUB_PATH}
+        href={dashboardHref}
         prefetch={false}
         className={cn(rowClassName, 'font-semibold text-emerald-900 hover:bg-emerald-50')}
         onClick={onNavigate}

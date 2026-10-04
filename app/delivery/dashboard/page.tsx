@@ -52,7 +52,7 @@ export default async function DeliveryDashboardPage() {
     const isSeller =
       (user.sellerRoles && user.sellerRoles.length > 0) || user.role === 'SELLER';
     if (isSeller && user.role !== 'DELIVERY') {
-      redirect('/verkoper/dashboard');
+      redirect('/operations/vandaag');
     }
     redirect(DELIVERY_START_HREF);
   }

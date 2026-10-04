@@ -20,6 +20,7 @@ import {
   resolveTimeGreetingKey,
   formatGreetingName,
   shouldShowFinanceFirst,
+  hasUrgentTasks,
 } from '@/lib/operations/operations-today-helpers';
 
 function roleFlags(ctx: ReturnType<typeof useOperationsSidepanel>['ctx']) {
@@ -51,6 +52,8 @@ export default function OperationsTodayContent() {
 
   const financeFirst = shouldShowFinanceFirst(actionCenter, totals);
   const hasActiveDelivery = Boolean(delivery?.currentOrder);
+  const calm =
+    !hasActiveDelivery && !hasUrgentTasks(actionCenter?.items ?? []);
 
   const autoExpand = useMemo(
     () => resolveAutoExpandRole(actionCenter, delivery),
@@ -164,9 +167,11 @@ export default function OperationsTodayContent() {
           />
         ) : null}
 
-        {priorityBlocks}
+        {calm ? tasksBlock : priorityBlocks}
 
         <OperationsRoleAttentionChips />
+
+        {calm ? <OperationsQuickActionsGrid /> : null}
       </div>
 
       {/* Role cards — below first scroll on mobile */}
@@ -209,7 +214,9 @@ export default function OperationsTodayContent() {
         </section>
       ) : null}
 
-      <OperationsQuickActionsGrid />
+      {calm ? financeBlock : null}
+
+      {calm ? null : <OperationsQuickActionsGrid />}
 
       {isSeller ? (
         <footer className="border-t border-gray-200/80 pt-4">

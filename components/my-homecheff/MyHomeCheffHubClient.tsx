@@ -10,6 +10,7 @@ import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
 import { useMyHomeCheffHubData } from '@/hooks/useMyHomeCheffHubData';
 import {
   listMyHomeCheffCards,
+  listMyHomeCheffOpportunities,
   settingsHubContextFromSessionUser,
 } from '@/lib/navigation/my-homecheff-hub';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -43,7 +44,21 @@ export default function MyHomeCheffHubClient() {
 
   const ctx = useMemo(() => settingsHubContextFromSessionUser(navUser), [navUser]);
   const cards = useMemo(() => (ctx ? listMyHomeCheffCards(ctx) : []), [ctx]);
+  const opportunities = useMemo(
+    () => (ctx ? listMyHomeCheffOpportunities(ctx) : []),
+    [ctx],
+  );
+  const firstListing = opportunities.find((item) => item.id === 'seller');
+  const otherOpportunities = opportunities.filter((item) => item.id !== 'seller');
   const { metrics, loading, referralLink } = useMyHomeCheffHubData(ctx, status === 'authenticated');
+  const activityCards = cards.filter((card) => {
+    if (card.id !== 'earnings') return true;
+    if (loading) return false;
+    const earned = metrics.totalEarningsCents ?? 0;
+    const seller = metrics.sellerRevenue7d ?? 0;
+    const affiliate = metrics.affiliateEarnedCents ?? 0;
+    return earned > 0 || seller > 0 || affiliate > 0;
+  });
 
   if (status === 'loading' || status === 'unauthenticated') {
     return (
@@ -78,12 +93,33 @@ export default function MyHomeCheffHubClient() {
         </p>
       </header>
 
+      {firstListing ? (
+        <Link
+          href={firstListing.href}
+          className="mb-4 inline-flex min-h-[48px] w-full items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-base font-semibold text-white hover:bg-emerald-800 sm:w-auto"
+        >
+          {tOr(
+            firstListing.labelKey,
+            copyEn.cards.seller.onboardingPrimary,
+            copy.cards.seller.onboardingPrimary,
+          )}
+        </Link>
+      ) : null}
+
+      <Link
+        href="/messages"
+        prefetch={false}
+        className="mb-6 inline-flex min-h-[44px] items-center text-sm font-medium text-gray-700 hover:text-emerald-800"
+      >
+        {tOr('navbar.messages', 'Messages', 'Berichten')}
+      </Link>
+
       <h2 className="mb-3 text-sm font-semibold text-slate-800">
         {tOr('myHomeCheffHub.activityTitle', copyEn.activityTitle, copy.activityTitle)}
       </h2>
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2 sm:gap-5">
-        {cards.map((card) => (
+        {activityCards.map((card) => (
           <MyHomeCheffHubCard
             key={card.id}
             card={card}
@@ -94,94 +130,73 @@ export default function MyHomeCheffHubClient() {
         ))}
       </div>
 
-      <section
-        className="mb-8 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/90 via-white to-slate-50 p-4 sm:p-5"
-        aria-labelledby="mijn-hc-modules-heading"
-      >
-        <h2
-          id="mijn-hc-modules-heading"
-          className="text-sm font-semibold text-emerald-950"
-        >
-          {tOr('myHomeCheffHub.modulesTitle', copyEn.modulesTitle, copy.modulesTitle)}
-        </h2>
-        <p className="mt-1 text-xs text-slate-600">
-          {tOr('myHomeCheffHub.modulesSupport', copyEn.modulesSupport, copy.modulesSupport)}
-        </p>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-          {(
-            [
-              {
-                id: 'marketplace' as const,
-                href: '/',
-                title: tOr(
-                  'myHomeCheffHub.modules.marketplace.title',
-                  copyEn.modules.marketplace.title,
-                  copy.modules.marketplace.title,
-                ),
-                body: tOr(
-                  'myHomeCheffHub.modules.marketplace.body',
-                  copyEn.modules.marketplace.body,
-                  copy.modules.marketplace.body,
-                ),
-                cta: tOr(
-                  'myHomeCheffHub.modules.marketplace.cta',
-                  copyEn.modules.marketplace.cta,
-                  copy.modules.marketplace.cta,
-                ),
-              },
-              {
-                id: 'growth' as const,
-                href: 'https://growth.homecheff.eu/auth/sso/silent?mode=ecosystem&returnTo=%2F',
-                title: tOr(
-                  'myHomeCheffHub.modules.growth.title',
-                  copyEn.modules.growth.title,
-                  copy.modules.growth.title,
-                ),
-                body: tOr(
-                  'myHomeCheffHub.modules.growth.body',
-                  copyEn.modules.growth.body,
-                  copy.modules.growth.body,
-                ),
-                cta: tOr(
-                  'myHomeCheffHub.modules.growth.cta',
-                  copyEn.modules.growth.cta,
-                  copy.modules.growth.cta,
-                ),
-              },
-              {
-                id: 'studio' as const,
-                href: 'https://studio.homecheff.eu/auth/sso/silent?mode=ecosystem&returnTo=%2F',
-                title: tOr(
-                  'myHomeCheffHub.modules.studio.title',
-                  copyEn.modules.studio.title,
-                  copy.modules.studio.title,
-                ),
-                body: tOr(
-                  'myHomeCheffHub.modules.studio.body',
-                  copyEn.modules.studio.body,
-                  copy.modules.studio.body,
-                ),
-                cta: tOr(
-                  'myHomeCheffHub.modules.studio.cta',
-                  copyEn.modules.studio.cta,
-                  copy.modules.studio.cta,
-                ),
-              },
-            ] as const
-          ).map((mod) => (
-            <li key={mod.id}>
-              <a
-                href={mod.href}
-                className="flex h-full flex-col rounded-xl border border-emerald-100/80 bg-white/90 p-3.5 shadow-sm transition hover:border-emerald-300 hover:shadow"
+      {otherOpportunities.length > 0 || firstListing ? (
+        <details className="mb-8 rounded-2xl border border-gray-200 bg-white px-4 py-3">
+          <summary className="cursor-pointer list-none text-sm font-semibold text-slate-800 [&::-webkit-details-marker]:hidden">
+            {tOr(
+              'myHomeCheffHub.discoverTitle',
+              copyEn.discoverTitle,
+              copy.discoverTitle,
+            )}
+          </summary>
+          <p className="mt-2 text-xs text-slate-600">
+            {tOr(
+              'myHomeCheffHub.discoverSupport',
+              copyEn.discoverSupport,
+              copy.discoverSupport,
+            )}
+          </p>
+          <ul className="mt-3 grid gap-2">
+            {otherOpportunities.map((item) => (
+              <li key={item.id}>
+                <Link
+                  href={item.href}
+                  className="inline-flex min-h-[44px] items-center text-sm font-medium text-emerald-800 hover:text-emerald-950"
+                >
+                  {tOr(
+                    item.labelKey,
+                    item.id === 'seller'
+                      ? copyEn.cards.seller.onboardingPrimary
+                      : item.id === 'affiliate'
+                        ? copyEn.cards.affiliate.onboardingPrimary
+                        : copyEn.cards.delivery.onboardingPrimary,
+                    item.id === 'seller'
+                      ? copy.cards.seller.onboardingPrimary
+                      : item.id === 'affiliate'
+                        ? copy.cards.affiliate.onboardingPrimary
+                        : copy.cards.delivery.onboardingPrimary,
+                  )}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link
+                href="/ecosystem"
+                className="inline-flex min-h-[44px] items-center text-sm font-medium text-slate-600 hover:text-emerald-800"
               >
-                <span className="text-sm font-semibold text-slate-900">{mod.title}</span>
-                <span className="mt-1 flex-1 text-xs leading-snug text-slate-600">{mod.body}</span>
-                <span className="mt-2 text-xs font-semibold text-emerald-800">{mod.cta}</span>
-              </a>
+                {tOr(
+                  'myHomeCheffHub.discoverEcosystem',
+                  copyEn.discoverEcosystem,
+                  copy.discoverEcosystem,
+                )}
+              </Link>
             </li>
-          ))}
-        </ul>
-      </section>
+          </ul>
+        </details>
+      ) : (
+        <p className="mb-8">
+          <Link
+            href="/ecosystem"
+            className="inline-flex min-h-[44px] items-center text-sm font-medium text-slate-600 hover:text-emerald-800"
+          >
+            {tOr(
+              'myHomeCheffHub.discoverEcosystem',
+              copyEn.discoverEcosystem,
+              copy.discoverEcosystem,
+            )}
+          </Link>
+        </p>
+      )}
 
       <footer className="mt-8 flex flex-wrap gap-4 border-t border-gray-200/80 pt-6 text-sm">
         <Link

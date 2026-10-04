@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter, usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Plus, Download } from 'lucide-react';
+import { Plus, Download, LayoutGrid } from 'lucide-react';
 import { sanitizePostAuthRelativeUrl } from '@/lib/auth/post-auth-redirect';
 import { savePendingIntent } from '@/lib/onboarding/pending-intent';
 import { setPendingOpenQuickAddAfterLogin } from '@/lib/afterLoginCreateIntent';
@@ -547,7 +547,7 @@ export default function BottomNavigation() {
     if (!session?.user || !pathname) return;
 
     const runPrefetch = () => {
-      const routesToPrefetch = ['/messages', MY_HOMECHEFF_HUB_PATH, '/profile', '/mijn-hcp', '/'];
+      const routesToPrefetch = ['/messages', MY_HOMECHEFF_HUB_PATH, '/operations/vandaag', '/profile', '/mijn-hcp', '/'];
       routesToPrefetch.forEach((route) => {
         if (pathname === route || pathname.startsWith(route)) return;
         router.prefetch(route);
@@ -1858,7 +1858,7 @@ export default function BottomNavigation() {
                     })
                   }
                 >
-                  <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
+                  <LayoutGrid className="mb-1 h-6 w-6" strokeWidth={2} aria-hidden />
                   <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
                     {t('bottomNav.dashboard')}
                   </span>
@@ -1870,7 +1870,7 @@ export default function BottomNavigation() {
                   onClick={handleDashboardClick}
                   className={navTabClasses(isDashboardTabActive, isNativeShell)}
                 >
-                  <div className="text-[1.35rem] sm:text-2xl leading-none mb-1">💰</div>
+                  <LayoutGrid className="mb-1 h-6 w-6" strokeWidth={2} aria-hidden />
                   <span className="text-[10px] sm:text-[11px] font-semibold tracking-tight truncate w-full text-center leading-tight px-0.5">
                     {t('bottomNav.dashboard')}
                   </span>
@@ -1879,7 +1879,7 @@ export default function BottomNavigation() {
               {!session?.user && (
                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48">
                   <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
-                    <div className="font-semibold mb-1">💰 {t('bottomNav.dashboard')}</div>
+                    <div className="font-semibold mb-1">{t('bottomNav.dashboard')}</div>
                     <div className="text-gray-300">{t('bottomNav.earnDesc')}</div>
                     <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
                       <div className="border-4 border-transparent border-t-gray-900"></div>

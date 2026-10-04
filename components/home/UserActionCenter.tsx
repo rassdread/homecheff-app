@@ -193,7 +193,7 @@ function resolveViewAllHref(
   const isSeller = Boolean(
     data?.hasSellerProfile ?? data?.roles?.hasSellerProfile,
   );
-  return isSeller ? '/verkoper/dashboard' : '/notifications';
+  return isSeller ? '/operations/vandaag' : '/notifications';
 }
 
 export default function UserActionCenter({

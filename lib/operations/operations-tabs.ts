@@ -101,7 +101,15 @@ export function resolveActiveOperationsTab(
   if (pathname.startsWith('/verkoper/orders')) return 'orders';
   if (pathname.startsWith('/verkoper/analytics')) return 'analytics';
   if (pathname.startsWith('/verkoper/revenue')) return 'finance';
-  if (pathname.startsWith('/verkoper')) return 'today';
+  // Performance workspace. Not a second "Vandaag" — /operations/vandaag owns Today.
+  if (
+    pathname === '/verkoper' ||
+    pathname.startsWith('/verkoper/dashboard') ||
+    pathname.startsWith('/verkoper/instellingen')
+  ) {
+    return 'analytics';
+  }
+  if (pathname.startsWith('/verkoper')) return 'analytics';
   if (pathname.startsWith('/delivery')) return 'delivery';
   if (pathname.startsWith('/affiliate')) return 'partners';
   if (pathname.startsWith('/verdiensten')) return 'finance';

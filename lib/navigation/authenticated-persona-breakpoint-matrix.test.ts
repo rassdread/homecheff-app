@@ -7,7 +7,11 @@ import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { join } from 'node:path';
 import { RESPONSIVE_AUDIT_WIDTHS } from './responsive-account-header.test';
-import { listMyHomeCheffCards, MY_HOMECHEFF_HUB_PATH } from './my-homecheff-hub';
+import {
+  listMyHomeCheffCards,
+  listMyHomeCheffOpportunities,
+  MY_HOMECHEFF_HUB_PATH,
+} from './my-homecheff-hub';
 import type { SettingsHubContext } from '@/lib/settings/settings-hub';
 import { OPERATIONS_ROUTES } from '@/lib/operations/operations-entry';
 
@@ -23,25 +27,25 @@ const PERSONAS: Array<{
     id: 'buyer',
     label: 'NORMAL BUYER',
     ctx: { role: 'USER', sellerRoles: [], hasDeliveryProfile: false, hasAffiliate: false },
-    expectCardIds: ['orders', 'hc', 'seller', 'affiliate', 'account'],
+    expectCardIds: ['orders', 'hc', 'account'],
   },
   {
     id: 'seller',
     label: 'SELLER',
     ctx: { role: 'SELLER', sellerRoles: ['CHEF'], hasDeliveryProfile: false, hasAffiliate: false },
-    expectCardIds: ['orders', 'hc', 'seller', 'affiliate', 'earnings', 'account'],
+    expectCardIds: ['orders', 'hc', 'seller', 'earnings', 'account'],
   },
   {
     id: 'delivery',
     label: 'DELIVERY PARTICIPANT',
     ctx: { role: 'DELIVERY', sellerRoles: [], hasDeliveryProfile: true, hasAffiliate: false },
-    expectCardIds: ['orders', 'hc', 'seller', 'affiliate', 'delivery', 'earnings', 'account'],
+    expectCardIds: ['orders', 'hc', 'delivery', 'earnings', 'account'],
   },
   {
     id: 'affiliate',
     label: 'AFFILIATE',
     ctx: { role: 'USER', sellerRoles: [], hasDeliveryProfile: false, hasAffiliate: true },
-    expectCardIds: ['orders', 'hc', 'seller', 'affiliate', 'earnings', 'account'],
+    expectCardIds: ['orders', 'hc', 'affiliate', 'earnings', 'account'],
   },
   {
     id: 'multi',
@@ -83,8 +87,23 @@ describe('authenticated persona × breakpoint matrix (TEST_ENV_CERTIFIED)', () =
       const ids = cards.map((c) => c.id);
       assert.deepEqual(ids.sort(), [...p.expectCardIds].sort(), p.label);
       assert.equal(ids.filter((id) => id === 'earnings').length <= 1, true);
-      assert.equal(ids.filter((id) => id === 'affiliate').length, 1);
+      assert.equal(ids.filter((id) => id === 'affiliate').length <= 1, true);
       assert.equal(ids.filter((id) => id === 'orders').length, 1);
+      assert.equal(
+        ids.includes('affiliate'),
+        Boolean(p.ctx.hasAffiliate),
+        `${p.label} affiliate card only when active`,
+      );
+      assert.equal(
+        ids.includes('seller'),
+        (p.ctx.sellerRoles?.length ?? 0) > 0 || (p.ctx.role || '').toUpperCase() === 'SELLER',
+        `${p.label} seller card only when active`,
+      );
+      const opportunities = listMyHomeCheffOpportunities(p.ctx);
+      assert.equal(
+        opportunities.some((item) => item.id === 'seller'),
+        !ids.includes('seller'),
+      );
     }
   });
 
