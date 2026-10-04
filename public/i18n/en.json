@@ -316,6 +316,7 @@
   },
   "communityPulse": {
     "heading": "What's happening nearby",
+    "workspaceTitle": "In your neighborhood",
     "fallbackLine": "See what makers and neighbours are sharing, listings, inspiration and small moments close to home.",
     "newProducts24h": "{count} new listings in the last 24 hours",
     "newCreators7d": "{count} new accounts this week",
@@ -335,7 +336,9 @@
     "newFollowersWeek": "{count} new followers in the last 7 days.",
     "unreadNotifications": "{count} unread notifications: catch up when it suits you.",
     "ctaProfile": "Open profile",
-    "ctaNotifications": "Open notifications"
+    "ctaNotifications": "Open notifications",
+    "workspaceTitle": "Your visibility",
+    "workspaceCta": "View"
   },
   "creatorAudience": {
     "sectionAria": "Audience and community signals for your creator profile",
@@ -4814,6 +4817,8 @@
       "groupOverview": "Overview",
       "performance": "Performance",
       "earnings": "Earnings",
+      "groupService": "Services",
+      "myServices": "My services",
       "offerService": "Offer a service",
       "promote": "Share my link",
       "startQuestion": "What do you want to do with HomeCheff?",
@@ -4835,7 +4840,8 @@
       "healthyTitle": "Everything looks good",
       "healthyDescription": "You have no open actions right now.",
       "viewAll": "View all actions",
-      "showLess": "Show less"
+      "showLess": "Show less",
+      "severityUrgent": "Important"
     },
     "moreSectionHeading": "More",
     "seoHubLink": "All guides and topics (SEO hub)",
@@ -4855,6 +4861,7 @@
       "guestTitle": "Trust in the neighborhood",
       "body": "You build trust by sharing, responding and helping people in your neighborhood.",
       "cta": "View",
+      "workspaceCta": "View reputation",
       "guestCta": "Explore",
       "levelLabel": "Level {level}"
     },

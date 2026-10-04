@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 
 type Props = {
   className?: string;
-  variant?: 'default' | 'sidebar' | 'insert';
+  variant?: 'default' | 'sidebar' | 'insert' | 'workspace';
   /** Guest tap on sidebar row — opens bottom-nav reputation panel. */
   onGuestClick?: () => void;
 };
@@ -29,6 +29,46 @@ export default function HomeReputationCompactCard({
   const isGuest = status === 'unauthenticated';
   const isAuthenticated = status === 'authenticated';
   const { data, loading } = useGamificationMe();
+
+  if (variant === 'workspace') {
+    if (!isAuthenticated) return null;
+    const topBadge = data?.badges?.[0];
+    const level = data?.level ?? null;
+    const statusLabel = topBadge?.name
+      ? topBadge.name
+      : level
+        ? t('home.reputationCompact.levelLabel', { level })
+        : null;
+    return (
+      <section
+        className={cn(
+          'rounded-xl border border-gray-200/80 bg-white px-3 py-2.5',
+          className,
+        )}
+        aria-labelledby="home-reputation-heading"
+        data-hc-workspace-insight="reputation"
+      >
+        <div className="flex items-baseline justify-between gap-2">
+          <h2
+            id="home-reputation-heading"
+            className="text-xs font-semibold text-gray-900"
+          >
+            {t('home.reputationCompact.title')}
+          </h2>
+          <Link
+            href="/mijn-hcp"
+            prefetch={false}
+            className="shrink-0 text-xs font-semibold text-emerald-800 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
+          >
+            {t('home.reputationCompact.workspaceCta')}
+          </Link>
+        </div>
+        {statusLabel && !loading ? (
+          <p className="mt-1 text-xs text-gray-600">{statusLabel}</p>
+        ) : null}
+      </section>
+    );
+  }
 
   if (isSidebar) {
     if (isGuest && onGuestClick) {

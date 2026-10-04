@@ -16,7 +16,13 @@ type Visibility = {
   hasSellerProfile: boolean;
 };
 
-export default function CreatorMomentumCard({ className }: { className?: string }) {
+export default function CreatorMomentumCard({
+  className,
+  variant = 'default',
+}: {
+  className?: string;
+  variant?: 'default' | 'workspace';
+}) {
   const { status } = useSession();
   const { t } = useTranslation();
   const [v, setV] = useState<Visibility | null>(null);
@@ -86,6 +92,62 @@ export default function CreatorMomentumCard({ className }: { className?: string 
     v.unreadNotifications > 0;
 
   if (!hasSignal) return null;
+
+  if (variant === 'workspace') {
+    return (
+      <section
+        className={cn(
+          'rounded-xl border border-gray-200/80 bg-white px-3 py-2.5',
+          className,
+        )}
+        aria-label={t('creatorMomentum.workspaceTitle')}
+        data-hc-workspace-insight="visibility"
+      >
+        <div className="flex items-baseline justify-between gap-2">
+          <h2 className="text-xs font-semibold text-gray-900">
+            {t('creatorMomentum.workspaceTitle')}
+          </h2>
+          <Link
+            href="/profile"
+            prefetch={false}
+            className="shrink-0 text-xs font-semibold text-emerald-800 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
+          >
+            {t('creatorMomentum.workspaceCta')}
+          </Link>
+        </div>
+        <ul className="mt-1.5 space-y-0.5">
+          {v.profileViews > 0 ? (
+            <li className="text-xs leading-snug text-gray-600">
+              {t('creatorMomentum.profileViews', { count: v.profileViews })}
+            </li>
+          ) : null}
+          {v.productSavesWeek > 0 ? (
+            <li className="text-xs leading-snug text-gray-600">
+              {t('creatorMomentum.savesWeek', { count: v.productSavesWeek })}
+            </li>
+          ) : null}
+          {v.newFollowersWeek > 0 ? (
+            <li className="text-xs leading-snug text-gray-600">
+              {t('creatorMomentum.newFollowersWeek', { count: v.newFollowersWeek })}
+            </li>
+          ) : null}
+          {v.unreadNotifications > 0 ? (
+            <li className="text-xs leading-snug text-gray-600">
+              <Link
+                href="/notifications"
+                prefetch={false}
+                className="underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700"
+              >
+                {t('creatorMomentum.unreadNotifications', {
+                  count: v.unreadNotifications,
+                })}
+              </Link>
+            </li>
+          ) : null}
+        </ul>
+      </section>
+    );
+  }
 
   return (
     <div className={cn('mb-4 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/90 to-white px-4 py-3 shadow-sm hc-dorpsplein-card', className)}>

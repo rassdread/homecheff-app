@@ -13,7 +13,10 @@ import {
   type HomePresentationMode,
 } from '@/lib/home/presentation-mode';
 import type { SettingsHubContext } from '@/lib/settings/settings-hub';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
+  buildWorkspaceLeftGroups,
   buildWorkspaceQuickActions,
   buildWorkspaceStartChoices,
   workspaceLeftLinkIds,
@@ -98,8 +101,8 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'my-offer',
       'new-offer',
+      'my-offer',
       'orders',
       'appointments',
       'performance',
@@ -118,9 +121,8 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'my-offer',
-      'new-offer',
-      'orders',
+      'offer-service',
+      'my-services',
       'appointments',
       'performance',
       'earnings',
@@ -138,8 +140,8 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'my-offer',
       'new-offer',
+      'my-offer',
       'orders',
       'appointments',
       'performance',
@@ -158,9 +160,8 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'my-offer',
-      'new-offer',
-      'orders',
+      'offer-service',
+      'my-services',
       'appointments',
       'performance',
       'earnings',
@@ -214,15 +215,15 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'my-offer',
       'new-offer',
+      'my-offer',
       'orders',
       'appointments',
+      'performance',
       'affiliate-qr',
       'affiliate-signups',
       'affiliate-promo',
       'affiliate-partners',
-      'performance',
       'earnings',
     ],
     right: 'attention',
@@ -246,13 +247,13 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'my-offer',
       'new-offer',
+      'my-offer',
       'orders',
       'appointments',
+      'performance',
       'deliveries',
       'availability',
-      'performance',
       'earnings',
     ],
     right: 'attention',
@@ -278,18 +279,18 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'my-offer',
       'new-offer',
+      'my-offer',
       'orders',
       'appointments',
+      'performance',
       'affiliate-qr',
       'affiliate-signups',
       'affiliate-promo',
       'affiliate-partners',
+      'earnings',
       'deliveries',
       'availability',
-      'performance',
-      'earnings',
     ],
     right: 'attention',
   },
@@ -438,5 +439,90 @@ describe('home presentation mode', () => {
   it('multi-role links are unique', () => {
     const ids = workspaceLeftLinkIds(fixtures.find((f) => f.id === 'MULTI_ROLE')!.ctx);
     assert.equal(new Set(ids).size, ids.length);
+  });
+
+  it('composes product, service, affiliate, and delivery without duplicate routes', () => {
+    const ctx: SettingsHubContext = {
+      role: 'SELLER',
+      sellerRoles: ['chef', 'designer'],
+      hasAffiliate: true,
+      hasDeliveryProfile: true,
+    };
+    const groups = buildWorkspaceLeftGroups(ctx);
+    const ids = groups.flatMap((group) => group.items.map((item) => item.id));
+    assert.ok(ids.includes('new-offer'));
+    assert.ok(ids.includes('offer-service'));
+    assert.ok(ids.includes('my-offer'));
+    assert.equal(ids.filter((id) => id === 'my-services').length, 0);
+    assert.equal(ids.filter((id) => id === 'appointments').length, 1);
+    assert.equal(ids.filter((id) => id === 'messages').length, 1);
+    assert.equal(ids.filter((id) => id === 'earnings').length, 1);
+    assert.equal(ids.filter((id) => id === 'performance').length, 1);
+    const hrefs = groups.flatMap((group) =>
+      group.items.map((item) => item.href).filter((href): href is string => Boolean(href)),
+    );
+    assert.equal(hrefs.filter((href) => href === '/profile?tab=aanbod').length, 1);
+    assert.equal(hrefs.filter((href) => href === '/verdiensten').length, 1);
+    assert.equal(hrefs.filter((href) => href === '/profile/deals').length, 1);
+    const quick = buildWorkspaceQuickActions(ctx);
+    assert.deepEqual(
+      quick.map((item) => item.id),
+      ['new-offer', 'offer-service', 'promote', 'delivery-now'],
+    );
+    assert.equal(quick[0]?.emphasis, 'primary');
+    assert.ok(quick.slice(1).every((item) => item.emphasis === 'secondary'));
+    assert.equal(
+      groups.find((group) => group.id === 'service')?.items[0]?.createVertical,
+      'DESIGNER',
+    );
+  });
+
+  it('keeps an unrecognised seller role on the selling rail', () => {
+    assert.ok(
+      workspaceLeftLinkIds({ role: 'SELLER', sellerRoles: ['CHEF'] }).includes(
+        'new-offer',
+      ),
+    );
+    assert.ok(
+      workspaceLeftLinkIds({ role: 'USER', sellerRoles: ['seller'] }).includes(
+        'my-offer',
+      ),
+    );
+  });
+
+  it('does not infer a seller role from the absence of sellerRoles', () => {
+    assert.deepEqual(
+      workspaceLeftLinkIds({ role: 'USER', sellerRoles: [] }),
+      [],
+    );
+  });
+
+  it('keeps workspace insights off the marketplace rails and out of removed blocks', () => {
+    const root = process.cwd();
+    const rail = readFileSync(
+      join(root, 'components/home/WorkspaceAttentionRail.tsx'),
+      'utf8',
+    );
+    const quick = readFileSync(
+      join(root, 'components/home/WorkspaceQuickActions.tsx'),
+      'utf8',
+    );
+    const home = readFileSync(
+      join(root, 'components/home/HomePageClient.tsx'),
+      'utf8',
+    );
+    assert.match(rail, /CreatorMomentumCard/);
+    assert.match(rail, /CommunityPulseBar/);
+    assert.match(rail, /HomeReputationCompactCard/);
+    assert.match(rail, /ReturnBelongingStrip/);
+    assert.match(rail, /density="cockpit"/);
+    assert.doesNotMatch(rail, /GrowthActionStack/);
+    assert.doesNotMatch(rail, /HomeRecommendedPromotions/);
+    assert.doesNotMatch(rail, /communityCardTitle/);
+    assert.match(quick, /md:hidden/);
+    assert.doesNotMatch(quick, /lg:hidden/);
+    assert.match(home, /max-width: 1023px/);
+    assert.match(home, /presentation\.mode === 'marketplace'/);
+    assert.match(home, /attentionAboveFeed/);
   });
 });

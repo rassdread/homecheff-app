@@ -316,6 +316,7 @@
   },
   "communityPulse": {
     "heading": "Wat er leeft in de buurt",
+    "workspaceTitle": "In jouw buurt",
     "fallbackLine": "Ontdek wat makers en buren nu delen, aanbod, inspiratie en kleine momenten dichtbij.",
     "newProducts24h": "{count} nieuwe aanbiedingen in de laatste 24 uur",
     "newCreators7d": "{count} nieuwe accounts deze week",
@@ -335,7 +336,9 @@
     "newFollowersWeek": "{count} nieuwe volgers in de laatste 7 dagen.",
     "unreadNotifications": "{count} ongelezen meldingen. Bekijk ze wanneer het past.",
     "ctaProfile": "Open profiel",
-    "ctaNotifications": "Open meldingen"
+    "ctaNotifications": "Open meldingen",
+    "workspaceTitle": "Jouw zichtbaarheid",
+    "workspaceCta": "Bekijk"
   },
   "creatorAudience": {
     "sectionAria": "Publiek- en communitysignalen voor je makerprofiel",
@@ -6612,6 +6615,8 @@
       "groupOverview": "Overzicht",
       "performance": "Prestaties",
       "earnings": "Verdiensten",
+      "groupService": "Diensten",
+      "myServices": "Mijn diensten",
       "offerService": "Dienst aanbieden",
       "promote": "Deel mijn link",
       "startQuestion": "Wat wil je doen met HomeCheff?",
@@ -6633,7 +6638,8 @@
       "healthyTitle": "Alles ziet er goed uit",
       "healthyDescription": "Je hebt momenteel geen openstaande acties.",
       "viewAll": "Bekijk alle acties",
-      "showLess": "Minder tonen"
+      "showLess": "Minder tonen",
+      "severityUrgent": "Belangrijk"
     },
     "moreSectionHeading": "Meer",
     "seoHubLink": "Alle gidsen en onderwerpen (SEO-hub)",
@@ -6653,6 +6659,7 @@
       "guestTitle": "Vertrouwen in de buurt",
       "body": "Je bouwt vertrouwen op door te delen, reageren en mensen in je buurt te helpen.",
       "cta": "Bekijk",
+      "workspaceCta": "Bekijk reputatie",
       "guestCta": "Ontdek",
       "levelLabel": "Niveau {level}"
     },

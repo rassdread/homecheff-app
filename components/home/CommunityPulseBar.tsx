@@ -44,7 +44,7 @@ const CHIP_EMOJI: Record<string, string> = {
 export default function CommunityPulseBar({
   variant = 'default',
 }: {
-  variant?: 'default' | 'sidebar' | 'insert' | 'insertCompact';
+  variant?: 'default' | 'sidebar' | 'insert' | 'insertCompact' | 'workspace';
 }) {
   const { t, language } = useTranslation();
   const [data, setData] = useState<CommunityPulsePayload | null>(null);
@@ -71,6 +71,7 @@ export default function CommunityPulseBar({
   }, []);
 
   const moments = buildMoments(data, t);
+  const workspace = variant === 'workspace';
 
   useEffect(() => {
     if (!data || trackedRef.current) return;
@@ -81,6 +82,28 @@ export default function CommunityPulseBar({
       discussionWeek: (data.commentsWeek ?? 0) + (data.reviewsWeek ?? 0),
     });
   }, [data]);
+
+  if (workspace) {
+    if (loading || moments.length === 0) return null;
+    return (
+      <section
+        className="rounded-xl border border-gray-200/80 bg-white px-3 py-2.5"
+        aria-label={t('communityPulse.workspaceTitle')}
+        data-hc-workspace-insight="pulse"
+      >
+        <h2 className="text-xs font-semibold text-gray-900">
+          {t('communityPulse.workspaceTitle')}
+        </h2>
+        <ul className="mt-1.5 space-y-0.5">
+          {moments.slice(0, 3).map((moment) => (
+            <li key={moment.key} className="text-xs leading-snug text-gray-600">
+              {moment.label}
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
 
   const containerBase =
     variant === 'sidebar'

@@ -41,15 +41,20 @@ export default function WorkspaceQuickActions() {
   return (
     <div
       data-hc-workspace-quick=""
-      className="flex flex-wrap gap-2 border-b border-gray-200 bg-white px-3 py-2 lg:hidden"
+      className="flex flex-wrap gap-2 border-b border-gray-200 bg-white px-3 py-2 md:hidden"
     >
-      {actions.map((item) =>
-        item.href ? (
+      {actions.map((item) => {
+        const primary = item.emphasis !== 'secondary';
+        const className = primary
+          ? 'inline-flex min-h-[36px] items-center rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2'
+          : 'inline-flex min-h-[32px] items-center rounded-lg border border-emerald-200 bg-white px-2.5 py-1 text-xs font-semibold text-emerald-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2';
+        return item.href ? (
           <Link
             key={item.id}
             href={item.href}
             data-hc-workspace-quick-action={item.id}
-            className="inline-flex min-h-[36px] items-center rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white"
+            data-hc-quick-emphasis={item.emphasis ?? 'primary'}
+            className={className}
           >
             {labelFor(item.labelKey)}
           </Link>
@@ -58,6 +63,7 @@ export default function WorkspaceQuickActions() {
             key={item.id}
             type="button"
             data-hc-workspace-quick-action={item.id}
+            data-hc-quick-emphasis={item.emphasis ?? 'primary'}
             onClick={() => {
               if (item.action === 'openAffiliateQr') {
                 setQrOpen(true);
@@ -66,14 +72,15 @@ export default function WorkspaceQuickActions() {
               createFlow.openCreateFlowWithIntent({
                 mode: 'dorpsplein',
                 allowedVerticals,
+                ...(item.createVertical ? { vertical: item.createVertical } : {}),
               });
             }}
-            className="inline-flex min-h-[36px] items-center rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white"
+            className={className}
           >
             {labelFor(item.labelKey)}
           </button>
-        ),
-      )}
+        );
+      })}
       <AffiliateQuickShareModal open={qrOpen} onClose={() => setQrOpen(false)} />
     </div>
   );

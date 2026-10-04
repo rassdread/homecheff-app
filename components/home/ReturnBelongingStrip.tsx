@@ -11,7 +11,13 @@ type ReturnSignal = {
   meta?: { savesWeek?: number };
 };
 
-export default function ReturnBelongingStrip({ className }: { className?: string }) {
+export default function ReturnBelongingStrip({
+  className,
+  variant = 'default',
+}: {
+  className?: string;
+  variant?: 'default' | 'workspace';
+}) {
   const { t } = useTranslation();
   const [signals, setSignals] = useState<ReturnSignal[]>([]);
   const tracked = useRef(false);
@@ -45,6 +51,31 @@ export default function ReturnBelongingStrip({ className }: { className?: string
   }, []);
 
   if (signals.length === 0) return null;
+
+  if (variant === 'workspace') {
+    const signal = signals[0];
+    const line =
+      signal.key === 'communitySavesActive' &&
+      typeof signal.meta?.savesWeek === 'number'
+        ? t('returnBelonging.communitySavesActive', {
+            count: signal.meta.savesWeek,
+          })
+        : t(`returnBelonging.${signal.key}` as const);
+    return (
+      <p
+        className={cn(
+          'rounded-xl border border-gray-200/80 bg-white px-3 py-2 text-xs leading-snug text-gray-700',
+          className,
+        )}
+        data-hc-workspace-insight="belonging"
+      >
+        <span className="font-semibold text-gray-900">
+          {t('returnBelonging.title')}
+        </span>
+        <span className="mt-0.5 block">{line}</span>
+      </p>
+    );
+  }
 
   return (
     <div className={cn('mb-4 rounded-2xl border border-slate-200/90 bg-slate-50/85 px-4 py-3 text-sm text-slate-700 shadow-sm hc-dorpsplein-card', className)}>

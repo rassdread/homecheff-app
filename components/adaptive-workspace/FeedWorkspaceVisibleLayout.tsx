@@ -191,7 +191,7 @@ export default function FeedWorkspaceVisibleLayout({
     };
 
     const measure = () => {
-      const widthPx = el.clientWidth || window.innerWidth;
+      const widthPx = el.offsetWidth || window.innerWidth;
       const heightPx = readViewportHeightPx();
       apply(widthPx, heightPx);
     };

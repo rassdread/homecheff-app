@@ -36,6 +36,11 @@ type Props = {
   /** Homepage: universal. Dashboard: seller-only subset. */
   apiEndpoint?: '/api/user/action-center' | '/api/seller/action-center';
   viewAllHref?: string;
+  /**
+   * Workspace right rail. Critical items stay marked in text.
+   * Ordinary tasks stay compact. A healthy account renders nothing.
+   */
+  density?: 'default' | 'cockpit';
 };
 
 const VARIANT_MAX: Record<UserActionCenterVariant, number> = {
@@ -196,11 +201,75 @@ function resolveViewAllHref(
   return isSeller ? '/operations/vandaag' : '/notifications';
 }
 
+function CockpitActionRow({ item }: { item: UserActionItem }) {
+  const { tOr } = useTranslation();
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const urgent = item.severity === 'red';
+  const urgentLabel = tOr(
+    'home.actionCenter.severityUrgent',
+    'Important',
+    'Belangrijk',
+  );
+  const actionClass =
+    'mt-1 inline-flex text-xs font-semibold text-emerald-800 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2';
+
+  const handleStripeOnboard = async () => {
+    setStripeLoading(true);
+    try {
+      const result = await startStripeConnectOnboarding({
+        returnPath: '/settings?tab=payments',
+      });
+      if (result.needsTrackSelection && typeof window !== 'undefined') {
+        window.location.href = '/settings?tab=payments';
+      }
+    } finally {
+      setStripeLoading(false);
+    }
+  };
+
+  return (
+    <div
+      className={cn(
+        'rounded-lg px-2 py-1.5',
+        urgent ? 'border-l-2 border-red-600 bg-white' : 'bg-transparent',
+      )}
+      data-hc-action-severity={item.severity}
+    >
+      <p className="text-xs font-semibold leading-snug text-gray-900">
+        {urgent ? (
+          <span className="text-red-800">{urgentLabel}. </span>
+        ) : null}
+        {item.title}
+      </p>
+      {urgent && item.description ? (
+        <p className="mt-0.5 text-[11px] leading-snug text-gray-600">
+          {item.description}
+        </p>
+      ) : null}
+      {item.actionKind === 'stripe-onboard' ? (
+        <button
+          type="button"
+          onClick={() => void handleStripeOnboard()}
+          disabled={stripeLoading}
+          className={cn(actionClass, stripeLoading && 'opacity-70')}
+        >
+          {stripeLoading ? '…' : item.actionLabel}
+        </button>
+      ) : (
+        <Link href={item.actionHref} prefetch className={actionClass}>
+          {item.actionLabel}
+        </Link>
+      )}
+    </div>
+  );
+}
+
 export default function UserActionCenter({
   variant = 'dashboard',
   className,
   apiEndpoint = '/api/user/action-center',
   viewAllHref,
+  density = 'default',
 }: Props) {
   const { tOr } = useTranslation();
   const [data, setData] = useState<ActionCenterResponse | null>(null);
@@ -209,6 +278,7 @@ export default function UserActionCenter({
   const [error, setError] = useState(false);
 
   const sellerScope = apiEndpoint === '/api/seller/action-center';
+  const cockpit = density === 'cockpit';
   const compact = variant !== 'dashboard';
   const showDescription = variant !== 'mobileCompact';
   const maxVisible = VARIANT_MAX[variant];
@@ -299,6 +369,7 @@ export default function UserActionCenter({
   );
 
   if (loading) {
+    if (cockpit) return null;
     if (variant === 'mobileCompact') {
       return (
         <div
@@ -362,6 +433,7 @@ export default function UserActionCenter({
   const allActionsHref = resolveViewAllHref(data, viewAllHref);
 
   if (data?.healthy || items.length === 0) {
+    if (cockpit) return null;
     if (variant === 'sidebar') {
       return (
         <section
@@ -399,6 +471,35 @@ export default function UserActionCenter({
             </p>
           </div>
         </div>
+      </section>
+    );
+  }
+
+  if (cockpit) {
+    return (
+      <section
+        className={cn(
+          'rounded-xl border border-gray-200/80 bg-white px-3 py-2.5',
+          className,
+        )}
+        aria-label={title}
+        data-hc-workspace-insight="attention"
+      >
+        <h2 className="mb-1 text-xs font-semibold text-gray-900">{title}</h2>
+        <div className="space-y-1">
+          {[...visible, ...showHidden].map((item) => (
+            <CockpitActionRow key={item.id} item={item} />
+          ))}
+        </div>
+        {hasMore ? (
+          <Link
+            href={allActionsHref}
+            prefetch
+            className="mt-1.5 inline-flex text-[11px] font-semibold text-emerald-800 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700"
+          >
+            {viewAllLabel}
+          </Link>
+        ) : null}
       </section>
     );
   }

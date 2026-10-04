@@ -18,6 +18,8 @@ const FALLBACKS: Record<string, { en: string; nl: string }> = {
   'home.presentation.today': { en: 'Today', nl: 'Vandaag' },
   'home.presentation.messages': { en: 'Messages', nl: 'Berichten' },
   'home.presentation.groupSelling': { en: 'Selling', nl: 'Verkopen' },
+  'home.presentation.groupService': { en: 'Services', nl: 'Diensten' },
+  'home.presentation.myServices': { en: 'My services', nl: 'Mijn diensten' },
   'home.presentation.myOffer': { en: 'My listings', nl: 'Mijn aanbod' },
   'home.presentation.newOffer': { en: 'New listing', nl: 'Nieuw aanbod' },
   'home.presentation.orders': { en: 'Orders', nl: 'Bestellingen' },
@@ -64,13 +66,18 @@ export default function WorkspaceWorkRail() {
     >
       {quickActions.length > 0 ? (
         <div data-hc-workspace-quick="" className="flex flex-col gap-1.5 px-1">
-          {quickActions.map((item) =>
-            item.href ? (
+          {quickActions.map((item) => {
+            const primary = item.emphasis !== 'secondary';
+            const className = primary
+              ? 'inline-flex min-h-[36px] items-center justify-center rounded-lg bg-emerald-700 px-2.5 py-1.5 text-center text-xs font-semibold text-white hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2'
+              : 'inline-flex min-h-[32px] items-center justify-center rounded-lg border border-emerald-200 bg-white px-2.5 py-1 text-center text-xs font-semibold text-emerald-900 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2';
+            return item.href ? (
               <Link
                 key={item.id}
                 href={item.href}
                 data-hc-workspace-quick-action={item.id}
-                className="inline-flex min-h-[36px] items-center justify-center rounded-lg bg-emerald-700 px-2.5 py-1.5 text-center text-xs font-semibold text-white hover:bg-emerald-800"
+                data-hc-quick-emphasis={item.emphasis ?? 'primary'}
+                className={className}
               >
                 {labelFor(item.labelKey)}
               </Link>
@@ -79,6 +86,7 @@ export default function WorkspaceWorkRail() {
                 key={item.id}
                 type="button"
                 data-hc-workspace-quick-action={item.id}
+                data-hc-quick-emphasis={item.emphasis ?? 'primary'}
                 onClick={() => {
                   if (item.action === 'openAffiliateQr') {
                     setQrOpen(true);
@@ -87,14 +95,17 @@ export default function WorkspaceWorkRail() {
                   createFlow.openCreateFlowWithIntent({
                     mode: 'dorpsplein',
                     allowedVerticals,
+                    ...(item.createVertical
+                      ? { vertical: item.createVertical }
+                      : {}),
                   });
                 }}
-                className="inline-flex min-h-[36px] items-center justify-center rounded-lg bg-emerald-700 px-2.5 py-1.5 text-center text-xs font-semibold text-white hover:bg-emerald-800"
+                className={className}
               >
                 {labelFor(item.labelKey)}
               </button>
-            ),
-          )}
+            );
+          })}
         </div>
       ) : null}
       {groups.map((group) => (
@@ -128,6 +139,9 @@ export default function WorkspaceWorkRail() {
                         createFlow.openCreateFlowWithIntent({
                           mode: 'dorpsplein',
                           allowedVerticals,
+                          ...(item.createVertical
+                            ? { vertical: item.createVertical }
+                            : {}),
                         });
                       }
                     }}

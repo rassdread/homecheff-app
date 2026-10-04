@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useTranslation } from "@/hooks/useTranslation";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import HomeHeroSection from "@/components/home/HomeHeroSection";
 import HomepageEcosystemNavLinks from "@/components/home/HomepageEcosystemNavLinks";
@@ -51,6 +51,19 @@ const PostAuthPersonaBanner = dynamic(
   () => import("@/components/onboarding/PostAuthPersonaBanner"),
   { ssr: false },
 );
+/** End rail starts at 1024px. Below that, compact attention stays above the feed. */
+function useBelowWorkspaceAttentionRail(): boolean {
+  const [below, setBelow] = useState(false);
+  useLayoutEffect(() => {
+    const mq = window.matchMedia('(max-width: 1023px)');
+    const sync = () => setBelow(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+  return below;
+}
+
 const HomeDesktopSidebar = dynamic(
   () => import("@/components/home/HomeDesktopSidebar"),
   { ssr: false },
@@ -118,6 +131,7 @@ export default function HomePageClient({
   const presentation = useHomePresentationMode();
   const visibleHomePromotionIds = useVisibleHomePromotionIds();
   const { narrow: isNarrowHome } = useNarrowViewportResolved();
+  const attentionAboveFeed = useBelowWorkspaceAttentionRail();
 
   const layoutVisible = isFeedWorkspaceLayoutVisible({
     mode: feedWorkspaceVisibilityMode,
@@ -169,9 +183,15 @@ export default function HomePageClient({
     enableMobileFeedInserts: true as const,
     feedColumnLayout: 'home-main' as const,
     visibleHomePromotionIds,
-    renderMobileFeedInsert: (insertId: import('@/lib/home/resolve-home-mobile-insert').HomeMobileFeedInsertId) => (
-      <HomeMobileFeedInsert insertId={insertId} />
-    ),
+    renderMobileFeedInsert: (insertId: import('@/lib/home/resolve-home-mobile-insert').HomeMobileFeedInsertId) => {
+      if (
+        !attentionAboveFeed &&
+        (insertId === 'pulse' || insertId === 'reputation')
+      ) {
+        return null;
+      }
+      return <HomeMobileFeedInsert insertId={insertId} />;
+    },
   };
 
   const desktopColScrollClass =
@@ -186,9 +206,9 @@ export default function HomePageClient({
   /** WX 1A — keep mobile chrome compact; ecosystem strip is secondary (not above-fold mandatory). */
   const mobileChrome = (
     <div className="min-w-0 xl:hidden">
-      {session?.user && presentation.mode === "workspace" ? (
+      {session?.user && presentation.mode === "workspace" && attentionAboveFeed ? (
         <div className="mb-1.5">
-          <UserActionCenter variant="mobileCompact" />
+          <UserActionCenter variant="mobileCompact" density="cockpit" />
         </div>
       ) : null}
       {!layoutVisible ? (
@@ -311,7 +331,9 @@ export default function HomePageClient({
   );
 
   const pageShellClass = layoutVisible
-    ? "hc-home-page-shell hc-aw-full-bleed hc-wx-shell w-full max-w-none mx-auto px-0 sm:px-2 lg:px-3 py-0 sm:py-2 bg-gray-100/70"
+    ? presentation.mode === "workspace"
+      ? "hc-home-page-shell hc-aw-full-bleed hc-wx-shell w-full max-w-none mx-auto px-0 py-0 sm:py-2 bg-gray-100/70"
+      : "hc-home-page-shell hc-aw-full-bleed hc-wx-shell w-full max-w-none mx-auto px-0 sm:px-2 lg:px-3 py-0 sm:py-2 bg-gray-100/70"
     : "hc-home-page-shell max-w-[1320px] mx-auto px-3 sm:px-4 py-2 sm:py-3";
 
   return (

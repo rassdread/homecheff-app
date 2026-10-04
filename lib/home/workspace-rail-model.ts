@@ -1,6 +1,9 @@
 /**
  * One Workspace, composed from the roles the user already has.
  * Links reuse existing routes. No separate seller/affiliate/delivery apps.
+ *
+ * Shared destinations (Vandaag, Berichten, Verdiensten, Afspraken) appear once.
+ * Product selling and design/service work stay separate groups when both apply.
  */
 
 import { OPERATIONS_ROUTES } from '@/lib/operations/operations-entry';
@@ -13,14 +16,18 @@ export type WorkspaceRailItem = {
   labelKey: string;
   href?: string;
   action?: WorkspaceRailAction;
+  /** Preselect create flow when this action opens an offer. */
+  createVertical?: 'DESIGNER';
+  /** Primary is the one filled action. Further roles stay compact. */
+  emphasis?: 'primary' | 'secondary';
 };
 
 export type WorkspaceRailGroupId =
   | 'now'
   | 'selling'
+  | 'service'
   | 'affiliate'
-  | 'delivery'
-  | 'overview';
+  | 'delivery';
 
 export type WorkspaceRailGroup = {
   id: WorkspaceRailGroupId;
@@ -28,6 +35,30 @@ export type WorkspaceRailGroup = {
   labelKey: string | null;
   items: WorkspaceRailItem[];
 };
+
+const SERVICE_ROLE_NAMES = new Set(['designer', 'design']);
+
+const EARNINGS: WorkspaceRailItem = {
+  id: 'earnings',
+  labelKey: 'home.presentation.earnings',
+  href: OPERATIONS_ROUTES.finance.home,
+};
+
+const APPOINTMENTS: WorkspaceRailItem = {
+  id: 'appointments',
+  labelKey: 'home.presentation.appointments',
+  href: '/profile/deals',
+};
+
+const PERFORMANCE: WorkspaceRailItem = {
+  id: 'performance',
+  labelKey: 'home.presentation.performance',
+  href: OPERATIONS_ROUTES.seller.home,
+};
+
+function roleNames(ctx: SettingsHubContext): string[] {
+  return (ctx.sellerRoles ?? []).map((role) => role.toLowerCase());
+}
 
 function isSeller(ctx: SettingsHubContext): boolean {
   const role = (ctx.role || '').toUpperCase();
@@ -44,10 +75,24 @@ function isAffiliate(ctx: SettingsHubContext): boolean {
 }
 
 /**
- * Left rail: what can I work on?
+ * Food, garden, an unsplit seller role, or a seller with no vertical list.
+ * Design-only accounts are not product sellers.
+ */
+function hasProductRole(ctx: SettingsHubContext): boolean {
+  if (!isSeller(ctx)) return false;
+  const roles = roleNames(ctx);
+  if (roles.length === 0) return true;
+  return roles.some((role) => !SERVICE_ROLE_NAMES.has(role));
+}
+
+function hasServiceRole(ctx: SettingsHubContext): boolean {
+  return roleNames(ctx).some((role) => SERVICE_ROLE_NAMES.has(role));
+}
+
+/**
+ * Left rail: what can I do quickly?
  * Empty when the user has no earning role — Marketplace does not render this.
- * Service and product sellers share these links. Proposals stay in Berichten
- * and Afspraken; there is no separate proposal route to add.
+ * Proposals stay in Berichten and Afspraken; there is no separate proposal route.
  */
 export function buildWorkspaceLeftGroups(
   ctx: SettingsHubContext | null | undefined,
@@ -56,7 +101,17 @@ export function buildWorkspaceLeftGroups(
   const seller = isSeller(ctx);
   const delivery = isDelivery(ctx);
   const affiliate = isAffiliate(ctx);
+  const product = seller && hasProductRole(ctx);
+  const service = seller && hasServiceRole(ctx);
   if (!seller && !delivery && !affiliate) return [];
+
+  const earningsOwner: 'affiliate' | 'delivery' | 'seller' | null = affiliate
+    ? 'affiliate'
+    : delivery
+      ? 'delivery'
+      : seller
+        ? 'seller'
+        : null;
 
   const groups: WorkspaceRailGroup[] = [
     {
@@ -77,101 +132,113 @@ export function buildWorkspaceLeftGroups(
     },
   ];
 
-  if (seller) {
+  if (product) {
+    const items: WorkspaceRailItem[] = [
+      {
+        id: 'new-offer',
+        labelKey: 'home.presentation.newOffer',
+        action: 'openCreateOffer',
+      },
+      {
+        id: 'my-offer',
+        labelKey: 'home.presentation.myOffer',
+        href: '/profile?tab=aanbod',
+      },
+      {
+        id: 'orders',
+        labelKey: 'home.presentation.orders',
+        href: OPERATIONS_ROUTES.seller.orders,
+      },
+      APPOINTMENTS,
+      PERFORMANCE,
+    ];
+    if (earningsOwner === 'seller') items.push(EARNINGS);
     groups.push({
       id: 'selling',
       labelKey: 'home.presentation.groupSelling',
-      items: [
+      items,
+    });
+  }
+
+  if (service) {
+    const items: WorkspaceRailItem[] = [
+      {
+        id: 'offer-service',
+        labelKey: 'home.presentation.offerService',
+        action: 'openCreateOffer',
+        createVertical: 'DESIGNER',
+      },
+    ];
+    if (!product) {
+      items.push(
         {
-          id: 'my-offer',
-          labelKey: 'home.presentation.myOffer',
+          id: 'my-services',
+          labelKey: 'home.presentation.myServices',
           href: '/profile?tab=aanbod',
         },
-        {
-          id: 'new-offer',
-          labelKey: 'home.presentation.newOffer',
-          action: 'openCreateOffer',
-        },
-        {
-          id: 'orders',
-          labelKey: 'home.presentation.orders',
-          href: OPERATIONS_ROUTES.seller.orders,
-        },
-        {
-          id: 'appointments',
-          labelKey: 'home.presentation.appointments',
-          href: '/profile/deals',
-        },
-      ],
+        APPOINTMENTS,
+        PERFORMANCE,
+      );
+      if (earningsOwner === 'seller') items.push(EARNINGS);
+    }
+    groups.push({
+      id: 'service',
+      labelKey: 'home.presentation.groupService',
+      items,
     });
   }
 
   if (affiliate) {
+    const items: WorkspaceRailItem[] = [
+      {
+        id: 'affiliate-qr',
+        labelKey: 'home.presentation.myLink',
+        action: 'openAffiliateQr',
+      },
+      {
+        id: 'affiliate-signups',
+        labelKey: 'home.presentation.signups',
+        href: OPERATIONS_ROUTES.affiliate.home,
+      },
+      {
+        id: 'affiliate-promo',
+        labelKey: 'home.presentation.promo',
+        href: OPERATIONS_ROUTES.affiliate.promoMedia,
+      },
+      {
+        id: 'affiliate-partners',
+        labelKey: 'home.presentation.partners',
+        href: OPERATIONS_ROUTES.affiliate.network,
+      },
+    ];
+    if (earningsOwner === 'affiliate') items.push(EARNINGS);
     groups.push({
       id: 'affiliate',
       labelKey: 'home.presentation.groupAffiliate',
-      items: [
-        {
-          id: 'affiliate-qr',
-          labelKey: 'home.presentation.myLink',
-          action: 'openAffiliateQr',
-        },
-        {
-          id: 'affiliate-signups',
-          labelKey: 'home.presentation.signups',
-          href: OPERATIONS_ROUTES.affiliate.home,
-        },
-        {
-          id: 'affiliate-promo',
-          labelKey: 'home.presentation.promo',
-          href: OPERATIONS_ROUTES.affiliate.promoMedia,
-        },
-        {
-          id: 'affiliate-partners',
-          labelKey: 'home.presentation.partners',
-          href: OPERATIONS_ROUTES.affiliate.network,
-        },
-      ],
+      items,
     });
   }
 
   if (delivery) {
+    const items: WorkspaceRailItem[] = [
+      {
+        id: 'deliveries',
+        labelKey: 'home.presentation.deliveries',
+        href: OPERATIONS_ROUTES.delivery.home,
+      },
+      {
+        id: 'availability',
+        labelKey: 'home.presentation.availability',
+        href: OPERATIONS_ROUTES.delivery.settings,
+      },
+    ];
+    if (earningsOwner === 'delivery') items.push(EARNINGS);
     groups.push({
       id: 'delivery',
       labelKey: 'home.presentation.groupDelivery',
-      items: [
-        {
-          id: 'deliveries',
-          labelKey: 'home.presentation.deliveries',
-          href: OPERATIONS_ROUTES.delivery.home,
-        },
-        {
-          id: 'availability',
-          labelKey: 'home.presentation.availability',
-          href: OPERATIONS_ROUTES.delivery.settings,
-        },
-      ],
+      items,
     });
   }
-
-  const overview: WorkspaceRailItem[] = [];
-  if (seller) {
-    overview.push({
-      id: 'performance',
-      labelKey: 'home.presentation.performance',
-      href: OPERATIONS_ROUTES.seller.home,
-    });
-  }
-  overview.push({
-    id: 'earnings',
-    labelKey: 'home.presentation.earnings',
-    href: OPERATIONS_ROUTES.finance.home,
-  });
-  groups.push({
-    id: 'overview',
-    labelKey: 'home.presentation.groupOverview',
-    items: overview,
-  });
 
   return groups;
 }
@@ -184,16 +251,10 @@ export function workspaceLeftLinkIds(
   );
 }
 
-function isServiceOnlySeller(ctx: SettingsHubContext): boolean {
-  if (!isSeller(ctx)) return false;
-  const roles = (ctx.sellerRoles ?? []).map((role) => role.toLowerCase());
-  if (roles.length === 0) return false;
-  return roles.every((role) => role === 'designer' || role === 'design');
-}
-
 /**
- * Compact primary actions for people who already have a work role.
- * One action per active role. Not a second copy of the full rail.
+ * Compact primary actions. One action per active role.
+ * The first action is the filled button. Further roles stay outline buttons
+ * so one role does not look like the whole Workspace.
  */
 export function buildWorkspaceQuickActions(
   ctx: SettingsHubContext | null | undefined,
@@ -205,13 +266,19 @@ export function buildWorkspaceQuickActions(
   if (!seller && !delivery && !affiliate) return [];
 
   const actions: WorkspaceRailItem[] = [];
-  if (seller) {
+  if (seller && hasProductRole(ctx)) {
     actions.push({
-      id: isServiceOnlySeller(ctx) ? 'offer-service' : 'new-offer',
-      labelKey: isServiceOnlySeller(ctx)
-        ? 'home.presentation.offerService'
-        : 'home.presentation.newOffer',
+      id: 'new-offer',
+      labelKey: 'home.presentation.newOffer',
       action: 'openCreateOffer',
+    });
+  }
+  if (seller && hasServiceRole(ctx)) {
+    actions.push({
+      id: 'offer-service',
+      labelKey: 'home.presentation.offerService',
+      action: 'openCreateOffer',
+      createVertical: 'DESIGNER',
     });
   }
   if (affiliate) {
@@ -228,7 +295,11 @@ export function buildWorkspaceQuickActions(
       href: OPERATIONS_ROUTES.delivery.home,
     });
   }
-  return actions;
+
+  return actions.map((item, index) => ({
+    ...item,
+    emphasis: index === 0 ? 'primary' : 'secondary',
+  }));
 }
 
 export type WorkspaceStartChoice = {
