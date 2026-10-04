@@ -34,6 +34,11 @@ const GuestSalesInfoPanel = dynamic(
 
 type Props = {
   className?: string;
+  /**
+   * Marketplace keeps a short headline so supply can start in the first viewport.
+   * Workspace keeps the fuller orientation strip.
+   */
+  variant?: 'marketplace' | 'workspace';
 };
 
 const ctaPrimaryClass = cn(
@@ -51,7 +56,10 @@ const ctaExplainClass = cn(
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
 );
 
-export default function WorkspaceOrientationStrip({ className }: Props) {
+export default function WorkspaceOrientationStrip({
+  className,
+  variant = 'workspace',
+}: Props) {
   const { t } = useTranslation();
   const { data: session, status } = useSession();
   const { openCreateFlow } = useCreateFlow();
@@ -105,6 +113,40 @@ export default function WorkspaceOrientationStrip({ className }: Props) {
     }
     openCreateFlow();
   }, [isGuest, handleGuestCreateClick, openCreateFlow, landscape.usableWidthPx]);
+
+  if (variant === 'marketplace') {
+    return (
+      <div
+        data-wx-orientation-strip=""
+        data-wx-orientation-model="B"
+        data-hc-orientation-density="marketplace"
+        className={cn(
+          'hc-wx-orientation-strip w-full min-w-0',
+          'rounded-none sm:rounded-t-2xl border-b border-primary-brand/30',
+          'bg-gradient-to-r from-primary-brand via-primary-brand to-emerald-800',
+          'px-4 py-2.5 text-white sm:px-5 sm:py-3',
+          className,
+        )}
+        role="banner"
+        aria-label={whereLabel}
+      >
+        <h1
+          data-testid="home-hero-title"
+          data-hero-city={heroGeo.city ?? ''}
+          data-wx-orientation-title=""
+          className="text-[1.15rem] font-bold leading-snug tracking-tight sm:text-xl"
+        >
+          {whereLabel}
+        </h1>
+        <p
+          data-wx-orientation-explain-body=""
+          className="mt-0.5 max-w-3xl text-sm leading-snug text-white/90 line-clamp-1"
+        >
+          {t('homePhase1.orientationExplainCompactPrimary')}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>

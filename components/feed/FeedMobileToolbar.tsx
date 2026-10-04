@@ -165,7 +165,7 @@ export default function FeedMobileToolbar({
   return (
     <div
       className={cn(
-        'mb-2 space-y-2 rounded-xl border border-gray-200/80 bg-white px-2 py-2 shadow-sm',
+        'mb-2 w-full min-w-0 max-w-full space-y-2 overflow-x-hidden rounded-xl border border-gray-200/80 bg-white px-2 py-2 shadow-sm',
         workCompact && 'space-y-1.5 py-1.5',
       )}
       data-mobile-filter-collapsed="false"
@@ -201,45 +201,63 @@ export default function FeedMobileToolbar({
 
       {/* View chips — hidden in landscape work-compact to protect fold. */}
       {!workCompact ? (
-        <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {DISCOVERY_VIEW_CHIP_OPTIONS.map(({ legacyChip, labelKey }) => (
-            <button
-              key={legacyChip}
-              type="button"
-              className={chipClass(feedChip === legacyChip)}
-              onClick={() => onFeedChipChange(legacyChip)}
-            >
-              {t(labelKey)}
-            </button>
-          ))}
-          {onActivateTrade ? (
-            <button
-              type="button"
-              data-wx-trade-action=""
-              className={chipClass(Boolean(tradeActive))}
-              onClick={onActivateTrade}
-              aria-pressed={tradeActive}
-              title={t('feed.tradeActionHint')}
-            >
-              {t('feed.tradeActionChip')}
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-
-      {!workCompact ? (
-        <div className="flex items-center gap-2">
-          <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {DISCOVERY_CATEGORY_CHIP_OPTIONS.map(({ slug, labelKey }) => (
+        <div className="relative min-w-0">
+          <div
+            className="hc-chip-scroller flex min-w-0 gap-1.5 overflow-x-auto overscroll-x-contain pb-1.5 pr-6 [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300"
+            data-hc-chip-scroller="view"
+          >
+            {DISCOVERY_VIEW_CHIP_OPTIONS.map(({ legacyChip, labelKey }) => (
               <button
-                key={slug}
+                key={legacyChip}
                 type="button"
-                className={chipClass(appliedCategory === slug)}
-                onClick={() => onCategoryChange(slug)}
+                className={chipClass(feedChip === legacyChip)}
+                onClick={() => onFeedChipChange(legacyChip)}
               >
                 {t(labelKey)}
               </button>
             ))}
+            {onActivateTrade ? (
+              <button
+                type="button"
+                data-wx-trade-action=""
+                className={chipClass(Boolean(tradeActive))}
+                onClick={onActivateTrade}
+                aria-pressed={tradeActive}
+                title={t('feed.tradeActionHint')}
+              >
+                {t('feed.tradeActionChip')}
+              </button>
+            ) : null}
+          </div>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-white to-transparent"
+          />
+        </div>
+      ) : null}
+
+      {!workCompact ? (
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="relative min-w-0 flex-1">
+            <div
+              className="hc-chip-scroller flex min-w-0 gap-1.5 overflow-x-auto overscroll-x-contain pb-1.5 pr-6 [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300"
+              data-hc-chip-scroller="category"
+            >
+              {DISCOVERY_CATEGORY_CHIP_OPTIONS.map(({ slug, labelKey }) => (
+                <button
+                  key={slug}
+                  type="button"
+                  className={chipClass(appliedCategory === slug)}
+                  onClick={() => onCategoryChange(slug)}
+                >
+                  {t(labelKey)}
+                </button>
+              ))}
+            </div>
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-white to-transparent"
+            />
           </div>
           <FeedLayoutToggle mode={feedLayoutMode} onChange={onFeedLayoutModeChange} compact />
         </div>

@@ -6,6 +6,10 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import HomeHeroSection from "@/components/home/HomeHeroSection";
 import HomepageEcosystemNavLinks from "@/components/home/HomepageEcosystemNavLinks";
+import PresentationModeSwitch from "@/components/home/PresentationModeSwitch";
+import { useHomePresentationMode } from "@/components/home/useHomePresentationMode";
+import WorkspaceAttentionRail from "@/components/home/WorkspaceAttentionRail";
+import WorkspaceWorkRail from "@/components/home/WorkspaceWorkRail";
 import { scrollToHomeFeed } from "@/lib/guest/guest-explanation-panels";
 import {
   readScrollPosition,
@@ -109,6 +113,7 @@ export default function HomePageClient({
 }: Props) {
   const { t, tOr, language } = useTranslation();
   const { data: session } = useSession();
+  const presentation = useHomePresentationMode();
   const visibleHomePromotionIds = useVisibleHomePromotionIds();
   const { narrow: isNarrowHome } = useNarrowViewportResolved();
 
@@ -179,7 +184,7 @@ export default function HomePageClient({
   /** WX 1A — keep mobile chrome compact; ecosystem strip is secondary (not above-fold mandatory). */
   const mobileChrome = (
     <div className="min-w-0 xl:hidden">
-      {session?.user ? (
+      {session?.user && presentation.mode === "workspace" ? (
         <div className="mb-1.5">
           <UserActionCenter variant="mobileCompact" />
         </div>
@@ -249,12 +254,41 @@ export default function HomePageClient({
         >
           <FeedWorkspaceVisibleLayout
             ariaLabel={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
-            orientation={<WorkspaceOrientationStrip />}
+            presentationMode={presentation.mode}
+            orientation={
+              <>
+                {presentation.available ? (
+                  <PresentationModeSwitch
+                    mode={presentation.mode}
+                    onChange={presentation.setMode}
+                  />
+                ) : null}
+                <WorkspaceOrientationStrip
+                  variant={
+                    presentation.mode === 'marketplace' ? 'marketplace' : 'workspace'
+                  }
+                />
+              </>
+            }
             primary={<GeoFeed {...geoFeedProps} homeComposedLayout={false} />}
-            startPanel={<HomeDesktopLeftSidebar />}
-            endPanel={<HomeDesktopSidebar welcomeLine={welcomeLine} />}
+            startPanel={
+              presentation.mode === "workspace" ? <WorkspaceWorkRail /> : null
+            }
+            endPanel={
+              presentation.mode === "workspace" ? (
+                <WorkspaceAttentionRail />
+              ) : null
+            }
           />
         </FeedControlledHostShell>
+        {presentation.mode === 'marketplace' ? (
+          <div
+            className="mx-auto w-full max-w-3xl px-3 pb-4 pt-6"
+            data-hc-marketplace-secondary=""
+          >
+            <HomeDesktopSidebar welcomeLine={welcomeLine} placement="below" />
+          </div>
+        ) : null}
       </WorkspaceFeedPresentationBridge>
     </>
   );

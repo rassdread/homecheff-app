@@ -56,6 +56,10 @@ import WorkspaceRegion from "./WorkspaceRegion";
 import WorkspaceSlot from "./WorkspaceSlot";
 import WorkspacePanel from "./WorkspacePanel";
 import {
+  applyPresentationToLayoutPlan,
+  type HomePresentationMode,
+} from "@/lib/home/presentation-mode";
+import {
   coalesceMeasurement,
   normalizeWorkspaceMeasurement,
   resolveFeedWorkspaceVisibleLayout,
@@ -108,6 +112,12 @@ export type FeedWorkspaceVisibleLayoutProps = {
   initialHeightPx?: number;
   ariaLabel?: string;
   onPlanChange?: (plan: FeedWorkspaceVisibleLayoutPlan) => void;
+  /**
+   * Marketplace hides both rails and widens the feed.
+   * Workspace keeps the width plan from tablet up.
+   * Omitted: existing width-based three-column behavior.
+   */
+  presentationMode?: HomePresentationMode;
 };
 
 function seedMeasurement(
@@ -144,6 +154,7 @@ export default function FeedWorkspaceVisibleLayout({
   initialHeightPx,
   ariaLabel = "Adaptive workspace",
   onPlanChange,
+  presentationMode,
 }: FeedWorkspaceVisibleLayoutProps) {
   const rootRef = useRef<HTMLElement | null>(null);
   const lastStableRef = useRef<{ widthPx: number; heightPx: number } | null>(
@@ -223,10 +234,13 @@ export default function FeedWorkspaceVisibleLayout({
     };
   }
 
-  const plan: FeedWorkspaceVisibleLayoutPlan = resolveFeedWorkspaceVisibleLayout({
+  const widthPlan: FeedWorkspaceVisibleLayoutPlan = resolveFeedWorkspaceVisibleLayout({
     usableWidthPx,
     usableHeightPx,
   });
+  const plan: FeedWorkspaceVisibleLayoutPlan = presentationMode
+    ? applyPresentationToLayoutPlan(widthPlan, presentationMode)
+    : widthPlan;
 
   const landscapePosture = resolveLandscapeWorkPosture({
     usableWidthPx: plan.usableWidthPx,
@@ -243,11 +257,15 @@ export default function FeedWorkspaceVisibleLayout({
 
   useEffect(() => {
     if (!presentationBridge) return;
-    presentationBridge.setStartRailActive(visiblePlan.railOwnsFilters);
+    // Marketplace and Workspace keep search, location, and categories in the feed.
+    // The width-only path still lets the start rail own filters.
+    const railOwnsFilters =
+      presentationMode == null ? visiblePlan.railOwnsFilters : false;
+    presentationBridge.setStartRailActive(railOwnsFilters);
     return () => {
       presentationBridge.setStartRailActive(false);
     };
-  }, [presentationBridge, visiblePlan.railOwnsFilters]);
+  }, [presentationBridge, presentationMode, visiblePlan.railOwnsFilters]);
 
   /**
    * When scrollOwner=feed (desktop / multiCol AW), lock document scroll so the
@@ -371,6 +389,7 @@ export default function FeedWorkspaceVisibleLayout({
     <section
       ref={rootRef}
       data-aw-feed-workspace=""
+      data-hc-presentation-mode={presentationMode ?? "width"}
       data-wx-phase="1c.1"
       data-wx-visible-adaptive={VISIBLE_ADAPTIVE_WORKSPACE.contractId}
       data-wx-workspace-class={visiblePlan.workspaceClass}
@@ -589,6 +608,8 @@ export default function FeedWorkspaceVisibleLayout({
       className={
         multiCol
           ? `hc-aw-feed-workspace hc-wx-frame hc-wx-frame-adaptive w-full min-w-0 grid gap-0 items-stretch min-h-[12rem] overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-sm data-[wx-density=browse]:gap-0 data-[wx-density=work]:gap-0 data-[wx-density=pro]:gap-0`
+          : presentationMode === "marketplace"
+          ? "hc-aw-feed-workspace w-full min-w-0 grid gap-1 sm:gap-1.5"
           : "hc-aw-feed-workspace w-full min-w-0 grid gap-2 sm:gap-3"
       }
       style={{

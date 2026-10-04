@@ -12,6 +12,34 @@ export const LS_HIDE_HOW_IT_WORKS = "homecheff.ui.hideHowItWorks";
 export const LS_HERO_COLLAPSED = "homecheff.heroCollapsed";
 export const LS_INFO_COLLAPSED = "homecheff.infoCollapsed";
 
+/** Marketplace or Workspace. Not an affiliate cookie and not hc_ref. */
+export const LS_PRESENTATION_MODE = "homecheff.ui.presentationMode";
+
+export function readPresentationModePreference():
+  | "marketplace"
+  | "workspace"
+  | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = window.localStorage.getItem(LS_PRESENTATION_MODE);
+    if (value === "marketplace" || value === "workspace") return value;
+  } catch {
+    /* ignore quota / private mode */
+  }
+  return null;
+}
+
+export function writePresentationModePreference(
+  mode: "marketplace" | "workspace",
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LS_PRESENTATION_MODE, mode);
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
 /** true = compacte balk / samenvatting; leest nieuwe key, anders legacy “hide”-flags. */
 export function readHeroCollapsedPreference(): boolean | null {
   if (typeof window === "undefined") return null;

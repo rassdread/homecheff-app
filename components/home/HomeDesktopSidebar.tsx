@@ -20,6 +20,8 @@ import { resolveSidebarDeliveryCtaSuppression } from '@/lib/home/sidebar-cta-pri
 
 type Props = {
   welcomeLine?: string | null;
+  /** Below the feed in Marketplace. Skips the attention module so discovery stays first. */
+  placement?: 'rail' | 'below';
 };
 
 /**
@@ -27,7 +29,10 @@ type Props = {
  * Order: Welcome → Reputation → HCP/Growth progress → Community pulse → Tips →
  * Growth tasks → Activity modules → Promotions.
  */
-export default function HomeDesktopSidebar({ welcomeLine }: Props) {
+export default function HomeDesktopSidebar({
+  welcomeLine,
+  placement = 'rail',
+}: Props) {
   const { t } = useTranslation();
   const surfacePlan = useHomeSurfacePlan();
   const deliveryCtaSuppression = useMemo(
@@ -43,10 +48,12 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
     guestBottomNavPanelEl,
   } = useGuestBottomNavPanel();
 
+  const belowFeed = placement === 'below';
+
   return (
     <>
       <div className="flex flex-col gap-2.5 pb-2" data-home-sidebar="community-cockpit">
-        {session?.user && welcomeLine ? (
+        {session?.user && welcomeLine && !belowFeed ? (
           <div className="hc-dorpsplein-card hc-dorpsplein-card-warm px-4 py-3">
             <p className="text-sm font-semibold text-gray-900 leading-snug">{welcomeLine}</p>
             <p className="mt-1 text-xs text-gray-600">{t('homeDorpsplein.sidebarTagline')}</p>
@@ -58,7 +65,7 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
           onGuestClick={handleGuestReputationClick}
         />
 
-        {session?.user ? <GrowthActionStack plan={surfacePlan} /> : null}
+        {session?.user && !belowFeed ? <GrowthActionStack plan={surfacePlan} /> : null}
 
         <CommunityPulseBar variant="sidebar" />
 
@@ -83,7 +90,7 @@ export default function HomeDesktopSidebar({ welcomeLine }: Props) {
         {session?.user ? (
           <>
             <CreatorMomentumCard className="mb-0" />
-            <UserActionCenter variant="sidebar" />
+            {belowFeed ? null : <UserActionCenter variant="sidebar" />}
             <ReturnBelongingStrip className="mb-0" />
             <HomeProfileProgressCard className="mb-0" />
             <DesktopRightSidebarSurfaceStack
