@@ -17,6 +17,8 @@ import {
   revalidatePublicFeedCache,
   shouldRevalidateAfterDishMutation,
 } from "@/lib/feed/revalidate-public-feed";
+import { assertAccountRequirementsOr403 } from "@/lib/account-requirements-server";
+import { resolveInspirationPublishStatus } from "@/lib/inspiratie/guide-requirements";
 
 export async function GET(request: NextRequest) {
   try {
@@ -131,12 +133,16 @@ export async function POST(req: NextRequest) {
 
     // Get user by email first
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+      where: { email: session.user.email },
+      include: { Account: { select: { provider: true } } },
     });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
+    const accBlock = assertAccountRequirementsOr403(user, "postItem");
+    if (accBlock) return accBlock;
 
     const ageBlock = await marketplaceAgeResponse({
       prisma,
@@ -181,6 +187,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
+    const publish = resolveInspirationPublishStatus(status, category, {
+      ingredients,
+      instructions,
+      materials,
+      notes,
+    });
+
     let dishLat =
       lat != null && Number.isFinite(Number(lat)) ? Number(lat) : null;
     let dishLng =
@@ -210,7 +223,7 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         title,
         description,
-        status: status || 'PRIVATE',
+        status: publish.status,
         priceCents: priceCents || null,
         deliveryMode: deliveryMode || null,
         place: dishPlace || null,
@@ -359,7 +372,7 @@ export async function POST(req: NextRequest) {
       revalidatePublicFeedCache('dish:create');
     }
 
-    return NextResponse.json({ item: transformedDish });
+    return NextResponse.json({ item: transformedDish, inspirationDraft: publish.heldAsDraft });
   } catch (error) {
     console.error("Error creating dish:", error);
     return NextResponse.json(

@@ -9,6 +9,8 @@ import {
   awardDishInspirationContentHcp,
   getDishContentMetrics,
 } from "@/lib/gamification/content-hcp";
+import { assertAccountRequirementsOr403 } from "@/lib/account-requirements-server";
+import { resolveInspirationPublishStatus } from "@/lib/inspiratie/guide-requirements";
 
 export async function GET(request: NextRequest) {
   try {
@@ -131,13 +133,17 @@ export async function POST(req: NextRequest) {
 
     // Get user by email first
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+      where: { email: session.user.email },
+      include: { Account: { select: { provider: true } } },
     });
 
     if (!user) {
 
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
+    const accBlock = assertAccountRequirementsOr403(user, "postItem");
+    if (accBlock) return accBlock;
 
     const ageBlock = await marketplaceAgeResponse({
       prisma,
@@ -177,13 +183,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
+    const publish = resolveInspirationPublishStatus(status, 'GROWN', {
+      notes,
+      plantType,
+      soilType,
+      plantDate,
+      harvestDate,
+      plantDistance,
+      growthDuration,
+      growthPhotos,
+    });
+
     // Create a new garden project (using Dish model with category GROWN)
     const gardenProject = await prisma.dish.create({
       data: {
         userId: user.id,
         title,
         description: description || null,
-        status: status || 'PRIVATE',
+        status: publish.status,
         category: 'GROWN',
         subcategory: plantType || null,
         // Garden-specific fields
@@ -329,7 +346,11 @@ export async function POST(req: NextRequest) {
       } : null
     };
 
-    return NextResponse.json({ success: true, item: transformedProject });
+    return NextResponse.json({
+      success: true,
+      item: transformedProject,
+      inspirationDraft: publish.heldAsDraft,
+    });
   } catch (error) {
     console.error("❌❌❌ Error creating garden project:", error);
     console.error("Error details:", error instanceof Error ? error.message : String(error));

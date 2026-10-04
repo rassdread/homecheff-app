@@ -122,7 +122,9 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
     sellerRoles: user?.sellerRoles || [],
     buyerRoles: user?.buyerRoles || [],
     displayFullName: user?.displayFullName !== undefined ? user.displayFullName : true,
-    displayNameOption: user?.displayNameOption || 'full',
+    displayNameOption: !user?.displayNameOption || user.displayNameOption === 'none'
+      ? 'username'
+      : user.displayNameOption,
     encryptionEnabled: user?.encryptionEnabled || false,
     messageGuidelinesAccepted: user?.messageGuidelinesAccepted || false,
     // Bank details now handled via Stripe
@@ -372,7 +374,9 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
       sellerRoles: user?.sellerRoles || [],
       buyerRoles: user?.buyerRoles || [],
       displayFullName: user?.displayFullName !== undefined ? user.displayFullName : true,
-      displayNameOption: user?.displayNameOption || 'full',
+      displayNameOption: !user?.displayNameOption || user.displayNameOption === 'none'
+      ? 'username'
+      : user.displayNameOption,
       encryptionEnabled: user?.encryptionEnabled || false,
       messageGuidelinesAccepted: user?.messageGuidelinesAccepted || false,
       // Bank details now handled via Stripe
@@ -930,53 +934,8 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
               <input
                 type="radio"
                 name="displayName"
-                checked={formData.displayNameOption === 'full'}
-                onChange={() => setFormData(prev => ({ ...prev, displayNameOption: 'full' }))}
-                disabled={!isEditing}
-                className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
-              />
-              <div className="min-w-0">
-                <div className="text-sm sm:text-base font-medium text-gray-900">{t('profileSettings.fullNameDisplay')}</div>
-                <div className="text-xs sm:text-sm text-gray-600">{t('profileSettings.fullNameDisplayDescription')}</div>
-              </div>
-            </label>
-            
-            <label className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-              <input
-                type="radio"
-                name="displayName"
-                checked={formData.displayNameOption === 'first'}
-                onChange={() => setFormData(prev => ({ ...prev, displayNameOption: 'first' }))}
-                disabled={!isEditing}
-                className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
-              />
-              <div className="min-w-0">
-                <div className="text-sm sm:text-base font-medium text-gray-900">{t('profileSettings.firstNameDisplay')}</div>
-                <div className="text-xs sm:text-sm text-gray-600">{t('profileSettings.firstNameDisplayDescription')}</div>
-              </div>
-            </label>
-            
-            <label className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-              <input
-                type="radio"
-                name="displayName"
-                checked={formData.displayNameOption === 'last'}
-                onChange={() => setFormData(prev => ({ ...prev, displayNameOption: 'last' }))}
-                disabled={!isEditing}
-                className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
-              />
-              <div className="min-w-0">
-                <div className="text-sm sm:text-base font-medium text-gray-900">{t('profileSettings.lastNameDisplay')}</div>
-                <div className="text-xs sm:text-sm text-gray-600">{t('profileSettings.lastNameDisplayDescription')}</div>
-              </div>
-            </label>
-            
-            <label className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-              <input
-                type="radio"
-                name="displayName"
                 checked={formData.displayNameOption === 'username'}
-                onChange={() => setFormData(prev => ({ ...prev, displayNameOption: 'username' }))}
+                onChange={() => setFormData(prev => ({ ...prev, displayNameOption: 'username', displayFullName: false }))}
                 disabled={!isEditing}
                 className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
               />
@@ -985,19 +944,34 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
                 <div className="text-xs sm:text-sm text-gray-600">{t('profileSettings.usernameDisplayDescription')}</div>
               </div>
             </label>
-            
+
             <label className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
               <input
                 type="radio"
                 name="displayName"
-                checked={formData.displayNameOption === 'none'}
-                onChange={() => setFormData(prev => ({ ...prev, displayNameOption: 'none' }))}
+                checked={formData.displayNameOption === 'first'}
+                onChange={() => setFormData(prev => ({ ...prev, displayNameOption: 'first', displayFullName: false }))}
                 disabled={!isEditing}
                 className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
               />
               <div className="min-w-0">
-                <div className="text-sm sm:text-base font-medium text-gray-900">{t('profileSettings.noNameDisplay')}</div>
-                <div className="text-xs sm:text-sm text-gray-600">{t('profileSettings.noNameDisplayDescription')}</div>
+                <div className="text-sm sm:text-base font-medium text-gray-900">{t('profileSettings.firstNameDisplay')}</div>
+                <div className="text-xs sm:text-sm text-gray-600">{t('profileSettings.firstNameDisplayDescription')}</div>
+              </div>
+            </label>
+
+            <label className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input
+                type="radio"
+                name="displayName"
+                checked={formData.displayNameOption === 'full'}
+                onChange={() => setFormData(prev => ({ ...prev, displayNameOption: 'full', displayFullName: true }))}
+                disabled={!isEditing}
+                className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500 disabled:opacity-50 flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <div className="text-sm sm:text-base font-medium text-gray-900">{t('profileSettings.fullNameDisplay')}</div>
+                <div className="text-xs sm:text-sm text-gray-600">{t('profileSettings.fullNameDisplayDescription')}</div>
               </div>
             </label>
           </div>

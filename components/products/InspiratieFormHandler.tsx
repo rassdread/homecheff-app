@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import RecipeManager from '@/components/profile/RecipeManager';
 import GardenManager from '@/components/profile/GardenManager';
 import DesignManager from '@/components/designs/DesignManager';
+import { resolvePublicCreateSurface } from '@/lib/inspiratie/guide-requirements';
 
 interface InspiratieFormHandlerProps {
   location: string;
@@ -43,7 +44,9 @@ export default function InspiratieFormHandler({
     };
   }, [initialPhoto, normalizedLocation]);
 
-  if (normalizedLocation === 'keuken') {
+  const surface = resolvePublicCreateSurface('inspiration', normalizedLocation);
+
+  if (surface === 'recipe') {
     return (
       <div className="min-h-full">
         <RecipeManager isActive={true} autoOpenForm={true} />
@@ -51,7 +54,7 @@ export default function InspiratieFormHandler({
     );
   }
 
-  if (normalizedLocation === 'tuin') {
+  if (surface === 'garden') {
     return (
       <div className="min-h-full">
         <GardenManager isActive={true} autoOpenForm={true} />
@@ -59,7 +62,7 @@ export default function InspiratieFormHandler({
     );
   }
 
-  if (normalizedLocation === 'atelier') {
+  if (surface === 'design') {
     return (
       <div className="min-h-full">
         <DesignManager isActive={true} autoOpenForm={true} />

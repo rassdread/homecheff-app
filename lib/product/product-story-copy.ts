@@ -4,6 +4,7 @@
  */
 
 import { firstPlaceSegment, resolveProductPlaceLabel } from '@/lib/geo/item-location';
+import { publicSubcategoryLabel } from '@/lib/marketplace/public-subcategory-label';
 import { isContactOnlyProduct } from '@/lib/product/order-method';
 import type { ProductOrderMethodValue } from '@/lib/product/order-method';
 
@@ -569,7 +570,7 @@ export function buildAboutProductBlock(
 
   const sub = cleanText(input.subcategory);
   if (sub) {
-    contextLines.push(`${L.aboutSubcategory}: ${sub}`);
+    contextLines.push(`${L.aboutSubcategory}: ${publicSubcategoryLabel(sub, input.locale)}`);
   }
 
   const tags = (input.tags ?? []).filter((t) => t?.trim()).slice(0, 8);

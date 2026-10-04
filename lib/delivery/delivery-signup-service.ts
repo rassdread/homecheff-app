@@ -385,7 +385,7 @@ export async function runDeliverySignup(params: {
           role: 'DELIVERY',
           emailVerified: new Date(),
           displayFullName: true,
-          displayNameOption: 'full',
+          displayNameOption: 'username',
           showFansList: true,
           privacyPolicyAccepted: true,
           privacyPolicyAcceptedAt: new Date(),

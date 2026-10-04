@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslation } from '@/hooks/useTranslation';
+import { publicSubcategoryLabel } from '@/lib/marketplace/public-subcategory-label';
 import { cn } from '@/lib/utils';
 
 const MAX_TAGS = 8;
@@ -11,8 +13,10 @@ type Props = {
 };
 
 export default function ProductDetailTags({ tags, subcategory, className }: Props) {
+  const { language } = useTranslation();
   const visibleTags = (tags ?? []).filter((t) => t && t.trim()).slice(0, MAX_TAGS);
   const hasSub = Boolean(subcategory?.trim());
+  const subcategoryLabel = publicSubcategoryLabel(subcategory, language);
 
   if (!hasSub && visibleTags.length === 0) return null;
 
@@ -20,7 +24,7 @@ export default function ProductDetailTags({ tags, subcategory, className }: Prop
     <div className={cn('flex flex-wrap items-center gap-1.5', className)}>
       {hasSub ? (
         <span className="inline-flex rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs font-semibold text-gray-700">
-          {subcategory}
+          {subcategoryLabel}
         </span>
       ) : null}
       {visibleTags.map((tag) => (

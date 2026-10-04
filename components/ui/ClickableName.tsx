@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { getDisplayName, isNameClickable, type User } from '@/lib/displayName';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   getPublicProfileHref,
   profileFallbackHref,
@@ -23,7 +24,8 @@ export default function ClickableName({
   fallbackText = 'Onbekend',
   linkTo = 'profile',
 }: ClickableNameProps) {
-  const displayName = getDisplayName(user);
+  const { language } = useTranslation();
+  const displayName = getDisplayName(user, language);
   const isClickable = isNameClickable(user);
 
   if (!isClickable) {

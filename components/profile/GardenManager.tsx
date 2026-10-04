@@ -767,7 +767,14 @@ export default function GardenManager({
         setGrowthPhotos([]); // Reset growth photos
         setShowForm(false);
         setEditingProject(null);
-        setMessage({ type: 'success', text: isEditing ? t('chat.garden.updated') : t('chat.garden.saved') });
+        setMessage({
+          type: 'success',
+          text: result?.inspirationDraft
+            ? t('inspiratie.instructions.heldAsDraft')
+            : isEditing
+              ? t('chat.garden.updated')
+              : t('chat.garden.saved'),
+        });
         resetCreateFlowUiState({ keepDraft: false });
 
         // Reload projects

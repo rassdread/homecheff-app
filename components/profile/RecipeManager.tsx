@@ -819,6 +819,7 @@ export default function RecipeManager({
       });
 
       if (response.ok) {
+        const result = await response.json().catch(() => ({}));
         await hcpRewardUi?.refetchGamification();
         clearDraft(draftIntent);
         // Reset form
@@ -843,7 +844,14 @@ export default function RecipeManager({
         setStepPhotos([]);
         setShowForm(false);
         setEditingRecipe(null);
-        setMessage({ type: 'success', text: isEditing ? t('recipe.updated') : t('recipe.saved') });
+        setMessage({
+          type: 'success',
+          text: result?.inspirationDraft
+            ? t('inspiratie.instructions.heldAsDraft')
+            : isEditing
+              ? t('recipe.updated')
+              : t('recipe.saved'),
+        });
         resetCreateFlowUiState({ keepDraft: false });
 
         // Reload recipes

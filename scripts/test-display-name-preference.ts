@@ -6,6 +6,8 @@ import assert from "node:assert/strict";
 import {
   getDisplayName,
   PUBLIC_DISPLAY_FALLBACK,
+  PUBLIC_DISPLAY_FALLBACK_EN,
+  normalizeStoredDisplayNameOption,
 } from "../lib/displayName";
 
 function test(name: string, fn: () => void) {
@@ -42,16 +44,50 @@ test("first name preference with fallback to username", () => {
   );
 });
 
-test("none maps to fallback label", () => {
+test("legacy none with username shows username, never the real name", () => {
+  const shown = getDisplayName({
+    name: "Secret Person",
+    username: "secret",
+    displayFullName: true,
+    displayNameOption: "none",
+  });
+  assert.equal(shown, "secret");
+  assert.notEqual(shown, "Secret Person");
+});
+
+test("legacy none without username does not expose the real name", () => {
+  const shown = getDisplayName({
+    name: "Secret Person",
+    username: "temp_123_ab",
+    displayFullName: true,
+    displayNameOption: "none",
+  });
+  assert.equal(shown, PUBLIC_DISPLAY_FALLBACK);
+  assert.notEqual(shown, "Secret Person");
+});
+
+test("english fallback", () => {
+  assert.equal(
+    getDisplayName({ name: "Secret Person", username: null, displayNameOption: "none" }, "en"),
+    PUBLIC_DISPLAY_FALLBACK_EN,
+  );
+});
+
+test("first name does not fall through to the full name", () => {
   assert.equal(
     getDisplayName({
-      name: "Secret Person",
-      username: "secret",
-      displayFullName: true,
-      displayNameOption: "none",
+      name: "Jan Jansen",
+      username: "janmaker",
+      displayNameOption: "first",
     }),
-    PUBLIC_DISPLAY_FALLBACK,
+    "Jan",
   );
+});
+
+test("new preference normalizes none to username", () => {
+  assert.equal(normalizeStoredDisplayNameOption("none"), "username");
+  assert.equal(normalizeStoredDisplayNameOption(undefined), "username");
+  assert.equal(normalizeStoredDisplayNameOption("full"), "full");
 });
 
 test("legacy displayFullName false hides real name", () => {

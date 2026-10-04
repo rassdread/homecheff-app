@@ -601,7 +601,11 @@ export default function DesignManager({
         setEditingDesign(null);
         setMessage({
           type: 'success',
-          text: isEditing ? t('design.updatedToast') : t('design.savedToast'),
+          text: result?.inspirationDraft
+            ? t('inspiratie.instructions.heldAsDraft')
+            : isEditing
+              ? t('design.updatedToast')
+              : t('design.savedToast'),
         });
         resetCreateFlowUiState({ keepDraft: false });
         await loadDesigns();

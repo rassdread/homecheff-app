@@ -114,7 +114,7 @@ export async function syncGoogleProfileToDatabase(
           privacyPolicyAccepted: false,
           emailVerified: new Date(),
           displayFullName: true,
-          displayNameOption: 'full',
+          displayNameOption: 'username',
           showFansList: true,
           marketingAccepted: false,
           messageGuidelinesAccepted: false,

@@ -27,7 +27,7 @@ import { shouldUseAbsoluteApiBase } from '@/lib/client/resolve-api-url';
 import { isNativeApp } from '@/lib/native/capacitor';
 import { navDebug } from '@/lib/nav-debug';
 import PhotoCarousel from "@/components/ui/PhotoCarousel";
-import { getDisplayName as getDisplayNameUtil, PUBLIC_DISPLAY_FALLBACK } from "@/lib/displayName";
+import { getDisplayName as getDisplayNameUtil, publicDisplayFallback } from "@/lib/displayName";
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   buildListingDetailHref,
@@ -216,10 +216,10 @@ const getCategoryTheme = (category: string | undefined, t: (key: string) => stri
   }
 };
 
-const getSellerDisplayName = (product: Product | null) => {
-  if (!product?.seller?.User) return PUBLIC_DISPLAY_FALLBACK;
+const getSellerDisplayName = (product: Product | null, language?: string | null) => {
+  if (!product?.seller?.User) return publicDisplayFallback(language);
 
-  return getDisplayNameUtil(product.seller.User);
+  return getDisplayNameUtil(product.seller.User, language);
 };
 
 type ListingDetailPageProps = {
@@ -238,7 +238,7 @@ export default function ListingDetailPage({
       typeof window !== 'undefined' ? window.location.pathname : null,
     );
   const { data: session } = useSession();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   let mappedInitial: ReturnType<typeof mapListingDetailPayload> | null = null;
   try {
@@ -1216,7 +1216,7 @@ export default function ListingDetailPage({
                       categoryIcon={CategoryIcon}
                       trust={discoveryTrust}
                       listingKind={listingKind}
-                      sellerName={getSellerDisplayName(product)}
+                      sellerName={getSellerDisplayName(product, language)}
                       sellerBadges={sellerBadges}
                       isBusiness={isBusiness}
                       companyName={companyName}
@@ -1259,7 +1259,7 @@ export default function ListingDetailPage({
               <ProductDetailMainSections
                 product={product}
                 trust={discoveryTrust}
-                sellerName={getSellerDisplayName(product)}
+                sellerName={getSellerDisplayName(product, language)}
                 categoryLabel={theme.label}
                 stats={stats}
                 checkoutAvailable={checkoutAvailable}
@@ -1304,7 +1304,7 @@ export default function ListingDetailPage({
           {stats.reviewCount === 0 && !showReviewForm ? (
             <ProductSaleReviewEmpty
               product={product}
-              sellerName={getSellerDisplayName(product)}
+              sellerName={getSellerDisplayName(product, language)}
               categoryLabel={theme.label}
               stats={stats}
               checkoutAvailable={checkoutAvailable}
@@ -1342,7 +1342,7 @@ export default function ListingDetailPage({
       <ProductSaleStickyCta
         product={product}
         carouselImageUrl={carouselImageUrl}
-        sellerName={getSellerDisplayName(product)}
+        sellerName={getSellerDisplayName(product, language)}
         quantity={quantity}
         availableStock={availableStock}
         isOwner={isOwner}

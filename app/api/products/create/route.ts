@@ -38,6 +38,7 @@ import {
 } from '@/lib/feed/revalidate-public-feed';
 import { assertOrApplyCommerceDeclarationForPaidOffer } from '@/lib/legal/assert-commerce-declaration-for-paid-offer';
 import { productRequiresAllergenConfirmation } from '@/lib/legal/food-allergen-applicability';
+import { offerCarriesStructuredGuide } from '@/lib/inspiratie/guide-requirements';
 import { buildAllergenConfirmationUpdate } from '@/lib/legal/food-allergen-context';
 import {
   contributionRequiredForPublish,
@@ -624,7 +625,8 @@ export async function POST(req: Request) {
       },
     });
 
-    // Linked Dish records share the product ID for inspiration ↔ sale parity.
+    // A marketplace offer stays a Product. A Dish is published only when this
+    // request actually included a structured inspiration guide.
     const tagList = Array.isArray(tags)
       ? tags.filter((tag: string) => tag && tag.trim().length > 0)
       : [];
@@ -634,7 +636,16 @@ export async function POST(req: Request) {
       ? materials.filter((m: unknown) => typeof m === 'string' && m.trim().length > 0)
       : [];
 
-    if (cat === 'GROWN') {
+    if (cat === 'GROWN' && offerCarriesStructuredGuide('GROWN', {
+      notes,
+      plantType,
+      soilType,
+      plantDate,
+      harvestDate,
+      plantDistance,
+      growthDuration,
+      growthPhotos: growthPhotoList,
+    })) {
       await prisma.dish.upsert({
         where: { id: productId },
         create: {
@@ -724,7 +735,7 @@ export async function POST(req: Request) {
       });
     }
 
-    if (cat === 'CHEFF') {
+    if (cat === 'CHEFF' && offerCarriesStructuredGuide('CHEFF', { ingredients, instructions })) {
       const ingredientList = Array.isArray(ingredients)
         ? ingredients.filter((ing: unknown) => typeof ing === 'string' && ing.trim().length > 0)
         : [];
@@ -817,7 +828,11 @@ export async function POST(req: Request) {
       });
     }
 
-    if (cat === 'DESIGNER') {
+    if (cat === 'DESIGNER' && offerCarriesStructuredGuide('DESIGNER', {
+      materials,
+      instructions,
+      notes,
+    })) {
       await prisma.dish.upsert({
         where: { id: productId },
         create: {

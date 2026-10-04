@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 import { getDisplayName } from '@/lib/displayName';
+import { useTranslation } from '@/hooks/useTranslation';
 import { formatItemPlaceDistanceLine } from '@/lib/geo/item-location';
 import { formatFansCountLabel } from '@/lib/follow/format-fans-count';
 import { useMakerFollowState } from '@/hooks/useMakerFollowState';
@@ -19,6 +20,7 @@ export default function TilePersonRow({
   t: TranslateFn;
   avatarSize?: 'xs' | 'sm';
 }) {
+  const { language } = useTranslation();
   const person = model.person;
   const { fansCount, isOwnProfile } = useMakerFollowState({
     sellerId: person?.userId ?? '',
@@ -35,7 +37,7 @@ export default function TilePersonRow({
     username: person.username,
     displayFullName: person.displayFullName,
     displayNameOption: person.displayNameOption,
-  });
+  }, language);
 
   const locationLine = formatItemPlaceDistanceLine({
     place: model.place,

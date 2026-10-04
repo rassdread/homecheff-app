@@ -8,6 +8,7 @@ import { ChefHat, Palette, Printer, Sprout } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { canonicalLogoPath } from '@/lib/brand/canonical-logo';
 import { getDisplayName } from '@/lib/displayName';
+import { publicSubcategoryLabel } from '@/lib/marketplace/public-subcategory-label';
 import {
   buildInstructionContent,
   INSTRUCTION_STEPS_LABEL_KEY,
@@ -109,7 +110,7 @@ export default function InspiratiePrintView({ item, canonicalUrl, autoPrint = fa
   });
 
   const mainPhoto = item.photos.find((p) => p.isMain) ?? item.photos[0];
-  const makerName = getDisplayName(item.user);
+  const makerName = getDisplayName(item.user, language);
 
   const dateStr = (() => {
     try {
@@ -236,7 +237,7 @@ export default function InspiratiePrintView({ item, canonicalUrl, autoPrint = fa
             <span>
               {t('inspiratie.detail.published')}: {dateStr}
             </span>
-            {item.subcategory ? <span>{item.subcategory}</span> : null}
+            {item.subcategory ? <span>{publicSubcategoryLabel(item.subcategory, language)}</span> : null}
           </div>
         </header>
 

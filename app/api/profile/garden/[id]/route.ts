@@ -9,6 +9,8 @@ import {
   getDishContentMetrics,
 } from "@/lib/gamification/content-hcp";
 import { syncLinkedProductFromDishPatch } from "@/lib/items/sync-linked-product-dish";
+import { assertAccountRequirementsOr403 } from "@/lib/account-requirements-server";
+import { resolveInspirationPublishStatus } from "@/lib/inspiratie/guide-requirements";
 
 export async function GET(
   req: NextRequest,
@@ -118,7 +120,8 @@ export async function PATCH(
 
     // Get user by email first
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+      where: { email: session.user.email },
+      include: { Account: { select: { provider: true } } },
     });
 
     if (!user) {
@@ -167,7 +170,21 @@ export async function PATCH(
     // Basic fields
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
-    if (status !== undefined) updateData.status = status;
+    const publish = resolveInspirationPublishStatus(status, 'GROWN', {
+      notes: notes !== undefined ? notes : project.notes,
+      plantType: plantType !== undefined ? plantType : project.plantType,
+      soilType: soilType !== undefined ? soilType : project.soilType,
+      plantDate: plantDate !== undefined ? plantDate : project.plantDate,
+      harvestDate: harvestDate !== undefined ? harvestDate : project.harvestDate,
+      plantDistance: plantDistance !== undefined ? plantDistance : project.plantDistance,
+      growthDuration: growthDuration !== undefined ? growthDuration : project.growthDuration,
+      growthPhotos,
+    });
+    if ((status || '').toString().toUpperCase() === 'PUBLISHED') {
+      const accBlock = assertAccountRequirementsOr403(user, 'postItem');
+      if (accBlock) return accBlock;
+    }
+    if (status !== undefined) updateData.status = publish.status;
     
     // Garden-specific fields
     if (plantType !== undefined) {
@@ -299,7 +316,7 @@ export async function PATCH(
       }).catch((e) => console.warn("[garden PATCH] linked product sync", e));
     }
 
-    return NextResponse.json({ item: updatedProject });
+    return NextResponse.json({ item: updatedProject, inspirationDraft: publish.heldAsDraft });
   } catch (error) {
     console.error("Error updating garden project:", error);
     return NextResponse.json(

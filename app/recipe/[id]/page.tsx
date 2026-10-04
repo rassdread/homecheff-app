@@ -50,11 +50,15 @@ export async function generateMetadata({ params }: PageProps) {
     select: {
       title: true,
       description: true,
+      status: true,
       photos: { where: { isMain: true }, take: 1 },
     },
   });
 
   if (!recipe) notFound();
+  if (recipe.status !== 'PUBLISHED') {
+    return { title: 'HomeCheff', robots: { index: false, follow: false } };
+  }
 
   const imageUrl = recipe.photos[0]?.url
     ? (recipe.photos[0].url.startsWith('http')

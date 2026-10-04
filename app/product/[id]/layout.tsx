@@ -64,7 +64,7 @@ export async function generateMetadata(
     const canonicalUrl = `${currentDomain}${canonicalPath}`;
 
     const sellerName = product.seller?.User
-      ? getDisplayName(product.seller.User)
+      ? getDisplayName(product.seller.User, lang)
       : '';
     const city = formatCityLabel(product.seller?.User?.place);
 
@@ -197,7 +197,7 @@ export default async function ProductLayout({
       const productUrl = `${currentDomain}/product/${slugSegment}`;
 
       const sellerName = product.seller?.User
-        ? getDisplayName(product.seller.User)
+        ? getDisplayName(product.seller.User, lang)
         : '';
       const city = formatCityLabel(product.seller?.User?.place);
       const username = product.seller?.User?.username;

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo, createElement } from 'react';
 import { getDisplayName } from '@/lib/displayName';
+import { publicSubcategoryLabel } from '@/lib/marketplace/public-subcategory-label';
 import { ChefHat, Sprout, Palette, Filter, Grid, List, TrendingUp, Eye, Lightbulb, X, ChevronDown, PlayCircle, Star, MessageSquare, MapPin, Navigation, Search, SlidersHorizontal, Globe } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -198,8 +199,7 @@ export default function InspiratieContent({
       }
     }
     
-    // Fallback: return the original subcategory if translation not found
-    return subcategory;
+    return publicSubcategoryLabel(subcategory, language);
   };
 
   useEffect(() => {

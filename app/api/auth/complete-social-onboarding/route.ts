@@ -248,7 +248,7 @@ export async function POST(request: NextRequest) {
         privacyPolicyAcceptedAt: acceptedPrivacy ? new Date() : null,
         bio: `Welkom op HomeCheff!`,
         displayFullName: true,
-        displayNameOption: 'full',
+        displayNameOption: 'username',
         showFansList: true,
         marketingAccepted: false,
         messageGuidelinesAccepted: false,

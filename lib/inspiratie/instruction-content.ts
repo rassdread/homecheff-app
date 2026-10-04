@@ -123,7 +123,7 @@ function resolveInstructionTexts(
   const fromInstructions = nonEmptyStrings(instructions);
   if (fromInstructions.length > 0) return fromInstructions;
 
-  if (category === 'DESIGNER' && notes?.trim()) {
+  if ((category === 'DESIGNER' || category === 'GROWN') && notes?.trim()) {
     return splitNotesIntoSteps(notes);
   }
 

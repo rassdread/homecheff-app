@@ -6,6 +6,7 @@ import StarRating from './StarRating';
 import ReviewResponseForm from './ReviewResponseForm';
 import Image from 'next/image';
 import { getDisplayName } from '@/lib/displayName';
+import { useTranslation } from '@/hooks/useTranslation';
 import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 
 interface ReviewItemProps {
@@ -49,6 +50,7 @@ export default function ReviewItem({
   canReply = false, 
   isSeller = false 
 }: ReviewItemProps) {
+  const { language } = useTranslation();
   const [showImages, setShowImages] = useState(false);
   const [liked, setLiked] = useState(false);
   const [showResponseForm, setShowResponseForm] = useState(false);
@@ -92,16 +94,16 @@ export default function ReviewItem({
         <div className="flex items-center gap-3">
           <UserCircleAvatar
             src={review.buyer.profileImage}
-            alt={getDisplayName(review.buyer)}
+            alt={getDisplayName(review.buyer, language)}
             size="md"
-            nameForInitial={getDisplayName(review.buyer)}
+            nameForInitial={getDisplayName(review.buyer, language)}
             className="border border-gray-200 bg-gray-50"
           />
           
           <div>
             <div className="flex items-center gap-2">
               <h4 className="font-medium text-gray-900">
-                {getDisplayName(review.buyer)}
+                {getDisplayName(review.buyer, language)}
               </h4>
               {review.isVerified && (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -203,13 +205,13 @@ export default function ReviewItem({
                 <div className="flex items-center gap-2 mb-2">
                   <UserCircleAvatar
                     src={response.seller.profileImage}
-                    alt={getDisplayName(response.seller)}
+                    alt={getDisplayName(response.seller, language)}
                     size="xs"
-                    nameForInitial={getDisplayName(response.seller)}
+                    nameForInitial={getDisplayName(response.seller, language)}
                     className="bg-blue-50 ring-blue-200/40"
                   />
                   <span className="text-sm font-medium text-gray-900">
-                    {getDisplayName(response.seller)}
+                    {getDisplayName(response.seller, language)}
                   </span>
                   <span className="text-xs text-gray-500">
                     • {formatDate(response.createdAt)}

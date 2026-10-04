@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { prisma } from '@/lib/prisma';
+import { offerCarriesStructuredGuide } from '@/lib/inspiratie/guide-requirements';
 
 const SALE_CATEGORIES = new Set(['CHEFF', 'GROWN', 'DESIGNER']);
 
@@ -202,18 +203,7 @@ export async function syncLinkedDishFromProductPatch(
   }
 
   if (!existing) {
-    const hasVerticalData =
-      product.category === 'CHEFF'
-        ? Array.isArray(body.ingredients) ||
-          Array.isArray(body.instructions) ||
-          body.prepTime !== undefined
-        : product.category === 'GROWN'
-          ? body.plantType !== undefined ||
-            Array.isArray(body.growthPhotos) ||
-            body.sunlight !== undefined
-          : Array.isArray(body.materials) || body.dimensions !== undefined;
-
-    if (!hasVerticalData && !imageUrls?.length) return;
+    if (!offerCarriesStructuredGuide(product.category, body)) return;
 
     await prisma.dish.create({
       data: {

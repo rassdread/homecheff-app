@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
+import { normalizeStoredDisplayNameOption } from '@/lib/displayName';
 import { prisma } from '@/lib/prisma';
 import { ensureSellerProfileForUser } from '@/lib/seller-access';
 import { resolvePlaceInput } from '@/lib/geo/resolve-place-input';
@@ -176,7 +177,7 @@ export async function PUT(request: NextRequest) {
         sellerRoles: sellerRoles || [],
         buyerRoles: buyerRoles || [],
         displayFullName: displayFullName !== undefined ? displayFullName : true,
-        displayNameOption: displayNameOption || 'full',
+        displayNameOption: normalizeStoredDisplayNameOption(displayNameOption),
         showFansList: showFansList !== undefined ? showFansList : true,
         encryptionEnabled: encryptionEnabled !== undefined ? encryptionEnabled : false,
         messageGuidelinesAccepted: messageGuidelinesAccepted !== undefined ? messageGuidelinesAccepted : false,

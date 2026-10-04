@@ -21,6 +21,8 @@ import {
   revalidatePublicFeedCache,
   shouldRevalidateAfterDishMutation,
 } from "@/lib/feed/revalidate-public-feed";
+import { assertAccountRequirementsOr403 } from "@/lib/account-requirements-server";
+import { resolveInspirationPublishStatus } from "@/lib/inspiratie/guide-requirements";
 
 export async function GET(
   req: NextRequest,
@@ -131,7 +133,8 @@ export async function PATCH(
 
     // Get user by email first
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+      where: { email: session.user.email },
+      include: { Account: { select: { provider: true } } },
     });
 
     if (!user) {
@@ -180,13 +183,25 @@ export async function PATCH(
       return NextResponse.json({ error: "Dish not found" }, { status: 404 });
     }
 
+    const nextCategory = category !== undefined ? category : dish.category;
+    const publish = resolveInspirationPublishStatus(status, nextCategory, {
+      ingredients: ingredients !== undefined ? ingredients : dish.ingredients,
+      instructions: instructions !== undefined ? instructions : dish.instructions,
+      materials: materials !== undefined ? materials : dish.materials,
+      notes: notes !== undefined ? notes : dish.notes,
+    });
+    if ((status || '').toUpperCase() === 'PUBLISHED') {
+      const accBlock = assertAccountRequirementsOr403(user, "postItem");
+      if (accBlock) return accBlock;
+    }
+
     // Update dish with all provided fields
     const updateData: any = {};
     
     // Basic fields
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
-    if (status !== undefined) updateData.status = status;
+    if (status !== undefined) updateData.status = publish.status;
     if (category !== undefined) updateData.category = category;
     if (subcategory !== undefined) updateData.subcategory = subcategory;
     if (priceCents !== undefined) updateData.priceCents = priceCents;
@@ -451,7 +466,7 @@ export async function PATCH(
       revalidatePublicFeedCache('dish:patch');
     }
 
-    return NextResponse.json({ item: transformedDish });
+    return NextResponse.json({ item: transformedDish, inspirationDraft: publish.heldAsDraft });
   } catch (error) {
     console.error("Error updating dish:", error);
     return NextResponse.json(

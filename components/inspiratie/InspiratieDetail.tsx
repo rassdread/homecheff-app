@@ -34,6 +34,7 @@ import FavoriteButton from '@/components/favorite/FavoriteButton';
 import { useTranslation } from '@/hooks/useTranslation';
 import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getDisplayName } from '@/lib/displayName';
+import { publicSubcategoryLabel } from '@/lib/marketplace/public-subcategory-label';
 import { getVideoUrlWithCors } from '@/lib/videoUtils';
 import MakerContactSection from '@/components/profile/MakerContactSection';
 import PublicItemOwnerActions from '@/components/items/PublicItemOwnerActions';
@@ -192,7 +193,7 @@ export default function InspiratieDetail({
   publicContactChannels = [],
   isOwner = false,
 }: InspiratieDetailProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const lightboxTouchStartX = useRef<number | null>(null);
@@ -235,7 +236,7 @@ export default function InspiratieDetail({
   );
 
   const notesUsedAsSteps =
-    item.category === 'DESIGNER' &&
+    (item.category === 'DESIGNER' || item.category === 'GROWN') &&
     item.instructions.filter((s) => s.trim()).length === 0 &&
     instructionContent.steps.length > 0 &&
     Boolean(item.notes?.trim());
@@ -567,7 +568,7 @@ export default function InspiratieDetail({
                 </span>
                 {item.subcategory && (
                   <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-600">
-                    {item.subcategory}
+                    {publicSubcategoryLabel(item.subcategory, language)}
                   </span>
                 )}
                 <span className="text-sm text-gray-500">
@@ -587,6 +588,7 @@ export default function InspiratieDetail({
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
+                {instructionContent.hasInstructionContent ? (
                 <button
                   type="button"
                   onClick={handleDownload}
@@ -595,6 +597,7 @@ export default function InspiratieDetail({
                   <Printer className="h-4 w-4" />
                   {t('inspiratie.instructions.printOrSavePdf')}
                 </button>
+                ) : null}
                 <ShareButton
                   url={typeof window !== 'undefined' ? window.location.href : ''}
                   title={item.title || 'Inspiratie-item'}
@@ -650,20 +653,20 @@ export default function InspiratieDetail({
                     {item.user.profileImage ? (
                       <Image
                         src={item.user.profileImage}
-                        alt={getDisplayName(item.user)}
+                        alt={getDisplayName(item.user, language)}
                         fill
                         className="object-cover"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-gray-200 text-lg font-semibold text-gray-600">
-                        {getDisplayName(item.user).charAt(0).toUpperCase()}
+                        {getDisplayName(item.user, language).charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">{t('inspiratie.detail.postedBy')}</p>
                     <p className="text-base font-semibold text-gray-900">
-                      {getDisplayName(item.user)}
+                      {getDisplayName(item.user, language)}
                     </p>
                     {item.user.username && (
                       <Link
@@ -679,7 +682,7 @@ export default function InspiratieDetail({
                   <MakerContactSection
                     variant="inspiration"
                     makerId={item.user.id}
-                    makerName={getDisplayName(item.user)}
+                    makerName={getDisplayName(item.user, language)}
                     channels={publicContactChannels}
                     className="mt-4"
                   />
