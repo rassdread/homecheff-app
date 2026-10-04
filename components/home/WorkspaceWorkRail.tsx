@@ -8,7 +8,10 @@ import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import { sellerRolesToAllowedVerticals } from '@/lib/createFlowIntent';
 import { primaryDashboardContextFromUser } from '@/lib/navigation/primary-dashboard';
-import { buildWorkspaceLeftGroups } from '@/lib/home/workspace-rail-model';
+import {
+  buildWorkspaceLeftGroups,
+  buildWorkspaceQuickActions,
+} from '@/lib/home/workspace-rail-model';
 
 const FALLBACKS: Record<string, { en: string; nl: string }> = {
   'home.presentation.workspace': { en: 'Workspace', nl: 'Werkruimte' },
@@ -30,6 +33,8 @@ const FALLBACKS: Record<string, { en: string; nl: string }> = {
   'home.presentation.groupOverview': { en: 'Overview', nl: 'Overzicht' },
   'home.presentation.performance': { en: 'Performance', nl: 'Prestaties' },
   'home.presentation.earnings': { en: 'Earnings', nl: 'Verdiensten' },
+  'home.presentation.offerService': { en: 'Offer a service', nl: 'Dienst aanbieden' },
+  'home.presentation.promote': { en: 'Share my link', nl: 'Deel mijn link' },
 };
 
 export default function WorkspaceWorkRail() {
@@ -41,6 +46,7 @@ export default function WorkspaceWorkRail() {
     (session?.user ?? null) as Record<string, unknown> | null,
   );
   const groups = buildWorkspaceLeftGroups(ctx);
+  const quickActions = buildWorkspaceQuickActions(ctx);
   const allowedVerticals = sellerRolesToAllowedVerticals(ctx?.sellerRoles ?? []);
 
   const labelFor = (key: string) => {
@@ -56,6 +62,41 @@ export default function WorkspaceWorkRail() {
       data-hc-workspace-left=""
       className="space-y-4"
     >
+      {quickActions.length > 0 ? (
+        <div data-hc-workspace-quick="" className="flex flex-col gap-1.5 px-1">
+          {quickActions.map((item) =>
+            item.href ? (
+              <Link
+                key={item.id}
+                href={item.href}
+                data-hc-workspace-quick-action={item.id}
+                className="inline-flex min-h-[36px] items-center justify-center rounded-lg bg-emerald-700 px-2.5 py-1.5 text-center text-xs font-semibold text-white hover:bg-emerald-800"
+              >
+                {labelFor(item.labelKey)}
+              </Link>
+            ) : (
+              <button
+                key={item.id}
+                type="button"
+                data-hc-workspace-quick-action={item.id}
+                onClick={() => {
+                  if (item.action === 'openAffiliateQr') {
+                    setQrOpen(true);
+                    return;
+                  }
+                  createFlow.openCreateFlowWithIntent({
+                    mode: 'dorpsplein',
+                    allowedVerticals,
+                  });
+                }}
+                className="inline-flex min-h-[36px] items-center justify-center rounded-lg bg-emerald-700 px-2.5 py-1.5 text-center text-xs font-semibold text-white hover:bg-emerald-800"
+              >
+                {labelFor(item.labelKey)}
+              </button>
+            ),
+          )}
+        </div>
+      ) : null}
       {groups.map((group) => (
         <section key={group.id} data-hc-workspace-group={group.id}>
           {group.labelKey ? (

@@ -1,23 +1,10 @@
 'use client';
 
 import { useEffect, useRef, type Ref } from 'react';
-import { Loader2, MapPin, Search, X } from 'lucide-react';
-import { RADIUS_PRESET_OPTIONS } from '@/lib/geo/local-discovery';
-import {
-  BROWSE_COUNTRY_OPTIONS,
-  countryOptionLabel,
-} from '@/lib/geo/structured-location';
+import { X } from 'lucide-react';
 import type { FeedScope } from '@/lib/feed/feed-scope';
-import {
-  FEED_SCOPE_INTERNATIONAL,
-  FEED_SCOPE_NATIONAL,
-  FEED_SCOPE_NEARBY,
-} from '@/lib/feed/feed-scope';
-import AcceptedValuesDiscoveryFilter from '@/components/feed/AcceptedValuesDiscoveryFilter';
-import DiscoveryDirectionToggle, {
-  type DiscoveryDirection,
-} from '@/components/feed/DiscoveryDirectionToggle';
-import { DISCOVERY_CATEGORY_CHIP_OPTIONS } from '@/lib/marketplace/canonical-model';
+import FeedFilterSections from '@/components/feed/FeedFilterSections';
+import type { DiscoveryDirection } from '@/components/feed/DiscoveryDirectionToggle';
 
 type Props = {
   open: boolean;
@@ -60,12 +47,6 @@ type Props = {
   onDiscoveryDirectionChange: (direction: DiscoveryDirection) => void;
 };
 
-const inputClass =
-  'w-full min-w-0 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-brand/50 focus:outline-none focus:ring-2 focus:ring-primary-brand/20';
-
-/** 16px avoids iOS input-zoom; keeps Android soft-keyboard focus stable. */
-const placeInputClass = `${inputClass} text-base`;
-
 export default function FeedMobileFilterSheet({
   open,
   onClose,
@@ -76,7 +57,6 @@ export default function FeedMobileFilterSheet({
   placeInputRef,
   onUseMyLocation,
   locationLoading,
-  locationSupported,
   locationError,
   activeLocationChip,
   onClearLocation,
@@ -191,7 +171,7 @@ export default function FeedMobileFilterSheet({
     >
       <div
         ref={panelRef}
-        className="w-full max-h-[88vh] overflow-y-auto rounded-t-2xl bg-[#faf8f4] shadow-2xl border border-gray-200/80"
+        className="mb-[6.5rem] w-full max-h-[calc(100dvh-7.25rem)] overflow-y-auto rounded-t-2xl border border-gray-200/80 bg-[#faf8f4] shadow-2xl lg:mb-0"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200/80 bg-[#faf8f4] px-4 py-3">
@@ -210,271 +190,42 @@ export default function FeedMobileFilterSheet({
         </div>
 
         <div className="space-y-4 px-4 py-4">
-          <DiscoveryDirectionToggle
-            value={discoveryDirection}
-            onChange={onDiscoveryDirectionChange}
-            compact
-            showTagline
+          <FeedFilterSections
+            t={t}
+            place={place}
+            onPlaceChange={onPlaceChange}
+            placeInputRef={setPlaceRef}
+            onUseMyLocation={onUseMyLocation}
+            locationLoading={locationLoading}
+            locationError={locationError}
+            activeLocationChip={activeLocationChip}
+            onClearLocation={onClearLocation}
+            showLocationHint={showLocationHint}
+            profileNeedsCoords={profileNeedsCoords}
+            countryCode={countryCode}
+            onCountryCodeChange={onCountryCodeChange}
+            locationMode={locationMode}
+            scope={appliedScope}
+            onScopeChange={onScopeChange}
+            radius={radius}
+            onRadiusChange={onRadiusChange}
+            q={q}
+            onQChange={onQChange}
+            category={category}
+            onCategoryChange={onCategoryChange}
+            searchQuery={searchQuery}
+            onSearchQueryChange={onSearchQueryChange}
+            priceRange={priceRange}
+            onPriceRangeChange={onPriceRangeChange}
+            appliedAcceptedValues={appliedAcceptedValues}
+            onAcceptedValuesChange={onAcceptedValuesChange}
+            discoveryDirection={discoveryDirection}
+            onDiscoveryDirectionChange={onDiscoveryDirectionChange}
+            filtersDirty={filtersDirty}
+            onApply={onApply}
+            countryTestId="feed-country-select-mobile"
+            radiusTestId="feed-mobile-radius"
           />
-
-          <section className="rounded-xl border border-emerald-100 bg-emerald-50/30 p-2.5">
-            <AcceptedValuesDiscoveryFilter
-              value={appliedAcceptedValues}
-              onChange={onAcceptedValuesChange}
-              compact
-              offerMode={discoveryDirection === 'offer'}
-            />
-          </section>
-
-          {showLocationHint ? (
-            <p className="text-xs text-gray-600 rounded-lg border border-primary-brand/10 bg-primary-50/40 px-3 py-2">
-              {t('feed.viewerLocationHint')}
-            </p>
-          ) : null}
-          {profileNeedsCoords ? (
-            <p className="text-xs text-amber-800 rounded-lg border border-amber-200/80 bg-amber-50/60 px-3 py-2">
-              {t('feed.completeProfileLocationHint')}
-            </p>
-          ) : null}
-
-          <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
-              {t('feed.countryLabel')}
-            </label>
-            <select
-              value={countryCode || ''}
-              onChange={(e) => onCountryCodeChange(e.target.value)}
-              className={inputClass}
-              data-testid="feed-country-select-mobile"
-            >
-              <option value="">{t('feed.countryGlobalOption')}</option>
-              {BROWSE_COUNTRY_OPTIONS.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {countryOptionLabel(c.code)}
-                </option>
-              ))}
-            </select>
-            {locationMode === 'country' && countryCode ? (
-              <p className="mt-1.5 text-[11px] text-emerald-800">
-                {t('feed.showingCountryBoundary', {
-                  country: countryOptionLabel(countryCode),
-                })}
-              </p>
-            ) : null}
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
-              {t('feed.scopeLabel')}
-            </label>
-            <div className="grid grid-cols-1 gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1">
-              {(
-                [
-                  [FEED_SCOPE_NEARBY, 'feed.scopeNearby'],
-                  [FEED_SCOPE_NATIONAL, 'feed.scopeNational'],
-                  [FEED_SCOPE_INTERNATIONAL, 'feed.scopeInternational'],
-                ] as const
-              ).map(([id, labelKey]) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => onScopeChange(id)}
-                  className={`rounded-lg px-2.5 py-2 text-xs font-semibold text-left transition-colors touch-manipulation ${
-                    appliedScope === id
-                      ? 'bg-white text-emerald-800 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                  aria-pressed={appliedScope === id}
-                >
-                  {t(labelKey)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div data-testid="feed-mobile-place-field">
-            <label
-              htmlFor="feed-mobile-place-input"
-              className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5"
-            >
-              {t('common.place')}
-            </label>
-            <input
-              id="feed-mobile-place-input"
-              ref={setPlaceRef}
-              type="text"
-              value={place}
-              onChange={(e) => onPlaceChange(e.target.value)}
-              onPointerDown={(e) => {
-                // Synchronous focus inside the user gesture — required for soft
-                // keyboard on Android Chrome / Capacitor WebView. Do not preventDefault.
-                const el = e.currentTarget;
-                if (document.activeElement !== el) {
-                  el.focus();
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  if (place.trim()) onApply();
-                }
-              }}
-              className={placeInputClass}
-              placeholder={t('common.typePlaceOrPostcode')}
-              autoComplete="postal-code"
-              inputMode="search"
-              enterKeyHint="search"
-              autoCapitalize="off"
-              autoCorrect="off"
-              spellCheck={false}
-              data-testid="feed-place-input"
-              aria-label={t('common.place')}
-            />
-            <button
-              type="button"
-              onClick={onUseMyLocation}
-              disabled={locationLoading}
-              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-primary-brand/30 bg-white px-4 py-2.5 text-sm font-semibold text-primary-brand hover:bg-primary-50 disabled:opacity-50 touch-manipulation"
-            >
-              {locationLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              ) : (
-                <MapPin className="h-4 w-4" aria-hidden />
-              )}
-              {t('feed.useMyLocation')}
-            </button>
-            {locationError ? (
-              <p
-                className="mt-1.5 text-xs text-red-600"
-                role="alert"
-                data-testid="feed-gps-error"
-              >
-                {locationError}
-              </p>
-            ) : null}
-            {activeLocationChip ? (
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-800">
-                  {activeLocationChip}
-                </span>
-                <button
-                  type="button"
-                  onClick={onClearLocation}
-                  className="text-[11px] font-semibold text-gray-600 underline"
-                >
-                  {t('feed.clearLocation')}
-                </button>
-              </div>
-            ) : null}
-          </div>
-
-          <div data-testid="feed-mobile-radius" id="feed-mobile-radius">
-            <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
-              {t('feed.radiusLabel')}
-            </label>
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {RADIUS_PRESET_OPTIONS.map((km) => (
-                <button
-                  key={km}
-                  type="button"
-                  disabled={appliedScope !== FEED_SCOPE_NEARBY}
-                  onClick={() => onRadiusChange(km)}
-                  className={`rounded-lg px-2.5 py-1 text-xs font-semibold touch-manipulation disabled:opacity-40 ${
-                    radius === km
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  {km === 0 ? t('feed.radiusNational') : `${km} km`}
-                </button>
-              ))}
-            </div>
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={radius}
-              disabled={appliedScope !== FEED_SCOPE_NEARBY}
-              onChange={(e) =>
-                onRadiusChange(Math.max(0, Math.min(100, Number(e.target.value))))
-              }
-              className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
-              {t('common.search')}
-            </label>
-            <input
-              value={q}
-              onChange={(e) => onQChange(e.target.value)}
-              className={inputClass}
-              placeholder={t('common.searchPlaceholder')}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
-              {t('common.category')}
-            </label>
-            <select
-              value={category}
-              onChange={(e) => onCategoryChange(e.target.value)}
-              className={inputClass}
-            >
-              <option value="all">{t('common.allCategories')}</option>
-              {DISCOVERY_CATEGORY_CHIP_OPTIONS.filter((o) => o.slug !== 'all').map(
-                ({ slug, labelKey }) => (
-                  <option key={slug} value={slug}>
-                    {t(labelKey)}
-                  </option>
-                ),
-              )}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
-              {t('feed.refineSectionLabel')}
-            </label>
-            <div className="relative mb-3">
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-                aria-hidden
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => onSearchQueryChange(e.target.value)}
-                placeholder={t('common.searchInProductsSimple')}
-                className={`${inputClass} pl-10`}
-              />
-            </div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              {t('common.priceEuro')}
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="number"
-                value={priceRange.min}
-                onChange={(e) => onPriceRangeChange({ ...priceRange, min: e.target.value })}
-                placeholder={t('common.min')}
-                className={inputClass}
-              />
-              <input
-                type="number"
-                value={priceRange.max}
-                onChange={(e) => onPriceRangeChange({ ...priceRange, max: e.target.value })}
-                placeholder={t('filters.maxPricePlaceholder')}
-                className={inputClass}
-              />
-            </div>
-          </div>
-
-          {filtersDirty ? (
-            <p className="text-xs text-amber-700">{t('feed.filtersPendingHint')}</p>
-          ) : null}
         </div>
 
         <div className="sticky bottom-0 flex gap-2 border-t border-gray-200/80 bg-[#faf8f4] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">

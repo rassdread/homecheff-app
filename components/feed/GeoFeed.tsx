@@ -21,9 +21,8 @@ import {
   feedLocationLine,
 } from "@/components/feed/GeoFeedCards";
 import type { GeoFeedCardItem } from "@/components/feed/GeoFeedCards";
-import DiscoveryDirectionToggle, {
-  type DiscoveryDirection,
-} from "@/components/feed/DiscoveryDirectionToggle";
+import type { DiscoveryDirection } from "@/components/feed/DiscoveryDirectionToggle";
+import FeedFilterSections from "@/components/feed/FeedFilterSections";
 import AcceptedValueChip from "@/components/marketplace/AcceptedValueChip";
 import dynamic from "next/dynamic";
 import LocationRefineBanner from "@/components/feed/LocationRefineBanner";
@@ -306,7 +305,8 @@ import {
   clampFeedRadiusKm,
   nextWiderFeedRadiusKm,
   RADIUS_LOCAL_KM,
-  RADIUS_PRESET_OPTIONS,
+  FEED_RADIUS_DEFAULT_KM,
+  FEED_RADIUS_UI_OPTIONS,
 } from "@/lib/geo/local-discovery";
 import { partitionSaleItemsByRadius } from "@/lib/geo/feed-radius-filter";
 import {
@@ -1057,10 +1057,6 @@ const FeedSidebarFilters = dynamic(
 );
 const FeedMobileFilterSheet = dynamic(
   () => import("@/components/feed/FeedMobileFilterSheet"),
-  { ssr: false },
-);
-const AcceptedValuesDiscoveryFilter = dynamic(
-  () => import("@/components/feed/AcceptedValuesDiscoveryFilter"),
   { ssr: false },
 );
 
@@ -5508,9 +5504,21 @@ export default function GeoFeed({
   }, [appliedAcceptedValues]);
 
   const clearFilters = () => {
-    resetDraftFilters();
+    setQ("");
+    setAppliedQ("");
+    setSearchQuery("");
+    setAppliedSearchQuery("");
+    setPriceRange({ min: "", max: "" });
+    setAppliedPriceRange({ min: "", max: "" });
+    selectVerticalChip("all");
+    setFeedChip("all");
+    if (appliedScope !== FEED_SCOPE_NEARBY) {
+      handleScopeChange(FEED_SCOPE_NEARBY);
+    }
+    handleRadiusChange(FEED_RADIUS_DEFAULT_KM);
+    clearViewerLocation();
     clearAcceptedValuesFilter();
-    setDiscoveryDirection('want');
+    setDiscoveryDirection("want");
   };
 
   const effectiveLocationSource = useMemo(():
@@ -5632,7 +5640,7 @@ export default function GeoFeed({
 
     const radiusLabel = formatSearchContextRadiusKm(
       appliedRadius,
-      t("feed.radiusNational"),
+      t("feed.radiusUnlimited"),
     );
 
     const query =
@@ -6192,414 +6200,60 @@ export default function GeoFeed({
   );
 
   const filterPanelBodyEl = showGeoFilters ? (
-          <>
-            <DiscoveryDirectionToggle
-              value={discoveryDirection}
-              onChange={setDiscoveryDirection}
-              compact={feedCompactChrome}
-              showTagline
-              className={feedSectionBorder}
-            />
-            <div className={feedSectionBorder}>
-              <AcceptedValuesDiscoveryFilter
-                value={appliedAcceptedValues}
-                onChange={setAppliedAcceptedValues}
-                compact={feedCompactChrome}
-                offerMode={discoveryDirection === 'offer'}
-              />
-            </div>
-            <div className={feedSectionBorder}>
-              <p
-                className={
-                  feedCompactChrome
-                    ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-2"
-                    : "text-xs font-medium text-gray-500 uppercase tracking-wide mb-3"
-                }
-              >
-                {t("feed.scopeLabel")}
-              </p>
-              <div className="grid grid-cols-1 gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1 mb-4">
-                {(
-                  [
-                    [FEED_SCOPE_NEARBY, "feed.scopeNearby"],
-                    [FEED_SCOPE_NATIONAL, "feed.scopeNational"],
-                    [FEED_SCOPE_INTERNATIONAL, "feed.scopeInternational"],
-                  ] as const
-                ).map(([id, labelKey]) => (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => handleScopeChange(id)}
-                    className={`rounded-lg px-2.5 py-2 text-xs font-semibold text-left transition-colors ${
-                      appliedScope === id
-                        ? "bg-white text-emerald-800 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                    aria-pressed={appliedScope === id}
-                  >
-                    {t(labelKey)}
-                  </button>
-                ))}
-              </div>
-              {appliedScope === FEED_SCOPE_INTERNATIONAL ? (
-                <p className="mb-3 text-[10px] text-gray-500 leading-snug">
-                  {t("feed.scopeInternationalHint")}
-                </p>
-              ) : null}
-            </div>
-            <div className={feedSectionBorder}>
-              <p
-                className={
-                  feedCompactChrome
-                    ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-2"
-                    : "text-xs font-medium text-gray-500 uppercase tracking-wide mb-3"
-                }
-              >
-                {t("feed.locationSectionLabel")}
-              </p>
-              {!feedCoords && !appliedPlace.trim() && !locationLoading ? (
-                <p className="mb-3 text-xs text-gray-600 leading-relaxed rounded-lg border border-primary-brand/10 bg-primary-50/40 px-3 py-2">
-                  {t("feed.viewerLocationHint")}
-                </p>
-              ) : null}
-              {profileNeedsCoords ? (
-                <p className="mb-3 text-xs text-amber-800 leading-relaxed rounded-lg border border-amber-200/80 bg-amber-50/60 px-3 py-2">
-                  {t("feed.completeProfileLocationHint")}
-                </p>
-              ) : null}
-              <div className="space-y-4">
-                <div>
-                  <label className={filterLabelClass}>
-                    {t("common.place")}
-                  </label>
-                  <div
-                    className={
-                      isDesktopSplit
-                        ? "grid grid-cols-1 gap-2"
-                        : "grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] gap-2 md:items-stretch"
-                    }
-                  >
-                    <input
-                      ref={placeInputRef}
-                      type="text"
-                      value={place}
-                      onChange={(e) => handlePlaceInput(e.target.value)}
-                      onPointerDown={(e) => {
-                        const el = e.currentTarget;
-                        if (document.activeElement !== el) el.focus();
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          if (place.trim()) applyFilters();
-                        }
-                      }}
-                      className={`${filterInputClass} text-base`}
-                      placeholder={t("common.typePlaceOrPostcode")}
-                      autoComplete="postal-code"
-                      inputMode="search"
-                      enterKeyHint="search"
-                      autoCapitalize="off"
-                      autoCorrect="off"
-                      spellCheck={false}
-                      data-testid="feed-place-input"
-                      aria-label={t("common.place")}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleUseMyLocation}
-                      disabled={locationBusy}
-                      aria-busy={locationBusy}
-                      className="inline-flex w-full md:w-auto md:min-w-[11rem] shrink-0 items-center justify-center gap-2 rounded-xl border border-primary-brand/30 bg-white px-4 py-3 text-sm font-semibold text-primary-brand hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation"
-                    >
-                      {locationBusy ? (
-                        <>
-                          <Loader2
-                            className="h-4 w-4 shrink-0 animate-spin"
-                            aria-hidden
-                          />
-                          <span>{t("common.loading")}</span>
-                        </>
-                      ) : (
-                        <>
-                          <MapPin className="h-4 w-4 shrink-0" aria-hidden />
-                          <span>
-                            {isDesktopSplit
-                              ? t("feed.useMyLocationShort")
-                              : t("feed.useMyLocation")}
-                          </span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                  {showGpsError && locationError ? (
-                    <p
-                      className="mt-1.5 text-xs text-red-600"
-                      role="alert"
-                      data-testid="feed-gps-error"
-                    >
-                      {locationError}
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3 sm:items-start">
-                  <div className="min-w-[120px] sm:w-28">
-                    <label className={filterLabelClass}>
-                      {t("feed.radiusLabel")}
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={radius}
-                      disabled={appliedScope !== FEED_SCOPE_NEARBY}
-                      onChange={(e) =>
-                        handleRadiusChange(Number(e.target.value))
-                      }
-                      className={filterInputClass}
-                    />
-                    <p className="mt-1 text-xs text-gray-500">
-                      {appliedScope === FEED_SCOPE_NEARBY
-                        ? t("feed.radiusFilterHint")
-                        : t("feed.radiusNotUsedHint")}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="flex-1 min-w-0">
-                    <label className={filterLabelClass}>
-                      {t("common.search")}
-                    </label>
-                    <input
-                      value={q}
-                      onChange={(e) => setQ(e.target.value)}
-                      className={filterInputClass}
-                      placeholder={t("common.searchPlaceholder")}
-                    />
-                  </div>
-                  <div className="min-w-[140px] sm:w-48">
-                    <label className={filterLabelClass}>
-                      {t("common.category")}
-                    </label>
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className={filterInputClass}
-                    >
-                      <option value="all">{t("common.allCategories")}</option>
-                      {CATEGORY_CHIP_OPTIONS.filter((o) => o.slug !== "all").map(
-                        ({ slug, labelKey }) => (
-                          <option key={slug} value={slug}>
-                            {t(labelKey)}
-                          </option>
-                        ),
-                      )}
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="w-full mt-2">
-                {showGpsError && locationError ? (
-                  <p
-                    className="text-xs text-red-600 mb-2"
-                    role="alert"
-                    data-testid="feed-gps-error"
-                  >
-                    {locationError}
-                  </p>
-                ) : null}
-                {userLocation && (
-                  <p className="text-xs text-green-600 mb-2">
-                    {locationSource === "gps" &&
-                      t("common.locationUsingGps")}
-                    {locationSource === "profile" &&
-                      t("common.locationUsingProfile")}
-                    {locationSource === "manual" &&
-                      t("common.locationUsingManual")}
-                  </p>
-                )}
-                {!userLocation && !place && (
-                  <p className="text-xs text-gray-500">
-                    {t("feed.placeOrGpsHint")}
-                  </p>
-                )}
-                {place && (
-                  <p className="text-xs text-blue-600">
-                    📍 {t("common.searchIn")}: {place}
-                  </p>
-                )}
-                {SHOW_NATIVE_GPS_DEBUG_UI && nativeMounted && (
-                  <div className="mt-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-xs text-gray-700">
-                    <p className="font-medium text-gray-800 mb-2">
-                      Native app: Capacitor-GPS (test, wijzigt de feed nog niet)
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => void runNativeGpsTest()}
-                      disabled={nativeGpsLoading}
-                      className="px-3 py-2 rounded-lg border border-primary/40 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {nativeGpsLoading
-                        ? t("common.loading")
-                        : "Vraag native locatie op"}
-                    </button>
-                    {nativeGpsCoords && (
-                      <p className="mt-2 text-green-700 font-mono break-all">
-                        lat {nativeGpsCoords.latitude.toFixed(6)}, lng{" "}
-                        {nativeGpsCoords.longitude.toFixed(6)}, accuracy{" "}
-                        {nativeGpsCoords.accuracy != null
-                          ? `${Math.round(nativeGpsCoords.accuracy)} m`
-                          : "—"}
-                      </p>
-                    )}
-                    {nativeGpsError && (
-                      <p className="mt-2 text-red-600">{nativeGpsError}</p>
-                    )}
-                  </div>
-                )}
-                {SHOW_CAPACITOR_PUSH_DEBUG && nativeMounted && (
-                  <div className="mt-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-xs text-gray-700">
-                    <p className="font-medium text-gray-800 mb-2">
-                      Native push test
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => void runNativePushDebugRegister()}
-                      disabled={pushDebugLoading}
-                      className="px-3 py-2 rounded-lg border border-primary/40 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {pushDebugLoading
-                        ? t("common.loading")
-                        : "Vraag push toestemming"}
-                    </button>
-                    <p className="mt-2 text-gray-600">
-                      Status:{" "}
-                      <span className="font-medium">{pushDebugStatus}</span>
-                    </p>
-                    {pushMaskedToken && (
-                      <p className="mt-1 font-mono text-green-700 break-all">
-                        Token: {pushMaskedToken}
-                      </p>
-                    )}
-                    {pushDebugError && (
-                      <p className="mt-2 text-red-600">{pushDebugError}</p>
-                    )}
-                    {pushLastEvent && (
-                      <p className="mt-2 text-blue-700">{pushLastEvent}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              {filtersDirty ? (
-                <p className="text-xs text-amber-700 w-full sm:flex-1 sm:min-w-[12rem]">
-                  {t("feed.filtersPendingHint")}
-                </p>
-              ) : null}
-              <button
-                type="button"
-                onClick={applyFilters}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors touch-manipulation"
-              >
-                {t("feed.applyFilters")}
-              </button>
-              <button
-                type="button"
-                onClick={resetDraftFilters}
-                disabled={!filtersDirty}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation"
-              >
-                {t("feed.resetFiltersDraft")}
-              </button>
-            </div>
-
-            <div className={feedSectionBorder}>
-              <p
-                className={
-                  feedCompactChrome
-                    ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-2"
-                    : "text-xs font-medium text-gray-500 uppercase tracking-wide mb-3"
-                }
-              >
-                {t("feed.refineSectionLabel")}
-              </p>
-              <div className="flex flex-wrap items-center gap-4 mb-4">
-                <div className="flex-1 min-w-[200px]">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder={t("common.searchInProductsSimple")}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
-                >
-                  <Filter className="w-4 h-4" />
-                  {t("common.filters")}
-                </button>
-              </div>
-
-              {showFilters && (
-                <div className="border-t pt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t("common.priceEuro")}
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="number"
-                          value={priceRange.min}
-                          onChange={(e) =>
-                            setPriceRange((prev) => ({
-                              ...prev,
-                              min: e.target.value,
-                            }))
-                          }
-                          placeholder={t("common.min")}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                        <input
-                          type="number"
-                          value={priceRange.max}
-                          onChange={(e) =>
-                            setPriceRange((prev) => ({
-                              ...prev,
-                              max: e.target.value,
-                            }))
-                          }
-                          placeholder={t("filters.maxPricePlaceholder")}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-end">
-                      <button
-                        type="button"
-                        onClick={clearFilters}
-                        className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
-                      >
-                        <Filter className="w-4 h-4" />
-                        {t("filters.clearFilters")}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
-        ) : null;
+    <FeedFilterSections
+      t={t}
+      place={place}
+      onPlaceChange={handlePlaceInput}
+      placeInputRef={placeInputRef}
+      onUseMyLocation={handleUseMyLocation}
+      locationLoading={locationLoading}
+      locationError={showGpsError ? locationError : null}
+      activeLocationChip={activeLocationChip}
+      onClearLocation={clearViewerLocation}
+      showLocationHint={showViewerLocationHint}
+      profileNeedsCoords={profileNeedsCoords}
+      countryCode={browseCountryCode}
+      onCountryCodeChange={(code) => {
+        setBrowseCountryCode(code);
+        if (code) {
+          setBrowseLocationMode(place.trim() ? "point" : "country");
+          if (!place.trim()) {
+            setUserLocation(null);
+            setAppliedPlace("");
+            setLocationSource("country");
+          }
+        } else {
+          setBrowseLocationMode(userLocation || place.trim() ? "point" : "global");
+          if (locationSource === "country") setLocationSource(null);
+        }
+      }}
+      locationMode={browseLocationMode}
+      scope={appliedScope}
+      onScopeChange={handleScopeChange}
+      radius={radius}
+      onRadiusChange={handleRadiusChange}
+      q={q}
+      onQChange={setQ}
+      category={category}
+      onCategoryChange={selectVerticalChip}
+      searchQuery={searchQuery}
+      onSearchQueryChange={setSearchQuery}
+      priceRange={priceRange}
+      onPriceRangeChange={setPriceRange}
+      appliedAcceptedValues={appliedAcceptedValues}
+      onAcceptedValuesChange={setAppliedAcceptedValues}
+      discoveryDirection={discoveryDirection}
+      onDiscoveryDirectionChange={setDiscoveryDirection}
+      filtersDirty={filtersDirty}
+      showActions
+      onApply={applyFilters}
+      onClear={clearFilters}
+      placeTestId="feed-panel-place"
+      countryTestId="feed-panel-country"
+      radiusTestId="feed-panel-radius"
+      showLoadedResultSearch={false}
+    />
+  ) : null;
 
   const mobileFilterSheetEl =
     feedCompactChrome && !isDesktopSplit ? (
@@ -6644,7 +6298,7 @@ export default function GeoFeed({
         q={q}
         onQChange={setQ}
         category={category}
-        onCategoryChange={setCategory}
+        onCategoryChange={selectVerticalChip}
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
         priceRange={priceRange}
@@ -6704,7 +6358,7 @@ export default function GeoFeed({
         q={q}
         onQChange={setQ}
         category={category}
-        onCategoryChange={setCategory}
+        onCategoryChange={selectVerticalChip}
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
         sortBy={sortBy}
@@ -6765,7 +6419,7 @@ export default function GeoFeed({
         q={q}
         onQChange={setQ}
         category={category}
-        onCategoryChange={setCategory}
+        onCategoryChange={selectVerticalChip}
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
         sortBy={sortBy}
@@ -6982,7 +6636,7 @@ export default function GeoFeed({
   ) : null;
 
   const radiusPresetOptionsKm = useMemo(
-    () => RADIUS_PRESET_OPTIONS.filter((km) => km > 0),
+    () => [...FEED_RADIUS_UI_OPTIONS],
     [],
   );
 
@@ -7017,7 +6671,9 @@ export default function GeoFeed({
       onSort={handleSort}
       radiusKm={radius}
       radiusOptions={radiusPresetOptionsKm}
-      radiusOptionLabel={(km) => `${km} km`}
+      radiusOptionLabel={(km) =>
+        km === 0 ? t("feed.radiusUnlimited") : `${km} km`
+      }
       onRadiusChange={handleRadiusChange}
       placeDraft={place}
       onPlaceDraftChange={handlePlaceInput}
@@ -7807,7 +7463,7 @@ export default function GeoFeed({
             q={q}
             onQChange={setQ}
             category={category}
-            onCategoryChange={setCategory}
+            onCategoryChange={selectVerticalChip}
             searchQuery={searchQuery}
             onSearchQueryChange={setSearchQuery}
             sortBy={sortBy}

@@ -12,6 +12,8 @@ type Props = {
   className?: string;
   /** Phase 10C.13 — show value-exchange USP above the toggle (discovery filters). */
   showTagline?: boolean;
+  /** Inside accepted values: keep the control, drop the education cards. */
+  quiet?: boolean;
 };
 
 /** Bidirectional discovery toggle — Phase 8C. */
@@ -21,6 +23,7 @@ export default function DiscoveryDirectionToggle({
   compact = false,
   className,
   showTagline = false,
+  quiet = false,
 }: Props) {
   const { t } = useTranslation();
 
@@ -91,7 +94,7 @@ export default function DiscoveryDirectionToggle({
           </span>
         </button>
       </div>
-      {value === 'offer' ? (
+      {quiet ? null : value === 'offer' ? (
         <p
           className={cn(
             'mt-2 text-gray-600 leading-snug rounded-lg border border-emerald-100 bg-emerald-50/50 px-2.5 py-2',

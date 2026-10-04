@@ -9,6 +9,8 @@ import HomepageEcosystemNavLinks from "@/components/home/HomepageEcosystemNavLin
 import PresentationModeSwitch from "@/components/home/PresentationModeSwitch";
 import { useHomePresentationMode } from "@/components/home/useHomePresentationMode";
 import WorkspaceAttentionRail from "@/components/home/WorkspaceAttentionRail";
+import WorkspaceQuickActions from "@/components/home/WorkspaceQuickActions";
+import WorkspaceStartState from "@/components/home/WorkspaceStartState";
 import WorkspaceWorkRail from "@/components/home/WorkspaceWorkRail";
 import { scrollToHomeFeed } from "@/lib/guest/guest-explanation-panels";
 import {
@@ -255,6 +257,7 @@ export default function HomePageClient({
           <FeedWorkspaceVisibleLayout
             ariaLabel={tOr('feed.discoverFiltersHeading', 'Discover', 'Ontdekken')}
             presentationMode={presentation.mode}
+            workspaceRails={presentation.hasActiveRoles}
             orientation={
               <>
                 {presentation.available ? (
@@ -270,12 +273,26 @@ export default function HomePageClient({
                 />
               </>
             }
-            primary={<GeoFeed {...geoFeedProps} homeComposedLayout={false} />}
+            primary={
+              <>
+                {presentation.mode === "workspace" &&
+                !presentation.hasActiveRoles ? (
+                  <WorkspaceStartState />
+                ) : null}
+                {presentation.mode === "workspace" &&
+                presentation.hasActiveRoles ? (
+                  <WorkspaceQuickActions />
+                ) : null}
+                <GeoFeed {...geoFeedProps} homeComposedLayout={false} />
+              </>
+            }
             startPanel={
-              presentation.mode === "workspace" ? <WorkspaceWorkRail /> : null
+              presentation.mode === "workspace" && presentation.hasActiveRoles ? (
+                <WorkspaceWorkRail />
+              ) : null
             }
             endPanel={
-              presentation.mode === "workspace" ? (
+              presentation.mode === "workspace" && presentation.hasActiveRoles ? (
                 <WorkspaceAttentionRail />
               ) : null
             }

@@ -9,7 +9,8 @@ import {
 } from '@/lib/homeUiPreferences';
 import {
   resolvePresentationMode,
-  userCanUseWorkspace,
+  userCanAccessWorkspace,
+  userHasActiveWorkspaceRoles,
   type HomePresentationMode,
 } from '@/lib/home/presentation-mode';
 
@@ -25,7 +26,8 @@ export function useHomePresentationMode() {
           (session?.user ?? null) as Record<string, unknown> | null,
         )
       : null;
-  const available = userCanUseWorkspace(ctx);
+  const available = userCanAccessWorkspace(ctx);
+  const hasActiveRoles = userHasActiveWorkspaceRoles(ctx);
   const [saved, setSaved] = useState<HomePresentationMode | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
@@ -42,5 +44,5 @@ export function useHomePresentationMode() {
     writePresentationModePreference(next);
   };
 
-  return { mode, available, setMode };
+  return { mode, available, hasActiveRoles, setMode };
 }

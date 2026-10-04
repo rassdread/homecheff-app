@@ -6610,7 +6610,14 @@
       "availability": "Beschikbaarheid",
       "groupOverview": "Overzicht",
       "performance": "Prestaties",
-      "earnings": "Verdiensten"
+      "earnings": "Verdiensten",
+      "offerService": "Dienst aanbieden",
+      "promote": "Deel mijn link",
+      "startQuestion": "Wat wil je doen met HomeCheff?",
+      "startSell": "Iets verkopen of delen",
+      "startService": "Een dienst aanbieden",
+      "startAffiliate": "Verdienen als affiliate",
+      "startDelivery": "Bezorgen"
     },
     "profileProgress": {
       "title": "Claim je plek",
@@ -7429,6 +7436,10 @@
       "sortPrice": "Prijs"
     },
     "radiusNational": "Heel Nederland",
+    "radiusUnlimited": "Onbeperkt",
+    "filterLocationHeading": "Locatie en bereik",
+    "filterAdvancedHeading": "Meer filters",
+    "radiusOther": "Andere afstand",
     "radiusModeStrictLocalShort": "Alleen dichtbij",
     "radiusModeStrictLocalHintShort": "Dichtbij gebruikt alleen items met locatie.",
     "density": {

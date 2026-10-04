@@ -13,6 +13,8 @@ import { isContactOnlyProduct } from "@/lib/product/order-method";
 import {
   FEED_RADIUS_DEFAULT_KM,
   FEED_RADIUS_MODE_LOCAL_FIRST,
+  RADIUS_NATIONAL_KM,
+  feedDistanceBoxOrMissingCoords,
   normalizeFeedRadiusKm,
   sortFeedItemsLocalFirst,
 } from "@/lib/geo/local-discovery";
@@ -277,6 +279,10 @@ async function handleFeedGet(
   const isBoundaryMode =
     locationModeParam === "country" || locationModeParam === "region";
   const place = scopeUsesRadiusFilter(feedScope) && !isBoundaryMode ? placeParam : "";
+  const rankUnlimitedByDistance =
+    scopeUsesRadiusFilter(feedScope) &&
+    !isBoundaryMode &&
+    normalizeFeedRadiusKm(radius) === RADIUS_NATIONAL_KM;
   if (!scopeUsesRadiusFilter(feedScope) || isBoundaryMode) {
     radius = 0;
   }
@@ -552,10 +558,9 @@ async function handleFeedGet(
         ...(listingCategory ? {
           category: listingCategory
         } : {}),
-        ...(lat && lng && effectiveRadius > 0 ? {
-          lat: { gte: Number(lat) - (effectiveRadius / 111.32), lte: Number(lat) + (effectiveRadius / 111.32) },
-          lng: { gte: Number(lng) - (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))), lte: Number(lng) + (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))) }
-        } : {})
+        ...(lat && lng
+          ? feedDistanceBoxOrMissingCoords(Number(lat), Number(lng), effectiveRadius)
+          : {})
       },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: candidateWindow.listingTake,
@@ -634,10 +639,9 @@ async function handleFeedGet(
     status: "PUBLISHED" as const,
     ...(linkedProductIds.length > 0 ? { id: { notIn: linkedProductIds } } : {}),
     ...(q ? buildDishTextSearchWhere(q) : {}),
-    ...(lat && lng && effectiveRadius > 0 ? {
-      lat: { gte: Number(lat) - (effectiveRadius / 111.32), lte: Number(lat) + (effectiveRadius / 111.32) },
-      lng: { gte: Number(lng) - (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))), lte: Number(lng) + (effectiveRadius / (111.32 * Math.cos((Number(lat) * Math.PI) / 180))) }
-    } : {}),
+    ...(lat && lng
+      ? feedDistanceBoxOrMissingCoords(Number(lat), Number(lng), effectiveRadius)
+      : {}),
     ...(productCategory ? { category: productCategory } : {}),
   };
   const dishQuery = fetchFeedPublishedDishes(prisma, {
@@ -1034,6 +1038,7 @@ async function handleFeedGet(
     viewerGeo,
     radiusKm: softNationalFallback || isBoundaryMode ? 0 : effectiveRadius,
     radiusMode: radiusModeForSort,
+    rankUnlimitedByDistance,
     followedSellerUserIds,
     extractSellerUserId: (item) => extractFeedItemSellerUserId(item),
     extractCoords: (item) => extractItemLatLng(item),

@@ -116,6 +116,7 @@ export default function WorkspaceOrientationStrip({
 
   if (variant === 'marketplace') {
     return (
+      <>
       <div
         data-wx-orientation-strip=""
         data-wx-orientation-model="B"
@@ -138,13 +139,33 @@ export default function WorkspaceOrientationStrip({
         >
           {whereLabel}
         </h1>
-        <p
-          data-wx-orientation-explain-body=""
-          className="mt-0.5 max-w-3xl text-sm leading-snug text-white/90 line-clamp-1"
-        >
-          {t('homePhase1.orientationExplainCompactPrimary')}
-        </p>
+        <div className="mt-0.5 flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+          <p
+            data-wx-orientation-explain-body=""
+            className="min-w-0 max-w-3xl text-sm leading-snug text-white/90 line-clamp-1"
+          >
+            {t('homePhase1.orientationExplainCompactPrimary')}
+          </p>
+          <button
+            ref={valueExplainerTriggerRef}
+            type="button"
+            data-hc-value-explainer-trigger=""
+            onClick={() => setValueExplainerOpen(true)}
+            className="shrink-0 self-start text-left text-xs font-medium text-white/80 underline-offset-2 hover:underline"
+            aria-haspopup="dialog"
+            aria-expanded={valueExplainerOpen}
+          >
+            {t('homeValueExplainer.trigger')}
+          </button>
+        </div>
       </div>
+      <HomeValueExplainerDialog
+        open={valueExplainerOpen}
+        onClose={closeValueExplainer}
+        onStartOffering={onShare}
+        returnFocusRef={valueExplainerTriggerRef}
+      />
+      </>
     );
   }
 

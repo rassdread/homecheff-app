@@ -183,3 +183,85 @@ export function workspaceLeftLinkIds(
     group.items.map((item) => item.id),
   );
 }
+
+function isServiceOnlySeller(ctx: SettingsHubContext): boolean {
+  if (!isSeller(ctx)) return false;
+  const roles = (ctx.sellerRoles ?? []).map((role) => role.toLowerCase());
+  if (roles.length === 0) return false;
+  return roles.every((role) => role === 'designer' || role === 'design');
+}
+
+/**
+ * Compact primary actions for people who already have a work role.
+ * One action per active role. Not a second copy of the full rail.
+ */
+export function buildWorkspaceQuickActions(
+  ctx: SettingsHubContext | null | undefined,
+): WorkspaceRailItem[] {
+  if (!ctx) return [];
+  const seller = isSeller(ctx);
+  const delivery = isDelivery(ctx);
+  const affiliate = isAffiliate(ctx);
+  if (!seller && !delivery && !affiliate) return [];
+
+  const actions: WorkspaceRailItem[] = [];
+  if (seller) {
+    actions.push({
+      id: isServiceOnlySeller(ctx) ? 'offer-service' : 'new-offer',
+      labelKey: isServiceOnlySeller(ctx)
+        ? 'home.presentation.offerService'
+        : 'home.presentation.newOffer',
+      action: 'openCreateOffer',
+    });
+  }
+  if (affiliate) {
+    actions.push({
+      id: 'promote',
+      labelKey: 'home.presentation.promote',
+      action: 'openAffiliateQr',
+    });
+  }
+  if (delivery) {
+    actions.push({
+      id: 'delivery-now',
+      labelKey: 'home.presentation.deliveries',
+      href: OPERATIONS_ROUTES.delivery.home,
+    });
+  }
+  return actions;
+}
+
+export type WorkspaceStartChoice = {
+  id: 'sell' | 'service' | 'affiliate' | 'delivery';
+  labelKey: string;
+  href: string;
+};
+
+/**
+ * Orientation for an authenticated user who has no work role yet.
+ * Links enter existing flows. Clicking a card does not assign a role.
+ */
+export function buildWorkspaceStartChoices(): WorkspaceStartChoice[] {
+  return [
+    {
+      id: 'sell',
+      labelKey: 'home.presentation.startSell',
+      href: '/onboarding/seller',
+    },
+    {
+      id: 'service',
+      labelKey: 'home.presentation.startService',
+      href: '/sell',
+    },
+    {
+      id: 'affiliate',
+      labelKey: 'home.presentation.startAffiliate',
+      href: OPERATIONS_ROUTES.affiliate.landing,
+    },
+    {
+      id: 'delivery',
+      labelKey: 'home.presentation.startDelivery',
+      href: OPERATIONS_ROUTES.delivery.signup,
+    },
+  ];
+}

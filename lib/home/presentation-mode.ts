@@ -5,14 +5,18 @@
  * Workspace answers "what should I do?".
  * This is presentation only. It does not create accounts, routes, or entitlements.
  *
- * Workspace capability reuses the existing earning-role flags already on the
- * session (seller, delivery, affiliate). A seller role alone is not treated as
- * active work. Listing counts are not on the session, and the homepage
- * profile payload does not include them either. This release does not add
- * a count query or a migration to guess activity. Affiliate and delivery
- * flags already mean a working setup, so those default to Workspace.
+ * Access and content are separate.
+ * CAN_ACCESS_WORKSPACE: any authenticated session. Anonymous visitors stay
+ * in Marketplace. No fake roles are added to open the door.
+ * HAS_ACTIVE_WORKSPACE_ROLES: seller, affiliate, or delivery already on the
+ * session. A buyer sees a starting orientation, not empty role tools.
  *
- * A saved local preference wins when the user is still eligible.
+ * A seller role alone is not treated as active work for the default.
+ * Listing counts are not on the session. This release does not add a count
+ * query or a migration. Affiliate and delivery flags already mean a working
+ * setup, so those still default to Workspace.
+ *
+ * A saved local preference wins while the user can still open Workspace.
  * Persistence is localStorage (`homecheff.ui.presentationMode`). No schema change.
  */
 
@@ -36,7 +40,28 @@ export const WORKSPACE_RAIL_MIN_WIDTH_PX = 768;
 
 export const PRESENTATION_MODE_STORAGE_KEY = 'homecheff.ui.presentationMode';
 
+/**
+ * CAN_ACCESS_WORKSPACE.
+ * A non-null context means an authenticated session. Anonymous is null.
+ */
+export function userCanAccessWorkspace(
+  ctx: SettingsHubContext | null | undefined,
+): boolean {
+  return ctx != null;
+}
+
+/** @deprecated name kept for callers. Means access, not an earning role. */
 export function userCanUseWorkspace(
+  ctx: SettingsHubContext | null | undefined,
+): boolean {
+  return userCanAccessWorkspace(ctx);
+}
+
+/**
+ * HAS_ACTIVE_WORKSPACE_ROLES.
+ * Seller, affiliate, or delivery already on the session. Not a buyer.
+ */
+export function userHasActiveWorkspaceRoles(
   ctx: SettingsHubContext | null | undefined,
 ): boolean {
   if (!ctx) return false;
@@ -115,12 +140,13 @@ function hideSupportingPanels(
 export function applyPresentationToLayoutPlan(
   plan: FeedWorkspaceVisibleLayoutPlan,
   mode: HomePresentationMode,
+  options?: { rails?: boolean },
 ): FeedWorkspaceVisibleLayoutPlan {
-  if (mode === 'marketplace') {
-    const feed = Math.min(
-      MARKETPLACE_FEED_MAX_WIDTH_PX,
-      Math.max(plan.usableWidthPx - 16, 280),
-    );
+  const feed = Math.min(
+    MARKETPLACE_FEED_MAX_WIDTH_PX,
+    Math.max(plan.usableWidthPx - 16, 280),
+  );
+  if (mode === 'marketplace' || options?.rails === false) {
     return hideSupportingPanels(plan, feed);
   }
   if (plan.usableWidthPx < WORKSPACE_RAIL_MIN_WIDTH_PX) {

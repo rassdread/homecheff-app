@@ -118,6 +118,8 @@ export type FeedWorkspaceVisibleLayoutProps = {
    * Omitted: existing width-based three-column behavior.
    */
   presentationMode?: HomePresentationMode;
+  /** Workspace with no work role hides both rails. Defaults to showing them. */
+  workspaceRails?: boolean;
 };
 
 function seedMeasurement(
@@ -155,6 +157,7 @@ export default function FeedWorkspaceVisibleLayout({
   ariaLabel = "Adaptive workspace",
   onPlanChange,
   presentationMode,
+  workspaceRails = true,
 }: FeedWorkspaceVisibleLayoutProps) {
   const rootRef = useRef<HTMLElement | null>(null);
   const lastStableRef = useRef<{ widthPx: number; heightPx: number } | null>(
@@ -239,7 +242,9 @@ export default function FeedWorkspaceVisibleLayout({
     usableHeightPx,
   });
   const plan: FeedWorkspaceVisibleLayoutPlan = presentationMode
-    ? applyPresentationToLayoutPlan(widthPlan, presentationMode)
+    ? applyPresentationToLayoutPlan(widthPlan, presentationMode, {
+        rails: presentationMode === 'workspace' ? workspaceRails : true,
+      })
     : widthPlan;
 
   const landscapePosture = resolveLandscapeWorkPosture({

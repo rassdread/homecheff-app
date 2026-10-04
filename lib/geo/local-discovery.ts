@@ -29,6 +29,16 @@ export const RADIUS_PRESET_OPTIONS = [
   100,
 ] as const;
 
+/** Selector order: local radii first, Unlimited (0) last. */
+export const FEED_RADIUS_UI_OPTIONS = [
+  5,
+  10,
+  RADIUS_LOCAL_KM,
+  RADIUS_REGIONAL_KM,
+  100,
+  RADIUS_NATIONAL_KM,
+] as const;
+
 export type Coords = { lat: number; lng: number };
 
 /** Default: local items first, national tail fills the feed. */
@@ -70,6 +80,38 @@ export function clampFeedRadiusKm(input: number | null | undefined): number {
 
 export function isUnlimitedRadius(radiusKm: number): boolean {
   return normalizeFeedRadiusKm(radiusKm) === RADIUS_NATIONAL_KM;
+}
+
+/** Database bounding box is only for a finite radius. Unlimited skips it. */
+export function feedQueryAppliesDistanceBbox(radiusKm: number): boolean {
+  return !isUnlimitedRadius(radiusKm);
+}
+
+/**
+ * Finite radius: keep rows inside the box, and rows with no coordinates.
+ * A missing location is not "too far". Unlimited returns no geo predicate.
+ */
+export function feedDistanceBoxOrMissingCoords(
+  lat: number,
+  lng: number,
+  radiusKm: number,
+): { OR: Array<Record<string, unknown>> } | Record<string, never> {
+  if (!feedQueryAppliesDistanceBbox(radiusKm) || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return {};
+  }
+  const latDelta = radiusKm / 111.32;
+  const lngScale = 111.32 * Math.cos((lat * Math.PI) / 180);
+  const lngDelta = lngScale === 0 ? radiusKm / 111.32 : radiusKm / lngScale;
+  return {
+    OR: [
+      {
+        lat: { gte: lat - latDelta, lte: lat + latDelta },
+        lng: { gte: lng - lngDelta, lte: lng + lngDelta },
+      },
+      { lat: null },
+      { lng: null },
+    ],
+  };
 }
 
 export function roundedDistanceKm(
@@ -287,6 +329,11 @@ export function sortFeedItemsLocalFirst<T extends Record<string, unknown>>(
     followedSellerUserIds: Set<string>;
     extractSellerUserId: (item: T) => string | null;
     extractCoords: (item: T) => Coords | null;
+    /**
+     * Explicit Unlimited radius with a viewer: rank by distance, exclude nothing.
+     * National scope also uses radius 0 and must keep the recency sort.
+     */
+    rankUnlimitedByDistance?: boolean;
   }
 ): T[] {
   const radius = normalizeFeedRadiusKm(opts.radiusKm);
@@ -306,11 +353,19 @@ export function sortFeedItemsLocalFirst<T extends Record<string, unknown>>(
     }
   }
 
+  if (
+    opts.viewerGeo &&
+    isUnlimitedRadius(radius) &&
+    opts.rankUnlimitedByDistance
+  ) {
+    return sortLocalBucketByDistance(items);
+  }
+
   if (!opts.viewerGeo || isUnlimitedRadius(radius)) {
     return [...items].sort((a, b) =>
       compareRecencyFollowDistance(a, b, {
         ...opts,
-        // National/unlimited: recency only — coords are labels-only (Phase 3F).
+        // National scope and unlimited-without-ranking: recency only.
         viewerGeo: null,
       })
     );
@@ -349,11 +404,12 @@ export function sortFeedItemsLocalFirst<T extends Record<string, unknown>>(
   return [...localSorted, ...nationalSorted];
 }
 
-/** Next preset radius larger than current (for “widen radius” CTA). */
+/** Next preset radius larger than current. 100 km widens to Unlimited (0). */
 export function nextWiderFeedRadiusKm(current: number): number {
-  const positive = RADIUS_PRESET_OPTIONS.filter((r) => r > 0);
-  for (const preset of positive) {
+  if (isUnlimitedRadius(current)) return RADIUS_NATIONAL_KM;
+  for (const preset of FEED_RADIUS_UI_OPTIONS) {
+    if (preset === RADIUS_NATIONAL_KM) return RADIUS_NATIONAL_KM;
     if (preset > current) return preset;
   }
-  return Math.min(100, Math.max(current + 10, current * 2));
+  return RADIUS_NATIONAL_KM;
 }

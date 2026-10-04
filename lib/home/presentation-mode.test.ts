@@ -7,11 +7,17 @@ import {
   dashboardTargetForPresentation,
   defaultPresentationMode,
   resolvePresentationMode,
+  userCanAccessWorkspace,
   userCanUseWorkspace,
+  userHasActiveWorkspaceRoles,
   type HomePresentationMode,
 } from '@/lib/home/presentation-mode';
 import type { SettingsHubContext } from '@/lib/settings/settings-hub';
-import { workspaceLeftLinkIds } from '@/lib/home/workspace-rail-model';
+import {
+  buildWorkspaceQuickActions,
+  buildWorkspaceStartChoices,
+  workspaceLeftLinkIds,
+} from '@/lib/home/workspace-rail-model';
 
 type StateId =
   | 'ANONYMOUS'
@@ -64,8 +70,8 @@ const fixtures: Fixture[] = [
     ctx: buyer,
     user: { role: 'USER', sellerRoles: [] },
     defaultMode: 'marketplace',
-    workspaceAvailable: false,
-    manualSwitch: false,
+    workspaceAvailable: true,
+    manualSwitch: true,
     dashboard: MY_HOMECHEFF_HUB_PATH,
     left: [],
     right: 'none',
@@ -75,8 +81,8 @@ const fixtures: Fixture[] = [
     ctx: { role: 'USER', sellerRoles: [] },
     user: { role: 'USER', sellerRoles: [] },
     defaultMode: 'marketplace',
-    workspaceAvailable: false,
-    manualSwitch: false,
+    workspaceAvailable: true,
+    manualSwitch: true,
     dashboard: MY_HOMECHEFF_HUB_PATH,
     left: [],
     right: 'none',
@@ -293,8 +299,8 @@ const fixtures: Fixture[] = [
     user: { role: 'USER', sellerRoles: [] },
     incompleteProfile: true,
     defaultMode: 'marketplace',
-    workspaceAvailable: false,
-    manualSwitch: false,
+    workspaceAvailable: true,
+    manualSwitch: true,
     dashboard: '/onboarding/complete-profile',
     left: [],
     right: 'none',
@@ -304,7 +310,12 @@ const fixtures: Fixture[] = [
 describe('home presentation mode', () => {
   for (const fixture of fixtures) {
     it(`${fixture.id} default, switch, and rails`, () => {
+      assert.equal(userCanAccessWorkspace(fixture.ctx), fixture.workspaceAvailable);
       assert.equal(userCanUseWorkspace(fixture.ctx), fixture.workspaceAvailable);
+      assert.equal(
+        userHasActiveWorkspaceRoles(fixture.ctx),
+        fixture.left.length > 0,
+      );
       assert.equal(defaultPresentationMode(fixture.ctx), fixture.defaultMode);
       assert.equal(
         resolvePresentationMode(fixture.ctx, null),
@@ -314,7 +325,7 @@ describe('home presentation mode', () => {
       assert.deepEqual(workspaceLeftLinkIds(fixture.ctx), fixture.left);
       assert.equal(
         fixture.right,
-        fixture.workspaceAvailable ? 'attention' : 'none',
+        userHasActiveWorkspaceRoles(fixture.ctx) ? 'attention' : 'none',
       );
       assert.equal(
         dashboardTargetForPresentation({
@@ -332,9 +343,38 @@ describe('home presentation mode', () => {
     assert.equal(resolvePresentationMode(seller, 'marketplace'), 'marketplace');
   });
 
-  it('a saved Workspace choice is ignored when the user has no workspace', () => {
-    assert.equal(resolvePresentationMode(buyer, 'workspace'), 'marketplace');
+  it('a saved Workspace choice wins for an authenticated user and is ignored when anonymous', () => {
+    assert.equal(resolvePresentationMode(buyer, 'workspace'), 'workspace');
+    assert.equal(resolvePresentationMode(buyer, 'marketplace'), 'marketplace');
     assert.equal(resolvePresentationMode(null, 'workspace'), 'marketplace');
+  });
+
+  it('a buyer can open Workspace without receiving role tools', () => {
+    assert.equal(userCanAccessWorkspace(buyer), true);
+    assert.equal(userHasActiveWorkspaceRoles(buyer), false);
+    assert.deepEqual(workspaceLeftLinkIds(buyer), []);
+    assert.deepEqual(buildWorkspaceQuickActions(buyer), []);
+    assert.deepEqual(
+      buildWorkspaceStartChoices().map((choice) => choice.id),
+      ['sell', 'service', 'affiliate', 'delivery'],
+    );
+    assert.deepEqual(
+      buildWorkspaceStartChoices().map((choice) => choice.href),
+      ['/onboarding/seller', '/sell', '/affiliate', '/delivery/start'],
+    );
+  });
+
+  it('quick actions stay role-specific and do not duplicate', () => {
+    const service = buildWorkspaceQuickActions({
+      role: 'SELLER',
+      sellerRoles: ['designer'],
+    }).map((item) => item.id);
+    assert.deepEqual(service, ['offer-service']);
+    const multi = buildWorkspaceQuickActions(
+      fixtures.find((f) => f.id === 'MULTI_ROLE')!.ctx,
+    ).map((item) => item.id);
+    assert.deepEqual(multi, ['new-offer', 'promote', 'delivery-now']);
+    assert.equal(new Set(multi).size, multi.length);
   });
 
   it('marketplace hides both rails and widens the feed at 1440', () => {
