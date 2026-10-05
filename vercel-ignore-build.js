@@ -1,39 +1,40 @@
 // Vercel "Ignored Build Step" (vercel.json → ignoreCommand)
-// Exit code 0 = skip build, exit code 1 (non-zero) = run build
+// Exit code 0 = skip build, exit code 1 (non-zero) = run build.
 //
-// Production deploys: Vercel native Git integration (push to main → build).
-// Skip when the commit message contains [SKIP_DEPLOY] (case-insensitive).
-//
-// Skip duplicate project "homecheff-app1" (same Git repo → double builds).
-// Proper fix: Vercel → homecheff-app1 → Settings → Git → Disconnect.
-// This script is a safety net so pushes only produce one real build (homecheff-app).
+// homecheff-app is the production app for homecheff.eu.
+// homecheff-app1 is a duplicate Git connection and always skips.
+// The three Verdiencheck projects are extra connections to this same
+// repository root. They build only when their own area, or a shared
+// build input, changes. An unreadable diff still builds.
 
-const commitMessage = process.env.VERCEL_GIT_COMMIT_MESSAGE || '';
+const { execSync } = require('node:child_process');
+const { decideVercelProjectIgnore } = require('./lib/deploy/vercel-project-ignore');
 
-if (/\[SKIP_DEPLOY\]/i.test(commitMessage)) {
-  console.log(
-    '[vercel-ignore-build] SKIP: commit message contains [SKIP_DEPLOY] — build will not run.'
-  );
+function changedPaths() {
+  const current = process.env.VERCEL_GIT_COMMIT_SHA || 'HEAD';
+  const previous = process.env.VERCEL_GIT_PREVIOUS_SHA || '';
+  const range = previous && previous !== current ? `${previous} ${current}` : 'HEAD^ HEAD';
+  try {
+    const output = execSync(`git diff --name-only ${range}`, {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    return output.split('\n').map((line) => line.trim()).filter(Boolean);
+  } catch {
+    return null;
+  }
+}
+
+const decision = decideVercelProjectIgnore({
+  projectName: process.env.VERCEL_PROJECT_NAME || '',
+  commitMessage: process.env.VERCEL_GIT_COMMIT_MESSAGE || '',
+  changedPaths: changedPaths(),
+});
+
+if (decision.action === 'skip') {
+  console.log(`[vercel-ignore-build] SKIP: ${decision.reason}`);
   process.exit(0);
 }
 
-const projectName = (process.env.VERCEL_PROJECT_NAME || '').toLowerCase();
-const prodUrl = (process.env.VERCEL_PROJECT_PRODUCTION_URL || '').toLowerCase();
-const deployUrl = (process.env.VERCEL_URL || '').toLowerCase();
-
-const isDuplicateHomecheffApp1Project =
-  projectName === 'homecheff-app1' ||
-  prodUrl.includes('homecheff-app1.vercel.app') ||
-  deployUrl.includes('homecheff-app1.vercel.app');
-
-if (isDuplicateHomecheffApp1Project) {
-  console.log(
-    '[vercel-ignore-build] SKIP: project homecheff-app1 — only homecheff-app should build from Git. Disconnect Git on app1 in Vercel (Settings → Git).'
-  );
-  process.exit(0);
-}
-
-console.log(
-  '[vercel-ignore-build] RUN: no [SKIP_DEPLOY] in commit message — build will run.'
-);
+console.log(`[vercel-ignore-build] RUN: ${decision.reason}`);
 process.exit(1);
