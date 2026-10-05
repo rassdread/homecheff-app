@@ -317,6 +317,11 @@
   "communityPulse": {
     "heading": "Wat er leeft in de buurt",
     "workspaceTitle": "In jouw buurt",
+    "workspaceProducts": "{count} nieuw aanbod",
+    "workspaceMembers": "{count} nieuwe leden",
+    "workspaceFollows": "+{count} volgers",
+    "workspaceInspiration": "{count} inspiratie",
+    "workspaceSaves": "{count} favorieten",
     "fallbackLine": "Ontdek wat makers en buren nu delen, aanbod, inspiratie en kleine momenten dichtbij.",
     "newProducts24h": "{count} nieuwe aanbiedingen in de laatste 24 uur",
     "newCreators7d": "{count} nieuwe accounts deze week",

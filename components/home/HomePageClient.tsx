@@ -6,7 +6,6 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import HomeHeroSection from "@/components/home/HomeHeroSection";
 import HomepageEcosystemNavLinks from "@/components/home/HomepageEcosystemNavLinks";
-import PresentationModeSwitch from "@/components/home/PresentationModeSwitch";
 import { useHomePresentationMode } from "@/components/home/useHomePresentationMode";
 import WorkspaceAttentionRail from "@/components/home/WorkspaceAttentionRail";
 import WorkspaceQuickActions from "@/components/home/WorkspaceQuickActions";
@@ -279,19 +278,11 @@ export default function HomePageClient({
             presentationMode={presentation.mode}
             workspaceRails={presentation.hasActiveRoles}
             orientation={
-              <>
-                {presentation.available ? (
-                  <PresentationModeSwitch
-                    mode={presentation.mode}
-                    onChange={presentation.setMode}
-                  />
-                ) : null}
-                <WorkspaceOrientationStrip
-                  variant={
-                    presentation.mode === 'marketplace' ? 'marketplace' : 'workspace'
-                  }
-                />
-              </>
+              <WorkspaceOrientationStrip
+                variant={
+                  presentation.mode === 'marketplace' ? 'marketplace' : 'workspace'
+                }
+              />
             }
             primary={
               <>

@@ -41,6 +41,8 @@ import {
   PUBLIC_EARN_CHILD_LINKS,
 } from '@/lib/navigation/public-careers-nav';
 import SimplifiedAccountMenu from '@/components/navigation/SimplifiedAccountMenu';
+import PresentationModeSwitch from '@/components/home/PresentationModeSwitch';
+import { useHomePresentationMode } from '@/components/home/useHomePresentationMode';
 import {
   NAVBAR_CLOSE_MENU_EVENT,
   NAVBAR_TOGGLE_MENU_EVENT,
@@ -219,6 +221,12 @@ export default function NavBar() {
       ? (session.user as typeof session['user'] & { image?: string })
       : undefined;
   const quietOnboarding = pathname === '/onboarding/complete-profile';
+  const presentation = useHomePresentationMode();
+  const workspaceHeader =
+    presentation.available && presentation.mode === 'workspace';
+  /** Left rail and right insights already carry these when the person is working. */
+  const railOwnsWork =
+    workspaceHeader && presentation.hasActiveRoles;
   const dashboardHref = resolvePrimaryDashboardHrefFromUser(
     user
       ? ({
@@ -488,16 +496,18 @@ export default function NavBar() {
             data-wx-desktop-nav=""
             className="hidden xl:flex items-center gap-0.5 xl:gap-1 shrink-0 overflow-visible"
           >
+            {!workspaceHeader ? (
             <Link
               href="/"
               prefetch={false}
-              className={desktopNavGhostClass}
+              className={cn(desktopNavGhostClass, 'hidden 2xl:inline-flex')}
               onClick={() => navDebug('navbar:desktop', { href: '/' })}
             >
               <Home className={desktopNavIconClass} aria-hidden />
               <span className="whitespace-nowrap">{t('navbar.home')}</span>
             </Link>
-            {!quietOnboarding ? (
+            ) : null}
+            {!quietOnboarding && !workspaceHeader ? (
             <Link
               href={careersHref}
               prefetch={false}
@@ -507,11 +517,11 @@ export default function NavBar() {
               onClick={() => navDebug('navbar:desktop', { href: careersHref })}
             >
               <Briefcase className={desktopNavIconClass} aria-hidden />
-              <span className="whitespace-nowrap">{t('navbar.werkenBij')}</span>
+              <span className="sr-only whitespace-nowrap 2xl:not-sr-only">{t('navbar.werkenBij')}</span>
             </Link>
             ) : null}
             {/* Account destinations only exist for signed-in users; guests get Inloggen/Aanmelden. */}
-            {user ? (
+            {user && !railOwnsWork ? (
               <Link
                 href={dashboardHref}
                 prefetch={false}
@@ -526,7 +536,7 @@ export default function NavBar() {
 
             {/* xl+ desktop: replaces bottom nav tabs (tablet keeps bottom nav until xl). */}
             <div className="hidden xl:flex items-center gap-0.5 shrink-0">
-              {user ? (
+              {user && !railOwnsWork ? (
                 <>
                   <Link
                     href="/messages"
@@ -558,7 +568,7 @@ export default function NavBar() {
                 </>
               ) : null}
               {/* WX 1A.1 / WDL P6 — primary action; never truncate */}
-              {!quietOnboarding ? (
+              {!quietOnboarding && !railOwnsWork ? (
               <button
                 type="button"
                 data-wx-primary-action=""
@@ -593,7 +603,7 @@ export default function NavBar() {
             className="ml-auto flex items-center justify-end gap-1 sm:gap-1.5 shrink-0 pl-1 min-w-0 overflow-x-clip"
           >
             {/* WX 1C.1 P0 — Landscape Create invariant (xl+ already has desktop primary). */}
-            {showLandscapeCreate && !quietOnboarding ? (
+            {showLandscapeCreate && !quietOnboarding && !railOwnsWork ? (
               <button
                 type="button"
                 data-wx-primary-action=""
@@ -628,7 +638,16 @@ export default function NavBar() {
               <LanguageSwitcher compact />
             </div>
             {/* Ecosystem discovery — only from 2xl, where the widened row leaves room next to auth. */}
-            {!quietOnboarding ? (
+            {presentation.available ? (
+              <div className="hidden xl:flex shrink-0 items-center">
+                <PresentationModeSwitch
+                  mode={presentation.mode}
+                  onChange={presentation.setMode}
+                  placement="header"
+                />
+              </div>
+            ) : null}
+            {!quietOnboarding && !workspaceHeader ? (
             <div className="hidden 2xl:block shrink-0">
               <OntdekHomeCheffMenu
                 currentProduct={ecosystemCurrentProduct}
@@ -785,6 +804,17 @@ export default function NavBar() {
             )}
           >
             <nav className="flex flex-col space-y-2" aria-label={t('navbar.mobileMenuAria')}>
+              {presentation.available ? (
+                <div className="px-1 pb-1">
+                  <PresentationModeSwitch
+                    mode={presentation.mode}
+                    onChange={(mode) => {
+                      presentation.setMode(mode);
+                      closeMobileMenu();
+                    }}
+                  />
+                </div>
+              ) : null}
               <Link
                 href="/"
                 prefetch={false}

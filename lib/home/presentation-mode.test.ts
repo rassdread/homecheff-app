@@ -101,7 +101,6 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'new-offer',
       'my-offer',
       'orders',
       'appointments',
@@ -121,7 +120,6 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'offer-service',
       'my-services',
       'appointments',
       'performance',
@@ -140,7 +138,6 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'new-offer',
       'my-offer',
       'orders',
       'appointments',
@@ -160,7 +157,6 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'offer-service',
       'my-services',
       'appointments',
       'performance',
@@ -198,7 +194,6 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'deliveries',
       'availability',
       'earnings',
     ],
@@ -215,7 +210,6 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'new-offer',
       'my-offer',
       'orders',
       'appointments',
@@ -247,12 +241,10 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'new-offer',
       'my-offer',
       'orders',
       'appointments',
       'performance',
-      'deliveries',
       'availability',
       'earnings',
     ],
@@ -279,7 +271,6 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'new-offer',
       'my-offer',
       'orders',
       'appointments',
@@ -289,7 +280,6 @@ const fixtures: Fixture[] = [
       'affiliate-promo',
       'affiliate-partners',
       'earnings',
-      'deliveries',
       'availability',
     ],
     right: 'attention',
@@ -450,8 +440,10 @@ describe('home presentation mode', () => {
     };
     const groups = buildWorkspaceLeftGroups(ctx);
     const ids = groups.flatMap((group) => group.items.map((item) => item.id));
-    assert.ok(ids.includes('new-offer'));
-    assert.ok(ids.includes('offer-service'));
+    assert.equal(ids.includes('new-offer'), false);
+    assert.equal(ids.includes('offer-service'), false);
+    assert.equal(ids.includes('deliveries'), false);
+    assert.ok(ids.includes('availability'));
     assert.ok(ids.includes('my-offer'));
     assert.equal(ids.filter((id) => id === 'my-services').length, 0);
     assert.equal(ids.filter((id) => id === 'appointments').length, 1);
@@ -471,16 +463,22 @@ describe('home presentation mode', () => {
     );
     assert.equal(quick[0]?.emphasis, 'primary');
     assert.ok(quick.slice(1).every((item) => item.emphasis === 'secondary'));
+    assert.equal(groups.find((group) => group.id === 'service'), undefined);
     assert.equal(
-      groups.find((group) => group.id === 'service')?.items[0]?.createVertical,
+      quick.find((item) => item.id === 'offer-service')?.createVertical,
       'DESIGNER',
     );
   });
 
   it('keeps an unrecognised seller role on the selling rail', () => {
     assert.ok(
+      buildWorkspaceQuickActions({ role: 'SELLER', sellerRoles: ['CHEF'] }).some(
+        (item) => item.id === 'new-offer',
+      ),
+    );
+    assert.ok(
       workspaceLeftLinkIds({ role: 'SELLER', sellerRoles: ['CHEF'] }).includes(
-        'new-offer',
+        'my-offer',
       ),
     );
     assert.ok(

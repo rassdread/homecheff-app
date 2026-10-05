@@ -29,12 +29,15 @@ export function readPresentationModePreference():
   return null;
 }
 
+export const PRESENTATION_MODE_EVENT = "homecheff:presentation-mode";
+
 export function writePresentationModePreference(
   mode: "marketplace" | "workspace",
 ): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(LS_PRESENTATION_MODE, mode);
+    window.dispatchEvent(new CustomEvent(PRESENTATION_MODE_EVENT, { detail: mode }));
   } catch {
     /* ignore quota / private mode */
   }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { primaryDashboardContextFromUser } from '@/lib/navigation/primary-dashboard';
 import {
+  PRESENTATION_MODE_EVENT,
   readPresentationModePreference,
   writePresentationModePreference,
 } from '@/lib/homeUiPreferences';
@@ -34,6 +35,12 @@ export function useHomePresentationMode() {
   useEffect(() => {
     setSaved(readPresentationModePreference());
     setHydrated(true);
+    const onChange = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail;
+      if (detail === 'marketplace' || detail === 'workspace') setSaved(detail);
+    };
+    window.addEventListener(PRESENTATION_MODE_EVENT, onChange);
+    return () => window.removeEventListener(PRESENTATION_MODE_EVENT, onChange);
   }, []);
 
   const mode = resolvePresentationMode(ctx, hydrated ? saved : null);

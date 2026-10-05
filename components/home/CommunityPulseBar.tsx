@@ -84,7 +84,8 @@ export default function CommunityPulseBar({
   }, [data]);
 
   if (workspace) {
-    if (loading || moments.length === 0) return null;
+    const lines = workspaceScanLines(data, t);
+    if (loading || lines.length === 0) return null;
     return (
       <section
         className="rounded-xl border border-gray-200/80 bg-white px-3 py-2.5"
@@ -95,9 +96,9 @@ export default function CommunityPulseBar({
           {t('communityPulse.workspaceTitle')}
         </h2>
         <ul className="mt-1.5 space-y-0.5">
-          {moments.slice(0, 3).map((moment) => (
-            <li key={moment.key} className="text-xs leading-snug text-gray-600">
-              {moment.label}
+          {lines.map((line) => (
+            <li key={line.key} className="text-xs leading-snug text-gray-700">
+              {line.label}
             </li>
           ))}
         </ul>
@@ -226,6 +227,43 @@ function MomentRow({ moment, compact }: { moment: PulseMoment; compact?: boolean
       </p>
     </div>
   );
+}
+
+function workspaceScanLines(
+  data: CommunityPulsePayload | null,
+  t: (key: string, params?: Record<string, string | number>) => string,
+): PulseMoment[] {
+  if (!data) return [];
+  const lines: PulseMoment[] = [];
+  const push = (key: string, label: string) => {
+    if (lines.length >= 3) return;
+    lines.push({ key, label, emoji: '' });
+  };
+  if (data.newProducts24h > 0) {
+    push('products', t('communityPulse.workspaceProducts', { count: data.newProducts24h }));
+  }
+  if (data.newMembers7d > 0) {
+    push('members', t('communityPulse.workspaceMembers', { count: data.newMembers7d }));
+  }
+  if ((data.followsWeek ?? 0) > 0) {
+    push('follows', t('communityPulse.workspaceFollows', { count: data.followsWeek ?? 0 }));
+  }
+  if (data.newRecipes7d > 0) {
+    push('inspiration', t('communityPulse.workspaceInspiration', { count: data.newRecipes7d }));
+  }
+  if ((data.savesWeek ?? 0) > 0) {
+    push('saves', t('communityPulse.workspaceSaves', { count: data.savesWeek ?? 0 }));
+  }
+  if (data.risingSellerUsername && (data.risingSellerListings ?? 0) >= 1) {
+    push(
+      'rising',
+      t('communityPulse.risingCreatorWeek', {
+        name: data.risingSellerUsername,
+        count: data.risingSellerListings ?? 0,
+      }),
+    );
+  }
+  return lines;
 }
 
 function buildMoments(

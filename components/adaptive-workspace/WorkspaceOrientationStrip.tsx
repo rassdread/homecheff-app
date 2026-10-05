@@ -169,6 +169,8 @@ export default function WorkspaceOrientationStrip({
     );
   }
 
+  if (!singleBar) return null;
+
   return (
     <>
       <HomeHeroCollapsible>

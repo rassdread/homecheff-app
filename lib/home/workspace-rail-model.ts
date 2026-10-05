@@ -240,7 +240,24 @@ export function buildWorkspaceLeftGroups(
     });
   }
 
-  return groups;
+  const quick = buildWorkspaceQuickActions(ctx);
+  return groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => !quick.some((action) => sameVisibleWorkspaceAction(item, action)),
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
+}
+
+/** Primary quick action wins. Same id or the same href is one visible action. */
+function sameVisibleWorkspaceAction(
+  item: WorkspaceRailItem,
+  action: WorkspaceRailItem,
+): boolean {
+  if (item.id === action.id) return true;
+  return Boolean(item.href && action.href && item.href === action.href);
 }
 
 export function workspaceLeftLinkIds(

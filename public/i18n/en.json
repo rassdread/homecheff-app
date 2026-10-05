@@ -317,6 +317,11 @@
   "communityPulse": {
     "heading": "What's happening nearby",
     "workspaceTitle": "In your neighborhood",
+    "workspaceProducts": "{count} new listings",
+    "workspaceMembers": "{count} new members",
+    "workspaceFollows": "+{count} follows",
+    "workspaceInspiration": "{count} inspiration",
+    "workspaceSaves": "{count} favorites",
     "fallbackLine": "See what makers and neighbours are sharing, listings, inspiration and small moments close to home.",
     "newProducts24h": "{count} new listings in the last 24 hours",
     "newCreators7d": "{count} new accounts this week",
