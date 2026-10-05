@@ -117,6 +117,15 @@ export function needsProfileOnboardingFromFlags(flags: OnboardingFlags): boolean
 }
 
 /**
+ * After username and legal consent, resume a stored task.
+ * With no task, open the marketplace. Do not continue into seller contact or payout setup.
+ */
+export function pathAfterMinimalProfile(intentUrl: string | null | undefined): string {
+  const trimmed = typeof intentUrl === 'string' ? intentUrl.trim() : '';
+  return sanitizePostAuthRelativeUrl(trimmed) ?? '/';
+}
+
+/**
  * Build the post-Google landing URL while preserving a safe in-app return path.
  * External URLs and auth-loop paths are rejected.
  */

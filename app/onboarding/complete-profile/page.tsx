@@ -9,6 +9,7 @@ import {
   fetchOnboardingFlags,
   needsProfileOnboardingFromFlags,
   onboardingFlagsFromSessionUser,
+  pathAfterMinimalProfile,
 } from '@/lib/auth/post-auth-redirect';
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
 import {
@@ -107,7 +108,7 @@ export default function CompleteProfilePage() {
       trackOnboardingEvent('ONBOARDING_COMPLETED', { surface: 'complete_profile_minimal' });
       await update({});
       await new Promise((r) => setTimeout(r, 400));
-      window.location.replace(intentUrl || '/onboarding/interests?profile_gate=done');
+      window.location.replace(pathAfterMinimalProfile(intentUrl));
     } finally {
       setSaving(false);
     }
