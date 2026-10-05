@@ -43,6 +43,14 @@ import {
 import type { FeedChip, FeedViewFilterId } from "@/lib/feed/feed-taxonomy";
 import { deriveFeedTaxonomy, type FeedTaxonomy } from "@/lib/feed/feed-taxonomy";
 import { matchesSearchTextQuery } from "@/lib/search";
+import { trackEvent } from "@/components/GoogleAnalytics";
+import {
+  EMPTY_DISCOVERY_MEMORY,
+  browserAnalyticsConsentGranted,
+  emitMarketplaceDiscovery,
+  noteDiscoveryOutcome,
+  type DiscoveryMemory,
+} from "@/lib/analytics/marketplace-discovery";
 import type { ListingKind } from "@/lib/marketplace/contracts/listing-kind-contract";
 import type { DiscoveryReadModel } from "@/lib/discovery/contracts/discovery-read-model";
 import {
@@ -1250,6 +1258,11 @@ export default function GeoFeed({
   const feedHasMoreRef = useRef(false);
   const lastInspiratieFetchKeyRef = useRef("");
   const feedInteractionStartedRef = useRef(false);
+  const discoveryIntentRef = useRef(false);
+  const discoverySearchDirtyRef = useRef(false);
+  const discoveryMemoryRef = useRef<DiscoveryMemory>(EMPTY_DISCOVERY_MEMORY);
+  const discoveryServerKeyRef = useRef<string | null>(null);
+  const discoveryServerSawFetchRef = useRef(false);
   /** Prevents duplicate concurrent network fetch for the same query key. */
   const feedRequestKeyInFlightRef = useRef<string | null>(null);
   const latestFeedRequestKeyRef = useRef<string | null>(null);
@@ -2433,6 +2446,7 @@ export default function GeoFeed({
   }, [appliedScope, nearbyNeedsLocation, appliedPlace, feedCoords]);
 
   const handleScopeChange = useCallback((next: FeedScope) => {
+    discoveryIntentRef.current = true;
     setAppliedScope(next);
     const defaults = scopeDefaultSort(next);
     setSortBy(defaults.sortBy);
@@ -2642,6 +2656,7 @@ export default function GeoFeed({
       }
       setLoading(false);
       feedInteractionStartedRef.current = true;
+      discoveryServerSawFetchRef.current = true;
       setFeedHydrated(true);
       setFilterResultPhase(FEED_RESULT_PHASE.RESULTS_READY);
 
@@ -4978,6 +4993,82 @@ export default function GeoFeed({
   }, [displayRows, recirculatedRows, feedChip]);
 
   const displayCount = composedDisplayRows.length;
+  const discoveryServerKey = `${appliedCategory}|${appliedScope}|${appliedQ}|${appliedPlace}|${appliedRadius}`;
+  if (discoveryServerKeyRef.current !== discoveryServerKey) {
+    discoveryServerKeyRef.current = discoveryServerKey;
+    discoveryServerSawFetchRef.current = false;
+  }
+
+  useEffect(() => {
+    if (requestInFlight || isFilterSearchingPhase(filterResultPhase)) {
+      discoveryServerSawFetchRef.current = true;
+    }
+    const settled =
+      feedHydrated &&
+      !loading &&
+      !feedRefreshing &&
+      !requestInFlight &&
+      !isFilterSearchingPhase(filterResultPhase) &&
+      discoveryServerSawFetchRef.current;
+    const failed =
+      filterResultPhase === FEED_RESULT_PHASE.ERROR ||
+      filterResultPhase === FEED_RESULT_PHASE.STALE_RESPONSE_REJECTED ||
+      filterResultPhase === FEED_RESULT_PHASE.LOCATION_REQUIRED;
+    const decision = noteDiscoveryOutcome(discoveryMemoryRef.current, {
+      userInitiated: discoveryIntentRef.current,
+      phase: failed ? "error" : settled ? "ready" : "pending",
+      knownCount: settled ? displayCount : null,
+      certifiedZero:
+        settled &&
+        !feedHasMore &&
+        isZeroResultsEligible({
+          phase: filterResultPhase,
+          loading,
+          feedRefreshing,
+          feedHydrated,
+          nearbyNeedsLocation,
+          requestInFlight,
+          resultCount: displayCount,
+          emptyTerminal: compositionState.emptyTerminal,
+        }),
+      categorySlug: appliedCategory,
+      feedScope: appliedScope,
+      searchText: appliedSearchQuery,
+      filterActive:
+        appliedPriceRange.min.trim() !== "" ||
+        appliedPriceRange.max.trim() !== "" ||
+        appliedAcceptedValues.length > 0,
+    });
+    discoveryMemoryRef.current = decision.memory;
+    if (decision.consumeIntent) discoveryIntentRef.current = false;
+    if (!decision.event) return;
+    emitMarketplaceDiscovery(
+      decision.event,
+      browserAnalyticsConsentGranted(),
+      (name, params) => {
+        trackEvent(name, params);
+      },
+    );
+  }, [
+    feedHydrated,
+    loading,
+    feedRefreshing,
+    requestInFlight,
+    filterResultPhase,
+    displayCount,
+    feedHasMore,
+    nearbyNeedsLocation,
+    compositionState.emptyTerminal,
+    appliedCategory,
+    appliedScope,
+    appliedQ,
+    appliedPlace,
+    appliedRadius,
+    appliedSearchQuery,
+    appliedPriceRange.min,
+    appliedPriceRange.max,
+    appliedAcceptedValues,
+  ]);
 
   /** Exact-set composition signals (exclude recirculation + outside-radius rows). */
   const exactCompositionSignals = useMemo(() => {
@@ -5280,6 +5371,7 @@ export default function GeoFeed({
   ]);
 
   const applyFilters = useCallback((overrides?: { place?: string }) => {
+    discoveryIntentRef.current = true;
     const trimmedPlace = (overrides?.place ?? place).trim();
     if (overrides?.place !== undefined) {
       setPlace(trimmedPlace);
@@ -5413,14 +5505,24 @@ export default function GeoFeed({
 
   /** Vertical chip = instant apply of the vertical axis (same state as the select; one intended refetch, no loop). */
   const selectVerticalChip = useCallback((slug: string) => {
+    discoveryIntentRef.current = true;
     setCategory(slug);
     setAppliedCategory(slug);
+  }, []);
+
+  const onMarketplaceSearchChange = useCallback((value: string) => {
+    discoverySearchDirtyRef.current = true;
+    setSearchQuery(value);
   }, []);
 
   /** Client-side refine search — debounced apply (no API fetch). */
   useEffect(() => {
     if (debouncedSearchQuery === appliedSearchQuery) return;
     setAppliedSearchQuery(debouncedSearchQuery);
+    if (discoverySearchDirtyRef.current) {
+      discoveryIntentRef.current = true;
+      discoverySearchDirtyRef.current = false;
+    }
   }, [debouncedSearchQuery, appliedSearchQuery]);
 
   const resetDraftFilters = useCallback(() => {
@@ -6237,7 +6339,7 @@ export default function GeoFeed({
       category={category}
       onCategoryChange={selectVerticalChip}
       searchQuery={searchQuery}
-      onSearchQueryChange={setSearchQuery}
+      onSearchQueryChange={onMarketplaceSearchChange}
       priceRange={priceRange}
       onPriceRangeChange={setPriceRange}
       appliedAcceptedValues={appliedAcceptedValues}
@@ -6300,7 +6402,7 @@ export default function GeoFeed({
         category={category}
         onCategoryChange={selectVerticalChip}
         searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
+        onSearchQueryChange={onMarketplaceSearchChange}
         priceRange={priceRange}
         onPriceRangeChange={setPriceRange}
         filtersDirty={filtersDirty}
@@ -6360,7 +6462,7 @@ export default function GeoFeed({
         category={category}
         onCategoryChange={selectVerticalChip}
         searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
+        onSearchQueryChange={onMarketplaceSearchChange}
         sortBy={sortBy}
         sortOrder={sortOrder}
         onSort={handleSort}
@@ -6421,7 +6523,7 @@ export default function GeoFeed({
         category={category}
         onCategoryChange={selectVerticalChip}
         searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
+        onSearchQueryChange={onMarketplaceSearchChange}
         sortBy={sortBy}
         sortOrder={sortOrder}
         onSort={handleSort}
@@ -6458,7 +6560,7 @@ export default function GeoFeed({
         feedLayoutMode={feedLayoutMode}
         onFeedLayoutModeChange={setFeedLayoutMode}
         searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
+        onSearchQueryChange={onMarketplaceSearchChange}
         workCompact={workCompactChrome}
         onActivateTrade={activateTradeDiscovery}
         tradeActive={discoveryDirection === "offer"}
@@ -6487,7 +6589,7 @@ export default function GeoFeed({
             type="search"
             data-wx-feed-search=""
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => onMarketplaceSearchChange(e.target.value)}
             placeholder={t("common.searchInProductsSimple")}
             className="w-full min-h-[40px] rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-brand/50 focus:outline-none focus:ring-2 focus:ring-primary-brand/20"
           />
@@ -6522,7 +6624,7 @@ export default function GeoFeed({
             type="search"
             data-wx-feed-search=""
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => onMarketplaceSearchChange(e.target.value)}
             placeholder={t("common.searchInProductsSimple")}
             className="w-full min-h-[40px] rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-brand/50 focus:outline-none focus:ring-2 focus:ring-primary-brand/20"
           />
@@ -7465,7 +7567,7 @@ export default function GeoFeed({
             category={category}
             onCategoryChange={selectVerticalChip}
             searchQuery={searchQuery}
-            onSearchQueryChange={setSearchQuery}
+            onSearchQueryChange={onMarketplaceSearchChange}
             sortBy={sortBy}
             sortOrder={sortOrder}
             onSort={handleSort}

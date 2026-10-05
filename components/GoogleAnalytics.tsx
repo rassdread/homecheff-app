@@ -186,16 +186,8 @@ export const trackPurchase = (transactionData: {
   }>;
 }) => {
   trackEvent('purchase', {
-    transaction_id: transactionData.transactionId,
     value: transactionData.value,
     currency: transactionData.currency || 'EUR',
-    items: transactionData.items.map(item => ({
-      item_id: item.itemId,
-      item_name: item.itemName,
-      item_category: item.category,
-      price: item.price,
-      quantity: item.quantity,
-    })),
   });
 };
 
@@ -210,14 +202,6 @@ export const trackProductView = (productData: {
   trackEvent('view_item', {
     currency: 'EUR',
     value: productData.price,
-    items: [{
-      item_id: productData.productId,
-      item_name: productData.productName,
-      item_category: productData.category,
-      price: productData.price,
-      quantity: 1,
-    }],
-    user_id: productData.userId,
   });
 };
 
@@ -232,13 +216,6 @@ export const trackAddToCart = (productData: {
   trackEvent('add_to_cart', {
     currency: 'EUR',
     value: (productData.price || 0) * (productData.quantity || 1),
-    items: [{
-      item_id: productData.productId,
-      item_name: productData.productName,
-      item_category: productData.category,
-      price: productData.price,
-      quantity: productData.quantity || 1,
-    }],
   });
 };
 

@@ -44,7 +44,9 @@ describe('canonical funnel decisions', () => {
       ],
     );
     const discovery = CANONICAL_FUNNEL.find((stage) => stage.stage === 'discovery');
-    assert.equal(discovery?.measurableNow, false);
+    assert.equal(discovery?.measurableNow, true);
+    assert.match(discovery?.sourceOfTruth ?? '', /marketplace_discovery/);
+    assert.equal(discovery?.historical, false);
   });
 
   it('counts a new account once and ignores a returning login', () => {

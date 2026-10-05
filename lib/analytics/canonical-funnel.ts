@@ -15,11 +15,11 @@ export const CANONICAL_FUNNEL = [
   },
   {
     stage: 'discovery',
-    definition: 'They started using the marketplace, not merely loaded a page.',
-    sourceOfTruth: 'No dedicated discovery event. A feed page view is not treated as discovery.',
-    measurableNow: false,
+    definition: 'A consented visitor used Marketplace discovery at least once. Opening the page is not enough.',
+    sourceOfTruth: 'GA4 marketplace_discovery after analytics consent. One event per changed discovery choice, with family, result bucket, scope, and how it was chosen.',
+    measurableNow: true,
     historical: false,
-    limitation: 'Search text is intentionally not sent to Google or Meta.',
+    limitation: 'People who refuse analytics cookies are invisible. Nothing before this deployment is backfilled. The result bucket is the settled result set HomeCheff already evaluated, not a later page and not the whole catalog. Search text is not sent.',
   },
   {
     stage: 'intent',
