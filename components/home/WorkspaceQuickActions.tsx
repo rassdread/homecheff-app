@@ -71,7 +71,7 @@ export default function WorkspaceQuickActions() {
               }
               createFlow.openCreateFlowWithIntent({
                 mode: 'dorpsplein',
-                allowedVerticals,
+                ...(item.id === 'offer-service' ? {} : { allowedVerticals }),
                 ...(item.createVertical ? { vertical: item.createVertical } : {}),
               });
             }}

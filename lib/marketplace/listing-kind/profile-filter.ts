@@ -7,6 +7,7 @@ import {
   type OfferingProfileSlug,
 } from '@/lib/create/offering-vertical';
 import { marketplaceCategoryToLegacyVertical } from '@/lib/discovery/consumer-accessors';
+import { offerIsService } from '@/lib/marketplace/commercial-capability';
 import { deriveListingKind } from './derive-listing-kind';
 import type { DeriveListingKindInput } from './types';
 
@@ -29,6 +30,16 @@ function matchesVerticalFilter(
   input: ProfileListingFilterInput,
   slug: OfferingProfileSlug,
 ): boolean {
+  const structured =
+    input.discoveryMarketplaceCategory ?? input.marketplaceCategory ?? null;
+  if (
+    offerIsService({
+      marketplaceCategory: structured,
+      specializations: input.specializations,
+    })
+  ) {
+    return false;
+  }
   const dbCategory = profileSlugToDbCategory(slug);
   if (input.discoveryMarketplaceCategory) {
     const mapped = marketplaceCategoryToLegacyVertical(input.discoveryMarketplaceCategory);
@@ -63,7 +74,17 @@ export function matchesProfileAanbodFilter(
     case 'products':
       return listingKind === 'PRODUCT';
     case 'services':
-      return listingKind === 'SERVICE';
+      return (
+        offerIsService({
+          marketplaceCategory:
+            input.discoveryMarketplaceCategory ?? input.marketplaceCategory,
+          specializations: input.specializations,
+        }) ||
+        listingKind === 'SERVICE' ||
+        listingKind === 'TASK' ||
+        listingKind === 'WORKSHOP' ||
+        listingKind === 'COACHING'
+      );
     case 'tasks':
       return listingKind === 'TASK';
     case 'workshops':

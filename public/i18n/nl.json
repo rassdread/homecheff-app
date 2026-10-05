@@ -4808,6 +4808,14 @@
         "feature1": "Opdrachtwerk",
         "feature2": "Portfolio opbouwen",
         "feature3": "Netwerk van makers"
+      },
+      "service": {
+        "label": "Diensten",
+        "description": "Bied praktische hulp, kennis of creatief werk aan",
+        "feature0": "Praktische hulp",
+        "feature1": "Advies en kennis",
+        "feature2": "Creatieve diensten",
+        "feature3": "Afspraken en voorstellen"
       }
     },
     "buyerRoleOptions": {
@@ -5299,7 +5307,8 @@
       "seller": {
         "chef": "Chef",
         "garden": "Tuinier",
-        "designer": "Designer"
+        "designer": "Designer",
+        "service": "Diensten"
       },
       "interests": {
         "chef": "Koken",

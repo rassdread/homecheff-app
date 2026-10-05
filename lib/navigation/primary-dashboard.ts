@@ -40,6 +40,12 @@ export function primaryDashboardContextFromUser(
     sellerRoles: (user.sellerRoles as string[] | undefined) ?? [],
     hasDeliveryProfile: Boolean(user.hasDeliveryProfile),
     hasAffiliate: Boolean(user.hasAffiliate),
+    ...(typeof user.hasActiveServiceOffer === 'boolean'
+      ? { hasActiveServiceOffer: user.hasActiveServiceOffer }
+      : {}),
+    ...(typeof user.hasActiveProductOffer === 'boolean'
+      ? { hasActiveProductOffer: user.hasActiveProductOffer }
+      : {}),
   };
 }
 

@@ -6,6 +6,7 @@ import { isServiceListingKind } from '@/lib/feed/marketplace-sale';
 const SERVICE_MARKETPLACE_CATEGORIES = new Set([
   'ARTISTIC_SERVICE',
   'PRACTICAL_SERVICE',
+  'KNOWLEDGE',
 ]);
 
 export type ProposalListingShape = 'PRODUCT' | 'SERVICE';

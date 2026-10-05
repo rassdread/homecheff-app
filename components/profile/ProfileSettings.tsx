@@ -21,6 +21,7 @@ const sellerTypes = [
   { id: "chef", icon: "👨‍🍳", copyKey: "chef" },
   { id: "garden", icon: "🌱", copyKey: "garden" },
   { id: "designer", icon: "🎨", copyKey: "designer" },
+  { id: "service", icon: "🛠️", copyKey: "service" },
 ];
 
 const buyerTypes = [

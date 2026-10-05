@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "./prisma";
+import { loadActiveOfferCapabilities } from "./seller/active-offer-capabilities";
 import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
 import {
@@ -468,6 +469,7 @@ export const authOptions: NextAuthOptions = {
           try {
             dbUser = await findUserByCanonicalEmail(prisma, token.email as string, {
               select: {
+                id: true,
                 email: true,
                 emailVerified: true,
                 name: true,
@@ -537,6 +539,22 @@ export const authOptions: NextAuthOptions = {
           }
           // Include sellerRoles for dashboard visibility - CRITICAL for dashboard links
           (session.user as any).sellerRoles = dbUser.sellerRoles || [];
+          const sellerish =
+            (dbUser.sellerRoles?.length ?? 0) > 0 || dbUser.role === 'SELLER';
+          if (sellerish && dbUser.id) {
+            try {
+              const offerCaps = await loadActiveOfferCapabilities(dbUser.id);
+              (session.user as any).hasActiveServiceOffer = offerCaps.hasServiceOffer;
+              (session.user as any).hasActiveProductOffer = offerCaps.hasProductOffer;
+            } catch (error) {
+              console.error('Error loading offer capabilities in session callback:', error);
+              (session.user as any).hasActiveServiceOffer = false;
+              (session.user as any).hasActiveProductOffer = false;
+            }
+          } else {
+            (session.user as any).hasActiveServiceOffer = false;
+            (session.user as any).hasActiveProductOffer = false;
+          }
           // Include adminRoles for admin dashboard visibility - CRITICAL for admin dashboard links
           (session.user as any).adminRoles = dbUser.adminRoles || [];
           // Include hasDeliveryProfile flag - CRITICAL for delivery dashboard visibility
@@ -575,6 +593,8 @@ export const authOptions: NextAuthOptions = {
           }
           
           (session.user as any).sellerRoles = []; // Default to empty array
+          (session.user as any).hasActiveServiceOffer = false;
+          (session.user as any).hasActiveProductOffer = false;
           (session.user as any).adminRoles = []; // Default to empty array
           (session.user as any).hasDeliveryProfile = false; // Default to false if DB fetch fails
           (session.user as any).hasAffiliate = false; // Default to false if DB fetch fails

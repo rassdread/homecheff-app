@@ -47,6 +47,7 @@ export const SELLER_ROLE_EMOJI: Record<ProfileV2SellerRole, string> = {
   chef: '👨‍🍳',
   garden: '🌱',
   designer: '🎨',
+  service: '🛠️',
 };
 
 export const SELLER_ROLE_ACCENT: Record<
@@ -71,6 +72,12 @@ export const SELLER_ROLE_ACCENT: Record<
     text: 'text-violet-950',
     dot: 'bg-violet-500',
   },
+  service: {
+    border: 'border-sky-200/70',
+    bg: 'bg-sky-50/70',
+    text: 'text-sky-950',
+    dot: 'bg-sky-500',
+  },
 };
 
 export const BUYER_ROLE_ACCENT: Record<
@@ -87,15 +94,34 @@ export const BUYER_ROLE_ACCENT: Record<
   foodLover: { border: 'border-orange-200/70', bg: 'bg-orange-50/70', text: 'text-orange-950' },
 };
 
-function categoryToSellerRole(category: unknown): ProfileV2SellerRole | null {
-  const s = String(category ?? '').toUpperCase();
+function categoryToSellerRole(item: {
+  category?: unknown;
+  marketplaceCategory?: unknown;
+}): ProfileV2SellerRole | null {
+  const marketplace = String(item.marketplaceCategory ?? '').toUpperCase();
+  if (
+    marketplace === 'PRACTICAL_SERVICE' ||
+    marketplace === 'KNOWLEDGE' ||
+    marketplace === 'ARTISTIC_SERVICE'
+  ) {
+    return 'service';
+  }
+  if (marketplace === 'GROW') return 'garden';
+  if (marketplace === 'DESIGN') return 'designer';
+  if (marketplace === 'CREATE') return 'chef';
+  const s = String(item.category ?? '').toUpperCase();
   if (s === 'CHEFF' || s === 'CHEF') return 'chef';
   if (s === 'GROWN' || s === 'GARDEN') return 'garden';
   if (s === 'DESIGNER' || s === 'DESIGN') return 'designer';
   return null;
 }
 
-type ItemLike = { category?: unknown; status?: unknown; isActive?: unknown };
+type ItemLike = {
+  category?: unknown;
+  marketplaceCategory?: unknown;
+  status?: unknown;
+  isActive?: unknown;
+};
 
 /** Count published/active items per seller vertical when category data is on the user payload. */
 export function countItemsBySellerRole(user: ProfileV2User): Partial<Record<ProfileV2SellerRole, number>> {
@@ -105,14 +131,14 @@ export function countItemsBySellerRole(user: ProfileV2User): Partial<Record<Prof
   for (const dish of dishes) {
     const status = String(dish.status ?? '').toUpperCase();
     if (status && status !== 'PUBLISHED') continue;
-    const role = categoryToSellerRole(dish.category);
+    const role = categoryToSellerRole(dish);
     if (role) counts[role] = (counts[role] ?? 0) + 1;
   }
 
   const products = (user.SellerProfile?.products ?? []) as ItemLike[];
   for (const product of products) {
     if (product.isActive === false) continue;
-    const role = categoryToSellerRole(product.category);
+    const role = categoryToSellerRole(product);
     if (role) counts[role] = (counts[role] ?? 0) + 1;
   }
 

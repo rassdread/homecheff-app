@@ -19,6 +19,10 @@ export type SettingsHubContext = {
   hasAffiliate?: boolean;
   stripeConnectAccountId?: string | null;
   subscriptionId?: string | null;
+  /** Active commercial offers whose marketplace category is a service. */
+  hasActiveServiceOffer?: boolean;
+  /** Active commercial offers that are food, garden, or a design product. */
+  hasActiveProductOffer?: boolean;
 };
 
 export const SETTINGS_TAB_ORDER: SettingsTabId[] = [

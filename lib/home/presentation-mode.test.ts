@@ -120,7 +120,8 @@ const fixtures: Fixture[] = [
     left: [
       'today',
       'messages',
-      'my-services',
+      'my-offer',
+      'orders',
       'appointments',
       'performance',
       'earnings',
@@ -148,8 +149,8 @@ const fixtures: Fixture[] = [
   },
   {
     id: 'ACTIVE_SERVICE_PROVIDER',
-    ctx: { role: 'SELLER', sellerRoles: ['designer'] },
-    user: { role: 'SELLER', sellerRoles: ['designer'] },
+    ctx: { role: 'SELLER', sellerRoles: ['service'] },
+    user: { role: 'SELLER', sellerRoles: ['service'] },
     defaultMode: 'marketplace',
     workspaceAvailable: true,
     manualSwitch: true,
@@ -358,7 +359,7 @@ describe('home presentation mode', () => {
   it('quick actions stay role-specific and do not duplicate', () => {
     const service = buildWorkspaceQuickActions({
       role: 'SELLER',
-      sellerRoles: ['designer'],
+      sellerRoles: ['service'],
     }).map((item) => item.id);
     assert.deepEqual(service, ['offer-service']);
     const multi = buildWorkspaceQuickActions(
@@ -434,7 +435,7 @@ describe('home presentation mode', () => {
   it('composes product, service, affiliate, and delivery without duplicate routes', () => {
     const ctx: SettingsHubContext = {
       role: 'SELLER',
-      sellerRoles: ['chef', 'designer'],
+      sellerRoles: ['chef', 'service'],
       hasAffiliate: true,
       hasDeliveryProfile: true,
     };
@@ -466,8 +467,31 @@ describe('home presentation mode', () => {
     assert.equal(groups.find((group) => group.id === 'service'), undefined);
     assert.equal(
       quick.find((item) => item.id === 'offer-service')?.createVertical,
-      'DESIGNER',
+      undefined,
     );
+  });
+
+  it('keeps a service-only provider on the service rail when the stored role is still chef', () => {
+    const ctx: SettingsHubContext = {
+      role: 'SELLER',
+      sellerRoles: ['chef'],
+      hasActiveServiceOffer: true,
+      hasActiveProductOffer: false,
+    };
+    const quick = buildWorkspaceQuickActions(ctx).map((item) => item.id);
+    assert.deepEqual(quick, ['offer-service']);
+    assert.ok(workspaceLeftLinkIds(ctx).includes('my-services'));
+    assert.equal(workspaceLeftLinkIds(ctx).includes('my-offer'), false);
+  });
+
+  it('shows selling and services together when both offers exist', () => {
+    const quick = buildWorkspaceQuickActions({
+      role: 'SELLER',
+      sellerRoles: ['designer'],
+      hasActiveServiceOffer: true,
+      hasActiveProductOffer: true,
+    }).map((item) => item.id);
+    assert.deepEqual(quick, ['new-offer', 'offer-service']);
   });
 
   it('keeps an unrecognised seller role on the selling rail', () => {

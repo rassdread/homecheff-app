@@ -94,7 +94,7 @@ export default function WorkspaceWorkRail() {
                   }
                   createFlow.openCreateFlowWithIntent({
                     mode: 'dorpsplein',
-                    allowedVerticals,
+                    ...(item.id === 'offer-service' ? {} : { allowedVerticals }),
                     ...(item.createVertical
                       ? { vertical: item.createVertical }
                       : {}),
@@ -138,7 +138,7 @@ export default function WorkspaceWorkRail() {
                       if (item.action === 'openCreateOffer') {
                         createFlow.openCreateFlowWithIntent({
                           mode: 'dorpsplein',
-                          allowedVerticals,
+                          ...(item.id === 'offer-service' ? {} : { allowedVerticals }),
                           ...(item.createVertical
                             ? { vertical: item.createVertical }
                             : {}),

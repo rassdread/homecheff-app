@@ -930,6 +930,8 @@ export async function POST(req: Request) {
     const grantedRole = sellerRoleForCommercialOffer(
       v2Resolved.listingIntent,
       cat,
+      v2Resolved.marketplaceCategory,
+      v2Resolved.specializations,
     );
     if (grantedRole) {
       const nextRoles = unionSellerRoles(user.sellerRoles, grantedRole);

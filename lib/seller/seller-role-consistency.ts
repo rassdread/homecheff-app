@@ -1,12 +1,20 @@
 /**
  * Forward-looking sellerRoles consistency.
- * Workspace and registration already use chef | garden | designer.
- * Delivery may also live in this array when someone adds the delivery role.
+ * Capabilities: chef, garden, designer, service, and delivery.
+ * Service subtypes stay in marketplace taxonomy. They are not separate roles.
  * The server derives a role from a validated commercial offer. Callers cannot
  * invent a role name.
  */
 
-export const CANONICAL_SELLER_ROLES = ['chef', 'garden', 'designer', 'delivery'] as const;
+import { commercialCapabilityForOffer } from '@/lib/marketplace/commercial-capability';
+
+export const CANONICAL_SELLER_ROLES = [
+  'chef',
+  'garden',
+  'designer',
+  'service',
+  'delivery',
+] as const;
 
 export type CanonicalSellerRole = (typeof CANONICAL_SELLER_ROLES)[number];
 
@@ -18,6 +26,8 @@ const ALIASES: Record<string, CanonicalSellerRole> = {
   grown: 'garden',
   designer: 'designer',
   design: 'designer',
+  service: 'service',
+  services: 'service',
   delivery: 'delivery',
 };
 
@@ -48,17 +58,24 @@ export function parseSuppliedSellerRoles(input: unknown): ParsedSellerRoles {
 
 /**
  * Role granted by a commercial OFFER. Requests and inspiration do not qualify.
- * Product category is the stored vertical, already derived by the create route.
+ * Marketplace category is the semantic source. Product.category is only the
+ * fallback when that field was not stored.
  */
 export function sellerRoleForCommercialOffer(
   listingIntent: string | null | undefined,
   productCategory: string | null | undefined,
+  marketplaceCategory?: string | null,
+  specializations?: string[] | null,
 ): CanonicalSellerRole | null {
-  if ((listingIntent || 'OFFER').toUpperCase() !== 'OFFER') return null;
-  const category = (productCategory || '').trim().toUpperCase();
-  if (category === 'CHEFF') return 'chef';
-  if (category === 'GROWN' || category === 'GARDEN') return 'garden';
-  if (category === 'DESIGNER') return 'designer';
+  const capability = commercialCapabilityForOffer({
+    listingIntent,
+    marketplaceCategory,
+    productCategory,
+    specializations,
+  });
+  if (capability === 'chef' || capability === 'garden' || capability === 'designer' || capability === 'service') {
+    return capability;
+  }
   return null;
 }
 

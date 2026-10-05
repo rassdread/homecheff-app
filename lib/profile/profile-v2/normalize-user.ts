@@ -8,6 +8,7 @@ function normalizeSellerRoles(raw: unknown): ProfileV2SellerRole[] {
     if (s === 'chef' || s === 'cheff') out.push('chef');
     else if (s === 'garden' || s === 'grower' || s === 'grown') out.push('garden');
     else if (s === 'designer' || s === 'design') out.push('designer');
+    else if (s === 'service' || s === 'services') out.push('service');
   }
   return [...new Set(out)];
 }

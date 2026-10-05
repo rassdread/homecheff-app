@@ -4,6 +4,7 @@ import {
   isPhysicalCreateTaxonomyId,
   isWorkshopTaxonomyId,
 } from '@/lib/marketplace/form-config';
+import { isDesignServiceTaxonomyId } from '@/lib/marketplace/commercial-capability';
 import { legacyUrlCategoryToMarketplace } from '@/lib/marketplace/listing-taxonomy';
 import { toCanonicalTaxonomyId } from '@/lib/marketplace/taxonomy-normalize';
 import { isRequestListing } from '@/lib/marketplace/product-visibility';
@@ -133,6 +134,18 @@ export function deriveListingKind(
     const result: DeriveListingKindResult = {
       listingKind: 'COACHING',
       derivationPath: 'specializations:coaching',
+    };
+    logListingKindDerivation(input, result);
+    return result;
+  }
+
+  if (
+    category === 'DESIGN' &&
+    specs.some((id) => isDesignServiceTaxonomyId(id))
+  ) {
+    const result: DeriveListingKindResult = {
+      listingKind: 'SERVICE',
+      derivationPath: 'specializations:design_service',
     };
     logListingKindDerivation(input, result);
     return result;

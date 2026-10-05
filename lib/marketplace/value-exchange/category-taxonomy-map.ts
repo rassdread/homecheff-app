@@ -3,6 +3,10 @@
  * @see lib/marketplace/taxonomy.ts
  */
 
+import {
+  isCraftCreateTaxonomyId,
+  isDesignServiceTaxonomyId,
+} from '@/lib/marketplace/commercial-capability';
 import type { MarketplaceCategory } from '@prisma/client';
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
 import { MARKETPLACE_TAXONOMY } from '@/lib/marketplace/taxonomy';
@@ -23,9 +27,9 @@ const CATEGORY_TO_MAIN: Record<MarketplaceCategory, ValueExchangeMainCategory> =
   CREATE: 'HOME_CHEFF',
   GROW: 'HOME_GARDEN',
   DESIGN: 'HOME_DESIGNER',
-  ARTISTIC_SERVICE: 'HOME_DESIGNER',
+  ARTISTIC_SERVICE: 'SERVICES',
   PRACTICAL_SERVICE: 'SERVICES',
-  KNOWLEDGE: 'WORKSHOPS',
+  KNOWLEDGE: 'SERVICES',
 };
 
 /** Knowledge items that map to coaching main category. */
@@ -54,9 +58,18 @@ export function marketplaceCategoryToMainCategory(
   if (listingKind === 'WORKSHOP') return 'WORKSHOPS';
   if (listingKind === 'COACHING') return 'COACHING';
   if (listingKind === 'REQUEST') return 'REQUESTS';
+  if (taxonomyId && isDesignServiceTaxonomyId(taxonomyId)) return 'SERVICES';
+  if (taxonomyId && isCraftCreateTaxonomyId(taxonomyId)) return 'HOME_DESIGNER';
+
   if (listingKind === 'TASK' || listingKind === 'SERVICE') {
-    if (category === 'PRACTICAL_SERVICE') return 'SERVICES';
-    if (category === 'DESIGN' || category === 'ARTISTIC_SERVICE') return 'HOME_DESIGNER';
+    if (
+      category === 'PRACTICAL_SERVICE' ||
+      category === 'ARTISTIC_SERVICE' ||
+      category === 'KNOWLEDGE' ||
+      category === 'DESIGN'
+    ) {
+      return 'SERVICES';
+    }
   }
 
   if (category === 'KNOWLEDGE' && taxonomyId) {

@@ -8,6 +8,7 @@ import {
   type OfferingProfileSlug,
 } from '@/lib/create/offering-vertical';
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
+import { offerIsService } from '@/lib/marketplace/commercial-capability';
 import type { SearchableListingRecord } from '@/lib/search/contracts/search-contract';
 import type { DiscoveryReadModel } from './contracts/discovery-read-model';
 
@@ -21,33 +22,40 @@ export function marketplaceCategoryToLegacyVertical(
   const u = String(mc ?? '').trim().toUpperCase();
   if (u === 'CREATE' || u === 'KEUKEN' || u === 'CHEFF') return 'CHEFF';
   if (u === 'GROW' || u === 'TUIN' || u === 'GROWN' || u === 'GARDEN') return 'GROWN';
-  if (u === 'DESIGN' || u === 'STUDIO' || u === 'DESIGNER' || u === 'ARTISTIC_SERVICE') {
+  if (u === 'DESIGN' || u === 'STUDIO' || u === 'DESIGNER') {
     return 'DESIGNER';
   }
+  if (offerIsService({ marketplaceCategory: u })) return null;
   return null;
 }
 
 /** Legacy CHEFF | GROWN | DESIGNER vertical for chips/filters. */
-export function getDiscoveryLegacyVerticalCategory(
-  item: WithOptionalDiscovery & {
+export function getDiscoveryLegacyVerticalCategory(item: object): string | null {
+  const row = item as WithOptionalDiscovery & {
     category?: string | null;
     marketplaceCategory?: string | null;
-  },
-): string | null {
-  if (item.discovery?.marketplaceCategory) {
+    specializations?: string[] | null;
+  };
+  const structured =
+    row.discovery?.marketplaceCategory ?? row.marketplaceCategory ?? null;
+  const specs = row.specializations ?? row.discovery?.specializations ?? null;
+  if (offerIsService({ marketplaceCategory: structured, specializations: specs })) {
+    return null;
+  }
+  if (row.discovery?.marketplaceCategory) {
     const mapped = marketplaceCategoryToLegacyVertical(
-      String(item.discovery.marketplaceCategory),
+      String(row.discovery.marketplaceCategory),
     );
     if (mapped) return mapped;
   }
-  if (item.discovery && item.discovery.entityType === 'dish') {
-    return item.category ?? null;
+  if (row.discovery && row.discovery.entityType === 'dish') {
+    return row.category ?? null;
   }
-  if (item.discovery?.marketplaceCategory == null && item.marketplaceCategory) {
-    const mapped = marketplaceCategoryToLegacyVertical(item.marketplaceCategory);
+  if (row.discovery?.marketplaceCategory == null && row.marketplaceCategory) {
+    const mapped = marketplaceCategoryToLegacyVertical(row.marketplaceCategory);
     if (mapped) return mapped;
   }
-  return item.category ?? null;
+  return row.category ?? null;
 }
 
 export function getDiscoveryListingKind(

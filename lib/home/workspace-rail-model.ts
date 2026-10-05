@@ -36,7 +36,7 @@ export type WorkspaceRailGroup = {
   items: WorkspaceRailItem[];
 };
 
-const SERVICE_ROLE_NAMES = new Set(['designer', 'design']);
+const SERVICE_ROLE_NAMES = new Set(['service', 'services']);
 
 const EARNINGS: WorkspaceRailItem = {
   id: 'earnings',
@@ -75,10 +75,18 @@ function isAffiliate(ctx: SettingsHubContext): boolean {
 }
 
 /**
- * Food, garden, an unsplit seller role, or a seller with no vertical list.
- * Design-only accounts are not product sellers.
+ * Food, garden, design products, an unsplit seller role, or a seller with no
+ * vertical list. A service role is not a product seller. A legacy chef or
+ * designer role is not a product seller when their only active offers are
+ * structured services.
  */
 function hasProductRole(ctx: SettingsHubContext): boolean {
+  if (
+    ctx.hasActiveServiceOffer === true &&
+    ctx.hasActiveProductOffer === false
+  ) {
+    return false;
+  }
   if (!isSeller(ctx)) return false;
   const roles = roleNames(ctx);
   if (roles.length === 0) return true;
@@ -86,6 +94,7 @@ function hasProductRole(ctx: SettingsHubContext): boolean {
 }
 
 function hasServiceRole(ctx: SettingsHubContext): boolean {
+  if (ctx.hasActiveServiceOffer === true) return true;
   return roleNames(ctx).some((role) => SERVICE_ROLE_NAMES.has(role));
 }
 
@@ -166,7 +175,6 @@ export function buildWorkspaceLeftGroups(
         id: 'offer-service',
         labelKey: 'home.presentation.offerService',
         action: 'openCreateOffer',
-        createVertical: 'DESIGNER',
       },
     ];
     if (!product) {
@@ -295,7 +303,6 @@ export function buildWorkspaceQuickActions(
       id: 'offer-service',
       labelKey: 'home.presentation.offerService',
       action: 'openCreateOffer',
-      createVertical: 'DESIGNER',
     });
   }
   if (affiliate) {

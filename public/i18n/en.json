@@ -6277,6 +6277,14 @@
         "feature1": "Custom orders",
         "feature2": "Build a portfolio",
         "feature3": "Artist network"
+      },
+      "service": {
+        "label": "Services",
+        "description": "Offer practical help, knowledge, or creative work",
+        "feature0": "Practical help",
+        "feature1": "Advice and knowledge",
+        "feature2": "Creative services",
+        "feature3": "Appointments and proposals"
       }
     },
     "buyerRoleOptions": {
@@ -7100,7 +7108,8 @@
       "seller": {
         "chef": "Chef",
         "garden": "Gardener",
-        "designer": "Designer"
+        "designer": "Designer",
+        "service": "Services"
       },
       "interests": {
         "chef": "Cooking",

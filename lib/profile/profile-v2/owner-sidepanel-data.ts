@@ -60,6 +60,7 @@ export function hasWorkspacePhotosForRoles(
     if (role === 'chef') return counts.CHEFF > 0;
     if (role === 'garden') return counts.GROWN > 0;
     if (role === 'designer') return counts.DESIGNER > 0;
+    if (role === 'service') return true;
     return true;
   });
 }

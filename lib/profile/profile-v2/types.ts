@@ -25,7 +25,7 @@ export type ProfileV2AanbodFilter =
 /** Inspiratie-tab: filter op verticaal (geen services/trade/help/tasks). */
 export type ProfileV2InspiratieFilter = 'all' | 'chef' | 'garden' | 'designer';
 
-export type ProfileV2SellerRole = 'chef' | 'garden' | 'designer';
+export type ProfileV2SellerRole = 'chef' | 'garden' | 'designer' | 'service';
 
 export type ProfileV2User = {
   id: string;

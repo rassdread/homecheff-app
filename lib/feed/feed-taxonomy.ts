@@ -3,6 +3,11 @@
  * @see docs/HOMECHEFF_FEED_TAXONOMY.md
  */
 
+import {
+  isCraftCreateTaxonomyId,
+  isDesignServiceTaxonomyId,
+  isServiceMarketplaceCategory,
+} from '@/lib/marketplace/commercial-capability';
 import { parseProductOrderMethod } from '@/lib/product/order-method';
 import { isMarketplaceSaleItem } from '@/lib/feed/marketplace-sale';
 import {
@@ -197,8 +202,26 @@ function resolveListingKind(input: FeedTaxonomyInput): ListingKind {
  * Derives V3 taxonomy from existing feed payload fields.
  * ListingKind drives kind classification when marketplace fields are present.
  */
+function resolveFeedCategory(input: FeedTaxonomyInput): FeedCategory {
+  const marketplace = String(input.marketplaceCategory ?? '').trim().toUpperCase();
+  const specs = input.specializations ?? [];
+  const designService = specs.some((id) => isDesignServiceTaxonomyId(id));
+  const craft = specs.some((id) => isCraftCreateTaxonomyId(id));
+  if (
+    isServiceMarketplaceCategory(marketplace) ||
+    designService ||
+    (marketplace === 'DESIGN' && !craft)
+  ) {
+    return 'HELP';
+  }
+  if (marketplace === 'GROW') return 'GARDEN';
+  if (marketplace === 'DESIGN' || craft) return 'CREATIVE';
+  if (marketplace === 'CREATE') return 'FOOD';
+  return mapLegacyCategoryToFeedCategory(input.category);
+}
+
 export function deriveFeedTaxonomy(input: FeedTaxonomyInput): FeedTaxonomy {
-  const category = mapLegacyCategoryToFeedCategory(input.category);
+  const category = resolveFeedCategory(input);
 
   if (isDishFeedSource(input) || resolveListingKind(input) === 'INSPIRATION') {
     return {
