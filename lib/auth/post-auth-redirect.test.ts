@@ -15,6 +15,10 @@ describe('path after the required profile gate', () => {
 
   it('keeps a stored in-app task', () => {
     assert.equal(pathAfterMinimalProfile('/sell/new?category=CHEFF'), '/sell/new?category=CHEFF');
+    assert.equal(
+      pathAfterMinimalProfile('/sell/new?intent=OFFER&marketplaceCategory=PRACTICAL_SERVICE'),
+      '/sell/new?intent=OFFER&marketplaceCategory=PRACTICAL_SERVICE',
+    );
     assert.equal(pathAfterMinimalProfile('/messages?conversation=abc'), '/messages?conversation=abc');
   });
 

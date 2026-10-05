@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import AcquisitionLandingBeacon from '@/components/acquisition/AcquisitionLandingBeacon';
+import { CANONICAL_SERVICE_CREATE_ROUTE } from '@/lib/create/marketplace-entry-nav';
 
 export default function SellerOnboardingPage() {
   const router = useRouter();
@@ -48,7 +49,7 @@ export default function SellerOnboardingPage() {
           </button>
           <button
             type="button"
-            onClick={() => router.push('/sell')}
+            onClick={() => router.push(CANONICAL_SERVICE_CREATE_ROUTE)}
             className="text-left p-4 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors"
           >
             <p className="font-semibold text-gray-900">{t('onboardingBranch.categoryServices')}</p>

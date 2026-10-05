@@ -6,6 +6,7 @@
  * Product selling and design/service work stay separate groups when both apply.
  */
 
+import { CANONICAL_SERVICE_CREATE_ROUTE } from '@/lib/create/marketplace-entry-nav';
 import { OPERATIONS_ROUTES } from '@/lib/operations/operations-entry';
 import type { SettingsHubContext } from '@/lib/settings/settings-hub';
 
@@ -174,7 +175,7 @@ export function buildWorkspaceLeftGroups(
       {
         id: 'offer-service',
         labelKey: 'home.presentation.offerService',
-        action: 'openCreateOffer',
+        href: CANONICAL_SERVICE_CREATE_ROUTE,
       },
     ];
     if (!product) {
@@ -302,7 +303,7 @@ export function buildWorkspaceQuickActions(
     actions.push({
       id: 'offer-service',
       labelKey: 'home.presentation.offerService',
-      action: 'openCreateOffer',
+      href: CANONICAL_SERVICE_CREATE_ROUTE,
     });
   }
   if (affiliate) {
@@ -346,7 +347,7 @@ export function buildWorkspaceStartChoices(): WorkspaceStartChoice[] {
     {
       id: 'service',
       labelKey: 'home.presentation.startService',
-      href: '/sell',
+      href: CANONICAL_SERVICE_CREATE_ROUTE,
     },
     {
       id: 'affiliate',

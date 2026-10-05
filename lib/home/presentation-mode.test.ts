@@ -352,7 +352,12 @@ describe('home presentation mode', () => {
     );
     assert.deepEqual(
       buildWorkspaceStartChoices().map((choice) => choice.href),
-      ['/onboarding/seller', '/sell', '/affiliate', '/delivery/start'],
+      [
+        '/onboarding/seller',
+        '/sell/new?intent=OFFER&marketplaceCategory=PRACTICAL_SERVICE',
+        '/affiliate',
+        '/delivery/start',
+      ],
     );
   });
 
@@ -466,8 +471,8 @@ describe('home presentation mode', () => {
     assert.ok(quick.slice(1).every((item) => item.emphasis === 'secondary'));
     assert.equal(groups.find((group) => group.id === 'service'), undefined);
     assert.equal(
-      quick.find((item) => item.id === 'offer-service')?.createVertical,
-      undefined,
+      quick.find((item) => item.id === 'offer-service')?.href,
+      '/sell/new?intent=OFFER&marketplaceCategory=PRACTICAL_SERVICE',
     );
   });
 
@@ -478,8 +483,12 @@ describe('home presentation mode', () => {
       hasActiveServiceOffer: true,
       hasActiveProductOffer: false,
     };
-    const quick = buildWorkspaceQuickActions(ctx).map((item) => item.id);
-    assert.deepEqual(quick, ['offer-service']);
+    const quick = buildWorkspaceQuickActions(ctx);
+    assert.deepEqual(quick.map((item) => item.id), ['offer-service']);
+    assert.equal(
+      quick[0]?.href,
+      '/sell/new?intent=OFFER&marketplaceCategory=PRACTICAL_SERVICE',
+    );
     assert.ok(workspaceLeftLinkIds(ctx).includes('my-services'));
     assert.equal(workspaceLeftLinkIds(ctx).includes('my-offer'), false);
   });
