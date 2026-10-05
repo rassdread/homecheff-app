@@ -66,7 +66,9 @@ function task(
   return selectTodayActionItems(items).find((item) => item.id === id);
 }
 
-function ownership(patch: Parameters<typeof postAcceptDetailsWaitOnUser>[0]) {
+function ownership(
+  patch: Partial<Parameters<typeof postAcceptDetailsWaitOnUser>[0]> = {},
+) {
   return postAcceptDetailsWaitOnUser({
     userId: ME,
     buyerId: OTHER,

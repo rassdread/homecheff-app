@@ -153,6 +153,24 @@ export async function GET() {
             titleNl: entry.titleNl,
             bodyNl: entry.bodyNl,
             ctaLabelNl: entry.ctaLabelNl,
+            titleEn:
+              entry.entryState === 'RECOVER_MISMATCH'
+                ? 'Your payout account needs to be set up again'
+                : entry.entryState === 'MANUAL_REVIEW'
+                  ? 'Your payout account is being reviewed'
+                  : 'Set up your payout account',
+            bodyEn:
+              entry.entryState === 'RECOVER_MISMATCH'
+                ? 'Your payout account was set up as an organization, while you use HomeCheff as an individual. Set it up again to use the right verification.'
+                : entry.entryState === 'MANUAL_REVIEW'
+                  ? 'A manual review is needed. Contact support if this continues.'
+                  : 'Choose whether you use HomeCheff as an individual or a business. That decides which Stripe verification is required.',
+            ctaLabelEn:
+              entry.ctaLabelNl == null
+                ? null
+                : entry.entryState === 'RECOVER_MISMATCH'
+                  ? 'Set up again as an individual'
+                  : 'Set up payout account',
           }
         : connectCtaModelForSnapshot(live);
 
@@ -171,6 +189,10 @@ export async function GET() {
         bodyNl:
           'Stripe heeft nog enkele persoonlijke gegevens of je bankrekening nodig. Deze Stripe-verificatieroute vraagt geen KvK-gegevens.',
         ctaLabelNl: 'Gegevens afronden',
+        titleEn: 'Your verification is not finished',
+        bodyEn:
+          'Stripe still needs a few personal details or your bank account. This verification route does not ask for a company registration number.',
+        ctaLabelEn: 'Finish details',
       };
     }
 
