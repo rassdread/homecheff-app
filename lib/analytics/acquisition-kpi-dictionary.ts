@@ -3,6 +3,7 @@
  * Economic events are stored server-side in AnalyticsEvent (entityType ACQUISITION).
  * They are not forwarded to Google, Meta or LinkedIn in this sprint.
  * Client landing beacons require cookie consent and are not the economic source of truth.
+ * The visitor-to-return funnel lives in lib/analytics/canonical-funnel.ts.
  */
 
 export type AcquisitionTransport = 'server' | 'client_consent';

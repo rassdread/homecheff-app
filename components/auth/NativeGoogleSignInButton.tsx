@@ -324,7 +324,7 @@ export function NativeGoogleSignInButton({
       } catch {
         /* ignore */
       }
-    } else {
+    } else if (payload.accountCreated === true) {
       try {
         trackRegistration({ method: 'google' });
       } catch {
@@ -333,7 +333,7 @@ export function NativeGoogleSignInButton({
       try {
         trackMetaCompleteRegistration({
           surface: 'register',
-          accountCreated: payload.accountCreated === true,
+          accountCreated: true,
         });
       } catch {
         /* ignore */

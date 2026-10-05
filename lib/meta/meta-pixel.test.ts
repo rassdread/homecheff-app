@@ -244,9 +244,17 @@ describe('Meta Pixel', () => {
 
     const native = read('components/auth/NativeGoogleSignInButton.tsx');
     const loginBranch = native.slice(native.indexOf("analyticsContext === 'login'"));
-    const registerSlice = loginBranch.slice(loginBranch.indexOf('} else {'));
-    assert.equal(loginBranch.slice(0, loginBranch.indexOf('} else {')).includes('trackMetaCompleteRegistration'), false);
+    const registerSlice = loginBranch.slice(loginBranch.indexOf('payload.accountCreated === true'));
+    assert.equal(
+      loginBranch.slice(0, loginBranch.indexOf('payload.accountCreated === true')).includes('trackMetaCompleteRegistration'),
+      false,
+    );
+    assert.equal(
+      loginBranch.slice(0, loginBranch.indexOf('payload.accountCreated === true')).includes('trackRegistration'),
+      false,
+    );
     assert.match(registerSlice, /trackMetaCompleteRegistration/);
+    assert.match(registerSlice, /trackRegistration/);
     assert.equal(native.includes('registrationEventId'), false);
 
     const nativeRoute = read('app/api/auth/native/google/route.ts');

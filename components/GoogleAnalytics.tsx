@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { analyticsPageViewParams } from '@/lib/analytics/safe-analytics-location';
 
 declare global {
   interface Window {
@@ -70,16 +71,15 @@ export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps)
       return;
     }
 
-    const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
     const hostname = window.location.hostname;
     const isNL = hostname.includes('homecheff.nl');
     const isEU = hostname.includes('homecheff.eu');
     const language = isEU ? 'en' : (isNL ? 'nl' : 'nl'); // Default to NL
+    const safe = analyticsPageViewParams(window.location.href, window.location.origin);
     
     window.gtag('event', 'page_view', {
-      page_path: url,
-      page_title: document.title,
-      page_location: window.location.href,
+      page_path: safe.page_path,
+      page_location: safe.page_location,
       page_hostname: hostname,
       language: language,
       domain: isNL ? 'nl' : (isEU ? 'eu' : 'unknown'),
@@ -133,15 +133,6 @@ export const trackUserType = (userData: {
   if (userData.sellerRoles && userData.sellerRoles.length > 0) {
     userProperties.seller_types = userData.sellerRoles.join(',');
     userProperties.seller_type_count = userData.sellerRoles.length;
-  }
-
-  if (userData.interests && userData.interests.length > 0) {
-    userProperties.interests = userData.interests.join(',');
-    userProperties.interest_count = userData.interests.length;
-  }
-
-  if (userData.gender) {
-    userProperties.gender = userData.gender;
   }
 
   if (userData.hasDelivery !== undefined) {
