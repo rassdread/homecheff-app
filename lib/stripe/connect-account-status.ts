@@ -79,7 +79,20 @@ export type ConnectCtaModel = {
   titleNl: string;
   bodyNl: string;
   ctaLabelNl: string | null;
+  titleEn: string;
+  bodyEn: string;
+  ctaLabelEn: string | null;
 };
+
+export function connectCtaCopy(
+  model: ConnectCtaModel,
+  language: 'nl' | 'en' = 'nl',
+): { title: string; body: string; cta: string | null } {
+  if (language === 'en') {
+    return { title: model.titleEn, body: model.bodyEn, cta: model.ctaLabelEn };
+  }
+  return { title: model.titleNl, body: model.bodyNl, cta: model.ctaLabelNl };
+}
 
 const EMPTY: ConnectAccountStatusSnapshot = {
   uiStatus: 'NOT_STARTED',
@@ -412,6 +425,20 @@ export function connectCtaModelForStatus(
 ): ConnectCtaModel {
   const missing = options?.missingCategories ?? [];
   const missingLabel = missingCategoriesLabelNl(missing);
+  const missingLabelEn =
+    missing.length === 0
+      ? ''
+      : missing
+          .map((category) => {
+            const labels: Record<ConnectMissingCategory, string> = {
+              identity: 'identity',
+              address: 'address',
+              bank: 'bank account',
+              additional: 'extra Stripe verification',
+            };
+            return labels[category];
+          })
+          .join(', ');
 
   switch (status) {
     case 'NOT_STARTED':
@@ -422,6 +449,10 @@ export function connectCtaModelForStatus(
         bodyNl:
           'Verifieer je identiteit en bankrekening om betalingen via HomeCheff te kunnen ontvangen.',
         ctaLabelNl: 'Betaalaccount instellen',
+        titleEn: 'Set up your payout account',
+        bodyEn:
+          'Verify your identity and bank account so you can receive payments through HomeCheff.',
+        ctaLabelEn: 'Set up payout account',
       };
     case 'INCOMPLETE':
       return {
@@ -432,6 +463,11 @@ export function connectCtaModelForStatus(
           ? `Nog nodig: ${missingLabel}. Rond je gegevens af om betalingen te ontvangen.`
           : 'Je bent al begonnen. Rond je betaalaccount af om betalingen te ontvangen.',
         ctaLabelNl: 'Gegevens afronden',
+        titleEn: 'Payout account is not finished',
+        bodyEn: missingLabelEn
+          ? `Still needed: ${missingLabelEn}. Finish your details to receive payments.`
+          : 'You already started. Finish your payout account to receive payments.',
+        ctaLabelEn: 'Finish details',
       };
     case 'PENDING_VERIFICATION':
       return {
@@ -441,6 +477,10 @@ export function connectCtaModelForStatus(
         bodyNl:
           'Je gegevens zijn ingestuurd. Stripe controleert ze. Je hoeft ze niet opnieuw in te vullen.',
         ctaLabelNl: null,
+        titleEn: 'Verification is being reviewed',
+        bodyEn:
+          'Your details were submitted. Stripe is reviewing them. You do not need to enter them again.',
+        ctaLabelEn: null,
       };
     case 'ACTION_REQUIRED':
       return {
@@ -451,6 +491,11 @@ export function connectCtaModelForStatus(
           ? `Stripe heeft nog gegevens nodig (${missingLabel}).`
           : 'Stripe heeft nog extra gegevens nodig. Open je betaalaccount om verder te gaan.',
         ctaLabelNl: 'Gegevens afronden',
+        titleEn: 'Payout account is not finished',
+        bodyEn: missingLabelEn
+          ? `Stripe still needs details (${missingLabelEn}).`
+          : 'Stripe still needs extra details. Open your payout account to continue.',
+        ctaLabelEn: 'Finish details',
       };
     case 'RESTRICTED':
       return {
@@ -460,6 +505,10 @@ export function connectCtaModelForStatus(
         bodyNl:
           'Je betaalaccount is beperkt. Open Stripe alleen als er acties openstaan; anders wacht op controle.',
         ctaLabelNl: 'Gegevens afronden',
+        titleEn: 'Stripe needs additional details',
+        bodyEn:
+          'Your payout account is restricted. Open Stripe only when there is something to complete; otherwise wait for review.',
+        ctaLabelEn: 'Finish details',
       };
     case 'PAYMENT_READY':
       return {
@@ -468,6 +517,9 @@ export function connectCtaModelForStatus(
         titleNl: 'Betaalaccount gereed',
         bodyNl: 'Je kunt betalingen ontvangen via HomeCheff.',
         ctaLabelNl: null,
+        titleEn: 'Payout account is ready',
+        bodyEn: 'You can receive payments through HomeCheff.',
+        ctaLabelEn: null,
       };
     default:
       return {
@@ -477,6 +529,10 @@ export function connectCtaModelForStatus(
         bodyNl:
           'Verifieer je identiteit en bankrekening om betalingen via HomeCheff te kunnen ontvangen.',
         ctaLabelNl: 'Betaalaccount instellen',
+        titleEn: 'Set up your payout account',
+        bodyEn:
+          'Verify your identity and bank account so you can receive payments through HomeCheff.',
+        ctaLabelEn: 'Set up payout account',
       };
   }
 }
@@ -504,6 +560,12 @@ export function connectCtaModelForSnapshot(
           ? 'Stripe heeft je account beperkt. Er staan nu geen invulbare stappen open. Vernieuw later of neem contact op met support.'
           : base.bodyNl,
       ctaLabelNl: null,
+      titleEn: base.titleEn,
+      bodyEn:
+        snapshot.uiStatus === 'RESTRICTED'
+          ? 'Stripe has restricted your account. There is nothing to fill in right now. Check again later or contact support.'
+          : base.bodyEn,
+      ctaLabelEn: null,
     };
   }
   return base;

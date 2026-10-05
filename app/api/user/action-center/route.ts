@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
+import { cookies, headers } from 'next/headers';
 import { CommissionLedgerStatus } from '@prisma/client';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import {
+  ECOSYSTEM_LOCALE_COOKIE,
+  ECOSYSTEM_LOCALE_PREF_COOKIE,
+} from '@/lib/ecosystem-locale';
+import { actionTaskLanguage } from '@/lib/i18n/action-task-language';
+import { resolveColdStartLanguage } from '@/lib/locale';
+import { postAcceptDetailsWaitOnUser } from '@/lib/proposals/fulfillment-location';
 import { STRIPE_SESSION_ID_PREFIX } from '@/lib/stripe';
 import { refreshSellerStripeSnapshotIfStale } from '@/lib/stripe/sync-seller-payment-status';
 import { buildUserActionItems } from '@/lib/user/user-action-center';
@@ -70,6 +78,7 @@ export async function GET() {
         stripeConnectTrack: true,
         hcpWelcomeSeenAt: true,
         dateOfBirth: true,
+        preferredLanguage: true,
         Account: { select: { provider: true } },
         SellerProfile: { select: { id: true } },
         DeliveryProfile: {
@@ -137,6 +146,22 @@ export async function GET() {
     const hasDeliveryProfile = Boolean(user.DeliveryProfile);
     const hasAffiliate = Boolean(user.affiliate);
 
+    const jar = cookies();
+    const hdrs = headers();
+    const cookieLanguage = jar.get(ECOSYSTEM_LOCALE_COOKIE)?.value ?? null;
+    const explicitLocale = jar.get(ECOSYSTEM_LOCALE_PREF_COOKIE)?.value === '1';
+    // Match the client: a viewing cookie wins over the account default,
+    // otherwise a default preferredLanguage of "nl" would keep English UI in Dutch.
+    const language = actionTaskLanguage(
+      resolveColdStartLanguage({
+        cookieLanguage,
+        hasExplicitPreference: explicitLocale,
+        explicitLanguage: explicitLocale ? cookieLanguage : null,
+        accountLanguage: cookieLanguage ? null : user.preferredLanguage,
+        countryCode: hdrs.get('x-vercel-ip-country'),
+      }),
+    );
+
     const [
       unreadMessagesCount,
       blockedProductsCount,
@@ -144,6 +169,7 @@ export async function GET() {
       activeDeliveryCount,
       unreadNotificationRows,
       incomingProposalsWaitingCount,
+      openCommunityOrders,
     ] = await Promise.all([
       prisma.message.count({
         where: {
@@ -195,7 +221,66 @@ export async function GET() {
           OR: [{ sellerId: user.id }, { buyerId: user.id }],
         },
       }),
+      prisma.communityOrder.findMany({
+        where: {
+          status: 'OPEN',
+          OR: [{ buyerId: user.id }, { sellerId: user.id }],
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: 20,
+        select: {
+          id: true,
+          buyerId: true,
+          sellerId: true,
+          status: true,
+          fulfillmentMode: true,
+          pickupAddress: true,
+          deliveryAddress: true,
+          confirmedScheduleDate: true,
+          confirmedScheduleTimeWindow: true,
+          Proposal: {
+            select: {
+              requestedDate: true,
+              requestedTimeWindow: true,
+              fulfillmentType: true,
+            },
+          },
+        },
+      }),
     ]);
+
+    const postAcceptRows = openCommunityOrders.flatMap((order) => {
+      const result = postAcceptDetailsWaitOnUser({
+        userId: user.id,
+        buyerId: order.buyerId,
+        sellerId: order.sellerId,
+        status: order.status,
+        fulfillmentMode: order.fulfillmentMode ?? order.Proposal?.fulfillmentType,
+        pickupAddress: order.pickupAddress,
+        deliveryAddress: order.deliveryAddress,
+        proposalDate: order.Proposal?.requestedDate,
+        proposalTimeWindow: order.Proposal?.requestedTimeWindow,
+        confirmedDate: order.confirmedScheduleDate,
+        confirmedTimeWindow: order.confirmedScheduleTimeWindow,
+      });
+      if (!result.waiting) return [];
+      if (
+        result.state !== 'LOCATION_PENDING' &&
+        result.state !== 'SCHEDULE_PENDING' &&
+        result.state !== 'LOCATION_AND_SCHEDULE_PENDING'
+      ) {
+        return [];
+      }
+      return [{ id: order.id, state: result.state }];
+    });
+    const postAcceptWaiting =
+      postAcceptRows.length > 0
+        ? {
+            count: postAcceptRows.length,
+            communityOrderId: postAcceptRows[0].id,
+            state: postAcceptRows[0].state,
+          }
+        : null;
 
     const unreadNotifications = unreadNotificationRows.map((row) => ({
       id: row.id,
@@ -301,6 +386,8 @@ export async function GET() {
       ),
       entityHints,
       incomingProposalsWaitingCount,
+      postAcceptWaiting,
+      language,
     });
     } catch (buildErr) {
       console.error('[user/action-center] buildUserActionItems failed', buildErr);

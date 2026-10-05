@@ -17,12 +17,19 @@ import {
   resolveTimeGreetingKey,
 } from '@/lib/operations/operations-today-helpers';
 
+/** Today only needs the live delivery bar. Seller and affiliate dashboards stay on their own pages. */
+const TODAY_ROLE_SCOPE = { seller: false, partner: false, delivery: true };
+
 export default function OperationsTodayContent() {
   const { data: session } = useSession();
   const { tOr, language } = useTranslation();
   const tasksSurface = useTodayTasksSurface();
   const { actionCenter, ctx, loading: coreLoading } = useOperationsSidepanel();
-  const { delivery, loading: roleLoading } = useOperationsTodayRoleData(ctx);
+  const { delivery, loading: roleLoading } = useOperationsTodayRoleData(
+    ctx,
+    true,
+    TODAY_ROLE_SCOPE,
+  );
 
   const hasActiveDelivery = Boolean(delivery?.currentOrder);
   const waiting = selectTodayActionItems(actionCenter?.items ?? []);

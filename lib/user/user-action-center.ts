@@ -5,10 +5,15 @@ import {
 } from '@/lib/account-requirements';
 import {
   aggregateRequirementNotice,
+  localizedRequirementCopy,
   noticesForAccountMissing,
   noticesForDeliveryMissing,
   recommendedProfileNotices,
 } from '@/lib/account/profile-requirement-notice';
+import {
+  taskText,
+  type ActionTaskLanguage,
+} from '@/lib/i18n/action-task-language';
 import {
   buildSellerActionItems,
   partitionSellerActionItems,
@@ -99,6 +104,19 @@ export type UserActionCenterInput = {
   entityHints?: ActionCenterEntityHints;
   /** Pending proposals created by the other party. Outgoing proposals are not included. */
   incomingProposalsWaitingCount?: number;
+  /**
+   * Accepted deal where this user still owes the address, the time, or both.
+   * One task, even when both pieces are missing.
+   */
+  postAcceptWaiting?: {
+    count: number;
+    communityOrderId: string;
+    state:
+      | 'LOCATION_PENDING'
+      | 'SCHEDULE_PENDING'
+      | 'LOCATION_AND_SCHEDULE_PENDING';
+  } | null;
+  language?: ActionTaskLanguage;
 };
 
 const ORDERS_HREF = '/orders';
@@ -134,7 +152,8 @@ function dedupeAndSort(items: UserActionItem[]): UserActionItem[] {
 
 function buildMessagesAction(
   count: number,
-  hints?: ActionCenterEntityHints,
+  hints: ActionCenterEntityHints | undefined,
+  language: ActionTaskLanguage,
 ): UserActionItem | null {
   if (count <= 0) return null;
   const hrefs = resolveEntityHrefs(hints ?? {});
@@ -144,12 +163,20 @@ function buildMessagesAction(
     severity: 'orange',
     title:
       count === 1 && sender
-        ? `Bericht van ${sender}.`
+        ? taskText(language, `Bericht van ${sender}.`, `Message from ${sender}.`)
         : count === 1
-          ? 'Je hebt 1 ongelezen bericht.'
-          : `Je hebt ${count} ongelezen berichten.`,
-    description: 'Reageer om contact en vertrouwen te behouden.',
-    actionLabel: 'Gesprek openen',
+          ? taskText(language, 'Je hebt 1 ongelezen bericht.', 'You have 1 unread message.')
+          : taskText(
+              language,
+              `Je hebt ${count} ongelezen berichten.`,
+              `You have ${count} unread messages.`,
+            ),
+    description: taskText(
+      language,
+      'Reageer om contact en vertrouwen te behouden.',
+      'Reply to keep the conversation going.',
+    ),
+    actionLabel: taskText(language, 'Gesprek openen', 'Open conversation'),
     actionHref: hrefs.messagesHref,
   };
 }
@@ -166,38 +193,127 @@ export function proposalWaitsOnCurrentUser(input: {
   return input.sellerId === input.userId || input.buyerId === input.userId;
 }
 
-function buildIncomingProposalAction(count: number): UserActionItem | null {
+function buildIncomingProposalAction(
+  count: number,
+  language: ActionTaskLanguage,
+): UserActionItem | null {
   if (count <= 0) return null;
   return {
     id: 'proposals-incoming',
     severity: 'orange',
     title:
       count === 1
-        ? 'Er wacht een voorstel op je reactie.'
-        : `Er wachten ${count} voorstellen op je reactie.`,
-    description: 'Bekijk het voorstel en reageer.',
-    actionLabel: 'Voorstel bekijken',
+        ? taskText(
+            language,
+            'Er wacht een voorstel op je reactie.',
+            'A proposal is waiting for your reply.',
+          )
+        : taskText(
+            language,
+            `Er wachten ${count} voorstellen op je reactie.`,
+            `${count} proposals are waiting for your reply.`,
+          ),
+    description: taskText(
+      language,
+      'Bekijk het voorstel en reageer.',
+      'Review the proposal and reply.',
+    ),
+    actionLabel: taskText(language, 'Voorstel bekijken', 'View proposal'),
     actionHref: '/profile/deals',
   };
 }
 
-function buildBuyerOrderUpdateAction(count: number): UserActionItem | null {
+function buildPostAcceptAction(
+  waiting: UserActionCenterInput['postAcceptWaiting'],
+  language: ActionTaskLanguage,
+): UserActionItem | null {
+  if (!waiting || waiting.count <= 0 || !waiting.communityOrderId) return null;
+  const extra =
+    waiting.count > 1
+      ? taskText(
+          language,
+          ` Nog ${waiting.count - 1} andere afspraken missen ook gegevens.`,
+          ` ${waiting.count - 1} other appointments are also missing details.`,
+        )
+      : '';
+  const copy =
+    waiting.state === 'LOCATION_PENDING'
+      ? {
+          title: taskText(
+            language,
+            'Vul het adres in voor je afspraak.',
+            'Add the address for your appointment.',
+          ),
+          description: taskText(
+            language,
+            'Het voorstel is geaccepteerd. Het adres ontbreekt nog.',
+            'The proposal was accepted. The address is still missing.',
+          ),
+        }
+      : waiting.state === 'SCHEDULE_PENDING'
+        ? {
+            title: taskText(
+              language,
+              'Plan een tijd voor de geaccepteerde aanvraag.',
+              'Choose a time for the accepted request.',
+            ),
+            description: taskText(
+              language,
+              'Het voorstel is geaccepteerd. De tijd ontbreekt nog.',
+              'The proposal was accepted. The time is still missing.',
+            ),
+          }
+        : {
+            title: taskText(
+              language,
+              'Maak de afspraak compleet.',
+              'Finish the appointment details.',
+            ),
+            description: taskText(
+              language,
+              'Het voorstel is geaccepteerd. Adres en tijd ontbreken nog.',
+              'The proposal was accepted. The address and time are still missing.',
+            ),
+          };
+  return {
+    id: 'post-accept-details',
+    severity: 'orange',
+    title: copy.title,
+    description: `${copy.description}${extra}`,
+    actionLabel: taskText(language, 'Afspraak afronden', 'Finish appointment'),
+    actionHref: `/profile/deals?highlight=${waiting.communityOrderId}`,
+  };
+}
+
+function buildBuyerOrderUpdateAction(
+  count: number,
+  language: ActionTaskLanguage,
+): UserActionItem | null {
   if (count <= 0) return null;
   return {
     id: 'orders-buyer-update',
     severity: 'orange',
     title:
       count === 1
-        ? 'Je hebt 1 bestellingupdate.'
-        : `Je hebt ${count} bestellingupdates.`,
-    description: 'Bekijk de status van je bestelling.',
-    actionLabel: 'Bekijk bestellingen',
+        ? taskText(language, 'Je hebt 1 bestellingupdate.', 'You have 1 order update.')
+        : taskText(
+            language,
+            `Je hebt ${count} bestellingupdates.`,
+            `You have ${count} order updates.`,
+          ),
+    description: taskText(
+      language,
+      'Bekijk de status van je bestelling.',
+      'Check the status of your order.',
+    ),
+    actionLabel: taskText(language, 'Bekijk bestellingen', 'View orders'),
     actionHref: ORDERS_HREF,
   };
 }
 
 function buildAccountIncompleteAction(
   user: AccountRequirementsUserInput,
+  language: ActionTaskLanguage,
 ): UserActionItem | null {
   const missing = missingRequirementsForAction(
     'postItem',
@@ -207,20 +323,25 @@ function buildAccountIncompleteAction(
   const notice = aggregateRequirementNotice(noticesForAccountMissing(missing), {
     completeCtaNl: 'Account voltooien',
   });
-  if (!notice) return null;
+  const copy = localizedRequirementCopy(notice, language);
+  if (!notice || !copy) return null;
 
   return {
     id: 'account-incomplete',
     severity: 'red',
-    title: notice.titleNl,
-    description: notice.bodyNl,
-    actionLabel: notice.ctaLabelNl,
+    title: copy.title,
+    description: copy.body,
+    actionLabel:
+      notice.items.length > 1
+        ? taskText(language, notice.ctaLabelNl, 'Finish account')
+        : copy.cta,
     actionHref: notice.targetRoute,
   };
 }
 
 function buildProfileIncompleteAction(
   user: UserActionCenterInput['user'],
+  language: ActionTaskLanguage,
 ): UserActionItem | null {
   const items = recommendedProfileNotices({
     name: user.name,
@@ -232,41 +353,59 @@ function buildProfileIncompleteAction(
   const notice = aggregateRequirementNotice(items, {
     completeCtaNl: 'Profiel voltooien',
   });
-  if (!notice) return null;
+  const copy = localizedRequirementCopy(notice, language);
+  if (!notice || !copy) return null;
 
   return {
     id: 'profile-incomplete',
     severity: 'orange',
-    title: notice.titleNl,
-    description: notice.bodyNl,
-    actionLabel: notice.ctaLabelNl,
+    title: copy.title,
+    description: copy.body,
+    actionLabel:
+      notice.items.length > 1
+        ? taskText(language, notice.ctaLabelNl, 'Finish profile')
+        : copy.cta,
     actionHref: notice.targetRoute,
   };
 }
 
 function buildHcpWelcomeAction(
   hcpWelcomeSeenAt: Date | null | undefined,
+  language: ActionTaskLanguage,
 ): UserActionItem | null {
   if (hcpWelcomeSeenAt != null) return null;
   return {
     id: 'hcp-welcome',
     severity: 'green',
-    title: 'Ontdek je HomeCheff Punten.',
-    description: 'Bekijk hoe je reputatie en badges werken.',
-    actionLabel: 'Bekijk HCP',
+    title: taskText(
+      language,
+      'Ontdek je HomeCheff Punten.',
+      'Discover your HomeCheff Points.',
+    ),
+    description: taskText(
+      language,
+      'Bekijk hoe je reputatie en badges werken.',
+      'See how your reputation and badges work.',
+    ),
+    actionLabel: taskText(language, 'Bekijk HCP', 'View HCP'),
     actionHref: HCP_HREF,
   };
 }
 
-function buildHcpRewardAction(rewards: PendingClientReward[]): UserActionItem | null {
+function buildHcpRewardAction(
+  rewards: PendingClientReward[],
+  language: ActionTaskLanguage,
+): UserActionItem | null {
   if (rewards.length === 0) return null;
   const first = rewards[0];
   return {
     id: 'hcp-reward-pending',
     severity: 'green',
     title: first.title,
-    description: first.subtitle || 'Je hebt een nieuwe HCP-beloning.',
-    actionLabel: 'Bekijk beloning',
+    description:
+      first.subtitle ||
+      taskText(language, 'Je hebt een nieuwe HCP-beloning.', 'You have a new HCP reward.'),
+    actionLabel: taskText(language, 'Bekijk beloning', 'View reward'),
     actionHref: HCP_HREF,
   };
 }
@@ -282,6 +421,7 @@ function isDeliveryNotification(prismaType: string, payload: Record<string, unkn
 }
 
 function buildDeliveryActions(input: UserActionCenterInput): UserActionItem[] {
+  const language: ActionTaskLanguage = input.language === 'en' ? 'en' : 'nl';
   if (!input.roles.hasDeliveryProfile || !input.deliveryProfile) return [];
 
   const items: UserActionItem[] = [];
@@ -319,20 +459,37 @@ function buildDeliveryActions(input: UserActionCenterInput): UserActionItem[] {
       noticesForDeliveryMissing(profile.activationMissing || []),
       { completeCtaNl: 'Bezorggegevens aanvullen' },
     );
+    const localized = localizedRequirementCopy(fallbackNotice, language);
+    const dutchTitle =
+      lane.titleNl ||
+      fallbackNotice?.titleNl ||
+      'Stel de ontbrekende bezorggegevens in.';
+    const dutchBody =
+      lane.bodyNl ||
+      fallbackNotice?.bodyNl ||
+      profile.activationMessage?.trim() ||
+      'Vul werkgebied, tijden of tarieven in om bezorgopdrachten te kunnen ontvangen.';
+    const dutchCta =
+      lane.ctaLabelNl || fallbackNotice?.ctaLabelNl || 'Bezorginstellingen openen';
     items.push({
       id: 'delivery-profile-incomplete',
       severity: 'orange',
-      title:
-        lane.titleNl ||
-        fallbackNotice?.titleNl ||
-        'Stel de ontbrekende bezorggegevens in.',
-      description:
-        lane.bodyNl ||
-        fallbackNotice?.bodyNl ||
-        profile.activationMessage?.trim() ||
-        'Vul werkgebied, tijden of tarieven in om bezorgopdrachten te kunnen ontvangen.',
-      actionLabel:
-        lane.ctaLabelNl || fallbackNotice?.ctaLabelNl || 'Bezorginstellingen openen',
+      title: taskText(
+        language,
+        dutchTitle,
+        localized?.title || 'Finish the missing delivery details.',
+      ),
+      description: taskText(
+        language,
+        dutchBody,
+        localized?.body ||
+          'Add your service area, hours, or rates so you can receive delivery jobs.',
+      ),
+      actionLabel: taskText(
+        language,
+        dutchCta,
+        localized?.cta || 'Open delivery settings',
+      ),
       actionHref: lane.ctaHref || fallbackNotice?.targetRoute || DELIVERY_SETTINGS_HREF,
     });
   }
@@ -354,10 +511,22 @@ function buildDeliveryActions(input: UserActionCenterInput): UserActionItem[] {
       severity: 'orange',
       title:
         count === 1
-          ? 'Nieuwe bezorgaanvraag beschikbaar.'
-          : `${count} nieuwe bezorgaanvragen beschikbaar.`,
-      description: 'Accepteer een opdracht om te verdienen.',
-      actionLabel: 'Bekijk opdrachten',
+          ? taskText(
+              language,
+              'Nieuwe bezorgaanvraag beschikbaar.',
+              'A new delivery request is available.',
+            )
+          : taskText(
+              language,
+              `${count} nieuwe bezorgaanvragen beschikbaar.`,
+              `${count} new delivery requests are available.`,
+            ),
+      description: taskText(
+        language,
+        'Accepteer een opdracht om te verdienen.',
+        'Accept a job to earn.',
+      ),
+      actionLabel: taskText(language, 'Bekijk opdrachten', 'View jobs'),
       actionHref: DELIVERY_HREF,
     });
   }
@@ -369,10 +538,22 @@ function buildDeliveryActions(input: UserActionCenterInput): UserActionItem[] {
       severity: 'red',
       title:
         count === 1
-          ? 'Je hebt 1 openstaande bezorgrit.'
-          : `Je hebt ${count} openstaande bezorgritten.`,
-      description: 'Rond je actieve bezorging af of werk de status bij.',
-      actionLabel: 'Open dashboard',
+          ? taskText(
+              language,
+              'Je hebt 1 openstaande bezorgrit.',
+              'You have 1 delivery in progress.',
+            )
+          : taskText(
+              language,
+              `Je hebt ${count} openstaande bezorgritten.`,
+              `You have ${count} deliveries in progress.`,
+            ),
+      description: taskText(
+        language,
+        'Rond je actieve bezorging af of werk de status bij.',
+        'Finish your active delivery or update the status.',
+      ),
+      actionLabel: taskText(language, 'Open dashboard', 'Open dashboard'),
       actionHref: DELIVERY_HREF,
     });
   }
@@ -385,14 +566,23 @@ function buildAffiliateActions(input: UserActionCenterInput): UserActionItem[] {
 
   const items: UserActionItem[] = [];
   const { affiliate } = input;
+  const language: ActionTaskLanguage = input.language === 'en' ? 'en' : 'nl';
 
   if (affiliate.status === 'SUSPENDED') {
     items.push({
       id: 'affiliate-suspended',
       severity: 'red',
-      title: 'Je affiliate-account is opgeschort.',
-      description: 'Neem contact op of bekijk je affiliate-dashboard.',
-      actionLabel: 'Open dashboard',
+      title: taskText(
+        language,
+        'Je affiliate-account is opgeschort.',
+        'Your affiliate account is suspended.',
+      ),
+      description: taskText(
+        language,
+        'Neem contact op of bekijk je affiliate-dashboard.',
+        'Get in touch or open your affiliate dashboard.',
+      ),
+      actionLabel: taskText(language, 'Open dashboard', 'Open dashboard'),
       actionHref: AFFILIATE_HREF,
     });
   }
@@ -401,9 +591,17 @@ function buildAffiliateActions(input: UserActionCenterInput): UserActionItem[] {
     items.push({
       id: 'affiliate-payout-available',
       severity: 'orange',
-      title: 'Uitbetaling beschikbaar in je affiliate-dashboard.',
-      description: 'Je hebt commissie klaarstaan om uit te betalen.',
-      actionLabel: 'Bekijk uitbetaling',
+      title: taskText(
+        language,
+        'Uitbetaling beschikbaar in je affiliate-dashboard.',
+        'A payout is available in your affiliate dashboard.',
+      ),
+      description: taskText(
+        language,
+        'Je hebt commissie klaarstaan om uit te betalen.',
+        'You have commission ready to pay out.',
+      ),
+      actionLabel: taskText(language, 'Bekijk uitbetaling', 'View payout'),
       actionHref: AFFILIATE_HREF,
     });
   }
@@ -415,10 +613,18 @@ function buildAffiliateActions(input: UserActionCenterInput): UserActionItem[] {
       severity: 'green',
       title:
         count === 1
-          ? 'Nieuwe partner in je netwerk.'
-          : `${count} nieuwe partners in je netwerk.`,
-      description: 'Bekijk je partnernetwerk en verdiensten.',
-      actionLabel: 'Open partners',
+          ? taskText(language, 'Nieuwe partner in je netwerk.', 'A new partner joined your network.')
+          : taskText(
+              language,
+              `${count} nieuwe partners in je netwerk.`,
+              `${count} new partners joined your network.`,
+            ),
+      description: taskText(
+        language,
+        'Bekijk je partnernetwerk en verdiensten.',
+        'Review your partner network and earnings.',
+      ),
+      actionLabel: taskText(language, 'Open partners', 'Open partners'),
       actionHref: AFFILIATE_HREF,
     });
   }
@@ -429,6 +635,7 @@ function buildAffiliateActions(input: UserActionCenterInput): UserActionItem[] {
 function buildNotificationActions(
   notifications: UnreadNotificationHint[],
   isSeller: boolean,
+  language: ActionTaskLanguage,
 ): UserActionItem[] {
   const items: UserActionItem[] = [];
 
@@ -445,10 +652,22 @@ function buildNotificationActions(
       severity: 'green',
       title:
         reviewCount === 1
-          ? 'Je hebt een nieuwe review ontvangen.'
-          : `Je hebt ${reviewCount} nieuwe reviews ontvangen.`,
-      description: 'Bekijk wat anderen over je werk zeggen.',
-      actionLabel: 'Bekijk review',
+          ? taskText(
+              language,
+              'Je hebt een nieuwe review ontvangen.',
+              'You received a new review.',
+            )
+          : taskText(
+              language,
+              `Je hebt ${reviewCount} nieuwe reviews ontvangen.`,
+              `You received ${reviewCount} new reviews.`,
+            ),
+      description: taskText(
+        language,
+        'Bekijk wat anderen over je werk zeggen.',
+        'See what other people say about your work.',
+      ),
+      actionLabel: taskText(language, 'Bekijk review', 'View review'),
       actionHref: NOTIFICATIONS_HREF,
     });
   }
@@ -463,10 +682,18 @@ function buildNotificationActions(
       severity: 'green',
       title:
         reputationCount === 1
-          ? 'Nieuwe reputatie-activiteit.'
-          : `${reputationCount} nieuwe reputatie-updates.`,
-      description: 'Fans, props of volgers wachten op je aandacht.',
-      actionLabel: 'Bekijk meldingen',
+          ? taskText(language, 'Nieuwe reputatie-activiteit.', 'New reputation activity.')
+          : taskText(
+              language,
+              `${reputationCount} nieuwe reputatie-updates.`,
+              `${reputationCount} new reputation updates.`,
+            ),
+      description: taskText(
+        language,
+        'Fans, props of volgers wachten op je aandacht.',
+        'Fans, props, or followers are waiting for your attention.',
+      ),
+      actionLabel: taskText(language, 'Bekijk meldingen', 'View notifications'),
       actionHref: NOTIFICATIONS_HREF,
     });
   }
@@ -483,9 +710,17 @@ function buildNotificationActions(
     items.push({
       id: 'review-requested',
       severity: 'orange',
-      title: 'Schrijf een review over je bestelling.',
-      description: 'Deel je ervaring met de maker.',
-      actionLabel: 'Review schrijven',
+      title: taskText(
+        language,
+        'Schrijf een review over je bestelling.',
+        'Write a review about your order.',
+      ),
+      description: taskText(
+        language,
+        'Deel je ervaring met de maker.',
+        'Share your experience with the maker.',
+      ),
+      actionLabel: taskText(language, 'Review schrijven', 'Write review'),
       actionHref: link,
     });
   }
@@ -499,6 +734,7 @@ function buildNotificationActions(
  */
 export function buildUserActionItems(input: UserActionCenterInput): UserActionItem[] {
   const items: UserActionItem[] = [];
+  const language: ActionTaskLanguage = input.language === 'en' ? 'en' : 'nl';
 
   if (input.roles.hasSellerProfile) {
     items.push(
@@ -511,26 +747,35 @@ export function buildUserActionItems(input: UserActionCenterInput): UserActionIt
         sellerUnreadOrdersCount: input.sellerOrderNotificationsCount,
         includeOrange: true,
         entityHints: input.entityHints,
+        language,
       }),
     );
   } else {
-    const account = buildAccountIncompleteAction(input.user);
+    const account = buildAccountIncompleteAction(input.user, language);
     if (account) items.push(account);
   }
 
   const messages = buildMessagesAction(
     input.unreadMessagesCount,
     input.entityHints,
+    language,
   );
   if (messages && !items.some((i) => i.id === 'messages-unread')) {
     items.push(messages);
   }
 
-  const buyerOrders = buildBuyerOrderUpdateAction(input.buyerOrderUpdatesCount);
+  const buyerOrders = buildBuyerOrderUpdateAction(
+    input.buyerOrderUpdatesCount,
+    language,
+  );
   if (buyerOrders) items.push(buyerOrders);
+
+  const postAccept = buildPostAcceptAction(input.postAcceptWaiting, language);
+  if (postAccept) items.push(postAccept);
 
   const proposals = buildIncomingProposalAction(
     input.incomingProposalsWaitingCount ?? 0,
+    language,
   );
   if (proposals) items.push(proposals);
 
@@ -540,18 +785,19 @@ export function buildUserActionItems(input: UserActionCenterInput): UserActionIt
     ...buildNotificationActions(
       input.unreadNotifications,
       input.roles.hasSellerProfile,
+      language,
     ),
   );
 
-  const profile = buildProfileIncompleteAction(input.user);
+  const profile = buildProfileIncompleteAction(input.user, language);
   if (profile && !items.some((i) => i.id === 'account-incomplete')) {
     items.push(profile);
   }
 
-  const hcpWelcome = buildHcpWelcomeAction(input.user.hcpWelcomeSeenAt);
+  const hcpWelcome = buildHcpWelcomeAction(input.user.hcpWelcomeSeenAt, language);
   if (hcpWelcome) items.push(hcpWelcome);
 
-  const hcpReward = buildHcpRewardAction(input.pendingHcpRewards);
+  const hcpReward = buildHcpRewardAction(input.pendingHcpRewards, language);
   if (hcpReward) items.push(hcpReward);
 
   return dedupeAndSort(items);

@@ -24,6 +24,10 @@
 
 import type { MissingRequirement, MissingRequirementKey } from '@/lib/account-requirements';
 import { DELIVERY_AGE_STEP_HREF, DELIVERY_SETTINGS_HREF } from '@/lib/delivery/delivery-profile-completion';
+import {
+  taskText,
+  type ActionTaskLanguage,
+} from '@/lib/i18n/action-task-language';
 
 export type RequirementSeverity = 'BLOCKING' | 'RECOMMENDED' | 'INFORMATIONAL';
 
@@ -379,6 +383,124 @@ export function aggregateRequirementNotice(
     ctaLabelNl: options?.completeCtaNl || items[0].ctaLabelNl,
     targetRoute: items[0].targetRoute,
     items,
+  };
+}
+
+const REQUIREMENT_COPY_EN: Partial<
+  Record<ProfileRequirementCode, { title: string; body: string; cta: string }>
+> = {
+  emailVerified: {
+    title: 'Confirm your email address to continue.',
+    body: 'Without a verified email address you cannot send messages or publish an offer.',
+    cta: 'Verify email',
+  },
+  username: {
+    title: 'Choose a permanent username.',
+    body: 'A temporary or missing username is not enough to take part on HomeCheff.',
+    cta: 'Choose username',
+  },
+  termsAccepted: {
+    title: 'Accept the terms.',
+    body: 'You need to accept the terms before you can offer something.',
+    cta: 'Accept terms',
+  },
+  stripeOnboarding: {
+    title: 'Finish your payout account.',
+    body: 'Connect your payout account to receive paid sales through HomeCheff. Publishing without HomeCheff payment stays possible.',
+    cta: 'Finish payout account',
+  },
+  displayName: {
+    title: 'Add your name.',
+    body: 'Your name helps other people recognize you in the community.',
+    cta: 'Add name',
+  },
+  profilePhoto: {
+    title: 'Add a profile photo.',
+    body: 'A photo helps other people recognize you. You can continue without one.',
+    cta: 'Add photo',
+  },
+  location: {
+    title: 'Add your city so people nearby can find your items.',
+    body: 'A city helps buyers see what is near them. You can still publish.',
+    cta: 'Add city',
+  },
+  sellerCity: {
+    title: 'Add your city so people nearby can find your items.',
+    body: 'A city helps nearby buyers. This does not block publishing.',
+    cta: 'Add city',
+  },
+  sellerCountry: {
+    title: 'Add your country.',
+    body: 'A country helps local visibility. You can still publish.',
+    cta: 'Add country',
+  },
+  sellerPostalCode: {
+    title: 'Add your postal code.',
+    body: 'In the Netherlands a postal code helps nearby buyers. You can still publish.',
+    cta: 'Add postal code',
+  },
+  deliveryDateOfBirth: {
+    title: 'Confirm your age so you can deliver.',
+    body: 'You need to be at least 18 to deliver through HomeCheff.',
+    cta: 'Confirm age',
+  },
+  deliveryUnder18: {
+    title: 'Delivery through HomeCheff is available from age 18.',
+    body: 'Your account and other HomeCheff options stay available. Delivery opens when you turn 18.',
+    cta: 'View delivery settings',
+  },
+  deliveryServiceArea: {
+    title: 'Set your service area.',
+    body: 'Without a start location and delivery radius we cannot match you with nearby jobs.',
+    cta: 'Set service area',
+  },
+  deliveryAvailability: {
+    title: 'Set your delivery hours so you can become available.',
+    body: 'Choose at least one available day and a time window or working hours.',
+    cta: 'Set delivery hours',
+  },
+  deliveryPricing: {
+    title: 'Add your delivery rate before you can accept jobs.',
+    body: 'Base price, price per km, and a minimum price are required for matching.',
+    cta: 'Set delivery rate',
+  },
+  deliveryCompanyName: {
+    title: 'Add a company name for your delivery profile.',
+    body: 'A delivery company needs a recognizable name before customers can choose you.',
+    cta: 'Add company name',
+  },
+};
+
+export function localizedRequirementCopy(
+  notice: AggregatedRequirementNotice | null | undefined,
+  language: ActionTaskLanguage,
+): { title: string; body: string; cta: string } | null {
+  if (!notice) return null;
+  if (language !== 'en') {
+    return {
+      title: notice.titleNl,
+      body: notice.bodyNl,
+      cta: notice.ctaLabelNl,
+    };
+  }
+  if (notice.items.length === 1) {
+    const copy = REQUIREMENT_COPY_EN[notice.items[0].code];
+    if (copy) return copy;
+  }
+  const details = notice.items
+    .map((item) => REQUIREMENT_COPY_EN[item.code]?.title)
+    .filter((title): title is string => Boolean(title));
+  return {
+    title: taskText(
+      'en',
+      notice.titleNl,
+      `Your profile is still missing ${notice.items.length} items.`,
+    ),
+    body: details.join(' ') || notice.bodyNl,
+    cta:
+      notice.items.length === 1
+        ? REQUIREMENT_COPY_EN[notice.items[0].code]?.cta || 'Continue'
+        : 'Continue',
   };
 }
 

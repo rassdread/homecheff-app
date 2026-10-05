@@ -142,6 +142,45 @@ export function deriveFulfillmentLocationState(input: {
   return 'SCHEDULE_PENDING';
 }
 
+/**
+ * After accept, only the location owner still owes address and/or time.
+ * The other party, a finished deal, and a digital agreement create no task.
+ */
+export function postAcceptDetailsWaitOnUser(input: {
+  userId: string;
+  buyerId: string;
+  sellerId: string;
+  status: string;
+  fulfillmentMode: CommunityOrderFulfillmentMode | ProposalFulfillmentType | null | undefined;
+  pickupAddress?: string | null;
+  deliveryAddress?: string | null;
+  proposalDate?: string | Date | null;
+  proposalTimeWindow?: string | null;
+  confirmedDate?: string | Date | null;
+  confirmedTimeWindow?: string | null;
+}): { waiting: boolean; state: FulfillmentLocationState } {
+  if (input.status !== 'OPEN') {
+    return { waiting: false, state: 'COMPLETE' };
+  }
+  const state = deriveFulfillmentLocationState({
+    fulfillmentMode: input.fulfillmentMode,
+    pickupAddress: input.pickupAddress,
+    deliveryAddress: input.deliveryAddress,
+    proposalDate: input.proposalDate,
+    proposalTimeWindow: input.proposalTimeWindow,
+    confirmedDate: input.confirmedDate,
+    confirmedTimeWindow: input.confirmedTimeWindow,
+  });
+  if (state === 'COMPLETE' || state === 'LOCATION_NOT_REQUIRED') {
+    return { waiting: false, state };
+  }
+  const owner = resolveLocationOwner(input.fulfillmentMode);
+  const waiting =
+    (owner === 'SELLER' && input.userId === input.sellerId) ||
+    (owner === 'BUYER' && input.userId === input.buyerId);
+  return { waiting, state };
+}
+
 /** UI mode for location card — never render empty "Label:" rows. */
 export function resolveLocationPanelPresentation(input: {
   state: FulfillmentLocationState;

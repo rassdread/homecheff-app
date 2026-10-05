@@ -51,10 +51,20 @@ function hasAffiliate(ctx: SettingsHubContext | null): boolean {
 
 const FOCUS_REFETCH_MS = 30_000;
 
+export type TodayRoleDataScope = {
+  seller?: boolean;
+  partner?: boolean;
+  delivery?: boolean;
+};
+
 export function useOperationsTodayRoleData(
   ctx: SettingsHubContext | null,
   enabled = true,
+  scope: TodayRoleDataScope = {},
 ) {
+  const includeSeller = scope.seller !== false;
+  const includePartner = scope.partner !== false;
+  const includeDelivery = scope.delivery !== false;
   const [data, setData] = useState<RoleData>({
     delivery: null,
     seller: null,
@@ -79,7 +89,7 @@ export function useOperationsTodayRoleData(
       let partnerLoadFailed = false;
       let deliveryLoadFailed = false;
 
-      if (hasDelivery(ctx)) {
+      if (includeDelivery && hasDelivery(ctx)) {
         requests.push(
           fetch('/api/delivery/dashboard')
             .then(async (res) => {
@@ -104,7 +114,7 @@ export function useOperationsTodayRoleData(
         );
       }
 
-      if (hasSeller(ctx)) {
+      if (includeSeller && hasSeller(ctx)) {
         requests.push(
           Promise.all([
             fetch('/api/seller/dashboard/orders?limit=3&period=30d'),
@@ -129,7 +139,7 @@ export function useOperationsTodayRoleData(
         );
       }
 
-      if (hasAffiliate(ctx)) {
+      if (includePartner && hasAffiliate(ctx)) {
         requests.push(
           fetch('/api/affiliate/dashboard')
             .then(async (res) => {
@@ -163,7 +173,7 @@ export function useOperationsTodayRoleData(
       setLoading(false);
       lastFetchRef.current = Date.now();
     }
-  }, [ctx, enabled]);
+  }, [ctx, enabled, includeSeller, includePartner, includeDelivery]);
 
   const loadIfStale = useCallback(() => {
     if (!enabled) return;
