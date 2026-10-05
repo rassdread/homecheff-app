@@ -89,7 +89,7 @@ function testStripeOnboardKind() {
       chargesEnabled: false,
       payoutsEnabled: false,
     },
-    blockedProductsCount: 0,
+    blockedProductsCount: 1,
     pendingOrdersCount: 0,
     includeOrange: false,
   });

@@ -74,9 +74,8 @@ function testSellerStripeBeforeMessages() {
     activeDeliveryCount: 0,
     pendingHcpRewards: [],
   });
-  assert.equal(items[0].id, 'stripe-not-connected');
-  assert.ok(items.some((i) => i.id === 'messages-unread'));
-  assert.ok(items[0].severity === 'red');
+  assert.equal(items[0].id, 'messages-unread');
+  assert.ok(!items.some((i) => i.id.startsWith('stripe')));
 }
 
 function testSellerNoStripeForBuyer() {

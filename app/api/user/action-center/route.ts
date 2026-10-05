@@ -143,6 +143,7 @@ export async function GET() {
       pendingSellerOrdersCount,
       activeDeliveryCount,
       unreadNotificationRows,
+      incomingProposalsWaitingCount,
     ] = await Promise.all([
       prisma.message.count({
         where: {
@@ -186,6 +187,13 @@ export async function GET() {
         orderBy: { createdAt: 'desc' },
         take: 40,
         select: { id: true, type: true, payload: true, orderId: true },
+      }),
+      prisma.proposal.count({
+        where: {
+          status: 'PENDING',
+          createdById: { not: user.id },
+          OR: [{ sellerId: user.id }, { buyerId: user.id }],
+        },
       }),
     ]);
 
@@ -292,6 +300,7 @@ export async function GET() {
         user.hcpStats?.pendingClientRewards,
       ),
       entityHints,
+      incomingProposalsWaitingCount,
     });
     } catch (buildErr) {
       console.error('[user/action-center] buildUserActionItems failed', buildErr);

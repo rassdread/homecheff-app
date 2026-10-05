@@ -263,7 +263,11 @@ export function buildSellerActionItems(
 ): SellerActionItem[] {
   const items: SellerActionItem[] = [];
   const stripeActions = buildStripeActions(input.stripeSnapshot);
-  items.push(...stripeActions);
+  const payoutBlocksCurrentWork =
+    input.blockedProductsCount > 0 || input.pendingOrdersCount > 0;
+  if (payoutBlocksCurrentWork) {
+    items.push(...stripeActions);
+  }
 
   if (input.blockedProductsCount > 0) {
     const stripeId = stripeActions[0]?.id;

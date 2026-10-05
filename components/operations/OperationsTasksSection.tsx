@@ -6,6 +6,7 @@ import { AlertCircle, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'
 import { ActionCenterRow } from '@/components/home/UserActionCenter';
 import { useOperationsSidepanel } from '@/components/operations/OperationsSidepanelProvider';
 import { useTranslation } from '@/hooks/useTranslation';
+import { selectTodayActionItems } from '@/lib/operations/today-priority';
 import { partitionUserActionItems } from '@/lib/user/user-action-center';
 import { cn } from '@/lib/utils';
 
@@ -27,12 +28,15 @@ type Props = {
   className?: string;
   /** Inline: hide section title */
   compactHeader?: boolean;
+  /** Already shown as a live bar, so the same task is not listed again. */
+  excludeIds?: string[];
 };
 
 export default function OperationsTasksSection({
   surface = 'desktop',
   className,
   compactHeader = false,
+  excludeIds = [],
 }: Props) {
   const { tOr } = useTranslation();
   const { actionCenter, loading } = useOperationsSidepanel();
@@ -80,8 +84,8 @@ export default function OperationsTasksSection({
     );
   }
 
-  const items = (actionCenter?.items ?? []).filter(
-    (item) => item.id !== 'messages-unread',
+  const items = selectTodayActionItems(actionCenter?.items ?? []).filter(
+    (item) => !excludeIds.includes(item.id),
   );
   const { visible, hidden, hasMore } = partitionUserActionItems(items, maxVisible);
   const showHidden = expanded ? hidden : [];

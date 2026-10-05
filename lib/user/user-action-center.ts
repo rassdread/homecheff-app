@@ -97,6 +97,8 @@ export type UserActionCenterInput = {
   } | null;
   pendingHcpRewards: PendingClientReward[];
   entityHints?: ActionCenterEntityHints;
+  /** Pending proposals created by the other party. Outgoing proposals are not included. */
+  incomingProposalsWaitingCount?: number;
 };
 
 const ORDERS_HREF = '/orders';
@@ -149,6 +151,33 @@ function buildMessagesAction(
     description: 'Reageer om contact en vertrouwen te behouden.',
     actionLabel: 'Gesprek openen',
     actionHref: hrefs.messagesHref,
+  };
+}
+
+export function proposalWaitsOnCurrentUser(input: {
+  status: string;
+  createdById: string;
+  sellerId: string;
+  buyerId: string;
+  userId: string;
+}): boolean {
+  if (input.status !== 'PENDING') return false;
+  if (input.createdById === input.userId) return false;
+  return input.sellerId === input.userId || input.buyerId === input.userId;
+}
+
+function buildIncomingProposalAction(count: number): UserActionItem | null {
+  if (count <= 0) return null;
+  return {
+    id: 'proposals-incoming',
+    severity: 'orange',
+    title:
+      count === 1
+        ? 'Er wacht een voorstel op je reactie.'
+        : `Er wachten ${count} voorstellen op je reactie.`,
+    description: 'Bekijk het voorstel en reageer.',
+    actionLabel: 'Voorstel bekijken',
+    actionHref: '/profile/deals',
   };
 }
 
@@ -499,6 +528,11 @@ export function buildUserActionItems(input: UserActionCenterInput): UserActionIt
 
   const buyerOrders = buildBuyerOrderUpdateAction(input.buyerOrderUpdatesCount);
   if (buyerOrders) items.push(buyerOrders);
+
+  const proposals = buildIncomingProposalAction(
+    input.incomingProposalsWaitingCount ?? 0,
+  );
+  if (proposals) items.push(proposals);
 
   items.push(...buildDeliveryActions(input));
   items.push(...buildAffiliateActions(input));
