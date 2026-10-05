@@ -12,6 +12,7 @@ import { needsDefinitiveUsername } from '@/lib/account-requirements';
 import { validateUsernameCandidate } from '@/lib/username-validation';
 import { tryAwardProfileCompleted } from '@/lib/gamification/profile-hcp';
 import { syncSellerProfileCoordsForUserId } from '@/lib/seller/sync-seller-profile-coords';
+import { parseSuppliedSellerRoles } from '@/lib/seller/seller-role-consistency';
 
 export async function PUT(request: NextRequest) {
   try {
@@ -157,6 +158,17 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // Omitted sellerRoles keeps the stored list. An explicit list replaces it.
+    const sellerRolesProvided = Object.prototype.hasOwnProperty.call(body, 'sellerRoles');
+    let nextSellerRoles: string[] | undefined;
+    if (sellerRolesProvided) {
+      const parsedRoles = parseSuppliedSellerRoles(sellerRoles);
+      if (!parsedRoles.ok) {
+        return NextResponse.json({ error: parsedRoles.error }, { status: 400 });
+      }
+      nextSellerRoles = parsedRoles.roles;
+    }
+
     // Update user
     const updatedUser = await prisma.user.update({
       where: { email: session.user.email },
@@ -174,7 +186,7 @@ export async function PUT(request: NextRequest) {
         lng: finalLng,
         gender: gender || null,
         interests: interests || [],
-        sellerRoles: sellerRoles || [],
+        ...(nextSellerRoles !== undefined ? { sellerRoles: nextSellerRoles } : {}),
         buyerRoles: buyerRoles || [],
         displayFullName: displayFullName !== undefined ? displayFullName : true,
         displayNameOption: normalizeStoredDisplayNameOption(displayNameOption),
@@ -214,7 +226,7 @@ export async function PUT(request: NextRequest) {
       }
     });
 
-    const roles = sellerRoles || [];
+    const roles = nextSellerRoles ?? [];
     if (roles.length > 0) {
       await ensureSellerProfileForUser(updatedUser.id, {
         displayName: name,

@@ -48,6 +48,10 @@ import { maybeActivateSellerFromPublishedListing } from '@/lib/acquisition/marke
 import { productToListingQualityInput } from '@/lib/acquisition/product-quality-input';
 import { recordListingPublished } from '@/lib/analytics/record-acquisition-event.server';
 import { marketplaceAgeResponse, subjectFromUser } from '@/lib/age/listing-age-guard';
+import {
+  sellerRoleForCommercialOffer,
+  unionSellerRoles,
+} from '@/lib/seller/seller-role-consistency';
 
 const CATEGORY_MAP: Record<string, any> = {
   CHEFF: 'CHEFF',
@@ -921,6 +925,20 @@ export async function POST(req: Request) {
       }
     } else {
       console.error('[Products Create API] ❌ ERROR: Product not found in database after creation!');
+    }
+
+    const grantedRole = sellerRoleForCommercialOffer(
+      v2Resolved.listingIntent,
+      cat,
+    );
+    if (grantedRole) {
+      const nextRoles = unionSellerRoles(user.sellerRoles, grantedRole);
+      if (nextRoles.added) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { sellerRoles: nextRoles.roles },
+        });
+      }
     }
 
     if (sellerProfileId && resolvedPickupLat != null && resolvedPickupLng != null) {
