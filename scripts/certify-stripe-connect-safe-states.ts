@@ -26,7 +26,8 @@ import {
   resolveAffiliateConnectDestination,
   syncAffiliateConnectMirrorFromUser,
 } from '../lib/stripe/affiliate-connect-mirror';
-import { disposeTempCertificationUsers } from '../lib/certification/dispose-temp-fixtures';
+import { assertCertCleanupCompleted, disposeTempCertificationUsers } from '../lib/certification/dispose-temp-fixtures';
+import { assertProductionCertMutationAllowed } from '../lib/certification/production-cert-guard';
 
 const BASE = 'https://homecheff.eu';
 const SUFFIX = randomBytes(3).toString('hex');
@@ -206,6 +207,7 @@ async function login(page: Page, email: string) {
 }
 
 async function main() {
+  assertProductionCertMutationAllowed();
   set('STRIPE_TEST_MODE_SUPPORT', 'YES:isTestMode_from_sk_test_prefix');
   set('SAFE_CERT_ENVIRONMENT', 'Playwright_browser_route_mock_session_only');
   set('PRODUCTION_BACKDOOR_RISK', 'NONE');
@@ -530,9 +532,8 @@ async function main() {
     }
   } finally {
     await browser.close().catch(() => null);
-    for (const id of createdUserIds) {
-      await disposeTempCertificationUsers([id]);
-    }
+    const cleanup = await disposeTempCertificationUsers(createdUserIds);
+    assertCertCleanupCompleted(cleanup);
   }
 
   const blockers: string[] = [];

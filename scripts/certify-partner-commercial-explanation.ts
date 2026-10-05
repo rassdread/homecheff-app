@@ -10,7 +10,8 @@ import path from 'node:path';
 import bcrypt from 'bcryptjs';
 import { chromium, type Page } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
-import { disposeTempCertificationUsers } from '../lib/certification/dispose-temp-fixtures';
+import { assertCertCleanupCompleted, disposeTempCertificationUsers } from '../lib/certification/dispose-temp-fixtures';
+import { assertProductionCertMutationAllowed } from '../lib/certification/production-cert-guard';
 
 const BASE = 'https://homecheff.eu';
 const SUFFIX = randomBytes(3).toString('hex');
@@ -90,6 +91,7 @@ function attachConsole(page: Page, bucket: string[]) {
 }
 
 async function main() {
+  assertProductionCertMutationAllowed();
   const consoleErrors: string[] = [];
   const mainEmail = `px.main.${SUFFIX}@homecheff.invalid`;
   const inviteEmail = `px.invite.${SUFFIX}@homecheff.invalid`;
@@ -267,14 +269,17 @@ async function main() {
     writeFileSync(path.join(ARTIFACT, 'report.json'), JSON.stringify({ results, consoleErrors }, null, 2));
     await browser.close();
     const disposed = await disposeTempCertificationUsers(createdUserIds);
-    console.log('disposed', disposed.disposed, 'errors', disposed.errors.length);
+    assertCertCleanupCompleted(disposed);
     await prisma.$disconnect();
   }
 }
 
 main().catch(async (error) => {
   console.error(error);
-  await disposeTempCertificationUsers(createdUserIds).catch(() => undefined);
+  const disposed = await disposeTempCertificationUsers(createdUserIds);
+  if (disposed.errors.length || disposed.disposed + disposed.skippedAlreadyDeleted + disposed.skippedKeep !== disposed.requested) {
+    console.error('cert_cleanup_incomplete');
+  }
   await prisma.$disconnect();
   process.exit(1);
 });

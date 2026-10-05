@@ -27,7 +27,8 @@ import {
   canCreateConnectOnboardingLink,
 } from '../lib/stripe/connect-account-status';
 import { parseConnectTrack } from '../lib/stripe/connect-tracks';
-import { disposeTempCertificationUsers } from '../lib/certification/dispose-temp-fixtures';
+import { assertCertCleanupCompleted, disposeTempCertificationUsers } from '../lib/certification/dispose-temp-fixtures';
+import { assertProductionCertMutationAllowed } from '../lib/certification/production-cert-guard';
 
 const BASE = 'https://homecheff.eu';
 const SUFFIX = randomBytes(3).toString('hex');
@@ -178,13 +179,8 @@ async function cleanup() {
   } catch (e) {
     console.warn('restore mismatch password failed', e);
   }
-  for (const id of createdUserIds) {
-    try {
-      await disposeTempCertificationUsers([id]);
-    } catch (e) {
-      console.warn('cleanup user failed', id, e);
-    }
-  }
+  const cleanup = await disposeTempCertificationUsers(createdUserIds);
+  assertCertCleanupCompleted(cleanup);
 }
 
 async function inventory() {
@@ -282,6 +278,7 @@ async function inventory() {
 }
 
 async function main() {
+  assertProductionCertMutationAllowed();
   if (!process.env.STRIPE_SECRET_KEY?.startsWith('sk_live')) {
     throw new Error('Live STRIPE_SECRET_KEY required');
   }

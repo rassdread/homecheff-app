@@ -10,7 +10,8 @@ import path from 'node:path';
 import bcrypt from 'bcryptjs';
 import { chromium, devices, type Page } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
-import { disposeTempCertificationUsers } from '../lib/certification/dispose-temp-fixtures';
+import { assertCertCleanupCompleted, disposeTempCertificationUsers } from '../lib/certification/dispose-temp-fixtures';
+import { assertProductionCertMutationAllowed } from '../lib/certification/production-cert-guard';
 import { allocateMarketplaceAffiliatePool } from '../lib/marketplace-affiliate-pool';
 import { splitAffiliateLineForHierarchy } from '../lib/affiliates/main-partner-split';
 import { processCommissionForOrder } from '../lib/affiliate-commission';
@@ -92,6 +93,7 @@ async function login(page: Page, email: string) {
 }
 
 async function main() {
+  assertProductionCertMutationAllowed();
   const consoleErrors: string[] = [];
   const mainEmail = `mp.main.${SUFFIX}@homecheff.invalid`;
   const mainBEmail = `mp.mainb.${SUFFIX}@homecheff.invalid`;
@@ -396,7 +398,8 @@ async function main() {
   } finally {
     await browser.close().catch(() => undefined);
     const cleanup = await disposeTempCertificationUsers(createdUserIds);
-    set('TEMP_FIXTURES_CLEANED', cleanup.disposed === createdUserIds.length ? 'YES' : `NO:${cleanup.disposed}/${createdUserIds.length}`);
+    assertCertCleanupCompleted(cleanup);
+    set('TEMP_FIXTURES_CLEANED', 'YES');
     const hardFail = Object.entries(results).some(([, value]) => String(value).startsWith('FAIL'));
     set('PRODUCTION_CERTIFIED', hardFail ? 'NO' : 'YES');
     writeFileSync(path.join(ARTIFACT, 'report.json'), JSON.stringify({ results, consoleErrors }, null, 2));

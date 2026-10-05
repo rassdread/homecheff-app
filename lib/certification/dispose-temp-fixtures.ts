@@ -74,3 +74,13 @@ export async function disposeTempCertificationUsers(
 
   return result;
 }
+
+/** A certification run is not a pass when its disposable users are still live. */
+export function assertCertCleanupCompleted(result: DisposeTempFixturesResult): void {
+  const settled = result.disposed + result.skippedKeep + result.skippedAlreadyDeleted;
+  if (result.errors.length > 0 || result.skippedNonDisposable > 0 || settled !== result.requested) {
+    throw new Error(
+      `cert_cleanup_incomplete:${result.disposed}/${result.requested}:errors=${result.errors.length}`,
+    );
+  }
+}

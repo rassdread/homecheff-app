@@ -11,6 +11,11 @@
 import { randomUUID } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
+import {
+  isDisposableCertEmail,
+  isInternalTestKeepEmail,
+  isInternalTestKeepUsername,
+} from '@/lib/certification/internal-test-identities';
 import { purgeDueEvidence } from '@/lib/finance/evidence/evidence.server';
 import type { Prisma } from '@prisma/client';
 
@@ -37,6 +42,61 @@ function tombstoneEmail(userId: string): string {
 
 function tombstoneUsername(userId: string): string {
   return `deleted_${userId.replace(/-/g, '').slice(0, 24)}`;
+}
+
+/** Fields the canonical deletion writes. sellerRoles and Stripe Connect ids stay. */
+export function anonymizedUserData(userId: string, deletedAt: Date): Prisma.UserUpdateInput {
+  return {
+    accountDeletedAt: deletedAt,
+    email: tombstoneEmail(userId),
+    username: tombstoneUsername(userId),
+    passwordHash: null,
+    name: null,
+    bio: null,
+    quote: null,
+    profileImage: null,
+    image: null,
+    phoneNumber: null,
+    publicPhoneEnabled: false,
+    publicPhoneNumber: null,
+    publicWhatsappEnabled: false,
+    publicWhatsappNumber: null,
+    publicInstagramEnabled: false,
+    instagramUrl: null,
+    publicFacebookEnabled: false,
+    facebookUrl: null,
+    publicTikTokEnabled: false,
+    tiktokUrl: null,
+    publicWebsiteEnabled: false,
+    websiteUrl: null,
+    publicTelegramEnabled: false,
+    telegramUrl: null,
+    address: null,
+    city: null,
+    postalCode: null,
+    state: null,
+    country: null,
+    iban: null,
+    bankName: null,
+    accountHolderName: null,
+    emailVerificationToken: null,
+    emailVerificationCode: null,
+    emailVerificationExpires: null,
+    emailVerified: null,
+    interests: [],
+    lat: null,
+    lng: null,
+    place: null,
+    dateOfBirth: null,
+    showProfileToEveryone: false,
+    showFansList: false,
+    allowProfileViews: false,
+    fanRequestEnabled: false,
+    showOnlineStatus: false,
+    showActivityStatus: false,
+    marketingAccepted: false,
+    gender: null,
+  };
 }
 
 /** Best-effort Stripe seller subscription cancel (does not delete Connect account — payout/tax records). */
@@ -220,57 +280,7 @@ export async function performUserAccountDeletion(
     }
 
     // --- Anonymize user (retain id for FK on orders/payouts/reports) ---
-    const anonymized: Prisma.UserUpdateInput = {
-      accountDeletedAt: deletedAt,
-      email: tombstoneEmail(userId),
-      username: tombstoneUsername(userId),
-      passwordHash: null,
-      name: null,
-      bio: null,
-      quote: null,
-      profileImage: null,
-      image: null,
-      phoneNumber: null,
-      publicPhoneEnabled: false,
-      publicPhoneNumber: null,
-      publicWhatsappEnabled: false,
-      publicWhatsappNumber: null,
-      publicInstagramEnabled: false,
-      instagramUrl: null,
-      publicFacebookEnabled: false,
-      facebookUrl: null,
-      publicTikTokEnabled: false,
-      tiktokUrl: null,
-      publicWebsiteEnabled: false,
-      websiteUrl: null,
-      publicTelegramEnabled: false,
-      telegramUrl: null,
-      address: null,
-      city: null,
-      postalCode: null,
-      state: null,
-      country: null,
-      iban: null,
-      bankName: null,
-      accountHolderName: null,
-      emailVerificationToken: null,
-      emailVerificationCode: null,
-      emailVerificationExpires: null,
-      emailVerified: null,
-      interests: [],
-      lat: null,
-      lng: null,
-      place: null,
-      dateOfBirth: null,
-      showProfileToEveryone: false,
-      showFansList: false,
-      allowProfileViews: false,
-      fanRequestEnabled: false,
-      showOnlineStatus: false,
-      showActivityStatus: false,
-      marketingAccepted: false,
-      gender: null,
-    };
+    const anonymized = anonymizedUserData(userId, deletedAt);
 
     await tx.user.update({
       where: { id: userId },
@@ -311,4 +321,47 @@ export async function performUserAccountDeletion(
     deletedAt: deletedAt.toISOString(),
     previousEmail,
   };
+}
+
+/**
+ * Repair a certification row that was marked deleted but still has its
+ * certification email. Does not call Stripe, does not hard-delete the user,
+ * and does not remove products, dishes, follows, notifications, or blobs.
+ */
+export async function finishLeftoverCertificationTombstone(userId: string): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { SellerProfile: { select: { stripeCustomerId: true, stripeSubscriptionId: true } } },
+  });
+  if (!user) throw new Error('USER_NOT_FOUND');
+  if (!user.accountDeletedAt) throw new Error('NOT_DELETED');
+  if (isInternalTestKeepEmail(user.email) || isInternalTestKeepUsername(user.username)) {
+    throw new Error('KEEP_FIXTURE');
+  }
+  if (!isDisposableCertEmail(user.email)) throw new Error('NOT_DISPOSABLE');
+  if (
+    user.stripeConnectAccountId ||
+    user.SellerProfile?.stripeCustomerId ||
+    user.SellerProfile?.stripeSubscriptionId
+  ) {
+    throw new Error('STRIPE_PRESENT');
+  }
+
+  const deletedAt = user.accountDeletedAt;
+  await prisma.$transaction(async (tx) => {
+    await tx.session.deleteMany({ where: { userId } });
+    await tx.account.deleteMany({ where: { userId } });
+    await tx.user.update({
+      where: { id: userId },
+      data: anonymizedUserData(userId, deletedAt),
+    });
+    await tx.auditLog.create({
+      data: {
+        id: randomUUID(),
+        userId,
+        action: 'ACCOUNT_DELETION_TOMBSTONE_FINISHED',
+        meta: { deletedAt: deletedAt.toISOString() },
+      },
+    });
+  });
 }
