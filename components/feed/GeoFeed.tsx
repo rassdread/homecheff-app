@@ -49,6 +49,7 @@ import {
   browserAnalyticsConsentGranted,
   emitMarketplaceDiscovery,
   noteDiscoveryOutcome,
+  resolveDiscoveryPhase,
   type DiscoveryMemory,
 } from "@/lib/analytics/marketplace-discovery";
 import type { ListingKind } from "@/lib/marketplace/contracts/listing-kind-contract";
@@ -1262,7 +1263,10 @@ export default function GeoFeed({
   const discoverySearchDirtyRef = useRef(false);
   const discoveryMemoryRef = useRef<DiscoveryMemory>(EMPTY_DISCOVERY_MEMORY);
   const discoveryServerKeyRef = useRef<string | null>(null);
-  const discoveryServerSawFetchRef = useRef(false);
+  const [discoveryEpoch, setDiscoveryEpoch] = useState(0);
+  const discoveryEpochNowRef = useRef(0);
+  const discoveryEpochAtIntentRef = useRef(0);
+  const discoveryKeyAtIntentRef = useRef<string | null>(null);
   /** Prevents duplicate concurrent network fetch for the same query key. */
   const feedRequestKeyInFlightRef = useRef<string | null>(null);
   const latestFeedRequestKeyRef = useRef<string | null>(null);
@@ -2447,6 +2451,8 @@ export default function GeoFeed({
 
   const handleScopeChange = useCallback((next: FeedScope) => {
     discoveryIntentRef.current = true;
+    discoveryEpochAtIntentRef.current = discoveryEpochNowRef.current;
+    discoveryKeyAtIntentRef.current = discoveryServerKeyRef.current;
     setAppliedScope(next);
     const defaults = scopeDefaultSort(next);
     setSortBy(defaults.sortBy);
@@ -2656,7 +2662,7 @@ export default function GeoFeed({
       }
       setLoading(false);
       feedInteractionStartedRef.current = true;
-      discoveryServerSawFetchRef.current = true;
+      setDiscoveryEpoch((epoch) => epoch + 1);
       setFeedHydrated(true);
       setFilterResultPhase(FEED_RESULT_PHASE.RESULTS_READY);
 
@@ -2997,6 +3003,7 @@ export default function GeoFeed({
           if (itemsRef.current.length > 0) {
             filterTransitionDiagRef.current.staleFeedReplaced += 1;
           }
+          setDiscoveryEpoch((epoch) => epoch + 1);
           setItems(valid);
           const apiHasMore = Boolean(data.pagination?.hasMore);
           const firstNextSkip =
@@ -4994,32 +5001,35 @@ export default function GeoFeed({
 
   const displayCount = composedDisplayRows.length;
   const discoveryServerKey = `${appliedCategory}|${appliedScope}|${appliedQ}|${appliedPlace}|${appliedRadius}`;
-  if (discoveryServerKeyRef.current !== discoveryServerKey) {
-    discoveryServerKeyRef.current = discoveryServerKey;
-    discoveryServerSawFetchRef.current = false;
-  }
+  discoveryServerKeyRef.current = discoveryServerKey;
+  discoveryEpochNowRef.current = discoveryEpoch;
 
   useEffect(() => {
-    if (requestInFlight || isFilterSearchingPhase(filterResultPhase)) {
-      discoveryServerSawFetchRef.current = true;
-    }
-    const settled =
-      feedHydrated &&
-      !loading &&
-      !feedRefreshing &&
-      !requestInFlight &&
-      !isFilterSearchingPhase(filterResultPhase) &&
-      discoveryServerSawFetchRef.current;
     const failed =
       filterResultPhase === FEED_RESULT_PHASE.ERROR ||
       filterResultPhase === FEED_RESULT_PHASE.STALE_RESPONSE_REJECTED ||
       filterResultPhase === FEED_RESULT_PHASE.LOCATION_REQUIRED;
+    const idle =
+      feedHydrated &&
+      !loading &&
+      !feedRefreshing &&
+      !requestInFlight &&
+      !isFilterSearchingPhase(filterResultPhase);
+    const awaitingServerResults =
+      discoveryIntentRef.current &&
+      discoveryServerKey !== discoveryKeyAtIntentRef.current &&
+      discoveryEpoch === discoveryEpochAtIntentRef.current;
     const decision = noteDiscoveryOutcome(discoveryMemoryRef.current, {
       userInitiated: discoveryIntentRef.current,
-      phase: failed ? "error" : settled ? "ready" : "pending",
-      knownCount: settled ? displayCount : null,
+      phase: resolveDiscoveryPhase({
+        failed,
+        idle,
+        userInitiated: discoveryIntentRef.current,
+        awaitingServerResults,
+      }),
+      knownCount: idle ? displayCount : null,
       certifiedZero:
-        settled &&
+        idle &&
         !feedHasMore &&
         isZeroResultsEligible({
           phase: filterResultPhase,
@@ -5039,16 +5049,20 @@ export default function GeoFeed({
         appliedPriceRange.max.trim() !== "" ||
         appliedAcceptedValues.length > 0,
     });
+    if (decision.event && !browserAnalyticsConsentGranted()) {
+      discoveryMemoryRef.current = decision.memory;
+      discoveryIntentRef.current = false;
+      return;
+    }
+    if (decision.event && typeof window.gtag !== 'function') {
+      return;
+    }
     discoveryMemoryRef.current = decision.memory;
     if (decision.consumeIntent) discoveryIntentRef.current = false;
     if (!decision.event) return;
-    emitMarketplaceDiscovery(
-      decision.event,
-      browserAnalyticsConsentGranted(),
-      (name, params) => {
-        trackEvent(name, params);
-      },
-    );
+    emitMarketplaceDiscovery(decision.event, true, (name, params) => {
+      trackEvent(name, params);
+    });
   }, [
     feedHydrated,
     loading,
@@ -5068,6 +5082,7 @@ export default function GeoFeed({
     appliedPriceRange.min,
     appliedPriceRange.max,
     appliedAcceptedValues,
+    discoveryEpoch,
   ]);
 
   /** Exact-set composition signals (exclude recirculation + outside-radius rows). */
@@ -5372,6 +5387,8 @@ export default function GeoFeed({
 
   const applyFilters = useCallback((overrides?: { place?: string }) => {
     discoveryIntentRef.current = true;
+    discoveryEpochAtIntentRef.current = discoveryEpochNowRef.current;
+    discoveryKeyAtIntentRef.current = discoveryServerKeyRef.current;
     const trimmedPlace = (overrides?.place ?? place).trim();
     if (overrides?.place !== undefined) {
       setPlace(trimmedPlace);
@@ -5506,6 +5523,8 @@ export default function GeoFeed({
   /** Vertical chip = instant apply of the vertical axis (same state as the select; one intended refetch, no loop). */
   const selectVerticalChip = useCallback((slug: string) => {
     discoveryIntentRef.current = true;
+    discoveryEpochAtIntentRef.current = discoveryEpochNowRef.current;
+    discoveryKeyAtIntentRef.current = discoveryServerKeyRef.current;
     setCategory(slug);
     setAppliedCategory(slug);
   }, []);
@@ -5521,6 +5540,8 @@ export default function GeoFeed({
     setAppliedSearchQuery(debouncedSearchQuery);
     if (discoverySearchDirtyRef.current) {
       discoveryIntentRef.current = true;
+      discoveryEpochAtIntentRef.current = discoveryEpochNowRef.current;
+      discoveryKeyAtIntentRef.current = discoveryServerKeyRef.current;
       discoverySearchDirtyRef.current = false;
     }
   }, [debouncedSearchQuery, appliedSearchQuery]);

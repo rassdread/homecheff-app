@@ -1,8 +1,8 @@
 /**
- * Marketplace tile value-row analytics — Phase 5B-C.
+ * Value-row impression telemetry is not part of the marketplace funnel.
+ * It fired once per tile mount and attached a listing id, so it is not sent.
  */
 
-import { trackEvent } from '@/components/GoogleAnalytics';
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
 import type { MarketplaceTileModel } from './types';
 
@@ -19,16 +19,7 @@ export function trackMarketplaceTileValueRowSeen(props: {
   surface: TileValueAnalyticsSurface;
   device: TileValueAnalyticsDevice;
 }): void {
-  trackEvent('marketplace_tile_value_row_seen', {
-    listing_id: props.listingId,
-    listing_kind: props.listingKind,
-    payment_mode: props.paymentMode,
-    barter_openness: props.barterOpenness ?? 'MONEY',
-    accepted_value_category_count: props.acceptedValueCategoryCount,
-    accepted_value_subcategory_count: props.acceptedValueSubcategoryCount,
-    surface: props.surface,
-    device: props.device,
-  });
+  void props;
 }
 
 export function tileValueAnalyticsFromModel(

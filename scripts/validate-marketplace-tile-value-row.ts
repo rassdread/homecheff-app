@@ -271,14 +271,18 @@ const analyticsSrc = fs.readFileSync(
   'utf8',
 );
 assert(
-  analyticsSrc.includes('marketplace_tile_value_row_seen'),
-  'tile value row analytics event',
+  !analyticsSrc.includes('trackEvent('),
+  'value row does not send a Google event',
 );
+assert(!analyticsSrc.includes('listing_id'), 'value row does not send a listing id');
 const valueRowSrc = fs.readFileSync(
   path.join(process.cwd(), 'components/marketplace/tiles/primitives/TileValueRow.tsx'),
   'utf8',
 );
-assert(valueRowSrc.includes('trackMarketplaceTileValueRowSeen'), 'TileValueRow tracks seen');
+assert(
+  !valueRowSrc.includes('trackMarketplaceTileValueRowSeen'),
+  'TileValueRow does not emit a seen event',
+);
 
 const tilesDir = path.join(process.cwd(), 'components/marketplace/tiles');
 for (const file of [

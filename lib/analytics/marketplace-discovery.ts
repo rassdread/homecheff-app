@@ -166,6 +166,24 @@ function eventFor(criteria: Criteria, mode: DiscoveryMode, bucket: ResultBucket)
   };
 }
 
+/**
+ * A category click can finish in one render: the feed never paints a
+ * separate "loading" frame, so a gate that waits to see that frame drops
+ * the event after the new results are already visible.
+ * Wait only while a server choice has not landed yet.
+ */
+export function resolveDiscoveryPhase(input: {
+  failed: boolean;
+  idle: boolean;
+  userInitiated: boolean;
+  awaitingServerResults: boolean;
+}): 'pending' | 'ready' | 'error' {
+  if (input.failed) return 'error';
+  if (!input.idle) return 'pending';
+  if (input.userInitiated && input.awaitingServerResults) return 'pending';
+  return 'ready';
+}
+
 export function noteDiscoveryOutcome(
   memory: DiscoveryMemory,
   observation: DiscoveryObservation,
@@ -178,7 +196,7 @@ export function noteDiscoveryOutcome(
   const sealedMemory: DiscoveryMemory = { ...next, sealed: true };
 
   if (!observation.userInitiated) {
-    if (!memory.sealed) {
+    if (!memory.sealed || !sameCriteria(memory, next)) {
       return { memory: sealedMemory, event: null, consumeIntent: false };
     }
     return { memory, event: null, consumeIntent: false };

@@ -8,6 +8,7 @@ import {
   emitMarketplaceDiscovery,
   localQueryFingerprint,
   noteDiscoveryOutcome,
+  resolveDiscoveryPhase,
   type DiscoveryMemory,
   type DiscoveryObservation,
   type MarketplaceDiscoveryEvent,
@@ -223,6 +224,95 @@ describe('marketplace discovery', () => {
     assert.equal(browserAnalyticsConsentGranted(), false);
   });
 
+  it('emits one event when Alles becomes Diensten without a separate loading frame', () => {
+    let memory = EMPTY_DISCOVERY_MEMORY;
+    let intent = false;
+    let epoch = 0;
+    let epochAtIntent = 0;
+    let serverKey = 'all|nearby';
+    let keyAtIntent = 'all|nearby';
+    const sent: string[] = [];
+
+    const step = (
+      patch: Partial<DiscoveryObservation>,
+      flags: { idle: boolean; failed?: boolean },
+    ) => {
+      const awaiting =
+        intent && serverKey !== keyAtIntent && epoch === epochAtIntent;
+      const phase = resolveDiscoveryPhase({
+        failed: Boolean(flags.failed),
+        idle: flags.idle,
+        userInitiated: intent,
+        awaitingServerResults: awaiting,
+      });
+      const decision = noteDiscoveryOutcome(memory, obs({ ...patch, userInitiated: intent, phase }));
+      memory = decision.memory;
+      if (decision.event && emitMarketplaceDiscovery(decision.event, true, (name) => sent.push(name))) {
+        if (decision.consumeIntent) intent = false;
+      } else if (!decision.event && decision.consumeIntent) {
+        intent = false;
+      }
+      return decision;
+    };
+
+    const initial = step({ categorySlug: 'all', knownCount: 10, feedScope: 'nearby' }, { idle: true });
+    assert.equal(initial.event, null);
+    assert.equal(sent.length, 0);
+
+    intent = true;
+    epochAtIntent = epoch;
+    keyAtIntent = serverKey;
+    serverKey = 'services|nearby';
+    const click = step(
+      { categorySlug: 'services', knownCount: 10, feedScope: 'nearby' },
+      { idle: true },
+    );
+    assert.equal(click.event, null);
+    assert.equal(intent, true);
+
+    epoch += 1;
+    const diensten = step(
+      { categorySlug: 'services', knownCount: 25, feedScope: 'nearby' },
+      { idle: true },
+    );
+    assert.equal(sent.length, 1);
+    assert.equal(diensten.event?.params.marketplace_family, 'service');
+    assert.equal(diensten.event?.params.scope, 'nearby');
+    assert.equal(diensten.event?.params.discovery_mode, 'category');
+    assert.equal(diensten.event?.params.result_bucket, '21_plus');
+
+    const rerender = step(
+      { categorySlug: 'services', knownCount: 25, feedScope: 'nearby' },
+      { idle: true },
+    );
+    assert.equal(rerender.event, null);
+
+    const paged = step(
+      { categorySlug: 'services', knownCount: 40, feedScope: 'nearby' },
+      { idle: true },
+    );
+    assert.equal(paged.event, null);
+    assert.equal(sent.length, 1);
+
+    intent = true;
+    epochAtIntent = epoch;
+    keyAtIntent = serverKey;
+    serverKey = 'cheff|nearby';
+    step({ categorySlug: 'cheff', knownCount: 25, feedScope: 'nearby' }, { idle: true });
+    epoch += 1;
+    const eten = step(
+      { categorySlug: 'cheff', knownCount: 8, feedScope: 'nearby' },
+      { idle: true },
+    );
+    assert.equal(eten.event?.params.marketplace_family, 'food');
+    assert.equal(eten.event?.params.discovery_mode, 'category');
+    assert.equal(sent.length, 2);
+
+    const denied = emitMarketplaceDiscovery(eten.event, false, () => sent.push('denied'));
+    assert.equal(denied, false);
+    assert.equal(sent.length, 2);
+  });
+
   it('is not a Meta event', () => {
     assert.equal(META_APPROVED_EVENTS.includes('marketplace_discovery' as never), false);
     assert.deepEqual([...META_APPROVED_EVENTS], ['CompleteRegistration', 'Purchase']);
@@ -233,5 +323,11 @@ describe('marketplace discovery', () => {
     assert.equal(commerce.includes('marketplace_discovery'), false);
     assert.equal(discovery.includes('fbq'), false);
     assert.equal(discovery.includes('search_term'), false);
+    const tiles = readFileSync(
+      new URL('../marketplace/tiles/tile-value-analytics.ts', import.meta.url),
+      'utf8',
+    );
+    assert.equal(tiles.includes('trackEvent('), false);
+    assert.equal(tiles.includes('listing_id'), false);
   });
 });
