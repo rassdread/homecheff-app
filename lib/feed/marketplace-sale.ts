@@ -4,6 +4,7 @@
  */
 
 import type { FeedTaxonomy } from '@/lib/feed/feed-taxonomy';
+import { offerIsService } from '@/lib/marketplace/commercial-capability';
 import {
   isOfferListing,
   isRequestListing,
@@ -34,8 +35,16 @@ export type MarketplaceSaleInput = {
   status?: string | null;
   isActive?: boolean | null;
   isPublic?: boolean | null;
+  marketplaceCategory?: string | null;
+  specializations?: string[] | null;
+  subcategory?: string | null;
   /** Phase 1C: canonical classification — preferred over heuristics. */
-  discovery?: { listingKind?: string | null; listingIntent?: string | null } | null;
+  discovery?: {
+    listingKind?: string | null;
+    listingIntent?: string | null;
+    marketplaceCategory?: string | null;
+    specializations?: string[] | null;
+  } | null;
 };
 
 /** Resolve price in cents from mixed API shapes. */
@@ -129,6 +138,19 @@ export function isServiceListingKind(kind?: string | null): boolean {
  */
 export function isMarketplaceServiceItem(item: MarketplaceSaleInput): boolean {
   if (!isMarketplaceSaleItem(item)) return false;
+  const specs = [
+    ...(item.discovery?.specializations ?? item.specializations ?? []),
+    ...(item.subcategory ? [item.subcategory] : []),
+  ];
+  if (
+    offerIsService({
+      marketplaceCategory:
+        item.discovery?.marketplaceCategory ?? item.marketplaceCategory,
+      specializations: specs,
+    })
+  ) {
+    return true;
+  }
   const kind =
     item.discovery?.listingKind ?? item.listingKind ?? null;
   if (isServiceListingKind(kind)) return true;

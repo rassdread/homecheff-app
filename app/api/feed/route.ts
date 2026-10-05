@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = 'force-dynamic';
 
-import { ListingCategory, ProductCategory } from "@prisma/client";
+import { ListingCategory, ProductCategory, type Prisma } from "@prisma/client";
 import { getCorsHeaders } from "@/lib/apiCors";
 import { isStripeTestId } from "@/lib/stripe";
 import { getServerSession } from "next-auth";
@@ -45,6 +45,11 @@ import {
   parseSearchFilterParams,
 } from "@/lib/search";
 import { attachSearchClassificationToRecord } from "@/lib/search/classify-result";
+import {
+  combineProductSearchFilters,
+  discoverySlugIsServices,
+  semanticProductWhereForDiscoverySlug,
+} from "@/lib/search/filters/semantic-category-where";
 import { attachDiscoveryReadModel } from "@/lib/discovery";
 import { legacyFeedSettlementBooleans } from "@/lib/marketplace/tiles/legacy-feed-settlement";
 import {
@@ -528,15 +533,19 @@ async function handleFeedGet(
   const dbProductStart = performance.now();
   const dbListingStart = performance.now();
 
-  const productWhereExtras = {
-    ...(q ? buildProductTextSearchWhere(q) : {}),
-    ...(searchFilters.listingIntent === 'REQUEST'
-      ? { listingIntent: 'REQUEST' as const }
+  const listingIntentWhere: Prisma.ProductWhereInput | null =
+    searchFilters.listingIntent === 'REQUEST'
+      ? { listingIntent: 'REQUEST' }
       : searchFilters.listingIntent === 'OFFER'
-        ? { OR: [{ listingIntent: 'OFFER' as const }, { listingIntent: null }] }
-        : {}),
-    ...(productCategory ? { category: productCategory as any } : {}),
-  };
+        ? ({
+            OR: [{ listingIntent: 'OFFER' }, { listingIntent: null }],
+          } as Prisma.ProductWhereInput)
+        : null;
+  const productWhereExtras = combineProductSearchFilters([
+    q ? buildProductTextSearchWhere(q) : null,
+    listingIntentWhere,
+    semanticProductWhereForDiscoverySlug(vertical),
+  ]);
 
   const productIdPhase = fetchFeedProductIdRows(prisma, productWhereExtras, {
     take: candidateWindow.productTake,
@@ -642,7 +651,11 @@ async function handleFeedGet(
     ...(lat && lng
       ? feedDistanceBoxOrMissingCoords(Number(lat), Number(lng), effectiveRadius)
       : {}),
-    ...(productCategory ? { category: productCategory } : {}),
+    ...(discoverySlugIsServices(vertical)
+      ? { id: { in: [] as string[] } }
+      : productCategory
+        ? { category: productCategory }
+        : {}),
   };
   const dishQuery = fetchFeedPublishedDishes(prisma, {
     where: dishWhere,

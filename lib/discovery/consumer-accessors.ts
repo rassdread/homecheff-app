@@ -8,7 +8,10 @@ import {
   type OfferingProfileSlug,
 } from '@/lib/create/offering-vertical';
 import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contract';
-import { offerIsService } from '@/lib/marketplace/commercial-capability';
+import {
+  listingSemanticFamily,
+  offerIsService,
+} from '@/lib/marketplace/commercial-capability';
 import type { SearchableListingRecord } from '@/lib/search/contracts/search-contract';
 import type { DiscoveryReadModel } from './contracts/discovery-read-model';
 
@@ -39,6 +42,20 @@ export function getDiscoveryLegacyVerticalCategory(item: object): string | null 
   const structured =
     row.discovery?.marketplaceCategory ?? row.marketplaceCategory ?? null;
   const specs = row.specializations ?? row.discovery?.specializations ?? null;
+  const subcategory =
+    (row as { subcategory?: string | null }).subcategory ??
+    (row.discovery as { subcategory?: string | null } | undefined)?.subcategory ??
+    null;
+  const family = listingSemanticFamily({
+    marketplaceCategory: structured,
+    productCategory: row.category,
+    specializations: specs,
+    subcategory,
+  });
+  if (family === 'service') return null;
+  if (family === 'food') return 'CHEFF';
+  if (family === 'garden') return 'GROWN';
+  if (family === 'creation') return 'DESIGNER';
   if (offerIsService({ marketplaceCategory: structured, specializations: specs })) {
     return null;
   }

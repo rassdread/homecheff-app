@@ -124,11 +124,17 @@ function taxonomySearchBlob(entry: MarketplaceTaxonomyItem): string {
     .toLowerCase();
 }
 
+function taxonomyTermInBlob(blob: string, term: string): boolean {
+  if (!term) return false;
+  if (term.length >= 4) return blob.includes(term);
+  return blob.split(/[^a-z0-9]+/i).some((token) => token === term);
+}
+
 function taxonomyBlobMatchesQuery(blob: string, term: string, topical: string, words: string[]): boolean {
   if (!blob) return false;
-  if (blob.includes(term) || (topical && blob.includes(topical))) return true;
+  if (taxonomyTermInBlob(blob, term) || (topical && taxonomyTermInBlob(blob, topical))) return true;
   const significant = words.filter((word) => word.length > 2);
-  return significant.length > 0 && significant.every((word) => blob.includes(word));
+  return significant.length > 0 && significant.every((word) => taxonomyTermInBlob(blob, word));
 }
 
 /** Canonical ids whose labels/synonyms match a free-text query. Group hits expand to children. */

@@ -21,6 +21,10 @@ const CRAFT_CREATE_TAXONOMY_IDS = new Set([
   'create.art',
 ]);
 
+export function craftCreateTaxonomyIds(): string[] {
+  return [...CRAFT_CREATE_TAXONOMY_IDS];
+}
+
 export type CommercialCapability = 'chef' | 'garden' | 'designer' | 'service';
 
 export function isServiceMarketplaceCategory(
@@ -97,6 +101,36 @@ export function commercialCapabilityForOffer(input: {
   if (stored === 'CHEFF') return 'chef';
   if (stored === 'GROWN' || stored === 'GARDEN') return 'garden';
   if (stored === 'DESIGNER') return 'designer';
+  return null;
+}
+
+export type ListingSemanticFamily = 'food' | 'garden' | 'creation' | 'service';
+
+/**
+ * What a listing is, from structured taxonomy.
+ * Requests stay requests for intent; this does not grant a seller role.
+ * Legacy Product.category is used only when no marketplace category is set.
+ */
+export function listingSemanticFamily(input: {
+  marketplaceCategory?: string | null;
+  productCategory?: string | null;
+  specializations?: string[] | null;
+  subcategory?: string | null;
+}): ListingSemanticFamily | null {
+  const specs = [
+    ...(input.specializations ?? []),
+    ...(input.subcategory ? [input.subcategory] : []),
+  ];
+  const capability = commercialCapabilityForOffer({
+    listingIntent: 'OFFER',
+    marketplaceCategory: input.marketplaceCategory,
+    productCategory: input.productCategory,
+    specializations: specs,
+  });
+  if (capability === 'chef') return 'food';
+  if (capability === 'garden') return 'garden';
+  if (capability === 'designer') return 'creation';
+  if (capability === 'service') return 'service';
   return null;
 }
 

@@ -4,7 +4,7 @@ import { toSearchableListingRecord } from '@/lib/discovery/consumer-accessors';
 import { listingMatchesTaxonomySearchQuery } from '@/lib/marketplace/taxonomy-resolve';
 
 function normalizeTerm(value: string): string {
-  return value.trim().toLowerCase();
+  return value.trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
 function haystackForItem(item: SearchableListingRecord): string {
