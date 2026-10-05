@@ -13,6 +13,10 @@ import { UserRole } from '@prisma/client';
 import { findUserByCanonicalEmail } from '@/lib/auth/find-user-by-email';
 import { registrationUsernamePasswordConflictMessage } from '@/lib/auth/registrationUsernameGuards';
 import { buildRegistrationFullName, normalizePersonNameDisplay } from '@/lib/person-name';
+import {
+  mergeSellerRolesForSocialOnboarding,
+  socialOnboardingSubmittedRoles,
+} from '@/lib/seller/seller-role-consistency';
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,6 +40,7 @@ export async function POST(request: NextRequest) {
         bio: true,
         socialOnboardingCompleted: true,
         messageGuidelinesAcceptedAt: true,
+        sellerRoles: true,
       },
     });
 
@@ -203,11 +208,18 @@ export async function POST(request: NextRequest) {
     }
 
     let interests: string[] = [];
-    let sellerRoles: string[] = [];
     let buyerRoles: string[] = [];
 
-    if (isSeller && userTypes && userTypes.length > 0) {
-      sellerRoles = userTypes;
+    const mergedRoles = mergeSellerRolesForSocialOnboarding(
+      existingUser.sellerRoles,
+      socialOnboardingSubmittedRoles(body),
+    );
+    if (!mergedRoles.ok) {
+      return NextResponse.json({ message: mergedRoles.error }, { status: 400 });
+    }
+    const sellerRoles = mergedRoles.roles;
+
+    if (isSeller && Array.isArray(userTypes) && userTypes.length > 0) {
       interests = [...interests, ...userTypes];
     }
 

@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  mergeSellerRolesForSocialOnboarding,
   parseSuppliedSellerRoles,
   sellerRoleForCommercialOffer,
+  socialOnboardingSubmittedRoles,
   unionSellerRoles,
 } from './seller-role-consistency';
 
@@ -95,5 +97,68 @@ describe('commercial offer role union', () => {
     const again = unionSellerRoles(first.roles, 'designer');
     assert.equal(again.added, false);
     assert.deepEqual(again.roles, first.roles);
+  });
+});
+
+describe('social onboarding role preservation', () => {
+  function merged(existing: string[], submitted: unknown) {
+    const result = mergeSellerRolesForSocialOnboarding(existing, submitted);
+    assert.equal(result.ok, true);
+    if (!result.ok) throw new Error('expected ok');
+    return result.roles;
+  }
+
+  it('preserves existing capabilities when onboarding submits nothing', () => {
+    assert.deepEqual(merged([], []), []);
+    assert.deepEqual(merged(['chef'], []), ['chef']);
+    assert.deepEqual(merged(['service'], []), ['service']);
+    assert.deepEqual(merged(['delivery'], []), ['delivery']);
+    assert.deepEqual(merged(['chef', 'service'], undefined), ['chef', 'service']);
+    assert.deepEqual(merged(['chef', 'service'], null), ['chef', 'service']);
+  });
+
+  it('unions submitted roles and never drops an existing one', () => {
+    assert.deepEqual(merged(['chef', 'service'], ['chef']), ['chef', 'service']);
+    assert.deepEqual(merged(['garden'], ['service']), ['garden', 'service']);
+    assert.deepEqual(merged(['designer', 'service'], ['designer']), ['designer', 'service']);
+    assert.deepEqual(merged(['service', 'delivery'], ['service']), ['service', 'delivery']);
+    assert.deepEqual(merged(['garden', 'delivery'], ['designer']), ['garden', 'delivery', 'designer']);
+    assert.deepEqual(merged([], ['service']), ['service']);
+  });
+
+  it('canonicalizes aliases without duplicates', () => {
+    assert.deepEqual(merged([], ['services']), ['service']);
+    assert.deepEqual(merged(['chef'], ['design']), ['chef', 'designer']);
+    assert.deepEqual(merged(['garden'], ['grown']), ['garden']);
+    assert.deepEqual(merged(['cheff'], []), ['chef']);
+  });
+
+  it('rejects roles that are not commercial capabilities', () => {
+    for (const bad of ['admin', 'superadmin', 'seller', 'practical_service', 'knowledge_service', 'artistic_service', 'foobar']) {
+      const result = mergeSellerRolesForSocialOnboarding(['chef', 'service'], [bad]);
+      assert.equal(result.ok, false);
+    }
+    assert.equal(parseSuppliedSellerRoles([]).ok, true);
+    assert.deepEqual(parseSuppliedSellerRoles([]), { ok: true, roles: [] });
+  });
+
+  it('is idempotent when the same onboarding is submitted twice', () => {
+    const first = merged(['chef'], ['service']);
+    assert.deepEqual(first, ['chef', 'service']);
+    assert.deepEqual(merged(first, ['service']), ['chef', 'service']);
+  });
+
+  it('treats a missing onboarding field as preserve and an empty list as preserve', () => {
+    assert.equal(socialOnboardingSubmittedRoles({}), undefined);
+    assert.deepEqual(socialOnboardingSubmittedRoles({ userTypes: null }), []);
+    assert.deepEqual(socialOnboardingSubmittedRoles({ userTypes: [], sellerRoles: ['service'] }), ['service']);
+    assert.deepEqual(
+      merged(['chef', 'service'], socialOnboardingSubmittedRoles({})),
+      ['chef', 'service'],
+    );
+    assert.deepEqual(
+      merged(['chef', 'service'], socialOnboardingSubmittedRoles({ userTypes: [] })),
+      ['chef', 'service'],
+    );
   });
 });
