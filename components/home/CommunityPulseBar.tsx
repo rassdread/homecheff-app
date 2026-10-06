@@ -88,16 +88,16 @@ export default function CommunityPulseBar({
     if (loading || lines.length === 0) return null;
     return (
       <section
-        className="rounded-xl border border-gray-200/80 bg-white px-3 py-2.5"
+        className="rounded-xl border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-3 py-2.5 shadow-[var(--hc-shadow-1)]"
         aria-label={t('communityPulse.workspaceTitle')}
         data-hc-workspace-insight="pulse"
       >
-        <h2 className="text-xs font-semibold text-gray-900">
+        <h2 className="text-xs font-semibold text-[var(--hc-text)]">
           {t('communityPulse.workspaceTitle')}
         </h2>
         <ul className="mt-1.5 space-y-0.5">
           {lines.map((line) => (
-            <li key={line.key} className="text-xs leading-snug text-gray-700">
+            <li key={line.key} className="text-xs leading-snug text-[var(--hc-text-secondary)]">
               {line.label}
             </li>
           ))}

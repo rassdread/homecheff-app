@@ -56,7 +56,7 @@ export default function LandscapeWorkBarCommands({
 
       <p
         data-wx-workbar-context=""
-        className="min-w-0 flex-1 truncate text-[clamp(0.65rem,1.5vw,0.75rem)] font-semibold leading-none tracking-tight text-white/95"
+        className="min-w-0 flex-1 truncate text-[clamp(0.65rem,1.5vw,0.75rem)] font-semibold leading-none tracking-tight text-[var(--hc-text)]"
         title={contextLabel}
       >
         {contextLabel}
@@ -70,10 +70,8 @@ export default function LandscapeWorkBarCommands({
         className={cn(
           'inline-flex shrink-0 items-center justify-center gap-1',
           'rounded-lg px-2.5 py-1.5 min-h-[40px]',
-          'text-[13px] font-bold whitespace-nowrap leading-none',
-          'bg-white text-emerald-900 [-webkit-text-fill-color:#064e3b] hover:bg-emerald-50',
-          'border border-white/90 shadow-sm',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-white',
+          'hc-btn-primary text-[13px] font-semibold whitespace-nowrap leading-none',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hc-focus)]',
           'touch-manipulation select-none',
         )}
         onClick={() => {
@@ -96,8 +94,8 @@ export default function LandscapeWorkBarCommands({
         className={cn(
           'inline-flex shrink-0 items-center justify-center',
           'rounded-lg min-h-[44px] min-w-[44px]',
-          'text-white hover:bg-white/15',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-white',
+          'text-[var(--hc-text)] hover:bg-[var(--hc-surface-subtle)]',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hc-focus)]',
           'touch-manipulation',
         )}
         onClick={() => {

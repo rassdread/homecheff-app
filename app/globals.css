@@ -1481,6 +1481,22 @@ html.hc-pwa-standalone .hc-profile-v2-bottom-inset {
   font-weight: 600;
 }
 
+.hc-nav-item {
+  color: var(--hc-text);
+}
+.hc-nav-item:hover {
+  background: color-mix(in srgb, var(--hc-blue) 8%, var(--hc-surface-card));
+}
+.hc-nav-selected {
+  background: color-mix(in srgb, var(--hc-blue) 14%, var(--hc-surface-card));
+  color: var(--hc-blue-deep);
+}
+.hc-nav-item:focus-visible,
+.hc-nav-selected:focus-visible {
+  outline: 2px solid var(--hc-focus);
+  outline-offset: 2px;
+}
+
 .hc-feed-media {
   max-height: 8rem;
   overflow: hidden;
@@ -1503,7 +1519,7 @@ html.hc-pwa-standalone .hc-profile-v2-bottom-inset {
 
 /* —— Operations workspace shell (Phase A) —— */
 .hc-operations-page {
-  background: linear-gradient(180deg, #faf8f4 0%, #f6f8fa 28%, #f6f8fa 100%);
+  background: var(--hc-surface-page);
 }
 
 .hc-operations-shell {
@@ -1515,7 +1531,11 @@ html.hc-pwa-standalone .hc-profile-v2-bottom-inset {
 }
 
 .hc-operations-section-nav {
-  @apply rounded-2xl border border-emerald-200/40 bg-white/90 p-1.5 shadow-sm;
+  border-radius: 0.75rem;
+  border: 1px solid var(--hc-border-quiet);
+  background: var(--hc-surface-card);
+  padding: 0.375rem;
+  box-shadow: var(--hc-shadow-1);
 }
 
 .hc-operations-card {

@@ -53,7 +53,7 @@ export default function WorkspaceStartState() {
             key={choice.id}
             href={choice.href}
             data-hc-workspace-start-choice={choice.id}
-            className="inline-flex min-h-[36px] max-w-full items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-emerald-50"
+            className="hc-nav-item inline-flex min-h-[40px] max-w-full items-center rounded-lg border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-subtle)] px-3 py-1.5 text-sm font-medium"
           >
             {labelFor(choice.labelKey)}
           </Link>

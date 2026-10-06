@@ -64,12 +64,12 @@ export default function ReturnBelongingStrip({
     return (
       <p
         className={cn(
-          'rounded-xl border border-gray-200/80 bg-white px-3 py-2 text-xs leading-snug text-gray-700',
+          'rounded-xl border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-3 py-2 text-xs leading-snug text-[var(--hc-text-secondary)] shadow-[var(--hc-shadow-1)]',
           className,
         )}
         data-hc-workspace-insight="belonging"
       >
-        <span className="font-semibold text-gray-900">
+        <span className="font-semibold text-[var(--hc-text)]">
           {t('returnBelonging.title')}
         </span>
         <span className="mt-0.5 block">{line}</span>

@@ -138,7 +138,7 @@ function readViewportHeightPx(): number {
 }
 
 const railChromeClass =
-  "hc-wx-rail h-full min-h-0 flex flex-col bg-white";
+  "hc-wx-rail h-full min-h-0 flex flex-col border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)]";
 
 const railScrollClass =
   "min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2.5 py-2.5 [-webkit-overflow-scrolling:touch]";

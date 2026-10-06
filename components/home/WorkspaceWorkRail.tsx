@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import AffiliateQuickShareModal from '@/components/affiliate/AffiliateQuickShareModal';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
@@ -51,9 +52,24 @@ export default function WorkspaceWorkRail() {
   const quickActions = buildWorkspaceQuickActions(ctx);
   const allowedVerticals = sellerRolesToAllowedVerticals(ctx?.sellerRoles ?? []);
 
+  const pathname = usePathname();
+  const [search, setSearch] = useState('');
+  useEffect(() => {
+    setSearch(window.location.search);
+  }, [pathname]);
   const labelFor = (key: string) => {
     const fallback = FALLBACKS[key];
     return tOr(key, fallback?.en ?? key, fallback?.nl ?? key);
+  };
+  const currentHref = (href: string) => {
+    const url = new URL(href, 'http://local');
+    if (pathname !== url.pathname) return false;
+    if (!url.search) return true;
+    const expected = url.searchParams;
+    for (const [key, value] of expected.entries()) {
+      if (new URLSearchParams(search).get(key) !== value) return false;
+    }
+    return true;
   };
 
   if (groups.length === 0) return null;
@@ -69,8 +85,8 @@ export default function WorkspaceWorkRail() {
           {quickActions.map((item) => {
             const primary = item.emphasis !== 'secondary';
             const className = primary
-              ? 'inline-flex min-h-[36px] items-center justify-center rounded-lg bg-emerald-700 px-2.5 py-1.5 text-center text-xs font-semibold text-white hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2'
-              : 'inline-flex min-h-[32px] items-center justify-center rounded-lg border border-emerald-200 bg-white px-2.5 py-1 text-center text-xs font-semibold text-emerald-900 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2';
+              ? 'hc-btn-primary min-h-[40px] w-full rounded-lg px-2.5 py-1.5 text-center text-xs font-semibold'
+              : 'hc-btn-secondary min-h-[40px] w-full rounded-lg px-2.5 py-1 text-center text-xs font-semibold';
             return item.href ? (
               <Link
                 key={item.id}
@@ -111,7 +127,7 @@ export default function WorkspaceWorkRail() {
       {groups.map((group) => (
         <section key={group.id} data-hc-workspace-group={group.id}>
           {group.labelKey ? (
-            <h2 className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+            <h2 className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--hc-blue)]">
               {labelFor(group.labelKey)}
             </h2>
           ) : null}
@@ -122,7 +138,12 @@ export default function WorkspaceWorkRail() {
                   <Link
                     href={item.href}
                     data-hc-workspace-link={item.id}
-                    className="block rounded-lg px-2 py-2 text-sm font-medium text-gray-800 hover:bg-emerald-50"
+                    aria-current={currentHref(item.href) ? 'page' : undefined}
+                    className={
+                      currentHref(item.href)
+                        ? 'hc-nav-selected block min-h-[40px] rounded-lg px-2 py-2 text-sm font-semibold'
+                        : 'hc-nav-item block min-h-[40px] rounded-lg px-2 py-2 text-sm font-medium'
+                    }
                   >
                     {labelFor(item.labelKey)}
                   </Link>
@@ -145,7 +166,7 @@ export default function WorkspaceWorkRail() {
                         });
                       }
                     }}
-                    className="block w-full rounded-lg px-2 py-2 text-left text-sm font-medium text-gray-800 hover:bg-emerald-50"
+                    className="hc-nav-item block min-h-[40px] w-full rounded-lg px-2 py-2 text-left text-sm font-medium"
                   >
                     {labelFor(item.labelKey)}
                   </button>

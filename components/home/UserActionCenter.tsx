@@ -65,11 +65,11 @@ const severityStyles = {
     cta: 'bg-amber-600 hover:bg-amber-700 text-white',
   },
   green: {
-    card: 'border-emerald-200 bg-emerald-50/80',
-    dot: 'bg-emerald-500',
-    title: 'text-emerald-950',
-    desc: 'text-emerald-900/80',
-    cta: 'bg-emerald-600 hover:bg-emerald-700 text-white',
+    card: 'border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)]',
+    dot: 'bg-[var(--hc-green)]',
+    title: 'text-[var(--hc-text)]',
+    desc: 'text-[var(--hc-text-secondary)]',
+    cta: 'hc-btn-primary',
   },
   gray: {
     card: 'border-gray-200 bg-gray-50',
@@ -211,7 +211,7 @@ function CockpitActionRow({ item }: { item: UserActionItem }) {
     'Belangrijk',
   );
   const actionClass =
-    'mt-1 inline-flex text-xs font-semibold text-emerald-800 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2';
+    'mt-1 inline-flex text-xs font-semibold text-[var(--hc-blue)] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hc-focus)] focus-visible:ring-offset-2';
 
   const handleStripeOnboard = async () => {
     setStripeLoading(true);
@@ -438,14 +438,14 @@ export default function UserActionCenter({
       return (
         <section
           className={cn(
-            'hc-dorpsplein-card border border-emerald-200/80 bg-emerald-50/50 px-3 py-2.5',
+            'hc-dorpsplein-card border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-3 py-2.5',
             className,
           )}
           aria-label={title}
         >
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
-            <p className="text-xs font-semibold text-emerald-950">{healthyTitle}</p>
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--hc-green)]" aria-hidden />
+            <p className="text-xs font-semibold text-[var(--hc-text)]">{healthyTitle}</p>
           </div>
         </section>
       );
@@ -454,19 +454,19 @@ export default function UserActionCenter({
     return (
       <section
         className={cn(
-          'mb-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 shadow-sm',
+          'mb-4 rounded-2xl border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] p-4 shadow-[var(--hc-shadow-1)]',
           className,
         )}
         aria-label={title}
       >
         <div className="flex items-start gap-3">
           <CheckCircle2
-            className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600"
+            className="mt-0.5 h-5 w-5 shrink-0 text-[var(--hc-green)]"
             aria-hidden
           />
           <div>
-            <h2 className="text-sm font-bold text-emerald-950">{healthyTitle}</h2>
-            <p className="mt-0.5 text-xs text-emerald-900/80 leading-relaxed">
+            <h2 className="text-sm font-bold text-[var(--hc-text)]">{healthyTitle}</h2>
+            <p className="mt-0.5 text-xs leading-relaxed text-[var(--hc-text-secondary)]">
               {healthyDesc}
             </p>
           </div>
@@ -479,13 +479,13 @@ export default function UserActionCenter({
     return (
       <section
         className={cn(
-          'rounded-xl border border-gray-200/80 bg-white px-3 py-2.5',
+          'rounded-xl border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-3 py-2.5 shadow-[var(--hc-shadow-1)]',
           className,
         )}
         aria-label={title}
         data-hc-workspace-insight="attention"
       >
-        <h2 className="mb-1 text-xs font-semibold text-gray-900">{title}</h2>
+        <h2 className="mb-1 text-xs font-semibold text-[var(--hc-text)]">{title}</h2>
         <div className="space-y-1">
           {[...visible, ...showHidden].map((item) => (
             <CockpitActionRow key={item.id} item={item} />
@@ -495,7 +495,7 @@ export default function UserActionCenter({
           <Link
             href={allActionsHref}
             prefetch
-            className="mt-1.5 inline-flex text-[11px] font-semibold text-emerald-800 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700"
+            className="mt-1.5 inline-flex text-[11px] font-semibold text-[var(--hc-blue)] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hc-focus)]"
           >
             {viewAllLabel}
           </Link>

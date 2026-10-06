@@ -42,18 +42,15 @@ type Props = {
 };
 
 const ctaPrimaryClass = cn(
-  'inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-1.5',
-  'text-sm font-bold bg-white text-emerald-900 shadow-md whitespace-nowrap',
-  '[-webkit-text-fill-color:#064e3b]',
-  'hover:bg-emerald-50 touch-manipulation transition-colors',
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
+  'hc-btn-primary min-h-[40px] shrink-0 gap-1.5 rounded-xl px-3.5 py-1.5',
+  'text-sm font-semibold whitespace-nowrap touch-manipulation',
 );
 
 const ctaExplainClass = cn(
   'inline-flex min-h-[44px] items-center text-left',
-  'text-xs font-medium text-white/80 underline-offset-2 hover:underline',
+  'text-xs font-medium text-[var(--hc-blue)] underline-offset-2 hover:underline',
   'touch-manipulation',
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
+  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hc-focus)]',
 );
 
 export default function WorkspaceOrientationStrip({
@@ -182,9 +179,8 @@ export default function WorkspaceOrientationStrip({
         data-wx-single-bar={singleBar ? '1' : '0'}
         className={cn(
           'hc-wx-orientation-strip w-full min-w-0',
-          'rounded-none sm:rounded-t-2xl border-b border-primary-brand/30',
-          'bg-gradient-to-r from-primary-brand via-primary-brand to-emerald-800',
-          'text-white',
+          'rounded-none border-b border-[var(--hc-border-quiet)] sm:rounded-t-2xl',
+          'bg-[var(--hc-surface-page)] text-[var(--hc-text)]',
           singleBar && 'hc-wx-single-workbar',
           !singleBar && workToolbar && 'px-3 py-1 sm:px-4',
           !workToolbar && level === 'ultra_compact' && 'px-3 py-1.5 sm:px-4',
@@ -219,7 +215,7 @@ export default function WorkspaceOrientationStrip({
                 <p
                   data-wx-orientation-identity=""
                   className={cn(
-                    'font-semibold uppercase tracking-[0.14em] text-emerald-100/95',
+                    'font-semibold uppercase tracking-[0.14em] text-[var(--hc-blue)]',
                     explain.singleLine
                       ? 'text-[9px] leading-tight'
                       : 'text-[10px] sm:text-[11px] leading-tight',
@@ -233,7 +229,7 @@ export default function WorkspaceOrientationStrip({
                 data-hero-city={heroGeo.city ?? ''}
                 data-wx-orientation-title=""
                 className={cn(
-                  'font-bold tracking-tight text-white',
+                  'font-bold tracking-tight text-[var(--hc-text)]',
                   workToolbar &&
                     'truncate text-[clamp(0.875rem,2.4vw,1.05rem)] leading-snug',
                   level === 'ultra_compact' &&
@@ -256,7 +252,7 @@ export default function WorkspaceOrientationStrip({
                 <p
                   data-wx-orientation-explain-body=""
                   className={cn(
-                    'text-white/90',
+                    'text-[var(--hc-text-secondary)]',
                     level === 'compact_complete' &&
                       'mt-1 text-[clamp(0.7rem,2vw,0.8rem)] leading-snug line-clamp-2',
                     level === 'standard_complete' &&
@@ -274,7 +270,7 @@ export default function WorkspaceOrientationStrip({
               {valueExchangeHint ? (
                 <p
                   data-wx-orientation-value-exchange=""
-                  className="mt-1 max-w-3xl text-[clamp(0.7rem,1.4vw,0.8rem)] leading-snug text-emerald-50/90"
+                  className="mt-1 max-w-3xl text-[clamp(0.7rem,1.4vw,0.8rem)] leading-snug text-[var(--hc-text-secondary)]"
                 >
                   {valueExchangeHint}
                 </p>
@@ -285,16 +281,16 @@ export default function WorkspaceOrientationStrip({
                   data-wx-orientation-trust=""
                   className="mt-1.5 flex flex-wrap gap-1.5"
                 >
-                  <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/90 sm:text-[11px]">
+                  <span className="rounded-md border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-2 py-0.5 text-[10px] font-medium text-[var(--hc-text-secondary)] sm:text-[11px]">
                     {t('homePhase1.orientationTrustCategories')}
                   </span>
-                  <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/90 sm:text-[11px]">
+                  <span className="rounded-md border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-2 py-0.5 text-[10px] font-medium text-[var(--hc-text-secondary)] sm:text-[11px]">
                     {t('homePhase1.orientationTrustSecurePay')}
                   </span>
-                  <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/90 sm:text-[11px]">
+                  <span className="rounded-md border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-2 py-0.5 text-[10px] font-medium text-[var(--hc-text-secondary)] sm:text-[11px]">
                     {t('homePhase1.orientationTrustPickup')}
                   </span>
-                  <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/90 sm:text-[11px]">
+                  <span className="rounded-md border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-2 py-0.5 text-[10px] font-medium text-[var(--hc-text-secondary)] sm:text-[11px]">
                     {t('homePhase1.orientationTrustRealPeople')}
                   </span>
                 </div>
@@ -335,9 +331,9 @@ export default function WorkspaceOrientationStrip({
               <div
                 data-wx-orientation-meta=""
                 data-wx-orientation-actions=""
-                className="shrink-0 max-w-[48%] text-right text-[clamp(0.6rem,1.6vw,0.7rem)] leading-tight text-emerald-50/95"
+                className="shrink-0 max-w-[48%] text-right text-[clamp(0.6rem,1.6vw,0.7rem)] leading-tight text-[var(--hc-text-secondary)]"
               >
-                <span className="font-medium text-white/95">{actionsSecondary}</span>
+                <span className="font-medium text-[var(--hc-text)]">{actionsSecondary}</span>
               </div>
             ) : null}
           </div>

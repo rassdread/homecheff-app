@@ -42,7 +42,7 @@ export default function HomeReputationCompactCard({
     return (
       <section
         className={cn(
-          'rounded-xl border border-gray-200/80 bg-white px-3 py-2.5',
+          'rounded-xl border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-3 py-2.5 shadow-[var(--hc-shadow-1)]',
           className,
         )}
         aria-labelledby="home-reputation-heading"
@@ -51,20 +51,20 @@ export default function HomeReputationCompactCard({
         <div className="flex items-baseline justify-between gap-2">
           <h2
             id="home-reputation-heading"
-            className="text-xs font-semibold text-gray-900"
+            className="text-xs font-semibold text-[var(--hc-text)]"
           >
             {t('home.reputationCompact.title')}
           </h2>
           <Link
             href="/mijn-hcp"
             prefetch={false}
-            className="shrink-0 text-xs font-semibold text-emerald-800 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
+            className="shrink-0 text-xs font-semibold text-[var(--hc-blue)] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hc-focus)] focus-visible:ring-offset-2"
           >
             {t('home.reputationCompact.workspaceCta')}
           </Link>
         </div>
         {statusLabel && !loading ? (
-          <p className="mt-1 text-xs text-gray-600">{statusLabel}</p>
+          <p className="mt-1 text-xs text-[var(--hc-text-secondary)]">{statusLabel}</p>
         ) : null}
       </section>
     );

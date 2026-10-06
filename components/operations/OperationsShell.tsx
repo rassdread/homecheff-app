@@ -104,7 +104,7 @@ export default function OperationsShell({
           )}
         >
           <header
-            className="hc-operations-shell-header sticky z-20 border-b border-gray-200/80 bg-[#faf8f4]/95 backdrop-blur-md supports-[backdrop-filter]:bg-[#faf8f4]/90"
+            className="hc-operations-shell-header sticky z-20 border-b border-[var(--hc-border-quiet)] bg-[var(--hc-surface-page)]/95 backdrop-blur-md supports-[backdrop-filter]:bg-[var(--hc-surface-page)]/90"
             style={{
               top: 'max(3.5rem, calc(env(safe-area-inset-top, 0px) + 3rem))',
             }}
@@ -113,7 +113,7 @@ export default function OperationsShell({
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
                   <MyHomeCheffBackLink compact className="mr-1 hidden sm:inline-flex" />
-                  <span className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-[var(--hc-blue)]">
                     {affiliateArea
                       ? tOr('affiliate.nav.label', 'Affiliate', 'Affiliate')
                       : tOr('operations.workspaceLabel', 'Operations', 'Operations')}
@@ -134,7 +134,7 @@ export default function OperationsShell({
                   <button
                     type="button"
                     onClick={() => openOverview('drawer')}
-                    className="hidden min-h-[36px] items-center gap-1.5 rounded-xl border border-emerald-200/70 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-50 sm:inline-flex xl:hidden"
+                    className="hc-btn-secondary hidden min-h-[36px] items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold sm:inline-flex xl:hidden"
                   >
                     <LayoutPanelLeft className="h-3.5 w-3.5" aria-hidden />
                     {overviewLabel}

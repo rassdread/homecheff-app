@@ -34,12 +34,12 @@ export default function PresentationModeSwitch({
       data-hc-presentation-switch={placement}
     >
       {placement === 'page' ? (
-        <span className="text-[11px] font-medium text-gray-500">{label}</span>
+        <span className="text-[11px] font-medium text-[var(--hc-text-secondary)]">{label}</span>
       ) : null}
       <div
         role="group"
         aria-label={label}
-        className="inline-flex overflow-hidden rounded-lg border border-gray-200 bg-white"
+        className="inline-flex overflow-hidden rounded-lg border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)]"
       >
         <ModeButton
           pressed={mode === 'marketplace'}
@@ -79,11 +79,11 @@ function ModeButton({
       className={
         pressed
           ? compact
-            ? 'bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-900'
-            : 'bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-900'
+            ? 'hc-nav-selected px-2 py-1 text-[11px] font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--hc-focus)]'
+            : 'hc-nav-selected px-2.5 py-1 text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--hc-focus)]'
           : compact
-            ? 'px-2 py-1 text-[11px] font-medium text-gray-600 hover:bg-gray-50'
-            : 'px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50'
+            ? 'px-2 py-1 text-[11px] font-medium text-[var(--hc-text-secondary)] hover:bg-[var(--hc-surface-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--hc-focus)]'
+            : 'px-2.5 py-1 text-xs font-medium text-[var(--hc-text-secondary)] hover:bg-[var(--hc-surface-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--hc-focus)]'
       }
     >
       {children}

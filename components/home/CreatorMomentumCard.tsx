@@ -97,7 +97,7 @@ export default function CreatorMomentumCard({
     return (
       <section
         className={cn(
-          'rounded-xl border border-gray-200/80 bg-white px-3 py-2.5',
+          'rounded-xl border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-3 py-2.5 shadow-[var(--hc-shadow-1)]',
           className,
         )}
         aria-label={t('creatorMomentum.workspaceTitle')}
@@ -110,7 +110,7 @@ export default function CreatorMomentumCard({
           <Link
             href="/profile"
             prefetch={false}
-            className="shrink-0 text-xs font-semibold text-emerald-800 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
+            className="shrink-0 text-xs font-semibold text-[var(--hc-blue)] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hc-focus)] focus-visible:ring-offset-2"
           >
             {t('creatorMomentum.workspaceCta')}
           </Link>
@@ -136,7 +136,7 @@ export default function CreatorMomentumCard({
               <Link
                 href="/notifications"
                 prefetch={false}
-                className="underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700"
+                className="text-[var(--hc-blue)] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hc-focus)]"
               >
                 {t('creatorMomentum.unreadNotifications', {
                   count: v.unreadNotifications,

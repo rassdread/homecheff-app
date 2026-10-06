@@ -95,12 +95,12 @@ export default function OperationsTasksSection({
       return (
         <div
           className={cn(
-            'flex items-center gap-2 rounded-xl border border-emerald-200/80 bg-emerald-50/60 px-3 py-2',
+            'flex items-center gap-2 rounded-xl border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-3 py-2',
             className,
           )}
         >
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
-          <p className="text-xs font-semibold text-emerald-950">{healthyTitle}</p>
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--hc-green)]" aria-hidden />
+          <p className="text-xs font-semibold text-[var(--hc-text)]">{healthyTitle}</p>
         </div>
       );
     }
@@ -108,7 +108,7 @@ export default function OperationsTasksSection({
     return (
       <section
         className={cn(
-          'hc-dorpsplein-card border border-emerald-200/80 bg-emerald-50/50 px-3 py-2.5',
+          'hc-dorpsplein-card border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-3 py-2.5',
           className,
         )}
         aria-label={title}
@@ -117,8 +117,8 @@ export default function OperationsTasksSection({
           <h3 className="hc-section-title mb-2 text-sm">{title}</h3>
         ) : null}
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
-          <p className="text-xs font-semibold text-emerald-950">{healthyTitle}</p>
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--hc-green)]" aria-hidden />
+          <p className="text-xs font-semibold text-[var(--hc-text)]">{healthyTitle}</p>
         </div>
       </section>
     );
@@ -155,7 +155,7 @@ export default function OperationsTasksSection({
           <button
             type="button"
             onClick={() => setExpanded(false)}
-            className="mt-2 flex w-full items-center justify-center gap-1 text-[11px] font-semibold text-secondary-brand hover:text-secondary-700"
+            className="mt-2 flex w-full items-center justify-center gap-1 text-[11px] font-semibold text-[var(--hc-blue)] hover:text-[var(--hc-blue-deep)]"
           >
             <ChevronUp className="h-3 w-3" aria-hidden />
             {showLessLabel}
@@ -164,7 +164,7 @@ export default function OperationsTasksSection({
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="mt-2 flex w-full items-center justify-center gap-1 text-[11px] font-semibold text-secondary-brand hover:text-secondary-700"
+            className="mt-2 flex w-full items-center justify-center gap-1 text-[11px] font-semibold text-[var(--hc-blue)] hover:text-[var(--hc-blue-deep)]"
           >
             <ChevronDown className="h-3 w-3" aria-hidden />
             {viewMoreLabel}
@@ -173,7 +173,7 @@ export default function OperationsTasksSection({
           <Link
             href="/operations/vandaag"
             prefetch
-            className="mt-2 flex w-full items-center justify-center gap-1 text-[11px] font-semibold text-secondary-brand hover:text-secondary-700"
+            className="mt-2 flex w-full items-center justify-center gap-1 text-[11px] font-semibold text-[var(--hc-blue)] hover:text-[var(--hc-blue-deep)]"
           >
             <ChevronDown className="h-3 w-3" aria-hidden />
             {viewMoreLabel}

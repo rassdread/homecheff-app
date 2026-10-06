@@ -47,8 +47,8 @@ export default function OperationsSectionNav() {
               className={cn(
                 'inline-flex min-h-[44px] shrink-0 snap-start touch-manipulation items-center whitespace-nowrap rounded-xl px-3.5 py-2 text-sm font-semibold transition sm:px-4',
                 active
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-gray-600 hover:bg-emerald-50/80 hover:text-gray-900',
+                  ? 'hc-nav-selected'
+                  : 'hc-nav-item',
               )}
             >
               {t(tab.labelKey)}

@@ -62,13 +62,13 @@ export default function OperationsTodayContent() {
   return (
     <div className="mx-auto max-w-3xl space-y-5 pb-4 lg:max-w-none lg:pb-0">
       <header className="space-y-1">
-        <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--hc-blue)]">
           {todayLabel}
         </p>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+        <h1 className="text-2xl font-bold tracking-tight text-[var(--hc-text)] sm:text-3xl">
           {userName ? `${greeting}, ${userName}` : greeting}
         </h1>
-        <p className="text-sm capitalize text-gray-500">{dateLabel}</p>
+        <p className="text-sm capitalize text-[var(--hc-text-secondary)]">{dateLabel}</p>
       </header>
 
       {hasActiveDelivery ? (
@@ -91,7 +91,7 @@ export default function OperationsTodayContent() {
       {nextAction ? (
         <Link
           href={nextAction.href}
-          className="inline-flex min-h-[44px] items-center rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+          className="hc-btn-primary inline-flex min-h-[44px] items-center rounded-xl px-4 py-2 text-sm font-semibold"
         >
           {tOr(nextAction.labelKey, nextAction.fallbackEn, nextAction.fallbackNl)}
         </Link>

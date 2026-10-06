@@ -41,13 +41,13 @@ export default function WorkspaceQuickActions() {
   return (
     <div
       data-hc-workspace-quick=""
-      className="flex flex-wrap gap-2 border-b border-gray-200 bg-white px-3 py-2 md:hidden"
+      className="flex flex-wrap gap-2 border-b border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-3 py-2 md:hidden"
     >
       {actions.map((item) => {
         const primary = item.emphasis !== 'secondary';
         const className = primary
-          ? 'inline-flex min-h-[36px] items-center rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2'
-          : 'inline-flex min-h-[32px] items-center rounded-lg border border-emerald-200 bg-white px-2.5 py-1 text-xs font-semibold text-emerald-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2';
+          ? 'hc-btn-primary min-h-[40px] rounded-lg px-3 py-1.5 text-xs font-semibold'
+          : 'hc-btn-secondary min-h-[40px] rounded-lg px-2.5 py-1 text-xs font-semibold';
         return item.href ? (
           <Link
             key={item.id}
