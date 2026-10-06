@@ -48,7 +48,7 @@ async function main() {
     UNION ALL
     SELECT url FROM "ProductVideo"
   `;
-  const rows = [];
+  const rows: Array<Record<string, string | number | null | string[]>> = [];
   let index = 0;
   for (const file of files) {
     index += 1;
