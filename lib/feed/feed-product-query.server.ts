@@ -220,6 +220,21 @@ async function fetchProductIdRows(
   );
 }
 
+function readFulfillmentOptions(
+  value: Prisma.JsonValue | null,
+): FeedProductRow['fulfillmentOptions'] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const flag = (key: string): boolean | null =>
+    typeof record[key] === 'boolean' ? (record[key] as boolean) : null;
+  return {
+    digital: flag('digital'),
+    pickup: flag('pickup'),
+    delivery: flag('delivery'),
+    shipping: flag('shipping'),
+  };
+}
+
 function attachSeller(
   sellerId: string,
   sellers: Map<string, FeedSellerHydrated>,
@@ -284,6 +299,7 @@ async function hydrateProductsIdsFirst(
       specializations: body.specializations,
       acceptedSpecializations: body.acceptedSpecializations,
       subcategory: body.subcategory,
+      fulfillmentOptions: readFulfillmentOptions(body.fulfillmentOptions),
       barterOpenness: body.barterOpenness,
       createdAt: body.createdAt,
       pickupAddress: body.pickupAddress,

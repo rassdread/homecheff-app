@@ -26,7 +26,6 @@ export type DeriveListingKindInput = {
   } | null;
   /** Legacy Product.category (CHEFF | GROWN | DESIGNER). */
   category?: string | null;
-  fulfillmentOptions?: unknown;
   /** Feed/API source hint (PRODUCT | LISTING | DISH). */
   feedSource?: string | null;
   type?: string | null;
