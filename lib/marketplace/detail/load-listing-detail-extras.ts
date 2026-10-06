@@ -6,6 +6,7 @@
 import { prisma } from '@/lib/prisma';
 import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
 import { loadPublicContactChannelsForUser } from '@/lib/profile/load-public-contact-channels';
+import { presentContactChannelsForViewer } from '@/lib/profile/maker-contact-preferences';
 import { fetchAuthorBadgeSummariesByUserIds } from '@/lib/gamification/author-badge-summaries';
 import { fetchSellerTrustBundles } from '@/lib/discovery/trust/batch-enrichment';
 import { buildDiscoveryTrust } from '@/lib/discovery/trust/build-discovery-trust';
@@ -35,6 +36,7 @@ export type ListingDetailExtras = {
 
 export async function loadListingDetailExtras(
   rawId: string,
+  viewer?: { userId?: string | null },
 ): Promise<ListingDetailExtras | null> {
   const id = resolveProductIdFromParam(rawId);
   if (!id) return null;
@@ -127,8 +129,12 @@ export async function loadListingDetailExtras(
     };
   }
 
+  const viewerId = viewer?.userId ?? null;
   return {
-    publicContactChannels,
+    publicContactChannels: presentContactChannelsForViewer(publicContactChannels, {
+      authenticated: Boolean(viewerId),
+      isOwner: Boolean(viewerId && sellerUserId && viewerId === sellerUserId),
+    }),
     sellerBadges,
     discoveryTrust,
     isDish,

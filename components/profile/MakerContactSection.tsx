@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import StartChatButton from '@/components/chat/StartChatButton';
 import {
   MessageCircle,
@@ -96,12 +98,68 @@ export default function MakerContactSection({
   funnelEntrypoint,
 }: Props) {
   const { t } = useTranslation();
+  const { data: session } = useSession();
+  const [fallback, setFallback] = useState<'whatsapp' | 'phone' | null>(null);
 
   const externalChannels = channels.filter((c) => c.id !== 'chat');
   const hasChat = channels.some((c) => c.id === 'chat');
   const isCompact = variant !== 'profile';
   const labelKeys = isCompact ? COMPACT_LABEL_KEYS : PROFILE_LABEL_KEYS;
   const buttonSizeClass = isCompact ? 'px-4 py-2.5 text-sm' : 'px-6 py-3';
+  const loggedIn = Boolean(session?.user);
+
+  useEffect(() => {
+    if (!loggedIn || typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const intent = params.get('contact');
+    if (intent !== 'whatsapp' && intent !== 'phone') return;
+    const channel = channels.find((entry) => entry.id === intent);
+    params.delete('contact');
+    const next = params.toString();
+    window.history.replaceState(
+      null,
+      '',
+      `${window.location.pathname}${next ? `?${next}` : ''}${window.location.hash}`,
+    );
+    if (!channel?.href) {
+      setFallback(intent);
+      return;
+    }
+    if (intent === 'whatsapp') {
+      window.open(channel.href, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    window.location.href = channel.href;
+  }, [loggedIn, channels]);
+
+  const loginFor = (channelId: 'phone' | 'whatsapp') => {
+    const returnTo = new URL(window.location.href);
+    returnTo.searchParams.set('contact', channelId);
+    window.location.href = `/login?callbackUrl=${encodeURIComponent(`${returnTo.pathname}${returnTo.search}`)}`;
+  };
+
+  const openPrivateChannel = (channel: PublicContactChannel) => {
+    if (channel.id !== 'phone' && channel.id !== 'whatsapp') return;
+    if (!loggedIn) {
+      loginFor(channel.id);
+      return;
+    }
+    if (!channel.href) {
+      setFallback(channel.id);
+      return;
+    }
+    const desktop = window.matchMedia('(pointer: fine)').matches && window.innerWidth >= 1024;
+    if (channel.id === 'phone' && desktop) {
+      setFallback('phone');
+      return;
+    }
+    if (channel.id === 'whatsapp') {
+      const opened = window.open(channel.href, '_blank', 'noopener,noreferrer');
+      if (!opened) setFallback('whatsapp');
+      return;
+    }
+    window.location.href = channel.href;
+  };
 
   return (
     <section
@@ -137,13 +195,28 @@ export default function MakerContactSection({
         {externalChannels.map((channel) => {
           const Icon = CHANNEL_ICONS[channel.id];
           const label = t(labelKeys[channel.id]);
+          const gated = channel.id === 'phone' || channel.id === 'whatsapp';
+          const className = `inline-flex w-full sm:w-auto items-center justify-center gap-2 ${buttonSizeClass} rounded-xl font-semibold border border-emerald-200 bg-white text-emerald-800 hover:bg-emerald-50 shadow-sm transition-all`;
+          if (gated) {
+            return (
+              <button
+                key={channel.id}
+                type="button"
+                className={className}
+                onClick={() => openPrivateChannel(channel)}
+              >
+                <Icon className="w-4 h-4 shrink-0" aria-hidden />
+                <span>{label}</span>
+              </button>
+            );
+          }
           return (
             <a
               key={channel.id}
               href={channel.href}
-              target={channel.id === 'phone' ? undefined : '_blank'}
-              rel={channel.id === 'phone' ? undefined : 'noopener noreferrer'}
-              className={`inline-flex w-full sm:w-auto items-center justify-center gap-2 ${buttonSizeClass} rounded-xl font-semibold border border-emerald-200 bg-white text-emerald-800 hover:bg-emerald-50 shadow-sm transition-all`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={className}
             >
               <Icon className="w-4 h-4 shrink-0" aria-hidden />
               <span>{label}</span>
@@ -151,6 +224,54 @@ export default function MakerContactSection({
           );
         })}
       </div>
+      {fallback ? (
+        <div
+          className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"
+          role="status"
+        >
+          <p>
+            {fallback === 'whatsapp'
+              ? t('makerContact.whatsappFailed')
+              : t('makerContact.callDesktop')}
+          </p>
+          {!loggedIn ? <p className="mt-1">{t('makerContact.authRequired')}</p> : null}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {fallback === 'whatsapp' && loggedIn ? (
+              <button
+                type="button"
+                className="rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-semibold"
+                onClick={() => {
+                  const channel = channels.find((entry) => entry.id === 'whatsapp');
+                  if (channel?.href) window.open(channel.href, '_blank', 'noopener,noreferrer');
+                }}
+              >
+                {t('makerContact.retry')}
+              </button>
+            ) : null}
+            {fallback === 'phone' && loggedIn ? (
+              <button
+                type="button"
+                className="rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-semibold"
+                onClick={() => {
+                  const channel = channels.find((entry) => entry.id === 'phone');
+                  if (channel?.href) window.location.href = channel.href;
+                }}
+              >
+                {t('makerContact.retry')}
+              </button>
+            ) : null}
+            {hasChat ? (
+              <StartChatButton
+                productId={productId}
+                sellerId={makerId}
+                sellerName={makerName}
+                label={t('makerContact.chatFallback')}
+                className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white"
+              />
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

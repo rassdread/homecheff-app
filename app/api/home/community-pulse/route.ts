@@ -1,17 +1,24 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getDisplayName } from '@/lib/displayName';
 import {
   andPublicListingWhere,
 } from '@/lib/marketplace/public-listing-eligibility';
 import { buildProductDetailPath } from '@/lib/seo/productSlug';
+import { toPublicPlaceLabel } from '@/lib/geo/public-place';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * Lightweight, cacheable snapshot of real platform activity (no polling client-side).
  */
-export async function GET() {
+function samePlace(left: string | null, right: string | null): boolean {
+  if (!left || !right) return false;
+  return left.localeCompare(right, 'nl', { sensitivity: 'base' }) === 0;
+}
+
+export async function GET(request: NextRequest) {
+  const viewerPlace = toPublicPlaceLabel(new URL(request.url).searchParams.get('place'));
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
@@ -132,15 +139,52 @@ export async function GET() {
       mostSavedProductTitle = dish?.title?.trim()?.slice(0, 72) || null;
     }
 
-    const risingGroup = await prisma.product
-      .groupBy({
-        by: ['sellerId'],
+    const recentListings = await prisma.product
+      .findMany({
         where: andPublicListingWhere({ createdAt: { gte: weekAgo } }),
-        _count: { sellerId: true },
-        orderBy: { _count: { sellerId: 'desc' } },
-        take: 1,
+        orderBy: { createdAt: 'desc' },
+        take: 40,
+        select: {
+          id: true,
+          title: true,
+          placeName: true,
+          sellerId: true,
+          seller: {
+            select: {
+              User: {
+                select: {
+                  username: true,
+                  name: true,
+                  displayFullName: true,
+                  displayNameOption: true,
+                  place: true,
+                  city: true,
+                },
+              },
+            },
+          },
+        },
       })
-      .catch(() => [] as { sellerId: string; _count: { sellerId: number } }[]);
+      .catch(() => []);
+    const localListings = viewerPlace
+      ? recentListings.filter((row) => {
+          const city =
+            toPublicPlaceLabel(row.seller?.User?.city) ||
+            toPublicPlaceLabel(row.seller?.User?.place) ||
+            toPublicPlaceLabel(row.placeName);
+          return samePlace(city, viewerPlace);
+        })
+      : recentListings;
+    const risingPool = localListings;
+    const risingCounts = new Map<string, number>();
+    for (const row of risingPool) {
+      if (!row.sellerId) continue;
+      risingCounts.set(row.sellerId, (risingCounts.get(row.sellerId) ?? 0) + 1);
+    }
+    const topSellerIdFromPool = [...risingCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+    const risingGroup = topSellerIdFromPool
+      ? [{ sellerId: topSellerIdFromPool[0], _count: { sellerId: topSellerIdFromPool[1] } }]
+      : [];
 
     let risingSellerUsername: string | null = null;
     let risingSellerListings = 0;
@@ -150,26 +194,14 @@ export async function GET() {
     const topSellerId = risingGroup[0]?.sellerId;
     if (topSellerId) {
       risingSellerListings = risingGroup[0]._count.sellerId;
-      const sp = await prisma.sellerProfile.findUnique({
-        where: { id: topSellerId },
-        select: { User: { select: { username: true, name: true, displayFullName: true, displayNameOption: true } } },
-      });
-      const username = sp?.User?.username?.trim() || null;
-      risingSellerUsername = sp?.User ? getDisplayName(sp.User) : null;
+      const sample = risingPool.find((row) => row.sellerId === topSellerId);
+      const person = sample?.seller?.User;
+      const username = person?.username?.trim() || null;
+      risingSellerUsername = person ? getDisplayName(person) : null;
       risingSellerPath = username ? `/user/${encodeURIComponent(username)}` : null;
-      if (risingSellerListings === 1) {
-        const one = await prisma.product.findFirst({
-          where: andPublicListingWhere({
-            sellerId: topSellerId,
-            createdAt: { gte: weekAgo },
-          }),
-          orderBy: { createdAt: 'desc' },
-          select: { id: true, title: true, placeName: true },
-        });
-        if (one) {
-          risingListingId = one.id;
-          risingListingPath = buildProductDetailPath(one.title, one.placeName, one.id);
-        }
+      if (risingSellerListings === 1 && sample) {
+        risingListingId = sample.id;
+        risingListingPath = buildProductDetailPath(sample.title, sample.placeName, sample.id);
       }
     }
 

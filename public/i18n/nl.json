@@ -1430,6 +1430,12 @@
     "listingTabsAria": "Kies inspiratie of dorpsplein"
   },
   "inspiratie": {
+    "presentation": {
+      "recipe": { "badge": "Recept", "cta": "Bekijk recept", "detail": "Recept", "guide": "Recept" },
+      "design": { "badge": "Design", "cta": "Bekijk design", "detail": "Design", "guide": "Design" },
+      "garden": { "badge": "Tuin", "cta": "Bekijk tuin", "detail": "Tuin", "guide": "Tuin" },
+      "generic": { "badge": "Inspiratie", "cta": "Bekijk inspiratie", "detail": "Inspiratie", "guide": "Inspiratie" }
+    },
     "title": "Inspiratie",
     "welcomeBack": "Welkom terug!",
     "greeting": "Hey {firstName}, kom hier inspiratie opdoen! Ontdek heerlijke recepten, prachtige kweken en unieke designs van onze community.",
@@ -10709,6 +10715,11 @@
       "website": "Bekijk website",
       "telegram": "Bekijk Telegram"
     },
+    "authRequired": "Log in om contact op te nemen met deze maker.",
+    "whatsappFailed": "WhatsApp kon niet worden geopend.",
+    "callDesktop": "Bellen werkt het best op een telefoon.",
+    "retry": "Probeer opnieuw",
+    "chatFallback": "Stuur een bericht via HomeCheff",
     "compact": {
       "chat": "Stuur bericht",
       "phone": "Bel",

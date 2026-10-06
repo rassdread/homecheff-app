@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { loadListingDetailExtras } from '@/lib/marketplace/detail/load-listing-detail-extras';
 import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
 
@@ -15,14 +17,16 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
   }
 
-  const extras = await loadListingDetailExtras(id);
+  const session = await getServerSession(authOptions);
+  const viewerId = (session?.user as { id?: string } | undefined)?.id ?? null;
+  const extras = await loadListingDetailExtras(id, { userId: viewerId });
   if (!extras) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
   return NextResponse.json(extras, {
     headers: {
-      'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=120',
+      'Cache-Control': 'private, no-store',
     },
   });
 }

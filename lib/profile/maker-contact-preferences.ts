@@ -113,11 +113,41 @@ export function normalizePhoneNumber(raw: string): string {
   return hasPlus ? `+${digits}` : digits;
 }
 
+/**
+ * WhatsApp wa.me path. Dutch 06… numbers are not valid international
+ * destinations; convert a local leading zero to 31 without rewriting storage.
+ */
+export function whatsappInternationalDigits(raw: string): string {
+  let digits = raw.replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('00')) digits = digits.slice(2);
+  if (digits.startsWith('0') && digits.length >= 9 && digits.length <= 10) {
+    digits = `31${digits.slice(1)}`;
+  }
+  if (digits.length < 8 || digits.length > 15) return '';
+  return digits;
+}
+
 /** WhatsApp wa.me — alleen cijfers, geen leading + in pad. */
 export function whatsappWaMeUrl(normalizedPhone: string): string {
-  const digits = normalizedPhone.replace(/\D/g, '');
+  const digits = whatsappInternationalDigits(normalizedPhone);
   if (!digits) return '';
   return `https://wa.me/${digits}`;
+}
+
+/** Anonymous viewers get the action, not the number. Owners do not call themselves. */
+export function presentContactChannelsForViewer(
+  channels: PublicContactChannel[],
+  viewer: { authenticated: boolean; isOwner: boolean },
+): PublicContactChannel[] {
+  return channels.flatMap((channel) => {
+    const privateAction = channel.id === 'phone' || channel.id === 'whatsapp';
+    if (privateAction && viewer.isOwner) return [];
+    if (privateAction && !viewer.authenticated) {
+      return [{ id: channel.id, href: '' }];
+    }
+    return [channel];
+  });
 }
 
 function ensureHttpsUrl(raw: string): string {
@@ -360,8 +390,7 @@ function publicHrefForField(
       };
     case 'whatsapp': {
       if (!db.publicWhatsappNumber?.trim()) return null;
-      const wa = whatsappWaMeUrl(db.publicWhatsappNumber);
-      return wa ? { id: 'whatsapp', href: wa } : null;
+      return { id: 'whatsapp', href: whatsappWaMeUrl(db.publicWhatsappNumber) };
     }
     case 'instagram':
       if (!db.instagramUrl?.trim()) return null;

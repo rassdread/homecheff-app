@@ -3,6 +3,10 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function cleanupTestData() {
+  if (process.env.ALLOW_DESTRUCTIVE_LOCAL_CLEANUP !== '1') {
+    console.error('Refusing to delete data. This script removes every follow row. Set ALLOW_DESTRUCTIVE_LOCAL_CLEANUP=1 only against a disposable local database.');
+    process.exit(1);
+  }
   console.log('🧹 Starting cleanup of test data...');
   
   try {

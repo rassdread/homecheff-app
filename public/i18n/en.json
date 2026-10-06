@@ -2748,6 +2748,12 @@
     "listingTabsAria": "Choose inspiration or village square"
   },
   "inspiratie": {
+    "presentation": {
+      "recipe": { "badge": "Recipe", "cta": "View recipe", "detail": "Recipe", "guide": "Recipe" },
+      "design": { "badge": "Design", "cta": "View design", "detail": "Design", "guide": "Design" },
+      "garden": { "badge": "Garden", "cta": "View garden", "detail": "Garden", "guide": "Garden" },
+      "generic": { "badge": "Inspiration", "cta": "View inspiration", "detail": "Inspiration", "guide": "Inspiration" }
+    },
     "title": "Inspiration",
     "welcomeBack": "Welcome back!",
     "greeting": "Hey {firstName}, come here to get inspired! Discover delicious recipes, beautiful grows and unique designs from our community.",
@@ -10709,6 +10715,11 @@
       "website": "View website",
       "telegram": "View Telegram"
     },
+    "authRequired": "Log in to contact this maker.",
+    "whatsappFailed": "WhatsApp could not be opened.",
+    "callDesktop": "Calling works best on a phone.",
+    "retry": "Try again",
+    "chatFallback": "Send a message via HomeCheff",
     "compact": {
       "chat": "Send message",
       "phone": "Call",

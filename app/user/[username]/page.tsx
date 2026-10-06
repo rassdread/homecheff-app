@@ -17,6 +17,7 @@ import { getDisplayName } from "@/lib/displayName";
 import { publicListingEligibilityWhere, isCertificationFixtureUser } from "@/lib/marketplace/public-listing-eligibility";
 import { redactMinorPublicProfile, requiresMinorPublicPrivacy } from "@/lib/age/minor-privacy";
 import { toPublicPlaceLabel } from "@/lib/geo/public-place";
+import { presentContactChannelsForViewer } from "@/lib/profile/maker-contact-preferences";
 
 export const revalidate = 0;
 
@@ -456,6 +457,8 @@ export default async function PublicProfilePage({
           user={(() => {
             const safe = redactMinorPublicProfile({ ...(user as Record<string, unknown>) });
             delete safe.dateOfBirth;
+            delete safe.email;
+            delete safe.phoneNumber;
             safe.place = toPublicPlaceLabel(
               typeof safe.place === 'string' ? safe.place : null,
             );
@@ -476,7 +479,10 @@ export default async function PublicProfilePage({
           isOwnProfile={isOwnProfile}
           publicHcp={publicHcp}
           ecosystemChipKeys={ecosystemChipKeys}
-          publicContactChannels={publicContactChannels}
+          publicContactChannels={presentContactChannelsForViewer(publicContactChannels, {
+            authenticated: Boolean(session?.user),
+            isOwner: Boolean(session?.user && (session.user as { id?: string }).id === user.id),
+          })}
           publishedItems={publishedAanbodItems}
           searchParams={searchParams}
         />

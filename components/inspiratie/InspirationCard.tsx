@@ -5,6 +5,7 @@ import UserStatsTile from '@/components/ui/UserStatsTile';
 import InspirationCardMedia from '@/components/inspiratie/InspirationCardMedia';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { InspirationItem } from './InspiratieContent';
+import { resolveInspirationPresentation } from '@/lib/inspiratie/presentation';
 import { formatItemPlaceDistanceLine } from '@/lib/geo/item-location';
 import FavoriteButton from '@/components/favorite/FavoriteButton';
 import ShareButton from '@/components/ui/ShareButton';
@@ -20,16 +21,7 @@ export function inspirationContentLabel(
   item: InspirationItem,
   t: TranslateFn
 ): string {
-  switch (item.category) {
-    case 'CHEFF':
-      return t('feed.inspirationCategoryCheff');
-    case 'GROWN':
-      return t('feed.inspirationCategoryGrown');
-    case 'DESIGNER':
-      return t('feed.inspirationCategoryDesigner');
-    default:
-      return t('feed.inspirationCategoryDefault');
-  }
+  return t(resolveInspirationPresentation(item.category).badgeKey);
 }
 
 type InspirationCardProps = {

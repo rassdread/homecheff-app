@@ -6,6 +6,7 @@ import InspiratiePrintView from '@/components/inspiratie/InspiratiePrintView';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { loadPublicContactChannelsForUser } from '@/lib/profile/load-public-contact-channels';
+import { presentContactChannelsForViewer } from '@/lib/profile/maker-contact-preferences';
 import { loadInspiratieDetail } from '@/lib/items/load-inspiratie-detail';
 
 type PageProps = {
@@ -33,7 +34,13 @@ export default async function RecipePage({ params, searchParams }: PageProps) {
     );
   }
 
-  const publicContactChannels = await loadPublicContactChannelsForUser(result.item.user.id);
+  const publicContactChannels = presentContactChannelsForViewer(
+    await loadPublicContactChannelsForUser(result.item.user.id),
+    {
+      authenticated: Boolean(userId),
+      isOwner: Boolean(userId && userId === result.item.user.id),
+    },
+  );
 
   return (
     <InspiratieDetail

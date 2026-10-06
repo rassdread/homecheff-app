@@ -11,6 +11,7 @@ import GardenManager from "./GardenManager";
 import DesignManager from "../designs/DesignManager";
 import SmartFitMediaImage from "@/components/inspiratie/SmartFitMediaImage";
 import { useTranslation } from "@/hooks/useTranslation";
+import { resolveInspirationPresentation } from "@/lib/inspiratie/presentation";
 import { useHcpRewardUi } from "@/components/gamification/HcpRewardProvider";
 import MarketplaceBadgeList from "@/components/marketplace/MarketplaceBadgeList";
 import ProfilePublicAanbodTileGrid from "@/components/marketplace/tiles/ProfilePublicAanbodTileGrid";
@@ -696,6 +697,19 @@ export default function MyDishesManager({
     setShowRecipeViewer(true);
   };
 
+  const openInspirationItem = (item: { id: string; category?: string | null; priceCents?: number | null }) => {
+    const presentation = resolveInspirationPresentation(item.category);
+    if (presentation.semanticType === 'recipe') {
+      handleRecipeClick(item.id);
+      return;
+    }
+    if (presentation.pathSegment) {
+      router.push(`/${presentation.pathSegment}/${item.id}`);
+      return;
+    }
+    router.push(`/product/${item.id}`);
+  };
+
   const handleCloseRecipeViewer = () => {
     setShowRecipeViewer(false);
     setSelectedRecipeId(null);
@@ -907,17 +921,7 @@ export default function MyDishesManager({
                     <div 
                       key={item.id} 
                       className="bg-white border rounded-xl overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={() => {
-                        // Check if this is a recipe (has ingredients/instructions but no price)
-                        if (!item.priceCents && (item as any).ingredients && (item as any).instructions) {
-                          handleRecipeClick(item.id);
-                        } else {
-                          const itemType = item.category === 'CHEFF' ? 'recipe' : 
-                                         item.category === 'GROWN' ? 'garden' : 
-                                         item.category === 'DESIGNER' ? 'design' : 'product';
-                          router.push(`/${itemType}/${item.id}`);
-                        }
-                      }}
+                      onClick={() => openInspirationItem(item)}
                     >
                       {item.photos && item.photos.length > 0 && (
                         <div className="relative h-48 bg-neutral-50">
@@ -928,12 +932,11 @@ export default function MyDishesManager({
                             fill
                             className="hover:opacity-90 transition-opacity"
                           />
-                          {/* Recipe indicator */}
-                          {!item.priceCents && (item as any).ingredients && (
+                          {!item.priceCents ? (
                             <div className="absolute top-2 right-2 bg-emerald-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                              Recept
+                              {t(resolveInspirationPresentation(item.category).badgeKey)}
                             </div>
-                          )}
+                          ) : null}
                         </div>
                       )}
                       <div className="p-4">
@@ -1018,15 +1021,7 @@ export default function MyDishesManager({
                   <div
                     key={item.id}
                     className="cursor-pointer overflow-hidden rounded-xl border bg-white transition-shadow hover:shadow-md"
-                    onClick={() => {
-                      if (
-                        !item.priceCents &&
-                        (item as { ingredients?: unknown }).ingredients &&
-                        (item as { instructions?: unknown }).instructions
-                      ) {
-                        handleRecipeClick(item.id);
-                      }
-                    }}
+                    onClick={() => openInspirationItem(item)}
                   >
                     {item.photos && item.photos.length > 0 && (
                       <div
@@ -1046,12 +1041,11 @@ export default function MyDishesManager({
                           fill
                           className="transition-opacity hover:opacity-90"
                         />
-                        {!item.priceCents &&
-                          (item as { ingredients?: unknown }).ingredients && (
+                        {!item.priceCents ? (
                             <div className="absolute right-2 top-2 rounded-full bg-emerald-500 px-2 py-1 text-xs font-medium text-white">
-                              Recept
+                              {t(resolveInspirationPresentation(item.category).badgeKey)}
                             </div>
-                          )}
+                          ) : null}
                       </div>
                     )}
                     <div className="p-4">
@@ -1062,13 +1056,9 @@ export default function MyDishesManager({
                         </p>
                       )}
                       <div className="flex items-center justify-between">
-                        {(item as { ingredients?: unknown }).ingredients ? (
+                        {!item.priceCents ? (
                           <span className="text-sm font-medium text-emerald-600">
-                            {role === 'garden'
-                              ? 'Bekijk kweek'
-                              : role === 'designer'
-                                ? 'Bekijk design'
-                                : 'Bekijk recept'}
+                            {t(resolveInspirationPresentation(item.category).ctaKey)}
                           </span>
                         ) : (
                           <span className="text-xs text-gray-500">

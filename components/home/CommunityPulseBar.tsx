@@ -59,7 +59,11 @@ export default function CommunityPulseBar({
     let cancelled = false;
     void (async () => {
       try {
-        const res = await fetch('/api/home/community-pulse', { cache: 'no-store' });
+        const place =
+          document.querySelector('[data-hc-viewer-place]')?.getAttribute('data-hc-viewer-place')?.trim() ||
+          '';
+        const query = place ? `?place=${encodeURIComponent(place)}` : '';
+        const res = await fetch(`/api/home/community-pulse${query}`, { cache: 'no-store' });
         if (!res.ok || cancelled) return;
         const j = (await res.json()) as CommunityPulsePayload;
         if (!cancelled) setData(j);

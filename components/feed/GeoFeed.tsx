@@ -7238,6 +7238,7 @@ export default function GeoFeed({
                         : "desktop-exact"
                     }
                     className={feedResultsContainerClass}
+                    data-hc-viewer-place={viewerPlaceForApi || undefined}
                     data-wx-discovery-exact=""
                   >
                     {isMobileFeedUi && feedChip === "sale" && session?.user ? (
@@ -7291,6 +7292,7 @@ export default function GeoFeed({
                         : "desktop-cont"
                     }
                     className={feedResultsContainerClass}
+                    data-hc-viewer-place={viewerPlaceForApi || undefined}
                     data-wx-discovery-continuity-feed=""
                     data-wx-discovery-suggestions=""
                   >
@@ -7721,6 +7723,7 @@ export default function GeoFeed({
         <div
           key={isMobileFeedUi ? effectiveFeedLayoutMode : "desktop"}
           className={feedResultsContainerClass}
+          data-hc-viewer-place={viewerPlaceForApi || undefined}
         >
           {isMobileFeedUi && feedChip === "sale" && session?.user ? (
             <div className="col-span-full">
