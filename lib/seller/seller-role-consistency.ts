@@ -66,12 +66,25 @@ export function sellerRoleForCommercialOffer(
   productCategory: string | null | undefined,
   marketplaceCategory?: string | null,
   specializations?: string[] | null,
+  commerce?: {
+    priceModel?: string | null;
+    fulfillmentOptions?: {
+      digital?: boolean | null;
+      pickup?: boolean | null;
+      delivery?: boolean | null;
+      shipping?: boolean | null;
+    } | null;
+    subcategory?: string | null;
+  },
 ): CanonicalSellerRole | null {
   const capability = commercialCapabilityForOffer({
     listingIntent,
     marketplaceCategory,
     productCategory,
     specializations,
+    subcategory: commerce?.subcategory,
+    priceModel: commerce?.priceModel,
+    fulfillmentOptions: commerce?.fulfillmentOptions,
   });
   if (capability === 'chef' || capability === 'garden' || capability === 'designer' || capability === 'service') {
     return capability;

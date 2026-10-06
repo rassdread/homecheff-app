@@ -47,10 +47,78 @@ export function isDesignServiceTaxonomyId(id: string | null | undefined): boolea
   return String(id ?? '').trim().toLowerCase().startsWith('design.');
 }
 
+/**
+ * Commissioned digital work. These stay services even when a parcel option is ticked.
+ * Photo and video are not in this set: historical creations stored them as media tags.
+ */
+const INTRINSIC_COMMISSION_DESIGN_IDS = new Set([
+  'design.website',
+  'design.webshop',
+  'design.app',
+  'design.uiux',
+  'design.logo',
+  'design.branding',
+  'design.seo',
+  'design.marketing',
+  'design.web_other',
+  'design.brand_other',
+]);
+
+/** Design ids that describe either a physical object or commissioned media work. */
+const OBJECT_CAPABLE_DESIGN_IDS = new Set([
+  'design.photo',
+  'design.video',
+  'design.illustration',
+  'design.animation',
+  'design.content',
+  'design.creative_session',
+  'design.other',
+]);
+
+export type CommerceFulfillment = {
+  digital?: boolean | null;
+  pickup?: boolean | null;
+  delivery?: boolean | null;
+  shipping?: boolean | null;
+  onSiteClient?: boolean | null;
+  onSiteProvider?: boolean | null;
+};
+
+export function isIntrinsicCommissionDesignId(id: string | null | undefined): boolean {
+  return INTRINSIC_COMMISSION_DESIGN_IDS.has(String(id ?? '').trim().toLowerCase());
+}
+
+export function isObjectCapableDesignId(id: string | null | undefined): boolean {
+  return OBJECT_CAPABLE_DESIGN_IDS.has(String(id ?? '').trim().toLowerCase());
+}
+
+/** The buyer receives a physical object, not labor or a digital file. */
+export function listingDeliversPhysicalObject(input: {
+  priceModel?: string | null;
+  fulfillmentOptions?: CommerceFulfillment | null;
+}): boolean {
+  const model = String(input.priceModel ?? 'FIXED').trim().toUpperCase();
+  if (model === 'HOURLY' || model === 'DAILY' || model === 'ON_REQUEST' || model === 'VOLUNTARY') {
+    return false;
+  }
+  const fulfillment = input.fulfillmentOptions;
+  if (!fulfillment || typeof fulfillment !== 'object') return false;
+  const handsOffGoods = Boolean(
+    fulfillment.pickup || fulfillment.delivery || fulfillment.shipping,
+  );
+  if (!handsOffGoods) return false;
+  if (fulfillment.digital === true && !fulfillment.pickup && !fulfillment.delivery && !fulfillment.shipping) {
+    return false;
+  }
+  return true;
+}
+
 export type OfferSemantics = {
   marketplaceCategory?: string | null;
   specializations?: string[] | null;
   subcategory?: string | null;
+  priceModel?: string | null;
+  fulfillmentOptions?: CommerceFulfillment | null;
 };
 
 function canonicalSpec(raw: string): string {
@@ -77,9 +145,27 @@ export function isStructuredServiceTaxonomyId(id: string | null | undefined): bo
   return Boolean(item && isServiceMarketplaceCategory(item.category));
 }
 
+/**
+ * Whether this taxonomy id is evidence of labor.
+ * Photo, video, and illustration are labor only when the listing does not hand over a physical object.
+ */
+export function taxonomyCountsAsService(
+  id: string | null | undefined,
+  deliversPhysicalObject: boolean,
+): boolean {
+  const value = String(id ?? '').trim().toLowerCase();
+  if (!value || isCraftCreateTaxonomyId(value)) return false;
+  if (isIntrinsicCommissionDesignId(value)) return true;
+  if (isObjectCapableDesignId(value)) return !deliversPhysicalObject;
+  if (isDesignServiceTaxonomyId(value)) return !deliversPhysicalObject;
+  const item = getMarketplaceTaxonomyItem(value);
+  return Boolean(item && isServiceMarketplaceCategory(item.category));
+}
+
 export function offerIsService(input: OfferSemantics): boolean {
   if (isServiceMarketplaceCategory(input.marketplaceCategory)) return true;
-  return specsOf(input).some((id) => isStructuredServiceTaxonomyId(id));
+  const physical = listingDeliversPhysicalObject(input);
+  return specsOf(input).some((id) => taxonomyCountsAsService(id, physical));
 }
 
 export function offerIsProduct(input: OfferSemantics): boolean {
@@ -104,13 +190,16 @@ export function commercialCapabilityForOffer(input: {
   productCategory?: string | null;
   specializations?: string[] | null;
   subcategory?: string | null;
+  priceModel?: string | null;
+  fulfillmentOptions?: CommerceFulfillment | null;
 }): CommercialCapability | null {
   if ((input.listingIntent || 'OFFER').toUpperCase() !== 'OFFER') return null;
 
   const marketplace = String(input.marketplaceCategory ?? '').trim().toUpperCase();
   const specs = specsOf(input);
+  const physical = listingDeliversPhysicalObject(input);
   if (isServiceMarketplaceCategory(marketplace)) return 'service';
-  if (specs.some((id) => isStructuredServiceTaxonomyId(id))) return 'service';
+  if (specs.some((id) => taxonomyCountsAsService(id, physical))) return 'service';
   if (specs.some((id) => isCraftCreateTaxonomyId(id))) return 'designer';
   if (marketplace === 'DESIGN') return 'designer';
 
@@ -138,6 +227,8 @@ export function listingSemanticFamily(input: {
   productCategory?: string | null;
   specializations?: string[] | null;
   subcategory?: string | null;
+  priceModel?: string | null;
+  fulfillmentOptions?: CommerceFulfillment | null;
 }): ListingSemanticFamily | null {
   const specs = [
     ...(input.specializations ?? []),
@@ -148,6 +239,8 @@ export function listingSemanticFamily(input: {
     marketplaceCategory: input.marketplaceCategory,
     productCategory: input.productCategory,
     specializations: specs,
+    priceModel: input.priceModel,
+    fulfillmentOptions: input.fulfillmentOptions,
   });
   if (capability === 'chef') return 'food';
   if (capability === 'garden') return 'garden';

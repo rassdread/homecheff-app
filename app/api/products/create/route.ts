@@ -932,6 +932,11 @@ export async function POST(req: Request) {
       cat,
       v2Resolved.marketplaceCategory,
       v2Resolved.specializations,
+      {
+        priceModel: v2Resolved.priceModel,
+        fulfillmentOptions: v2Resolved.fulfillmentOptions,
+        subcategory: v2Resolved.subcategory,
+      },
     );
     if (grantedRole) {
       const nextRoles = unionSellerRoles(user.sellerRoles, grantedRole);

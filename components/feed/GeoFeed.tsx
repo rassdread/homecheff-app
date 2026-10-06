@@ -431,6 +431,13 @@ type FeedItem = {
   discovery?: DiscoveryReadModel;
   marketplaceCategory?: string | null;
   specializations?: string[];
+  subcategory?: string | null;
+  fulfillmentOptions?: {
+    digital?: boolean | null;
+    pickup?: boolean | null;
+    delivery?: boolean | null;
+    shipping?: boolean | null;
+  } | null;
   acceptedSpecializations?: string[];
   feedSource?: string | null;
 };
@@ -568,6 +575,15 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
           category: raw.category != null ? String(raw.category) : null,
           marketplaceCategory:
             raw.marketplaceCategory != null ? String(raw.marketplaceCategory) : null,
+          specializations: Array.isArray(raw.specializations)
+            ? raw.specializations.filter((v): v is string => typeof v === 'string')
+            : null,
+          subcategory: raw.subcategory != null ? String(raw.subcategory) : null,
+          priceModel: raw.priceModel != null ? String(raw.priceModel) : null,
+          fulfillmentOptions:
+            raw.fulfillmentOptions != null && typeof raw.fulfillmentOptions === 'object'
+              ? (raw.fulfillmentOptions as FeedItem['fulfillmentOptions'])
+              : null,
         }) ?? (raw.category != null ? String(raw.category) : null);
 
   const taxonomyInput = {
@@ -592,6 +608,10 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
       ? raw.specializations.filter((v): v is string => typeof v === 'string')
       : null,
     subcategory: raw.subcategory != null ? String(raw.subcategory) : null,
+    fulfillmentOptions:
+      raw.fulfillmentOptions != null && typeof raw.fulfillmentOptions === 'object'
+        ? (raw.fulfillmentOptions as FeedItem['fulfillmentOptions'])
+        : null,
   };
   const withKind = discovery
     ? { ...taxonomyInput, listingKind: discovery.listingKind }
@@ -681,6 +701,11 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
       : Array.isArray(raw.specializations)
         ? raw.specializations.filter((v): v is string => typeof v === 'string')
         : undefined,
+    subcategory: raw.subcategory != null ? String(raw.subcategory) : null,
+    fulfillmentOptions:
+      raw.fulfillmentOptions != null && typeof raw.fulfillmentOptions === 'object'
+        ? (raw.fulfillmentOptions as FeedItem['fulfillmentOptions'])
+        : null,
     acceptedSpecializations: Array.isArray(raw.acceptedSpecializations)
       ? raw.acceptedSpecializations.filter((v): v is string => typeof v === 'string')
       : undefined,

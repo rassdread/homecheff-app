@@ -59,7 +59,9 @@ export function normalizeTaxonomyIds(
 
   return unique.filter((id) => {
     const item = getMarketplaceTaxonomyRegistryMap().get(id);
-    return item?.category === category && item.level === 'item';
+    if (!item || item.level !== 'item') return false;
+    if (category === 'DESIGN' && item.parentId === 'grp.create.craft') return true;
+    return item.category === category;
   });
 }
 

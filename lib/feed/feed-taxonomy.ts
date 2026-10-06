@@ -80,6 +80,12 @@ export type FeedTaxonomyInput = {
   marketplaceCategory?: string | null;
   specializations?: string[] | null;
   subcategory?: string | null;
+  fulfillmentOptions?: {
+    digital?: boolean | null;
+    pickup?: boolean | null;
+    delivery?: boolean | null;
+    shipping?: boolean | null;
+  } | null;
   listingKind?: ListingKind | null;
   /** Explicit overrides when REQUEST items exist (future). */
   direction?: FeedDirection | null;
@@ -216,6 +222,8 @@ function resolveFeedCategory(input: FeedTaxonomyInput): FeedCategory {
       marketplaceCategory: input.marketplaceCategory,
       specializations: input.specializations,
       subcategory: input.subcategory,
+      priceModel: input.priceModel,
+      fulfillmentOptions: input.fulfillmentOptions,
     })
   ) {
     return 'HELP';

@@ -38,6 +38,12 @@ export type MarketplaceSaleInput = {
   marketplaceCategory?: string | null;
   specializations?: string[] | null;
   subcategory?: string | null;
+  fulfillmentOptions?: {
+    digital?: boolean | null;
+    pickup?: boolean | null;
+    delivery?: boolean | null;
+    shipping?: boolean | null;
+  } | null;
   /** Phase 1C: canonical classification — preferred over heuristics. */
   discovery?: {
     listingKind?: string | null;
@@ -147,6 +153,8 @@ export function isMarketplaceServiceItem(item: MarketplaceSaleInput): boolean {
       marketplaceCategory:
         item.discovery?.marketplaceCategory ?? item.marketplaceCategory,
       specializations: specs,
+      priceModel: item.priceModel,
+      fulfillmentOptions: item.fulfillmentOptions,
     })
   ) {
     return true;

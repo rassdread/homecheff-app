@@ -29,6 +29,13 @@ type Row = {
   feedSource?: string;
   priceCents?: number;
   orderMethod?: string | null;
+  priceModel?: string | null;
+  fulfillmentOptions?: {
+    digital?: boolean | null;
+    pickup?: boolean | null;
+    delivery?: boolean | null;
+    shipping?: boolean | null;
+  } | null;
 };
 
 function family(row: Row) {
@@ -37,6 +44,8 @@ function family(row: Row) {
     productCategory: row.category,
     specializations: row.specializations,
     subcategory: row.subcategory,
+    priceModel: row.priceModel,
+    fulfillmentOptions: row.fulfillmentOptions,
   });
 }
 
@@ -188,6 +197,37 @@ const bareDesign: Row = {
   marketplaceCategory: 'DESIGN',
 };
 
+const beadTree: Row = {
+  title: 'Turquoise boompje van kralen',
+  description: 'Handgemaakt boompje van kralen in een schaaltje',
+  category: 'DESIGNER',
+  marketplaceCategory: 'DESIGN',
+  subcategory: 'design.video',
+  specializations: ['design.video', 'design.photo'],
+  priceModel: 'FIXED',
+  fulfillmentOptions: {
+    digital: false,
+    pickup: true,
+    delivery: true,
+    shipping: true,
+  },
+};
+
+const photoShoot: Row = {
+  title: 'Portret op locatie',
+  category: 'DESIGNER',
+  marketplaceCategory: 'DESIGN',
+  subcategory: 'design.photo',
+  specializations: ['design.photo'],
+  priceModel: 'ON_REQUEST',
+  fulfillmentOptions: {
+    digital: false,
+    pickup: false,
+    delivery: false,
+    shipping: false,
+  },
+};
+
 describe('listing semantic family', () => {
   it('classifies structured listings, not the storage bucket', () => {
     assert.equal(family(food), 'food');
@@ -207,6 +247,12 @@ describe('listing semantic family', () => {
     assert.equal(family(graphic), 'service');
     assert.equal(family(legacyPhoto), 'service');
     assert.equal(family(bareDesign), 'creation');
+    assert.equal(family(beadTree), 'creation');
+    assert.equal(family(photoShoot), 'service');
+    assert.equal(inCategory(beadTree, 'designer'), true);
+    assert.equal(inCategory(beadTree, 'services'), false);
+    assert.equal(inCategory(photoShoot, 'services'), true);
+    assert.equal(inCategory(photoShoot, 'designer'), false);
   });
 
   it('lets a design service taxonomy beat legacy DESIGNER storage', () => {
@@ -366,6 +412,8 @@ describe('server category filter', () => {
     const creations = JSON.stringify(semanticProductWhereForDiscoverySlug('designer'));
     assert.equal(creations.includes('"marketplaceCategory":"DESIGN"'), true);
     assert.equal(creations.includes('meubels'), true);
+    assert.equal(encoded.includes('design.website'), true);
+    assert.equal(encoded.includes('"path":["digital"]'), true);
   });
 
   it('keeps text search and category as separate AND clauses', () => {

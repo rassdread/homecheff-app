@@ -13,7 +13,6 @@ import {
 import type { MarketplaceTaxonomyItem } from './taxonomy-types';
 
 export const SERVICE_MARKETPLACE_CATEGORIES: readonly MarketplaceCategory[] = [
-  'DESIGN',
   'ARTISTIC_SERVICE',
   'PRACTICAL_SERVICE',
   'KNOWLEDGE',
@@ -98,6 +97,10 @@ export function getServiceAccordionGroups(): MarketplaceTaxonomyItem[] {
 export function getOfferAccordionGroups(
   category: MarketplaceCategory,
 ): MarketplaceTaxonomyItem[] {
+  if (category === 'DESIGN') {
+    const craft = getMarketplaceTaxonomyItem('grp.create.craft');
+    return craft && craft.level === 'group' ? [craft] : [];
+  }
   if (isServiceMarketplaceCategory(category)) {
     return getServiceAccordionGroups();
   }
@@ -132,6 +135,13 @@ export function marketplaceCategoryFromSpecializations(
   ids: string[],
   fallback: MarketplaceCategory,
 ): MarketplaceCategory {
+  if (
+    fallback === 'DESIGN' &&
+    ids.length > 0 &&
+    ids.every((id) => getMarketplaceTaxonomyItem(id)?.parentId === 'grp.create.craft')
+  ) {
+    return 'DESIGN';
+  }
   for (let i = ids.length - 1; i >= 0; i -= 1) {
     const category = getMarketplaceTaxonomyItem(ids[i])?.category;
     if (category) return category;

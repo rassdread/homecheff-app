@@ -53,6 +53,13 @@ describe('commercial offer role union', () => {
       'service',
     );
     assert.equal(
+      sellerRoleForCommercialOffer('OFFER', 'DESIGNER', 'DESIGN', ['design.video', 'design.photo'], {
+        priceModel: 'FIXED',
+        fulfillmentOptions: { digital: false, pickup: true, shipping: true, delivery: false },
+      }),
+      'designer',
+    );
+    assert.equal(
       sellerRoleForCommercialOffer('OFFER', 'DESIGNER', 'DESIGN', ['create.art']),
       'designer',
     );

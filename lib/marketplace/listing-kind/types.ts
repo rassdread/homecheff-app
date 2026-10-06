@@ -15,6 +15,15 @@ export type DeriveListingKindInput = {
   specializations?: string[] | null;
   /** Legacy subcategory / single taxonomy id. */
   subcategory?: string | null;
+  priceModel?: string | null;
+  fulfillmentOptions?: {
+    digital?: boolean | null;
+    pickup?: boolean | null;
+    delivery?: boolean | null;
+    shipping?: boolean | null;
+    onSiteClient?: boolean | null;
+    onSiteProvider?: boolean | null;
+  } | null;
   /** Legacy Product.category (CHEFF | GROWN | DESIGNER). */
   category?: string | null;
   fulfillmentOptions?: unknown;

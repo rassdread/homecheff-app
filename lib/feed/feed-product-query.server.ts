@@ -33,6 +33,12 @@ export type FeedProductRow = {
   specializations: string[];
   acceptedSpecializations: string[];
   subcategory: string | null;
+  fulfillmentOptions: {
+    digital?: boolean | null;
+    pickup?: boolean | null;
+    delivery?: boolean | null;
+    shipping?: boolean | null;
+  } | null;
   barterOpenness: string | null;
   createdAt: Date;
   pickupAddress: string | null;
@@ -100,6 +106,7 @@ const PRODUCT_BODY_SELECT = {
   specializations: true,
   acceptedSpecializations: true,
   subcategory: true,
+  fulfillmentOptions: true,
   barterOpenness: true,
   createdAt: true,
   pickupAddress: true,

@@ -934,6 +934,8 @@ async function handleFeedGet(
     marketplaceCategory: product.marketplaceCategory ?? null,
     specializations: product.specializations ?? [],
     subcategory: product.subcategory ?? null,
+    delivery: product.delivery ?? null,
+    fulfillmentOptions: product.fulfillmentOptions ?? null,
     barterOpenness: product.barterOpenness ?? null,
     acceptedSpecializations: product.acceptedSpecializations ?? [],
     status: "ACTIVE" as const,

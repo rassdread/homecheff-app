@@ -51,6 +51,13 @@ export function getDiscoveryLegacyVerticalCategory(item: object): string | null 
     productCategory: row.category,
     specializations: specs,
     subcategory,
+    priceModel: (row as { priceModel?: string | null }).priceModel,
+    fulfillmentOptions: (row as { fulfillmentOptions?: {
+      digital?: boolean | null;
+      pickup?: boolean | null;
+      delivery?: boolean | null;
+      shipping?: boolean | null;
+    } | null }).fulfillmentOptions,
   });
   if (family === 'service') return null;
   if (family === 'food') return 'CHEFF';

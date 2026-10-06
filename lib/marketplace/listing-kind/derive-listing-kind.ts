@@ -4,7 +4,10 @@ import {
   isPhysicalCreateTaxonomyId,
   isWorkshopTaxonomyId,
 } from '@/lib/marketplace/form-config';
-import { isStructuredServiceTaxonomyId } from '@/lib/marketplace/commercial-capability';
+import {
+  listingDeliversPhysicalObject,
+  taxonomyCountsAsService,
+} from '@/lib/marketplace/commercial-capability';
 import { legacyUrlCategoryToMarketplace } from '@/lib/marketplace/listing-taxonomy';
 import { toCanonicalTaxonomyId } from '@/lib/marketplace/taxonomy-normalize';
 import { isRequestListing } from '@/lib/marketplace/product-visibility';
@@ -139,7 +142,11 @@ export function deriveListingKind(
     return result;
   }
 
-  if (specs.some((id) => isStructuredServiceTaxonomyId(id))) {
+  const physical = listingDeliversPhysicalObject({
+    priceModel: input.priceModel,
+    fulfillmentOptions: input.fulfillmentOptions,
+  });
+  if (specs.some((id) => taxonomyCountsAsService(id, physical))) {
     const result: DeriveListingKindResult = {
       listingKind: 'SERVICE',
       derivationPath: 'specializations:service',
@@ -238,7 +245,11 @@ export function buildListingKindInputFromFeedItem(
     subcategory:
       item.subcategory != null ? String(item.subcategory) : null,
     category: item.category != null ? String(item.category) : null,
-    fulfillmentOptions: item.fulfillmentOptions,
+    priceModel: item.priceModel != null ? String(item.priceModel) : null,
+    fulfillmentOptions:
+      item.fulfillmentOptions != null && typeof item.fulfillmentOptions === 'object'
+        ? (item.fulfillmentOptions as DeriveListingKindInput['fulfillmentOptions'])
+        : null,
     feedSource,
     type: item.type != null ? String(item.type) : null,
   };

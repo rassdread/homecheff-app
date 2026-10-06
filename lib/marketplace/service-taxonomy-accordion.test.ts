@@ -136,9 +136,13 @@ describe('service taxonomy accordion registry', () => {
     assert.equal(getMarketplaceTaxonomyItem('create.craft_other')?.requiresCustomLabel, true);
     assert.equal(getMarketplaceTaxonomyItem('create.international_other')?.requiresCustomLabel, true);
     const designGroups = getOfferAccordionGroups('DESIGN').map((g) => g.id);
-    assert.ok(designGroups.includes('grp.artistic.music'));
-    assert.ok(designGroups.includes('grp.design.web'));
+    assert.deepEqual(designGroups, ['grp.create.craft']);
+    assert.ok(!designGroups.includes('grp.design.web'));
     assert.ok(!designGroups.includes('grp.create.meals'));
+    assert.equal(
+      marketplaceCategoryFromSpecializations(['create.decoration'], 'DESIGN'),
+      'DESIGN',
+    );
   });
 
   it('maps studio session to SERVICE listing kind, workshop stays WORKSHOP', () => {
