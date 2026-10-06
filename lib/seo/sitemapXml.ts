@@ -31,6 +31,7 @@ const EXTRA_STATIC_PATHS: readonly string[] = [
   "/seo-hub",
   "/en/seo-hub",
   "/affiliate",
+  "/sell",
   "/ecosystem",
   "/studio",
   "/growth",

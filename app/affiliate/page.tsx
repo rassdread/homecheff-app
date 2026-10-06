@@ -1,4 +1,5 @@
 import AffiliatePageClient from './page-client';
+import BusinessPlanPublicFacts from '@/components/business/BusinessPlanPublicFacts';
 import AffiliateBusinessStory from '@/components/affiliate/AffiliateBusinessStory';
 import AffiliateHeroCtas from '@/components/affiliate/AffiliateHeroCtas';
 import { loadPublicPresentation } from '@/lib/affiliate/program-store';
@@ -180,6 +181,7 @@ export default async function AffiliatePage({
           <AffiliateHeroCtas lang={en ? 'en' : 'nl'} />
         </div>
       </section>
+      <BusinessPlanPublicFacts lang={en ? 'en' : 'nl'} variant="affiliate" />
       <div className="bg-slate-50 px-4 pb-16 pt-2">
         <AffiliateBusinessStory
           lang={en ? 'en' : 'nl'}

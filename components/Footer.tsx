@@ -60,6 +60,7 @@ export default function Footer() {
     { href: '/studio', label: t('siteFooter.studio'), icon: Palette },
     { href: '/growth', label: t('siteFooter.growth'), icon: Rocket },
     { href: '/affiliate', label: t('siteFooter.affiliateProgram'), icon: TrendingUp },
+    { href: '/sell', label: language === 'en' ? 'For business' : 'Voor bedrijven', icon: Rocket },
     { href: '/over-ons', label: t('siteFooter.overOns'), icon: Info },
     { href: '/docs', label: t('siteFooter.openDocs'), icon: Library },
     { href: '/evidence', label: t('siteFooter.evidence'), icon: BarChart3 },
