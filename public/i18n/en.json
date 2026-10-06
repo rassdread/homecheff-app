@@ -337,6 +337,15 @@
     "sponsored": "Sponsored",
     "activeListersWeek": "{count} creators listed something this week"
   },
+  "sponsoredRecommendation": {
+    "label": "Sponsored",
+    "why": "Why am I seeing this?",
+    "why.query": "You are seeing this because the offer matches your search.",
+    "why.category": "You are seeing this because the offer fits the category you are browsing.",
+    "why.place": "You are seeing this because the offer is available around the place you chose.",
+    "why.shipping": "You are seeing this because this offer can be shipped and fits what you are browsing.",
+    "viewOffer": "View offer"
+  },
   "creatorMomentum": {
     "title": "Your creator visibility",
     "profileViews": "Your profile was viewed {count} times (all time).",

@@ -3,12 +3,14 @@ import {
   homePromotionFeedInsertId,
   type HomePromotionId,
 } from '@/lib/promotions/home-promotions';
+import { SPONSORED_AFTER_ORGANIC_ITEMS } from '@/lib/sponsored/recommendation';
 
 export type HomeMobileFeedInsertId =
   | 'verticals'
   | 'pulse'
   | 'reputation'
   | 'share'
+  | 'sponsored'
   | `promo:${HomePromotionId}`;
 
 /** Which mobile feed insert to show after N feed items (homepage only). */
@@ -24,6 +26,7 @@ export function resolveHomeMobileInsert(
     return homePromotionFeedInsertId(promoSlot.promotionId);
   }
 
+  if (feedItemIndex === SPONSORED_AFTER_ORGANIC_ITEMS) return 'sponsored';
   if (feedItemIndex === 7 && isLoggedIn) return 'reputation';
   if (feedItemIndex === 11) return 'share';
   return null;

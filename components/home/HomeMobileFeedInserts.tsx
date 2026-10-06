@@ -6,6 +6,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useGuestBottomNavPanel } from '@/hooks/useGuestBottomNavPanel';
 import CommunityPulseBar from '@/components/home/CommunityPulseBar';
+import SponsoredRecommendationInsert from '@/components/home/SponsoredRecommendationInsert';
 import HomeReputationCompactCard from '@/components/home/HomeReputationCompactCard';
 import HomeVerticalChipStrip from '@/components/home/HomeVerticalChipStrip';
 import HomeRecommendedPromotions from '@/components/home/HomeRecommendedPromotions';
@@ -31,6 +32,10 @@ export function HomeMobileFeedInsert({
         <HomeVerticalChipStrip />
       </div>
     );
+  }
+
+  if (insertId === 'sponsored') {
+    return <SponsoredRecommendationInsert />;
   }
 
   if (insertId === 'pulse') {

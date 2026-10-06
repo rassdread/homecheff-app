@@ -129,6 +129,8 @@ import {
   resolveHomeMobileTrailingPromo,
 } from "@/lib/home/resolve-home-mobile-insert";
 import type { HomeMobileFeedInsertId } from "@/lib/home/resolve-home-mobile-insert";
+import SponsoredRecommendationInsert from "@/components/home/SponsoredRecommendationInsert";
+import { SPONSORED_AFTER_ORGANIC_ITEMS } from "@/lib/sponsored/recommendation";
 import type { HomePromotionId } from "@/lib/promotions/home-promotions";
 import type {
   CreateFlowIntent,
@@ -7032,6 +7034,13 @@ export default function GeoFeed({
     const insertedPromoIds = new Set<HomePromotionId>();
 
     const pushInsertIfNeeded = () => {
+      if (!isMobileFeedUi && feedItemIndex === SPONSORED_AFTER_ORGANIC_ITEMS) {
+        nodes.push(
+          <div key="feed-insert-sponsored-desktop" className="contents">
+            <SponsoredRecommendationInsert />
+          </div>,
+        );
+      }
       if (!enableMobileFeedInserts || !isMobileFeedUi) return;
       const insertId = resolveHomeMobileInsert(feedItemIndex, isLoggedIn);
       if (!insertId || !renderMobileFeedInsert) return;
@@ -7239,6 +7248,11 @@ export default function GeoFeed({
                     }
                     className={feedResultsContainerClass}
                     data-hc-viewer-place={viewerPlaceForApi || undefined}
+                    data-hc-feed-query={appliedSearchQuery || undefined}
+                    data-hc-feed-category={category || undefined}
+                    data-hc-feed-radius={radius}
+                    data-hc-feed-lat={feedCoords?.lat}
+                    data-hc-feed-lng={feedCoords?.lng}
                     data-wx-discovery-exact=""
                   >
                     {isMobileFeedUi && feedChip === "sale" && session?.user ? (
@@ -7293,6 +7307,11 @@ export default function GeoFeed({
                     }
                     className={feedResultsContainerClass}
                     data-hc-viewer-place={viewerPlaceForApi || undefined}
+                    data-hc-feed-query={appliedSearchQuery || undefined}
+                    data-hc-feed-category={category || undefined}
+                    data-hc-feed-radius={radius}
+                    data-hc-feed-lat={feedCoords?.lat}
+                    data-hc-feed-lng={feedCoords?.lng}
                     data-wx-discovery-continuity-feed=""
                     data-wx-discovery-suggestions=""
                   >
@@ -7724,6 +7743,11 @@ export default function GeoFeed({
           key={isMobileFeedUi ? effectiveFeedLayoutMode : "desktop"}
           className={feedResultsContainerClass}
           data-hc-viewer-place={viewerPlaceForApi || undefined}
+                    data-hc-feed-query={appliedSearchQuery || undefined}
+                    data-hc-feed-category={category || undefined}
+                    data-hc-feed-radius={radius}
+                    data-hc-feed-lat={feedCoords?.lat}
+                    data-hc-feed-lng={feedCoords?.lng}
         >
           {isMobileFeedUi && feedChip === "sale" && session?.user ? (
             <div className="col-span-full">

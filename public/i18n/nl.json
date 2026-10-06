@@ -337,6 +337,15 @@
     "sponsored": "Gesponsord",
     "activeListersWeek": "{count} makers zetten iets in de etalage deze week"
   },
+  "sponsoredRecommendation": {
+    "label": "Gesponsord",
+    "why": "Waarom zie ik dit?",
+    "why.query": "Je ziet deze aanbeveling omdat dit aanbod aansluit bij je zoekopdracht.",
+    "why.category": "Je ziet deze aanbeveling omdat dit aanbod in de categorie past die je nu bekijkt.",
+    "why.place": "Je ziet deze aanbeveling omdat dit aanbod beschikbaar is in de omgeving die je hebt gekozen.",
+    "why.shipping": "Je ziet deze aanbeveling omdat dit aanbod verstuurd kan worden en aansluit bij wat je bekijkt.",
+    "viewOffer": "Bekijk aanbod"
+  },
   "creatorMomentum": {
     "title": "Jouw zichtbaarheid als maker",
     "profileViews": "Je profiel werd {count} keer bekeken (totaal).",
