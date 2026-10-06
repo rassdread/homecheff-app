@@ -127,12 +127,12 @@ export default function WorkspaceOrientationStrip({
         role="banner"
         aria-label={whereLabel}
       >
-        <div className="flex min-w-0 flex-col items-start gap-1 xl:flex-row xl:items-baseline xl:justify-between xl:gap-3">
+        <div className="grid min-w-0 grid-cols-1 items-start gap-1 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-baseline xl:gap-3">
           <h1
             data-testid="home-hero-title"
             data-hero-city={heroGeo.city ?? ''}
             data-wx-orientation-title=""
-            className="min-w-0 text-sm font-semibold leading-snug tracking-tight text-[var(--hc-text)] sm:text-base xl:flex-1 xl:truncate"
+            className="min-w-0 text-sm font-semibold leading-snug tracking-tight text-[var(--hc-text)] sm:text-base xl:truncate"
           >
             {whereLabel}
           </h1>
@@ -141,7 +141,7 @@ export default function WorkspaceOrientationStrip({
             type="button"
             data-hc-value-explainer-trigger=""
             onClick={() => setValueExplainerOpen(true)}
-            className="inline-flex w-max max-w-full shrink-0 flex-none text-left text-xs font-medium leading-snug text-[var(--hc-blue)] underline-offset-2 hover:underline"
+            className="justify-self-start text-left text-xs font-medium leading-snug text-[var(--hc-blue)] underline-offset-2 hover:underline xl:justify-self-end"
             aria-haspopup="dialog"
             aria-expanded={valueExplainerOpen}
           >
