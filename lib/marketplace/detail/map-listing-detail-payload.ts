@@ -1,6 +1,9 @@
 /**
  * Maps API/RSC listing detail payload → ListingDetailPage product shape.
+ * Public pages receive a city label, not the stored pickup address.
  */
+
+import { toPublicPlaceLabel } from '@/lib/geo/public-place';
 
 export type MappedListingDetail = {
   product: any;
@@ -164,9 +167,16 @@ export function mapListingDetailPayload(data: {
     listingIntent: data.product.listingIntent ?? 'OFFER',
     priceModel: data.product.priceModel ?? 'FIXED',
     tags: Array.isArray(data.product.tags) ? data.product.tags : [],
-    pickupAddress: data.product.pickupAddress ?? null,
-    pickupLat: data.product.pickupLat ?? null,
-    pickupLng: data.product.pickupLng ?? null,
+    pickupAddress: null,
+    pickupLat: null,
+    pickupLng: null,
+    publicPlace: toPublicPlaceLabel(
+      data.product.pickupAddress ||
+        data.product.seller?.User?.city ||
+        data.product.seller?.User?.place ||
+        data.product.User?.city ||
+        data.product.User?.place,
+    ),
     sellerCanDeliver: Boolean(data.product.sellerCanDeliver),
     deliveryRadiusKm: data.product.deliveryRadiusKm ?? null,
     allergens: Array.isArray(data.product.allergens)
@@ -183,8 +193,8 @@ export function mapListingDetailPayload(data: {
     rapidlyPerishable: Boolean(data.product.rapidlyPerishable),
     integrityStatus: data.product.integrityStatus ?? 'ACTIVE',
     seller: {
-      lat: data.product.seller?.lat ?? null,
-      lng: data.product.seller?.lng ?? null,
+      lat: null,
+      lng: null,
       kvk: data.product.seller?.kvk ?? null,
       companyName: data.product.seller?.companyName ?? null,
       commerceDeclaration: data.product.seller?.commerceDeclaration ?? null,
@@ -208,10 +218,14 @@ export function mapListingDetailPayload(data: {
         displayNameOption:
           data.product.seller?.User?.displayNameOption ||
           data.product.User?.displayNameOption,
-        place: data.product.seller?.User?.place || data.product.User?.place,
-        city: data.product.seller?.User?.city || data.product.User?.city,
-        lat: data.product.seller?.User?.lat ?? data.product.User?.lat ?? null,
-        lng: data.product.seller?.User?.lng ?? data.product.User?.lng ?? null,
+        place: toPublicPlaceLabel(
+          data.product.seller?.User?.place || data.product.User?.place,
+        ),
+        city: toPublicPlaceLabel(
+          data.product.seller?.User?.city || data.product.User?.city,
+        ),
+        lat: null,
+        lng: null,
         sellerRoles:
           data.product.seller?.User?.sellerRoles || data.product.User?.sellerRoles,
         Business: data.product.seller?.User?.Business ?? null,

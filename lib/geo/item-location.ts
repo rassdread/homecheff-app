@@ -7,6 +7,7 @@ import { resolveSellerCoords, type Coords } from '@/lib/delivery/delivery-positi
 import { DISTANCE_UNKNOWN_LABEL } from '@/lib/geo/local-discovery';
 import { formatMarketplaceDistanceKm } from '@/lib/geo/distance-format';
 import { safeDistanceKm } from '@/lib/geocoding';
+import { looksLikePreciseAddress, toPublicPlaceLabel } from '@/lib/geo/public-place';
 
 export type { Coords };
 
@@ -53,16 +54,18 @@ export function firstPlaceSegment(value: string | null | undefined): string | nu
   return first ? normalizePlacePart(first) : null;
 }
 
-/** Extract a human place label from a pickup address string. */
+function publicCity(value: string | null | undefined): string | null {
+  const label = toPublicPlaceLabel(value);
+  if (!label) return null;
+  if (COUNTRY_PLACE_BLOCKLIST.has(label.toLowerCase())) return null;
+  return label;
+}
+
+/** City or neighbourhood from a stored address. Never a street or house number. */
 export function placeFromPickupAddress(
   pickupAddress: string | null | undefined
 ): string | null {
-  const raw = pickupAddress?.trim();
-  if (!raw) return null;
-  const parts = raw.split(',').map((p) => p.trim()).filter(Boolean);
-  if (parts.length === 0) return null;
-  const last = parts[parts.length - 1];
-  return normalizePlacePart(last) ?? normalizePlacePart(parts[0]);
+  return publicCity(pickupAddress);
 }
 
 export { resolveSellerCoords };
@@ -94,11 +97,11 @@ export function resolveItemPlaceLabel(input: {
   const fromPickup = placeFromPickupAddress(input.pickupAddress);
   if (fromPickup) return fromPickup;
 
-  const fromPlace = firstPlaceSegment(input.place ?? input.user?.place);
-  if (fromPlace) return fromPlace;
-
-  const fromCity = firstPlaceSegment(input.city ?? input.user?.city);
+  const fromCity = publicCity(input.city ?? input.user?.city);
   if (fromCity) return fromCity;
+
+  const fromPlace = publicCity(input.place ?? input.user?.place);
+  if (fromPlace) return fromPlace;
 
   return null;
 }
@@ -108,7 +111,7 @@ export function resolveDisplayPlace(
   label: string | null | undefined,
   unknownLabel: string = DISTANCE_UNKNOWN_LABEL
 ): string {
-  const normalized = firstPlaceSegment(label);
+  const normalized = publicCity(label);
   return normalized ?? unknownLabel;
 }
 
@@ -266,10 +269,18 @@ export function formatItemPlaceDistanceLine(input: {
 }): string {
   const unknownPlace = input.unknownPlaceLabel;
   const unknownDistance = input.unknownDistanceLabel;
-  const placeLabel = resolveDisplayPlace(input.place, unknownPlace);
-  const hasPlace = placeLabel !== unknownPlace;
+  const safePlace = publicCity(input.place);
+  const suppliedButHidden =
+    Boolean(input.place?.trim()) &&
+    looksLikePreciseAddress(input.place) &&
+    !safePlace;
+  const placeLabel = safePlace ?? unknownPlace;
+  const hasPlace = Boolean(safePlace);
   const hasDistance = isUsableDistanceKm(input.distanceKm);
   const distanceStr = hasDistance ? formatMarketplaceDistanceKm(input.distanceKm!) : null;
+
+  if (suppliedButHidden && hasDistance) return distanceStr!;
+  if (suppliedButHidden && !hasDistance) return '';
 
   if (hasPlace && hasDistance) return `${placeLabel} · ${distanceStr}`;
   if (hasPlace && !hasDistance) return `${placeLabel} · ${unknownDistance}`;

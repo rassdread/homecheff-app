@@ -3,6 +3,8 @@
  * Separate from accepted values (pickup, delivery, region, stock).
  */
 
+import { toPublicPlaceLabel } from '@/lib/geo/public-place';
+
 export type DetailConditionLineKind =
   | 'pickup'
   | 'delivery'
@@ -49,7 +51,8 @@ export function buildDetailConditionsBlock(input: {
     }
   }
 
-  const region = input.pickupAddress?.trim() || input.placeLabel?.trim();
+  const region =
+    toPublicPlaceLabel(input.pickupAddress) || toPublicPlaceLabel(input.placeLabel);
   if (region) {
     lines.push({
       kind: 'region',

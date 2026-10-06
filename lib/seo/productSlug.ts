@@ -3,6 +3,8 @@
  * Voorbeeld: /product/lasagne-rotterdam-hcid-550e8400-e29b-41d4-a716-446655440000
  */
 
+import { toPublicPlaceLabel } from "@/lib/geo/public-place";
+
 export const PRODUCT_SLUG_ID_MARKER = "-hcid-";
 
 const UUID_REGEX =
@@ -26,7 +28,7 @@ export function buildProductSlugPath(
   id: string
 ): string {
   const t = slugifySegment(title || "product");
-  const rawPlace = place?.split(",")[0]?.trim() || "";
+  const rawPlace = toPublicPlaceLabel(place) || "";
   const p = rawPlace ? slugifySegment(rawPlace) : "lokaal";
   return `${t}-${p}${PRODUCT_SLUG_ID_MARKER}${id}`;
 }
@@ -79,8 +81,7 @@ export function isBareProductUuidParam(param: string): boolean {
 
 /** Eerste deel van place voor titels (bijv. stad). */
 export function formatCityLabel(place: string | null | undefined): string {
-  if (!place?.trim()) return "";
-  return place.split(",")[0].trim();
+  return toPublicPlaceLabel(place) || "";
 }
 
 /** Pad voor lokale landingspagina's, of null als er geen plaats is. */

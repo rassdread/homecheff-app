@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { publicListingEligibilityWhere } from '@/lib/marketplace/public-listing-eligibility';
+import { toPublicPlaceLabel } from '@/lib/geo/public-place';
 
 const prisma = new PrismaClient();
 
@@ -36,8 +37,6 @@ export async function GET(request: NextRequest) {
         seller: {
           select: {
             id: true,
-            lat: true,
-            lng: true,
             kvk: true,
             companyName: true,
             User: {
@@ -79,10 +78,8 @@ export async function GET(request: NextRequest) {
       images: product.Image.map(img => img.fileUrl),
       favoriteCount: product._count.favorites,
       location: {
-        place: product.seller?.User?.place || null,
-        city: product.seller?.User?.city || null,
-        lat: product.seller?.lat || null,
-        lng: product.seller?.lng || null
+        place: toPublicPlaceLabel(product.seller?.User?.place),
+        city: toPublicPlaceLabel(product.seller?.User?.city),
       },
       seller: product.seller?.User ? {
         id: product.seller.User.id,

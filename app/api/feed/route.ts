@@ -117,6 +117,7 @@ import {
   applyFeedViewerDistanceLabels,
   stripFeedViewerDistanceLabels,
 } from "@/lib/feed/feed-distance-labels";
+import { stripPreciseLocationFromPublicItem } from "@/lib/geo/public-place";
 import {
   createFeedApiTiming,
 } from "@/lib/feed/feed-api-timing";
@@ -429,7 +430,9 @@ async function handleFeedGet(
           listingIntent: searchFilters.listingIntent ?? null,
         },
         count: labeledItems.length,
-        items: labeledItems,
+        items: labeledItems.map((item) =>
+          stripPreciseLocationFromPublicItem(item as Record<string, unknown>),
+        ),
         pagination: normalizeFeedPaginationMeta(
           payload.pagination,
           labeledItems.length,
@@ -1567,7 +1570,10 @@ async function handleFeedGet(
       listingIntent: searchFilters.listingIntent ?? null,
     },
     count: pageItems.length,
-    items: pageItems,
+    items: applyFeedViewerDistanceLabels(
+      pageItems as Record<string, unknown>[],
+      viewerGeo,
+    ).map((item) => stripPreciseLocationFromPublicItem(item)),
     pagination,
     ...(isFirstPage && discoveryFeed ? { discovery: discoveryFeed } : {}),
     ...(feedDebug ? { debug: feedDebug } : {}),

@@ -473,11 +473,10 @@ export async function GET(req: Request) {
         subcategory: p.subcategory ?? null,
         delivery: p.delivery,
         tags: (p as any).tags || [],
-        pickupAddress: p.pickupAddress ?? null,
-        pickupLat: p.pickupLat ?? null,
-        pickupLng: p.pickupLng ?? null,
         location: {
           place: resolveDisplayPlace(placeLabel, DISTANCE_UNKNOWN_LABEL),
+          // Dorpsplein still computes distance in the browser from these coords.
+          // The street/address string is not included.
           lat: coords?.lat ?? null,
           lng: coords?.lng ?? null,
         },

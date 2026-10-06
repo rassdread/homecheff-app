@@ -26,7 +26,24 @@ function testPlaceLabels() {
   assert.equal(firstPlaceSegment('Utrecht'), 'Utrecht');
   assert.equal(
     placeFromPickupAddress('Keizersgracht 1, 1015 Amsterdam'),
-    '1015 Amsterdam'
+    'Amsterdam'
+  );
+  assert.equal(placeFromPickupAddress('Karel Doormanlaan 15'), null);
+  assert.equal(
+    resolveProductPlaceLabel({
+      pickupAddress: 'Karel Doormanlaan 15',
+      seller: { User: { city: 'Vlaardingen' } },
+    }),
+    'Vlaardingen'
+  );
+  assert.equal(
+    formatItemPlaceDistanceLine({
+      place: 'Karel Doormanlaan 15',
+      distanceKm: 0.5,
+      unknownPlaceLabel: 'Locatie onbekend',
+      unknownDistanceLabel: 'afstand onbekend',
+    }),
+    '500 m'
   );
   assert.equal(
     resolveProductPlaceLabel({

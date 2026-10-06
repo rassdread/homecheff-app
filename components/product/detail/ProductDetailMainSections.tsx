@@ -48,6 +48,7 @@ type ProductShape = {
   category?: string | null;
   delivery?: string | null;
   pickupAddress?: string | null;
+  publicPlace?: string | null;
   sellerCanDeliver?: boolean;
   deliveryRadiusKm?: number | null;
   allergens?: string[] | null;
@@ -113,8 +114,9 @@ export default function ProductDetailMainSections({
   const detailKind = listingKindToDetailKind(listingKind) ?? 'PRODUCT';
   const sectionPlan = buildDetailUiSectionPlan(detailKind);
   const placeLabel =
-    product.seller?.User?.place?.trim() ||
-    product.seller?.User?.city?.trim() ||
+    product.publicPlace ||
+    product.seller?.User?.city ||
+    product.seller?.User?.place ||
     null;
 
   const show = (id: Parameters<typeof isDetailUiSectionVisible>[1]) =>

@@ -5,7 +5,6 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { getCurrentDomain } from "@/lib/seo/metadata";
-import { formatCityLabel } from "@/lib/seo/productSlug";
 import { mondayStartUtc } from "@/lib/gamification/leaderboard-queries";
 import { hcpLevelFromTotal } from "@/lib/gamification/hcp-level";
 import { hcpPublicLevelTitle } from "@/lib/gamification/hcp-public-label";
@@ -17,6 +16,7 @@ import { buildProfilePageJsonLd } from '@/lib/seo/schema-builders';
 import { getDisplayName } from "@/lib/displayName";
 import { publicListingEligibilityWhere, isCertificationFixtureUser } from "@/lib/marketplace/public-listing-eligibility";
 import { redactMinorPublicProfile, requiresMinorPublicPrivacy } from "@/lib/age/minor-privacy";
+import { toPublicPlaceLabel } from "@/lib/geo/public-place";
 
 export const revalidate = 0;
 
@@ -378,7 +378,7 @@ export default async function PublicProfilePage({
     ),
   };
 
-  const locality = formatCityLabel(user.place);
+  const locality = toPublicPlaceLabel(user.place) || '';
   const ecosystemChipKeys: string[] = [];
   if (locality) ecosystemChipKeys.push('ecosystemProfile.chips.localRooted');
   if (publicHcp.activeThisWeek || listingsThisWeek > 0) {
@@ -401,8 +401,8 @@ export default async function PublicProfilePage({
     priceCents: product.priceCents,
     place: requiresMinorPublicPrivacy(user)
       ? user.place || null
-      : product.pickupAddress?.trim()?.split(',').pop()?.trim() ||
-        user.place ||
+      : toPublicPlaceLabel(product.pickupAddress) ||
+        toPublicPlaceLabel(user.place) ||
         null,
     category:
       product.category === 'CHEFF'
@@ -456,6 +456,20 @@ export default async function PublicProfilePage({
           user={(() => {
             const safe = redactMinorPublicProfile({ ...(user as Record<string, unknown>) });
             delete safe.dateOfBirth;
+            safe.place = toPublicPlaceLabel(
+              typeof safe.place === 'string' ? safe.place : null,
+            );
+            const seller = safe.SellerProfile as
+              | { products?: Array<Record<string, unknown>> }
+              | null
+              | undefined;
+            if (seller && Array.isArray(seller.products)) {
+              seller.products = seller.products.map((product) => {
+                const next = { ...product };
+                delete next.pickupAddress;
+                return next;
+              });
+            }
             return safe;
           })() as any}
           openNewProducts={false}

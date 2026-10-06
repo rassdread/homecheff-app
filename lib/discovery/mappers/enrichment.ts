@@ -10,6 +10,7 @@ import {
 } from '../contracts/discovery-read-model';
 import { buildDiscoveryTrust } from '../trust/build-discovery-trust';
 import type { SellerTrustSnapshot } from '../trust/types';
+import { toPublicPlaceLabel } from '@/lib/geo/public-place';
 
 /** Optional stats merged into read model — listing-level or seller-level. */
 export type DiscoveryEnrichment = {
@@ -105,6 +106,5 @@ export function toIsoString(value: unknown): string | null {
 }
 
 export function cityFromPlace(place: string | null | undefined): string | null {
-  if (!place?.trim()) return null;
-  return place.split(',')[0]?.trim() || null;
+  return toPublicPlaceLabel(place);
 }

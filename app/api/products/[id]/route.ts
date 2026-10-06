@@ -26,6 +26,7 @@ import { buildMarketplaceV2PatchFields } from '@/lib/marketplace/patch-v2-fields
 import { auth } from '@/lib/auth';
 import { marketplaceAgeResponse, subjectFromUser } from '@/lib/age/listing-age-guard';
 import { redactMinorPublicListing, redactMinorSellerRecord } from '@/lib/age/minor-privacy';
+import { toPublicPlaceLabel } from '@/lib/geo/public-place';
 import {
   getInspiratieDetailHref,
   type InspirationCategory,
@@ -164,6 +165,7 @@ export async function GET(
     const sellerUserId =
       product.seller?.User?.id ?? (product as { User?: { id?: string } }).User?.id;
 
+    let revealPreciseLocation = false;
     // Launch hygiene: inactive / REMOVED listings are not publicly fetchable.
     {
       const session = await auth();
@@ -171,6 +173,7 @@ export async function GET(
       const role = (session?.user as { role?: string } | undefined)?.role;
       const isOwner = Boolean(viewerId && sellerUserId && viewerId === sellerUserId);
       const isStaff = role === 'ADMIN' || role === 'SUPERADMIN';
+      revealPreciseLocation = isOwner || isStaff;
       const integrity = String(
         (product as { integrityStatus?: string | null }).integrityStatus ?? 'ACTIVE',
       ).toUpperCase();
@@ -420,6 +423,28 @@ export async function GET(
         ...publicProduct.seller,
         User: userRest,
       } as typeof publicProduct.seller;
+    }
+
+    if (!revealPreciseLocation) {
+      const hidden = publicProduct as {
+        pickupAddress?: string | null;
+        pickupLat?: number | null;
+        pickupLng?: number | null;
+        seller?: { lat?: number | null; lng?: number | null; User?: { lat?: number | null; lng?: number | null; place?: string | null; city?: string | null } | null } | null;
+      };
+      hidden.pickupAddress = null;
+      hidden.pickupLat = null;
+      hidden.pickupLng = null;
+      if (hidden.seller) {
+        hidden.seller.lat = null;
+        hidden.seller.lng = null;
+        if (hidden.seller.User) {
+          hidden.seller.User.lat = null;
+          hidden.seller.User.lng = null;
+          hidden.seller.User.place = toPublicPlaceLabel(hidden.seller.User.place);
+          hidden.seller.User.city = toPublicPlaceLabel(hidden.seller.User.city);
+        }
+      }
     }
 
     return NextResponse.json({
