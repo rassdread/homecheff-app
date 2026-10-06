@@ -135,9 +135,9 @@ assert(count(feedMedia, 'loading="lazy"') >= 1, 'feed images use lazy loading');
 assert(count(feedMedia, 'decoding="async"') >= 1, 'feed images decode async');
 assert(feedMedia.includes('FEED_CARD_IMG_SIZES'), 'feed images ship responsive sizes');
 assert(
-  feedMedia.includes('shouldDeferVideoMount') &&
+  feedMedia.includes('getActiveVideoNetworkId') &&
     feedMedia.includes('IntersectionObserver'),
-  'feed video mounts are deferred until near viewport',
+  'feed video source attaches only for the visible network winner',
 );
 
 // --- Background prioritisation / non-blocking modules -------------------

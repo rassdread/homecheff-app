@@ -1,3 +1,5 @@
+import { chooseActiveVideo, type VideoVisibilitySample } from "@/lib/feed/active-video-selection";
+
 /**
  * Maximaal één feed-video tegelijk actief.
  * Desktop: hover start/stopt lokaal; andere kaarten worden via claim gepauzeerd.
@@ -171,6 +173,118 @@ export function registerMobileFeedVideoCandidate(
     const i = mobileCandidates.indexOf(candidate);
     if (i !== -1) mobileCandidates.splice(i, 1);
   };
+}
+
+const NETWORK_SWITCH_MS = 160;
+const RESUME_SLOTS = 12;
+
+const visibilitySamples = new Map<string, VideoVisibilitySample>();
+const resumeTimes = new Map<string, number>();
+const networkListeners = new Set<() => void>();
+
+const suppressedVideoIds = new Set<string>();
+
+let hoverVideoId: string | null = null;
+let networkVideoId: string | null = null;
+let networkSwitchTimer: ReturnType<typeof setTimeout> | null = null;
+
+function notifyNetworkListeners() {
+  networkListeners.forEach((listener) => {
+    try {
+      listener();
+    } catch {
+      /* ignore */
+    }
+  });
+}
+
+function applyNetworkWinner(next: string | null) {
+  if (networkSwitchTimer !== null) {
+    clearTimeout(networkSwitchTimer);
+    networkSwitchTimer = null;
+  }
+  if (networkVideoId === next) return;
+  networkVideoId = next;
+  notifyNetworkListeners();
+}
+
+function recomputeNetworkWinner(immediate: boolean) {
+  const next = hoverVideoId ?? chooseActiveVideo([...visibilitySamples.values()], networkVideoId);
+  if (next === networkVideoId) {
+    if (networkSwitchTimer !== null) {
+      clearTimeout(networkSwitchTimer);
+      networkSwitchTimer = null;
+    }
+    return;
+  }
+  const detachNow = next === null || hoverVideoId !== null || immediate;
+  if (detachNow) {
+    applyNetworkWinner(next);
+    return;
+  }
+  if (networkSwitchTimer !== null) clearTimeout(networkSwitchTimer);
+  networkSwitchTimer = setTimeout(() => {
+    networkSwitchTimer = null;
+    const settled = hoverVideoId ?? chooseActiveVideo([...visibilitySamples.values()], networkVideoId);
+    applyNetworkWinner(settled);
+  }, NETWORK_SWITCH_MS);
+}
+
+export function subscribeActiveVideoNetwork(listener: () => void): () => void {
+  networkListeners.add(listener);
+  return () => {
+    networkListeners.delete(listener);
+  };
+}
+
+export function getActiveVideoNetworkId(): string | null {
+  return networkVideoId;
+}
+
+/** Viewport sample. Only the chosen id may attach a video URL. */
+export function reportVideoVisibility(sample: VideoVisibilitySample): void {
+  if (suppressedVideoIds.has(sample.id)) return;
+  visibilitySamples.set(sample.id, sample);
+  recomputeNetworkWinner(false);
+}
+
+/** Fullscreen lightbox owns the only video request until it closes. */
+export function suppressVideoNetwork(id: string): void {
+  suppressedVideoIds.add(id);
+  visibilitySamples.delete(id);
+  if (hoverVideoId === id) hoverVideoId = null;
+  recomputeNetworkWinner(true);
+}
+
+export function resumeVideoNetwork(id: string): void {
+  suppressedVideoIds.delete(id);
+}
+
+export function clearVideoVisibility(id: string): void {
+  visibilitySamples.delete(id);
+  if (hoverVideoId === id) hoverVideoId = null;
+  recomputeNetworkWinner(true);
+}
+
+/** Desktop hover becomes the single network candidate until the pointer leaves. */
+export function setVideoHover(id: string | null): void {
+  hoverVideoId = id;
+  recomputeNetworkWinner(true);
+}
+
+export function rememberVideoTime(id: string, seconds: number): void {
+  if (!Number.isFinite(seconds) || seconds < 0.25) return;
+  resumeTimes.delete(id);
+  resumeTimes.set(id, seconds);
+  while (resumeTimes.size > RESUME_SLOTS) {
+    const oldest = resumeTimes.keys().next().value;
+    if (oldest === undefined) break;
+    resumeTimes.delete(oldest);
+  }
+}
+
+export function peekVideoResumeTime(id: string): number | undefined {
+  return resumeTimes.get(id);
 }
 
 /** Zichtbaarheidsratio 0–1 t.o.v. viewport (intersectie / oppervlak element). */

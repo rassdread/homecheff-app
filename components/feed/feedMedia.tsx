@@ -28,12 +28,20 @@ import {
   claimFeedVideoPlayback,
   releaseFeedVideoPlayback,
   registerFeedVideoPauseHandler,
-  registerMobileFeedVideoCandidate,
   getElementVisibleRatio,
   subscribeFeedAudioState,
   getFeedAudioState,
   setFeedAudioEnabled,
   maybeApplyFeedAudioPreference,
+  subscribeActiveVideoNetwork,
+  getActiveVideoNetworkId,
+  reportVideoVisibility,
+  clearVideoVisibility,
+  setVideoHover,
+  rememberVideoTime,
+  peekVideoResumeTime,
+  suppressVideoNetwork,
+  resumeVideoNetwork,
 } from "@/components/feed/feedVideoPlaybackCoordinator";
 import { feedPerfMarkFirstImageOnce } from "@/lib/feed/feed-performance-baseline";
 
@@ -262,7 +270,6 @@ function useFeedVideoInteractionMode(): "hover" | "viewport" {
 const FEED_CARD_IMG_SIZES =
   "(max-width: 767px) 100vw, (max-width: 1279px) 32rem, 48rem";
 
-/** Iets lager dan 0.6 zodat kaartvideo’s in de feed weer betrouwbaar starten. */
 const VIEWPORT_PLAY_THRESHOLD = 0.3;
 
 function feedAutoplayAllowed(): boolean {
@@ -349,39 +356,49 @@ export function FeedCardPrimaryMedia({
     : rawVideo;
 
   const showVideo = Boolean(corsSrc);
-  /** Viewport/touch: mount <video> pas nabij viewport; desktop-hover: meteen (play op hover). */
-  const shouldDeferVideoMount = showVideo && !useHoverPlayback;
-  const [videoDomMounted, setVideoDomMounted] = useState(!shouldDeferVideoMount);
-  const renderVideoElement = showVideo && videoDomMounted;
-
-  useEffect(() => {
-    if (useHoverPlayback && showVideo) setVideoDomMounted(true);
-  }, [useHoverPlayback, showVideo]);
+  const networkWinnerId = useSyncExternalStore(
+    subscribeActiveVideoNetwork,
+    getActiveVideoNetworkId,
+    () => null,
+  );
+  const attachVideo =
+    showVideo && networkWinnerId === instanceId && feedAutoplayAllowed();
+  const renderVideoElement = attachVideo;
 
   useEffect(() => {
     setVideoFailed(false);
     setImgBroken(false);
     wantPlayRef.current = false;
-    if (showVideo && !useHoverPlayback) setVideoDomMounted(false);
-    else if (showVideo && useHoverPlayback) setVideoDomMounted(true);
-  }, [videoUrl, imageUrl, showVideo, useHoverPlayback]);
+  }, [videoUrl, imageUrl, showVideo]);
 
   useEffect(() => {
-    if (!shouldDeferVideoMount || videoDomMounted) return;
+    if (!showVideo) return;
     const el = containerRef.current;
     if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e?.isIntersecting) {
-          setVideoDomMounted(true);
-          io.disconnect();
-        }
-      },
-      { root: null, rootMargin: "260px 0px", threshold: 0 }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [shouldDeferVideoMount, videoDomMounted]);
+    const publish = () => {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      reportVideoVisibility({
+        id: instanceId,
+        ratio: getElementVisibleRatio(el),
+        centerDistancePx: Math.hypot(cx - window.innerWidth / 2, cy - window.innerHeight / 2),
+        elementHeight: rect.height,
+        viewportHeight: window.innerHeight,
+      });
+    };
+    const obs = new IntersectionObserver(publish, {
+      root: null,
+      rootMargin: "0px",
+      threshold: [0, 0.25, 0.35, 0.42, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+    });
+    obs.observe(el);
+    publish();
+    return () => {
+      obs.disconnect();
+      clearVideoVisibility(instanceId);
+    };
+  }, [showVideo, instanceId]);
 
   const posterEffective =
     (hasUsableMediaUrl(videoPoster) ? videoPoster!.trim() : null) ||
@@ -422,86 +439,31 @@ export function FeedCardPrimaryMedia({
   }, [renderVideoElement, instanceId]);
 
   const onDesktopMouseEnter = useCallback(() => {
-    if (!feedAutoplayAllowed() || !useHoverPlayback || !renderVideoElement) return;
+    if (!feedAutoplayAllowed() || !useHoverPlayback || !showVideo) return;
     wantPlayRef.current = true;
-    const vid = videoRef.current;
-    if (!vid) return;
-    claimFeedVideoPlayback(instanceId);
-    applyMutedForFeedPolicy();
-    void vid.play().catch(() => {});
-  }, [useHoverPlayback, renderVideoElement, instanceId, applyMutedForFeedPolicy]);
+    setVideoHover(instanceId);
+  }, [useHoverPlayback, showVideo, instanceId]);
 
   const onDesktopMouseLeave = useCallback(() => {
-    if (!useHoverPlayback || !renderVideoElement) return;
-    wantPlayRef.current = false;
-    const vid = videoRef.current;
-    if (vid) {
-      vid.pause();
-      vid.currentTime = 0;
-    }
-    releaseFeedVideoPlayback(instanceId, {
-      minVisibleRatio: VIEWPORT_PLAY_THRESHOLD,
-    });
-  }, [useHoverPlayback, renderVideoElement, instanceId]);
+    if (!useHoverPlayback) return;
+    setVideoHover(null);
+  }, [useHoverPlayback]);
 
   useEffect(() => {
-    if (!renderVideoElement || !corsSrc || useHoverPlayback) return;
-    const el = containerRef.current;
-    if (!el) return;
-
-    const obs = new IntersectionObserver(
-      (entries) => {
-        const e = entries[0];
-        const vid = videoRef.current;
-        if (!e || !vid) return;
-        const ratio = e.intersectionRatio;
-        const shouldPlay =
-          feedAutoplayAllowed() && ratio >= VIEWPORT_PLAY_THRESHOLD;
-        wantPlayRef.current = shouldPlay;
-        if (shouldPlay) {
-          claimFeedVideoPlayback(instanceId);
-          maybeApplyFeedAudioPreference(vid, instanceId);
-          void vid.play().catch(() => {});
-        } else {
-          vid.pause();
-          releaseFeedVideoPlayback(instanceId, {
-            minVisibleRatio: VIEWPORT_PLAY_THRESHOLD,
-          });
-        }
-      },
-      {
-        root: null,
-        rootMargin: "48px 0px",
-        threshold: [0, 0.15, 0.25, 0.3, 0.45, 0.6, 0.75, 1],
-      }
-    );
-    obs.observe(el);
+    if (!attachVideo) return;
+    wantPlayRef.current = feedAutoplayAllowed();
     return () => {
-      obs.disconnect();
+      const vid = videoRef.current;
+      if (vid && vid.currentTime > 0.25 && !vid.ended) {
+        rememberVideoTime(instanceId, vid.currentTime);
+      }
+      vid?.pause();
       wantPlayRef.current = false;
-      videoRef.current?.pause();
       releaseFeedVideoPlayback(instanceId, {
         minVisibleRatio: VIEWPORT_PLAY_THRESHOLD,
       });
     };
-  }, [renderVideoElement, corsSrc, useHoverPlayback, instanceId]);
-
-  useEffect(() => {
-    if (!renderVideoElement || !corsSrc || useHoverPlayback) return;
-    return registerMobileFeedVideoCandidate({
-      id: instanceId,
-      getRatio: () => getElementVisibleRatio(containerRef.current),
-      play: () => {
-        if (!feedAutoplayAllowed()) return;
-        const vid = videoRef.current;
-        if (!vid) return;
-        wantPlayRef.current = true;
-        claimFeedVideoPlayback(instanceId);
-        maybeApplyFeedAudioPreference(vid, instanceId);
-        void vid.play().catch(() => {});
-      },
-    });
-  }, [renderVideoElement, corsSrc, useHoverPlayback, instanceId]);
+  }, [attachVideo, instanceId]);
 
   const label = alt?.trim() || "Bekijk";
 
@@ -512,13 +474,15 @@ export function FeedCardPrimaryMedia({
   const closeLightbox = useCallback(() => {
     setLightboxOpen(false);
     setLightboxPayload(null);
-  }, []);
+    resumeVideoNetwork(instanceId);
+  }, [instanceId]);
 
   const openLightbox = useCallback(() => {
     if (!lightboxEligible || !hasOpenableLightboxMedia) return;
     if (hasVideoCandidate && corsSrc && !videoFailed) {
       wantPlayRef.current = false;
       videoRef.current?.pause();
+      suppressVideoNetwork(instanceId);
       releaseFeedVideoPlayback(instanceId, {
         minVisibleRatio: VIEWPORT_PLAY_THRESHOLD,
       });
@@ -557,7 +521,7 @@ export function FeedCardPrimaryMedia({
   ]);
 
   const hoverMediaHandlers =
-    useHoverPlayback && renderVideoElement
+    useHoverPlayback && showVideo
       ? {
           onMouseEnter: onDesktopMouseEnter,
           onMouseLeave: onDesktopMouseLeave,
@@ -592,10 +556,21 @@ export function FeedCardPrimaryMedia({
             preload="metadata"
             nativeControls={false}
             disablePictureInPicture
-            onLoadedData={tryPlayIfWanted}
+            onLoadedData={() => {
+              const vid = videoRef.current;
+              const resume = peekVideoResumeTime(instanceId);
+              if (vid && resume != null && vid.currentTime < 0.2) {
+                try {
+                  vid.currentTime = resume;
+                } catch {
+                  /* seek can fail before metadata */
+                }
+              }
+              tryPlayIfWanted();
+            }}
             onError={onVideoError}
           />
-        ) : showVideo && shouldDeferVideoMount ? (
+        ) : showVideo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={staticPosterSrc}
@@ -658,14 +633,10 @@ export function FeedCardPrimaryMedia({
           aria-label={label}
           onClick={() => navDebug('feed-tile:media-link', { href })}
           onMouseEnter={
-            useHoverPlayback && renderVideoElement
-              ? onDesktopMouseEnter
-              : undefined
+            useHoverPlayback && showVideo ? onDesktopMouseEnter : undefined
           }
           onMouseLeave={
-            useHoverPlayback && renderVideoElement
-              ? onDesktopMouseLeave
-              : undefined
+            useHoverPlayback && showVideo ? onDesktopMouseLeave : undefined
           }
         >
           <span className="sr-only">{label}</span>

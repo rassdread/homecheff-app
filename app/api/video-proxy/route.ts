@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateVideoProxyUrl } from '@/lib/video-proxy-url';
+import { videoProxyRangePlan } from '@/lib/video-proxy-range';
 
 // Node.js runtime: grote video-body en streaming betrouwbaarder dan Edge Runtime
 export const runtime = 'nodejs';
@@ -14,21 +15,6 @@ const CORS_HEADERS = {
 
 const FETCH_TIMEOUT_MS = 25_000;
 const MAX_BUFFER_BYTES = 20 * 1024 * 1024;
-
-/** Browsers waarbij we niet streamen maar altijd bufferen (200 + full body) voor betrouwbare playback. */
-function shouldForceBuffer(userAgent: string | null): boolean {
-  if (!userAgent) return false;
-  const ua = userAgent.toLowerCase();
-  const safariOrMobile =
-    ua.includes('iphone') ||
-    ua.includes('ipad') ||
-    ua.includes('ipod') ||
-    (ua.includes('safari') && !ua.includes('chrome')) ||
-    ua.includes('mobile');
-  const isEdge = ua.includes('edg/') || ua.includes('edge/');
-  const isSamsung = ua.includes('samsungbrowser');
-  return safariOrMobile || isEdge || isSamsung;
-}
 
 /**
  * Video Proxy Route — proxies only validated Vercel Blob https URLs.
@@ -53,13 +39,13 @@ export async function GET(request: NextRequest) {
 
     const rangeHeader = request.headers.get('range');
     const userAgent = request.headers.get('user-agent');
-    const forceBuffer = shouldForceBuffer(userAgent);
-    const passRange = !forceBuffer && rangeHeader;
+    const rangePlan = videoProxyRangePlan(rangeHeader, userAgent);
+    const forceBuffer = rangePlan.forceBuffer;
 
     const headers: Record<string, string> = {
       'User-Agent': userAgent || 'Mozilla/5.0 (compatible; Homecheff-Video-Proxy/1.0)',
     };
-    if (passRange) headers.Range = rangeHeader!;
+    if (rangePlan.forwardRange && rangeHeader) headers.Range = rangeHeader;
 
     // Attach blob credential ONLY for trusted blob hostnames that require it.
     if (validated.mayAttachBlobCredential) {
@@ -111,7 +97,9 @@ export async function GET(request: NextRequest) {
     }
 
     const bufferThreshold = forceBuffer ? MAX_BUFFER_BYTES : 8 * 1024 * 1024;
-    const shouldBuffer = forceBuffer || (size > 0 && size <= bufferThreshold);
+    const shouldBuffer =
+      !rangePlan.forwardRange &&
+      (forceBuffer || (size > 0 && size <= bufferThreshold));
     if (shouldBuffer && size > 0 && size <= MAX_BUFFER_BYTES) {
       const buffer = await videoResponse.arrayBuffer();
       const bufLen = buffer.byteLength;
