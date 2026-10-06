@@ -1950,6 +1950,24 @@ model ProductVideo {
   @@index([productId])
 }
 
+/// Namespaced Marketplace video job. Studio project ids are not used.
+model MarketplaceVideoJob {
+  id                 String   @id
+  ownerUserId        String
+  listingId          String?
+  sourceUrl          String
+  status             String
+  failureCode        String?
+  canonicalUrl       String?
+  posterUrl          String?
+  probeJson          Json?
+  maxDurationSeconds Int
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([ownerUserId, createdAt])
+}
+
 model RecipeStepPhoto {
   id          String  @id @default(uuid())
   dishId      String

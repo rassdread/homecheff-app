@@ -202,6 +202,39 @@ export default function VideoUploader({
         return;
       }
 
+      if (process.env.NEXT_PUBLIC_MARKETPLACE_VIDEO_WORKER === '1') {
+        try {
+          const validation = await Promise.race([
+            validateVideoFile(file),
+            new Promise<{ valid: boolean; duration?: number; error?: string }>((resolve) =>
+              setTimeout(() => resolve({ valid: true }), 20000),
+            ),
+          ]);
+          if (!validation.valid && validation.error && (validation.error.includes('te lang') || validation.error.includes('duration'))) {
+            setError(validation.error);
+            return;
+          }
+          const { uploadMarketplaceVideo } = await import('@/lib/media/marketplace-video-browser');
+          const processed = await uploadMarketplaceVideo(file, abortController.signal);
+          setPreview(processed.url);
+          setThumbnail(processed.thumbnail);
+          onChange?.({
+            url: processed.url,
+            thumbnail: processed.thumbnail,
+            duration: processed.duration,
+          });
+          setError(null);
+        } catch (workerError) {
+          const message = workerError instanceof Error ? workerError.message : 'De video kon niet worden verwerkt. Probeer het opnieuw.';
+          setError(message);
+        } finally {
+          setUploading(false);
+          onUploadEnd?.();
+          clearTimeout(timeoutId);
+        }
+        return;
+      }
+
       // Check if this is likely a HEVC video (Snapchat, etc.)
       // HEVC videos often fail browser validation but are still valid
       const isHEVC = isLikelyHEVCVideo(file);
