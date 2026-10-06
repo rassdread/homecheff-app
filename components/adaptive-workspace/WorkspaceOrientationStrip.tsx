@@ -141,7 +141,7 @@ export default function WorkspaceOrientationStrip({
             type="button"
             data-hc-value-explainer-trigger=""
             onClick={() => setValueExplainerOpen(true)}
-            className="max-xl:max-w-full w-auto shrink-0 flex-none text-left text-xs font-medium leading-snug text-[var(--hc-blue)] underline-offset-2 hover:underline"
+            className="inline-flex w-max max-w-full shrink-0 flex-none text-left text-xs font-medium leading-snug text-[var(--hc-blue)] underline-offset-2 hover:underline"
             aria-haspopup="dialog"
             aria-expanded={valueExplainerOpen}
           >
