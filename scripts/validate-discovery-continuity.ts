@@ -16,6 +16,7 @@ import {
   hasActiveFeedDiscoveryConstraint,
   shouldRenderDiscoveryContinuityFeed,
   shouldShowDiscoveryContinuityBand,
+  shouldShowExhaustionContinuation,
 } from '../lib/feed/discovery-continuity';
 
 const root = path.resolve(__dirname, '..');
@@ -197,6 +198,30 @@ check(
 );
 
 check(
+  'continuation waits until the exact query is exhausted',
+  !shouldShowExhaustionContinuation({
+    settled: true,
+    hasActiveConstraint: true,
+    marketplaceExhausted: false,
+  }) &&
+    shouldShowExhaustionContinuation({
+      settled: true,
+      hasActiveConstraint: true,
+      marketplaceExhausted: true,
+    }) &&
+    !shouldShowExhaustionContinuation({
+      settled: false,
+      hasActiveConstraint: true,
+      marketplaceExhausted: true,
+    }) &&
+    !shouldShowExhaustionContinuation({
+      settled: true,
+      hasActiveConstraint: false,
+      marketplaceExhausted: true,
+    }),
+);
+
+check(
   'continuity feed renders only with band + candidates',
   shouldRenderDiscoveryContinuityFeed({
     showBand: true,
@@ -264,12 +289,19 @@ check(
 );
 
 check(
-  'DiscoveryContinuityBand exposes CTA hooks',
+  'DiscoveryContinuityBand exposes one primary CTA',
   band.includes('data-testid="feed-discovery-continuity-band"') &&
     band.includes('data-wx-empty-create') &&
     band.includes('data-wx-empty-request') &&
-    band.includes('continuityBeFirst') &&
-    band.includes('continuityContinueHint'),
+    band.includes('hc-btn-primary') &&
+    !band.includes('data-wx-empty-trade') &&
+    !band.includes('continuityBeFirst'),
+);
+
+check(
+  'GeoFeed gates continuation on exact exhaustion',
+  geo.includes('shouldShowExhaustionContinuation') &&
+    geo.includes('marketplaceExhausted'),
 );
 
 check(

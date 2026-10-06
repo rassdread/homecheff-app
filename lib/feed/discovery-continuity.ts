@@ -95,6 +95,23 @@ export function shouldShowDiscoveryContinuityBand(input: {
 }
 
 /**
+ * Paint the exhaustion transition only after the exact query has no further
+ * pages. A thin first page must not reveal suggestions while load-more can
+ * still return exact matches.
+ */
+export function shouldShowExhaustionContinuation(input: {
+  settled: boolean;
+  hasActiveConstraint: boolean;
+  marketplaceExhausted: boolean;
+}): boolean {
+  return (
+    input.settled &&
+    input.hasActiveConstraint &&
+    input.marketplaceExhausted
+  );
+}
+
+/**
  * Continue the mixed discovery feed under the band when candidates exist.
  */
 export function shouldRenderDiscoveryContinuityFeed(input: {

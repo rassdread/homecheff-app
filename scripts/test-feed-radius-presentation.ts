@@ -157,17 +157,25 @@ ok(
 
 const painted = composeWidenedStageRowsForPaint({
   widenedRows: [] as PaintRow[],
-  continuityRows: [] as PaintRow[],
+  continuityRows: [{ row: 'sale', item: { id: 'c' } }],
   recirculatedRows: recircPaint,
   exactIds: exactPaintIds,
 });
 ok(
-  'composeWidenedStageRowsForPaint keeps recirculated ids after exact stage',
-  painted.length === 2 &&
+  'suggestion stage drops exact ids and keeps one new suggestion',
+  painted.length === 1 &&
     painted[0]?.row === 'sale' &&
-    painted[0].item.id === 'a' &&
-    painted[1]?.row === 'sale' &&
-    painted[1].item.id === 'b',
+    painted[0].item.id === 'c',
+);
+const paintedDup = composeWidenedStageRowsForPaint({
+  widenedRows: [{ row: 'sale', item: { id: 'c' } }],
+  continuityRows: [{ row: 'sale', item: { id: 'c' } }],
+  recirculatedRows: [] as PaintRow[],
+  exactIds: exactPaintIds,
+});
+ok(
+  'suggestion stage has no internal duplicates',
+  paintedDup.length === 1 && paintedDup[0]?.item.id === 'c',
 );
 ok(
   'GeoFeed uses composeWidenedStageRowsForPaint for radius stage',

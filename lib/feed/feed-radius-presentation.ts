@@ -137,12 +137,11 @@ export function dedupeFeedRowsByListingId<
 }
 
 /**
- * Paint rows for the post-band widened stage.
+ * Paint rows for the post-band suggestion stage.
  *
- * Outside-radius / continuity discovery must not repeat exact-stage listing
- * ids. Historical recirculation intentionally re-shows those ids and must
- * NEVER be deduped against the exact set — that was the endless-feed runtime
- * regression after unique inventory exhaustion.
+ * Exact-stage ids never appear again. Rows are also unique inside the
+ * suggestion stage. Recirculated re-shows of an already painted id are
+ * dropped so a short exact set cannot fill the page with the same card.
  */
 export function composeWidenedStageRowsForPaint<
   T extends {
@@ -156,11 +155,26 @@ export function composeWidenedStageRowsForPaint<
   recirculatedRows: readonly T[];
   exactIds: ReadonlySet<string>;
 }): T[] {
-  const discovery = dedupeFeedRowsByListingId(
-    [...input.widenedRows, ...input.continuityRows],
-    input.exactIds,
-  );
-  return [...discovery, ...input.recirculatedRows];
+  const seen = new Set(input.exactIds);
+  const out: T[] = [];
+  for (const row of [
+    ...input.widenedRows,
+    ...input.continuityRows,
+    ...input.recirculatedRows,
+  ]) {
+    const id =
+      row.row === 'sale'
+        ? row.item?.id
+        : row.row === 'insp'
+          ? row.slot?.item?.id
+          : null;
+    if (id) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+    }
+    out.push(row);
+  }
+  return out;
 }
 
 export function collectFeedRowListingIds<

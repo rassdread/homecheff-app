@@ -285,6 +285,7 @@ import {
   buildExactDiscoveryCompositionSignals,
   shouldRenderDiscoveryContinuityFeed,
   shouldShowDiscoveryContinuityBand,
+  shouldShowExhaustionContinuation,
 } from "@/lib/feed/discovery-continuity";
 import { isLocalFeedItem } from "@/lib/geo/feed-radius-filter";
 import {
@@ -1271,6 +1272,10 @@ export default function GeoFeed({
     null,
   );
   const recirculationInFlightRef = useRef(false);
+  /** When a discovery constraint is active, do not re-show exhausted exact ids. */
+  const discoveryConstraintActiveRef = useRef(false);
+  const [suggestionItems, setSuggestionItems] = useState<FeedItem[]>([]);
+  const suggestionKeyRef = useRef("");
   /** Predictive prefetch — max 2 prepared pages per requestKey. */
   const feedPrefetchCacheRef = useRef(
     new FeedPrefetchCache<FeedItem>(FEED_PREFETCH_MAX_BATCHES),
@@ -3817,6 +3822,12 @@ export default function GeoFeed({
 
     const shouldRecirculate = shouldActivateRecirculation(comp);
 
+    if (shouldRecirculate && discoveryConstraintActiveRef.current) {
+      feedHasMoreRef.current = false;
+      setFeedHasMore(false);
+      return;
+    }
+
     if (shouldRecirculate) {
       if (recirculationInFlightRef.current) return;
       recirculationInFlightRef.current = true;
@@ -5034,7 +5045,18 @@ export default function GeoFeed({
     return [...displayRows, ...recirculatedRows];
   }, [displayRows, recirculatedRows, feedChip]);
 
-  const displayCount = composedDisplayRows.length;
+  const exactResultCount = useMemo(() => {
+    const rows = locationFilterActive
+      ? splitFeedRowsByRadiusMembership(displayRows, appliedRadius).exact
+      : displayRows;
+    let count = 0;
+    for (const row of rows) {
+      if (row.row === "sale" || row.row === "insp") count += 1;
+    }
+    return count;
+  }, [displayRows, locationFilterActive, appliedRadius]);
+  /** Exact matches only. Suggestions and recirculation must not inflate this. */
+  const displayCount = exactResultCount;
   const discoveryServerKey = `${appliedCategory}|${appliedScope}|${appliedQ}|${appliedPlace}|${appliedRadius}`;
   discoveryServerKeyRef.current = discoveryServerKey;
   discoveryEpochNowRef.current = discoveryEpoch;
@@ -5211,6 +5233,7 @@ export default function GeoFeed({
       Boolean(userLocation) ||
       Boolean(profileCoords),
   });
+  discoveryConstraintActiveRef.current = discoveryConstraintActive;
 
   /**
    * Unconstrained mixed discovery under an active filter/search — local-first
@@ -6116,6 +6139,19 @@ export default function GeoFeed({
       widenedDiscoveryActive);
 
   /**
+   * Transition + suggestions only after the exact query cannot return another
+   * page. Composition thinness alone must not open the suggestion stage early.
+   */
+  const exhaustionReady = shouldShowExhaustionContinuation({
+    settled: discoveryContinuitySettled,
+    hasActiveConstraint: discoveryConstraintActive,
+    marketplaceExhausted: compositionState.marketplaceExhausted,
+  });
+  const showExhaustionContinuation =
+    exhaustionReady &&
+    (showDiscoveryContinuityBand || compositionState.marketplaceExhausted);
+
+  /**
    * Nearby + location: split progressive composition into honest exact vs
    * widened presentation. Recirculation always belongs after the band.
    */
@@ -6132,8 +6168,7 @@ export default function GeoFeed({
       displayRows,
       appliedRadius,
     );
-    // Keep recirculation out of widenedRows so exact-id dedupe cannot strip
-    // intentional re-shows (see composeWidenedStageRowsForPaint).
+    // Outside-radius rows stay in the suggestion stage, never as exact matches.
     return {
       exactRows: exact,
       widenedRows: widened as typeof displayRows,
@@ -6153,14 +6188,104 @@ export default function GeoFeed({
     saleWiderPool.length,
   ]);
 
-  const showRadiusStageLayout =
-    showDiscoveryContinuityBand ||
-    (locationFilterActive && radiusPresentation.hasWidened);
+  const showRadiusStageLayout = showExhaustionContinuation;
+
+  useEffect(() => {
+    if (!showExhaustionContinuation) return;
+    const key = [
+      appliedCategory,
+      feedChip,
+      appliedScope,
+      String(appliedRadius),
+      appliedSearchQuery,
+      appliedPlace,
+    ].join("|");
+    if (suggestionKeyRef.current === key) return;
+    suggestionKeyRef.current = key;
+    setSuggestionItems([]);
+    const ac = new AbortController();
+    const params = buildGeoFeedApiParams(
+      {
+        scope:
+          appliedScope === FEED_SCOPE_NEARBY
+            ? FEED_SCOPE_NATIONAL
+            : appliedScope,
+        radius: 0,
+        q: "",
+        category: "all",
+        lat: null,
+        lng: null,
+        place: "",
+        locationSource: null,
+        countryCode: null,
+        locationMode: null,
+      },
+      { take: 24, skip: 0 },
+    );
+    void (async () => {
+      try {
+        const res = await fetch(`/api/feed?${params.toString()}`, {
+          signal: ac.signal,
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as { items?: unknown };
+        const raw = Array.isArray(data.items)
+          ? (data.items as Record<string, unknown>[])
+          : [];
+        const valid = mapRawFeedApiItems(raw, effectiveViewerForDistance);
+        if (!ac.signal.aborted) setSuggestionItems(valid);
+      } catch (error) {
+        if ((error as Error)?.name === "AbortError") return;
+      }
+    })();
+    return () => {
+      ac.abort();
+      suggestionKeyRef.current = "";
+    };
+  }, [
+    showExhaustionContinuation,
+    appliedCategory,
+    feedChip,
+    appliedScope,
+    appliedRadius,
+    appliedSearchQuery,
+    appliedPlace,
+    effectiveViewerForDistance,
+  ]);
+
+  const suggestionRowsForPaint = useMemo(() => {
+    if (!showExhaustionContinuation) return [] as typeof displayRows;
+    const exactSource =
+      locationFilterActive && radiusPresentation.exactRows
+        ? radiusPresentation.exactRows
+        : displayRows;
+    const exactIds = collectFeedRowListingIds(exactSource);
+    const suggestionSales = suggestionItems
+      .filter((item) => isMarketplaceSaleItem(item))
+      .map((item) => ({ row: "sale" as const, item }));
+    return composeWidenedStageRowsForPaint({
+      widenedRows: radiusPresentation.widenedRows as typeof displayRows,
+      continuityRows: [
+        ...continuityDisplayRows,
+        ...suggestionSales,
+      ] as typeof displayRows,
+      recirculatedRows: [],
+      exactIds,
+    }).slice(0, 12);
+  }, [
+    showExhaustionContinuation,
+    locationFilterActive,
+    radiusPresentation.exactRows,
+    radiusPresentation.widenedRows,
+    displayRows,
+    suggestionItems,
+    continuityDisplayRows,
+  ]);
 
   const showDiscoveryContinuityFeed = shouldRenderDiscoveryContinuityFeed({
     showBand: showRadiusStageLayout,
-    continuityCandidateCount:
-      radiusPresentation.widenedRows.length + continuityDisplayRows.length,
+    continuityCandidateCount: suggestionRowsForPaint.length,
   });
 
   /** Never dead-end on exclusive empties when continuity band/feed applies. */
@@ -6987,17 +7112,7 @@ export default function GeoFeed({
           {filterSearchingBannerEl}
           {(() => {
             const exactSource =
-              radiusPresentation.exactRows ?? feedRowsToRender;
-            const exactIds = collectFeedRowListingIds(exactSource);
-            const continuityForStage = (nativeMounted && !nativeFeedRenderMore
-              ? continuityRowsToRender
-              : continuityDisplayRows) as typeof feedRowsToRender;
-            const widenedMerged = composeWidenedStageRowsForPaint({
-              widenedRows: radiusPresentation.widenedRows as typeof feedRowsToRender,
-              continuityRows: continuityForStage,
-              recirculatedRows: recirculatedRows as typeof feedRowsToRender,
-              exactIds,
-            });
+              radiusPresentation.exactRows ?? displayRows;
             const exactForPaint =
               nativeMounted && !nativeFeedRenderMore
                 ? exactSource.slice(
@@ -7005,11 +7120,20 @@ export default function GeoFeed({
                     Math.min(exactSource.length, FEED_FIRST_PAGE_TAKE),
                   )
                 : exactSource;
-            const widenedBudget =
-              nativeMounted && !nativeFeedRenderMore
-                ? Math.max(0, FEED_FIRST_PAGE_TAKE - exactForPaint.length)
-                : widenedMerged.length;
-            const widenedForPaint = widenedMerged.slice(0, widenedBudget);
+            const continuationIntent =
+              feedChip === "inspiration"
+                ? createIntentForSaleOrInspiration(category, "inspiration")
+                : createIntentForSaleOrInspiration(category, "sale");
+            const continuationKind =
+              feedChip === "gezocht"
+                ? ("request" as const)
+                : feedChip === "inspiration"
+                  ? ("inspiration" as const)
+                  : ("offer" as const);
+            const continuationLabel =
+              continuationKind === "request"
+                ? t("marketplace.request.actions.create")
+                : t(quickCreateLabelKey(continuationIntent));
             return (
               <>
                 {exactForPaint.length > 0 ? (
@@ -7034,45 +7158,33 @@ export default function GeoFeed({
                   </div>
                 ) : null}
                 <DiscoveryContinuityBand
-                  t={t}
-                  exactMatchCount={
-                    locationFilterActive
-                      ? radiusPresentation.exactListingCount
-                      : displayCount
+                  title={
+                    displayCount <= 0
+                      ? t("feed.continuityZeroTitle")
+                      : displayCount === 1
+                        ? t("feed.continuityExhaustedTitleOne")
+                        : t("feed.continuityExhaustedTitle", {
+                            count: displayCount,
+                          })
                   }
-                  searchQuery={appliedSearchQuery}
-                  appliedScope={appliedScope}
-                  appliedRadius={appliedRadius}
-                  onCreate={() =>
-                    createFlow.openCreateFlowWithIntent(
-                      createIntentForSaleOrInspiration(category, "sale"),
-                    )
+                  body={
+                    displayCount <= 0
+                      ? t("feed.continuityZeroBody")
+                      : t("feed.continuityExhaustedBody")
                   }
-                  onRequest={() => selectFeedView("gezocht")}
-                  onTrade={activateTradeDiscovery}
-                  onFocusSearch={() => {
-                    const el = document.querySelector<HTMLInputElement>(
-                      "[data-wx-feed-search]",
-                    );
-                    el?.focus();
-                  }}
-                  onOpenFilters={() => {
-                    if (feedCompactChrome && !isDesktopSplit) {
-                      setMobileFilterSheetOpen(true);
-                    } else if (workspaceRailOwnsFilters) {
-                      requestPlaceInputFocus({ reason: "continuity-filters" });
-                    } else {
-                      setSidebarRefineOpen(true);
-                    }
-                  }}
-                  onClearFilters={() => {
-                    clearFilters();
-                  }}
-                  onUseMyLocation={handleUseMyLocation}
-                  onWidenRadius={handleWidenRadius}
-                  onViewNearby={() => handleScopeChange(FEED_SCOPE_NEARBY)}
+                  actionLabel={continuationLabel}
+                  actionKind={continuationKind}
+                  onAction={() =>
+                    createFlow.openCreateFlowWithIntent(continuationIntent)
+                  }
+                  suggestionLabel={
+                    suggestionRowsForPaint.length > 0
+                      ? t("feed.continuityContinueLabel")
+                      : null
+                  }
                 />
-                {showDiscoveryContinuityFeed && widenedForPaint.length > 0 ? (
+                {showDiscoveryContinuityFeed &&
+                suggestionRowsForPaint.length > 0 ? (
                   <div
                     key={
                       isMobileFeedUi
@@ -7081,9 +7193,10 @@ export default function GeoFeed({
                     }
                     className={feedResultsContainerClass}
                     data-wx-discovery-continuity-feed=""
+                    data-wx-discovery-suggestions=""
                   >
                     {buildFeedGridNodes(
-                      widenedForPaint as typeof feedRowsToRender,
+                      suggestionRowsForPaint as typeof feedRowsToRender,
                     )}
                   </div>
                 ) : null}
@@ -7484,7 +7597,11 @@ export default function GeoFeed({
               <ExchangeSuggestionsMobileModule context="discovery" className="mb-3" />
             </div>
           ) : null}
-              {buildFeedGridNodes(feedRowsToRender)}
+              {buildFeedGridNodes(
+                (locationFilterActive && radiusPresentation.exactRows
+                  ? radiusPresentation.exactRows
+                  : feedRowsToRender) as typeof feedRowsToRender,
+              )}
         </div>
         {feedHasMore ? (
           <div
