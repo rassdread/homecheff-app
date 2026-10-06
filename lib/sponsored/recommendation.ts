@@ -57,11 +57,57 @@ const GARDEN = ['tuin', 'garden', 'grown', 'grow'];
 const DESIGN = ['design', 'designer', 'creatie', 'creation'];
 const SERVICE = ['dienst', 'service', 'practical_service', 'artistic_service', 'knowledge'];
 
-export function sponsoredRecommendationsEnabled(): boolean {
-  const raw =
-    process.env.SPONSORED_RECOMMENDATIONS_ENABLED ??
-    process.env.NEXT_PUBLIC_SPONSORED_RECOMMENDATIONS_ENABLED;
-  return raw !== '0';
+/**
+ * Server env only. Unset, 0, and false stay off.
+ * NEXT_PUBLIC cannot turn the API on by itself.
+ */
+export function sponsoredRecommendationsEnabled(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  const raw = (env.SPONSORED_RECOMMENDATIONS_ENABLED ?? '').trim().toLowerCase();
+  return raw === '1' || raw === 'true';
+}
+
+export const SPONSORED_IMPRESSION_MIN_RATIO = 0.5;
+export const SPONSORED_IMPRESSION_MIN_MS = 1000;
+
+export function sponsoredImpressionQualified(ratio: number, visibleMs: number): boolean {
+  return ratio >= SPONSORED_IMPRESSION_MIN_RATIO && visibleMs >= SPONSORED_IMPRESSION_MIN_MS;
+}
+
+export function sponsoredImpressionStorageKey(listingId: string, day: string): string {
+  return `hc-sp-imp:${listingId}:${day}`;
+}
+
+/** A qualified view is counted once. Storage still requires analytics consent. */
+export function shouldStoreSponsoredImpression(input: {
+  ratio: number;
+  visibleMs: number;
+  alreadyStored: boolean;
+  analyticsConsent: boolean;
+}): { count: boolean; store: boolean } {
+  if (!sponsoredImpressionQualified(input.ratio, input.visibleMs) || input.alreadyStored) {
+    return { count: false, store: false };
+  }
+  return { count: true, store: input.analyticsConsent };
+}
+
+/** Inserting a card into the viewport after the user has scrolled moves the feed. */
+export function shouldRevealSponsoredCard(input: {
+  hasItem: boolean;
+  scrollY: number;
+  anchorTop: number;
+  viewportHeight: number;
+}): boolean {
+  if (!input.hasItem) return false;
+  const userScrolled = input.scrollY > 8;
+  const anchorVisible = input.anchorTop < input.viewportHeight;
+  if (userScrolled && anchorVisible) return false;
+  return true;
+}
+
+export function sponsoredClickBlocksNavigation(): boolean {
+  return false;
 }
 
 export function sponsoredFulfillment(input: {
@@ -176,7 +222,19 @@ function hashString(value: string): number {
   return hash;
 }
 
-/** Weight is applied only among candidates that already passed relevance. */
+function bestListingForSeller(rows: EligibleSponsored[], seed: string): EligibleSponsored {
+  return [...rows].sort((a, b) => {
+    if (b.relevanceScore !== a.relevanceScore) return b.relevanceScore - a.relevanceScore;
+    return (
+      hashString(`${seed}:${a.candidate.listingId}`) - hashString(`${seed}:${b.candidate.listingId}`)
+    );
+  })[0];
+}
+
+/**
+ * One ticket per business. Extra listings can change which offer is shown,
+ * not how often the business is chosen.
+ */
 export function selectSponsoredRecommendation(
   candidates: SponsoredCandidateInput[],
   context: SponsoredContext,
@@ -186,10 +244,22 @@ export function selectSponsoredRecommendation(
     .map((candidate) => isSponsoredCandidateEligible(candidate, context))
     .filter((row): row is EligibleSponsored => row != null);
   if (eligible.length === 0) return null;
-  eligible.sort((a, b) => {
-    const left = hashString(`${seed}:${a.candidate.listingId}`) / a.weight;
-    const right = hashString(`${seed}:${b.candidate.listingId}`) / b.weight;
-    return left - right;
-  });
-  return eligible[0] ?? null;
+  const bySeller = new Map<string, EligibleSponsored[]>();
+  for (const row of eligible) {
+    const list = bySeller.get(row.candidate.sellerUserId) ?? [];
+    list.push(row);
+    bySeller.set(row.candidate.sellerUserId, list);
+  }
+  const tickets = [...bySeller.values()].map((rows) => bestListingForSeller(rows, seed));
+  const scale = 1000;
+  const weighted = tickets
+    .map((row) => ({ row, units: Math.max(1, Math.round(row.weight * scale)) }))
+    .sort((a, b) => a.row.candidate.sellerUserId.localeCompare(b.row.candidate.sellerUserId));
+  const total = weighted.reduce((sum, entry) => sum + entry.units, 0);
+  let cursor = hashString(`${seed}:pick`) % total;
+  for (const entry of weighted) {
+    if (cursor < entry.units) return entry.row;
+    cursor -= entry.units;
+  }
+  return weighted[0]?.row ?? null;
 }

@@ -8314,7 +8314,10 @@
         "websiteReady": "Website-promotie klaar",
         "socialReady": "Social-promotie klaar",
         "premiumAnalytics": "Uitgebreid verkopersoverzicht (geen premium analytics-module)",
-        "multiLocation": "Meerdere vestigingen"
+        "multiLocation": "Meerdere vestigingen",
+        "sponsoredBasic": "Kom in aanmerking voor extra relevante zichtbaarheid, alleen als je aanbod past bij wat iemand bekijkt.",
+        "sponsoredPro": "Meer distributiekansen voor relevante gesponsorde aanbevelingen, alleen als het aanbod past.",
+        "sponsoredPremium": "De hoogste distributieprioriteit binnen relevante gesponsorde aanbevelingen, alleen als het aanbod past."
       },
       "preview": {
         "liveTitle": "Live preview: zo zie je eruit",
@@ -8444,7 +8447,13 @@
         "aiMarketing": "AI marketing",
         "locations": "Vestigingen",
         "locationsUnlimited": "Onbeperkt",
-        "support": "Support"
+        "support": "Support",
+        "sponsored": "Relevante gesponsorde aanbevelingen",
+        "sponsoredValue": {
+          "basic": "Als het aanbod past",
+          "pro": "Meer kansen als het past",
+          "premium": "Hoogste prioriteit als het past"
+        }
       }
     }
   },

@@ -8314,7 +8314,10 @@
         "websiteReady": "Website promotion ready",
         "socialReady": "Social promotion ready",
         "premiumAnalytics": "Extended seller overview (no premium analytics module)",
-        "multiLocation": "Multiple locations"
+        "multiLocation": "Multiple locations",
+        "sponsoredBasic": "Eligible for extra relevant visibility, only when your offer matches what someone is browsing.",
+        "sponsoredPro": "More distribution opportunities for relevant sponsored recommendations, only when the offer fits.",
+        "sponsoredPremium": "Highest distribution priority within relevant sponsored recommendations, only when the offer fits."
       },
       "preview": {
         "liveTitle": "Live preview: how you'll appear",
@@ -8444,7 +8447,13 @@
         "aiMarketing": "AI marketing",
         "locations": "Locations",
         "locationsUnlimited": "Unlimited",
-        "support": "Support"
+        "support": "Support",
+        "sponsored": "Relevant sponsored recommendations",
+        "sponsoredValue": {
+          "basic": "When the offer fits",
+          "pro": "More chances when it fits",
+          "premium": "Highest priority when it fits"
+        }
       }
     }
   },

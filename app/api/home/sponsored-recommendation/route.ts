@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
         },
       }),
       orderBy: { createdAt: 'desc' },
-      take: 40,
+      take: 80,
       select: {
         id: true,
         title: true,

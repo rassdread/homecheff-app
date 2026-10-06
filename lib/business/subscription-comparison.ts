@@ -79,6 +79,11 @@ function rowForProfiles(
 export function buildSubscriptionComparisonRows(): ComparisonRow[] {
   return [
     rowForProfiles('business.dna.compare.commission', (p) => percentCell(p)),
+    rowForProfiles('business.dna.compare.sponsored', (p) =>
+      p.plan === 'individual'
+        ? dashCell()
+        : labelCell(`business.dna.compare.sponsoredValue.${p.plan}`),
+    ),
     rowForProfiles('business.dna.compare.badge', (p) =>
       p.badge ? checkCell() : dashCell(),
     ),
@@ -129,6 +134,9 @@ export function growthBenefitKeysForPlan(plan: BusinessPlanId): string[] {
   const p = getBusinessVisibilityProfile(plan);
   const keys: string[] = [];
 
+  if (plan === 'basic') keys.push('business.dna.benefit.sponsoredBasic');
+  if (plan === 'pro') keys.push('business.dna.benefit.sponsoredPro');
+  if (plan === 'premium') keys.push('business.dna.benefit.sponsoredPremium');
   if (p.verifiedBusiness) keys.push('business.dna.benefit.verified');
   if (p.badge) keys.push('business.dna.benefit.badge');
   if (p.categorySpotlightEligible) keys.push('business.dna.benefit.categoryFeatured');
