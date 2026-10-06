@@ -309,14 +309,6 @@ export default function HomePageClient({
             }
           />
         </FeedControlledHostShell>
-        {presentation.mode === 'marketplace' ? (
-          <div
-            className="mx-auto w-full max-w-3xl px-3 pb-4 pt-6"
-            data-hc-marketplace-secondary=""
-          >
-            <HomeDesktopSidebar welcomeLine={welcomeLine} placement="below" />
-          </div>
-        ) : null}
       </WorkspaceFeedPresentationBridge>
     </>
   );

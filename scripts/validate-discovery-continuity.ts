@@ -17,6 +17,10 @@ import {
   shouldRenderDiscoveryContinuityFeed,
   shouldShowDiscoveryContinuityBand,
   shouldShowExhaustionContinuation,
+  DISCOVERY_BATCH_SIZE,
+  advanceDiscoveryStage,
+  discoveryWindowCanContinue,
+  resolveDiscoveryFetch,
 } from '../lib/feed/discovery-continuity';
 
 const root = path.resolve(__dirname, '..');
@@ -32,6 +36,7 @@ function check(name: string, cond: boolean) {
 console.log('=== Discovery continuity (adaptive) ===\n');
 
 const geo = read('components/feed/GeoFeed.tsx');
+const home = read('components/home/HomePageClient.tsx');
 const band = read('components/feed/DiscoveryContinuityBand.tsx');
 const continuity = read('lib/feed/discovery-continuity.ts');
 const policy = read('lib/feed/feed-composition-policy.ts');
@@ -296,6 +301,78 @@ check(
     band.includes('hc-btn-primary') &&
     !band.includes('data-wx-empty-trade') &&
     !band.includes('continuityBeFirst'),
+);
+
+check(
+  'discovery continues in batches and stops when nothing new remains',
+  DISCOVERY_BATCH_SIZE === 12 &&
+    discoveryWindowCanContinue({
+      shown: 12,
+      available: 20,
+      apiHasMore: false,
+    }) &&
+    discoveryWindowCanContinue({
+      shown: 12,
+      available: 12,
+      apiHasMore: true,
+    }) &&
+    !discoveryWindowCanContinue({
+      shown: 12,
+      available: 12,
+      apiHasMore: false,
+    }),
+);
+
+check(
+  'nearby discovery keeps the category before it broadens',
+  resolveDiscoveryFetch({
+    stage: 'focused',
+    appliedCategory: 'services',
+    appliedScope: 'nearby',
+  }).category === 'services' &&
+    resolveDiscoveryFetch({
+      stage: 'focused',
+      appliedCategory: 'services',
+      appliedScope: 'nearby',
+    }).widenNearbyToNational &&
+    !resolveDiscoveryFetch({
+      stage: 'focused',
+      appliedCategory: 'services',
+      appliedScope: 'national',
+    }).widenNearbyToNational &&
+    resolveDiscoveryFetch({
+      stage: 'broad',
+      appliedCategory: 'services',
+      appliedScope: 'international',
+    }).category === 'all' &&
+    advanceDiscoveryStage({
+      stage: 'focused',
+      appliedCategory: 'services',
+      apiHasMore: false,
+    }).restartSkip &&
+    advanceDiscoveryStage({
+      stage: 'broad',
+      appliedCategory: 'services',
+      apiHasMore: false,
+    }).exhausted &&
+    !advanceDiscoveryStage({
+      stage: 'focused',
+      appliedCategory: 'services',
+      apiHasMore: true,
+    }).exhausted,
+);
+
+check(
+  'GeoFeed pages discovery instead of a hard 12-card end',
+  geo.includes('discoveryWindowCanContinue') &&
+    geo.includes('feed-discovery-load-more') &&
+    geo.includes('feed-discovery-end'),
+);
+
+check(
+  'marketplace does not stack the workspace cockpit under the feed',
+  !home.includes('data-hc-marketplace-secondary') &&
+    !home.includes('placement="below"'),
 );
 
 check(

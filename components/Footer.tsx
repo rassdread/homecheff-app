@@ -22,7 +22,39 @@ export default function Footer() {
    * Home owns continuous Workspace chrome; legal links remain on other routes.
    */
   if (pathname === '/') {
-    return null;
+    return (
+      <footer
+        data-homecheff-site-footer
+        className="mt-2 border-t border-[var(--hc-border-quiet)] bg-[var(--hc-surface-page)]"
+      >
+        <nav
+          className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-x-3 gap-y-1 px-3 py-3 text-[11px] text-[var(--hc-text-secondary)]"
+          aria-label="Footer navigatie"
+        >
+          <Link href="/inspiratie" className="hover:underline">
+            {language === 'en' ? 'Inspiration' : 'Inspiratie'}
+          </Link>
+          <Link href="/hoe-homecheff-werkt" className="hover:underline">
+            {t('siteFooter.howItWorks') || 'Hoe het werkt'}
+          </Link>
+          <Link href="/studio" className="hover:underline">
+            Studio
+          </Link>
+          <Link href="/growth" className="hover:underline">
+            Growth
+          </Link>
+          <Link href="/privacy" className="hover:underline">
+            {t('siteFooter.privacy')}
+          </Link>
+          <Link href="/terms" className="hover:underline">
+            {t('siteFooter.terms')}
+          </Link>
+          <Link href="/contact" className="hover:underline">
+            {t('siteFooter.contact')}
+          </Link>
+        </nav>
+      </footer>
+    );
   }
 
   if (profileGate) {

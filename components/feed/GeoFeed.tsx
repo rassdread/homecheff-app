@@ -286,6 +286,10 @@ import {
   shouldRenderDiscoveryContinuityFeed,
   shouldShowDiscoveryContinuityBand,
   shouldShowExhaustionContinuation,
+  DISCOVERY_BATCH_SIZE,
+  advanceDiscoveryStage,
+  discoveryWindowCanContinue,
+  resolveDiscoveryFetch,
 } from "@/lib/feed/discovery-continuity";
 import { isLocalFeedItem } from "@/lib/geo/feed-radius-filter";
 import {
@@ -1275,7 +1279,15 @@ export default function GeoFeed({
   /** When a discovery constraint is active, do not re-show exhausted exact ids. */
   const discoveryConstraintActiveRef = useRef(false);
   const [suggestionItems, setSuggestionItems] = useState<FeedItem[]>([]);
+  const [suggestionHasMore, setSuggestionHasMore] = useState(false);
+  const [suggestionLoadingMore, setSuggestionLoadingMore] = useState(false);
+  const [suggestionApiDone, setSuggestionApiDone] = useState(false);
+  const [discoveryShown, setDiscoveryShown] = useState(DISCOVERY_BATCH_SIZE);
   const suggestionKeyRef = useRef("");
+  const suggestionSkipRef = useRef(0);
+  const suggestionInFlightRef = useRef(false);
+  const suggestionGenRef = useRef(0);
+  const discoveryStageRef = useRef<'focused' | 'broad'>('focused');
   /** Predictive prefetch — max 2 prepared pages per requestKey. */
   const feedPrefetchCacheRef = useRef(
     new FeedPrefetchCache<FeedItem>(FEED_PREFETCH_MAX_BATCHES),
@@ -6190,6 +6202,100 @@ export default function GeoFeed({
 
   const showRadiusStageLayout = showExhaustionContinuation;
 
+  const loadDiscoveryPage = useCallback(
+    async (reset: boolean) => {
+      if (suggestionInFlightRef.current && !reset) return;
+      suggestionInFlightRef.current = true;
+      setSuggestionLoadingMore(true);
+      const generation = reset
+        ? ++suggestionGenRef.current
+        : suggestionGenRef.current;
+      if (reset) {
+        discoveryStageRef.current =
+          appliedCategory !== "all" ? "focused" : "broad";
+        suggestionSkipRef.current = 0;
+      }
+      const skip = suggestionSkipRef.current;
+      const plan = resolveDiscoveryFetch({
+        stage: discoveryStageRef.current,
+        appliedCategory,
+        appliedScope,
+      });
+      try {
+        const params = buildGeoFeedApiParams(
+          {
+            scope: plan.widenNearbyToNational
+              ? FEED_SCOPE_NATIONAL
+              : appliedScope,
+            radius: 0,
+            q: "",
+            category: plan.category,
+            lat: null,
+            lng: null,
+            place: "",
+            locationSource: null,
+            countryCode: null,
+            locationMode: null,
+          },
+          { take: DISCOVERY_BATCH_SIZE, skip },
+        );
+        const res = await fetch(`/api/feed?${params.toString()}`, {
+          cache: "no-store",
+        });
+        if (!res.ok || generation !== suggestionGenRef.current) return;
+        const data = (await res.json()) as {
+          items?: unknown;
+          pagination?: { hasMore?: boolean; nextSkip?: number };
+        };
+        const raw = Array.isArray(data.items)
+          ? (data.items as Record<string, unknown>[])
+          : [];
+        const valid = mapRawFeedApiItems(raw, effectiveViewerForDistance);
+        if (generation !== suggestionGenRef.current) return;
+        setSuggestionItems((prev) => {
+          const base = reset ? [] : prev;
+          const seen = new Set(base.map((row) => row.id));
+          const next = [...base];
+          for (const row of valid) {
+            if (!row.id || seen.has(row.id)) continue;
+            seen.add(row.id);
+            next.push(row);
+          }
+          return next;
+        });
+        if (reset) setDiscoveryShown(DISCOVERY_BATCH_SIZE);
+        const more = Boolean(data.pagination?.hasMore);
+        const step = advanceDiscoveryStage({
+          stage: discoveryStageRef.current,
+          appliedCategory,
+          apiHasMore: more,
+        });
+        discoveryStageRef.current = step.stage;
+        if (step.restartSkip) {
+          suggestionSkipRef.current = 0;
+          setSuggestionHasMore(true);
+          setSuggestionApiDone(false);
+        } else {
+          const advance =
+            typeof data.pagination?.nextSkip === "number"
+              ? data.pagination.nextSkip
+              : skip + Math.max(valid.length, DISCOVERY_BATCH_SIZE);
+          suggestionSkipRef.current = advance;
+          setSuggestionHasMore(!step.exhausted && more);
+          setSuggestionApiDone(step.exhausted);
+        }
+      } catch (error) {
+        if ((error as Error)?.name === "AbortError") return;
+      } finally {
+        if (generation === suggestionGenRef.current) {
+          suggestionInFlightRef.current = false;
+          setSuggestionLoadingMore(false);
+        }
+      }
+    },
+    [appliedCategory, appliedScope, effectiveViewerForDistance],
+  );
+
   useEffect(() => {
     if (!showExhaustionContinuation) return;
     const key = [
@@ -6202,47 +6308,12 @@ export default function GeoFeed({
     ].join("|");
     if (suggestionKeyRef.current === key) return;
     suggestionKeyRef.current = key;
+    suggestionSkipRef.current = 0;
     setSuggestionItems([]);
-    const ac = new AbortController();
-    const params = buildGeoFeedApiParams(
-      {
-        scope:
-          appliedScope === FEED_SCOPE_NEARBY
-            ? FEED_SCOPE_NATIONAL
-            : appliedScope,
-        radius: 0,
-        q: "",
-        category: "all",
-        lat: null,
-        lng: null,
-        place: "",
-        locationSource: null,
-        countryCode: null,
-        locationMode: null,
-      },
-      { take: 24, skip: 0 },
-    );
-    void (async () => {
-      try {
-        const res = await fetch(`/api/feed?${params.toString()}`, {
-          signal: ac.signal,
-          cache: "no-store",
-        });
-        if (!res.ok) return;
-        const data = (await res.json()) as { items?: unknown };
-        const raw = Array.isArray(data.items)
-          ? (data.items as Record<string, unknown>[])
-          : [];
-        const valid = mapRawFeedApiItems(raw, effectiveViewerForDistance);
-        if (!ac.signal.aborted) setSuggestionItems(valid);
-      } catch (error) {
-        if ((error as Error)?.name === "AbortError") return;
-      }
-    })();
-    return () => {
-      ac.abort();
-      suggestionKeyRef.current = "";
-    };
+    setSuggestionHasMore(false);
+    setSuggestionApiDone(false);
+    setDiscoveryShown(DISCOVERY_BATCH_SIZE);
+    void loadDiscoveryPage(true);
   }, [
     showExhaustionContinuation,
     appliedCategory,
@@ -6251,7 +6322,7 @@ export default function GeoFeed({
     appliedRadius,
     appliedSearchQuery,
     appliedPlace,
-    effectiveViewerForDistance,
+    loadDiscoveryPage,
   ]);
 
   const suggestionRowsForPaint = useMemo(() => {
@@ -6272,7 +6343,7 @@ export default function GeoFeed({
       ] as typeof displayRows,
       recirculatedRows: [],
       exactIds,
-    }).slice(0, 12);
+    });
   }, [
     showExhaustionContinuation,
     locationFilterActive,
@@ -6283,9 +6354,22 @@ export default function GeoFeed({
     continuityDisplayRows,
   ]);
 
+  const suggestionRowsAvailable = suggestionRowsForPaint;
+  const suggestionRowsVisible = suggestionRowsAvailable.slice(0, discoveryShown);
+  const discoveryCanContinue = discoveryWindowCanContinue({
+    shown: discoveryShown,
+    available: suggestionRowsAvailable.length,
+    apiHasMore: suggestionHasMore,
+  });
+  const discoveryTrulyEnded =
+    showExhaustionContinuation &&
+    suggestionApiDone &&
+    !suggestionLoadingMore &&
+    !discoveryCanContinue;
+
   const showDiscoveryContinuityFeed = shouldRenderDiscoveryContinuityFeed({
     showBand: showRadiusStageLayout,
-    continuityCandidateCount: suggestionRowsForPaint.length,
+    continuityCandidateCount: suggestionRowsVisible.length,
   });
 
   /** Never dead-end on exclusive empties when continuity band/feed applies. */
@@ -7178,13 +7262,18 @@ export default function GeoFeed({
                     createFlow.openCreateFlowWithIntent(continuationIntent)
                   }
                   suggestionLabel={
-                    suggestionRowsForPaint.length > 0
+                    suggestionRowsVisible.length > 0
                       ? t("feed.continuityContinueLabel")
+                      : null
+                  }
+                  suggestionHint={
+                    suggestionRowsVisible.length > 0
+                      ? t("feed.discoveryInterestHint")
                       : null
                   }
                 />
                 {showDiscoveryContinuityFeed &&
-                suggestionRowsForPaint.length > 0 ? (
+                suggestionRowsVisible.length > 0 ? (
                   <div
                     key={
                       isMobileFeedUi
@@ -7196,9 +7285,40 @@ export default function GeoFeed({
                     data-wx-discovery-suggestions=""
                   >
                     {buildFeedGridNodes(
-                      suggestionRowsForPaint as typeof feedRowsToRender,
+                      suggestionRowsVisible as typeof feedRowsToRender,
                     )}
                   </div>
+                ) : null}
+                {discoveryCanContinue ? (
+                  <div className="flex justify-center">
+                    <button
+                      type="button"
+                      className="hc-btn-secondary min-h-[44px] px-3 py-2 text-sm"
+                      data-testid="feed-discovery-load-more"
+                      disabled={suggestionLoadingMore}
+                      onClick={() => {
+                        if (discoveryShown < suggestionRowsAvailable.length) {
+                          setDiscoveryShown(
+                            (shown) => shown + DISCOVERY_BATCH_SIZE,
+                          );
+                          return;
+                        }
+                        void loadDiscoveryPage(false);
+                      }}
+                    >
+                      {suggestionLoadingMore
+                        ? t("feed.updating")
+                        : t("feed.discoveryLoadMore")}
+                    </button>
+                  </div>
+                ) : null}
+                {discoveryTrulyEnded ? (
+                  <p
+                    className="py-2 text-center text-sm text-[var(--hc-text-secondary)]"
+                    data-testid="feed-discovery-end"
+                  >
+                    {t("feed.discoveryCaughtUp")}
+                  </p>
                 ) : null}
               </>
             );

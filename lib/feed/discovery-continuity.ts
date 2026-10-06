@@ -111,6 +111,55 @@ export function shouldShowExhaustionContinuation(input: {
   );
 }
 
+/** How many labelled discovery cards to reveal per step. */
+export const DISCOVERY_BATCH_SIZE = 12;
+
+/**
+ * More labelled discovery remains when the local window is shorter than the
+ * deduped pool, or the existing feed API still has another page.
+ */
+export function discoveryWindowCanContinue(input: {
+  shown: number;
+  available: number;
+  apiHasMore: boolean;
+}): boolean {
+  return input.shown < input.available || input.apiHasMore;
+}
+
+export type DiscoveryWidenStage = 'focused' | 'broad';
+
+/**
+ * Nearby discovery widens geography but keeps the selected category first.
+ * National and international stay on the selected scope.
+ * The category is dropped only after that focused supply is finished.
+ */
+export function resolveDiscoveryFetch(input: {
+  stage: DiscoveryWidenStage;
+  appliedCategory: string;
+  appliedScope: string;
+}): { category: string; widenNearbyToNational: boolean } {
+  const focused =
+    input.stage === 'focused' && input.appliedCategory !== 'all';
+  return {
+    category: focused ? input.appliedCategory : 'all',
+    widenNearbyToNational: input.appliedScope === 'nearby',
+  };
+}
+
+export function advanceDiscoveryStage(input: {
+  stage: DiscoveryWidenStage;
+  appliedCategory: string;
+  apiHasMore: boolean;
+}): { stage: DiscoveryWidenStage; restartSkip: boolean; exhausted: boolean } {
+  if (input.apiHasMore) {
+    return { stage: input.stage, restartSkip: false, exhausted: false };
+  }
+  if (input.stage === 'focused' && input.appliedCategory !== 'all') {
+    return { stage: 'broad', restartSkip: true, exhausted: false };
+  }
+  return { stage: 'broad', restartSkip: false, exhausted: true };
+}
+
 /**
  * Continue the mixed discovery feed under the band when candidates exist.
  */

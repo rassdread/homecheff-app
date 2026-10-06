@@ -8,6 +8,7 @@ type Props = {
   onAction: () => void;
   /** Shown when a labelled suggestion section follows this band. */
   suggestionLabel: string | null;
+  suggestionHint?: string | null;
 };
 
 /**
@@ -21,6 +22,7 @@ export default function DiscoveryContinuityBand({
   actionKind,
   onAction,
   suggestionLabel,
+  suggestionHint = null,
 }: Props) {
   return (
     <div
@@ -52,6 +54,9 @@ export default function DiscoveryContinuityBand({
         >
           {suggestionLabel}
         </p>
+      ) : null}
+      {suggestionHint ? (
+        <p className="mt-1 text-xs text-[var(--hc-text-secondary)]">{suggestionHint}</p>
       ) : null}
     </div>
   );
