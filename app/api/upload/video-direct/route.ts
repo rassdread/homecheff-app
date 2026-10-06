@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { decideVideoDuration } from "@/lib/media/video-duration-guard";
 
 export const dynamic = 'force-dynamic';
 export const runtime = "nodejs";
@@ -36,6 +37,11 @@ export async function POST(req: Request) {
     // Validate video type
     if (!fileType.startsWith('video/')) {
       return NextResponse.json({ error: "Alleen video bestanden zijn toegestaan" }, { status: 400 });
+    }
+
+    const durationDecision = decideVideoDuration(buffer);
+    if (!durationDecision.ok) {
+      return NextResponse.json({ error: durationDecision.error }, { status: durationDecision.status });
     }
 
     // Upload to Vercel Blob

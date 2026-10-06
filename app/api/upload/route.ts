@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { decideVideoDuration } from "@/lib/media/video-duration-guard";
 
 export const dynamic = 'force-dynamic';
 
@@ -220,8 +221,10 @@ export async function POST(req: Request) {
         }, { status: 400 });
       }
       
-      // Note: Video duration validation is done client-side before upload
-      // as we cannot easily check duration server-side without processing the entire video
+      const durationDecision = decideVideoDuration(buffer);
+      if (!durationDecision.ok) {
+        return NextResponse.json({ error: durationDecision.error }, { status: durationDecision.status });
+      }
     } else {
       return NextResponse.json({ 
         error: "Alleen afbeeldingen en video's zijn toegestaan." 

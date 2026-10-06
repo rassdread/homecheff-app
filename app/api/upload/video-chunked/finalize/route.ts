@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { decideVideoDuration } from "@/lib/media/video-duration-guard";
 import { uploadSessions } from '../sessions';
 
 export const dynamic = 'force-dynamic';
@@ -48,6 +49,11 @@ export async function POST(req: Request) {
     // Verify file size
     if (fullBuffer.length !== uploadSession.fileSize) {
       console.warn(`⚠️ File size mismatch: expected ${uploadSession.fileSize}, got ${fullBuffer.length}`);
+    }
+
+    const durationDecision = decideVideoDuration(fullBuffer);
+    if (!durationDecision.ok) {
+      return NextResponse.json({ error: durationDecision.error }, { status: durationDecision.status });
     }
 
     // Upload to Vercel Blob
