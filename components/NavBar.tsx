@@ -492,7 +492,7 @@ export default function NavBar() {
           {/* Desktop Navigation — WX 1A.1: shrink-0 cluster; never flex-shrink/clip labels */}
           <nav
             data-wx-desktop-nav=""
-            className="hidden xl:flex items-center gap-0.5 xl:gap-1 shrink-0 overflow-visible"
+            className="hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto xl:flex xl:gap-1"
           >
             {!workspaceHeader ? (
             <Link
@@ -634,9 +634,9 @@ export default function NavBar() {
             <div className="hidden xl:block shrink-0" data-wx-header-language="">
               <LanguageSwitcher compact />
             </div>
-            {/* Ecosystem discovery — only from 2xl, where the widened row leaves room next to auth. */}
+            {/* Persistent in both modes. Preference chooses the current mode; it must not hide the way back. */}
             {presentation.available ? (
-              <div className="hidden xl:flex shrink-0 items-center">
+              <div className="shrink-0" data-hc-mode-switch-persistent="">
                 <PresentationModeSwitch
                   mode={presentation.mode}
                   onChange={presentation.setMode}

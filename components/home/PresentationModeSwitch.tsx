@@ -79,11 +79,11 @@ function ModeButton({
       className={
         pressed
           ? compact
-            ? 'hc-nav-selected px-2 py-1 text-[11px] font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--hc-focus)]'
-            : 'hc-nav-selected px-2.5 py-1 text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--hc-focus)]'
+            ? 'hc-nav-selected inline-flex min-h-[44px] items-center px-2 py-1 text-[11px] font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--hc-focus)]'
+            : 'hc-nav-selected inline-flex min-h-[44px] items-center px-2.5 py-1 text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--hc-focus)]'
           : compact
-            ? 'px-2 py-1 text-[11px] font-medium text-[var(--hc-text-secondary)] hover:bg-[var(--hc-surface-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--hc-focus)]'
-            : 'px-2.5 py-1 text-xs font-medium text-[var(--hc-text-secondary)] hover:bg-[var(--hc-surface-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--hc-focus)]'
+            ? 'inline-flex min-h-[44px] items-center px-2 py-1 text-[11px] font-medium text-[var(--hc-text-secondary)] hover:bg-[var(--hc-surface-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--hc-focus)]'
+            : 'inline-flex min-h-[44px] items-center px-2.5 py-1 text-xs font-medium text-[var(--hc-text-secondary)] hover:bg-[var(--hc-surface-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--hc-focus)]'
       }
     >
       {children}

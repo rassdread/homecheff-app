@@ -556,4 +556,18 @@ describe('home presentation mode', () => {
     assert.match(home, /presentation\.mode === 'marketplace'/);
     assert.match(home, /attentionAboveFeed/);
   });
+
+  it('keeps the mode switch visible after Marketplace is selected', () => {
+    const root = process.cwd();
+    const nav = readFileSync(join(root, 'components/NavBar.tsx'), 'utf8');
+    const persistent = nav.slice(
+      nav.indexOf('data-hc-mode-switch-persistent'),
+      nav.indexOf('data-hc-mode-switch-persistent') + 500,
+    );
+    assert.match(nav, /data-hc-mode-switch-persistent/);
+    assert.match(nav, /presentation\.available/);
+    assert.doesNotMatch(persistent, /hidden xl:flex/);
+    assert.doesNotMatch(persistent, /presentation\.mode === 'workspace'/);
+    assert.doesNotMatch(persistent, /presentation\.mode === 'marketplace'/);
+  });
 });
