@@ -164,8 +164,7 @@ export async function GET(request: NextRequest) {
             },
           },
         },
-      })
-      .catch(() => []);
+      });
     const localListings = viewerPlace
       ? recentListings.filter((row) => {
           const city =
