@@ -338,6 +338,44 @@ describe('marketplace discovery', () => {
     assert.equal(sent.length, 3);
   });
 
+  it('counts one view-chip change and ignores a rerender', () => {
+    const sealed = run(EMPTY_DISCOVERY_MEMORY, { knownCount: 21, viewChip: 'all' }).memory;
+    const offered = run(sealed, {
+      userInitiated: true,
+      knownCount: 21,
+      viewChip: 'sale',
+      certifiedZero: false,
+    });
+    assert.equal(offered.event?.params.discovery_mode, 'filter');
+    assert.equal(offered.event?.params.marketplace_family, 'all');
+    assert.equal(offered.event?.name, 'marketplace_discovery');
+    const again = run(offered.memory, { knownCount: 21, viewChip: 'sale' });
+    assert.equal(again.event, null);
+    const wanted = run(offered.memory, {
+      userInitiated: true,
+      knownCount: 1,
+      viewChip: 'gezocht',
+    });
+    assert.equal(wanted.event?.params.discovery_mode, 'filter');
+    assert.equal(wanted.event?.params.result_bucket, '1_5');
+    const emptyCreaties = run(wanted.memory, {
+      userInitiated: true,
+      knownCount: 0,
+      certifiedZero: true,
+      viewChip: 'gezocht',
+      categorySlug: 'designer',
+    });
+    assert.equal(emptyCreaties.event?.params.discovery_mode, 'category');
+    assert.equal(emptyCreaties.event?.params.result_bucket, 'zero');
+    assert.equal(emptyCreaties.event?.params.marketplace_family, 'creation');
+    const paged = run(emptyCreaties.memory, {
+      knownCount: 0,
+      viewChip: 'gezocht',
+      categorySlug: 'designer',
+    });
+    assert.equal(paged.event, null);
+  });
+
   it('is not a Meta event', () => {
     assert.equal(META_APPROVED_EVENTS.includes('marketplace_discovery' as never), false);
     assert.deepEqual([...META_APPROVED_EVENTS], ['CompleteRegistration', 'Purchase']);

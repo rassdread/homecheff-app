@@ -7,7 +7,11 @@ import { classifySearchResult } from '@/lib/search/classify-result';
 import { listingMatchesTaxonomySearchQuery } from '@/lib/marketplace/taxonomy-resolve';
 import { itemMatchesDiscoveryCategorySlug } from '@/lib/marketplace/canonical-model';
 import { getDiscoveryLegacyVerticalCategory } from '@/lib/discovery/consumer-accessors';
-import { isMarketplaceServiceItem } from '@/lib/feed/marketplace-sale';
+import {
+  isMarketplaceRequestItem,
+  isMarketplaceSaleItem,
+  isMarketplaceServiceItem,
+} from '@/lib/feed/marketplace-sale';
 import { buildProductTextSearchWhere } from '@/lib/search/filters/build-product-search-where';
 import {
   combineProductSearchFilters,
@@ -347,7 +351,10 @@ describe('listing semantic family', () => {
       priceCents: 0,
     };
     assert.equal(family(request), 'service');
-    assert.equal(inCategory(request, 'services'), false);
+    assert.equal(inCategory(request, 'services'), true);
+    assert.equal(isMarketplaceRequestItem(request), true);
+    assert.equal(isMarketplaceSaleItem(request), false);
+    assert.equal(inCategory(request, 'designer'), false);
   });
 
   it('does not treat an inspiration dish as a commercial service', () => {

@@ -39,6 +39,8 @@ type Criteria = {
   scope: DiscoveryScope;
   filter: boolean;
   queryHash: string;
+  /** View chip. Stays off the event payload. */
+  view: string;
 };
 
 export type DiscoveryMemory = Criteria & {
@@ -51,6 +53,7 @@ export const EMPTY_DISCOVERY_MEMORY: DiscoveryMemory = {
   scope: 'nearby',
   filter: false,
   queryHash: '0',
+  view: 'all',
 };
 
 export type DiscoveryObservation = {
@@ -64,6 +67,8 @@ export type DiscoveryObservation = {
   /** Used for the local hash. Never copied onto the event. */
   searchText: string;
   filterActive: boolean;
+  /** Aangeboden, Vraag, Inspiratie, or Alles. Not sent to analytics. */
+  viewChip?: string | null;
 };
 
 export type DiscoveryDecision = {
@@ -77,6 +82,7 @@ const PASSIVE_CRITERIA: Criteria = {
   scope: 'nearby',
   filter: false,
   queryHash: '0',
+  view: 'all',
 };
 
 export function marketplaceFamilyFromCategorySlug(slug: string | null | undefined): MarketplaceFamily {
@@ -123,6 +129,7 @@ function criteriaOf(observation: DiscoveryObservation): Criteria {
     scope: discoveryScopeFromFeedScope(observation.feedScope),
     filter: observation.filterActive,
     queryHash: localQueryFingerprint(observation.searchText),
+    view: (observation.viewChip || 'all').trim().toLowerCase() || 'all',
   };
 }
 
@@ -131,7 +138,7 @@ function discoveryMode(previous: Criteria, next: Criteria): DiscoveryMode | null
   if (previous.queryHash !== next.queryHash) changed.push('search');
   if (previous.family !== next.family) changed.push('category');
   if (previous.scope !== next.scope) changed.push('location');
-  if (previous.filter !== next.filter) changed.push('filter');
+  if (previous.filter !== next.filter || previous.view !== next.view) changed.push('filter');
   if (changed.length === 0) return null;
   if (changed.length === 1) return changed[0];
   return 'combined';
@@ -142,7 +149,8 @@ function sameCriteria(left: Criteria, right: Criteria): boolean {
     left.family === right.family &&
     left.scope === right.scope &&
     left.filter === right.filter &&
-    left.queryHash === right.queryHash
+    left.queryHash === right.queryHash &&
+    left.view === right.view
   );
 }
 

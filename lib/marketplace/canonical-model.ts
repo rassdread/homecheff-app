@@ -28,6 +28,7 @@ import {
   isMarketplaceServiceItem,
   type MarketplaceSaleInput,
 } from '@/lib/feed/marketplace-sale';
+import { listingSemanticFamily } from '@/lib/marketplace/commercial-capability';
 import { marketplaceCategoryToMainCategory } from '@/lib/marketplace/value-exchange/category-taxonomy-map';
 import type { ValueExchangeMainCategory } from '@/lib/marketplace/value-exchange/value-exchange-contract';
 
@@ -276,6 +277,28 @@ export type DiscoveryCategoryMatchInput = MarketplaceSaleInput & {
  * Client-side category-axis filter — reuses existing classifiers (no second truth).
  * `getLegacyVerticalCategory` is injected to avoid a circular import with GeoFeed.
  */
+/**
+ * Category axis only. A request for a service is still a service.
+ * Offer-only signals are a fallback when structured taxonomy is absent.
+ */
+function itemMatchesServiceCategory(item: DiscoveryCategoryMatchInput): boolean {
+  const specs = [
+    ...(item.discovery?.specializations ?? item.specializations ?? []),
+    ...(item.subcategory ? [item.subcategory] : []),
+  ];
+  const family = listingSemanticFamily({
+    marketplaceCategory: item.discovery?.marketplaceCategory ?? item.marketplaceCategory,
+    productCategory: item.category,
+    specializations: specs,
+    subcategory: item.subcategory,
+    priceModel: item.priceModel,
+    fulfillmentOptions: item.fulfillmentOptions,
+  });
+  if (family === 'service') return true;
+  if (family != null) return false;
+  return isMarketplaceServiceItem(item);
+}
+
 export function itemMatchesDiscoveryCategorySlug(
   item: DiscoveryCategoryMatchInput,
   slug: string,
@@ -283,7 +306,7 @@ export function itemMatchesDiscoveryCategorySlug(
 ): boolean {
   const normalized = normalizeDiscoveryCategorySlug(slug);
   if (normalized === 'all') return true;
-  if (normalized === 'services') return isMarketplaceServiceItem(item);
+  if (normalized === 'services') return itemMatchesServiceCategory(item);
   const enumCat = feedVerticalSlugToCategoryEnum(normalized);
   if (!enumCat || !getLegacyVerticalCategory) return true;
   return getLegacyVerticalCategory(item) === enumCat;

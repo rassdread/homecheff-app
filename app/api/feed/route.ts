@@ -537,9 +537,7 @@ async function handleFeedGet(
     searchFilters.listingIntent === 'REQUEST'
       ? { listingIntent: 'REQUEST' }
       : searchFilters.listingIntent === 'OFFER'
-        ? ({
-            OR: [{ listingIntent: 'OFFER' }, { listingIntent: null }],
-          } as Prisma.ProductWhereInput)
+        ? { NOT: { listingIntent: 'REQUEST' } }
         : null;
   const productWhereExtras = combineProductSearchFilters([
     q ? buildProductTextSearchWhere(q) : null,
@@ -564,6 +562,7 @@ async function handleFeedGet(
         isPublic: true,
         status: "ACTIVE",
         ...(q ? buildListingTextSearchWhere(q) : {}),
+        ...(searchFilters.listingIntent === 'REQUEST' ? { id: { in: [] as string[] } } : {}),
         ...(listingCategory ? {
           category: listingCategory
         } : {}),
@@ -651,7 +650,9 @@ async function handleFeedGet(
     ...(lat && lng
       ? feedDistanceBoxOrMissingCoords(Number(lat), Number(lng), effectiveRadius)
       : {}),
-    ...(discoverySlugIsServices(vertical)
+    ...(searchFilters.listingIntent === 'REQUEST' ||
+    searchFilters.listingIntent === 'OFFER' ||
+    discoverySlugIsServices(vertical)
       ? { id: { in: [] as string[] } }
       : productCategory
         ? { category: productCategory }

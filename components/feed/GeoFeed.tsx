@@ -1285,6 +1285,7 @@ export default function GeoFeed({
   const lastInspiratieFetchKeyRef = useRef("");
   const feedInteractionStartedRef = useRef(false);
   const discoveryIntentRef = useRef(false);
+  const feedChipRef = useRef<FeedChip>("all");
   const discoverySearchDirtyRef = useRef(false);
   const discoveryMemoryRef = useRef<DiscoveryMemory>(EMPTY_DISCOVERY_MEMORY);
   const discoveryServerKeyRef = useRef<string | null>(null);
@@ -1342,6 +1343,7 @@ export default function GeoFeed({
   const [feedChip, setFeedChip] = useState<FeedChip>(
     initialFeedChip ?? "all"
   );
+  feedChipRef.current = feedChip;
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 350);
   const [sortBy, setSortBy] = useState<
@@ -2509,6 +2511,15 @@ export default function GeoFeed({
       lastInspiratieFetchKeyRef.current = "";
       filterResultCacheRef.current.invalidateAll();
     }
+  }, []);
+
+  const selectFeedView = useCallback((next: FeedChip) => {
+    if (feedChipRef.current === next) return;
+    discoveryIntentRef.current = true;
+    discoveryEpochAtIntentRef.current = discoveryEpochNowRef.current;
+    discoveryKeyAtIntentRef.current = discoveryServerKeyRef.current;
+    feedChipRef.current = next;
+    setFeedChip(next);
   }, []);
 
   const handlePlaceInput = useCallback((inputPlace: string) => {
@@ -5053,6 +5064,14 @@ export default function GeoFeed({
         awaitingServerResults,
       }),
       knownCount: idle ? displayCount : null,
+      categorySlug: appliedCategory,
+      feedScope: appliedScope,
+      searchText: appliedSearchQuery,
+      viewChip: feedChip,
+      filterActive:
+        appliedPriceRange.min.trim() !== "" ||
+        appliedPriceRange.max.trim() !== "" ||
+        appliedAcceptedValues.length > 0,
       certifiedZero:
         idle &&
         !feedHasMore &&
@@ -5065,14 +5084,11 @@ export default function GeoFeed({
           requestInFlight,
           resultCount: displayCount,
           emptyTerminal: compositionState.emptyTerminal,
-        }),
-      categorySlug: appliedCategory,
-      feedScope: appliedScope,
-      searchText: appliedSearchQuery,
-      filterActive:
-        appliedPriceRange.min.trim() !== "" ||
-        appliedPriceRange.max.trim() !== "" ||
-        appliedAcceptedValues.length > 0,
+        }) ||
+        (discoveryIntentRef.current &&
+          idle &&
+          !awaitingServerResults &&
+          displayCount === 0),
     });
     if (decision.event && !browserAnalyticsConsentGranted()) {
       discoveryMemoryRef.current = decision.memory;
@@ -5099,6 +5115,7 @@ export default function GeoFeed({
     nearbyNeedsLocation,
     compositionState.emptyTerminal,
     appliedCategory,
+    feedChip,
     appliedScope,
     appliedQ,
     appliedPlace,
@@ -5659,7 +5676,7 @@ export default function GeoFeed({
     setPriceRange({ min: "", max: "" });
     setAppliedPriceRange({ min: "", max: "" });
     selectVerticalChip("all");
-    setFeedChip("all");
+    selectFeedView("all");
     if (appliedScope !== FEED_SCOPE_NEARBY) {
       handleScopeChange(FEED_SCOPE_NEARBY);
     }
@@ -6249,7 +6266,7 @@ export default function GeoFeed({
   /** WX 1C.1.1 — surface trade as a first-class Workspace action. */
   const activateTradeDiscovery = useCallback(() => {
     setDiscoveryDirection("offer");
-    setFeedChip("sale");
+    selectFeedView("sale");
     if (feedCompactChrome && !isDesktopSplit) {
       setMobileFilterSheetOpen(true);
     } else {
@@ -6307,7 +6324,7 @@ export default function GeoFeed({
             key={legacyChip}
             type="button"
             className={chipBtn(feedChip === legacyChip)}
-            onClick={() => setFeedChip(legacyChip)}
+            onClick={() => selectFeedView(legacyChip)}
           >
             {t(labelKey)}
           </button>
@@ -6593,7 +6610,7 @@ export default function GeoFeed({
       <FeedMobileToolbar
         t={t}
         feedChip={feedChip}
-        onFeedChipChange={setFeedChip}
+        onFeedChipChange={selectFeedView}
         appliedCategory={appliedCategory}
         onCategoryChange={selectVerticalChip}
         appliedScope={appliedScope}
@@ -7084,7 +7101,7 @@ export default function GeoFeed({
                       createIntentForSaleOrInspiration(category, "sale"),
                     )
                   }
-                  onRequest={() => setFeedChip("gezocht")}
+                  onRequest={() => selectFeedView("gezocht")}
                   onTrade={activateTradeDiscovery}
                   onFocusSearch={() => {
                     const el = document.querySelector<HTMLInputElement>(
@@ -7103,7 +7120,6 @@ export default function GeoFeed({
                   }}
                   onClearFilters={() => {
                     clearFilters();
-                    setFeedChip("all");
                   }}
                   onUseMyLocation={handleUseMyLocation}
                   onWidenRadius={handleWidenRadius}
@@ -7292,7 +7308,7 @@ export default function GeoFeed({
             </button>
             <button
               type="button"
-              onClick={() => setFeedChip("inspiration")}
+              onClick={() => selectFeedView("inspiration")}
               className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
               {t("feed.emptySaleViewInspiration")}
@@ -7350,7 +7366,7 @@ export default function GeoFeed({
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => setFeedChip("sale")}
+              onClick={() => selectFeedView("sale")}
               className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
               {t("marketplace.canonical.view.offered")}
@@ -7384,7 +7400,7 @@ export default function GeoFeed({
             </button>
             <button
               type="button"
-              onClick={() => setFeedChip("gezocht")}
+              onClick={() => selectFeedView("gezocht")}
               className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
               {t("marketplace.discovery.requests.chip")}
@@ -7425,7 +7441,7 @@ export default function GeoFeed({
             <button
               type="button"
               data-wx-empty-request=""
-              onClick={() => setFeedChip("gezocht")}
+              onClick={() => selectFeedView("gezocht")}
               className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
               {t("feed.emptyConfirmedRequest")}
@@ -7469,7 +7485,6 @@ export default function GeoFeed({
               type="button"
               onClick={() => {
                 clearFilters();
-                setFeedChip("all");
               }}
               className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
