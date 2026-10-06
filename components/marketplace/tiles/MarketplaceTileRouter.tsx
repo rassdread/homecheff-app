@@ -132,7 +132,7 @@ export default function MarketplaceTileRouter({
   }
 
   const effectiveMediaRatio: MarketplaceTileMediaRatio =
-    mediaRatio ?? '4:3';
+    mediaRatio ?? '4:5';
 
   return (
     <MarketplaceTileCompact

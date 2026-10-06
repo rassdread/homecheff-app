@@ -1497,29 +1497,10 @@ html.hc-pwa-standalone .hc-profile-v2-bottom-inset {
   outline-offset: 2px;
 }
 
+/* Media box size comes from the tile ratio class (4:3 list, 1:1 discover grid).
+   A fixed short height here turned every photo into a wide cropped banner. */
 .hc-feed-media {
-  height: 8rem;
-  max-height: 8rem;
-  aspect-ratio: auto;
   overflow: hidden;
-}
-@media (min-width: 768px) {
-  .hc-feed-media {
-    height: 12rem;
-    max-height: 12rem;
-  }
-}
-@media (min-width: 1024px) {
-  .hc-feed-media {
-    height: 12rem;
-    max-height: 12rem;
-  }
-}
-@media (min-width: 1280px) {
-  .hc-feed-media {
-    height: 11rem;
-    max-height: 11rem;
-  }
 }
 
 /* —— Operations workspace shell (Phase A) —— */
@@ -1870,9 +1851,8 @@ html[data-wx-landscape-work="1"] .hc-wx-stage {
   }
 }
 
-/* Compact marketplace media is the visible window.
-   The inner 4:3 box used to stay full height and get clipped,
-   which left a gray strip around portraits and cropped the top of other photos. */
+/* Fill the ratio box. Fit (contain vs cover) stays on the image/video
+   via the historical smart-fit classes, not a forced cover crop. */
 .hc-feed-media > .feed-card-primary-media,
 .hc-home-feed-grid .hc-feed-media > .feed-card-primary-media,
 html.hc-native-capacitor .hc-feed-media > .feed-card-primary-media {
@@ -1882,12 +1862,6 @@ html.hc-native-capacitor .hc-feed-media > .feed-card-primary-media {
   height: 100%;
   min-height: 0;
   aspect-ratio: auto;
-}
-
-.hc-feed-media img,
-.hc-feed-media video {
-  object-fit: cover;
-  object-position: center;
 }
 
 @media (min-width: 640px) {

@@ -6479,13 +6479,7 @@ export default function GeoFeed({
 
   const feedResultsContainerClass = useMemo(() => {
     if (!isMobileFeedUi) {
-      if (isDesktopSplit) {
-        return homeDesktopFeedGridClass(desktopFeedColumns);
-      }
-      if (feedColumnLayout === "home-main") {
-        return "grid grid-cols-1 gap-4 xl:gap-5";
-      }
-      return "grid grid-cols-1 gap-4 xl:gap-5";
+      return homeDesktopFeedGridClass(desktopFeedColumns);
     }
     if (effectiveFeedLayoutMode === "discover") {
       return "grid grid-cols-2 gap-2.5 sm:gap-3 hc-discover-feed-grid";
@@ -6495,11 +6489,9 @@ export default function GeoFeed({
     }`;
   }, [
     isMobileFeedUi,
-    isDesktopSplit,
     desktopFeedColumns,
     effectiveFeedLayoutMode,
     nativeMounted,
-    feedColumnLayout,
   ]);
 
   const useDiscoverGridTiles =
@@ -6870,7 +6862,12 @@ export default function GeoFeed({
         </label>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0 flex-1 space-y-2">{viewModeChipsEl}</div>
-          <button
+          <div className="flex shrink-0 items-center gap-2">
+            <FeedDesktopColumnToggle
+              columns={desktopFeedColumns}
+              onChange={setDesktopFeedColumns}
+            />
+            <button
             type="button"
             data-wx-filters-toggle=""
             aria-expanded={workspaceFiltersExpanded}
@@ -6885,6 +6882,7 @@ export default function GeoFeed({
               <ChevronDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
             )}
           </button>
+          </div>
         </div>
         {workspaceFiltersExpanded ? (
           <div className="mt-3 space-y-3 border-t border-gray-100 pt-3">

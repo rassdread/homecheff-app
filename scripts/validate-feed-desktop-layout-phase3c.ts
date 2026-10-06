@@ -32,7 +32,7 @@ ok('default is 1 column', HOME_DESKTOP_FEED_COLUMNS_DEFAULT === 1);
 ok('version migration key present', colsModule.includes('homecheff.homeDesktopFeedColumns.version'));
 ok('explicit choice key present', colsModule.includes('homecheff.homeDesktopFeedColumns.explicit'));
 ok('SSR default is 1 column', colsModule.includes('HOME_DESKTOP_FEED_COLUMNS_DEFAULT'));
-ok('desktop non-home is single column', geoFeed.includes('grid-cols-1 gap-4 xl:gap-5'));
+ok('desktop uses the column preference grid', geoFeed.includes('homeDesktopFeedGridClass(desktopFeedColumns)'));
 ok('mobile discover grid unchanged', geoFeed.includes('hc-discover-feed-grid'));
 ok('mobile cards column unchanged', geoFeed.includes('hc-feed-cards-column'));
 ok('layout state not in feed fetch deps', !geoFeed.match(/buildGeoFeedApiParams[\s\S]{0,2000}desktopFeedColumns/) );

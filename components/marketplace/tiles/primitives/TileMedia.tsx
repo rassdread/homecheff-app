@@ -81,7 +81,6 @@ export default function TileMedia({
         videoUrl={videoUrl}
         videoPoster={videoPoster}
         imageUrl={imageUrl}
-        objectFit="cover"
         className="absolute inset-0 h-full w-full feed-card-primary-media"
         imageLoading={imageLoading}
       />
