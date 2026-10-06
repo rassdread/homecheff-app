@@ -260,7 +260,7 @@ function useFeedVideoInteractionMode(): "hover" | "viewport" {
 
 /** Typische homepage-feed grid: helpt browser bij schalen (ook bij enkele src-URL). */
 const FEED_CARD_IMG_SIZES =
-  "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw";
+  "(max-width: 767px) 100vw, (max-width: 1279px) 32rem, 48rem";
 
 /** Iets lager dan 0.6 zodat kaartvideo’s in de feed weer betrouwbaar starten. */
 const VIEWPORT_PLAY_THRESHOLD = 0.3;

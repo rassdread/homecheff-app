@@ -1503,6 +1503,22 @@ html.hc-pwa-standalone .hc-profile-v2-bottom-inset {
   overflow: hidden;
 }
 
+/* One-column focus. The ratio box stays intact and the photo uses smart fit.
+   Width stops growing once the frame would be taller than one viewing moment.
+   Two-column discovery is not matched here. Phones under 768px stay full width. */
+@media (min-width: 768px) {
+  .hc-feed-cards-column [data-marketplace-preview-shell] {
+    width: min(100%, 32rem, calc(70dvh * 4 / 5));
+    margin-inline: auto;
+  }
+}
+@media (min-width: 1280px) {
+  .grid-cols-1 [data-marketplace-preview-shell] {
+    width: min(100%, 48rem, calc(68dvh * 4 / 3));
+    margin-inline: auto;
+  }
+}
+
 /* —— Operations workspace shell (Phase A) —— */
 .hc-operations-page {
   background: var(--hc-surface-page);
