@@ -332,6 +332,9 @@
     "discussionWeek": "{count} nieuwe reviews en reacties deze week",
     "mostSavedThisWeek": "Meest opgeslagen: “{title}” ({count} favorieten)",
     "risingCreatorWeek": "{name} zette {count} nieuwe productaanbiedingen live deze week",
+    "risingPlaced": "{name} heeft iets nieuws geplaatst",
+    "viewAction": "Bekijk",
+    "sponsored": "Gesponsord",
     "activeListersWeek": "{count} makers zetten iets in de etalage deze week"
   },
   "creatorMomentum": {

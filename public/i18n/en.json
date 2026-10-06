@@ -332,6 +332,9 @@
     "discussionWeek": "{count} new reviews and comments this week",
     "mostSavedThisWeek": "Most saved: “{title}” ({count} favorites)",
     "risingCreatorWeek": "{name} published {count} new product listings this week",
+    "risingPlaced": "{name} posted something new",
+    "viewAction": "View",
+    "sponsored": "Sponsored",
     "activeListersWeek": "{count} creators listed something this week"
   },
   "creatorMomentum": {

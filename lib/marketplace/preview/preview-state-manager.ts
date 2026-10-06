@@ -65,13 +65,13 @@ class PreviewStateManager {
     if (this.scrollTimer) clearTimeout(this.scrollTimer);
     this.scrollTimer = setTimeout(() => {
       this.isScrolling = false;
-      this.notify();
     }, PREVIEW_SCROLL_COOLDOWN_MS);
 
+    // Hover checks isScrollingNow() at event time. Notifying here re-rendered
+    // every visible tile on each scroll frame even when no preview was open.
     if (this.state.activeListingId) {
       this.close(this.state.activeListingId, 'scroll');
     }
-    this.notify();
   };
 
   subscribe(listener: Listener): () => void {

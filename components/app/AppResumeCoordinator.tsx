@@ -194,7 +194,25 @@ export default function AppResumeCoordinator() {
       }
       window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior });
     };
-    requestAnimationFrame(() => requestAnimationFrame(run));
+    let userMoved = false;
+    const markMoved = () => {
+      userMoved = true;
+    };
+    window.addEventListener('pointerdown', markMoved, { passive: true });
+    window.addEventListener('wheel', markMoved, { passive: true });
+    const frame = requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        window.removeEventListener('pointerdown', markMoved);
+        window.removeEventListener('wheel', markMoved);
+        if (userMoved) return;
+        run();
+      }),
+    );
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('pointerdown', markMoved);
+      window.removeEventListener('wheel', markMoved);
+    };
   }, [pathname, search]);
 
   // Window scroll save (home + profile); messages-list via ConversationsList

@@ -79,14 +79,15 @@ export default function PageSwipeHandler({ enabled = true }: PageSwipeHandlerPro
       const diffX = Math.abs(e.touches[0].clientX - touchStartX.current);
       const diffY = Math.abs(e.touches[0].clientY - touchStartY.current);
 
-      // Determine if this is a horizontal swipe (more horizontal than vertical)
-      if (diffX > diffY && diffX > 10) {
-        isHorizontalSwipe.current = true;
-      } else if (diffY > diffX && diffY > 10) {
-        // User is scrolling vertically, cancel swipe
+      // A vertical or mixed gesture is a scroll. Never keep it as a swipe.
+      if (diffY > 12 && diffY >= diffX * 0.5) {
         isHorizontalSwipe.current = false;
         touchStartX.current = null;
         touchStartY.current = null;
+        return;
+      }
+      if (diffX > diffY * 2 && diffX > 28) {
+        isHorizontalSwipe.current = true;
       }
     };
 
@@ -116,24 +117,26 @@ export default function PageSwipeHandler({ enabled = true }: PageSwipeHandlerPro
       }
 
       const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
       const diff = touchStartX.current - touchEndX;
       const absDiff = Math.abs(diff);
+      const absY = Math.abs((touchStartY.current ?? touchEndY) - touchEndY);
 
-      // Only navigate if swipe is significant enough
-      if (absDiff > minSwipeDistance) {
+      // Only a clearly horizontal swipe navigates. No hash: a hash scrolls
+      // the feed back to the top while the finger is still moving.
+      if (absDiff > minSwipeDistance && absDiff > absY * 2) {
         const chip = searchParams.get('chip');
         const onHomeSaleOrAll =
           pathname === '/' &&
           (chip === 'sale' || chip === 'all' || chip == null || chip === '');
         const onHomeInspiration = pathname === '/' && chip === 'inspiration';
 
-        // Discover op `/`: swipe links → inspiratie-chip, swipe rechts → te koop
         if (diff > 0 && pathname === '/' && onHomeSaleOrAll) {
           e.preventDefault();
-          router.replace('/?chip=inspiration#homecheff-feed');
+          router.replace('/?chip=inspiration', { scroll: false });
         } else if (diff < 0 && onHomeInspiration) {
           e.preventDefault();
-          router.replace('/?chip=sale#homecheff-feed');
+          router.replace('/?chip=sale', { scroll: false });
         }
       }
 

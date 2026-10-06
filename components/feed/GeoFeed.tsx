@@ -3246,9 +3246,21 @@ export default function GeoFeed({
       }
       window.scrollTo(0, pending.top);
     };
-    apply();
-    const t = window.setTimeout(apply, 50);
-    return () => window.clearTimeout(t);
+    let userMoved = false;
+    const markMoved = () => {
+      userMoved = true;
+    };
+    window.addEventListener('touchmove', markMoved, { passive: true });
+    window.addEventListener('wheel', markMoved, { passive: true });
+    if (!userMoved) apply();
+    const t = window.setTimeout(() => {
+      if (!userMoved) apply();
+    }, 50);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener('touchmove', markMoved);
+      window.removeEventListener('wheel', markMoved);
+    };
   }, [feedHydrated, items.length, recirculatedRows.length]);
 
   useEffect(() => {

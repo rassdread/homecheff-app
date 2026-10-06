@@ -302,7 +302,7 @@ export default function FeedSearchContextBar(props: FeedSearchContextBarProps) {
       data-testid="feed-search-context-bar"
       role="region"
       aria-label={ariaLabel}
-      className="rounded-lg border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-2.5 py-1.5 text-[11px] text-[var(--hc-text-secondary)] sm:text-xs"
+      className="min-h-[3.25rem] rounded-lg border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-2.5 py-1.5 text-[11px] text-[var(--hc-text-secondary)] sm:text-xs"
     >
       <ul className="m-0 flex list-none flex-nowrap items-center gap-x-2 overflow-x-auto p-0 [scrollbar-width:none]">
         {chips.map((chip) => {

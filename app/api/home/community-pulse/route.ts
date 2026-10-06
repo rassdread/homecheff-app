@@ -4,6 +4,7 @@ import { getDisplayName } from '@/lib/displayName';
 import {
   andPublicListingWhere,
 } from '@/lib/marketplace/public-listing-eligibility';
+import { buildProductDetailPath } from '@/lib/seo/productSlug';
 
 export const dynamic = 'force-dynamic';
 
@@ -143,6 +144,9 @@ export async function GET() {
 
     let risingSellerUsername: string | null = null;
     let risingSellerListings = 0;
+    let risingSellerPath: string | null = null;
+    let risingListingPath: string | null = null;
+    let risingListingId: string | null = null;
     const topSellerId = risingGroup[0]?.sellerId;
     if (topSellerId) {
       risingSellerListings = risingGroup[0]._count.sellerId;
@@ -150,7 +154,23 @@ export async function GET() {
         where: { id: topSellerId },
         select: { User: { select: { username: true, name: true, displayFullName: true, displayNameOption: true } } },
       });
+      const username = sp?.User?.username?.trim() || null;
       risingSellerUsername = sp?.User ? getDisplayName(sp.User) : null;
+      risingSellerPath = username ? `/user/${encodeURIComponent(username)}` : null;
+      if (risingSellerListings === 1) {
+        const one = await prisma.product.findFirst({
+          where: andPublicListingWhere({
+            sellerId: topSellerId,
+            createdAt: { gte: weekAgo },
+          }),
+          orderBy: { createdAt: 'desc' },
+          select: { id: true, title: true, placeName: true },
+        });
+        if (one) {
+          risingListingId = one.id;
+          risingListingPath = buildProductDetailPath(one.title, one.placeName, one.id);
+        }
+      }
     }
 
     const body = {
@@ -168,6 +188,9 @@ export async function GET() {
       mostSavedProductCount,
       risingSellerUsername,
       risingSellerListings,
+      risingSellerPath,
+      risingListingPath,
+      risingListingId,
       generatedAt: new Date().toISOString(),
     };
 
@@ -194,6 +217,9 @@ export async function GET() {
         mostSavedProductCount: 0,
         risingSellerUsername: null,
         risingSellerListings: 0,
+        risingSellerPath: null,
+        risingListingPath: null,
+        risingListingId: null,
         generatedAt: new Date().toISOString(),
         error: true,
       },

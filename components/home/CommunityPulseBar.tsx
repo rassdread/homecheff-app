@@ -6,6 +6,7 @@ import { Sparkles } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
 import { cn } from '@/lib/utils';
+import FeedActivityCta from '@/components/home/FeedActivityCta';
 
 export type CommunityPulsePayload = {
   newProducts24h: number;
@@ -22,6 +23,9 @@ export type CommunityPulsePayload = {
   mostSavedProductCount?: number;
   risingSellerUsername?: string | null;
   risingSellerListings?: number;
+  risingSellerPath?: string | null;
+  risingListingPath?: string | null;
+  risingListingId?: string | null;
 };
 
 type PulseMoment = { key: string; label: string; emoji: string };
@@ -115,6 +119,17 @@ export default function CommunityPulseBar({
           ? 'rounded-2xl border border-gray-200/80 bg-gradient-to-br from-[#faf8f4] via-white to-primary-50/20 px-4 py-3 mb-0 shadow-sm'
           : 'mb-4 rounded-2xl border border-gray-200/70 bg-gradient-to-br from-[#faf8f4] via-white to-secondary-50/20 px-4 py-3.5 shadow-sm';
 
+  if (loading && variant === 'insertCompact') {
+    return (
+      <div
+        className={cn(containerBase, 'h-9')}
+        aria-busy="true"
+        aria-label={language === 'en' ? 'Loading neighborhood moments' : 'Buurtmomenten laden'}
+        data-hc-feed-activity="compact"
+      />
+    );
+  }
+
   if (loading) {
     return (
       <div
@@ -133,6 +148,14 @@ export default function CommunityPulseBar({
 
   if (!data) return null;
 
+  if (moments.length === 0 && variant === 'insertCompact') {
+    return (
+      <p className={cn(containerBase, 'text-xs leading-snug text-gray-700')}>
+        {t('communityPulse.fallbackLine')}
+      </p>
+    );
+  }
+
   if (moments.length === 0) {
     return (
       <div className={cn(containerBase, 'flex items-start gap-3')}>
@@ -145,19 +168,40 @@ export default function CommunityPulseBar({
   }
 
   if (variant === 'insertCompact') {
+    const rising =
+      !!data.risingSellerUsername && (data.risingSellerListings ?? 0) >= 1;
     const top = moments[0];
-    if (!top) {
-      return (
-        <p className={cn(containerBase, 'text-[11px] text-gray-600 truncate')}>
-          {t('communityPulse.fallbackLine')}
-        </p>
-      );
-    }
+    const label = rising
+      ? t('communityPulse.risingPlaced', { name: data.risingSellerUsername ?? '' })
+      : (top?.label ?? t('communityPulse.fallbackLine'));
+    const emoji = rising ? '🌱' : (top?.emoji ?? '✨');
+    const exact = rising && (data.risingSellerListings ?? 0) === 1;
+    const href = rising
+      ? (exact && data.risingListingPath
+          ? data.risingListingPath
+          : data.risingSellerPath) ?? null
+      : null;
+    const listingId = exact && href === data.risingListingPath
+      ? data.risingListingId ?? null
+      : null;
+
     return (
-      <p className={cn(containerBase, 'flex items-center gap-1.5 text-[11px] text-gray-800 truncate')}>
-        <span aria-hidden>{top.emoji}</span>
-        <span className="truncate font-medium">{top.label}</span>
-      </p>
+      <div
+        className={cn(containerBase, 'flex items-center gap-2 text-xs text-gray-800')}
+        data-hc-feed-activity="compact"
+        data-hc-activity-disclosure="organic"
+      >
+        <span aria-hidden className="shrink-0">{emoji}</span>
+        <span className="min-w-0 flex-1 leading-snug">{label}</span>
+        {href ? (
+          <FeedActivityCta
+            href={href}
+            listingId={listingId}
+            label={t('communityPulse.viewAction')}
+            disclosure="organic"
+          />
+        ) : null}
+      </div>
     );
   }
 
