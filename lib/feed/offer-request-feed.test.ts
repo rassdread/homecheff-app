@@ -10,9 +10,14 @@ import { itemMatchesAcceptedValuesDiscoveryFilter } from '@/lib/marketplace/disc
 import { itemMatchesDiscoveryCategorySlug } from '@/lib/marketplace/canonical-model';
 import { sellerRoleForCommercialOffer } from '@/lib/seller/seller-role-consistency';
 
+type FeedRow = MarketplaceSaleInput & {
+  category?: string | null;
+  acceptedSpecializations?: string[] | null;
+};
+
 type View = 'sale' | 'gezocht' | 'inspiration';
 
-function shows(item: MarketplaceSaleInput, view: View, category: string): boolean {
+function shows(item: FeedRow, view: View, category: string): boolean {
   const categoryMatch = itemMatchesDiscoveryCategorySlug(
     item,
     category,
@@ -25,7 +30,7 @@ function shows(item: MarketplaceSaleInput, view: View, category: string): boolea
   return !sale && !request && categoryMatch;
 }
 
-const foodOffer: MarketplaceSaleInput = {
+const foodOffer: FeedRow = {
   feedSource: 'PRODUCT',
   listingIntent: 'OFFER',
   priceCents: 1200,
@@ -35,12 +40,12 @@ const foodOffer: MarketplaceSaleInput = {
   priceModel: 'FIXED',
 };
 
-const foodRequest: MarketplaceSaleInput = {
+const foodRequest: FeedRow = {
   ...foodOffer,
   listingIntent: 'REQUEST',
 };
 
-const creationOffer: MarketplaceSaleInput = {
+const creationOffer: FeedRow = {
   feedSource: 'PRODUCT',
   listingIntent: 'OFFER',
   priceCents: 2000,
@@ -56,7 +61,7 @@ const creationOffer: MarketplaceSaleInput = {
   },
 };
 
-const creationRequest: MarketplaceSaleInput = {
+const creationRequest: FeedRow = {
   feedSource: 'PRODUCT',
   listingIntent: 'REQUEST',
   marketplaceCategory: 'DESIGN',
@@ -65,7 +70,7 @@ const creationRequest: MarketplaceSaleInput = {
   priceModel: 'ON_REQUEST',
 };
 
-const serviceOffer: MarketplaceSaleInput = {
+const serviceOffer: FeedRow = {
   feedSource: 'PRODUCT',
   listingIntent: 'OFFER',
   marketplaceCategory: 'ARTISTIC_SERVICE',
@@ -75,7 +80,7 @@ const serviceOffer: MarketplaceSaleInput = {
   priceCents: 0,
 };
 
-const serviceRequest: MarketplaceSaleInput = {
+const serviceRequest: FeedRow = {
   feedSource: 'PRODUCT',
   listingIntent: 'REQUEST',
   marketplaceCategory: 'PRACTICAL_SERVICE',
@@ -90,19 +95,19 @@ const serviceRequest: MarketplaceSaleInput = {
   },
 };
 
-const inspiration: MarketplaceSaleInput = {
+const inspiration: FeedRow = {
   feedSource: 'DISH',
   listingIntent: 'OFFER',
   priceCents: 0,
   category: 'DESIGNER',
 };
 
-const moneyOffer: MarketplaceSaleInput = {
+const moneyOffer: FeedRow = {
   ...foodOffer,
   acceptedSpecializations: [],
 };
 
-const swapOffer: MarketplaceSaleInput = {
+const swapOffer: FeedRow = {
   ...foodOffer,
   acceptedSpecializations: ['create.meal'],
 };
