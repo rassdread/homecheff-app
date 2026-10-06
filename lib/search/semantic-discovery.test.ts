@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { listingSemanticFamily } from '@/lib/marketplace/commercial-capability';
+import { deriveListingKind } from '@/lib/marketplace/listing-kind/derive-listing-kind';
 import { listingMatchesTaxonomySearchQuery } from '@/lib/marketplace/taxonomy-resolve';
 import { itemMatchesDiscoveryCategorySlug } from '@/lib/marketplace/canonical-model';
 import { getDiscoveryLegacyVerticalCategory } from '@/lib/discovery/consumer-accessors';
@@ -146,6 +147,47 @@ const app: Row = {
   subcategory: 'design.app',
 };
 
+const furniture: Row = {
+  title: 'Eiken blad',
+  category: 'DESIGNER',
+  marketplaceCategory: 'DESIGN',
+  subcategory: 'meubels',
+};
+
+const artPrint: Row = {
+  title: 'Afdruk',
+  category: 'DESIGNER',
+  marketplaceCategory: 'DESIGN',
+  subcategory: 'create.art',
+};
+
+const interior: Row = {
+  title: 'Woonadvies',
+  category: 'DESIGNER',
+  marketplaceCategory: 'DESIGN',
+  subcategory: 'design.other',
+};
+
+const graphic: Row = {
+  title: 'Huisstijl',
+  category: 'DESIGNER',
+  marketplaceCategory: 'DESIGN',
+  specializations: ['design.illustration'],
+};
+
+const legacyPhoto: Row = {
+  title: 'Op locatie',
+  category: 'DESIGNER',
+  marketplaceCategory: 'DESIGN',
+  subcategory: 'fotografie',
+};
+
+const bareDesign: Row = {
+  title: 'Tafel',
+  category: 'DESIGNER',
+  marketplaceCategory: 'DESIGN',
+};
+
 describe('listing semantic family', () => {
   it('classifies structured listings, not the storage bucket', () => {
     assert.equal(family(food), 'food');
@@ -159,6 +201,41 @@ describe('listing semantic family', () => {
     assert.equal(family(video), 'service');
     assert.equal(family(logo), 'service');
     assert.equal(family(app), 'service');
+    assert.equal(family(furniture), 'creation');
+    assert.equal(family(artPrint), 'creation');
+    assert.equal(family(interior), 'service');
+    assert.equal(family(graphic), 'service');
+    assert.equal(family(legacyPhoto), 'service');
+    assert.equal(family(bareDesign), 'creation');
+  });
+
+  it('lets a design service taxonomy beat legacy DESIGNER storage', () => {
+    const storedAsDesigner: Row = {
+      title: 'Online aanwezigheid',
+      category: 'DESIGNER',
+      marketplaceCategory: null,
+      specializations: ['design.website'],
+    };
+    assert.equal(family(storedAsDesigner), 'service');
+    assert.equal(inCategory(storedAsDesigner, 'services'), true);
+    assert.equal(inCategory(storedAsDesigner, 'designer'), false);
+    assert.equal(
+      deriveListingKind({
+        marketplaceCategory: 'DESIGN',
+        category: 'DESIGNER',
+        specializations: ['design.website'],
+        listingIntent: 'OFFER',
+      }).listingKind,
+      'SERVICE',
+    );
+    assert.equal(
+      deriveListingKind({
+        marketplaceCategory: 'DESIGN',
+        category: 'DESIGNER',
+        listingIntent: 'OFFER',
+      }).listingKind,
+      'PRODUCT',
+    );
   });
 
   it('does not read seller roles or accepted values', () => {
@@ -209,6 +286,11 @@ describe('search terms', () => {
     assert.equal(matchesQuery({ ...photo, title: 'Portret' }, 'fotograaf'), true);
     assert.equal(matchesQuery({ ...video, title: 'Clip' }, 'video'), true);
     assert.equal(matchesQuery({ ...knowledge, title: 'Loopbaan' }, 'advies'), true);
+    assert.equal(matchesQuery(furniture, 'meubel'), true);
+    assert.equal(matchesQuery(artPrint, 'kunstwerk'), true);
+    assert.equal(matchesQuery(interior, 'interieurontwerp'), true);
+    assert.equal(matchesQuery(graphic, 'grafisch'), true);
+    assert.equal(matchesQuery(legacyPhoto, 'fotografie'), true);
   });
 
   it('treats Website and surrounding spaces the same', () => {
@@ -240,6 +322,21 @@ describe('category and query composition', () => {
     assert.equal(inCategory(food, 'cheff'), true);
     assert.equal(inCategory(garden, 'garden'), true);
     assert.equal(inCategory(jewelry, 'designer'), true);
+    assert.equal(inCategory(furniture, 'designer'), true);
+    assert.equal(inCategory(furniture, 'services'), false);
+    assert.equal(inCategory(artPrint, 'designer'), true);
+    assert.equal(inCategory(artPrint, 'services'), false);
+    assert.equal(inCategory(bareDesign, 'designer'), true);
+    assert.equal(inCategory(bareDesign, 'services'), false);
+    assert.equal(inCategory(interior, 'services'), true);
+    assert.equal(inCategory(interior, 'designer'), false);
+    assert.equal(inCategory(graphic, 'services'), true);
+    assert.equal(inCategory(graphic, 'designer'), false);
+    assert.equal(inCategory(legacyPhoto, 'services'), true);
+    assert.equal(inCategory(legacyPhoto, 'designer'), false);
+    assert.equal(inCategory(website, 'services') && matchesQuery(website, 'website'), true);
+    assert.equal(inCategory(logo, 'services') && matchesQuery(logo, 'logo'), true);
+    assert.equal(inCategory(video, 'services') && matchesQuery(video, 'video'), true);
     assert.equal(inCategory(website, 'cheff'), false);
     assert.equal(inCategory(website, 'designer'), false);
     assert.equal(inCategory(practical, 'cheff'), false);
@@ -262,8 +359,13 @@ describe('server category filter', () => {
     const encoded = JSON.stringify(services);
     assert.equal(encoded.includes('"category":"CHEFF"'), false);
     assert.equal(encoded.includes('"category":"DESIGNER"'), false);
+    assert.equal(encoded.includes('"marketplaceCategory":"DESIGN"'), false);
     assert.equal(encoded.includes('PRACTICAL_SERVICE'), true);
     assert.equal(encoded.includes('design.'), true);
+    assert.equal(encoded.includes('fotografie'), true);
+    const creations = JSON.stringify(semanticProductWhereForDiscoverySlug('designer'));
+    assert.equal(creations.includes('"marketplaceCategory":"DESIGN"'), true);
+    assert.equal(creations.includes('meubels'), true);
   });
 
   it('keeps text search and category as separate AND clauses', () => {

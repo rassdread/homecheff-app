@@ -297,6 +297,31 @@ describe('marketplace discovery', () => {
     intent = true;
     epochAtIntent = epoch;
     keyAtIntent = serverKey;
+    serverKey = 'designer|nearby';
+    const creatiesClick = step(
+      { categorySlug: 'designer', knownCount: 25, feedScope: 'nearby' },
+      { idle: true },
+    );
+    assert.equal(creatiesClick.event, null);
+    assert.equal(sent.length, 1);
+    epoch += 1;
+    const creaties = step(
+      { categorySlug: 'designer', knownCount: 12, feedScope: 'nearby' },
+      { idle: true },
+    );
+    assert.equal(sent.length, 2);
+    assert.equal(creaties.event?.params.marketplace_family, 'creation');
+    assert.equal(creaties.event?.params.discovery_mode, 'category');
+    const creatiesAgain = step(
+      { categorySlug: 'designer', knownCount: 12, feedScope: 'nearby' },
+      { idle: true },
+    );
+    assert.equal(creatiesAgain.event, null);
+    assert.equal(sent.length, 2);
+
+    intent = true;
+    epochAtIntent = epoch;
+    keyAtIntent = serverKey;
     serverKey = 'cheff|nearby';
     step({ categorySlug: 'cheff', knownCount: 25, feedScope: 'nearby' }, { idle: true });
     epoch += 1;
@@ -306,11 +331,11 @@ describe('marketplace discovery', () => {
     );
     assert.equal(eten.event?.params.marketplace_family, 'food');
     assert.equal(eten.event?.params.discovery_mode, 'category');
-    assert.equal(sent.length, 2);
+    assert.equal(sent.length, 3);
 
     const denied = emitMarketplaceDiscovery(eten.event, false, () => sent.push('denied'));
     assert.equal(denied, false);
-    assert.equal(sent.length, 2);
+    assert.equal(sent.length, 3);
   });
 
   it('is not a Meta event', () => {

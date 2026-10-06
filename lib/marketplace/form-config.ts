@@ -38,6 +38,7 @@ const PHYSICAL_CREATE_TAXONOMY_IDS = new Set([
   'create.jewelry',
   'create.decoration',
   'create.art',
+  'create.craft_other',
 ]);
 
 function resolveSpecIds(

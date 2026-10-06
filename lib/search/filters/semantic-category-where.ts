@@ -1,17 +1,20 @@
 import type { Prisma } from '@prisma/client';
 import {
   craftCreateTaxonomyIds,
+  isCraftCreateTaxonomyId,
+  isStructuredServiceTaxonomyId,
   SERVICE_MARKETPLACE_CATEGORIES,
 } from '@/lib/marketplace/commercial-capability';
 import { normalizeDiscoveryCategorySlug } from '@/lib/marketplace/canonical-model';
+import { legacyDutchSubcategoryKeysFor } from '@/lib/marketplace/legacy-subcategory-map';
 import { MARKETPLACE_TAXONOMY } from '@/lib/marketplace/taxonomy';
 
 const SERVICE_STORAGE = [...SERVICE_MARKETPLACE_CATEGORIES, 'DESIGN'] as const;
 
-function designServiceTaxonomyIds(): string[] {
-  return MARKETPLACE_TAXONOMY.filter((entry) => entry.id.startsWith('design.')).map(
-    (entry) => entry.id,
-  );
+function structuredServiceTaxonomyIds(): string[] {
+  return MARKETPLACE_TAXONOMY.filter((entry) =>
+    isStructuredServiceTaxonomyId(entry.id),
+  ).map((entry) => entry.id);
 }
 
 function notCraft(): Prisma.ProductWhereInput {
@@ -26,6 +29,21 @@ function notCraft(): Prisma.ProductWhereInput {
   };
 }
 
+/** Structured service evidence. A bare DESIGN marketplace category is not enough. */
+function serviceSignals(): Prisma.ProductWhereInput[] {
+  const serviceIds = structuredServiceTaxonomyIds();
+  const legacyServiceKeys = legacyDutchSubcategoryKeysFor(isStructuredServiceTaxonomyId);
+  return [
+    { subcategory: { startsWith: 'design.', mode: 'insensitive' } },
+    { subcategory: { in: legacyServiceKeys, mode: 'insensitive' } },
+    { specializations: { hasSome: serviceIds } },
+  ];
+}
+
+function notServiceSignals(): Prisma.ProductWhereInput {
+  return { NOT: { OR: serviceSignals() } };
+}
+
 /**
  * Product filter for a discovery category slug.
  * Structured marketplace category and taxonomy win over Product.category.
@@ -38,17 +56,13 @@ export function semanticProductWhereForDiscoverySlug(
   if (slug === 'all') return null;
 
   const craft = craftCreateTaxonomyIds();
-  const designIds = designServiceTaxonomyIds();
+  const craftLegacyKeys = legacyDutchSubcategoryKeysFor(isCraftCreateTaxonomyId);
 
   if (slug === 'services') {
     return {
       OR: [
         { marketplaceCategory: { in: [...SERVICE_MARKETPLACE_CATEGORIES] } },
-        { subcategory: { startsWith: 'design.', mode: 'insensitive' } },
-        { specializations: { hasSome: designIds } },
-        {
-          AND: [{ marketplaceCategory: 'DESIGN' }, notCraft()],
-        },
+        ...serviceSignals(),
       ],
     };
   }
@@ -63,18 +77,22 @@ export function semanticProductWhereForDiscoverySlug(
           ],
         },
         notCraft(),
+        notServiceSignals(),
         { NOT: { marketplaceCategory: { in: [...SERVICE_STORAGE] } } },
-        { NOT: { subcategory: { startsWith: 'design.', mode: 'insensitive' } } },
-        { NOT: { specializations: { hasSome: designIds } } },
       ],
     };
   }
 
   if (slug === 'garden') {
     return {
-      OR: [
-        { marketplaceCategory: 'GROW' },
-        { AND: [{ marketplaceCategory: null }, { category: 'GROWN' }] },
+      AND: [
+        {
+          OR: [
+            { marketplaceCategory: 'GROW' },
+            { AND: [{ marketplaceCategory: null }, { category: 'GROWN' }] },
+          ],
+        },
+        notServiceSignals(),
       ],
     };
   }
@@ -83,13 +101,16 @@ export function semanticProductWhereForDiscoverySlug(
     return {
       OR: [
         { subcategory: { in: craft } },
+        { subcategory: { in: craftLegacyKeys, mode: 'insensitive' } },
         { specializations: { hasSome: craft } },
+        {
+          AND: [{ marketplaceCategory: 'DESIGN' }, notServiceSignals()],
+        },
         {
           AND: [
             { marketplaceCategory: null },
             { category: 'DESIGNER' },
-            { NOT: { subcategory: { startsWith: 'design.', mode: 'insensitive' } } },
-            { NOT: { specializations: { hasSome: designIds } } },
+            notServiceSignals(),
           ],
         },
       ],

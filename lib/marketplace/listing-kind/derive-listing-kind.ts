@@ -4,7 +4,7 @@ import {
   isPhysicalCreateTaxonomyId,
   isWorkshopTaxonomyId,
 } from '@/lib/marketplace/form-config';
-import { isDesignServiceTaxonomyId } from '@/lib/marketplace/commercial-capability';
+import { isStructuredServiceTaxonomyId } from '@/lib/marketplace/commercial-capability';
 import { legacyUrlCategoryToMarketplace } from '@/lib/marketplace/listing-taxonomy';
 import { toCanonicalTaxonomyId } from '@/lib/marketplace/taxonomy-normalize';
 import { isRequestListing } from '@/lib/marketplace/product-visibility';
@@ -21,18 +21,18 @@ const SERVICE_MARKETPLACE_CATEGORIES = new Set<MarketplaceCategory>([
   'ARTISTIC_SERVICE',
   'PRACTICAL_SERVICE',
   'KNOWLEDGE',
-  'DESIGN',
 ]);
 
 function resolveSpecIds(input: DeriveListingKindInput): string[] {
-  if (input.specializations?.length) {
-    return input.specializations.filter(Boolean);
-  }
-  if (input.subcategory?.trim()) {
-    const canonical = toCanonicalTaxonomyId(input.subcategory);
-    return canonical ? [canonical] : [];
-  }
-  return [];
+  const raw = [
+    ...(input.specializations ?? []),
+    ...(input.subcategory?.trim() ? [input.subcategory] : []),
+  ].filter(Boolean);
+  return [
+    ...new Set(
+      raw.map((id) => toCanonicalTaxonomyId(id) ?? id.trim().toLowerCase()),
+    ),
+  ];
 }
 
 function resolveMarketplaceCategory(
@@ -139,13 +139,10 @@ export function deriveListingKind(
     return result;
   }
 
-  if (
-    category === 'DESIGN' &&
-    specs.some((id) => isDesignServiceTaxonomyId(id))
-  ) {
+  if (specs.some((id) => isStructuredServiceTaxonomyId(id))) {
     const result: DeriveListingKindResult = {
       listingKind: 'SERVICE',
-      derivationPath: 'specializations:design_service',
+      derivationPath: 'specializations:service',
     };
     logListingKindDerivation(input, result);
     return result;

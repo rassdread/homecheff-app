@@ -5,9 +5,9 @@
 
 import {
   isCraftCreateTaxonomyId,
-  isDesignServiceTaxonomyId,
-  isServiceMarketplaceCategory,
+  offerIsService,
 } from '@/lib/marketplace/commercial-capability';
+import { toCanonicalTaxonomyId } from '@/lib/marketplace/taxonomy-normalize';
 import { parseProductOrderMethod } from '@/lib/product/order-method';
 import { isMarketplaceSaleItem } from '@/lib/feed/marketplace-sale';
 import {
@@ -204,13 +204,19 @@ function resolveListingKind(input: FeedTaxonomyInput): ListingKind {
  */
 function resolveFeedCategory(input: FeedTaxonomyInput): FeedCategory {
   const marketplace = String(input.marketplaceCategory ?? '').trim().toUpperCase();
-  const specs = input.specializations ?? [];
-  const designService = specs.some((id) => isDesignServiceTaxonomyId(id));
-  const craft = specs.some((id) => isCraftCreateTaxonomyId(id));
+  const specs = [
+    ...(input.specializations ?? []),
+    ...(input.subcategory ? [input.subcategory] : []),
+  ];
+  const craft = specs.some((id) =>
+    isCraftCreateTaxonomyId(toCanonicalTaxonomyId(id) ?? id),
+  );
   if (
-    isServiceMarketplaceCategory(marketplace) ||
-    designService ||
-    (marketplace === 'DESIGN' && !craft)
+    offerIsService({
+      marketplaceCategory: input.marketplaceCategory,
+      specializations: input.specializations,
+      subcategory: input.subcategory,
+    })
   ) {
     return 'HELP';
   }

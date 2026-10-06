@@ -56,7 +56,7 @@ export function getDiscoveryLegacyVerticalCategory(item: object): string | null 
   if (family === 'food') return 'CHEFF';
   if (family === 'garden') return 'GROWN';
   if (family === 'creation') return 'DESIGNER';
-  if (offerIsService({ marketplaceCategory: structured, specializations: specs })) {
+  if (offerIsService({ marketplaceCategory: structured, specializations: specs, subcategory })) {
     return null;
   }
   if (row.discovery?.marketplaceCategory) {

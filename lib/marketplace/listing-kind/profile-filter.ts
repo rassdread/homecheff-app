@@ -36,6 +36,7 @@ function matchesVerticalFilter(
     offerIsService({
       marketplaceCategory: structured,
       specializations: input.specializations,
+      subcategory: input.subcategory,
     })
   ) {
     return false;
@@ -79,6 +80,7 @@ export function matchesProfileAanbodFilter(
           marketplaceCategory:
             input.discoveryMarketplaceCategory ?? input.marketplaceCategory,
           specializations: input.specializations,
+          subcategory: input.subcategory,
         }) ||
         listingKind === 'SERVICE' ||
         listingKind === 'TASK' ||

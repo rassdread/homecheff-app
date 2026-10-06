@@ -87,6 +87,8 @@ const LEGACY_DUTCH_SUBCATEGORY_MAP: Record<string, string> = {
   portret: 'artistic.portrait',
   logo: 'design.logo',
   illustratie: 'design.illustration',
+  interieurontwerp: 'design.other',
+  'interior design': 'design.other',
 
   // Services (legacy free text)
   schoonmaak: 'practical.cleaning',
@@ -137,6 +139,15 @@ export function legacyDutchSubcategoryToTaxonomyId(raw: string): string | null {
 
 export function getLegacyDutchSubcategoryMapKeys(): string[] {
   return Object.keys(LOOKUP);
+}
+
+/** Stored Dutch subcategory labels whose canonical taxonomy id matches. */
+export function legacyDutchSubcategoryKeysFor(
+  match: (taxonomyId: string) => boolean,
+): string[] {
+  return Object.entries(LOOKUP)
+    .filter(([, taxonomyId]) => match(taxonomyId))
+    .map(([key]) => key);
 }
 
 /** All legacy Dutch labels (original casing) for audit scripts */

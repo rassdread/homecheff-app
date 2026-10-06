@@ -4,6 +4,9 @@
  * Product.category stays the legacy storage bucket (CHEFF / GROWN / DESIGNER).
  */
 
+import { getMarketplaceTaxonomyItem } from '@/lib/marketplace/taxonomy-resolve';
+import { toCanonicalTaxonomyId } from '@/lib/marketplace/taxonomy-normalize';
+
 export const SERVICE_MARKETPLACE_CATEGORIES = [
   'PRACTICAL_SERVICE',
   'KNOWLEDGE',
@@ -19,6 +22,7 @@ const CRAFT_CREATE_TAXONOMY_IDS = new Set([
   'create.jewelry',
   'create.decoration',
   'create.art',
+  'create.craft_other',
 ]);
 
 export function craftCreateTaxonomyIds(): string[] {
@@ -46,19 +50,36 @@ export function isDesignServiceTaxonomyId(id: string | null | undefined): boolea
 export type OfferSemantics = {
   marketplaceCategory?: string | null;
   specializations?: string[] | null;
+  subcategory?: string | null;
 };
 
+function canonicalSpec(raw: string): string {
+  const canonical = toCanonicalTaxonomyId(raw);
+  return (canonical ?? raw).trim().toLowerCase();
+}
+
 function specsOf(input: OfferSemantics): string[] {
-  return (input.specializations ?? []).filter((id) => typeof id === 'string' && id.trim());
+  const raw = [
+    ...(input.specializations ?? []),
+    ...(input.subcategory ? [input.subcategory] : []),
+  ];
+  return raw
+    .filter((id) => typeof id === 'string' && id.trim())
+    .map((id) => canonicalSpec(id));
+}
+
+/** Commissioned work: design.* plus practical, knowledge, and artistic services. */
+export function isStructuredServiceTaxonomyId(id: string | null | undefined): boolean {
+  const value = String(id ?? '').trim().toLowerCase();
+  if (!value) return false;
+  if (isDesignServiceTaxonomyId(value)) return true;
+  const item = getMarketplaceTaxonomyItem(value);
+  return Boolean(item && isServiceMarketplaceCategory(item.category));
 }
 
 export function offerIsService(input: OfferSemantics): boolean {
   if (isServiceMarketplaceCategory(input.marketplaceCategory)) return true;
-  const specs = specsOf(input);
-  if (specs.some((id) => isDesignServiceTaxonomyId(id))) return true;
-  const marketplace = String(input.marketplaceCategory ?? '').trim().toUpperCase();
-  if (marketplace !== 'DESIGN') return false;
-  return !specs.some((id) => isCraftCreateTaxonomyId(id));
+  return specsOf(input).some((id) => isStructuredServiceTaxonomyId(id));
 }
 
 export function offerIsProduct(input: OfferSemantics): boolean {
@@ -82,15 +103,16 @@ export function commercialCapabilityForOffer(input: {
   marketplaceCategory?: string | null;
   productCategory?: string | null;
   specializations?: string[] | null;
+  subcategory?: string | null;
 }): CommercialCapability | null {
   if ((input.listingIntent || 'OFFER').toUpperCase() !== 'OFFER') return null;
 
   const marketplace = String(input.marketplaceCategory ?? '').trim().toUpperCase();
-  const specs = input.specializations ?? [];
+  const specs = specsOf(input);
   if (isServiceMarketplaceCategory(marketplace)) return 'service';
-  if (specs.some((id) => isDesignServiceTaxonomyId(id))) return 'service';
+  if (specs.some((id) => isStructuredServiceTaxonomyId(id))) return 'service';
   if (specs.some((id) => isCraftCreateTaxonomyId(id))) return 'designer';
-  if (marketplace === 'DESIGN') return 'service';
+  if (marketplace === 'DESIGN') return 'designer';
 
   if (marketplace === 'GROW') return 'garden';
   if (marketplace === 'CREATE') return 'chef';
