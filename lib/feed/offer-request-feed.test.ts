@@ -170,13 +170,25 @@ describe('offer and request feed composition', () => {
     assert.equal(isMarketplaceSaleItem(swapOffer), true);
     assert.equal(isMarketplaceRequestItem(swapOffer), false);
     assert.equal(
-      itemMatchesAcceptedValuesDiscoveryFilter(moneyOffer, ['create.meal']),
+      itemMatchesAcceptedValuesDiscoveryFilter(
+        { acceptedSpecializations: moneyOffer.acceptedSpecializations },
+        ['create.meal'],
+      ),
       false,
     );
     assert.equal(
-      itemMatchesAcceptedValuesDiscoveryFilter(swapOffer, ['create.meal']),
+      itemMatchesAcceptedValuesDiscoveryFilter(
+        { acceptedSpecializations: swapOffer.acceptedSpecializations },
+        ['create.meal'],
+      ),
       true,
     );
-    assert.equal(itemMatchesAcceptedValuesDiscoveryFilter(swapOffer, []), true);
+    assert.equal(
+      itemMatchesAcceptedValuesDiscoveryFilter(
+        { acceptedSpecializations: swapOffer.acceptedSpecializations },
+        [],
+      ),
+      true,
+    );
   });
 });
