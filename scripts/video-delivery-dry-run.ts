@@ -14,7 +14,33 @@ config({ path: ".env.local" });
 const execFileAsync = promisify(execFile);
 const prisma = new PrismaClient();
 
-async function probe(file) {
+type Probe = {
+  size: number;
+  duration: number;
+  codec: string;
+  audio: string | null;
+  width: number;
+  height: number;
+};
+
+type DryResult = {
+  index: number;
+  recommendation: string;
+  before?: number;
+  after?: number;
+  reduction?: number | null;
+  ms?: number;
+  beforeCodec?: string;
+  afterCodec?: string;
+  beforeAudio?: string | null;
+  afterAudio?: string | null;
+  beforeResolution?: string;
+  afterResolution?: string;
+  beforeDuration?: number;
+  afterDuration?: number;
+};
+
+async function probe(file: string): Promise<Probe> {
   const { stdout } = await execFileAsync(
     "ffprobe",
     ["-v", "error", "-show_entries", "format=size,duration:stream=codec_name,codec_type,width,height", "-of", "json", file],
@@ -33,7 +59,7 @@ async function probe(file) {
   };
 }
 
-async function encode(input, output, crf) {
+async function encode(input: string, output: string, crf: number): Promise<number> {
   const started = Date.now();
   await execFileAsync(
     "ffmpeg",
@@ -66,7 +92,7 @@ async function encode(input, output, crf) {
   return Date.now() - started;
 }
 
-function recommend(before, after) {
+function recommend(before: Probe, after: Probe): string {
   const compatible = before.codec === "h264";
   const reduction = before.size > 0 ? (before.size - after.size) / before.size : 0;
   if (after.size <= 0) return "FAILED_PROCESSING";
@@ -75,7 +101,7 @@ function recommend(before, after) {
   return "KEEP_ORIGINAL";
 }
 
-async function synthetic(dir, label, size, seconds) {
+async function synthetic(dir: string, label: string, size: string, seconds: number) {
   const output = join(dir, `${label}.mp4`);
   const started = Date.now();
   await execFileAsync(
@@ -117,8 +143,12 @@ async function synthetic(dir, label, size, seconds) {
 
 async function main() {
   const dir = await mkdtemp(join(tmpdir(), "hc-video-v2-"));
-  const files = await prisma.$queryRaw`SELECT url FROM "DishVideo" UNION ALL SELECT url FROM "ProductVideo"`;
-  const results = [];
+  const files = await prisma.$queryRaw<Array<{ url: string }>>`
+    SELECT url FROM "DishVideo"
+    UNION ALL
+    SELECT url FROM "ProductVideo"
+  `;
+  const results: DryResult[] = [];
   let index = 0;
   for (const file of files) {
     index += 1;
@@ -152,25 +182,26 @@ async function main() {
       results.push({ index, recommendation: "FAILED_PROCESSING" });
     }
   }
-  const syntheticResults = [];
-  for (const job of [
+  const syntheticResults: Array<Record<string, string | number | boolean | null>> = [];
+  const jobs: Array<[string, string, number]> = [
     ["720p-30s", "1280x720", 30],
     ["720p-90s", "1280x720", 90],
     ["1080p-90s", "1920x1080", 90],
     ["720p-120s", "1280x720", 120],
     ["1080p-120s", "1920x1080", 120],
     ["4k-120s", "3840x2160", 120],
-  ]) {
+  ];
+  for (const job of jobs) {
     try {
       syntheticResults.push(await synthetic(dir, job[0], job[1], job[2]));
     } catch {
       syntheticResults.push({ label: job[0], success: false });
     }
   }
-  const counts = results.reduce((acc, item) => {
-    acc[item.recommendation] = (acc[item.recommendation] || 0) + 1;
-    return acc;
-  }, {});
+  const counts: Record<string, number> = {};
+  for (const item of results) {
+    counts[item.recommendation] = (counts[item.recommendation] || 0) + 1;
+  }
   console.log(JSON.stringify({ dirKept: false, counts, results, syntheticResults }));
   await rm(dir, { recursive: true, force: true });
 }
