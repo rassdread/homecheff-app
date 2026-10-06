@@ -132,7 +132,7 @@ export default function WorkspaceOrientationStrip({
             data-testid="home-hero-title"
             data-hero-city={heroGeo.city ?? ''}
             data-wx-orientation-title=""
-            className="min-w-0 text-sm font-semibold leading-snug tracking-tight text-[var(--hc-text)] sm:text-base xl:truncate"
+            className="min-w-0 text-sm font-semibold leading-snug tracking-tight text-[var(--hc-text)] sm:text-base xl:flex-1 xl:truncate"
           >
             {whereLabel}
           </h1>
@@ -141,7 +141,7 @@ export default function WorkspaceOrientationStrip({
             type="button"
             data-hc-value-explainer-trigger=""
             onClick={() => setValueExplainerOpen(true)}
-            className="max-w-full shrink-0 text-left text-xs font-medium leading-snug text-[var(--hc-blue)] underline-offset-2 hover:underline"
+            className="max-xl:max-w-full w-auto shrink-0 flex-none text-left text-xs font-medium leading-snug text-[var(--hc-blue)] underline-offset-2 hover:underline"
             aria-haspopup="dialog"
             aria-expanded={valueExplainerOpen}
           >
