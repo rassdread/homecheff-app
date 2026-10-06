@@ -37,6 +37,8 @@ console.log('=== Discovery continuity (adaptive) ===\n');
 
 const geo = read('components/feed/GeoFeed.tsx');
 const home = read('components/home/HomePageClient.tsx');
+const page = read('app/page.tsx');
+const media = read('components/feed/feedMedia.tsx');
 const band = read('components/feed/DiscoveryContinuityBand.tsx');
 const continuity = read('lib/feed/discovery-continuity.ts');
 const policy = read('lib/feed/feed-composition-policy.ts');
@@ -373,6 +375,19 @@ check(
   'marketplace does not stack the workspace cockpit under the feed',
   !home.includes('data-hc-marketplace-secondary') &&
     !home.includes('placement="below"'),
+);
+
+check(
+  'homepage footer links are in the server page',
+  page.includes('HomePublicFooter') &&
+    read('components/home/HomePublicFooter.tsx').includes("'/inspiratie'") &&
+    read('components/home/HomePublicFooter.tsx').includes("'/privacy'"),
+);
+
+check(
+  'feed video autoplay respects reduced motion',
+  media.includes('prefers-reduced-motion: reduce') &&
+    media.includes('feedAutoplayAllowed'),
 );
 
 check(

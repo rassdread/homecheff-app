@@ -265,6 +265,13 @@ const FEED_CARD_IMG_SIZES =
 /** Iets lager dan 0.6 zodat kaartvideo’s in de feed weer betrouwbaar starten. */
 const VIEWPORT_PLAY_THRESHOLD = 0.3;
 
+function feedAutoplayAllowed(): boolean {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return true;
+  }
+  return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 /**
  * Gedeelde feed-media: vaste aspect-ratio, video voorrang, standaard muted (autoplay).
  * Globale feed-audio voorkeur: één keer “geluid aan” → volgende actieve video’s ook met geluid
@@ -392,7 +399,7 @@ export function FeedCardPrimaryMedia({
   const onImgError = useCallback(() => setImgBroken(true), []);
 
   const tryPlayIfWanted = useCallback(() => {
-    if (!wantPlayRef.current) return;
+    if (!feedAutoplayAllowed() || !wantPlayRef.current) return;
     const vid = videoRef.current;
     if (!vid) return;
     claimFeedVideoPlayback(instanceId);
@@ -415,7 +422,7 @@ export function FeedCardPrimaryMedia({
   }, [renderVideoElement, instanceId]);
 
   const onDesktopMouseEnter = useCallback(() => {
-    if (!useHoverPlayback || !renderVideoElement) return;
+    if (!feedAutoplayAllowed() || !useHoverPlayback || !renderVideoElement) return;
     wantPlayRef.current = true;
     const vid = videoRef.current;
     if (!vid) return;
@@ -448,7 +455,8 @@ export function FeedCardPrimaryMedia({
         const vid = videoRef.current;
         if (!e || !vid) return;
         const ratio = e.intersectionRatio;
-        const shouldPlay = ratio >= VIEWPORT_PLAY_THRESHOLD;
+        const shouldPlay =
+          feedAutoplayAllowed() && ratio >= VIEWPORT_PLAY_THRESHOLD;
         wantPlayRef.current = shouldPlay;
         if (shouldPlay) {
           claimFeedVideoPlayback(instanceId);
@@ -484,6 +492,7 @@ export function FeedCardPrimaryMedia({
       id: instanceId,
       getRatio: () => getElementVisibleRatio(containerRef.current),
       play: () => {
+        if (!feedAutoplayAllowed()) return;
         const vid = videoRef.current;
         if (!vid) return;
         wantPlayRef.current = true;

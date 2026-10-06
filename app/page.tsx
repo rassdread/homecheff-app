@@ -3,6 +3,7 @@ import { cookies, headers } from 'next/headers';
 import { authOptions } from '@/lib/auth';
 import { NEXTAUTH_SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie-name';
 import HomePageClient from '@/components/home/HomePageClient';
+import HomePublicFooter from '@/components/home/HomePublicFooter';
 import { buildHomeFeedEarlyBootstrapInlineScript } from '@/lib/feed/home-feed-early-bootstrap';
 import {
   isLegacyServicesViewChip,
@@ -154,6 +155,7 @@ export default async function HomePage({
         feedWorkspaceVisibilityMode={feedWorkspaceVisibilityMode}
         feedWorkspacePreviewRequested={feedWorkspacePreviewRequested}
       />
+      <HomePublicFooter />
     </>
   );
 }
