@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { listingSemanticFamily } from '@/lib/marketplace/commercial-capability';
+import { mapProductToDiscoveryReadModel } from '@/lib/discovery/mappers/from-product';
 import { deriveListingKind } from '@/lib/marketplace/listing-kind/derive-listing-kind';
+import { classifySearchResult } from '@/lib/search/classify-result';
 import { listingMatchesTaxonomySearchQuery } from '@/lib/marketplace/taxonomy-resolve';
 import { itemMatchesDiscoveryCategorySlug } from '@/lib/marketplace/canonical-model';
 import { getDiscoveryLegacyVerticalCategory } from '@/lib/discovery/consumer-accessors';
@@ -253,6 +255,48 @@ describe('listing semantic family', () => {
     assert.equal(inCategory(beadTree, 'services'), false);
     assert.equal(inCategory(photoShoot, 'services'), true);
     assert.equal(inCategory(photoShoot, 'designer'), false);
+    const beadKind = {
+      marketplaceCategory: 'DESIGN' as const,
+      category: 'DESIGNER',
+      specializations: ['design.video', 'design.photo'],
+      subcategory: 'design.video',
+      listingIntent: 'OFFER',
+      priceModel: 'FIXED',
+      fulfillmentOptions: beadTree.fulfillmentOptions,
+    };
+    assert.equal(deriveListingKind(beadKind).listingKind, 'PRODUCT');
+    assert.equal(classifySearchResult(beadKind).listingKind, 'PRODUCT');
+    assert.equal(
+      mapProductToDiscoveryReadModel({ id: 'bead', title: beadTree.title, ...beadKind })
+        .listingKind,
+      'PRODUCT',
+    );
+    assert.equal(
+      isMarketplaceServiceItem({
+        ...beadTree,
+        priceCents: 2000,
+        feedSource: 'PRODUCT',
+        listingKind: 'SERVICE',
+        discovery: {
+          listingKind: 'SERVICE',
+          marketplaceCategory: 'DESIGN',
+          specializations: ['design.video', 'design.photo'],
+        },
+      }),
+      false,
+    );
+    assert.equal(
+      deriveListingKind({
+        marketplaceCategory: 'DESIGN',
+        category: 'DESIGNER',
+        specializations: ['design.photo'],
+        subcategory: 'design.photo',
+        listingIntent: 'OFFER',
+        priceModel: 'ON_REQUEST',
+        fulfillmentOptions: photoShoot.fulfillmentOptions,
+      }).listingKind,
+      'SERVICE',
+    );
   });
 
   it('lets a design service taxonomy beat legacy DESIGNER storage', () => {

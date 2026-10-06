@@ -26,6 +26,13 @@ export type ProductDiscoverySource = {
   acceptedSpecializations?: string[] | null;
   subcategory?: string | null;
   category?: string | null;
+  priceModel?: string | null;
+  fulfillmentOptions?: {
+    digital?: boolean | null;
+    pickup?: boolean | null;
+    delivery?: boolean | null;
+    shipping?: boolean | null;
+  } | null;
   barterOpenness?: string | null;
   createdAt?: Date | string | null;
   updatedAt?: Date | string | null;
@@ -93,6 +100,8 @@ export function mapProductToDiscoveryReadModel(
     specializations: source.specializations ?? null,
     subcategory: source.subcategory ?? null,
     category: source.category ?? null,
+    priceModel: source.priceModel ?? null,
+    fulfillmentOptions: source.fulfillmentOptions ?? null,
   });
 
   const listingIntent = resolveListingIntent(source.listingIntent, listingKind);

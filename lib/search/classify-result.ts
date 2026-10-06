@@ -23,6 +23,8 @@ export function classifySearchResult(
     specializations: item.specializations ?? null,
     subcategory: item.subcategory ?? null,
     category: item.category ?? null,
+    priceModel: item.priceModel ?? null,
+    fulfillmentOptions: item.fulfillmentOptions ?? null,
     feedSource: item.feedSource ?? null,
     type: item.type ?? null,
   });

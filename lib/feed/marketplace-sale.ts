@@ -4,7 +4,10 @@
  */
 
 import type { FeedTaxonomy } from '@/lib/feed/feed-taxonomy';
-import { offerIsService } from '@/lib/marketplace/commercial-capability';
+import {
+  listingDeliversPhysicalObject,
+  offerIsService,
+} from '@/lib/marketplace/commercial-capability';
 import {
   isOfferListing,
   isRequestListing,
@@ -148,17 +151,16 @@ export function isMarketplaceServiceItem(item: MarketplaceSaleInput): boolean {
     ...(item.discovery?.specializations ?? item.specializations ?? []),
     ...(item.subcategory ? [item.subcategory] : []),
   ];
-  if (
-    offerIsService({
-      marketplaceCategory:
-        item.discovery?.marketplaceCategory ?? item.marketplaceCategory,
-      specializations: specs,
-      priceModel: item.priceModel,
-      fulfillmentOptions: item.fulfillmentOptions,
-    })
-  ) {
-    return true;
-  }
+  const commerce = {
+    marketplaceCategory:
+      item.discovery?.marketplaceCategory ?? item.marketplaceCategory,
+    specializations: specs,
+    subcategory: item.subcategory,
+    priceModel: item.priceModel,
+    fulfillmentOptions: item.fulfillmentOptions,
+  };
+  if (offerIsService(commerce)) return true;
+  if (listingDeliversPhysicalObject(commerce)) return false;
   const kind =
     item.discovery?.listingKind ?? item.listingKind ?? null;
   if (isServiceListingKind(kind)) return true;

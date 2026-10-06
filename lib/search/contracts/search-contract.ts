@@ -51,6 +51,13 @@ export type SearchableListingRecord = {
   specializations?: string[] | null;
   subcategory?: string | null;
   category?: string | null;
+  priceModel?: string | null;
+  fulfillmentOptions?: {
+    digital?: boolean | null;
+    pickup?: boolean | null;
+    delivery?: boolean | null;
+    shipping?: boolean | null;
+  } | null;
   barterOpenness?: string | null;
   feedSource?: string | null;
   type?: string | null;
