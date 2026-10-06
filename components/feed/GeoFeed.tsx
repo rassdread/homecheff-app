@@ -25,7 +25,6 @@ import type { DiscoveryDirection } from "@/components/feed/DiscoveryDirectionTog
 import FeedFilterSections from "@/components/feed/FeedFilterSections";
 import AcceptedValueChip from "@/components/marketplace/AcceptedValueChip";
 import dynamic from "next/dynamic";
-import LocationRefineBanner from "@/components/feed/LocationRefineBanner";
 import FeedSearchContextBar from "@/components/feed/FeedSearchContextBar";
 import DiscoveryContinuityBand from "@/components/feed/DiscoveryContinuityBand";
 import FeedMobileToolbar from "@/components/feed/FeedMobileToolbar";
@@ -5932,12 +5931,10 @@ export default function GeoFeed({
     appliedAcceptedValues.length,
   ]);
 
-  const chipBtn = (active: boolean) =>
-    `${filterChrome ? "px-3 py-1.5 rounded-lg text-xs shrink-0" : "px-4 py-2 rounded-lg text-sm"} font-semibold transition-colors ${
-      active
-        ? "bg-primary-brand text-white shadow-sm"
-        : "bg-[#faf8f4] text-gray-700 hover:bg-primary-50 border border-gray-200/80"
-    }`;
+  const categoryChipBtn = (active: boolean) =>
+    `hc-chip shrink-0 px-3 text-sm touch-manipulation ${active ? "hc-chip-selected" : ""}`;
+  const viewChipBtn = (active: boolean) =>
+    `hc-chip hc-chip-view shrink-0 px-2.5 touch-manipulation ${active ? "hc-chip-selected" : ""}`;
 
   const sortRowEl = (
     <div
@@ -6035,14 +6032,10 @@ export default function GeoFeed({
     requestInFlight ||
     isFilterSearchingPhase(filterResultPhase) ? null : (
     <div
-      className={
-        feedCompactChrome
-          ? "text-xs text-gray-500 mt-1.5"
-          : "text-sm text-gray-500 mt-2"
-      }
+      className="mt-1 flex items-baseline gap-2 text-xs text-[var(--hc-text-secondary)]"
       data-wx-result-scope={appliedScope}
     >
-      <p>
+      <p className="shrink-0">
         {displayCount}{" "}
         {displayCount === 1
           ? t("feed.resultSingular")
@@ -6052,11 +6045,7 @@ export default function GeoFeed({
           : ""}
       </p>
       <p
-        className={
-          feedCompactChrome
-            ? "mt-0.5 text-[10px] text-emerald-800/90"
-            : "mt-0.5 text-xs text-emerald-800/90"
-        }
+        className="min-w-0 truncate text-[11px]"
         data-wx-scope-hint=""
       >
         {appliedScope === FEED_SCOPE_NEARBY
@@ -6309,44 +6298,7 @@ export default function GeoFeed({
 
   const viewModeChipsEl = (
     <>
-      <p
-        className={
-          filterChrome
-            ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1.5"
-            : "text-xs font-medium text-gray-500 uppercase tracking-wide mb-2"
-        }
-      >
-        {t("feed.viewModeLabel")}
-      </p>
-      <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
-        {DISCOVERY_VIEW_CHIP_OPTIONS.map(({ legacyChip, labelKey }) => (
-          <button
-            key={legacyChip}
-            type="button"
-            className={chipBtn(feedChip === legacyChip)}
-            onClick={() => selectFeedView(legacyChip)}
-          >
-            {t(labelKey)}
-          </button>
-        ))}
-        <button
-          type="button"
-          data-wx-trade-action=""
-          className={chipBtn(discoveryDirection === "offer")}
-          onClick={activateTradeDiscovery}
-          aria-pressed={discoveryDirection === "offer"}
-          title={t("feed.tradeActionHint")}
-        >
-          {t("feed.tradeActionChip")}
-        </button>
-      </div>
-      <p
-        className={
-          filterChrome
-            ? "text-[11px] font-medium text-gray-500 uppercase tracking-wide mt-2 mb-1.5"
-            : "text-xs font-medium text-gray-500 uppercase tracking-wide mt-3 mb-2"
-        }
-      >
+      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--hc-text-secondary)]">
         {t("feed.verticalAxisLabel")}
       </p>
       <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
@@ -6354,8 +6306,23 @@ export default function GeoFeed({
           <button
             key={slug}
             type="button"
-            className={chipBtn(appliedCategory === slug)}
+            className={categoryChipBtn(appliedCategory === slug)}
             onClick={() => selectVerticalChip(slug)}
+          >
+            {t(labelKey)}
+          </button>
+        ))}
+      </div>
+      <p className="mb-1.5 mt-2 text-[11px] font-medium uppercase tracking-wide text-[var(--hc-text-secondary)]">
+        {t("feed.viewModeLabel")}
+      </p>
+      <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
+        {DISCOVERY_VIEW_CHIP_OPTIONS.map(({ legacyChip, labelKey }) => (
+          <button
+            key={legacyChip}
+            type="button"
+            className={viewChipBtn(feedChip === legacyChip)}
+            onClick={() => selectFeedView(legacyChip)}
           >
             {t(labelKey)}
           </button>
@@ -6769,7 +6736,7 @@ export default function GeoFeed({
 
   const filterSearchingBannerEl = showFilterSearchingChrome ? (
     <p
-      className="flex items-center gap-2 text-xs font-medium text-emerald-800"
+      className="flex items-center gap-2 text-xs font-medium text-[var(--hc-text-secondary)]"
       role="status"
       aria-live="polite"
       data-testid="feed-filter-searching"
@@ -6778,26 +6745,6 @@ export default function GeoFeed({
       <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
       {t("feed.searchingResults")}
     </p>
-  ) : null;
-
-  const locationRefineBannerEl = showLocationRefineBanner ? (
-    <LocationRefineBanner
-      message={
-        ipLocationLabel
-          ? t("feed.showingNearPlace", { place: ipLocationLabel })
-          : t("feed.showingNationalRefine")
-      }
-      usePreciseLabel={t("feed.usePreciseLocation")}
-      changeLabel={t("feed.changeLocation")}
-      dismissLabel={t("feed.dismissLocationBanner")}
-      locationLoading={locationBusy}
-      onUsePrecise={handleUseMyLocation}
-      onChange={handleChoosePlaceForNearby}
-      onDismiss={() => {
-        setLocationBannerDismissed(true);
-        dismissLocationBannerPreference();
-      }}
-    />
   ) : null;
 
   const radiusPresetOptionsKm = useMemo(
@@ -6844,6 +6791,7 @@ export default function GeoFeed({
       onPlaceDraftChange={handlePlaceInput}
       onPlaceApply={(nextPlace) => applyFilters({ place: nextPlace })}
       onUseMyLocation={handleUseMyLocation}
+      showPreciseShortcut={showLocationRefineBanner}
       locationBusy={locationBusy}
       placePlaceholder={t("common.typePlaceOrPostcode")}
       applyLabel={t("feed.applyFilters")}
@@ -7015,7 +6963,6 @@ export default function GeoFeed({
   const feedResultsBlock = (
     <>
       {searchContextBarEl}
-      {locationRefineBannerEl}
       {showFeedSkeleton ? (
         <FeedTileGridLoadingSkeleton tiles={isMobileFeedUi ? 2 : 4} compact={isMobileFeedUi} />
       ) : emptyFilterSearching ? (

@@ -61,6 +61,8 @@ export type FeedSearchContextBarProps = {
   onPlaceDraftChange: (value: string) => void;
   onPlaceApply: (place: string) => void;
   onUseMyLocation: () => void;
+  /** One-tap precise location on the context row. Same handler as Filters. */
+  showPreciseShortcut?: boolean;
   locationBusy?: boolean;
   placePlaceholder: string;
   applyLabel: string;
@@ -300,9 +302,9 @@ export default function FeedSearchContextBar(props: FeedSearchContextBarProps) {
       data-testid="feed-search-context-bar"
       role="region"
       aria-label={ariaLabel}
-      className="rounded-lg border border-emerald-200/60 bg-white/90 px-2.5 py-1.5 text-[11px] text-emerald-950 shadow-sm sm:text-xs"
+      className="rounded-lg border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-2.5 py-1.5 text-[11px] text-[var(--hc-text-secondary)] sm:text-xs"
     >
-      <ul className="m-0 flex list-none flex-wrap items-center gap-x-2 gap-y-1.5 p-0">
+      <ul className="m-0 flex list-none flex-nowrap items-center gap-x-2 overflow-x-auto p-0 [scrollbar-width:none]">
         {chips.map((chip) => {
           const prefix = prefixFor(chip.id, props);
           const content = (
@@ -311,8 +313,8 @@ export default function FeedSearchContextBar(props: FeedSearchContextBarProps) {
                 {chip.marker}
               </span>
               <span className="min-w-0 truncate">
-                <span className="font-medium text-emerald-900/80">{prefix}:</span>{' '}
-                <span className="font-semibold text-emerald-950">{chip.value}</span>
+                <span className="font-medium text-[var(--hc-text-secondary)]">{prefix}:</span>{' '}
+                <span className="font-semibold text-[var(--hc-text)]">{chip.value}</span>
               </span>
             </>
           );
@@ -351,7 +353,7 @@ export default function FeedSearchContextBar(props: FeedSearchContextBarProps) {
             <li
               key={chip.id}
               data-testid={`feed-search-context-${chip.id}`}
-              className="inline-flex min-w-0 max-w-full items-baseline"
+              className="inline-flex shrink-0 items-baseline"
             >
               {onActivate ? (
                 <button
@@ -387,6 +389,18 @@ export default function FeedSearchContextBar(props: FeedSearchContextBarProps) {
             </li>
           );
         })}
+        {props.showPreciseShortcut ? (
+          <li className="inline-flex shrink-0">
+            <button
+              type="button"
+              onClick={props.onUseMyLocation}
+              disabled={props.locationBusy}
+              className="inline-flex min-h-[40px] items-center px-1 text-[11px] font-semibold text-[var(--hc-blue)] underline-offset-2 hover:underline disabled:opacity-50"
+            >
+              {props.useMyLocationLabel}
+            </button>
+          </li>
+        ) : null}
       </ul>
 
       <ContextBarPanel

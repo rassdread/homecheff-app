@@ -8,24 +8,19 @@ import { useHomeHeroCollapsed } from '@/hooks/useHomeHeroCollapsed';
 const hideButtonClass = cn(
   'inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5',
   'rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold',
-  'text-white bg-black/45 border border-white/70 shadow-sm backdrop-blur-[2px]',
-  '[-webkit-text-fill-color:#ffffff]',
-  'hover:bg-black/55 hover:border-white',
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-white',
-  'focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
+  'text-[var(--hc-text-secondary)] bg-transparent border border-[var(--hc-border-quiet)]',
+  'hover:bg-[var(--hc-surface-subtle)] hover:text-[var(--hc-text)]',
+  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hc-focus)]',
   'touch-manipulation select-none',
   'motion-reduce:transition-none transition-colors',
 );
 
 const showButtonClass = cn(
   'flex w-full min-h-[44px] items-center justify-center gap-1.5',
-  'rounded-xl px-3 py-2 text-sm font-semibold text-white',
-  '[-webkit-text-fill-color:#ffffff]',
-  'bg-gradient-to-r from-primary-brand via-[#007a5c] to-emerald-800',
-  'border border-white/30 shadow-md',
-  'hover:brightness-[1.04] active:brightness-95',
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-white',
-  'focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100',
+  'rounded-xl px-3 py-2 text-sm font-semibold text-[var(--hc-text)]',
+  'border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)]',
+  'hover:bg-[var(--hc-surface-subtle)]',
+  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hc-focus)]',
   'touch-manipulation select-none',
 );
 
@@ -90,9 +85,8 @@ export default function HomeHeroCollapsible({ children, className }: Props) {
       <div id="home-hero-expanded">{children}</div>
       <div
         className={cn(
-          'flex justify-center px-3 py-1.5',
-          'bg-gradient-to-r from-primary-brand via-primary-brand to-emerald-800',
-          'border-b border-primary-brand/30',
+          'flex justify-center px-3 py-1',
+          'border-b border-[var(--hc-border-quiet)] bg-[var(--hc-surface-page)]',
         )}
       >
         <button

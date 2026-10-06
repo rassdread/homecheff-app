@@ -228,14 +228,32 @@ body > * {
 
 /* ===== HomeCheff: Global tokens ===== */
 :root {
-  --background: #F6F8FA;
-  --foreground: #171717;
-  --primary: #006D52;
-  --secondary: #0067B1;
-  --accent: #FFD600;
-  --success: #00C853;
-  --error: #D32F2F;
-  --info: #0288D1;
+  --background: #F4EFE6;
+  --foreground: #2C261C;
+  --primary: #347266;
+  --secondary: #3C5A78;
+  --accent: #3A7580;
+  --success: #245548;
+  --error: #8E2E24;
+  --info: #3C5A78;
+
+  /* Marketplace semantic roles. Workspace can adopt these later. */
+  --hc-surface-page: #F4EFE6;
+  --hc-surface-card: #FFFBF5;
+  --hc-surface-subtle: #F3EBDF;
+  --hc-text: #2C261C;
+  --hc-text-secondary: #6A6156;
+  --hc-border: #8C7B68;
+  --hc-border-quiet: #E4D9C8;
+  --hc-blue: #3C5A78;
+  --hc-blue-deep: #243044;
+  --hc-green: #347266;
+  --hc-green-deep: #245548;
+  --hc-teal: #3A7580;
+  --hc-selected-bg: #E5F0EC;
+  --hc-selected-border: #347266;
+  --hc-shadow-1: 0 1px 2px rgba(36, 48, 68, 0.08);
+  --hc-focus: #243044;
 
   /* Spacing tokens (not enforced globally) */
   --space-1: 0.5rem;   /* 8px */
@@ -1016,11 +1034,14 @@ html.hc-native-capacitor .hc-native-msg-success-toast {
 
 /* —— Dorpsplein visual design refresh —— */
 .hc-dorpsplein-page {
-  background: linear-gradient(180deg, #faf8f4 0%, #f6f8fa 28%, #f6f8fa 100%);
+  background: var(--hc-surface-page);
 }
 
 .hc-dorpsplein-card {
-  @apply rounded-2xl border border-gray-200/80 bg-white shadow-sm;
+  border-radius: 1rem;
+  border: 1px solid var(--hc-border-quiet);
+  background: var(--hc-surface-card);
+  box-shadow: var(--hc-shadow-1);
 }
 
 .hc-dorpsplein-card-warm {
@@ -1390,10 +1411,94 @@ html.hc-pwa-standalone .hc-profile-v2-bottom-inset {
 
 /* Phase 2 — warmth, depth, micro-interactions */
 .hc-card-lift {
-  @apply transition-all duration-300 ease-out;
+  box-shadow: var(--hc-shadow-1);
 }
 .hc-card-lift:hover {
-  @apply -translate-y-1 shadow-lg;
+  transform: none;
+  box-shadow: var(--hc-shadow-1);
+}
+
+.hc-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--hc-green);
+  color: #fff;
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+.hc-btn-primary:hover {
+  background: var(--hc-green-deep);
+  box-shadow: none;
+}
+.hc-btn-primary:active {
+  transform: none;
+}
+.hc-btn-secondary {
+  background: var(--hc-surface-card);
+  color: var(--hc-text);
+  border: 1px solid var(--hc-border);
+}
+.hc-btn-secondary:hover {
+  background: var(--hc-surface-subtle);
+}
+.hc-btn-primary:focus-visible,
+.hc-btn-secondary:focus-visible,
+.hc-chip:focus-visible {
+  outline: 2px solid var(--hc-focus);
+  outline-offset: 2px;
+}
+
+.hc-chip {
+  min-height: 44px;
+  border-radius: 0.5rem;
+  border: 1px solid var(--hc-border-quiet);
+  background: var(--hc-surface-card);
+  color: var(--hc-text);
+  font-weight: 600;
+}
+.hc-chip:hover {
+  border-color: var(--hc-border);
+}
+.hc-chip-selected {
+  background: var(--hc-selected-bg);
+  border-color: var(--hc-selected-border);
+  color: var(--hc-text);
+  box-shadow: none;
+}
+.hc-chip-view {
+  min-height: 40px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--hc-text-secondary);
+}
+.hc-chip-view.hc-chip-selected {
+  color: var(--hc-text);
+  font-weight: 600;
+}
+
+.hc-feed-media {
+  max-height: 8rem;
+  overflow: hidden;
+}
+@media (min-width: 768px) {
+  .hc-feed-media {
+    max-height: 12rem;
+  }
+}
+@media (min-width: 1024px) {
+  .hc-feed-media {
+    max-height: 12rem;
+  }
+}
+@media (min-width: 1280px) {
+  .hc-feed-media {
+    max-height: 11rem;
+  }
 }
 
 /* —— Operations workspace shell (Phase A) —— */
@@ -1442,9 +1547,6 @@ html.hc-pwa-standalone .hc-profile-v2-bottom-inset {
   @apply text-xs text-gray-500 leading-relaxed;
 }
 
-.hc-btn-primary {
-  @apply inline-flex items-center justify-center rounded-xl bg-primary-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-primary-700 hover:shadow-md active:scale-[0.98];
-}
 
 .hc-glass-warm {
   @apply bg-white/80 backdrop-blur-md border border-white/60;

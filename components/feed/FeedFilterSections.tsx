@@ -385,6 +385,30 @@ export default function FeedFilterSections(props: FeedFilterSectionsProps) {
         </div>
       </section>
 
+      <div className="rounded-xl border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-3 py-2">
+        <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-[var(--hc-text-secondary)]">
+          {t('feed.tradeActionChip')}
+        </p>
+        <button
+          type="button"
+          data-wx-trade-action=""
+          aria-pressed={props.discoveryDirection === 'offer'}
+          title={t('feed.tradeActionHint')}
+          onClick={() => {
+            props.onDiscoveryDirectionChange('offer');
+            setAdvancedOpen(true);
+          }}
+          className={`hc-chip w-full px-3 text-sm ${
+            props.discoveryDirection === 'offer' ? 'hc-chip-selected' : ''
+          }`}
+        >
+          {t('feed.tradeActionChip')}
+        </button>
+        <p className="mt-1.5 text-[11px] leading-snug text-[var(--hc-text-secondary)]">
+          {t('feed.tradeActionHint')}
+        </p>
+      </div>
+
       <section className="rounded-xl border border-gray-200 bg-white px-3 py-2" data-hc-filter-advanced="">
         <button
           type="button"
@@ -428,7 +452,7 @@ export default function FeedFilterSections(props: FeedFilterSectionsProps) {
           <button
             type="button"
             onClick={props.onApply}
-            className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white"
+            className="hc-btn-primary flex-1 rounded-xl py-2.5 text-sm font-semibold"
           >
             {t('feed.applyFilters')}
           </button>

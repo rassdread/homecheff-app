@@ -11,11 +11,8 @@ import HomeHeroCollapsible from '@/components/home/HomeHeroCollapsible';
 import { useHeroGeoContext } from '@/lib/home/use-hero-geo-context';
 
 const ctaPrimaryClass = cn(
-  'inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2',
-  'text-sm font-bold bg-white text-emerald-900 shadow-md whitespace-nowrap',
-  '[-webkit-text-fill-color:#064e3b]',
-  'hover:bg-primary-50 touch-manipulation transition-colors',
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-brand',
+  'hc-btn-secondary inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3 py-1.5',
+  'text-sm font-semibold whitespace-nowrap touch-manipulation',
 );
 
 /**
@@ -45,38 +42,26 @@ export default function HomeHeroSection() {
     <>
       <HomeHeroCollapsible>
       <section
-        className="relative overflow-hidden rounded-xl xl:rounded-2xl hc-hero-dorpsplein mb-1 sm:mb-1.5 shadow-md"
+        className="relative mb-1 overflow-hidden border-b border-[var(--hc-border-quiet)] bg-[var(--hc-surface-page)] sm:mb-1.5"
         aria-labelledby="home-compact-header-title"
         data-hc-ecosystem-participation-signal="1"
       >
-        <div
-          className="absolute inset-0 bg-gradient-to-br from-primary-brand via-[#007a5c] to-secondary-brand"
-          aria-hidden
-        />
-
-        <div className="relative z-[1] px-3 py-2 sm:px-4 sm:py-2.5 xl:px-5 xl:py-3">
+        <div className="relative z-[1] px-3 py-1.5 sm:px-4">
           {/* Row 1 — identity + ecosystem navigation */}
-          <p className="text-[11px] sm:text-xs font-semibold text-white/95 tracking-tight">
+          <p className="sr-only">
             HomeCheff. {t('homePhase1.orientationIdentityGeneric')}
           </p>
 
-          {/* Row 2 — title + supporting line (single explanation block) */}
-          <div className="mt-1.5 sm:mt-2 min-w-0">
+          <div className="flex min-w-0 items-center justify-between gap-2">
             <h1
               id="home-compact-header-title"
-              className="text-sm sm:text-base xl:text-lg font-extrabold text-white leading-snug tracking-tight line-clamp-2"
+              className="min-w-0 truncate text-sm font-semibold leading-snug tracking-tight text-[var(--hc-text)] sm:text-base"
             >
               {heroGeo.city
                 ? t('homePhase1.orientationTitleInCity', { city: heroGeo.city })
                 : t('homePhase1.orientationTitle')}
             </h1>
-            <p className="mt-0.5 text-[11px] sm:text-xs text-white/85 line-clamp-2 leading-snug max-w-3xl">
-              {t('homeCompactHeader.supportLine')}
-            </p>
-          </div>
-
-          {/* Row 3 — primary CTA */}
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <p className="sr-only">{t('homeCompactHeader.supportLine')}</p>
             <button
               type="button"
               data-wx-primary-action=""

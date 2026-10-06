@@ -207,9 +207,7 @@ export default function NavBar() {
   const guestAuthRegisterClass = cn(
     'inline-flex shrink-0 items-center justify-center rounded-xl font-semibold transition-all touch-manipulation no-underline whitespace-nowrap',
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
-    'bg-primary-brand text-white hover:bg-primary-700',
-    'shadow-sm hover:shadow-md',
-    'xl:shadow-lg xl:hover:shadow-xl xl:hover:-translate-y-0.5',
+    'hc-btn-secondary',
     'min-h-[40px] px-2.5 py-2 text-xs min-[400px]:px-3 min-[400px]:text-sm',
     'sm:min-h-[44px] sm:px-3.5 sm:py-2.5 sm:text-sm',
     'lg:rounded-xl lg:px-2.5 lg:py-2 lg:text-[13px] lg:min-h-0',
@@ -576,9 +574,8 @@ export default function NavBar() {
                   'inline-flex shrink-0 items-center justify-center gap-1',
                   'rounded-xl px-2.5 py-2 xl:gap-1.5 xl:px-3.5 xl:py-2.5',
                   'text-[13px] xl:text-sm font-bold whitespace-nowrap leading-none',
-                  'bg-primary-brand text-white hover:bg-primary-700',
-                  'shadow-sm hover:shadow-md',
-                  'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
+                  'hc-btn-primary',
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--hc-focus)]',
                   'touch-manipulation select-none',
                 )}
                 onClick={() => {
@@ -614,8 +611,8 @@ export default function NavBar() {
                     ? 'rounded-lg px-2 py-1.5 min-h-[36px] text-xs'
                     : 'rounded-xl px-2.5 py-2 min-h-[40px] text-[13px]',
                   'font-bold whitespace-nowrap leading-none',
-                  'bg-primary-brand text-white hover:bg-primary-700',
-                  'shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-brand',
+                  'hc-btn-primary',
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hc-focus)]',
                   'touch-manipulation select-none',
                 )}
                 onClick={() => {
@@ -852,7 +849,7 @@ export default function NavBar() {
                   data-wx-primary-action-mobile=""
                   className={cn(
                     mobileNavRowClass,
-                    'bg-primary-brand font-semibold text-white hover:bg-primary-700 hover:text-white',
+                    'hc-btn-primary font-semibold',
                   )}
                   onClick={handleMobileCreate}
                 >
@@ -953,7 +950,7 @@ export default function NavBar() {
                     prefetch={false}
                     className={cn(
                       mobileNavRowClass,
-                      'justify-center bg-primary-brand font-semibold text-white hover:bg-primary-700 hover:text-white'
+                      'hc-btn-secondary justify-center font-semibold'
                     )}
                     onClick={() => {
                       setIsMobileMenuOpen(false);

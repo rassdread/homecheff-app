@@ -153,7 +153,10 @@ const nearbyState = readFileSync('lib/feed/nearby-location-state.ts', 'utf8');
 assert(nearbyState.includes('NEARBY_EMPTY_STATE'), 'nearby empty status');
 assert(nearbyState.includes('GPS_DENIED'), 'GPS_DENIED status');
 assert(nearbyState.includes('never blank the marketplace'), 'soft fallback policy');
-assert(geo.includes('LocationRefineBanner'), 'non-blocking location banner');
+assert(
+  geo.includes('showPreciseShortcut') && geo.includes('onUseMyLocation={handleUseMyLocation}'),
+  'precise location stays a secondary search-context action',
+);
 assert(geo.includes('nearbyNeedsLocation'), 'client nearbyNeedsLocation');
 assert(geo.includes('/api/geo/approx'), 'IP approx bootstrap');
 

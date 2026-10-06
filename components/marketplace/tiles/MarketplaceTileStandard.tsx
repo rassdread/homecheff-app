@@ -48,7 +48,7 @@ export default function MarketplaceTileStandard({
       locale={locale}
       enabled={enablePreview}
     >
-      <article className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex h-auto flex-col self-start overflow-hidden border-primary-brand/15">
+      <article className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex h-auto flex-col self-start overflow-hidden">
       <TileMedia
         href={model.href}
         alt={model.imageAlt}
@@ -56,7 +56,8 @@ export default function MarketplaceTileStandard({
         videoUrl={model.videoUrl}
         videoPoster={model.videoPoster}
         mediaRatio="4:3"
-        badges={badges}
+        className="hc-feed-media"
+        badges={shareSurface === 'profile' ? badges : []}
         overflowCount={overflowCount}
         favoriteId={model.id}
         favoriteTitle={title}
@@ -71,10 +72,9 @@ export default function MarketplaceTileStandard({
         showPreviewInfo={enablePreview}
         imageLoading={imageLoading}
       />
-      <div className="flex shrink-0 flex-col gap-1.5 p-3 sm:p-3.5">
-        <TilePersonRow model={model} t={t} />
+      <div className="flex shrink-0 flex-col gap-1 p-3 sm:p-3.5">
         <Link href={model.href} prefetch className="min-w-0">
-          <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-gray-900 sm:text-base">
+          <h3 className="line-clamp-2 text-[15px] font-bold leading-snug text-[var(--hc-text)] sm:text-base">
             {title}
           </h3>
         </Link>
@@ -85,6 +85,7 @@ export default function MarketplaceTileStandard({
           device="desktop"
           showSettlement={false}
         />
+        <TilePersonRow model={model} t={t} />
         <TileTrustCue
           trustCue={trustCue}
           className="truncate text-xs font-medium text-gray-500"

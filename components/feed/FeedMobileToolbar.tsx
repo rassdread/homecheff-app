@@ -46,12 +46,16 @@ type Props = {
   workCompact?: boolean;
 };
 
-const chipClass = (active: boolean) =>
+const categoryChipClass = (active: boolean) =>
   cn(
-    'shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors touch-manipulation',
-    active
-      ? 'bg-primary-brand text-white shadow-sm'
-      : 'bg-[#faf8f4] text-gray-700 border border-gray-200/80'
+    'hc-chip shrink-0 px-3 text-sm touch-manipulation',
+    active && 'hc-chip-selected',
+  );
+
+const viewChipClass = (active: boolean) =>
+  cn(
+    'hc-chip hc-chip-view shrink-0 px-2.5 touch-manipulation',
+    active && 'hc-chip-selected',
   );
 
 function collapsedFilterAriaLabel(
@@ -87,8 +91,6 @@ export default function FeedMobileToolbar({
   searchQuery,
   onSearchQueryChange,
   workCompact = false,
-  onActivateTrade,
-  tradeActive = false,
 }: Props) {
   const scopes = [
     [FEED_SCOPE_NEARBY, 'feed.scopeNearby'],
@@ -115,7 +117,7 @@ export default function FeedMobileToolbar({
         value={searchQuery}
         onChange={(e) => onSearchQueryChange(e.target.value)}
         placeholder={t('common.searchInProductsSimple')}
-        className="w-full min-h-[40px] rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-2.5 text-sm text-gray-900 placeholder:text-gray-500 focus:border-primary-brand/50 focus:outline-none focus:ring-2 focus:ring-primary-brand/20"
+        className="w-full min-h-[44px] rounded-lg border border-[var(--hc-border)] bg-[var(--hc-surface-card)] py-2 pl-8 pr-2.5 text-sm text-[var(--hc-text)] placeholder:text-[var(--hc-text-secondary)] focus:border-[var(--hc-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--hc-blue)]/25"
       />
     </label>
   );
@@ -137,8 +139,8 @@ export default function FeedMobileToolbar({
             className={cn(
               'inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold touch-manipulation',
               filterActive
-                ? 'border-emerald-300 bg-emerald-50 text-emerald-900'
-                : 'border-gray-200 bg-[#faf8f4] text-gray-800',
+                ? 'hc-chip-selected text-[var(--hc-text)]'
+                : 'border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] text-[var(--hc-text)]',
             )}
             aria-label={collapsedFilterAriaLabel(t, filterActive, activeFilterCount)}
             aria-expanded={false}
@@ -146,7 +148,7 @@ export default function FeedMobileToolbar({
             <Filter className="h-4 w-4 shrink-0" aria-hidden />
             <span>{t('common.filters')}</span>
             {filterActive && activeFilterCount > 0 ? (
-              <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white tabular-nums">
+              <span className="rounded-full bg-[var(--hc-blue-deep)] px-1.5 py-0.5 text-[10px] font-bold text-white tabular-nums">
                 {activeFilterCount}
               </span>
             ) : null}
@@ -165,8 +167,8 @@ export default function FeedMobileToolbar({
   return (
     <div
       className={cn(
-        'mb-2 w-full min-w-0 max-w-full space-y-2 overflow-x-hidden rounded-xl border border-gray-200/80 bg-white px-2 py-2 shadow-sm',
-        workCompact && 'space-y-1.5 py-1.5',
+        'mb-1.5 w-full min-w-0 max-w-full space-y-1.5 overflow-x-hidden rounded-xl border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-2 py-1.5',
+        workCompact && 'space-y-1 py-1',
       )}
       data-mobile-filter-collapsed="false"
       data-wx-work-compact={workCompact ? '1' : '0'}
@@ -180,8 +182,8 @@ export default function FeedMobileToolbar({
           className={cn(
             'inline-flex min-h-[40px] shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold touch-manipulation',
             filterActive
-              ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
-              : 'border-gray-200 bg-gray-50 text-gray-800',
+              ? 'hc-chip-selected text-[var(--hc-text)]'
+              : 'border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] text-[var(--hc-text)]',
           )}
           aria-label={
             appliedScope !== FEED_SCOPE_NEARBY
@@ -192,80 +194,57 @@ export default function FeedMobileToolbar({
           <Filter className="h-3.5 w-3.5" aria-hidden />
           {t('common.filters')}
           {filterActive && activeFilterCount > 0 ? (
-            <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white tabular-nums">
+            <span className="rounded-full bg-[var(--hc-blue-deep)] px-1.5 py-0.5 text-[10px] font-bold text-white tabular-nums">
               {activeFilterCount}
             </span>
           ) : null}
         </button>
       </div>
 
-      {/* View chips — hidden in landscape work-compact to protect fold. */}
-      {!workCompact ? (
-        <div className="relative min-w-0">
+      <div className="min-w-0">
+        <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--hc-text-secondary)]">
+          {t('feed.verticalAxisLabel')}
+        </p>
+        <div className="flex min-w-0 items-center gap-2">
           <div
-            className="hc-chip-scroller flex min-w-0 gap-1.5 overflow-x-auto overscroll-x-contain pb-1.5 pr-6 [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300"
-            data-hc-chip-scroller="view"
+            className="hc-chip-scroller flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:thin]"
+            data-hc-chip-scroller="category"
           >
-            {DISCOVERY_VIEW_CHIP_OPTIONS.map(({ legacyChip, labelKey }) => (
+            {DISCOVERY_CATEGORY_CHIP_OPTIONS.map(({ slug, labelKey }) => (
               <button
-                key={legacyChip}
+                key={slug}
                 type="button"
-                className={chipClass(feedChip === legacyChip)}
-                onClick={() => onFeedChipChange(legacyChip)}
+                className={categoryChipClass(appliedCategory === slug)}
+                onClick={() => onCategoryChange(slug)}
               >
                 {t(labelKey)}
               </button>
             ))}
-            {onActivateTrade ? (
-              <button
-                type="button"
-                data-wx-trade-action=""
-                className={chipClass(Boolean(tradeActive))}
-                onClick={onActivateTrade}
-                aria-pressed={tradeActive}
-                title={t('feed.tradeActionHint')}
-              >
-                {t('feed.tradeActionChip')}
-              </button>
-            ) : null}
           </div>
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-white to-transparent"
-          />
+          <FeedLayoutToggle mode={feedLayoutMode} onChange={onFeedLayoutModeChange} compact />
         </div>
-      ) : null}
+      </div>
 
-      {!workCompact ? (
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="relative min-w-0 flex-1">
-            <div
-              className="hc-chip-scroller flex min-w-0 gap-1.5 overflow-x-auto overscroll-x-contain pb-1.5 pr-6 [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300"
-              data-hc-chip-scroller="category"
+      <div className="min-w-0">
+        <p className="mb-0.5 text-[11px] font-medium uppercase tracking-wide text-[var(--hc-text-secondary)]">
+          {t('feed.viewModeLabel')}
+        </p>
+        <div
+          className="hc-chip-scroller flex min-w-0 gap-1.5 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:thin]"
+          data-hc-chip-scroller="view"
+        >
+          {DISCOVERY_VIEW_CHIP_OPTIONS.map(({ legacyChip, labelKey }) => (
+            <button
+              key={legacyChip}
+              type="button"
+              className={viewChipClass(feedChip === legacyChip)}
+              onClick={() => onFeedChipChange(legacyChip)}
             >
-              {DISCOVERY_CATEGORY_CHIP_OPTIONS.map(({ slug, labelKey }) => (
-                <button
-                  key={slug}
-                  type="button"
-                  className={chipClass(appliedCategory === slug)}
-                  onClick={() => onCategoryChange(slug)}
-                >
-                  {t(labelKey)}
-                </button>
-              ))}
-            </div>
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-white to-transparent"
-            />
-          </div>
-          <FeedLayoutToggle mode={feedLayoutMode} onChange={onFeedLayoutModeChange} compact />
+              {t(labelKey)}
+            </button>
+          ))}
         </div>
-      ) : (
-        <div className="flex justify-end">
-          <FeedLayoutToggle mode={feedLayoutMode} onChange={onFeedLayoutModeChange} compact />
-        </div>
-      )}
+      </div>
     </div>
   );
 }

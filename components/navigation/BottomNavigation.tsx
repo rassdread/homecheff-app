@@ -65,8 +65,8 @@ function navTabClasses(active: boolean, isNativeShell: boolean) {
     'flex flex-col items-center justify-center w-full max-w-[5rem] mx-auto rounded-2xl transition-all duration-200 ease-out',
     'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
     active
-      ? 'text-primary-brand bg-gradient-to-b from-emerald-500/[0.18] to-teal-600/[0.11] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-emerald-400/35'
-      : 'text-gray-600 hover:text-gray-900 hover:bg-slate-50/95 active:bg-slate-100/85',
+      ? 'text-[var(--hc-blue-deep)] bg-[var(--hc-selected-bg)] ring-1 ring-[var(--hc-selected-border)]'
+      : 'text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-subtle)]',
     isNativeShell
       ? 'min-h-[52px] min-w-[48px] px-1 py-2 touch-manipulation select-none active:scale-[0.97]'
       : 'min-h-[48px] px-1 py-1.5 sm:py-2 touch-manipulation select-none'
@@ -1688,8 +1688,8 @@ export default function BottomNavigation() {
         className={cn(
           'pointer-events-auto mx-auto w-full transition-[box-shadow,padding,border-color,background-color] duration-200 ease-out',
           'bg-white',
-          'border-t border-emerald-100/70 shadow-[0_-12px_44px_-14px_rgba(13,148,136,0.14),0_-4px_18px_-8px_rgba(0,0,0,0.06)]',
-          'md:max-w-[760px] md:rounded-2xl md:border md:shadow-[0_8px_40px_-12px_rgba(13,148,136,0.18),0_12px_32px_-10px_rgba(0,0,0,0.12)]',
+          'border-t border-[var(--hc-border-quiet)] shadow-none',
+          'md:max-w-[760px] md:rounded-2xl md:border md:shadow-none',
           isNativeShell
             ? 'py-3 pt-[0.625rem] pb-[env(safe-area-inset-bottom,0px)] px-2 sm:px-3 md:px-4 md:pb-[max(0.75rem,10px)]'
             : 'py-2.5 px-2 sm:px-4 md:px-3 md:pb-[max(0.5rem,env(safe-area-inset-bottom,0px))]'
@@ -1806,12 +1806,10 @@ export default function BottomNavigation() {
               data-hc-bottom-nav-item="create"
               onClick={handleQuickAddClick}
               className={cn(
-                'relative rounded-full text-white transition-all duration-200 ease-out touch-manipulation select-none active:scale-95',
-                'bg-gradient-to-br from-primary-brand via-emerald-600 to-teal-600',
-                'shadow-[0_8px_26px_-6px_rgba(16,185,129,0.55),0_4px_14px_-4px_rgba(14,116,144,0.35)]',
-                'hover:shadow-[0_10px_32px_-6px_rgba(16,185,129,0.6)] hover:scale-[1.06]',
-                'ring-[3px] ring-white/95 ring-offset-2 ring-offset-transparent',
-                'focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/45 focus-visible:ring-offset-2',
+                'hc-btn-primary relative rounded-full transition-colors duration-200 ease-out touch-manipulation select-none',
+                'shadow-[var(--hc-shadow-1)]',
+                'ring-[3px] ring-[var(--hc-surface-card)] ring-offset-0',
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hc-focus)] focus-visible:ring-offset-2',
                 isNativeShell
                   ? 'top-0 p-[0.9375rem] sm:p-[1.0625rem]'
                   : '-top-3 sm:-top-4 p-3 sm:p-[1.05rem]'

@@ -123,41 +123,37 @@ export default function WorkspaceOrientationStrip({
         data-hc-orientation-density="marketplace"
         className={cn(
           'hc-wx-orientation-strip w-full min-w-0',
-          'rounded-none sm:rounded-t-2xl border-b border-primary-brand/30',
-          'bg-gradient-to-r from-primary-brand via-primary-brand to-emerald-800',
-          'px-4 py-2.5 text-white sm:px-5 sm:py-3',
+          'border-b border-[var(--hc-border-quiet)] bg-[var(--hc-surface-page)]',
+          'px-3 py-1.5 sm:px-4',
           className,
         )}
         role="banner"
         aria-label={whereLabel}
       >
-        <h1
-          data-testid="home-hero-title"
-          data-hero-city={heroGeo.city ?? ''}
-          data-wx-orientation-title=""
-          className="text-[1.15rem] font-bold leading-snug tracking-tight sm:text-xl"
-        >
-          {whereLabel}
-        </h1>
-        <div className="mt-0.5 flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
-          <p
-            data-wx-orientation-explain-body=""
-            className="min-w-0 max-w-3xl text-sm leading-snug text-white/90 line-clamp-1"
+        <div className="flex min-w-0 items-baseline justify-between gap-3">
+          <h1
+            data-testid="home-hero-title"
+            data-hero-city={heroGeo.city ?? ''}
+            data-wx-orientation-title=""
+            className="min-w-0 truncate text-sm font-semibold leading-snug tracking-tight text-[var(--hc-text)] sm:text-base"
           >
-            {t('homePhase1.orientationExplainCompactPrimary')}
-          </p>
+            {whereLabel}
+          </h1>
           <button
             ref={valueExplainerTriggerRef}
             type="button"
             data-hc-value-explainer-trigger=""
             onClick={() => setValueExplainerOpen(true)}
-            className="shrink-0 self-start text-left text-xs font-medium text-white/80 underline-offset-2 hover:underline"
+            className="shrink-0 text-left text-xs font-medium text-[var(--hc-blue)] underline-offset-2 hover:underline"
             aria-haspopup="dialog"
             aria-expanded={valueExplainerOpen}
           >
             {t('homeValueExplainer.trigger')}
           </button>
         </div>
+        <p className="sr-only" data-wx-orientation-explain-body="">
+          {t('homePhase1.orientationExplainCompactPrimary')}
+        </p>
       </div>
       <HomeValueExplainerDialog
         open={valueExplainerOpen}

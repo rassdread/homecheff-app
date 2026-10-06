@@ -51,7 +51,7 @@ export default function MarketplaceTileCompact({
       locale={locale}
       enabled={enablePreview}
     >
-      <article className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex h-auto flex-col self-start overflow-hidden border-primary-brand/15">
+      <article className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex h-auto flex-col self-start overflow-hidden">
       <TileMedia
         href={model.href}
         alt={model.imageAlt}
@@ -59,7 +59,8 @@ export default function MarketplaceTileCompact({
         videoUrl={model.videoUrl}
         videoPoster={model.videoPoster}
         mediaRatio={mediaRatio}
-        badges={badges}
+        className="hc-feed-media"
+        badges={shareSurface === 'profile' ? badges : []}
         overflowCount={overflowCount}
         favoriteId={model.id}
         favoriteTitle={title}
@@ -74,10 +75,9 @@ export default function MarketplaceTileCompact({
         showPreviewInfo={enablePreview}
         imageLoading={imageLoading}
       />
-      <div className="flex shrink-0 flex-col gap-1.5 p-2.5">
-        <TilePersonRow model={model} t={t} />
+      <div className="flex shrink-0 flex-col gap-1 p-2.5">
         <Link href={model.href} prefetch className="min-w-0">
-          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900">
+          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-[var(--hc-text)]">
             {title}
           </h3>
         </Link>
@@ -87,6 +87,7 @@ export default function MarketplaceTileCompact({
           variant="compact"
           showSettlement={false}
         />
+        <TilePersonRow model={model} t={t} />
         <TileTrustCue trustCue={trustCue} />
         {settlement ? <TileSettlementRow row={settlement} t={t} /> : null}
       </div>

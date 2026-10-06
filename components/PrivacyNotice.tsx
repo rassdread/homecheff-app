@@ -64,55 +64,57 @@ const PrivacyNotice: React.FC = () => {
     publish();
   };
 
-  const handleMoreInfo = () => {
-    window.location.href = '/privacy';
-  };
-
   if (mode === 'hidden') return null;
 
   return (
     <div
       data-wx-cookie-banner=""
       data-wx-cookie-compact="1"
-      className="pointer-events-none fixed inset-x-0 z-[35] flex justify-center px-3 max-lg:bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:bottom-5 lg:justify-end lg:px-5"
+      className="pointer-events-none fixed inset-x-0 z-[80] max-lg:bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] lg:bottom-0"
     >
       <div
         data-wx-cookie-compact="1"
-        className="pointer-events-auto w-full max-w-[22rem] rounded-xl border border-emerald-100/90 bg-white/95 p-3 shadow-[0_8px_28px_-12px_rgba(16,185,129,0.35),0_4px_14px_-8px_rgba(0,0,0,0.12)] backdrop-blur-md sm:max-w-sm sm:p-3.5"
+        className="pointer-events-auto w-full border-t border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-3 py-1.5 shadow-[var(--hc-shadow-1)] sm:px-4"
       >
-        <p className="text-sm font-semibold text-gray-900 tracking-tight">
-          {mode === 'marketing' ? t('cookieBanner.marketingTitle') : t('cookieBanner.title')}
-        </p>
-        <p className="mt-0.5 text-[11px] leading-snug text-gray-600 sm:text-xs sm:leading-relaxed">
-          {mode === 'marketing' ? t('cookieBanner.marketingNote') : t('cookieBanner.cookieNoteShort')}
-        </p>
+        <div className="flex min-w-0 items-center gap-2">
+          <p className="shrink-0 text-xs font-semibold text-[var(--hc-text)]">
+            {mode === 'marketing' ? t('cookieBanner.marketingTitle') : t('cookieBanner.title')}
+          </p>
+          <p className="min-w-0 flex-1 truncate text-[11px] text-[var(--hc-text-secondary)]">
+            {mode === 'marketing' ? t('cookieBanner.marketingNote') : t('cookieBanner.cookieNoteShort')}
+          </p>
+          <a href="/privacy" className="shrink-0 text-[11px] text-[var(--hc-blue)] hover:underline">
+            {t('register.privacyPage.title')}
+          </a>
+        </div>
 
+        <div className="mt-1 flex items-center gap-2">
         {mode === 'full' ? (
-          <label className="mt-2 flex items-start gap-2 text-[11px] leading-snug text-gray-700 sm:text-xs">
+          <label className="flex min-w-0 flex-1 items-center gap-1.5 text-[11px] text-[var(--hc-text)]">
             <input
               type="checkbox"
-              className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-emerald-700 focus:ring-emerald-600"
+              className="h-4 w-4 shrink-0 rounded border-gray-300 text-[var(--hc-green)] focus:ring-[var(--hc-focus)]"
               checked={marketingChecked}
               onChange={(event) => setMarketingChecked(event.target.checked)}
             />
-            <span>{t('cookieBanner.marketingOptIn')}</span>
+            <span className="truncate" title={t('cookieBanner.marketingOptIn')}>{t('cookieBanner.marketingOptIn')}</span>
           </label>
         ) : null}
 
-        <div className="mt-2.5 flex gap-2">
+        <div className="flex shrink-0 gap-2">
           {mode === 'marketing' ? (
             <>
               <button
                 onClick={handleDeclineMarketing}
                 type="button"
-                className="flex-1 min-h-[40px] rounded-xl bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-200 sm:text-sm"
+                className="min-h-[40px] rounded-xl bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700"
               >
                 {t('cookieBanner.marketingDecline')}
               </button>
               <button
                 onClick={handleGrantMarketing}
                 type="button"
-                className="flex-1 min-h-[40px] rounded-xl bg-emerald-700 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-800 sm:text-sm"
+                className="hc-btn-primary min-h-[40px] !px-2.5 !py-1 text-xs font-semibold"
               >
                 {t('cookieBanner.marketingAllow')}
               </button>
@@ -123,34 +125,21 @@ const PrivacyNotice: React.FC = () => {
           <button
             onClick={handleOnlyNecessary}
             type="button"
-            className="flex-1 min-h-[40px] rounded-xl bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-200 sm:text-sm"
+            className="min-h-[40px] rounded-xl bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700"
           >
             {t('cookieBanner.onlyNecessary')}
           </button>
           <button
             onClick={handleAcceptAll}
             type="button"
-            className="flex-1 min-h-[40px] rounded-xl bg-emerald-700 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-800 sm:text-sm"
+            className="hc-btn-primary min-h-[40px] !px-2.5 !py-1 text-xs font-semibold"
           >
             {t('cookieBanner.acceptAll')}
           </button>
             </>
           ) : null}
         </div>
-
-        <p className="mt-2 text-center text-[11px] text-gray-500">
-          <button
-            type="button"
-            onClick={handleMoreInfo}
-            className="text-emerald-700 hover:underline"
-          >
-            {t('cookieBanner.moreInfo')}
-          </button>
-          {' · '}
-          <a href="/privacy" className="text-emerald-700 hover:underline">
-            {t('register.privacyPage.title')}
-          </a>
-        </p>
+        </div>
       </div>
     </div>
   );

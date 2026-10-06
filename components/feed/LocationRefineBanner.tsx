@@ -34,9 +34,9 @@ export default function LocationRefineBanner({
       data-hc-location-banner-compact="1"
       role="region"
       aria-label={message}
-      className="mb-2 flex items-center gap-2 rounded-lg border border-emerald-200/70 bg-emerald-50/80 px-2.5 py-1.5 text-xs text-emerald-950 sm:text-sm"
+      className="mb-1 flex min-h-[44px] flex-nowrap items-center gap-1.5 overflow-hidden rounded-lg border border-[var(--hc-border-quiet)] bg-[var(--hc-surface-card)] px-2 text-xs text-[var(--hc-text)]"
     >
-      <MapPin className="h-3.5 w-3.5 shrink-0 text-emerald-700" aria-hidden />
+      <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--hc-blue)]" aria-hidden />
       <p className="min-w-0 flex-1 truncate leading-snug">{message}</p>
       <div className="flex shrink-0 items-center gap-1">
         <button
@@ -44,7 +44,7 @@ export default function LocationRefineBanner({
           onClick={onUsePrecise}
           disabled={locationLoading}
           aria-busy={locationLoading}
-          className="inline-flex min-h-[36px] items-center justify-center gap-1 rounded-md bg-emerald-700 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation sm:text-xs"
+          className="inline-flex min-h-[40px] shrink-0 items-center justify-center rounded-md px-2 text-[11px] font-semibold text-[var(--hc-blue)] underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation"
         >
           {locationLoading ? (
             <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
@@ -54,14 +54,14 @@ export default function LocationRefineBanner({
         <button
           type="button"
           onClick={onChange}
-          className="inline-flex min-h-[36px] items-center justify-center rounded-md border border-emerald-300/70 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-emerald-900 hover:bg-emerald-50 touch-manipulation sm:text-xs"
+          className="inline-flex h-8 shrink-0 items-center justify-center rounded-md px-1.5 text-[11px] font-semibold text-[var(--hc-blue)] underline-offset-2 hover:underline touch-manipulation"
         >
           {changeLabel}
         </button>
         <button
           type="button"
           onClick={onDismiss}
-          className="inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-md p-1.5 text-emerald-800/70 hover:bg-emerald-100/80 touch-manipulation"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--hc-text-secondary)] hover:bg-[var(--hc-surface-subtle)] touch-manipulation"
           aria-label={dismissLabel}
         >
           <X className="h-4 w-4" aria-hidden />
