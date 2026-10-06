@@ -653,7 +653,7 @@ async function handleFeedGet(
     ...(searchFilters.listingIntent === 'REQUEST' ||
     searchFilters.listingIntent === 'OFFER' ||
     discoverySlugIsServices(vertical)
-      ? { id: { in: [] as string[] } }
+      ? { AND: [{ id: { equals: '00000000-0000-0000-0000-000000000000' } }] }
       : productCategory
         ? { category: productCategory }
         : {}),
@@ -1410,6 +1410,18 @@ async function handleFeedGet(
         q: null,
       }),
     );
+  }
+  if (
+    searchFilters.listingIntent === 'REQUEST' ||
+    searchFilters.listingIntent === 'OFFER'
+  ) {
+    responseItems = responseItems.filter((item) => {
+      const record = item as { listingIntent?: string | null; feedSource?: string | null };
+      const intent = String(record.listingIntent || 'OFFER').trim().toUpperCase();
+      const source = String(record.feedSource || '').trim().toUpperCase();
+      if (searchFilters.listingIntent === 'REQUEST') return intent === 'REQUEST';
+      return intent !== 'REQUEST' && source !== 'DISH';
+    });
   }
   apiPerf?.mark('response_mapped');
 
