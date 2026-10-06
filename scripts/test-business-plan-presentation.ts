@@ -13,6 +13,11 @@ import {
   commissionOffsetSalesCents,
   publicPlanFacts,
 } from '../lib/business/plan-presentation';
+import {
+  buildSubscriptionComparisonRows,
+  growthBenefitKeysForPlan,
+} from '../lib/business/subscription-comparison';
+import { buildLivePreviewFields, computeUpgradeDelta } from '../lib/business/dna-preview';
 
 const nl = publicPlanFacts('nl');
 const en = publicPlanFacts('en');
@@ -57,6 +62,28 @@ assert.match(json, /"price":"39"/);
 assert.match(json, /"price":"99"/);
 assert.match(json, /"price":"199"/);
 assert.equal(json.includes('AggregateRating'), false);
+
+const rows = buildSubscriptionComparisonRows();
+assert.deepEqual(rows.map((row) => row.featureKey), [
+  'business.dna.compare.commission',
+  'business.dna.compare.sponsored',
+]);
+for (const plan of ['individual', 'basic', 'pro', 'premium'] as const) {
+  const joined = [
+    ...growthBenefitKeysForPlan(plan),
+    ...buildLivePreviewFields(plan).map((field) => field.labelKey),
+    ...computeUpgradeDelta('individual', plan).map((item) => item.key),
+  ].join('\n');
+  assert.equal(/homepage|regional/i.test(joined), false, plan);
+}
+assert.ok(growthBenefitKeysForPlan('basic').includes('business.dna.benefit.sponsoredBasic'));
+
+const nlCopy = readFileSync(new URL('../public/i18n/nl.json', import.meta.url), 'utf8');
+const enCopy = readFileSync(new URL('../public/i18n/en.json', import.meta.url), 'utf8');
+assert.equal(/homepage spotlight/i.test(nlCopy), false);
+assert.equal(/homepage spotlight/i.test(enCopy), false);
+assert.equal(/regionale zichtbaarheid/i.test(nlCopy), false);
+assert.equal(/regional visibility/i.test(enCopy), false);
 
 const sell = readFileSync(new URL('../app/sell/page.tsx', import.meta.url), 'utf8');
 assert.equal(sell.includes("'use client'"), false);

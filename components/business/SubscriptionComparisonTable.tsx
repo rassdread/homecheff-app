@@ -80,7 +80,25 @@ export default function SubscriptionComparisonTable() {
   const rows = buildSubscriptionComparisonRows();
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="grid gap-3 p-3 md:hidden">
+        {columns.map((col) => (
+          <article key={col} className="rounded-xl border border-gray-100 p-3">
+            <h3 className="text-sm font-semibold text-gray-900">{t(COLUMN_LABELS[col])}</h3>
+            <dl className="mt-2 space-y-2">
+              {rows.map((row) => (
+                <div key={row.featureKey} className="flex items-start justify-between gap-3 text-sm">
+                  <dt className="text-gray-600">{t(row.featureKey)}</dt>
+                  <dd className="text-right">
+                    <ComparisonCellView cell={row.cells[col]} t={t} />
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </article>
+        ))}
+      </div>
+      <div className="hidden overflow-x-auto md:block">
       <table className="min-w-full text-left text-sm">
         <thead>
           <tr className="border-b border-gray-100 bg-gray-50/80">
@@ -119,6 +137,7 @@ export default function SubscriptionComparisonTable() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

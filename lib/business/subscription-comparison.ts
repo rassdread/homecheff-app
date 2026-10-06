@@ -36,18 +36,6 @@ export type ComparisonRow = {
 
 const COLUMNS: ComparisonColumnId[] = listBusinessPlanIds();
 
-function dotsCell(level: number): ComparisonCell {
-  return { kind: 'dots', value: level };
-}
-
-function statusCell(status: FutureFeatureStatus): ComparisonCell {
-  return { kind: 'status', status };
-}
-
-function checkCell(): ComparisonCell {
-  return { kind: 'check' };
-}
-
 function dashCell(): ComparisonCell {
   return { kind: 'dash' };
 }
@@ -58,10 +46,6 @@ function percentCell(p: BusinessVisibilityProfile): ComparisonCell {
 
 function labelCell(key: string): ComparisonCell {
   return { kind: 'label', value: key };
-}
-
-function locationsCell(max: number): ComparisonCell {
-  return { kind: 'locations', value: max };
 }
 
 function rowForProfiles(
@@ -75,7 +59,11 @@ function rowForProfiles(
   return { featureKey, cells };
 }
 
-/** Growth-focused comparison rows for /sell — commission is one row, not the headline. */
+/**
+ * Public comparison rows.
+ * Only fee and the live sponsored entitlement. Homepage, regional and other
+ * Business DNA flags stay on the profile and are not shown as plan benefits.
+ */
 export function buildSubscriptionComparisonRows(): ComparisonRow[] {
   return [
     rowForProfiles('business.dna.compare.commission', (p) => percentCell(p)),
@@ -84,44 +72,6 @@ export function buildSubscriptionComparisonRows(): ComparisonRow[] {
         ? dashCell()
         : labelCell(`business.dna.compare.sponsoredValue.${p.plan}`),
     ),
-    rowForProfiles('business.dna.compare.badge', (p) =>
-      p.badge ? checkCell() : dashCell(),
-    ),
-    rowForProfiles('business.dna.compare.localVisibility', (p) =>
-      dotsCell(p.visibilityLevel),
-    ),
-    rowForProfiles('business.dna.compare.searchPriority', (p) =>
-      p.searchPriorityLevel === 0 ? dashCell() : dotsCell(p.searchPriorityLevel),
-    ),
-    rowForProfiles('business.dna.compare.analytics', (p) =>
-      labelCell(p.analyticsDisplayKey),
-    ),
-    rowForProfiles('business.dna.compare.verifiedBusiness', (p) =>
-      p.verifiedBusiness ? checkCell() : dashCell(),
-    ),
-    rowForProfiles('business.dna.compare.regionalVisibility', (p) =>
-      p.regionalEligible ? checkCell() : dashCell(),
-    ),
-    rowForProfiles('business.dna.compare.homepageSpotlight', (p) => {
-      if (p.homepageSpotlightEligible) return checkCell();
-      if (p.homepageEligible) return statusCell('optional');
-      return dashCell();
-    }),
-    rowForProfiles('business.dna.compare.websitePromotion', (p) =>
-      statusCell(p.websitePromotionStatus),
-    ),
-    rowForProfiles('business.dna.compare.socialPromotion', (p) =>
-      statusCell(p.socialPromotionStatus),
-    ),
-    rowForProfiles('business.dna.compare.aiMarketing', (p) =>
-      p.futureAiMarketing ? statusCell('future') : dashCell(),
-    ),
-    rowForProfiles('business.dna.compare.locations', (p) =>
-      locationsCell(p.multipleLocations),
-    ),
-    rowForProfiles('business.dna.compare.support', (p) =>
-      labelCell(`business.dna.support.${p.prioritySupport}`),
-    ),
   ];
 }
 
@@ -129,28 +79,16 @@ export function subscriptionComparisonColumns(): ComparisonColumnId[] {
   return [...COLUMNS];
 }
 
-/** Growth benefit keys for plan cards — derived from DNA, not hardcoded. */
+const SPONSORED_BENEFIT_KEY: Partial<Record<BusinessPlanId, string>> = {
+  basic: 'business.dna.benefit.sponsoredBasic',
+  pro: 'business.dna.benefit.sponsoredPro',
+  premium: 'business.dna.benefit.sponsoredPremium',
+};
+
+/** Customer-facing benefit lines. Sponsored entitlement only; fee is a separate row. */
 export function growthBenefitKeysForPlan(plan: BusinessPlanId): string[] {
-  const p = getBusinessVisibilityProfile(plan);
-  const keys: string[] = [];
-
-  if (plan === 'basic') keys.push('business.dna.benefit.sponsoredBasic');
-  if (plan === 'pro') keys.push('business.dna.benefit.sponsoredPro');
-  if (plan === 'premium') keys.push('business.dna.benefit.sponsoredPremium');
-  if (p.verifiedBusiness) keys.push('business.dna.benefit.verified');
-  if (p.badge) keys.push('business.dna.benefit.badge');
-  if (p.categorySpotlightEligible) keys.push('business.dna.benefit.categoryFeatured');
-  if (p.regionalEligible) keys.push('business.dna.benefit.regional');
-  if (p.homepageEligible) keys.push('business.dna.benefit.homepageEligible');
-  if (p.homepageSpotlightEligible) keys.push('business.dna.benefit.homepageSpotlight');
-  if (p.campaignBuilder) keys.push('business.dna.benefit.campaigns');
-  if (p.websitePromotionStatus === 'ready') keys.push('business.dna.benefit.websiteReady');
-  if (p.socialPromotionStatus === 'ready') keys.push('business.dna.benefit.socialReady');
-  if (p.premiumAnalytics) keys.push('business.dna.benefit.premiumAnalytics');
-  if (p.multipleLocations > 1) keys.push('business.dna.benefit.multiLocation');
-
-  keys.push(p.analyticsDisplayKey);
-  return keys;
+  const key = SPONSORED_BENEFIT_KEY[plan];
+  return key ? [key] : [];
 }
 
 export function formatMonthlyPrice(plan: BusinessPlanId, locale = 'nl-NL'): string {

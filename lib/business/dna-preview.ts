@@ -3,6 +3,7 @@
  * All preview, delta, and dashboard feature lists derive from getBusinessVisibilityProfile().
  */
 
+import { growthBenefitKeysForPlan } from './subscription-comparison';
 import {
   getBusinessVisibilityProfile,
   listBusinessPlanIds,
@@ -56,77 +57,33 @@ export function computeVisibilityScore(profile: BusinessVisibilityProfile): numb
   return Math.min(100, levelScore + searchScore + bonus);
 }
 
-/** Live preview metric rows for subscription selector. */
+/**
+ * Preview rows a customer may see.
+ * Homepage, regional, search-priority and future promotion flags are not included.
+ */
 export function buildLivePreviewFields(plan: BusinessPlanId): DnaPreviewField[] {
   const p = getBusinessVisibilityProfile(plan);
-  return [
+  const fields: DnaPreviewField[] = [
     {
       labelKey: 'business.dna.preview.badge',
       kind: 'badge',
       textKey: p.badge ? `business.plan.badge.${p.badge}` : 'business.dna.preview.noBadge',
     },
     {
-      labelKey: 'business.dna.preview.visibilityLevel',
-      kind: 'dots',
-      dots: p.visibilityLevel,
-      maxDots: 4,
-    },
-    {
-      labelKey: 'business.dna.preview.profileTier',
+      labelKey: 'business.dna.compare.commission',
       kind: 'label',
-      textKey: `business.dna.preview.tier.${p.visibilityLevel}`,
-    },
-    {
-      labelKey: 'business.dna.preview.searchPriority',
-      kind: 'dots',
-      dots: p.searchPriorityLevel,
-      maxDots: 3,
-    },
-    {
-      labelKey: 'business.dna.preview.analytics',
-      kind: 'label',
-      textKey: p.analyticsDisplayKey,
-    },
-    {
-      labelKey: 'business.dna.preview.visibilityScore',
-      kind: 'score',
-      score: computeVisibilityScore(p),
-    },
-    {
-      labelKey: 'business.dna.preview.homepage',
-      kind: 'status',
-      status: p.homepageSpotlightEligible
-        ? 'included'
-        : p.homepageEligible
-          ? 'optional'
-          : 'none',
-    },
-    {
-      labelKey: 'business.dna.preview.regional',
-      kind: 'status',
-      status: p.regionalEligible ? 'included' : 'none',
-    },
-    {
-      labelKey: 'business.dna.preview.websitePromotion',
-      kind: 'status',
-      status: p.websitePromotionStatus,
-    },
-    {
-      labelKey: 'business.dna.preview.socialPromotion',
-      kind: 'status',
-      status: p.socialPromotionStatus,
-    },
-    {
-      labelKey: 'business.dna.preview.locations',
-      kind: 'locations',
-      locations: p.multipleLocations,
-    },
-    {
-      labelKey: 'business.dna.preview.aiMarketing',
-      kind: 'status',
-      status: p.futureAiMarketing ? 'future' : 'none',
+      textKey: 'business.dna.compare.commission',
     },
   ];
+  const sponsored = growthBenefitKeysForPlan(plan)[0];
+  if (sponsored) {
+    fields.push({
+      labelKey: 'business.dna.compare.sponsored',
+      kind: 'label',
+      textKey: sponsored,
+    });
+  }
+  return fields;
 }
 
 function pushIfChanged(
@@ -155,104 +112,11 @@ export function computeUpgradeDelta(
   if (!upgrading) return [];
 
   const out: DnaFeatureItem[] = [];
-
-  pushIfChanged(out, from, to, !from.badge && !!to.badge, 'business.dna.delta.badge');
-  pushIfChanged(
-    out,
-    from,
-    to,
-    to.visibilityLevel > from.visibilityLevel,
-    'business.dna.delta.visibility',
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    to.analyticsDisplayKey !== from.analyticsDisplayKey,
-    'business.dna.delta.analytics',
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    !from.verifiedBusiness && to.verifiedBusiness,
-    'business.dna.delta.verified',
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    !from.localSearchPriority && to.localSearchPriority,
-    'business.dna.delta.nearbyVisibility',
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    !from.regionalEligible && to.regionalEligible,
-    'business.dna.delta.regional',
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    !from.homepageEligible && to.homepageEligible,
-    'business.dna.delta.homepageEligible',
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    !from.homepageSpotlightEligible && to.homepageSpotlightEligible,
-    'business.dna.delta.homepageSpotlight',
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    to.multipleLocations > from.multipleLocations,
-    'business.dna.delta.locations',
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    from.websitePromotionStatus === 'none' && to.websitePromotionStatus === 'ready',
-    'business.dna.delta.websiteReady',
-    true,
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    from.socialPromotionStatus === 'none' && to.socialPromotionStatus === 'ready',
-    'business.dna.delta.socialReady',
-    true,
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    !from.futureAiMarketing && to.futureAiMarketing,
-    'business.dna.delta.aiMarketing',
-    true,
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    !from.campaignBuilder && to.campaignBuilder,
-    'business.dna.delta.campaignBuilder',
-    true,
-  );
-  pushIfChanged(
-    out,
-    from,
-    to,
-    !from.regionalCampaignEligible && to.regionalCampaignEligible,
-    'business.dna.delta.regionalCampaigns',
-    true,
-  );
+  const fromSponsored = growthBenefitKeysForPlan(fromPlan)[0];
+  const toSponsored = growthBenefitKeysForPlan(toPlan)[0];
+  if (toSponsored && toSponsored !== fromSponsored) {
+    out.push({ key: toSponsored });
+  }
   pushIfChanged(
     out,
     from,
@@ -271,53 +135,24 @@ export function listImmediateUpgradeBenefits(plan: BusinessPlanId): DnaFeatureIt
 
 export function listUnlockedFeatureKeys(plan: BusinessPlanId): string[] {
   const p = getBusinessVisibilityProfile(plan);
-  const keys: string[] = [];
+  const keys = [...growthBenefitKeysForPlan(plan)];
   if (p.badge) keys.push('business.dna.unlocked.badge');
-  if (p.verifiedBusiness) keys.push('business.dna.unlocked.verified');
-  if (p.categorySpotlightEligible) keys.push('business.dna.unlocked.category');
-  if (p.regionalEligible) keys.push('business.dna.unlocked.regional');
-  if (p.homepageEligible) keys.push('business.dna.unlocked.homepage');
-  if (p.homepageSpotlightEligible) keys.push('business.dna.unlocked.spotlight');
-  if (p.premiumAnalytics) keys.push('business.dna.unlocked.premiumAnalytics');
-  if (p.multipleLocations > 1) keys.push('business.dna.unlocked.multiLocation');
-  keys.push(p.analyticsDisplayKey);
-  return keys;
-}
-
-/** Features on higher plans not yet available on current plan. */
-export function listLockedFeatureKeys(plan: BusinessPlanId): string[] {
-  const current = getBusinessVisibilityProfile(plan);
-  const locked = new Set<string>();
-
-  for (const higher of PLAN_ORDER) {
-    if (planRank(higher) <= planRank(plan)) continue;
-    for (const item of computeUpgradeDelta(plan, higher)) {
-      if (!item.comingSoon) locked.add(item.key);
-    }
+  if (p.analyticsLevel === 'pro' || p.analyticsLevel === 'premium') {
+    keys.push('business.dna.delta.analytics');
   }
-
-  // Explicit locked growth items not in current plan
-  if (!current.campaignBuilder) locked.add('business.dna.locked.campaignBuilder');
-  if (!current.regionalCampaignEligible) locked.add('business.dna.locked.regionalCampaigns');
-  if (current.websitePromotionStatus === 'none') locked.add('business.dna.locked.website');
-  if (current.socialPromotionStatus === 'none') locked.add('business.dna.locked.social');
-  if (!current.futureAiMarketing) locked.add('business.dna.locked.aiMarketing');
-
-  return [...locked];
+  return keys;
 }
 
-/** Coming-soon / ready-future features for current plan. */
-export function listComingSoonFeatureKeys(plan: BusinessPlanId): string[] {
-  const p = getBusinessVisibilityProfile(plan);
-  const keys: string[] = [];
-  if (p.websitePromotionStatus === 'ready') keys.push('business.dna.coming.website');
-  if (p.socialPromotionStatus === 'ready') keys.push('business.dna.coming.social');
-  if (p.futureAiMarketing) keys.push('business.dna.coming.aiMarketing');
-  if (p.campaignBuilder) keys.push('business.dna.coming.campaignBuilder');
-  if (p.regionalCampaignEligible) keys.push('business.dna.coming.regionalCampaigns');
-  if (p.futureMarketplaceCampaigns) keys.push('business.dna.coming.marketplaceCampaigns');
-  if (p.futureBusinessTools) keys.push('business.dna.coming.businessTools');
-  return keys;
+/** Real differences on the next plan. Future modules are not listed. */
+export function listLockedFeatureKeys(plan: BusinessPlanId): string[] {
+  const next = nextUpgradePlan(plan);
+  if (!next) return [];
+  return computeUpgradeDelta(plan, next).map((item) => item.key);
+}
+
+/** Future modules are not presented as plan benefits. */
+export function listComingSoonFeatureKeys(_plan: BusinessPlanId): string[] {
+  return [];
 }
 
 export function nextUpgradePlan(plan: BusinessPlanId): BusinessPlanId | null {
@@ -330,7 +165,7 @@ export function nextUpgradePlan(plan: BusinessPlanId): BusinessPlanId | null {
 export function growthStatusLabelKey(plan: BusinessPlanId): string {
   const p = getBusinessVisibilityProfile(plan);
   if (p.plan === 'premium') return 'business.dna.growthStatus.max';
-  if (p.verifiedBusiness && p.regionalEligible) return 'business.dna.growthStatus.strong';
+  if (p.plan === 'pro') return 'business.dna.growthStatus.strong';
   if (p.badge) return 'business.dna.growthStatus.growing';
   return 'business.dna.growthStatus.starter';
 }

@@ -62,11 +62,18 @@ assert(
 );
 
 const basicFields = buildLivePreviewFields('basic');
-assert(basicFields.length >= 10, 'live preview fields');
+assert(
+  !basicFields.some((field) => /homepage|regional/i.test(field.labelKey)),
+  'preview omits unwired homepage and regional fields',
+);
 assert(computeVisibilityScore(getBusinessVisibilityProfile('premium')) > computeVisibilityScore(getBusinessVisibilityProfile('individual')), 'premium score > individual');
 
 const delta = computeUpgradeDelta('basic', 'pro');
-assert(delta.some((d) => d.key.includes('regional') || d.key.includes('homepage')), 'basic→pro delta');
+assert(delta.some((d) => d.key.includes('sponsored') || d.key.includes('commission')), 'basic→pro delta');
+assert(
+  !delta.some((d) => d.key.includes('regional') || d.key.includes('homepage')),
+  'delta omits unwired homepage and regional claims',
+);
 assert(computeUpgradeDelta('pro', 'pro').length === 0, 'same plan empty delta');
 assert(listImmediateUpgradeBenefits('basic').length > 0, 'individual→basic benefits');
 
@@ -82,7 +89,7 @@ for (const f of [
 }
 
 console.log('\n12C.4 Sell page live preview');
-const sell = read('app/sell/page.tsx');
+const sell = read('components/sell/SellPageClient.tsx');
 assert(sell.includes('SubscriptionLivePreview'), 'sell live preview');
 assert(sell.includes('BusinessDnaProductPreview'), 'sell product preview');
 assert(sell.includes('SubscriptionWhatChangesPanel'), 'sell what changes');
@@ -99,7 +106,10 @@ assert(tile.trust.businessPlan === 'pro', 'preview tile businessPlan');
 assert(read('components/business/BusinessDnaProductPreview.tsx').includes('MarketplaceTileCompact'), 'real tile component');
 
 console.log('\n12C.7 Comparison + locked features from DNA');
-assert(buildSubscriptionComparisonRows().length >= 10, 'comparison from DNA');
+assert(
+  !buildSubscriptionComparisonRows().some((row) => /homepage|regional/i.test(row.featureKey)),
+  'comparison omits unwired visibility rows',
+);
 assert(listLockedFeatureKeys('individual').length > 0, 'locked features for individual');
 
 console.log('\n12C.8 No duplicate plan tables');

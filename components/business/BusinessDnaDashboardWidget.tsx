@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import {
-  computeVisibilityScore,
   growthStatusLabelKey,
   listComingSoonFeatureKeys,
   listLockedFeatureKeys,
@@ -33,7 +32,6 @@ export default function BusinessDnaDashboardWidget({
 }: Props) {
   const { t } = useTranslation();
   const dna = getBusinessVisibilityProfile(plan);
-  const score = computeVisibilityScore(dna);
   const unlocked = listUnlockedFeatureKeys(plan);
   const locked = listLockedFeatureKeys(plan);
   const comingSoon = listComingSoonFeatureKeys(plan);
@@ -55,14 +53,10 @@ export default function BusinessDnaDashboardWidget({
         {plan !== 'individual' ? <BusinessPlanBadge plan={plan} t={t} size="md" /> : null}
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-xl border border-white/80 bg-white/90 p-3">
           <p className="text-xs text-gray-500">{t('business.dna.widget.currentPlan')}</p>
           <p className="mt-1 font-semibold text-gray-900">{t(`business.dna.plan.${plan}`)}</p>
-        </div>
-        <div className="rounded-xl border border-white/80 bg-white/90 p-3">
-          <p className="text-xs text-gray-500">{t('business.dna.widget.visibilityScore')}</p>
-          <p className="mt-1 font-semibold text-emerald-700">{score}/100</p>
         </div>
         <div className="rounded-xl border border-white/80 bg-white/90 p-3">
           <p className="text-xs text-gray-500">{t('business.dna.widget.commission')}</p>

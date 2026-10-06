@@ -1,16 +1,10 @@
 'use client';
 
+import { publicPlanFacts } from '@/lib/business/plan-presentation';
 import {
-  buildLivePreviewFields,
-  computeVisibilityScore,
-  type DnaPreviewField,
-} from '@/lib/business/dna-preview';
-import {
-  getBusinessVisibilityProfile,
   listBusinessPlanIds,
   type BusinessPlanId,
 } from '@/lib/business/visibility-profile';
-import BusinessPlanBadge from '@/components/business/BusinessPlanBadge';
 import { useTranslation } from '@/hooks/useTranslation';
 
 type Props = {
@@ -19,66 +13,12 @@ type Props = {
   className?: string;
 };
 
-function Dots({ level, max }: { level: number; max: number }) {
-  return (
-    <span className="inline-flex gap-0.5">
-      {Array.from({ length: max }, (_, i) => (
-        <span
-          key={i}
-          className={`h-2 w-2 rounded-full ${i < level ? 'bg-emerald-500' : 'bg-gray-200'}`}
-        />
-      ))}
-    </span>
-  );
-}
-
-function PreviewValue({ field, t, plan }: { field: DnaPreviewField; t: (k: string) => string; plan: BusinessPlanId }) {
-  switch (field.kind) {
-    case 'badge':
-      return plan === 'individual' ? (
-        <span className="text-sm text-gray-500">{t(field.textKey ?? '')}</span>
-      ) : (
-        <BusinessPlanBadge plan={plan} t={t} size="sm" />
-      );
-    case 'dots':
-      return <Dots level={field.dots ?? 0} max={field.maxDots ?? 4} />;
-    case 'label':
-      return (
-        <span className="text-sm font-medium text-gray-900">
-          {field.textKey ? t(field.textKey) : '—'}
-        </span>
-      );
-    case 'status':
-      return (
-        <span className="text-sm font-medium text-gray-800">
-          {t(`business.dna.status.${field.status ?? 'none'}`)}
-        </span>
-      );
-    case 'score':
-      return (
-        <span className="text-sm font-semibold text-emerald-700">
-          {field.score}/100
-        </span>
-      );
-    case 'locations':
-      return (
-        <span className="text-sm font-medium text-gray-900">
-          {(field.locations ?? 1) >= 99
-            ? t('business.dna.compare.locationsUnlimited')
-            : String(field.locations ?? 1)}
-        </span>
-      );
-    default:
-      return null;
-  }
-}
-
 export default function SubscriptionLivePreview({ plan, onPlanChange, className = '' }: Props) {
-  const { t } = useTranslation();
-  const dna = getBusinessVisibilityProfile(plan);
-  const fields = buildLivePreviewFields(plan);
-  const score = computeVisibilityScore(dna);
+  const { t, language } = useTranslation();
+  const facts = publicPlanFacts(language === 'en' ? 'en' : 'nl');
+  const fact = facts.find((row) => row.id === plan) ?? facts[0];
   const plans = listBusinessPlanIds();
+  const feeLabel = language === 'en' ? 'Platform fee' : 'Platformfee';
 
   return (
     <section
@@ -106,31 +46,14 @@ export default function SubscriptionLivePreview({ plan, onPlanChange, className 
         ))}
       </div>
 
-      <div className="mt-4 rounded-xl bg-gray-50 p-4">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <span className="text-sm font-medium text-gray-700">
-            {t('business.dna.preview.visibilityScore')}
-          </span>
-          <span className="text-lg font-bold text-emerald-700">{score}/100</span>
-        </div>
-        <div className="h-2 overflow-hidden rounded-full bg-gray-200">
-          <div
-            className="h-full rounded-full bg-emerald-500 transition-all duration-300"
-            style={{ width: `${score}%` }}
-          />
-        </div>
+      <div className="mt-4 rounded-xl bg-gray-50 p-4 text-sm text-gray-800">
+        <p className="font-semibold text-gray-900">{fact.name}</p>
+        <p className="mt-1">{fact.priceLabel}</p>
+        <p className="mt-1">
+          {feeLabel}: {fact.commissionPercent}%
+        </p>
+        <p className="mt-2">{fact.sponsored}</p>
       </div>
-
-      <dl className="mt-4 space-y-2.5">
-        {fields.map((field) => (
-          <div key={field.labelKey} className="flex items-center justify-between gap-3 text-sm">
-            <dt className="text-gray-600">{t(field.labelKey)}</dt>
-            <dd className="text-right">
-              <PreviewValue field={field} t={t} plan={plan} />
-            </dd>
-          </div>
-        ))}
-      </dl>
     </section>
   );
 }

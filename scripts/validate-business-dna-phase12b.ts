@@ -166,7 +166,7 @@ assert(dnaBoost <= BUSINESS_VISIBILITY_RANK_CAP, 'ranking boost within cap');
 console.log('\n12B.5 Growth-focused subscription UI');
 assert(exists('components/business/SubscriptionComparisonTable.tsx'), 'comparison table');
 assert(exists('components/business/SubscriptionPlanCards.tsx'), 'plan cards');
-const sell = read('app/sell/page.tsx');
+const sell = read('components/sell/SellPageClient.tsx');
 assert(sell.includes('SubscriptionComparisonTable'), 'sell: comparison table');
 assert(sell.includes('SubscriptionPlanCards'), 'sell: plan cards');
 assert(sell.includes('getBusinessVisibilityProfile'), 'sell: reads DNA SSOT');
@@ -174,7 +174,12 @@ assert(sell.includes('business.dna.growthTitle'), 'sell: growth headline i18n');
 assert(!sell.includes('lagere platformfee'), 'sell: no fee-first Dutch copy');
 
 const rows = buildSubscriptionComparisonRows();
-assert(rows.length >= 10, 'comparison has feature rows');
+assert(rows.some((row) => row.featureKey.includes('commission')), 'commission row');
+assert(rows.some((row) => row.featureKey.includes('sponsored')), 'sponsored row');
+assert(
+  !rows.some((row) => /homepage|regional/i.test(row.featureKey)),
+  'comparison omits unwired homepage and regional rows',
+);
 assert(rows[0].featureKey.includes('commission'), 'commission is a row not headline');
 
 // --- 12B.6 No scattered hardcoded plan checks ---------------------------------
