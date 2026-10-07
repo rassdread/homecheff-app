@@ -331,7 +331,7 @@ export function NativeGoogleSignInButton({
         /* ignore */
       }
       try {
-        trackMetaCompleteRegistration({
+        await trackMetaCompleteRegistration({
           surface: 'register',
           accountCreated: true,
         });

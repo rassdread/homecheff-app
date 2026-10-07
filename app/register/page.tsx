@@ -967,7 +967,7 @@ function RegisterPageContent() {
           hasDelivery: false,
           isBusiness: false,
         });
-        trackMetaCompleteRegistration({
+        await trackMetaCompleteRegistration({
           surface: 'register',
           accountCreated: data?.ok === true && Boolean(data?.user?.id),
           userId: typeof data?.user?.id === 'string' ? data.user.id : null,

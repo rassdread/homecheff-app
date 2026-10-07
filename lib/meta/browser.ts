@@ -168,10 +168,47 @@ export function initMetaPixel(pixelId: string): void {
   const script = document.createElement('script');
   script.async = true;
   script.src = SCRIPT_SRC;
-  script.onerror = () => {
+  script.addEventListener('load', () => {
+    script.dataset.hcMetaLoaded = '1';
+  });
+  script.addEventListener('error', () => {
     scriptFailed = true;
-  };
+    script.dataset.hcMetaLoaded = 'error';
+  });
   document.head.appendChild(script);
+}
+
+const META_PIXEL_SEND_WINDOW_MS = 1200;
+const META_PIXEL_SEND_CAP_MS = 3000;
+
+/**
+ * Full-page redirects after signup were unloading the document while fbevents
+ * was still loading, so the CompleteRegistration beacon never left the browser.
+ * No-op when this page did not start the pixel.
+ */
+export function waitForMetaPixelDelivery(timeoutMs = META_PIXEL_SEND_CAP_MS): Promise<void> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return Promise.resolve();
+  const script = document.querySelector(`script[src="${SCRIPT_SRC}"]`) as HTMLScriptElement | null;
+  if (!script) return Promise.resolve();
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    const afterLoad = () => window.setTimeout(finish, META_PIXEL_SEND_WINDOW_MS);
+    if (script.dataset.hcMetaLoaded === 'error') {
+      finish();
+      return;
+    }
+    if (script.dataset.hcMetaLoaded === '1') afterLoad();
+    else {
+      script.addEventListener('load', afterLoad, { once: true });
+      script.addEventListener('error', () => finish(), { once: true });
+    }
+    window.setTimeout(finish, timeoutMs);
+  });
 }
 
 function clearMetaBrowserCookies(): void {
@@ -348,19 +385,20 @@ export function trackMetaCompleteRegistration(input: {
   surface: 'register' | 'login';
   accountCreated: boolean;
   userId?: string | null;
-}): void {
+}): Promise<void> {
   if (
     !shouldFireCompleteRegistration({
       accountCreated: input.accountCreated,
       surface: input.surface,
     })
   ) {
-    return;
+    return Promise.resolve();
   }
   const userId = (input.userId ?? '').trim();
   const dedupeKey = metaLocalDedupeKey('registration', userId || input.surface);
-  if (!dedupeKey) return;
+  if (!dedupeKey) return Promise.resolve();
   trackMetaEvent('CompleteRegistration', dedupeKey, userId ? [userId] : []);
+  return waitForMetaPixelDelivery();
 }
 
 export function trackMetaPurchase(input: {

@@ -239,7 +239,7 @@ describe('Meta Pixel', () => {
     assert.match(login, /trackLogin\('email'\)/);
 
     const register = read('app/register/page.tsx');
-    assert.match(register, /trackMetaCompleteRegistration/);
+    assert.match(register, /await trackMetaCompleteRegistration/);
     assert.match(register, /surface: 'register'/);
 
     const native = read('components/auth/NativeGoogleSignInButton.tsx');
@@ -253,7 +253,7 @@ describe('Meta Pixel', () => {
       loginBranch.slice(0, loginBranch.indexOf('payload.accountCreated === true')).includes('trackRegistration'),
       false,
     );
-    assert.match(registerSlice, /trackMetaCompleteRegistration/);
+    assert.match(registerSlice, /await trackMetaCompleteRegistration/);
     assert.match(registerSlice, /trackRegistration/);
     assert.equal(native.includes('registrationEventId'), false);
 
