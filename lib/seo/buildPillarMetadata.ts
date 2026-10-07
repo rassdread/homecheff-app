@@ -16,14 +16,45 @@ async function resolveLang(): Promise<'nl' | 'en'> {
   return 'nl';
 }
 
-export async function buildPillarLandingMetadata(path: string): Promise<Metadata> {
+export type PillarLandingMetadataOptions = {
+  /** When set, this route does not follow the language cookie. */
+  lang?: 'nl' | 'en';
+  /** Public path used as the canonical URL. Defaults to `path`. */
+  canonicalPath?: string;
+  /** Dedicated English path. Pairs hreflang with the Dutch `path`. */
+  alternateEnPath?: string;
+};
+
+export function pillarRouteAlternates(
+  path: string,
+  options?: Pick<PillarLandingMetadataOptions, 'canonicalPath' | 'alternateEnPath'>,
+): { canonical: string; languages: Record<string, string> } {
+  const canonicalPath = options?.canonicalPath ?? path;
+  const canonical = `${MAIN_DOMAIN}${canonicalPath}`;
+  if (!options?.alternateEnPath) {
+    return { canonical, languages: seoHreflangLanguagesOnEu(canonicalPath) };
+  }
+  return {
+    canonical,
+    languages: {
+      'nl-NL': `${MAIN_DOMAIN}${path}`,
+      'en-US': `${MAIN_DOMAIN}${options.alternateEnPath}`,
+      'x-default': `${MAIN_DOMAIN}/`,
+    },
+  };
+}
+
+export async function buildPillarLandingMetadata(
+  path: string,
+  options?: PillarLandingMetadataOptions,
+): Promise<Metadata> {
   const pillar = getPillarByPath(path);
   if (!pillar) {
     return { title: 'HomeCheff', robots: { index: false } };
   }
-  const lang = await resolveLang();
+  const lang = options?.lang ?? (await resolveLang());
   const { title, description } = getPillarSeoMeta(pillar.namespace, lang);
-  const canonical = `${MAIN_DOMAIN}${path}`;
+  const { canonical, languages } = pillarRouteAlternates(path, options);
 
   return {
     title,
@@ -34,10 +65,11 @@ export async function buildPillarLandingMetadata(path: string): Promise<Metadata
       type: 'article',
       url: canonical,
       siteName: 'HomeCheff',
+      locale: lang === 'en' ? 'en_US' : 'nl_NL',
     },
     alternates: {
       canonical,
-      languages: seoHreflangLanguagesOnEu(path),
+      languages,
     },
     robots: { index: true, follow: true },
   };

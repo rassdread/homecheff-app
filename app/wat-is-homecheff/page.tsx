@@ -4,9 +4,12 @@ import { buildPillarLandingMetadata } from '@/lib/seo/buildPillarMetadata';
 const PATH = '/wat-is-homecheff';
 
 export async function generateMetadata() {
-  return buildPillarLandingMetadata(PATH);
+  return buildPillarLandingMetadata(PATH, {
+    lang: 'nl',
+    alternateEnPath: '/en/what-is-homecheff',
+  });
 }
 
 export default function WatIsHomecheffPage() {
-  return <PillarLandingPage path={PATH} />;
+  return <PillarLandingPage path={PATH} contentLanguage="nl" />;
 }

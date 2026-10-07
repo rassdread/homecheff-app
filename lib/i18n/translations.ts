@@ -27,6 +27,33 @@ function pickLang(lang: string): LangCode {
   return lang === "en" ? "en" : "nl";
 }
 
+const PROGRAMMATIC_COPY_MAPS: Array<Record<string, Record<string, Bi>>> = [
+  PROGRAMMATIC_PAGE_SOURCES,
+  PILLAR_PAGE_SOURCES,
+  COMPARISON_PAGE_SOURCES,
+  ECOSYSTEM_MAP_SOURCES,
+  MANIFEST_PAGE_SOURCES,
+  OPEN_KNOWLEDGE_SOURCES,
+  LIVING_PLATFORM_SOURCES,
+  OPERATING_SYSTEM_PAGE_SOURCES,
+  FOOD_CATEGORY_CONTEXT_SOURCES,
+  FOUNDER_ORIGIN_PAGE_SOURCES,
+];
+
+/** Route-locked copy. Does not read the visitor language cookie. */
+export function lookupProgrammaticString(
+  namespace: string,
+  key: string,
+  lang: string,
+): string | null {
+  const L = pickLang(lang);
+  for (const map of PROGRAMMATIC_COPY_MAPS) {
+    const entry = map[namespace]?.[key];
+    if (entry && typeof entry[L] === "string") return entry[L];
+  }
+  return null;
+}
+
 function flattenBiSource(
   src: Record<string, Bi>,
   lang: string

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import SeoLandingTemplate from '@/components/seo/SeoLandingTemplate';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
@@ -10,14 +11,33 @@ import { buildSellerHowToJsonLd } from '@/lib/seo/schema-builders';
 import { MAIN_DOMAIN } from '@/lib/seo/constants';
 import JsonLdScript from '@/components/seo/JsonLdScript';
 
-export default function PillarLandingPage({ path }: { path: string }) {
+export default function PillarLandingPage({
+  path,
+  contentLanguage,
+  pagePath,
+}: {
+  path: string;
+  /** Locks this page’s copy. Other routes keep the visitor language. */
+  contentLanguage?: 'nl' | 'en';
+  pagePath?: string;
+}) {
   const pillar = getPillarByPath(path);
   const { language } = useTranslation();
+
+  useEffect(() => {
+    if (!contentLanguage) return;
+    const root = document.documentElement;
+    const previous = root.lang;
+    root.lang = contentLanguage;
+    return () => {
+      root.lang = previous;
+    };
+  }, [contentLanguage]);
 
   if (!pillar) return null;
 
   const blocks = PILLAR_LANDING_BLOCKS[pillar.namespace];
-  const lang = language === 'en' ? 'en' : 'nl';
+  const lang = contentLanguage ?? (language === 'en' ? 'en' : 'nl');
   const howToLd = pillar.howToSchema
     ? buildSellerHowToJsonLd(MAIN_DOMAIN, lang)
     : null;
@@ -30,7 +50,12 @@ export default function PillarLandingPage({ path }: { path: string }) {
           data={howToLd}
         />
       ) : null}
-      <SeoLandingTemplate ns={pillar.namespace} blocks={blocks} pagePath={path} />
+      <SeoLandingTemplate
+        ns={pillar.namespace}
+        blocks={blocks}
+        pagePath={pagePath ?? path}
+        contentLanguage={contentLanguage}
+      />
     </>
   );
 }

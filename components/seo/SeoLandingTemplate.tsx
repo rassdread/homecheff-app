@@ -4,6 +4,7 @@ import Link from 'next/link';
 import JsonLdScript from '@/components/seo/JsonLdScript';
 import { useMemo } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { lookupProgrammaticString } from '@/lib/i18n/translations';
 import { commercialCtaForNamespace } from '@/lib/seo/commercial-cta';
 
 export type SeoLandingLink = { href: string; labelKey: string };
@@ -61,6 +62,8 @@ type Props = {
   /** Breadcrumb + WebPage schema */
   pagePath?: string;
   breadcrumbItems?: Array<{ nameKey: string; path: string; ns?: string }>;
+  /** When set, copy comes from the route, not the visitor language cookie. */
+  contentLanguage?: 'nl' | 'en';
 };
 
 function applyInterpolation(
@@ -82,12 +85,28 @@ export default function SeoLandingTemplate({
   foodContextVariant,
   pagePath,
   breadcrumbItems,
+  contentLanguage,
 }: Props) {
   const { t, language } = useTranslation();
+  const pageLang = contentLanguage ?? (language === 'en' ? 'en' : 'nl');
+  const tPage = (fullKey: string) => {
+    if (contentLanguage) {
+      const dot = fullKey.indexOf('.');
+      if (dot > 0) {
+        const hit = lookupProgrammaticString(
+          fullKey.slice(0, dot),
+          fullKey.slice(dot + 1),
+          contentLanguage,
+        );
+        if (hit != null) return hit;
+      }
+    }
+    return t(fullKey);
+  };
   const tk = (key: string) =>
-    applyInterpolation(t(`${ns}.${key}`), interpolation);
+    applyInterpolation(tPage(`${ns}.${key}`), interpolation);
   const sk = (sharedNs: string, key: string) =>
-    applyInterpolation(t(`${sharedNs}.${key}`), interpolation);
+    applyInterpolation(tPage(`${sharedNs}.${key}`), interpolation);
 
   const faqLdPayload = useMemo(() => {
     const rows: { faqNs: string; qKey: string; aKey: string }[] = [];
@@ -105,7 +124,7 @@ export default function SeoLandingTemplate({
   const faqLdJson = useMemo(() => {
     if (faqLdPayload.length === 0) return null;
     const resolve = (faqNs: string, key: string) =>
-      applyInterpolation(t(`${faqNs}.${key}`), interpolation);
+      applyInterpolation(tPage(`${faqNs}.${key}`), interpolation);
     return JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
@@ -118,11 +137,11 @@ export default function SeoLandingTemplate({
         },
       })),
     });
-  }, [faqLdPayload, interpolation, t]);
+  }, [faqLdPayload, interpolation, tPage]);
 
   const webPageLdJson = useMemo(() => {
     if (!pagePath) return null;
-    const lang = language === 'en' ? 'en' : 'nl';
+    const lang = pageLang;
     const domain =
       typeof document !== 'undefined'
         ? document.documentElement.getAttribute('data-domain') || 'https://homecheff.eu'
@@ -138,7 +157,7 @@ export default function SeoLandingTemplate({
       publisher: { '@id': `${domain}/#organization` },
       dateModified: '2026-07-11',
     });
-  }, [language, pagePath, t, ns, interpolation]);
+  }, [pageLang, pagePath, tPage, ns, interpolation]);
 
   const breadcrumbLdJson = useMemo(() => {
     if (!pagePath || !breadcrumbItems?.length) return null;
@@ -247,7 +266,7 @@ export default function SeoLandingTemplate({
           if (b.type === 'linkRow') {
             const lk = (key: string) =>
               applyInterpolation(
-                t(`${b.labelNs ?? ns}.${key}`),
+                tPage(`${b.labelNs ?? ns}.${key}`),
                 interpolation,
               );
             return (
@@ -291,7 +310,7 @@ export default function SeoLandingTemplate({
           if (b.type === 'faq') {
             const faqNs = b.faqNs ?? ns;
             const fq = (key: string) =>
-              applyInterpolation(t(`${faqNs}.${key}`), interpolation);
+              applyInterpolation(tPage(`${faqNs}.${key}`), interpolation);
             return (
               <section key={i} className="mt-14 border-t border-gray-200 pt-12">
                 <h2 className="text-2xl font-semibold text-gray-900">
@@ -383,7 +402,7 @@ export default function SeoLandingTemplate({
           if (b.type === 'cta') {
             const cta = commercialCtaForNamespace(
               ns,
-              language === 'en' ? 'en' : 'nl',
+              pageLang,
               interpolation,
             );
             return (
