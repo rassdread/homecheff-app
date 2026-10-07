@@ -997,7 +997,6 @@ export default function GardenManager({
                       onChange={(video) => {
                         setFormData(prev => ({ ...prev, video: video || null }));
                       }}
-                      maxDuration={30}
                       uploadContext="dish"
                     />
                   </div>

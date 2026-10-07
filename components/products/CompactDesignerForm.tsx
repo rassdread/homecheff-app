@@ -648,7 +648,6 @@ export default function CompactDesignerForm({
             onChange={(videoData) => {
               setVideo(videoData || null);
             }}
-            maxDuration={30}
             uploadContext="dish"
           />
         </div>

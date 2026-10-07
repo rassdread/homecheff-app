@@ -71,7 +71,6 @@ export function ListingPhotoVideoBlock({
           <VideoUploader
             value={video}
             onChange={onVideoChange}
-            maxDuration={30}
             uploadContext="dish"
             hideHeading
             disabled={disabled}
@@ -97,7 +96,6 @@ export function ListingPhotoVideoBlock({
               onVideoChange(next);
               if (next?.url) setReplaceIntent(false);
             }}
-            maxDuration={30}
             uploadContext="dish"
             hideHeading
             disabled={disabled}

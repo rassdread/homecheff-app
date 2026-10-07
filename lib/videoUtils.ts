@@ -79,7 +79,7 @@ export interface VideoMetadata {
   height?: number;
 }
 
-export const MAX_VIDEO_DURATION = 30; // seconds
+export const MAX_VIDEO_DURATION = 90; // seconds. Public product limit. Worker headroom above this is not advertised.
 export const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 
 /**
@@ -900,7 +900,7 @@ export function isSocialMediaVideo(file: File): boolean {
 }
 
 /**
- * Validate video duration (max 30 seconds)
+ * Validate video duration (max 90 seconds)
  * More lenient for videos where metadata can't be loaded
  * Especially lenient for HEVC videos which often can't be validated in browser
  */

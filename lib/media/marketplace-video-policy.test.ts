@@ -8,11 +8,12 @@ import {
   marketplaceVideoWorkerEnabled,
 } from "./marketplace-video-policy";
 
-test("the public maximum stays at 30 seconds and ignores the browser", () => {
-  assert.equal(MARKETPLACE_PUBLIC_MAX_DURATION_SECONDS, 30);
-  assert.equal(authoritativeMaxDuration(90), 30);
-  assert.equal(authoritativeMaxDuration("120"), 30);
-  assert.equal(authoritativeMaxDuration(undefined), 30);
+test("the public maximum is 90 seconds and ignores the browser", () => {
+  assert.equal(MARKETPLACE_PUBLIC_MAX_DURATION_SECONDS, 90);
+  assert.equal(authoritativeMaxDuration(30), 90);
+  assert.equal(authoritativeMaxDuration(90), 90);
+  assert.equal(authoritativeMaxDuration("120"), 90);
+  assert.equal(authoritativeMaxDuration(undefined), 90);
 });
 
 test("the worker flag is off unless the server explicitly enables it", () => {

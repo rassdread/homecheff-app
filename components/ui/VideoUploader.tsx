@@ -15,7 +15,7 @@ interface VideoUploaderProps {
   onChange?: (video: { url: string; thumbnail?: string | null; duration?: number | null } | null) => void;
   onUploadStart?: () => void;
   onUploadEnd?: () => void;
-  maxDuration?: number; // in seconds, default 30
+  maxDuration?: number; // in seconds, default is the public 90-second limit
   disabled?: boolean;
   className?: string;
   /** 'dish' = alleen MP4/MOV toegestaan (recepten, inspiratie) voorzelfde formaat op alle items */
@@ -508,7 +508,7 @@ export default function VideoUploader({
         } else if (err.message.includes('duur') || err.message.includes('duration')) {
           errorMessage = '⏱️ Video te lang';
           errorDetails.push(err.message);
-          errorDetails.push('Maximum toegestaan: 30 seconden');
+          errorDetails.push(`Maximum toegestaan: ${MAX_VIDEO_DURATION} seconden`);
           errorDetails.push('Oplossing: verkort de video of gebruik een kortere clip');
         } else if (err.message.includes('network') || err.message.includes('fetch') || err.name === 'TypeError') {
           errorMessage = '🌐 Netwerkfout';
@@ -535,7 +535,7 @@ export default function VideoUploader({
             errorDetails.push('');
             errorDetails.push('💡 Tips:');
             errorDetails.push('  • Upload wordt toegestaan zonder duration check');
-            errorDetails.push('  • Zorg dat je video onder 30 seconden is');
+            errorDetails.push(`  • Zorg dat je video onder ${MAX_VIDEO_DURATION} seconden is`);
             errorDetails.push('  • Voor betere compatibiliteit: converteer naar MP4 (H.264)');
           } else {
             errorMessage = '🎬 Video metadata probleem';

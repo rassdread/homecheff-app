@@ -3,7 +3,7 @@ import { MAX_VIDEO_DURATION, MAX_VIDEO_SIZE } from "@/lib/videoUtils";
 export const MARKETPLACE_VIDEO_NAMESPACE = "MARKETPLACE_VIDEO";
 export const MARKETPLACE_VIDEO_PROFILE = "marketplace-h264-v1";
 
-/** Public product policy. The worker is certified up to 90 seconds, but this stays authoritative. */
+/** Public product limit. Browser-supplied values cannot raise it, and 120 seconds is not advertised. */
 export const MARKETPLACE_PUBLIC_MAX_DURATION_SECONDS = MAX_VIDEO_DURATION;
 
 export const MARKETPLACE_SOURCE_MAX_BYTES = MAX_VIDEO_SIZE;

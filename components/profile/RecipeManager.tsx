@@ -1294,7 +1294,6 @@ export default function RecipeManager({
                   onChange={(video) => {
                     setFormData(prev => ({ ...prev, video: video || null }));
                   }}
-                  maxDuration={30}
                   uploadContext="dish"
                 />
               </div>

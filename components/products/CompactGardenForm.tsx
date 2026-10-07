@@ -687,7 +687,6 @@ export default function CompactGardenForm({
             onChange={(videoData) => {
               setVideo(videoData || null);
             }}
-            maxDuration={30}
             uploadContext="dish"
           />
         </div>

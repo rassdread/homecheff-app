@@ -1092,7 +1092,6 @@ export default function MarketplaceOfferForm({
           <VideoUploader
             value={video}
             onChange={setVideo}
-            maxDuration={30}
             uploadContext="dish"
             hideHeading
           />
