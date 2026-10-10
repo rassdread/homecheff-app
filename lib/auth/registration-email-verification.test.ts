@@ -411,6 +411,47 @@ describe('VERIFICATION_RESEND_SEND_FAILURE', () => {
   });
 });
 
+describe('VERIFICATION_RESEND_ROLLBACK_RACE', () => {
+  it('does not put an older code back over a newer one', async () => {
+    const row = user({
+      id: 'a',
+      email: 'a@example.com',
+      emailVerificationCode: '111111',
+      emailVerificationToken: 'old-token',
+    });
+    const deps: ResendVerificationDeps = {
+      findUser: async () => ({ ...row }),
+      updateCredentials: async (_id, data) => {
+        Object.assign(row, data);
+      },
+      restoreCredentials: async (_id, previous, issued) => {
+        if (
+          issued &&
+          (row.emailVerificationToken !== issued.emailVerificationToken ||
+            row.emailVerificationCode !== issued.emailVerificationCode)
+        ) {
+          return false;
+        }
+        Object.assign(row, previous);
+        return true;
+      },
+      send: async () => {
+        row.emailVerificationCode = '222222';
+        row.emailVerificationToken = 'newer-token';
+        throw new EmailSendFailure('down', 'provider_unknown', 'EMAIL_UNAVAILABLE');
+      },
+    };
+    const result = await runResendVerificationCore('a@example.com', { deps });
+    assert.equal(result.status, 'email_service_unavailable');
+    if (result.status === 'email_service_unavailable') assert.equal(result.previousCodeRestored, false);
+    assert.equal(row.emailVerificationCode, '222222');
+    assert.equal(row.emailVerificationToken, 'newer-token');
+    const source = read('lib/auth-resend-verification-core.ts');
+    assert.match(source, /emailVerificationToken: issued\.emailVerificationToken/);
+    assert.match(source, /emailVerificationCode: issued\.emailVerificationCode/);
+  });
+});
+
 describe('VERIFICATION_ACCOUNT_ACTIVATED', () => {
   it('stores a verification timestamp and clears the credentials', async () => {
     const store = memoryStore([user({ id: 'a', email: 'a@example.com' })]);

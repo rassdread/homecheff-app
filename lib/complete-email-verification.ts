@@ -10,6 +10,7 @@ import {
   clearVerificationFailures,
   recordVerificationFailure,
 } from "@/lib/verification-attempt-limit";
+import type { VerificationAttemptHooks } from "@/lib/verification-central-limit";
 
 export type VerifiedUserPayload = {
   id: string;
@@ -128,6 +129,7 @@ export async function completeEmailVerificationAgainstStore(
     ip?: string | null;
     now?: Date;
     onClaimed?: (user: VerificationUserRecord) => Promise<void>;
+    attempts?: VerificationAttemptHooks;
   },
 ): Promise<CompleteEmailVerificationResult> {
   const credential = canonicalizeVerificationCredential(rawCredential);
@@ -136,7 +138,9 @@ export async function completeEmailVerificationAgainstStore(
 
   const email = tryNormalizeEmail(options?.email);
   const attempt = { email, ip: options?.ip ?? null, now: now.getTime() };
-  const gate = assertVerificationAttemptAllowed(attempt);
+  const gate = options?.attempts
+    ? await options.attempts.assert(attempt)
+    : assertVerificationAttemptAllowed(attempt);
   if (!gate.ok) return fail("RATE_LIMITED", 429, gate.retryAfterSec);
 
   if (isSixDigitVerificationCode(credential) && !email) {
@@ -148,12 +152,12 @@ export async function completeEmailVerificationAgainstStore(
     : await store.findByToken(credential);
 
   if (!user || user.accountDeletedAt) {
-    recordVerificationFailure(attempt);
+    await noteFailure(options?.attempts, attempt);
     return fail("INVALID", 400);
   }
 
   if (email && user.email.trim().toLowerCase() !== email) {
-    recordVerificationFailure(attempt);
+    await noteFailure(options?.attempts, attempt);
     return fail("INVALID", 400);
   }
 
@@ -162,7 +166,7 @@ export async function completeEmailVerificationAgainstStore(
   }
 
   if (!credentialMatches(user, credential)) {
-    recordVerificationFailure(attempt);
+    await noteFailure(options?.attempts, attempt);
     return fail("INVALID", 400);
   }
 
@@ -174,7 +178,7 @@ export async function completeEmailVerificationAgainstStore(
   const updated = (await store.reload(user.id)) ?? user;
 
   if (claimed > 0) {
-    clearVerificationFailures(updated.email);
+    await noteClear(options?.attempts, updated.email);
     let welcomeSent = false;
     if (options?.onClaimed) {
       try {
@@ -194,12 +198,34 @@ export async function completeEmailVerificationAgainstStore(
   }
 
   if (updated.emailVerified) {
-    clearVerificationFailures(updated.email);
+    await noteClear(options?.attempts, updated.email);
     return successPayload(updated, "ALREADY_VERIFIED", false);
   }
 
-  recordVerificationFailure(attempt);
+  await noteFailure(options?.attempts, attempt);
   return fail("INVALID", 400);
+}
+
+async function noteFailure(
+  attempts: VerificationAttemptHooks | undefined,
+  attempt: { email?: string | null; ip?: string | null; now?: number },
+): Promise<void> {
+  if (attempts) {
+    await attempts.recordFailure(attempt);
+    return;
+  }
+  recordVerificationFailure(attempt);
+}
+
+async function noteClear(
+  attempts: VerificationAttemptHooks | undefined,
+  email: string,
+): Promise<void> {
+  if (attempts) {
+    await attempts.clear(email);
+    return;
+  }
+  clearVerificationFailures(email);
 }
 
 async function prismaStore(): Promise<VerificationStore> {
@@ -269,9 +295,11 @@ export async function completeEmailVerificationWithToken(
 ): Promise<CompleteEmailVerificationResult> {
   try {
     const { sendWelcomeEmail } = await import("@/lib/email");
+    const { durableVerificationAttempts } = await import("@/lib/verification-central-limit");
     return await completeEmailVerificationAgainstStore(await prismaStore(), token, {
       email: options?.email,
       ip: options?.ip,
+      attempts: durableVerificationAttempts(),
       onClaimed: async (user) => {
         await sendWelcomeEmail({
           email: user.email,

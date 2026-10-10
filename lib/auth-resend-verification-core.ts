@@ -45,7 +45,14 @@ export type ResendVerificationDeps = {
       emailVerificationExpires: Date;
     },
   ) => Promise<void>;
-  restoreCredentials: (id: string, data: ResendCredentialFields) => Promise<boolean>;
+  restoreCredentials: (
+    id: string,
+    data: ResendCredentialFields,
+    issued?: ResendCredentialFields,
+  ) => Promise<boolean>;
+  begin?: (email: string) => Promise<{ ok: true } | { ok: false; retryAfterSec: number }>;
+  end?: (email: string) => Promise<void>;
+  markSent?: (email: string) => Promise<void>;
   send: (input: {
     email: string;
     name: string;
@@ -91,12 +98,48 @@ async function defaultResendDeps(): Promise<ResendVerificationDeps> {
     async updateCredentials(id, data) {
       await prisma.user.update({ where: { id }, data });
     },
-    async restoreCredentials(id, data) {
+    async restoreCredentials(id, data, issued) {
       const restored = await prisma.user.updateMany({
-        where: { id, emailVerified: null },
+        where: {
+          id,
+          emailVerified: null,
+          ...(issued
+            ? {
+                emailVerificationToken: issued.emailVerificationToken,
+                emailVerificationCode: issued.emailVerificationCode,
+              }
+            : {}),
+        },
         data,
       });
       return restored.count > 0;
+    },
+    async begin(email) {
+      try {
+        const { beginDurableResend } = await import('@/lib/verification-central-limit');
+        return await beginDurableResend(email);
+      } catch {
+        console.error('[resend_verification] central limit unavailable');
+        return tryBeginVerificationResend(email);
+      }
+    },
+    async end(email) {
+      try {
+        const { endDurableResend } = await import('@/lib/verification-central-limit');
+        await endDurableResend(email);
+      } catch {
+        console.error('[resend_verification] central limit release unavailable');
+        endVerificationResend(email);
+      }
+    },
+    async markSent(email) {
+      try {
+        const { markDurableResendSent } = await import('@/lib/verification-central-limit');
+        await markDurableResendSent(email);
+      } catch {
+        console.error('[resend_verification] central cooldown unavailable');
+        markResendVerificationSent(email);
+      }
     },
     async send(input) {
       await sendVerificationEmail(input);
@@ -130,7 +173,9 @@ export async function runResendVerificationCore(
     return { status: 'already_verified' };
   }
 
-  const rl = tryBeginVerificationResend(user.email);
+  const rl = deps.begin
+    ? await deps.begin(user.email)
+    : tryBeginVerificationResend(user.email);
   if (!rl.ok) {
     return { status: 'rate_limited', retryAfterSec: rl.retryAfterSec };
   }
@@ -163,13 +208,18 @@ export async function runResendVerificationCore(
       verificationCode,
       locale,
     });
-    markResendVerificationSent(user.email);
+    if (deps.markSent) await deps.markSent(user.email);
+    else markResendVerificationSent(user.email);
     logEmailVerificationDiag('email_verification_resend_success', {});
     return { status: 'sent' };
   } catch (err) {
     let previousCodeRestored = false;
     try {
-      previousCodeRestored = await deps.restoreCredentials(user.id, previous);
+      previousCodeRestored = await deps.restoreCredentials(user.id, previous, {
+        emailVerificationToken: verificationToken,
+        emailVerificationCode: verificationCode,
+        emailVerificationExpires: verificationExpires,
+      });
     } catch (restoreErr) {
       logEmailSendFailure('resend_verification_restore', restoreErr, {
         recipientEmail: user.email,
@@ -205,6 +255,7 @@ export async function runResendVerificationCore(
       previousCodeRestored,
     };
   } finally {
-    endVerificationResend(user.email);
+    if (deps.end) await deps.end(user.email);
+    else endVerificationResend(user.email);
   }
 }
