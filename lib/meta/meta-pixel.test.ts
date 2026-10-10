@@ -276,6 +276,16 @@ describe('Meta Pixel', () => {
     assert.match(metaInit, /\['consent', 'grant'\]/);
     assert.match(metaInit, /\['init', pixelId\]/);
     assert.doesNotMatch(metaBrowser, /fbq\('init', pixelId,/);
+    assert.match(metaBrowser, /disableConfigLoading = true/);
+    assert.match(metaBrowser, /META_PIXEL_SEND_CAP_MS = 10000/);
+    assert.match(
+      register.slice(register.indexOf('await trackMetaCompleteRegistration'), register.indexOf('signIn("credentials"')),
+      /accountCreated: data\?\.ok === true/,
+    );
+    assert.equal(
+      register.slice(register.indexOf('await trackMetaCompleteRegistration'), register.indexOf('signIn("credentials"')).includes('emailVerified'),
+      false,
+    );
   });
 
   it('wires only minimized conversions and does not track browsing or checkout start', () => {

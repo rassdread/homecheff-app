@@ -37,6 +37,11 @@ type Fbq = ((...args: unknown[]) => void) & {
   loaded?: boolean;
   version?: string;
   push?: Fbq;
+  /**
+   * Meta's remote config script locks the command queue. The registration
+   * redirect was leaving the page while that lock still held CompleteRegistration.
+   */
+  disableConfigLoading?: boolean;
 };
 
 declare global {
@@ -123,7 +128,10 @@ export function clearPendingMetaEvents(): void {
 
 function installStub(): Fbq | null {
   if (typeof window === 'undefined') return null;
-  if (typeof window.fbq === 'function') return window.fbq;
+  if (typeof window.fbq === 'function') {
+    window.fbq.disableConfigLoading = true;
+    return window.fbq;
+  }
   const n = function fbq(this: Fbq, ...args: unknown[]) {
     if (typeof n.callMethod === 'function') {
       n.callMethod.apply(n, args);
@@ -135,6 +143,7 @@ function installStub(): Fbq | null {
   n.queue = [];
   n.loaded = true;
   n.version = '2.0';
+  n.disableConfigLoading = true;
   n.push = n;
   window.fbq = n;
   if (!window._fbq) window._fbq = n;
@@ -178,12 +187,14 @@ export function initMetaPixel(pixelId: string): void {
   document.head.appendChild(script);
 }
 
-const META_PIXEL_SEND_WINDOW_MS = 1200;
-const META_PIXEL_SEND_CAP_MS = 3000;
+const META_PIXEL_SEND_WINDOW_MS = 400;
+const META_PIXEL_SEND_CAP_MS = 10000;
 
 /**
  * Full-page redirects after signup were unloading the document while fbevents
  * was still loading, so the CompleteRegistration beacon never left the browser.
+ * The script is about 400KB. A short cap resolved first and the redirect
+ * cancelled it, which left only the script request and no /tr/ event.
  * No-op when this page did not start the pixel.
  */
 export function waitForMetaPixelDelivery(timeoutMs = META_PIXEL_SEND_CAP_MS): Promise<void> {
