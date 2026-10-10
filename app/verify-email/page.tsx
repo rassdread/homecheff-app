@@ -5,6 +5,8 @@ import { CheckCircle, AlertCircle, Mail, ArrowRight, RefreshCw } from "lucide-re
 import Link from "next/link";
 import { useTranslation } from "@/hooks/useTranslation";
 import { sanitizePostAuthRelativeUrl } from "@/lib/auth/post-auth-redirect";
+import VerificationCodeField from "@/components/auth/VerificationCodeField";
+import { verificationUserMessage } from "@/lib/verification-user-messages";
 
 type VerificationState = {
   status: "loading" | "success" | "error" | "expired" | "pending";
@@ -33,10 +35,21 @@ function VerifyEmailContent() {
     mailDown: false,
   });
   const [hasRequestedCode, setHasRequestedCode] = useState(false);
+  const [code, setCode] = useState("");
+  const [resendCooldownSec, setResendCooldownSec] = useState(0);
+  const locale = language === "en" ? "en" : "nl";
 
   const lastResendAtRef = useRef(0);
   const startedTokenRef = useRef<string | null>(null);
   const MAIL_DOWN_COOLDOWN_MS = 45_000;
+
+  useEffect(() => {
+    if (resendCooldownSec <= 0) return;
+    const id = window.setInterval(() => {
+      setResendCooldownSec((seconds) => (seconds <= 1 ? 0 : seconds - 1));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [resendCooldownSec > 0]);
 
   const verifyEmail = useCallback(
     async (verificationToken: string) => {
@@ -48,14 +61,16 @@ function VerifyEmailContent() {
 
       try {
         const response = await fetch(
-          `/api/auth/verify-email-simple?token=${verificationToken}`,
+          `/api/auth/verify-email-simple?token=${encodeURIComponent(verificationToken)}`,
         );
         const data = await response.json();
 
         if (response.ok && data.success) {
           setState({
             status: "success",
-            message: typeof data.message === "string" ? data.message : "",
+            message: t("verifyEmailPage.confirmed", {
+              defaultValue: verificationUserMessage("VERIFIED", locale),
+            }),
             email: data.user?.email || email || "",
             canResend: false,
             isResending: false,
@@ -64,9 +79,25 @@ function VerifyEmailContent() {
             router.push(continueHref);
           }, 3000);
         } else {
+          const failureCode = typeof data.code === "string" ? data.code : "";
+          const expired = failureCode === "EXPIRED";
           setState({
-            status: "error",
-            message: data.error || t("verifyEmailPage.verifyFailed"),
+            status: expired ? "expired" : "error",
+            message: expired
+              ? t("verifyEmailPage.expiredCode", {
+                  defaultValue: verificationUserMessage("EXPIRED", locale),
+                })
+              : failureCode === "RATE_LIMITED"
+                ? t("verifyEmailPage.rateLimited", {
+                    seconds: String(
+                      typeof data.retryAfterSec === "number" ? data.retryAfterSec : 60,
+                    ),
+                  })
+                : response.status >= 500
+                  ? t("verifyEmailPage.verifyError")
+                  : t("verifyEmailPage.invalidCode", {
+                      defaultValue: verificationUserMessage("INVALID", locale),
+                    }),
             email: email || "",
             canResend: true,
             isResending: false,
@@ -83,7 +114,7 @@ function VerifyEmailContent() {
         });
       }
     },
-    [t, router, email, continueHref],
+    [t, router, email, continueHref, locale],
   );
 
   useEffect(() => {
@@ -137,15 +168,22 @@ function VerifyEmailContent() {
         message?: string;
         code?: string;
         retryAfterSec?: number;
+        previousCodeRestored?: boolean;
       };
 
       if (response.ok && data.success) {
         setHasRequestedCode(true);
+        setCode("");
+        setResendCooldownSec(
+          typeof data.retryAfterSec === "number" ? data.retryAfterSec : 60,
+        );
         setState((prev) => ({
           ...prev,
           status: "pending",
-          message: data.message || t("verifyEmailPage.codeSentOk"),
-          canResend: false,
+          message: t("verifyEmailPage.codeSentOk", {
+            defaultValue: verificationUserMessage("RESEND_SENT", locale),
+          }),
+          canResend: true,
           isResending: false,
           mailDown: false,
         }));
@@ -175,9 +213,14 @@ function VerifyEmailContent() {
       if (response.status === 503 || data.code === "EMAIL_UNAVAILABLE") {
         setState((prev) => ({
           ...prev,
-          message: t("verifyEmailPage.mailUnavailable"),
+          message: data.previousCodeRestored
+            ? t("verifyEmailPage.resendKeptPrevious", {
+                defaultValue: verificationUserMessage("RESEND_FAILED_KEPT", locale),
+              })
+            : t("verifyEmailPage.mailUnavailable"),
           isResending: false,
           mailDown: true,
+          canResend: true,
         }));
         return;
       }
@@ -218,6 +261,93 @@ function VerifyEmailContent() {
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState((prev) => ({ ...prev, email: e.target.value }));
+  };
+
+  const submitCode = async () => {
+    if (code.length !== 6) {
+      setState((prev) => ({
+        ...prev,
+        status: "error",
+        message: t("emailVerification.verifyCodeError"),
+        canResend: true,
+      }));
+      return;
+    }
+    const emailAddress = state.email?.trim() || "";
+    if (!emailAddress) {
+      setState((prev) => ({
+        ...prev,
+        message: t("verifyEmailPage.emailRequired"),
+        canResend: true,
+      }));
+      return;
+    }
+
+    setState((prev) => ({
+      ...prev,
+      status: "loading",
+      message: t("verifyEmailPage.verifying"),
+    }));
+
+    try {
+      const response = await fetch("/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: code, email: emailAddress }),
+      });
+      const data = (await response.json().catch(() => ({}))) as {
+        success?: boolean;
+        code?: string;
+        retryAfterSec?: number;
+        user?: { email?: string };
+      };
+      if (response.ok && data.success) {
+        setState({
+          status: "success",
+          message: t("verifyEmailPage.confirmed", {
+            defaultValue: verificationUserMessage("VERIFIED", locale),
+          }),
+          email: data.user?.email || emailAddress,
+          canResend: false,
+          isResending: false,
+        });
+        setTimeout(() => {
+          router.push(continueHref);
+        }, 3000);
+        return;
+      }
+      const failureCode = data.code || "";
+      const seconds = typeof data.retryAfterSec === "number" ? data.retryAfterSec : 60;
+      setState((prev) => ({
+        ...prev,
+        status: failureCode === "EXPIRED" ? "expired" : "error",
+        canResend: true,
+        isResending: false,
+        message:
+          failureCode === "EXPIRED"
+            ? t("verifyEmailPage.expiredCode", {
+                defaultValue: verificationUserMessage("EXPIRED", locale),
+              })
+            : failureCode === "RATE_LIMITED"
+              ? t("emailVerification.verifyRateLimited", {
+                  seconds: String(seconds),
+                  defaultValue: verificationUserMessage("RATE_LIMITED", locale, { seconds }),
+                })
+              : response.status >= 500
+                ? t("verifyEmailPage.verifyError")
+                : t("verifyEmailPage.invalidCode", {
+                    defaultValue: verificationUserMessage("INVALID", locale),
+                  }),
+      }));
+    } catch {
+      setState((prev) => ({
+        ...prev,
+        status: "error",
+        canResend: true,
+        isResending: false,
+        message: t("verifyEmailPage.verifyError"),
+      }));
+    }
   };
 
   const title =
@@ -281,18 +411,44 @@ function VerifyEmailContent() {
             </div>
           )}
 
-          {state.canResend && (
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t("verifyEmailPage.emailLabel")}
-              </label>
-              <input
-                type="email"
-                value={state.email}
-                onChange={handleEmailChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder={t("verifyEmailPage.emailPlaceholder")}
+          {state.status !== "success" && state.status !== "loading" && (
+            <div className="mb-6 space-y-4">
+              <div>
+                <label htmlFor="verify-email-address" className="block text-sm font-medium text-gray-700 mb-2">
+                  {t("verifyEmailPage.emailLabel")}
+                </label>
+                <input
+                  id="verify-email-address"
+                  type="email"
+                  autoComplete="email"
+                  value={state.email}
+                  onChange={handleEmailChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  placeholder={t("verifyEmailPage.emailPlaceholder")}
+                />
+              </div>
+              <VerificationCodeField
+                id="verify-email-code"
+                value={code}
+                onChange={setCode}
+                disabled={state.isResending}
+                invalid={state.status === "error" || state.status === "expired"}
+                label={t("emailVerification.codeLabel")}
+                hint={t("emailVerification.codeHint", {
+                  defaultValue:
+                    locale === "en"
+                      ? "The code has 6 digits and is valid for 24 hours."
+                      : "De code bestaat uit 6 cijfers en is 24 uur geldig.",
+                })}
               />
+              <button
+                type="button"
+                onClick={() => void submitCode()}
+                disabled={code.length !== 6 || state.isResending}
+                className="w-full px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                {t("emailVerification.verify")}
+              </button>
             </div>
           )}
 
@@ -326,7 +482,7 @@ function VerifyEmailContent() {
                 <button
                   type="button"
                   onClick={resendVerification}
-                  disabled={state.isResending || !state.email}
+                  disabled={state.isResending || !state.email || resendCooldownSec > 0}
                   className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                 >
                   {state.isResending ? (
@@ -334,6 +490,13 @@ function VerifyEmailContent() {
                       <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                       {t("emailVerification.resending")}
                     </>
+                  ) : resendCooldownSec > 0 ? (
+                    t("emailVerification.resendCooldownButton", {
+                      seconds: String(resendCooldownSec),
+                      defaultValue: verificationUserMessage("RESEND_COOLDOWN", locale, {
+                        seconds: resendCooldownSec,
+                      }),
+                    })
                   ) : (
                     <>
                       <Mail className="w-4 h-4 mr-2" />
@@ -364,7 +527,7 @@ function VerifyEmailContent() {
                 <button
                   type="button"
                   onClick={resendVerification}
-                  disabled={state.isResending || !state.email}
+                  disabled={state.isResending || !state.email || resendCooldownSec > 0}
                   className="w-full flex items-center justify-center px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                 >
                   {state.isResending ? (
@@ -372,6 +535,13 @@ function VerifyEmailContent() {
                       <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                       {t("emailVerification.resending")}
                     </>
+                  ) : resendCooldownSec > 0 ? (
+                    t("emailVerification.resendCooldownButton", {
+                      seconds: String(resendCooldownSec),
+                      defaultValue: verificationUserMessage("RESEND_COOLDOWN", locale, {
+                        seconds: resendCooldownSec,
+                      }),
+                    })
                   ) : (
                     <>
                       <Mail className="w-4 h-4 mr-2" />

@@ -1,5 +1,3 @@
-import { prisma } from '@/lib/prisma';
-import { sendVerificationEmail } from '@/lib/email';
 import { logEmailSendFailure, summarizeEmailError } from '@/lib/email-log';
 import { logEmailVerificationDiag } from '@/lib/email-verification-diagnostics';
 import { EmailSendFailure } from '@/lib/email-send-failure';
@@ -9,8 +7,9 @@ import {
   getVerificationExpires,
 } from '@/lib/verification';
 import {
-  assertCanResendVerification,
+  endVerificationResend,
   markResendVerificationSent,
+  tryBeginVerificationResend,
 } from '@/lib/verification-resend-rate-limit';
 
 export type ResendVerificationCoreResult =
@@ -18,9 +17,43 @@ export type ResendVerificationCoreResult =
   | { status: 'generic_ok' }
   | { status: 'already_verified' }
   | { status: 'rate_limited'; retryAfterSec: number }
-  | { status: 'email_service_unavailable'; reason: string }
-  | { status: 'email_not_configured'; reason: string }
+  | { status: 'email_service_unavailable'; reason: string; previousCodeRestored: boolean }
+  | { status: 'email_not_configured'; reason: string; previousCodeRestored: boolean }
   | { status: 'invalid_email' };
+
+type ResendCredentialFields = {
+  emailVerificationToken: string | null;
+  emailVerificationCode: string | null;
+  emailVerificationExpires: Date | null;
+};
+
+type ResendUser = ResendCredentialFields & {
+  id: string;
+  email: string;
+  name: string | null;
+  username: string | null;
+  emailVerified: Date | null;
+};
+
+export type ResendVerificationDeps = {
+  findUser: (email: string) => Promise<ResendUser | null>;
+  updateCredentials: (
+    id: string,
+    data: {
+      emailVerificationToken: string;
+      emailVerificationCode: string;
+      emailVerificationExpires: Date;
+    },
+  ) => Promise<void>;
+  restoreCredentials: (id: string, data: ResendCredentialFields) => Promise<boolean>;
+  send: (input: {
+    email: string;
+    name: string;
+    verificationToken: string;
+    verificationCode: string;
+    locale: 'nl' | 'en';
+  }) => Promise<void>;
+};
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -36,9 +69,44 @@ function isMissingResendKey(err: unknown): boolean {
  * Regenerates verification token + code, emails user. No code is returned to callers.
  * Unknown email → generic_ok (avoid enumeration). Rate limit applies only for known unverified users.
  */
+async function defaultResendDeps(): Promise<ResendVerificationDeps> {
+  const { prisma } = await import('@/lib/prisma');
+  const { sendVerificationEmail } = await import('@/lib/email');
+  return {
+    async findUser(email) {
+      return prisma.user.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' } },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          username: true,
+          emailVerified: true,
+          emailVerificationToken: true,
+          emailVerificationCode: true,
+          emailVerificationExpires: true,
+        },
+      });
+    },
+    async updateCredentials(id, data) {
+      await prisma.user.update({ where: { id }, data });
+    },
+    async restoreCredentials(id, data) {
+      const restored = await prisma.user.updateMany({
+        where: { id, emailVerified: null },
+        data,
+      });
+      return restored.count > 0;
+    },
+    async send(input) {
+      await sendVerificationEmail(input);
+    },
+  };
+}
+
 export async function runResendVerificationCore(
   rawEmail: unknown,
-  options?: { locale?: 'nl' | 'en' },
+  options?: { locale?: 'nl' | 'en'; deps?: ResendVerificationDeps },
 ): Promise<ResendVerificationCoreResult> {
   const email =
     typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : '';
@@ -51,16 +119,8 @@ export async function runResendVerificationCore(
     return { status: 'invalid_email' };
   }
 
-  const user = await prisma.user.findFirst({
-    where: { email: { equals: email, mode: 'insensitive' } },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      username: true,
-      emailVerified: true,
-    },
-  });
+  const deps = options?.deps ?? (await defaultResendDeps());
+  const user = await deps.findUser(email);
 
   if (!user) {
     return { status: 'generic_ok' };
@@ -70,31 +130,33 @@ export async function runResendVerificationCore(
     return { status: 'already_verified' };
   }
 
-  const rl = assertCanResendVerification(user.email);
+  const rl = tryBeginVerificationResend(user.email);
   if (!rl.ok) {
     return { status: 'rate_limited', retryAfterSec: rl.retryAfterSec };
   }
 
+  const previous: ResendCredentialFields = {
+    emailVerificationToken: user.emailVerificationToken,
+    emailVerificationCode: user.emailVerificationCode,
+    emailVerificationExpires: user.emailVerificationExpires,
+  };
   const verificationToken = generateVerificationToken();
   const verificationCode = generateVerificationCode();
   const verificationExpires = getVerificationExpires();
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
+  try {
+    await deps.updateCredentials(user.id, {
       emailVerificationToken: verificationToken,
       emailVerificationCode: verificationCode,
       emailVerificationExpires: verificationExpires,
-    },
-  });
+    });
 
-  try {
     const locale = options?.locale === 'en' ? 'en' : 'nl';
     const displayName =
       locale === 'en'
         ? user.name || user.username || 'User'
         : user.name || user.username || 'Gebruiker';
-    await sendVerificationEmail({
+    await deps.send({
       email: user.email,
       name: displayName,
       verificationToken,
@@ -105,6 +167,14 @@ export async function runResendVerificationCore(
     logEmailVerificationDiag('email_verification_resend_success', {});
     return { status: 'sent' };
   } catch (err) {
+    let previousCodeRestored = false;
+    try {
+      previousCodeRestored = await deps.restoreCredentials(user.id, previous);
+    } catch (restoreErr) {
+      logEmailSendFailure('resend_verification_restore', restoreErr, {
+        recipientEmail: user.email,
+      });
+    }
     if (!(err instanceof EmailSendFailure)) {
       logEmailSendFailure('resend_verification', err, {
         recipientEmail: user.email,
@@ -119,9 +189,9 @@ export async function runResendVerificationCore(
         if (err.category === 'config_missing_api_key') {
           console.error('[resend_verification] email provider not configured');
         }
-        return { status: 'email_not_configured', reason: err.category };
+        return { status: 'email_not_configured', reason: err.category, previousCodeRestored };
       }
-      return { status: 'email_service_unavailable', reason: err.category };
+      return { status: 'email_service_unavailable', reason: err.category, previousCodeRestored };
     }
     logEmailVerificationDiag('email_verification_resend_failed', {
       reason: summarizeEmailError(err, 120),
@@ -129,6 +199,12 @@ export async function runResendVerificationCore(
     if (isMissingResendKey(err)) {
       console.error('[resend_verification] email provider not configured');
     }
-    return { status: 'email_service_unavailable', reason: 'provider_unknown' };
+    return {
+      status: 'email_service_unavailable',
+      reason: 'provider_unknown',
+      previousCodeRestored,
+    };
+  } finally {
+    endVerificationResend(user.email);
   }
 }

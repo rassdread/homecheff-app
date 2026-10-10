@@ -1,6 +1,7 @@
-export type VerificationEmailLocale = "nl" | "en";
-
 import { canonicalLogoUrl } from '@/lib/brand/canonical-logo';
+import { VERIFICATION_CODE_TTL_HOURS } from "@/lib/verification";
+
+export type VerificationEmailLocale = "nl" | "en";
 
 const LOGO_URL = canonicalLogoUrl('notification');
 
@@ -43,7 +44,7 @@ export function buildVerificationPlainText(params: {
       "Use the verification code below to confirm your account.",
       "",
       ...(verificationCode ? [`Your verification code: ${verificationCode}`, ""] : []),
-      "This code expires automatically after a short time.",
+      `This code is valid for ${VERIFICATION_CODE_TTL_HOURS} hours.`,
       "",
       `You can also confirm using this link: ${verificationUrl}`,
       "",
@@ -60,7 +61,7 @@ export function buildVerificationPlainText(params: {
     "Gebruik onderstaande verificatiecode om je account te bevestigen.",
     "",
     ...(verificationCode ? [`Je verificatiecode: ${verificationCode}`, ""] : []),
-    "Deze code verloopt automatisch na enkele minuten.",
+    `Deze code is ${VERIFICATION_CODE_TTL_HOURS} uur geldig.`,
     "",
     `Je kunt je adres ook bevestigen via deze link: ${verificationUrl}`,
     "",
@@ -98,8 +99,8 @@ export function buildVerificationHtml(params: {
     locale === "en" ? "Your verification code" : "Je verificatiecode";
   const expiryNote =
     locale === "en"
-      ? "This code expires automatically after a short time."
-      : "Deze code verloopt automatisch na enkele minuten.";
+      ? `This code is valid for ${VERIFICATION_CODE_TTL_HOURS} hours.`
+      : `Deze code is ${VERIFICATION_CODE_TTL_HOURS} uur geldig.`;
   const ctaLabel =
     locale === "en" ? "Confirm in browser" : "Bevestig in browser";
   const ignoreNote =

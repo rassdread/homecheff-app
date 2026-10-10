@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { X, Mail, RefreshCw, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import VerificationCodeField from '@/components/auth/VerificationCodeField';
+import { verificationUserMessage } from '@/lib/verification-user-messages';
 
 export type EmailVerificationModalMode = 'soft' | 'required';
 export type EmailVerificationRequiredReason = 'message' | 'create' | 'checkout' | 'generic';
@@ -47,6 +49,9 @@ export default function EmailVerificationModal({
   const [resendSuccess, setResendSuccess] = useState(false);
   const [providerDown, setProviderDown] = useState(false);
   const [hasRequestedCode, setHasRequestedCode] = useState(false);
+  const [resendCooldownSec, setResendCooldownSec] = useState(0);
+  const lastAutoCodeRef = useRef('');
+  const locale = language === 'en' ? 'en' : 'nl';
 
   const canSendResendNow = useCallback(() => {
     if (!providerDown) return true;
@@ -98,7 +103,17 @@ export default function EmailVerificationModal({
       Boolean(providerUnavailable) || (isRequired && initialSendOk === false),
     );
     setHasRequestedCode(false);
+    setResendCooldownSec(0);
+    lastAutoCodeRef.current = '';
   }, [isOpen, isRequired, providerUnavailable, initialSendOk]);
+
+  useEffect(() => {
+    if (resendCooldownSec <= 0) return;
+    const id = window.setInterval(() => {
+      setResendCooldownSec((seconds) => (seconds <= 1 ? 0 : seconds - 1));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [resendCooldownSec > 0]);
 
   useEffect(() => {
     if (!providerDown) {
@@ -127,6 +142,7 @@ export default function EmailVerificationModal({
         generic?: boolean;
         code?: string;
         retryAfterSec?: number;
+        previousCodeRestored?: boolean;
       };
 
       if (response.status === 429 && data?.code === 'RATE_LIMITED') {
@@ -143,14 +159,26 @@ export default function EmailVerificationModal({
       if (response.status === 503 || data?.code === 'EMAIL_UNAVAILABLE') {
         setProviderDown(true);
         lastResendAtRef.current = Date.now();
-        setError(t('emailVerification.emailSendFailed'));
+        setError(
+          data.previousCodeRestored
+            ? t('emailVerification.resendKeptPrevious', {
+                defaultValue: verificationUserMessage('RESEND_FAILED_KEPT', locale),
+              })
+            : t('emailVerification.emailSendFailed'),
+        );
         return false;
       }
 
       if (response.status === 500 && data?.code === 'EMAIL_NOT_CONFIGURED') {
         setProviderDown(true);
         lastResendAtRef.current = Date.now();
-        setError(t('emailVerification.emailNotConfiguredHint'));
+        setError(
+          data.previousCodeRestored
+            ? t('emailVerification.resendKeptPrevious', {
+                defaultValue: verificationUserMessage('RESEND_FAILED_KEPT', locale),
+              })
+            : t('emailVerification.emailNotConfiguredHint'),
+        );
         return false;
       }
 
@@ -163,6 +191,9 @@ export default function EmailVerificationModal({
         setProviderDown(false);
         setHasRequestedCode(true);
         setResendSuccess(true);
+        setResendCooldownSec(60);
+        setCode('');
+        lastAutoCodeRef.current = '';
         setError(null);
         return true;
       }
@@ -170,7 +201,7 @@ export default function EmailVerificationModal({
       setError(t('emailVerification.resendGenericError'));
       return false;
     },
-    [t],
+    [t, locale],
   );
 
   const postResend = useCallback(async () => {
@@ -223,10 +254,15 @@ export default function EmailVerificationModal({
       const response = await fetch('/api/auth/verify-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: code }),
+        body: JSON.stringify({ token: code, email }),
       });
 
-      const data = (await response.json().catch(() => ({}))) as { error?: string; success?: boolean };
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        success?: boolean;
+        code?: string;
+        retryAfterSec?: number;
+      };
 
       if (response.ok && data.success) {
         setSuccess(true);
@@ -234,8 +270,28 @@ export default function EmailVerificationModal({
           window.location.reload();
         }, 1200);
         onVerified();
+      } else if (data.code === 'EXPIRED') {
+        setError(
+          t('emailVerification.verifyExpired', {
+            defaultValue: verificationUserMessage('EXPIRED', locale),
+          }),
+        );
+      } else if (data.code === 'RATE_LIMITED' || response.status === 429) {
+        const seconds = typeof data.retryAfterSec === 'number' ? data.retryAfterSec : 60;
+        setError(
+          t('emailVerification.verifyRateLimited', {
+            seconds: String(seconds),
+            defaultValue: verificationUserMessage('RATE_LIMITED', locale, { seconds }),
+          }),
+        );
+      } else if (response.status >= 500 || data.code === 'SERVER') {
+        setError(t('emailVerification.verifyNetworkError'));
       } else {
-        setError(data.error || t('emailVerification.verifyInvalid'));
+        setError(
+          t('emailVerification.verifyInvalidCode', {
+            defaultValue: verificationUserMessage('INVALID', locale),
+          }),
+        );
       }
     } catch {
       setError(t('emailVerification.verifyNetworkError'));
@@ -243,6 +299,18 @@ export default function EmailVerificationModal({
       setIsVerifying(false);
     }
   };
+
+  useEffect(() => {
+    if (code.length < 6) {
+      lastAutoCodeRef.current = '';
+      return;
+    }
+    if (success || isVerifying || lastAutoCodeRef.current === code) return;
+    lastAutoCodeRef.current = code;
+    void handleVerify();
+    // Submit once when paste or autofill completes six digits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, success, isVerifying]);
 
   const handleResend = async () => {
     setError(null);
@@ -260,12 +328,6 @@ export default function EmailVerificationModal({
     } finally {
       setIsResending(false);
     }
-  };
-
-  const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-    setCode(value);
-    setError(null);
   };
 
   if (!isOpen) return null;
@@ -336,7 +398,11 @@ export default function EmailVerificationModal({
         {success && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
             <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-            <p className="text-green-800 text-sm">{t('emailVerification.success')}</p>
+            <p className="text-green-800 text-sm">
+              {t('emailVerification.success', {
+                defaultValue: verificationUserMessage('VERIFIED', locale),
+              })}
+            </p>
           </div>
         )}
 
@@ -349,7 +415,11 @@ export default function EmailVerificationModal({
 
         {resendSuccess && step === 'code' && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-            <p className="text-blue-800 text-sm">{t('emailVerification.resendSuccess')}</p>
+            <p className="text-blue-800 text-sm">
+              {t('emailVerification.resendSuccess', {
+                defaultValue: verificationUserMessage('RESEND_SENT', locale),
+              })}
+            </p>
           </div>
         )}
 
@@ -418,21 +488,24 @@ export default function EmailVerificationModal({
               </div>
             ) : null}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('emailVerification.codeLabel')}
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
+              <VerificationCodeField
+                id="email-verification-code"
                 value={code}
-                onChange={handleCodeChange}
-                placeholder="000000"
-                maxLength={6}
-                className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                onChange={(next) => {
+                  setCode(next);
+                  setError(null);
+                }}
                 disabled={isVerifying}
+                invalid={Boolean(error)}
+                label={t('emailVerification.codeLabel')}
+                hint={t('emailVerification.codeHint', {
+                  defaultValue:
+                    locale === 'en'
+                      ? 'The code has 6 digits and is valid for 24 hours.'
+                      : 'De code bestaat uit 6 cijfers en is 24 uur geldig.',
+                })}
+                autoFocus
               />
-              <p className="text-xs text-gray-500 mt-2 text-center">{t('emailVerification.codeHint')}</p>
             </div>
 
             <div className="space-y-3">
@@ -455,7 +528,7 @@ export default function EmailVerificationModal({
               <button
                 type="button"
                 onClick={handleResend}
-                disabled={isResending}
+                disabled={isResending || resendCooldownSec > 0}
                 className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isResending ? (
@@ -463,6 +536,13 @@ export default function EmailVerificationModal({
                     <RefreshCw className="w-4 h-4 animate-spin" />
                     {t('emailVerification.resending')}
                   </>
+                ) : resendCooldownSec > 0 ? (
+                  t('emailVerification.resendCooldownButton', {
+                    seconds: String(resendCooldownSec),
+                    defaultValue: verificationUserMessage('RESEND_COOLDOWN', locale, {
+                      seconds: resendCooldownSec,
+                    }),
+                  })
                 ) : (
                   <>
                     <RefreshCw className="w-4 h-4" />

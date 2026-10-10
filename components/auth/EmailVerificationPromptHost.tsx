@@ -115,7 +115,14 @@ export default function EmailVerificationPromptHost() {
         mode="soft"
         initialSendOk={initialSendOk}
         providerUnavailable={providerUnavailable}
-        onVerified={closeSoft}
+        onVerified={async () => {
+          try {
+            await update();
+          } catch {
+            /* session refresh is best-effort; reload still reads the database */
+          }
+          closeSoft();
+        }}
         onLater={() => {
           closeSoft();
           const u = session?.user as

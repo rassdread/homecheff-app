@@ -3,6 +3,11 @@ const COOLDOWN_MS = 60_000;
 
 type Entry = { lastSentAt: number };
 const store = new Map<string, Entry>();
+const inFlight = new Set<string>();
+
+function resendKey(email: string): string {
+  return email.toLowerCase().trim();
+}
 
 function pruneStale(now: number) {
   const maxAge = 15 * 60_000;
@@ -11,10 +16,32 @@ function pruneStale(now: number) {
   }
 }
 
+/**
+ * Cooldown plus a single in-flight send per address.
+ * A second request while the first is still sending does not mint another code.
+ */
+export function tryBeginVerificationResend(email: string):
+  | { ok: true }
+  | { ok: false; retryAfterSec: number } {
+  const cooldown = assertCanResendVerification(email);
+  if (!cooldown.ok) return cooldown;
+  const key = resendKey(email);
+  if (!key) return { ok: true };
+  if (inFlight.has(key)) return { ok: false, retryAfterSec: 5 };
+  inFlight.add(key);
+  return { ok: true };
+}
+
+export function endVerificationResend(email: string) {
+  const key = resendKey(email);
+  if (!key) return;
+  inFlight.delete(key);
+}
+
 export function assertCanResendVerification(email: string):
   | { ok: true }
   | { ok: false; retryAfterSec: number } {
-  const key = email.toLowerCase().trim();
+  const key = resendKey(email);
   if (!key) return { ok: true };
   const now = Date.now();
   if (store.size > 5000) pruneStale(now);
@@ -29,7 +56,12 @@ export function assertCanResendVerification(email: string):
 }
 
 export function markResendVerificationSent(email: string) {
-  const key = email.toLowerCase().trim();
+  const key = resendKey(email);
   if (!key) return;
   store.set(key, { lastSentAt: Date.now() });
+}
+
+export function _resetVerificationResendRateLimitForTests() {
+  store.clear();
+  inFlight.clear();
 }
