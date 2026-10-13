@@ -24,7 +24,7 @@ try {
 
   console.log("🏗️  Building Next.js application...");
   execSync(
-    "cross-env NODE_OPTIONS=--max-old-space-size=4096 NEXT_TELEMETRY_DISABLED=1 next build",
+    "cross-env NODE_OPTIONS=--max-old-space-size=6144 NEXT_TELEMETRY_DISABLED=1 next build",
     { stdio: "inherit", shell: true }
   );
 
