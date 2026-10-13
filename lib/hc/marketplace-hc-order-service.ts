@@ -12,6 +12,7 @@ import { assertMarketplaceHcOnlyCheckoutAllowed } from '@/lib/hc/marketplace-hc-
 import { evaluateMarketplaceEligibility } from '@/lib/age/marketplace-eligibility';
 import { hasActiveParentalConsent } from '@/lib/age/parental-consent';
 import { sellerPaymentsReady } from '@/lib/product/order-method';
+import { evaluateHcSelfDealing } from '@/lib/hc/hc-self-dealing';
 import {
   createSettlementExposurePending,
   markSettlementExposureEarned,
@@ -125,6 +126,24 @@ export async function resolveHcOnlyCheckoutContext(input: {
   const sellerUser = product.seller?.User;
   const sellerUserId = product.seller?.userId ?? sellerUser?.id ?? '';
   const sellerCentralUserId = sellerUserId;
+  const buyerStripe = await prisma.user.findUnique({
+    where: { id: input.buyerUserId },
+    select: { stripeConnectAccountId: true },
+  });
+  const selfDealing = evaluateHcSelfDealing({
+    buyerUserId: input.buyerUserId,
+    sellerUserId,
+    buyerCentralUserId: centralUserId,
+    sellerCentralUserId,
+    buyerStripeConnectAccountId: buyerStripe?.stripeConnectAccountId,
+    sellerStripeConnectAccountId: sellerUser?.stripeConnectAccountId,
+  });
+  if (selfDealing.blocked) {
+    return {
+      error: 'HC cannot be spent on your own listing or the same payout destination.',
+      code: selfDealing.code,
+    };
+  }
   if (sellerUser?.id) {
     const category = product.marketplaceCategory || product.category;
     const stripePayoutReady = sellerPaymentsReady(sellerUser);

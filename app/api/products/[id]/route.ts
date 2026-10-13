@@ -43,6 +43,8 @@ import {
 import { assertOrApplyCommerceDeclarationForPaidOffer } from '@/lib/legal/assert-commerce-declaration-for-paid-offer';
 import { maybeActivateSellerFromPublishedListing } from '@/lib/acquisition/marketplace-acquisition';
 import { productToListingQualityInput } from '@/lib/acquisition/product-quality-input';
+import { scoreListingQuality } from '@/lib/acquisition/listing-quality';
+import { qualifyFirstValidListingReward } from '@/lib/hc/qualify-first-listing';
 import { recordListingPublished } from '@/lib/analytics/record-acquisition-event.server';
 import { productRequiresAllergenConfirmation } from '@/lib/legal/food-allergen-applicability';
 import { buildAllergenConfirmationUpdate } from '@/lib/legal/food-allergen-context';
@@ -1072,6 +1074,18 @@ export async function PATCH(
                 seller,
               }),
             ).catch((e) => console.warn('[acquisition] seller activation PATCH', e));
+            const qualityInput = productToListingQualityInput({
+              ...updatedProduct,
+              seller,
+            });
+            void qualifyFirstValidListingReward({
+              userId: sellerUid,
+              productId: updatedProduct.id,
+              isActive: updatedProduct.isActive,
+              integrityStatus: (updatedProduct as { integrityStatus?: string | null }).integrityStatus ?? 'ACTIVE',
+              qualityScore: scoreListingQuality(qualityInput).score,
+              cookieHeader: request.headers.get('cookie'),
+            }).catch((e) => console.warn('[hc-campaign] first listing PATCH', e));
           }
           const sellerProfileId = (product as { sellerId?: string }).sellerId;
           const patchPickupLat = updateData.pickupLat as number | null | undefined;

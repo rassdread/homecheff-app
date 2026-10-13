@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { retryPendingCampaignGrant } from '@/lib/hc/qualify-first-listing';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -42,6 +43,7 @@ export async function GET() {
   }
 
   const centralUserId = await resolveCentralUserId(buyer.id);
+  void retryPendingCampaignGrant(buyer.id).catch((e) => console.warn('[hc-campaign] retry', e));
   const secret = ecosystemSecret();
   if (!centralUserId || !secret) {
     return NextResponse.json(

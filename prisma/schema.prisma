@@ -111,7 +111,13 @@ model User {
   acquisitionFirstTouch                  Json?
   acquisitionActivatedAt                 DateTime?
   acquisitionActivationKind              String?
-  /// First quality published listing (MARKETPLACE_SELLER_ACTIVATED)
+  /// First publicly valid quality listing. Not cleared when that product is deleted.
+  firstValidListingAt                    DateTime?
+  firstValidListingProductId             String?
+  /// HC promo campaign code from ?campaign=. Separate from affiliate hc_ref.
+  hcCampaignCode                         String?
+  /// True until Growth confirms the listing reward or a terminal refusal.
+  hcCampaignGrantPending                 Boolean                   @default(false)
   sellerActivatedAt                      DateTime?
   Account                                Account[]
   AdminAction                            AdminAction[]

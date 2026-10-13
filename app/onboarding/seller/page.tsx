@@ -1,10 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { Suspense } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useCreateFlow } from '@/components/create/CreateFlowContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import AcquisitionLandingBeacon from '@/components/acquisition/AcquisitionLandingBeacon';
+import HcCampaignOfferNotice from '@/components/onboarding/HcCampaignOfferNotice';
 import { CANONICAL_SERVICE_CREATE_ROUTE } from '@/lib/create/marketplace-entry-nav';
 
 export default function SellerOnboardingPage() {
@@ -20,6 +22,9 @@ export default function SellerOnboardingPage() {
           {t('onboardingBranch.sellerStep')}
         </p>
         <h1 className="text-2xl font-bold mb-2">{t('onboardingBranch.sellerTitle')}</h1>
+        <Suspense fallback={null}>
+          <HcCampaignOfferNotice />
+        </Suspense>
         <p className="text-gray-600 mb-6">{t('onboardingBranch.sellerSubtitle')}</p>
 
         <div className="grid gap-3 sm:grid-cols-2">

@@ -35,7 +35,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: 'Inloggen vereist.' }, { status: 401, headers: NO_STORE });
   }
 
-  const buyer = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
+  const buyer = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, stripeConnectAccountId: true, stripeConnectOnboardingCompleted: true },
+  });
   if (!buyer) {
     return NextResponse.json({ ok: false, message: 'Gebruiker niet gevonden.' }, { status: 404, headers: NO_STORE });
   }
@@ -62,7 +65,11 @@ export async function POST(req: Request) {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      body: JSON.stringify({ code: body.code }),
+      body: JSON.stringify({
+        code: body.code,
+        stripeConnectVerified:
+          Boolean(buyer.stripeConnectAccountId) && buyer.stripeConnectOnboardingCompleted === true,
+      }),
       cache: 'no-store',
     });
     const json = await res.json();

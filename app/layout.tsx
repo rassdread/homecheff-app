@@ -32,6 +32,10 @@ const MarketplaceUtmCapture = dynamic(
   () => import('@/components/acquisition/MarketplaceUtmCapture'),
   { ssr: false },
 );
+const HcCampaignCapture = dynamic(
+  () => import('@/components/acquisition/HcCampaignCapture'),
+  { ssr: false },
+);
 const CompanyAffiliateTrackBinder = dynamic(
   () =>
     import('@/components/affiliates/CompanyAffiliateTrackBinder').then((m) => ({
@@ -256,6 +260,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <PerformanceMonitor />
           <ConsentAwareAnalytics />
           <MarketplaceUtmCapture />
+          <Suspense fallback={null}>
+            <HcCampaignCapture />
+          </Suspense>
           <Suspense fallback={null}>
             <CompanyAffiliateTrackBinder />
           </Suspense>
