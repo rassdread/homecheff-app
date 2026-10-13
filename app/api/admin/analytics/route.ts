@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { realUserWhere } from '@/lib/admin/user-population';
 
 export const dynamic = 'force-dynamic';
 
@@ -168,29 +169,36 @@ export async function GET(req: NextRequest) {
         return totalFees;
       }),
       
-      // Total users
-      prisma.user.count(),
+      // Real users only: deleted tombstones and demonstrable test accounts are excluded
+      prisma.user.count({ where: realUserWhere() }),
       
-      // Active users (users who placed orders in period)
+      // Active users (real users who placed orders in period)
       prisma.user.count({
         where: {
-          orders: {
-            some: {
-              stripeSessionId: { not: null },
-              createdAt: { gte: startDate }
-            }
-          }
+          AND: [
+            realUserWhere(),
+            {
+              orders: {
+                some: {
+                  stripeSessionId: { not: null },
+                  createdAt: { gte: startDate }
+                }
+              }
+            },
+          ],
         }
       }),
       
-      // New users
+      // New real users
       prisma.user.count({
-        where: { createdAt: { gte: startDate } }
+        where: { AND: [realUserWhere(), { createdAt: { gte: startDate } }] }
       }),
       
-      // Previous period new users
+      // Previous period new real users
       prisma.user.count({
-        where: { createdAt: { gte: previousStartDate, lte: previousEndDate } }
+        where: {
+          AND: [realUserWhere(), { createdAt: { gte: previousStartDate, lte: previousEndDate } }],
+        }
       }),
       
       // Total products

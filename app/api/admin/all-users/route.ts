@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { anonymizedUserWhere } from '@/lib/admin/user-population';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +25,7 @@ export async function GET(req: NextRequest) {
     // Get all users who are not admins (for role assignment)
     const users = await prisma.user.findMany({
       where: {
-        role: { notIn: ['ADMIN', 'SUPERADMIN'] }
+        AND: [{ role: { notIn: ['ADMIN', 'SUPERADMIN'] } }, { NOT: anonymizedUserWhere() }],
       },
       select: {
         id: true,

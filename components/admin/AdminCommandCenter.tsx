@@ -14,6 +14,7 @@ type Metric = {
 type CommandCenterData = {
   generatedAt: string;
   rangeDays: number;
+  population?: Record<string, Metric>;
   overview: Record<string, Metric>;
   marketplace: Record<string, Metric>;
   money: Record<string, Metric>;
@@ -177,6 +178,7 @@ export default function AdminCommandCenter() {
             </div>
           </section>
 
+          {data.population ? <Section title="User population" metrics={data.population} /> : null}
           <Section title="Overview" metrics={data.overview} />
           <Section title="Marketplace" metrics={data.marketplace} />
           <Section title="Money" metrics={data.money} />

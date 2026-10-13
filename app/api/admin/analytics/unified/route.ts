@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { realUserWhere } from '@/lib/admin/user-population';
 
 export const dynamic = 'force-dynamic';
 
@@ -301,7 +302,7 @@ async function fetchUsersData(params: any) {
   const { startDate, endDate, dimensions, metrics, filters, limit, offset, orderBy, orderDirection } = params;
 
   const where: any = {
-    createdAt: { gte: startDate, lte: endDate }
+    AND: [realUserWhere(), { createdAt: { gte: startDate, lte: endDate } }],
   };
 
   if (filters.role) where.role = filters.role;

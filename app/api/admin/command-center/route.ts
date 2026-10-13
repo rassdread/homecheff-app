@@ -9,6 +9,8 @@ import {
   affiliateAttributionPolicySummary,
 } from '@/lib/affiliate-attribution-contract';
 import { IMPLEMENTED_ANALYTICS_METRICS } from '@/lib/business/analytics-tier';
+import { loadAdminUserPopulation } from '@/lib/admin/load-user-population';
+import { realUserWhere } from '@/lib/admin/user-population';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,9 +119,9 @@ export async function GET(req: NextRequest) {
       reportsMonth,
       disputesMonth,
     ] = await Promise.all([
-      prisma.user.count({ where: { createdAt: { gte: startOfToday } } }),
-      prisma.user.count({ where: { createdAt: { gte: rangeStart(7) } } }),
-      prisma.user.count({ where: { createdAt: { gte: rangeStart(30) } } }),
+      prisma.user.count({ where: { AND: [realUserWhere(), { createdAt: { gte: startOfToday } }] } }),
+      prisma.user.count({ where: { AND: [realUserWhere(), { createdAt: { gte: rangeStart(7) } }] } }),
+      prisma.user.count({ where: { AND: [realUserWhere(), { createdAt: { gte: rangeStart(30) } }] } }),
       prisma.sellerProfile.count({ where: { createdAt: { gte: rangeStart(30) } } }),
       prisma.product.count({ where: { createdAt: { gte: rangeStart(30) } } }),
       prisma.product.count({ where: { createdAt: { gte: rangeStart(30) }, listingIntent: 'OFFER' } }),
@@ -217,7 +219,9 @@ export async function GET(req: NextRequest) {
       }),
       prisma.affiliate.count(),
       prisma.attribution.count({ where: { createdAt: { gte: since } } }),
-      prisma.user.count({ where: { city: { contains: 'vlaardingen', mode: 'insensitive' } } }),
+      prisma.user.count({
+        where: { AND: [realUserWhere(), { city: { contains: 'vlaardingen', mode: 'insensitive' } }] },
+      }),
       prisma.product.count({ where: { placeName: { contains: 'vlaardingen', mode: 'insensitive' } } }),
       prisma.order.count({
         where: {
@@ -289,14 +293,35 @@ export async function GET(req: NextRequest) {
 
     const backfillStatus = getBackfillStatus();
     const affiliateCronConfigured = Boolean(process.env.CRON_SECRET || process.env.AFFILIATE_PAYOUT_CRON_SECRET);
+    const population = await loadAdminUserPopulation(now);
 
     return NextResponse.json({
       generatedAt: new Date().toISOString(),
       rangeDays: range,
+      population: {
+        totalRegistered: trackedMetric(population.totalRegistered),
+        totalRealUsers: trackedMetric(population.totalRealUsers),
+        totalVerified: trackedMetric(population.totalVerified),
+        totalActive: trackedMetric(population.totalActive, 'Real users with updatedAt in the last 7 days.'),
+        totalSoftDeleted: trackedMetric(population.totalSoftDeleted),
+        totalTestAccounts: trackedMetric(population.totalTestAccounts),
+        newUsersToday: trackedMetric(population.newUsersToday),
+        newUsers7Days: trackedMetric(population.newUsers7Days),
+        newUsers30Days: trackedMetric(population.newUsers30Days),
+        metaVisitors: notTracked(population.meta.visitorsNote),
+        metaRegistrations: trackedMetric(population.meta.registrations, 'Stored acquisitionFirstTouch utm_source only. No historical Meta source is inferred.'),
+        metaVerifiedRegistrations: trackedMetric(population.meta.verifiedRegistrations),
+        metaActivatedUsers: trackedMetric(population.meta.activatedUsers),
+        metaFirstListing: trackedMetric(population.meta.firstListing),
+        affiliateRegistrations: trackedMetric(population.origins.affiliate),
+        organicRegistrations: trackedMetric(population.origins.organic, 'Only when a non-paid UTM was stored. Missing source stays unknown.'),
+        recordedOtherRegistrations: trackedMetric(population.origins.recorded_other),
+        unknownOrigin: trackedMetric(population.origins.unknown),
+      },
       overview: {
-        usersToday: trackedMetric(usersToday),
-        usersWeek: trackedMetric(usersWeek),
-        usersMonth: trackedMetric(usersMonth),
+        usersToday: trackedMetric(usersToday, 'Real registrations only. Deleted and demonstrable test accounts are excluded.'),
+        usersWeek: trackedMetric(usersWeek, 'Real registrations only. Deleted and demonstrable test accounts are excluded.'),
+        usersMonth: trackedMetric(usersMonth, 'Real registrations only. Deleted and demonstrable test accounts are excluded.'),
         newSellersMonth: trackedMetric(sellersMonth),
         newListingsMonth: trackedMetric(listingsMonth),
         newWantedRequestsMonth: trackedMetric(requestedMonth),

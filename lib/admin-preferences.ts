@@ -11,8 +11,8 @@ export const AVAILABLE_WIDGETS: DashboardWidget[] = [
   // Stats Widgets
   {
     id: 'totalUsers',
-    label: 'Totaal Gebruikers',
-    description: 'Totaal aantal geregistreerde gebruikers',
+    label: 'Echte gebruikers',
+    description: 'Geregistreerde gebruikers zonder verwijderde en aantoonbare testaccounts',
     category: 'stats'
   },
   {

@@ -6,6 +6,7 @@ import {
 } from '@/lib/marketplace/public-listing-eligibility';
 import { buildProductDetailPath } from '@/lib/seo/productSlug';
 import { toPublicPlaceLabel } from '@/lib/geo/public-place';
+import { realUserWhere } from '@/lib/admin/user-population';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
         where: andPublicListingWhere({ createdAt: { gte: dayAgo } }),
       }),
       prisma.user.count({
-        where: { createdAt: { gte: weekAgo } },
+        where: { AND: [realUserWhere(), { createdAt: { gte: weekAgo } }] },
       }),
       prisma.recipe.count({
         where: {

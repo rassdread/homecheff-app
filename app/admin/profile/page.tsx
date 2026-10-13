@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import AdminProfileClient from "@/components/admin/AdminProfileClient";
+import { loadAdminUserPopulation } from "@/lib/admin/load-user-population";
 
 export const revalidate = 0;
 
@@ -131,13 +132,12 @@ export default async function AdminProfilePage({
 
   // Get admin statistics for the admin info block
   const [
-    totalUsers,
+    population,
     totalProducts,
     totalOrders,
     totalRevenue,
-    activeUsers
   ] = await Promise.all([
-    prisma.user.count(),
+    loadAdminUserPopulation(),
     prisma.product.count(),
     prisma.order.count({
       where: {
@@ -153,19 +153,16 @@ export default async function AdminProfilePage({
       _sum: { amountCents: true },
       where: { status: 'CAPTURED' as any }
     }).then(result => (result._sum?.amountCents || 0) / 100),
-    prisma.user.count({
-      where: {
-        updatedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
-      }
-    })
   ]);
 
   const adminStats = {
-    totalUsers,
+    totalUsers: population.totalRealUsers,
     totalProducts,
     totalOrders,
     totalRevenue,
-    activeUsers
+    activeUsers: population.totalActive,
+    softDeletedUsers: population.totalSoftDeleted,
+    testUsers: population.totalTestAccounts,
   };
 
   return (
