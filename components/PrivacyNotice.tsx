@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import { clearPendingMetaEvents } from '@/lib/meta/browser';
 import { ANALYTICS_CONSENT_KEY, MARKETING_CONSENT_KEY } from '@/lib/meta/commerce';
+import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
 
 /**
  * Compact privacy notice. One banner, two choices:
@@ -13,7 +15,9 @@ import { ANALYTICS_CONSENT_KEY, MARKETING_CONSENT_KEY } from '@/lib/meta/commerc
  */
 const PrivacyNotice: React.FC = () => {
   const { t } = useTranslation();
+  const pathname = usePathname();
   const [mode, setMode] = useState<'hidden' | 'full' | 'marketing'>('hidden');
+  const bannerAtScreenBottom = isBottomNavigationHidden(pathname);
   const [marketingChecked, setMarketingChecked] = useState(false);
 
   useEffect(() => {
@@ -70,7 +74,11 @@ const PrivacyNotice: React.FC = () => {
     <div
       data-wx-cookie-banner=""
       data-wx-cookie-compact="1"
-      className="pointer-events-none fixed inset-x-0 z-[80] max-lg:bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] lg:bottom-0"
+      className={
+        bannerAtScreenBottom
+          ? 'pointer-events-none fixed inset-x-0 bottom-0 z-[80]'
+          : 'pointer-events-none fixed inset-x-0 z-[80] max-lg:bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] lg:bottom-0'
+      }
     >
       <div
         data-wx-cookie-compact="1"

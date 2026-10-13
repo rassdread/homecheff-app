@@ -14,6 +14,8 @@ import {
   resolvePostAuthIntentRedirect,
 } from '@/lib/onboarding/pending-intent';
 import { reportAppDiagnostic } from '@/lib/diagnostics/appDiagnostics';
+import { deliveryRegistrationReturnPath } from '@/lib/auth/delivery-registration-return';
+import { savePendingIntent } from '@/lib/onboarding/pending-intent';
 
 function pathSkipsOnboardingGate(pathname: string | null): boolean {
   if (!pathname) return true;
@@ -71,6 +73,16 @@ export default function AuthCompletionGate() {
       const flags = onboardingFlagsFromSessionUser(user);
       if (needsProfileOnboardingFromFlags(flags)) {
         if (pathSkipsOnboardingGate(pathname)) return;
+        const deliveryReturn = deliveryRegistrationReturnPath(
+          pathname,
+          searchParams?.toString(),
+        );
+        if (deliveryReturn) {
+          savePendingIntent({
+            type: 'complete_profile',
+            returnPath: deliveryReturn,
+          });
+        }
         replaceOnce('/onboarding/complete-profile');
         return;
       }

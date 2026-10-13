@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { ArrowRight, Building2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import DeliveryRegistrationNotice from '@/components/delivery/DeliveryRegistrationNotice';
 
 type FormState = {
   name: string;
@@ -166,6 +167,7 @@ export default function DeliveryCompanySignupPage() {
             preferredRadius: form.preferredRadius,
             maxDistance: form.preferredRadius,
             homeAddress: form.homeAddress,
+            deliveryRegion: form.homeAddress,
             acceptDeliveryAgreement: form.acceptDeliveryAgreement,
             providerType: 'DELIVERY_BUSINESS',
             companyName: form.companyName,
@@ -185,6 +187,7 @@ export default function DeliveryCompanySignupPage() {
             preferredRadius: form.preferredRadius,
             maxDistance: form.preferredRadius,
             homeAddress: form.homeAddress,
+            deliveryRegion: form.homeAddress,
             acceptDeliveryAgreement: form.acceptDeliveryAgreement,
             providerType: 'DELIVERY_BUSINESS',
             companyName: form.companyName,
@@ -251,18 +254,19 @@ export default function DeliveryCompanySignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-slate-50">
-      <div className="mx-auto max-w-2xl px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-700 text-white">
-            <Building2 className="h-8 w-8" />
+    <div className="min-h-screen w-screen max-w-[100vw] overflow-x-clip bg-gradient-to-br from-sky-50 via-white to-slate-50">
+      <div className="mx-auto max-w-2xl px-4 pt-3 pb-[calc(8rem+env(safe-area-inset-bottom,0px))] sm:pt-8">
+        <div className="mb-2 text-center sm:mb-8">
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-sky-700 text-white sm:mb-4 sm:h-16 sm:w-16">
+            <Building2 className="h-6 w-6 sm:h-8 sm:w-8" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900">
+          <h1 className="max-w-full whitespace-normal break-words text-2xl font-bold text-slate-900 sm:text-3xl">
             Bezorgbedrijf aanmelden
           </h1>
           <p className="mt-2 text-slate-600">
             Registreer je bedrijf als bezorgpartner. De contactpersoon/bestuurder moet 18+ zijn.
           </p>
+          <DeliveryRegistrationNotice />
           <p className="mt-2 text-sm text-slate-500">
             Particulier?{' '}
             <Link href="/delivery/signup" className="font-medium text-sky-800 underline">
@@ -271,13 +275,13 @@ export default function DeliveryCompanySignupPage() {
           </p>
         </div>
 
-        <div className="mb-6 text-center text-sm text-slate-500">
+        <div className="mb-3 text-center text-sm text-slate-500 sm:mb-6">
           Stap {step} van 5
         </div>
 
-        <div className="rounded-2xl bg-white p-6 shadow-lg sm:p-8">
+        <div className="rounded-2xl bg-white p-4 shadow-lg sm:p-8">
           {step === 1 && !isExistingUser && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <h2 className="text-lg font-semibold text-slate-900">Account contactpersoon</h2>
               <input
                 className="w-full rounded-xl border border-slate-300 px-4 py-3"
@@ -479,7 +483,7 @@ export default function DeliveryCompanySignupPage() {
             </div>
           )}
 
-          <div className="mt-8 flex justify-between gap-3">
+          <div className="mt-4 flex justify-between gap-3 scroll-mb-28">
             <Button
               variant="outline"
               disabled={step === firstStep}

@@ -38,6 +38,8 @@ export type DeliverySignupInput = {
   kvkNumber?: unknown;
   vatNumber?: unknown;
   contactPhone?: unknown;
+  /** Place name only. Not used for account creation. */
+  deliveryRegion?: unknown;
 };
 
 export type DeliverySignupErrorCode =

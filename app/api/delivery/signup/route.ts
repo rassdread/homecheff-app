@@ -11,6 +11,10 @@ import {
   runDeliverySignup,
   type DeliverySignupInput,
 } from '@/lib/delivery/delivery-signup-service';
+import {
+  persistDeliveryRegistrationSource,
+  scrubDeliveryRegion,
+} from '@/lib/delivery/delivery-registration-source';
 
 export async function POST(req: NextRequest) {
   try {
@@ -109,6 +113,16 @@ export async function POST(req: NextRequest) {
         },
       });
     }
+
+    await persistDeliveryRegistrationSource({
+      userId: result.user.id,
+      cookieHeader: req.headers.get('cookie'),
+      providerType,
+      deliveryRegion: scrubDeliveryRegion(
+        body && typeof body === 'object' ? body.deliveryRegion : null
+      ),
+      profileId: result.deliveryProfile.id,
+    });
 
     return NextResponse.json({
       success: true,

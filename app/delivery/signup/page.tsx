@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Bike, MapPin, Clock, Users, CheckCircle, ArrowRight, User, Mail, Lock, Eye, EyeOff, FileText, X, Zap, Car } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
+import DeliveryRegistrationNotice from '@/components/delivery/DeliveryRegistrationNotice';
 
 interface DeliverySignupData {
   // Account creation
@@ -261,6 +262,7 @@ export default function DeliverySignupPage() {
         homeLng: formData.addressData.lng ?? null,
         homeAddress,
         acceptDeliveryAgreement: formData.acceptDeliveryAgreement,
+        deliveryRegion: formData.addressData.city,
         providerType: formData.providerType,
         companyName: formData.companyName || undefined,
         kvkNumber: formData.kvkNumber || undefined,
@@ -499,40 +501,44 @@ export default function DeliverySignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="w-screen max-w-[100vw] overflow-x-clip min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 pb-[calc(8rem+env(safe-area-inset-bottom,0px))]">
+      <div className="container mx-auto px-4 pt-2 pb-6 sm:py-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="bg-primary-brand text-white p-4 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-            <Users className="w-10 h-10" />
+        <div className="mb-2 text-center sm:mb-8">
+          <div className="mx-auto mb-1 flex h-10 w-10 items-center justify-center rounded-full bg-primary-brand p-2 text-white sm:mb-4 sm:h-20 sm:w-20 sm:p-4">
+            <Users className="h-5 w-5 sm:h-10 sm:w-10" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="mb-2 max-w-full whitespace-normal break-words text-2xl font-bold text-gray-900 sm:text-3xl">
             {t('deliverySignup.title')}
           </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="mx-auto max-w-full break-words text-sm text-gray-600 sm:text-base">
             {t('deliverySignup.subtitle')}
           </p>
+          <DeliveryRegistrationNotice />
         </div>
 
-        {/* Progress Bar */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <div className="flex items-center justify-between mb-4">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((step) => (
-              <div key={step} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  step <= currentStep 
-                    ? 'bg-primary-brand text-white' 
-                    : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {step < currentStep ? <CheckCircle className="w-5 h-5" /> : step}
-                </div>
-                {step < 9 && (
-                  <div className={`w-12 h-1 mx-1 ${
-                    step < currentStep ? 'bg-primary-brand' : 'bg-gray-200'
-                  }`} />
-                )}
-              </div>
-            ))}
+        {/* Progress — 9 columns so every step stays inside a 390px screen */}
+        <div className="mx-auto mb-4 w-full min-w-0 max-w-2xl sm:mb-6">
+          <div className="relative mb-2 sm:mb-4">
+            <div className="absolute left-[8%] right-[8%] top-2.5 h-0.5 bg-gray-200 sm:top-3" aria-hidden>
+              <div
+                className="h-full bg-primary-brand"
+                style={{ width: `${((currentStep - 1) / 8) * 100}%` }}
+              />
+            </div>
+            <ol className="relative m-0 grid w-full min-w-0 list-none grid-cols-9 p-0">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((step) => (
+                <li key={step} className="flex min-w-0 justify-center">
+                  <div className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium sm:h-8 sm:w-8 sm:text-sm ${
+                    step <= currentStep
+                      ? 'bg-primary-brand text-white'
+                      : 'bg-gray-200 text-gray-500'
+                  }`}>
+                    {step < currentStep ? <CheckCircle className="h-3.5 w-3.5 sm:h-5 sm:w-5" /> : step}
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
           <div className="text-center text-sm text-gray-500">
             {t('deliverySignup.step')} {currentStep} {t('deliverySignup.of')} 9
@@ -541,12 +547,12 @@ export default function DeliverySignupPage() {
 
         {/* Form Steps */}
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-lg p-8">
+          <div className="bg-white rounded-2xl shadow-lg p-5 sm:p-8">
             
             {/* Step 1: Personal Information */}
             {currentStep === 1 && (
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
+                <h3 className="mb-3 text-center text-lg font-semibold text-gray-900 sm:mb-6 sm:text-xl">
                   {t('deliverySignup.personalInfo')}
                 </h3>
                 <div className="space-y-4">
@@ -1037,7 +1043,7 @@ export default function DeliverySignupPage() {
               </div>
             )}
 
-            <div className="flex justify-between mt-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div className="mt-4 flex justify-between gap-3 scroll-mb-28">
               <Button
                 variant="outline"
                 onClick={prevStep}

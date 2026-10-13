@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Bike, Building2, UserRound } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import EcosystemShareAction from '@/components/share/EcosystemShareAction';
+import DeliveryRegistrationNotice from '@/components/delivery/DeliveryRegistrationNotice';
 
 /**
  * Delivery onboarding chooser — individual / company / driver-for-company.
@@ -12,7 +13,7 @@ export default function DeliveryStartPage() {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-emerald-50/80 to-gray-50 px-4 py-10">
+    <div className="min-h-[calc(100vh-4rem)] w-screen max-w-[100vw] overflow-x-clip bg-gradient-to-b from-emerald-50/80 to-gray-50 px-4 pt-10 pb-[calc(8rem+env(safe-area-inset-bottom,0px))]">
       <div className="mx-auto max-w-2xl space-y-8">
         <header className="space-y-2 text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
@@ -23,6 +24,7 @@ export default function DeliveryStartPage() {
           </h1>
           <p className="text-sm text-gray-600 sm:text-base">{t('deliveryStart.subtitle')}</p>
           <p className="text-xs text-gray-500 sm:text-sm">{t('deliveryStart.ageNote')}</p>
+          <DeliveryRegistrationNotice />
         </header>
 
         <div className="grid gap-4">

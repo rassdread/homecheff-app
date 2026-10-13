@@ -10,7 +10,8 @@ import {
   needsProfileOnboardingFromFlags,
   onboardingFlagsFromSessionUser,
 } from "@/lib/auth/post-auth-redirect";
-import { consumeAndResolvePostAuthUrl } from "@/lib/onboarding/pending-intent";
+import { consumeAndResolvePostAuthUrl, savePendingIntent } from "@/lib/onboarding/pending-intent";
+import { deliveryRegistrationReturnFromCallback } from "@/lib/auth/delivery-registration-return";
 import { applySessionMode, setRememberPreference } from "@/lib/session-mode";
 import { useTranslation } from "@/hooks/useTranslation";
 import { trackLogin } from "@/components/GoogleAnalytics";
@@ -222,6 +223,13 @@ function LoginForm() {
     };
     const affiliateReturn = typeof callbackUrl === 'string' && callbackUrl.startsWith('/affiliate');
     if (needsProfileOnboardingFromFlags(onboardingFlagsFromSessionUser(u)) && !affiliateReturn) {
+      const deliveryReturn = deliveryRegistrationReturnFromCallback(callbackUrl);
+      if (deliveryReturn) {
+        savePendingIntent({
+          type: 'complete_profile',
+          returnPath: deliveryReturn,
+        });
+      }
       router.replace('/onboarding/complete-profile');
       return;
     }
