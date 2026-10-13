@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { sumOpenSellerLiabilityCents } from '@/lib/hc/open-seller-liability';
 import { prisma } from '@/lib/prisma';
+import { readPlatformTransferBalance } from '@/lib/stripe/platform-transfer-balance';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,6 +37,15 @@ async function requireCampaignAdmin() {
   return user;
 }
 
+async function attachTreasury(action: unknown) {
+  if (action !== 'list' && action !== 'setStatus') return null;
+  const [platformBalance, outstandingSellerLiabilityCents] = await Promise.all([
+    readPlatformTransferBalance(),
+    sumOpenSellerLiabilityCents(),
+  ]);
+  return { platformBalance, outstandingSellerLiabilityCents };
+}
+
 /** Marketplace admin → the existing Growth campaign service. No second ledger. */
 export async function POST(req: Request) {
   const admin = await requireCampaignAdmin();
@@ -45,12 +56,20 @@ export async function POST(req: Request) {
   if (!secret) {
     return NextResponse.json({ ok: false, message: 'Growth is niet gekoppeld.' }, { status: 503, headers: NO_STORE });
   }
-  let body: unknown;
+  let body: Record<string, unknown>;
   try {
-    body = await req.json();
+    const parsed = await req.json();
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return NextResponse.json({ ok: false, message: 'Ongeldige aanvraag.' }, { status: 400, headers: NO_STORE });
+    }
+    body = parsed as Record<string, unknown>;
   } catch {
     return NextResponse.json({ ok: false, message: 'Ongeldige aanvraag.' }, { status: 400, headers: NO_STORE });
   }
+  delete body.platformBalance;
+  delete body.outstandingSellerLiabilityCents;
+  const treasury = await attachTreasury(body.action);
+  if (treasury) Object.assign(body, treasury);
   try {
     const res = await fetch(`${growthBase()}/api/internal/ecosystem/hc/admin-campaigns`, {
       method: 'POST',
@@ -64,6 +83,10 @@ export async function POST(req: Request) {
       cache: 'no-store',
     });
     const json = await res.json();
+    if (treasury && json && typeof json === 'object') {
+      (json as Record<string, unknown>).platformBalance = treasury.platformBalance;
+      (json as Record<string, unknown>).outstandingSellerLiabilityCents = treasury.outstandingSellerLiabilityCents;
+    }
     return NextResponse.json(json, { status: res.status, headers: NO_STORE });
   } catch {
     return NextResponse.json({ ok: false, message: 'Growth is tijdelijk niet bereikbaar.' }, { status: 502, headers: NO_STORE });

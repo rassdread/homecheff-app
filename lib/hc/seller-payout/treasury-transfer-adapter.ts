@@ -63,6 +63,26 @@ export function createInMemoryHcTreasuryTransferAdapter(): HcTreasuryTransferAda
   };
 }
 
+export function classifyStripeTransferFailure(error: { code?: string; type?: string }): {
+  errorCode: string;
+  retryable: boolean;
+} {
+  const errorCode = error.code ?? error.type ?? 'STRIPE_TRANSFER_FAILED';
+  if (errorCode === 'balance_insufficient' || errorCode === 'insufficient_funds') {
+    return { errorCode, retryable: true };
+  }
+  if (errorCode === 'idempotency_key_in_use' || error.type === 'idempotency_key_in_use') {
+    return { errorCode: 'idempotency_key_in_use', retryable: true };
+  }
+  return { errorCode, retryable: error.type !== 'invalid_request_error' };
+}
+
+/** A transfer that may already exist at Stripe is retried with the same idempotency key. */
+export function payoutPendingCanRetry(attemptedAt: Date | null, now = new Date()): boolean {
+  if (!attemptedAt) return true;
+  return now.getTime() - attemptedAt.getTime() >= 60_000;
+}
+
 /** Stripe Connect treasury transfer — platform balance → seller destination. No buyer charge. */
 export function createStripeHcTreasuryTransferAdapter(stripe: Stripe): HcTreasuryTransferAdapter {
   return {
@@ -86,10 +106,9 @@ export function createStripeHcTreasuryTransferAdapter(stripe: Stripe): HcTreasur
         );
         return { ok: true, transferId: transfer.id, provider: 'STRIPE_CONNECT' };
       } catch (e: unknown) {
-        const err = e as { code?: string; type?: string; message?: string };
-        const code = err.code ?? err.type ?? 'STRIPE_TRANSFER_FAILED';
-        const retryable = !['invalid_request_error', 'idempotency_key_in_use'].includes(String(err.type));
-        return { ok: false, errorCode: code, retryable };
+        const err = e as { code?: string; type?: string };
+        const classified = classifyStripeTransferFailure(err);
+        return { ok: false, errorCode: classified.errorCode, retryable: classified.retryable };
       }
     },
   };

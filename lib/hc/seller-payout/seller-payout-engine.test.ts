@@ -7,6 +7,7 @@ import {
   resolvePayableAmountCents,
   evaluateRefundAfterPayoutPolicy,
 } from './eligibility';
+import { classifyStripeTransferFailure, payoutPendingCanRetry } from './treasury-transfer-adapter';
 import { createIsolatedHcSellerPayoutStore } from './isolated-payout-engine';
 import type {
   HcSellerPayoutExposureView,
@@ -195,5 +196,18 @@ describe('HC seller payout isolated engine', () => {
 describe('HC seller payout treasury source', () => {
   it('idempotency key is exposure-scoped v1', () => {
     assert.equal(hcSellerPayoutIdempotencyKey('abc'), 'marketplace:hc:payout:abc:v1');
+  });
+
+  it('insufficient platform balance stays retryable and is not a successful transfer', () => {
+    const result = classifyStripeTransferFailure({ code: 'balance_insufficient', type: 'invalid_request_error' });
+    assert.equal(result.retryable, true);
+    assert.equal(result.errorCode, 'balance_insufficient');
+  });
+
+  it('an in-flight idempotency key is retried instead of marked blocked', () => {
+    const result = classifyStripeTransferFailure({ type: 'idempotency_key_in_use' });
+    assert.equal(result.retryable, true);
+    assert.equal(payoutPendingCanRetry(new Date(), new Date()), false);
+    assert.equal(payoutPendingCanRetry(new Date(Date.now() - 61_000)), true);
   });
 });

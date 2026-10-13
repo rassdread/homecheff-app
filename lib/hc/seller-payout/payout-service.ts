@@ -12,6 +12,7 @@ import { getHcSellerPayoutFlags } from './flags';
 import {
   createStripeHcTreasuryTransferAdapter,
   executeHcTreasurySellerTransfer,
+  payoutPendingCanRetry,
   type HcTreasuryTransferAdapter,
 } from './treasury-transfer-adapter';
 import {
@@ -176,7 +177,7 @@ export async function executeHcSellerPayout(input: {
         amountCents: resolvePayableAmountCents(fresh),
       };
     }
-    if (fresh.status === 'PAYOUT_PENDING') {
+    if (fresh.status === 'PAYOUT_PENDING' && !payoutPendingCanRetry(fresh.payoutAttemptedAt)) {
       return { kind: 'in_progress' as const };
     }
     if (!['EARNED', 'PAYOUT_FAILED_RETRYABLE'].includes(fresh.status)) {

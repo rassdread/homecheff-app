@@ -24,7 +24,35 @@ type Campaign = {
   rejectedCount?: number;
   remainingHc?: number | null;
   rejectionStats?: Record<string, number> | null;
+  coverage?: {
+    code: string;
+    nominalFaceCents: number | null;
+    reservationCents: number | null;
+    headroomCents: number | null;
+    availableCents: number | null;
+    pendingCents: number | null;
+  };
 };
+
+type PlatformBalance = {
+  known?: boolean;
+  availableCents?: number | null;
+  pendingCents?: number | null;
+  livemode?: boolean | null;
+};
+
+function eur(cents: number): string {
+  return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(cents / 100);
+}
+
+function coverageLabel(code: string): string {
+  if (code === 'COVERED') return 'voldoende op deze momentopname';
+  if (code === 'COVERAGE_UNKNOWN') return 'dekking onbekend';
+  if (code === 'INSUFFICIENT_STRIPE_COVERAGE') return 'onvoldoende dekking';
+  if (code === 'UNBOUNDED_CAMPAIGN_BUDGET') return 'geen eindig budget';
+  if (code === 'COVERAGE_NOT_REQUIRED') return 'geen Stripe-dekking vereist';
+  return code;
+}
 
 async function post(body: Record<string, unknown>) {
   const res = await fetch('/api/admin/hc-campaigns', {
@@ -33,7 +61,14 @@ async function post(body: Record<string, unknown>) {
     cache: 'no-store',
     body: JSON.stringify(body),
   });
-  return (await res.json()) as { ok?: boolean; message?: string; campaigns?: Campaign[]; preview?: { requiresConfirmation?: boolean; faceEurCents?: number } };
+  return (await res.json()) as {
+    ok?: boolean;
+    message?: string;
+    campaigns?: Campaign[];
+    platformBalance?: PlatformBalance;
+    outstandingSellerLiabilityCents?: number | null;
+    preview?: { requiresConfirmation?: boolean; faceEurCents?: number };
+  };
 }
 
 function CampaignDraftEditor({
@@ -107,6 +142,8 @@ function CampaignDraftEditor({
 
 export default function AdminHcCampaignsPanel() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [platformBalance, setPlatformBalance] = useState<PlatformBalance | null>(null);
+  const [openLiabilities, setOpenLiabilities] = useState<number | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
@@ -127,6 +164,8 @@ export default function AdminHcCampaignsPanel() {
 
   const load = useCallback(async () => {
     const json = await post({ action: 'list' });
+    setPlatformBalance(json.platformBalance ?? { known: false });
+    setOpenLiabilities(json.outstandingSellerLiabilityCents ?? null);
     if (json.ok && json.campaigns) setCampaigns(json.campaigns);
     else setMessage(json.message ?? 'Campagnes laden mislukt.');
   }, []);
@@ -256,6 +295,20 @@ export default function AdminHcCampaignsPanel() {
           Concept opslaan
         </button>
       </form>
+      <section className="rounded-xl border bg-white p-4 text-sm">
+        <h3 className="font-medium">Stripe – financiële dekking</h3>
+        {platformBalance?.known && platformBalance.availableCents != null ? (
+          <div className="mt-2 space-y-1 text-gray-700">
+            <p>Beschikbaar voor transfers: {eur(platformBalance.availableCents)}{platformBalance.livemode === false ? ' · testgegevens' : ''}</p>
+            <p>Nog niet beschikbaar: {platformBalance.pendingCents == null ? 'onbekend' : eur(platformBalance.pendingCents)}</p>
+            <p>Openstaande verkopersverplichtingen: {openLiabilities == null ? 'onbekend' : eur(openLiabilities)}</p>
+          </div>
+        ) : (
+          <p className="mt-2 text-amber-900">Stripe-saldo onbekend. Onbekende dekking blokkeert het activeren van een Marketplace-campagne en telt niet als €0.</p>
+        )}
+        <p className="mt-2 text-gray-500">Momentopname van het payments-saldo. Dit is geen reservering bij Stripe. Onbesteed HC is geen door de accountant vastgestelde schuld.</p>
+        <a className="mt-2 inline-block text-emerald-800 underline" href="https://dashboard.stripe.com/balance" target="_blank" rel="noreferrer">Stripe-dashboard openen</a>
+      </section>
       <ul className="space-y-3">
         {campaigns.map((c) => (
           <li key={c.id} className="bg-white rounded-xl border p-4 text-sm">
@@ -275,6 +328,13 @@ export default function AdminHcCampaignsPanel() {
               Marketplace {c.marketplaceEligible ? 'aan' : 'uit'} · Studio {c.studioEligible ? 'aan' : 'uit'} · Growth {c.growthEligible ? 'aan' : 'uit'}
               {c.sellerPrincipalEligible ? ' · treasury-financiering aan' : ''}
             </p>
+            {c.coverage ? (
+              <p className="text-gray-700">
+                Nominale waarde {c.coverage.nominalFaceCents == null ? 'onbegrensd' : eur(c.coverage.nominalFaceCents)}
+                {c.coverage.reservationCents != null ? ` · reservering ${eur(c.coverage.reservationCents)}` : ''}
+                {' · '}{coverageLabel(c.coverage.code)}
+              </p>
+            ) : null}
             {c.rejectionStats ? (
               <p className="text-gray-500">Weigeringen: {Object.entries(c.rejectionStats).map(([k, v]) => `${k} ${v}`).join(', ')}</p>
             ) : null}
