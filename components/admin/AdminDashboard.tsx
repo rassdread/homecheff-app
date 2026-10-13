@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import type { AdminUserPopulationSnapshot } from '@/lib/admin/user-population';
 import { getDisplayName } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Users, Package, ShoppingCart, MessageSquare, TrendingUp, Truck } from 'lucide-react';
@@ -32,7 +33,6 @@ import AuditLog from './AuditLog';
 import AffiliateManagement from './AffiliateManagement';
 import OpportunityFunnelAdmin from './OpportunityFunnelAdmin';
 import AdminPromotionsPanel from './AdminPromotionsPanel';
-import AdminHcCampaignsPanel from './AdminHcCampaignsPanel';
 import FinancialAlerts from './FinancialAlerts';
 import MigrateOrdersButton from './MigrateOrdersButton';
 import VariabelenOverview from './VariabelenOverview';
@@ -71,6 +71,7 @@ interface AdminStats {
   totalDeliveryProfiles: number;
   totalRevenue: number;
   activeUsers: number;
+  population?: AdminUserPopulationSnapshot | null;
   recentUsers: Array<{
     id: string;
     name: string | null;
@@ -246,11 +247,11 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
   
   const allowedTabs = useMemo(() => {
     let tabs = isSuperAdmin
-      ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates', 'opportunity-funnel', 'promotions', 'hc-campaigns']
+      ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates', 'opportunity-funnel', 'promotions']
       : isAdmin && adminRoles.length > 0
         ? getUserAllowedTabs(adminRoles)
         : isAdmin
-          ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'affiliates', 'opportunity-funnel', 'promotions', 'hc-campaigns']
+          ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'affiliates', 'opportunity-funnel', 'promotions']
           : [];
 
     if (permissions && !isSuperAdmin) {
@@ -363,7 +364,7 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
                       <Users className="w-4 h-4 sm:w-6 sm:h-6 text-blue-600" />
                     </div>
                     <div className="ml-2 sm:ml-4">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600">Totaal Gebruikers</p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-600">Echte gebruikers</p>
                       <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
                       <p className="text-xs text-green-600">+{stats.activeUsers} actief</p>
                     </div>
@@ -416,6 +417,44 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
                 </div>
               )}
             </div>
+
+            {stats.population ? (
+              <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">Gebruikerspopulatie</h3>
+                <p className="text-xs text-gray-500 mb-4">
+                  Verwijderde en aantoonbare testaccounts tellen niet mee als echte gebruikers.
+                  Herkomst is onbekend wanneer er geen UTM of affiliate-registratie is opgeslagen.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                  {[
+                    ['Geregistreerd in database', stats.population.totalRegistered],
+                    ['Echt', stats.population.totalRealUsers],
+                    ['Geverifieerd', stats.population.totalVerified],
+                    ['Actief, 7 dagen', stats.population.totalActive],
+                    ['Nieuw vandaag', stats.population.newUsersToday],
+                    ['Nieuw, 7 dagen', stats.population.newUsers7Days],
+                    ['Nieuw, 30 dagen', stats.population.newUsers30Days],
+                    ['Verwijderd', stats.population.totalSoftDeleted],
+                    ['Test', stats.population.totalTestAccounts],
+                    ['Via Meta', stats.population.meta.registrations],
+                    ['Via affiliate', stats.population.origins.affiliate],
+                    ['Organisch', stats.population.origins.organic],
+                    ['Andere vastgelegde bron', stats.population.origins.recorded_other],
+                    ['Onbekende herkomst', stats.population.origins.unknown],
+                  ].map(([label, value]) => (
+                    <div key={String(label)} className="rounded-lg border border-gray-200 p-3">
+                      <p className="text-xs text-gray-500">{label}</p>
+                      <p className="text-lg font-semibold text-gray-900">{value}</p>
+                    </div>
+                  ))}
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 md:col-span-2">
+                    <p className="text-xs text-amber-800">Meta-bezoekers</p>
+                    <p className="text-sm font-medium text-amber-950 mt-1">Niet vastgelegd</p>
+                    <p className="text-xs text-amber-800 mt-1">{stats.population.meta.visitorsNote}</p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             {/* Financial Alerts */}
             <FinancialAlerts />
@@ -579,7 +618,6 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
         {activeTab === 'affiliates' && <AffiliateManagement />}
         {activeTab === 'opportunity-funnel' && <OpportunityFunnelAdmin />}
         {activeTab === 'promotions' && <AdminPromotionsPanel />}
-        {activeTab === 'hc-campaigns' && <AdminHcCampaignsPanel />}
     </>
   );
 

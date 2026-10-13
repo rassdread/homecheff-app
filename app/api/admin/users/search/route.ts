@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { anonymizedUserWhere } from "@/lib/admin/user-population";
 
 export const dynamic = 'force-dynamic';
 
@@ -34,12 +35,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ users: [] });
     }
 
+    const includeDeleted = searchParams.get('includeDeleted') === '1';
     const users = await prisma.user.findMany({
       where: {
-        OR: [
-          { email: { contains: query, mode: 'insensitive' as any } },
-          { name: { contains: query, mode: 'insensitive' as any } },
-          { username: { contains: query, mode: 'insensitive' as any } },
+        AND: [
+          includeDeleted ? {} : { NOT: anonymizedUserWhere() },
+          {
+            OR: [
+              { email: { contains: query, mode: 'insensitive' as any } },
+              { name: { contains: query, mode: 'insensitive' as any } },
+              { username: { contains: query, mode: 'insensitive' as any } },
+            ],
+          },
         ],
       },
       select: {

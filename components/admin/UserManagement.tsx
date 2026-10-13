@@ -8,6 +8,10 @@ import CreateUserModal from './CreateUserModal';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslation } from '@/hooks/useTranslation';
+import {
+  DEFAULT_ADMIN_USER_LIST_VIEW,
+  type AdminUserListView,
+} from '@/lib/admin/user-population';
 
 interface User {
   id: string;
@@ -31,6 +35,8 @@ interface User {
   lng: number | null;
   suspendedAt?: string | Date | null;
   suspendReason?: string | null;
+  populationClass?: 'real' | 'test' | 'deleted';
+  emailVerified?: boolean;
   SellerProfile?: {
     companyName: string | null;
     kvk: string | null;
@@ -51,6 +57,8 @@ export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [populationView, setPopulationView] = useState<AdminUserListView>(DEFAULT_ADMIN_USER_LIST_VIEW);
+  const [populationCounts, setPopulationCounts] = useState({ real: 0, test: 0, deleted: 0, all: 0 });
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showBulkMessageModal, setShowBulkMessageModal] = useState(false);
@@ -65,13 +73,15 @@ export default function UserManagement() {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [populationView]);
 
   const fetchUsers = async () => {
     try {
-      const response = await safeFetch('/api/admin/users');
+      const response = await safeFetch(`/api/admin/users?view=${populationView}`);
       const data = await response.json();
       setUsers(data.users || []);
+      setSelectedUsers([]);
+      if (data.populationCounts) setPopulationCounts(data.populationCounts);
     } catch (error) {
       if (error instanceof Error && error.message === 'Request was aborted') {
         // Component unmounted, ignore error
@@ -279,14 +289,6 @@ export default function UserManagement() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -294,6 +296,9 @@ export default function UserManagement() {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">{t('admin.userManagement')}</h2>
           <p className="text-gray-600">{t('admin.manageAllUsers')}</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Standaard zie je echte accounts. Test- en verwijderde accounts open je via het filter.
+          </p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -302,6 +307,38 @@ export default function UserManagement() {
           <UserPlus className="w-4 h-4 mr-2" />
           {t('admin.newUser')}
         </button>
+      </div>
+
+      <div role="tablist" aria-label="Accounttype" className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        {(
+          [
+            ['real', 'Echte accounts', populationCounts.real],
+            ['test', 'Testaccounts', populationCounts.test],
+            ['deleted', 'Verwijderd', populationCounts.deleted],
+            ['all', 'Alles', populationCounts.all],
+          ] as const
+        ).map(([id, label, count]) => {
+          const selected = populationView === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => setPopulationView(id)}
+              className={`min-h-11 rounded-lg border px-3 py-2 text-left text-sm font-medium ${
+                selected
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <span className="block">{label}</span>
+              <span className={`block text-xs ${selected ? 'text-blue-100' : 'text-gray-500'}`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Search and Actions */}
@@ -336,8 +373,20 @@ export default function UserManagement() {
         )}
       </div>
 
+      {loading ? (
+        <div className="flex items-center justify-center h-40">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : null}
+
+      <p className="text-sm text-gray-500">
+        {filteredUsers.length} getoond
+        {searchQuery.trim() ? ' voor deze zoekopdracht' : ''}
+        {' · gesorteerd op aanmaakdatum, nieuwste eerst'}
+      </p>
+
       {/* Users Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className={`bg-white rounded-lg shadow overflow-hidden ${loading ? 'hidden' : ''}`}>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -435,6 +484,12 @@ export default function UserManagement() {
                         {user.role === 'ADMIN' ? 'Admin' : 
                          user.role === 'SELLER' ? 'Verkoper' : 'Koper'}
                       </span>
+                      {user.populationClass === 'test' ? (
+                        <span className="ml-2 text-xs text-amber-700 font-semibold">Test</span>
+                      ) : null}
+                      {user.populationClass === 'deleted' ? (
+                        <span className="ml-2 text-xs text-gray-600 font-semibold">Verwijderd</span>
+                      ) : null}
                       {user.suspendedAt ? (
                         <span className="ml-2 text-xs text-red-600 font-semibold">Suspended</span>
                       ) : null}

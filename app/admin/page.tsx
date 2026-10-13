@@ -5,6 +5,8 @@ import { Suspense } from 'react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import { clearUserCache } from '@/lib/api-auth';
 import { matchesCurrentMode } from '@/lib/stripe';
+import { loadAdminUserPopulation } from '@/lib/admin/load-user-population';
+import { realUserWhere } from '@/lib/admin/user-population';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -42,6 +44,7 @@ export default async function AdminPage() {
 
   // Get basic admin statistics
   let totalUsers = 0;
+  let population = null as Awaited<ReturnType<typeof loadAdminUserPopulation>> | null;
   let totalProducts = 0;
   let totalOrders = 0;
   let totalDeliveryProfiles = 0;
@@ -53,17 +56,16 @@ export default async function AdminPage() {
 
   try {
     const [
-      usersCount,
+      populationSnapshot,
       productsCount,
       ordersCount,
       deliveryProfilesCount,
       revenue,
-      activeUsersCount,
       recentUsersData,
       recentProductsData,
       deliveryProfilesData
     ] = await Promise.all([
-    prisma.user.count(),
+    loadAdminUserPopulation(),
     prisma.product.count(),
     prisma.order.count({
       where: {
@@ -96,12 +98,8 @@ export default async function AdminPage() {
       );
       return filteredOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
     }),
-    prisma.user.count({
-      where: {
-        updatedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
-      }
-    }),
     prisma.user.findMany({
+      where: realUserWhere(),
       take: 5,
       orderBy: { createdAt: 'desc' },
       select: {
@@ -169,12 +167,13 @@ export default async function AdminPage() {
     })
     ]);
 
-    totalUsers = usersCount;
+    population = populationSnapshot;
+    totalUsers = populationSnapshot.totalRealUsers;
     totalProducts = productsCount;
     totalOrders = ordersCount;
     totalDeliveryProfiles = deliveryProfilesCount;
     totalRevenue = revenue;
-    activeUsers = activeUsersCount;
+    activeUsers = populationSnapshot.totalActive;
     recentUsers = recentUsersData.map(user => ({
       ...user,
       role: user.role.toString(),
@@ -214,6 +213,7 @@ export default async function AdminPage() {
         totalDeliveryProfiles,
         totalRevenue,
         activeUsers,
+        population,
         recentUsers,
         recentProducts,
         deliveryProfiles,

@@ -7,6 +7,15 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { tryNormalizeEmail } from '@/lib/auth/normalize-email';
 import { findUserByCanonicalEmail } from '@/lib/auth/find-user-by-email';
+import {
+  anonymizedUserWhere,
+  classifyUserPopulation,
+  DEFAULT_ADMIN_USER_LIST_VIEW,
+  demonstrableTestUserWhere,
+  realUserWhere,
+  userPopulationWhere,
+  type AdminUserListView,
+} from '@/lib/admin/user-population';
 // import { UserRole } from '@prisma/client';
 
 // GET - Fetch all users
@@ -27,7 +36,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'NO_ADMIN_RIGHTS' }, { status: 403 });
     }
 
-    const users = await prisma.user.findMany({
+    const viewParam = request.nextUrl.searchParams.get('view');
+    const view: AdminUserListView =
+      viewParam === 'real' ||
+      viewParam === 'test' ||
+      viewParam === 'deleted' ||
+      viewParam === 'all' ||
+      viewParam === 'current'
+        ? viewParam
+        : DEFAULT_ADMIN_USER_LIST_VIEW;
+
+    const [users, realCount, testCount, deletedCount] = await Promise.all([
+      prisma.user.findMany({
+      where: userPopulationWhere(view),
       select: {
         id: true,
         email: true,
@@ -38,6 +59,8 @@ export async function GET(request: NextRequest) {
         image: true,
         profileImage: true,
         bio: true,
+        accountDeletedAt: true,
+        emailVerified: true,
         place: true,
         gender: true,
         interests: true,
@@ -68,9 +91,32 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: { createdAt: 'desc' }
-    });
+    }),
+      prisma.user.count({ where: realUserWhere() }),
+      prisma.user.count({ where: demonstrableTestUserWhere() }),
+      prisma.user.count({ where: anonymizedUserWhere() }),
+    ]);
 
-    return NextResponse.json({ users });
+    return NextResponse.json({
+      users: users.map(({ bio, accountDeletedAt, emailVerified, ...user }) => ({
+        ...user,
+        accountDeletedAt,
+        emailVerified: Boolean(emailVerified),
+        populationClass: classifyUserPopulation({
+          email: user.email,
+          username: user.username,
+          bio,
+          accountDeletedAt,
+        }),
+      })),
+      populationCounts: {
+        real: realCount,
+        test: testCount,
+        deleted: deletedCount,
+        all: realCount + testCount + deletedCount,
+      },
+      view,
+    });
 
   } catch (error) {
     console.error('Error fetching users:', error);
