@@ -34,6 +34,7 @@ import AffiliateManagement from './AffiliateManagement';
 import OpportunityFunnelAdmin from './OpportunityFunnelAdmin';
 import AdminPromotionsPanel from './AdminPromotionsPanel';
 import FinancialAlerts from './FinancialAlerts';
+import RegistrationCampaignPanel from './RegistrationCampaignPanel';
 import MigrateOrdersButton from './MigrateOrdersButton';
 import VariabelenOverview from './VariabelenOverview';
 import AdminCommandCenter from './AdminCommandCenter';
@@ -430,6 +431,7 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
                     ['Geregistreerd in database', stats.population.totalRegistered],
                     ['Echt', stats.population.totalRealUsers],
                     ['Geverifieerd', stats.population.totalVerified],
+                    ['Niet geverifieerd', stats.population.unverifiedRealUsers],
                     ['Actief, 7 dagen', stats.population.totalActive],
                     ['Nieuw vandaag', stats.population.newUsersToday],
                     ['Nieuw, 7 dagen', stats.population.newUsers7Days],
@@ -454,6 +456,10 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
                   </div>
                 </div>
               </div>
+            ) : null}
+
+            {stats.population?.campaign ? (
+              <RegistrationCampaignPanel campaign={stats.population.campaign} />
             ) : null}
 
             {/* Financial Alerts */}

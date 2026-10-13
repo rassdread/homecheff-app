@@ -58,6 +58,7 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [populationView, setPopulationView] = useState<AdminUserListView>(DEFAULT_ADMIN_USER_LIST_VIEW);
+  const [verificationFilter, setVerificationFilter] = useState<'all' | 'verified' | 'unverified'>('all');
   const [populationCounts, setPopulationCounts] = useState({ real: 0, test: 0, deleted: 0, all: 0 });
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -244,7 +245,15 @@ export default function UserManagement() {
     setShowBulkMessageModal(true);
   };
 
+  const verificationCounts = {
+    all: users.length,
+    verified: users.filter((user) => user.emailVerified).length,
+    unverified: users.filter((user) => !user.emailVerified).length,
+  };
+
   const filteredUsers = users.filter(user => {
+    if (verificationFilter === 'verified' && !user.emailVerified) return false;
+    if (verificationFilter === 'unverified' && user.emailVerified) return false;
     const query = searchQuery.toLowerCase().trim();
     if (!query) return true;
     
@@ -341,6 +350,36 @@ export default function UserManagement() {
         })}
       </div>
 
+      <div role="group" aria-label="Verificatiestatus" className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        {(
+          [
+            ['all', 'Alle verificaties', verificationCounts.all],
+            ['verified', 'Geverifieerd', verificationCounts.verified],
+            ['unverified', 'Niet geverifieerd', verificationCounts.unverified],
+          ] as const
+        ).map(([id, label, count]) => {
+          const selected = verificationFilter === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => setVerificationFilter(id)}
+              className={`min-h-11 rounded-lg border px-3 py-2 text-left text-sm font-medium ${
+                selected
+                  ? 'bg-emerald-700 text-white border-emerald-700'
+                  : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <span className="block">{label}</span>
+              <span className={`block text-xs ${selected ? 'text-emerald-100' : 'text-gray-500'}`}>
+                {count} in dit accounttype
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Search and Actions */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
@@ -382,6 +421,8 @@ export default function UserManagement() {
       <p className="text-sm text-gray-500">
         {filteredUsers.length} getoond
         {searchQuery.trim() ? ' voor deze zoekopdracht' : ''}
+        {verificationFilter === 'verified' ? ' · alleen geverifieerd' : ''}
+        {verificationFilter === 'unverified' ? ' · alleen niet geverifieerd' : ''}
         {' · gesorteerd op aanmaakdatum, nieuwste eerst'}
       </p>
 
@@ -484,6 +525,11 @@ export default function UserManagement() {
                         {user.role === 'ADMIN' ? 'Admin' : 
                          user.role === 'SELLER' ? 'Verkoper' : 'Koper'}
                       </span>
+                      {user.emailVerified ? (
+                        <span className="ml-2 text-xs text-emerald-700 font-semibold">Geverifieerd</span>
+                      ) : (
+                        <span className="ml-2 text-xs text-amber-700 font-semibold">Niet geverifieerd</span>
+                      )}
                       {user.populationClass === 'test' ? (
                         <span className="ml-2 text-xs text-amber-700 font-semibold">Test</span>
                       ) : null}

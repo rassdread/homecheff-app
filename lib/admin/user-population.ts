@@ -30,6 +30,16 @@ export type RegistrationOrigin =
   | 'recorded_other'
   | 'unknown';
 
+export type MeasuredCount = {
+  value: number | null;
+  complete: boolean;
+  period: string;
+  source: string;
+  definition: string;
+};
+
+export type MarketingSource = 'meta' | 'organic' | 'recorded_other' | 'unknown';
+
 export type AdminUserPopulationSnapshot = {
   totalRegistered: number;
   totalRealUsers: number;
@@ -49,7 +59,41 @@ export type AdminUserPopulationSnapshot = {
     verifiedRegistrations: number;
     activatedUsers: number;
     firstListing: number;
+    firstTransaction: number;
   };
+  campaign: RegistrationCampaignView;
+};
+
+export type RegistrationCampaignView = {
+  realUsers: MeasuredCount;
+  newToday: MeasuredCount;
+  new7Days: MeasuredCount;
+  new30Days: MeasuredCount;
+  verified: MeasuredCount;
+  unverified: MeasuredCount;
+  marketingMeta: MeasuredCount;
+  marketingOrganic: MeasuredCount;
+  marketingOther: MeasuredCount;
+  marketingUnknown: MeasuredCount;
+  affiliateRegistrations: MeasuredCount;
+  metaAffiliateOverlap: MeasuredCount;
+  funnel: {
+    registrationStarted: MeasuredCount;
+    registrationCompleted: MeasuredCount;
+    emailVerified: MeasuredCount;
+    accountActivated: MeasuredCount;
+    firstListingCreated: MeasuredCount;
+    firstListingPublished: MeasuredCount;
+    firstTransactionCompleted: MeasuredCount;
+  };
+  metaFunnel: {
+    registered: MeasuredCount;
+    verified: MeasuredCount;
+    activated: MeasuredCount;
+    firstListing: MeasuredCount;
+    firstTransaction: MeasuredCount;
+  };
+  separationNote: string;
 };
 
 export type PopulationIdentity = {
@@ -231,6 +275,21 @@ export function readAcquisitionTouch(value: unknown): AcquisitionTouch | null {
   };
   if (!touch.utm_source && !touch.utm_medium && !touch.utm_campaign) return null;
   return touch;
+}
+
+/**
+ * Marketing source from the stored first touch only.
+ * Affiliate attribution is a separate dimension and is not folded into this label.
+ * A missing touch stays unknown. It is not treated as organic or Meta.
+ */
+export function marketingSourceFromTouch(acquisitionFirstTouch: unknown): MarketingSource {
+  const touch = readAcquisitionTouch(acquisitionFirstTouch);
+  if (!touch) return 'unknown';
+  if (isMetaUtmSource(touch.utm_source)) return 'meta';
+  const medium = (touch.utm_medium || '').toLowerCase();
+  const source = (touch.utm_source || '').toLowerCase();
+  if (ORGANIC_MEDIUMS.has(medium) || ORGANIC_SOURCES.has(source)) return 'organic';
+  return 'recorded_other';
 }
 
 export function isMetaUtmSource(source: string | null | undefined): boolean {

@@ -10,6 +10,7 @@ import {
   isDemonstrableTestUser,
   isMetaUtmSource,
   readAcquisitionTouch,
+  marketingSourceFromTouch,
   registrationOrigin,
   retentionBlocksHardDelete,
   userPopulationWhere,
@@ -152,6 +153,29 @@ describe('registration origin', () => {
       }),
       'organic',
     );
+  });
+});
+
+describe('marketing source stays separate from affiliate', () => {
+  it('reads Meta only from a stored UTM and leaves a missing source unknown', () => {
+    assert.equal(
+      marketingSourceFromTouch({
+        utm_source: 'meta',
+        utm_medium: 'paid_social',
+        utm_campaign: 'homecheff_launch',
+      }),
+      'meta',
+    );
+    assert.equal(marketingSourceFromTouch(null), 'unknown');
+    assert.equal(
+      marketingSourceFromTouch({ utm_source: 'google', utm_medium: 'cpc' }),
+      'recorded_other',
+    );
+    assert.equal(
+      registrationOrigin({ acquisitionFirstTouch: null, hasAffiliateAttribution: true }),
+      'affiliate',
+    );
+    assert.equal(marketingSourceFromTouch(null), 'unknown');
   });
 });
 

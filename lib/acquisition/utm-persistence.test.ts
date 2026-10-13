@@ -5,8 +5,10 @@ import {
   scrubUtmValue,
   marketplaceUtmToStripeMetadata,
   utmQueryString,
+  captureMarketplaceUtmFirstTouch,
   parseMarketplaceUtmFromCookieHeader,
   MARKETPLACE_UTM_COOKIE,
+  MARKETPLACE_UTM_STORAGE_KEY,
   type MarketplaceUtmCapture,
 } from "./utm-persistence";
 
@@ -64,5 +66,43 @@ describe("marketplace utm persistence", () => {
     assert.ok(parsed);
     assert.equal(parsed!.utm_source, "newsletter");
     assert.equal(parsed!.utm_campaign, "launch");
+  });
+
+  it('does not replace an existing first touch with a later Meta visit', () => {
+    const storage = new Map<string, string>();
+    const host = globalThis as unknown as {
+      window?: {
+        sessionStorage: {
+          getItem: (key: string) => string | null;
+          setItem: (key: string, value: string) => void;
+        };
+      };
+      document?: { cookie: string };
+    };
+    host.window = {
+      sessionStorage: {
+        getItem: (key: string) => storage.get(key) ?? null,
+        setItem: (key: string, value: string) => {
+          storage.set(key, value);
+        },
+      },
+    };
+    host.document = { cookie: '' };
+    storage.set(
+      MARKETPLACE_UTM_STORAGE_KEY,
+      JSON.stringify({
+        utm_source: 'organic',
+        utm_campaign: 'first',
+        captured_at: '2026-01-01T00:00:00.000Z',
+      }),
+    );
+    const kept = captureMarketplaceUtmFirstTouch(
+      new URLSearchParams('utm_source=meta&utm_medium=paid_social&utm_campaign=later'),
+      '/onboarding/seller',
+    );
+    assert.equal(kept?.utm_source, 'organic');
+    assert.equal(kept?.utm_campaign, 'first');
+    host.window = undefined;
+    host.document = undefined;
   });
 });

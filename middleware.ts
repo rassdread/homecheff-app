@@ -19,6 +19,7 @@ import {
   parseEcosystemLanguage,
 } from '@/lib/ecosystem-locale';
 import { getAuthSessionCookieDomain } from '@/lib/auth-origin';
+import { personalReferralHandoff } from '@/lib/affiliate/personal-referral-redirect';
 
 const EU_HOST = 'homecheff.eu';
 
@@ -290,16 +291,13 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith('/welkom/') ||
       pathname.startsWith('/uitnodiging/');
     if (!isExcludedPath) {
-      const cleanUrl = new URL(request.url);
-      cleanUrl.searchParams.delete('ref');
-      const redirectUrl = cleanUrl.pathname + cleanUrl.search;
-      const isBetaAppLanding = pathname === '/app' || pathname.startsWith('/app/');
-      const betaQs = isBetaAppLanding ? '&androidBeta=1' : '';
-      const url = new URL(
-        `/api/affiliate/referral?code=${encodeURIComponent(refCode)}&redirect=${encodeURIComponent(redirectUrl)}${betaQs}`,
-        request.url
-      );
-      return NextResponse.redirect(url);
+      const handoff = personalReferralHandoff(request.url);
+      if (handoff) {
+        const isBetaAppLanding = pathname === '/app' || pathname.startsWith('/app/');
+        const betaQs = isBetaAppLanding ? '&androidBeta=1' : '';
+        const url = new URL(`${handoff.apiUrl}${betaQs}`);
+        return NextResponse.redirect(url);
+      }
     }
   }
 
