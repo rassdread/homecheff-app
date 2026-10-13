@@ -104,6 +104,10 @@ export async function qualifyFirstValidListingReward(input: {
   });
   const centralUserId = await resolveCentralUserId(user.id);
   if (!centralUserId) return;
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { hcCampaignGrantAttemptAt: new Date(), hcCampaignGrantPending: true },
+  });
   const result = await qualifyListingOnGrowth({
     centralUserId,
     promoCode,

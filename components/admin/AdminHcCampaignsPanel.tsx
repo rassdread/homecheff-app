@@ -1,0 +1,299 @@
+'use client';
+
+import { useCallback, useEffect, useState } from 'react';
+
+type Campaign = {
+  id: string;
+  name: string;
+  status: string;
+  hcAmount: number;
+  fundingClass: string;
+  distributionMode: string;
+  promoCode?: string | null;
+  activationCondition?: string;
+  requireStripeConnect?: boolean;
+  marketplaceEligible?: boolean;
+  studioEligible?: boolean;
+  growthEligible?: boolean;
+  sellerPrincipalEligible?: boolean;
+  claimCount: number;
+  maxClaims?: number | null;
+  totalHcIssued: number;
+  maxTotalHcIssued?: number | null;
+  pendingCount?: number;
+  rejectedCount?: number;
+  remainingHc?: number | null;
+  rejectionStats?: Record<string, number> | null;
+};
+
+async function post(body: Record<string, unknown>) {
+  const res = await fetch('/api/admin/hc-campaigns', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    body: JSON.stringify(body),
+  });
+  return (await res.json()) as { ok?: boolean; message?: string; campaigns?: Campaign[]; preview?: { requiresConfirmation?: boolean; faceEurCents?: number } };
+}
+
+function CampaignDraftEditor({
+  campaign,
+  disabled,
+  onDone,
+}: {
+  campaign: Campaign;
+  disabled: boolean;
+  onDone: () => void;
+}) {
+  const [hcAmount, setHcAmount] = useState(String(campaign.hcAmount));
+  const [maxClaims, setMaxClaims] = useState(campaign.maxClaims == null ? '' : String(campaign.maxClaims));
+  const [maxTotal, setMaxTotal] = useState('');
+  const [stripe, setStripe] = useState(Boolean(campaign.requireStripeConnect));
+  const [studio, setStudio] = useState(campaign.studioEligible !== false);
+  const [growth, setGrowth] = useState(campaign.growthEligible !== false);
+  const [note, setNote] = useState<string | null>(null);
+
+  async function save() {
+    const nextTotal = maxTotal.trim() === '' ? undefined : Number(maxTotal);
+    if (nextTotal != null && campaign.maxTotalHcIssued != null && nextTotal > campaign.maxTotalHcIssued) {
+      if (!window.confirm('Het campagnebudget wordt verhoogd. Doorgaan?')) return;
+    }
+    if (maxClaims.trim() === '' && !window.confirm('Leeg claims-maximum haalt de limiet weg. Doorgaan?')) return;
+    if (!window.confirm('Wijziging opslaan? Een actieve toekenning blijft ongewijzigd.')) return;
+    const json = await post({
+      action: 'update',
+      campaignId: campaign.id,
+      hcAmount: Number(hcAmount),
+      maxClaims: maxClaims === '' ? null : Number(maxClaims),
+      ...(nextTotal === undefined ? {} : { maxTotalHcIssued: nextTotal }),
+      requireStripeConnect: stripe,
+      studioEligible: studio,
+      growthEligible: growth,
+    });
+    setNote(json.ok ? 'Opgeslagen.' : json.message ?? 'Opslaan mislukt.');
+    if (json.ok) onDone();
+  }
+
+  return (
+    <div className="mt-3 grid gap-2 md:grid-cols-2">
+      <label className="text-sm">Beloning HC
+        <input className="mt-1 w-full rounded border px-2 py-1" value={hcAmount} onChange={(e) => setHcAmount(e.target.value)} />
+      </label>
+      <label className="text-sm">Maximaal claims
+        <input className="mt-1 w-full rounded border px-2 py-1" value={maxClaims} onChange={(e) => setMaxClaims(e.target.value)} />
+      </label>
+      <label className="text-sm md:col-span-2">Nieuw totaalbudget HC (leeg laat het huidige budget staan)
+        <input className="mt-1 w-full rounded border px-2 py-1" value={maxTotal} onChange={(e) => setMaxTotal(e.target.value)} />
+      </label>
+      <label className="inline-flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={stripe} onChange={(e) => setStripe(e.target.checked)} />
+        Stripe Connect verplicht
+      </label>
+      <label className="inline-flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={studio} onChange={(e) => setStudio(e.target.checked)} />
+        Studio
+      </label>
+      <label className="inline-flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={growth} onChange={(e) => setGrowth(e.target.checked)} />
+        Growth
+      </label>
+      <button type="button" disabled={disabled} className="rounded border px-2 py-1 text-sm md:col-span-2 w-fit" onClick={() => void save()}>
+        Wijziging opslaan
+      </button>
+      {note ? <p className="text-sm md:col-span-2">{note}</p> : null}
+    </div>
+  );
+}
+
+export default function AdminHcCampaignsPanel() {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [form, setForm] = useState({
+    name: '',
+    promoCode: '',
+    hcAmount: '1000',
+    maxClaims: '50',
+    maxTotalHcIssued: '50000',
+    startAt: '',
+    endAt: '',
+    activationCondition: 'IMMEDIATE',
+    requireStripeConnect: false,
+    marketplaceEligible: false,
+    studioEligible: true,
+    growthEligible: true,
+    confirmTreasury: false,
+  });
+
+  const load = useCallback(async () => {
+    const json = await post({ action: 'list' });
+    if (json.ok && json.campaigns) setCampaigns(json.campaigns);
+    else setMessage(json.message ?? 'Campagnes laden mislukt.');
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function createCampaign() {
+    if (form.marketplaceEligible && !form.confirmTreasury) {
+      setMessage('Marketplace-koopkracht maakt een treasury-verplichting. Bevestig die eerst.');
+      return;
+    }
+    if (!window.confirm('Conceptcampagne opslaan? Er wordt nog niets toegekend.')) return;
+    setBusy(true);
+    const json = await post({
+      name: form.name,
+      promoCode: form.promoCode,
+      hcAmount: Number(form.hcAmount),
+      maxClaims: Number(form.maxClaims),
+      maxTotalHcIssued: Number(form.maxTotalHcIssued),
+      startAt: form.startAt || null,
+      endAt: form.endAt || null,
+      distributionMode: 'PROMO_CODE',
+      activationCondition: form.activationCondition,
+      requireStripeConnect: form.requireStripeConnect,
+      marketplaceEligible: form.marketplaceEligible,
+      sellerPrincipalEligible: form.marketplaceEligible,
+      fundingClass: form.marketplaceEligible ? 'HOMECHEFF_FUNDED_PROMOTION' : 'HOMECHEFF_PROMOTIONAL',
+      studioEligible: form.studioEligible,
+      growthEligible: form.growthEligible,
+      confirmSellerPrincipalTreasury: form.confirmTreasury,
+    });
+    setBusy(false);
+    setMessage(json.ok ? 'Concept opgeslagen. Activeer het pas als het budget klopt.' : json.message ?? 'Opslaan mislukt.');
+    if (json.ok) void load();
+  }
+
+  async function setStatus(campaign: Campaign, status: 'ACTIVE' | 'PAUSED' | 'ENDED') {
+    const prompts: Record<string, string> = {
+      ACTIVE: `Campagne ${campaign.name} activeren? Nieuwe claims kunnen dan HC krijgen.`,
+      PAUSED: `Campagne ${campaign.name} pauzeren? Nieuwe toekenningen stoppen direct.`,
+      ENDED: `Campagne ${campaign.name} definitief beëindigen?`,
+    };
+    if (status === 'ACTIVE' && campaign.marketplaceEligible && !window.confirm('Deze campagne kan Marketplace-koopkracht uit de treasury financieren. Doorgaan?')) {
+      return;
+    }
+    if (!window.confirm(prompts[status])) return;
+    setBusy(true);
+    const json = await post({
+      action: 'setStatus',
+      campaignId: campaign.id,
+      status,
+      confirmSellerPrincipalTreasury: campaign.sellerPrincipalEligible === true,
+    });
+    setBusy(false);
+    setMessage(json.ok ? `Status ${status}.` : json.message ?? 'Status wijzigen mislukt.');
+    void load();
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900">HC-campagnes</h2>
+        <p className="text-sm text-gray-600 mt-1">
+          Zelfde campagnes als Growth. De wallet en het budget blijven daar. Er wordt vanuit dit scherm geen credit toegekend.
+        </p>
+      </div>
+      {message ? <p className="text-sm text-gray-800">{message}</p> : null}
+      <form
+        className="bg-white rounded-xl border p-4 grid gap-3 md:grid-cols-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void createCampaign();
+        }}
+      >
+        <label className="text-sm">Naam
+          <input className="mt-1 w-full rounded border px-2 py-1" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+        </label>
+        <label className="text-sm">Promotiecode
+          <input className="mt-1 w-full rounded border px-2 py-1" value={form.promoCode} onChange={(e) => setForm({ ...form, promoCode: e.target.value })} required />
+        </label>
+        <label className="text-sm">Beloning HC
+          <input className="mt-1 w-full rounded border px-2 py-1" value={form.hcAmount} onChange={(e) => setForm({ ...form, hcAmount: e.target.value })} />
+        </label>
+        <label className="text-sm">Maximaal claims
+          <input className="mt-1 w-full rounded border px-2 py-1" value={form.maxClaims} onChange={(e) => setForm({ ...form, maxClaims: e.target.value })} />
+        </label>
+        <label className="text-sm">Totaalbudget HC
+          <input className="mt-1 w-full rounded border px-2 py-1" value={form.maxTotalHcIssued} onChange={(e) => setForm({ ...form, maxTotalHcIssued: e.target.value })} />
+        </label>
+        <label className="text-sm">Start
+          <input type="datetime-local" className="mt-1 w-full rounded border px-2 py-1" value={form.startAt} onChange={(e) => setForm({ ...form, startAt: e.target.value })} />
+        </label>
+        <label className="text-sm">Einde
+          <input type="datetime-local" className="mt-1 w-full rounded border px-2 py-1" value={form.endAt} onChange={(e) => setForm({ ...form, endAt: e.target.value })} />
+        </label>
+        <label className="text-sm">Trigger
+          <select className="mt-1 w-full rounded border px-2 py-1" value={form.activationCondition} onChange={(e) => setForm({ ...form, activationCondition: e.target.value })}>
+            <option value="IMMEDIATE">Direct bij code</option>
+            <option value="FIRST_VALID_LISTING">Eerste geldige publicatie</option>
+          </select>
+        </label>
+        <label className="inline-flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={form.requireStripeConnect} onChange={(e) => setForm({ ...form, requireStripeConnect: e.target.checked })} />
+          Stripe Connect verplicht vóór toekenning
+        </label>
+        <label className="inline-flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={form.studioEligible} onChange={(e) => setForm({ ...form, studioEligible: e.target.checked })} />
+          Studio
+        </label>
+        <label className="inline-flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={form.growthEligible} onChange={(e) => setForm({ ...form, growthEligible: e.target.checked })} />
+          Growth
+        </label>
+        <label className="inline-flex items-center gap-2 text-sm md:col-span-2">
+          <input type="checkbox" checked={form.marketplaceEligible} onChange={(e) => setForm({ ...form, marketplaceEligible: e.target.checked, confirmTreasury: false })} />
+          Marketplace-koopkracht. Dit financiert HomeCheff vanuit de treasury.
+        </label>
+        {form.marketplaceEligible ? (
+          <label className="inline-flex items-center gap-2 text-sm md:col-span-2 text-amber-900">
+            <input type="checkbox" checked={form.confirmTreasury} onChange={(e) => setForm({ ...form, confirmTreasury: e.target.checked })} />
+            Ik bevestig de treasury-verplichting, inclusief veiligheidsbuffer.
+          </label>
+        ) : null}
+        <button type="submit" disabled={busy} className="rounded bg-emerald-700 px-3 py-2 text-sm text-white disabled:opacity-50">
+          Concept opslaan
+        </button>
+      </form>
+      <ul className="space-y-3">
+        {campaigns.map((c) => (
+          <li key={c.id} className="bg-white rounded-xl border p-4 text-sm">
+            <p className="font-medium">{c.name} · {c.status}</p>
+            <p className="text-gray-600">
+              {c.hcAmount} HC · {c.activationCondition ?? 'IMMEDIATE'}
+              {c.promoCode ? ` · ${c.promoCode}` : ''}
+              {c.requireStripeConnect ? ' · Stripe verplicht' : ''}
+            </p>
+            <p className="text-gray-500">
+              claims {c.claimCount}{c.maxClaims != null ? `/${c.maxClaims}` : ''} · uitgegeven {c.totalHcIssued} HC
+              {c.remainingHc != null ? ` · resterend ${c.remainingHc} HC` : ''}
+              {` · pending ${c.pendingCount ?? 0}`}
+              {` · geweigerd ${c.rejectedCount ?? 0}`}
+            </p>
+            <p className="text-gray-500">
+              Marketplace {c.marketplaceEligible ? 'aan' : 'uit'} · Studio {c.studioEligible ? 'aan' : 'uit'} · Growth {c.growthEligible ? 'aan' : 'uit'}
+              {c.sellerPrincipalEligible ? ' · treasury-financiering aan' : ''}
+            </p>
+            {c.rejectionStats ? (
+              <p className="text-gray-500">Weigeringen: {Object.entries(c.rejectionStats).map(([k, v]) => `${k} ${v}`).join(', ')}</p>
+            ) : null}
+            {c.status === 'ACTIVE' ? (
+              <p className="mt-2 text-amber-900">Een actieve campagne is vergrendeld. Pauzeer eerst om beloning of budget te wijzigen.</p>
+            ) : null}
+            {c.status === 'DRAFT' || c.status === 'PAUSED' ? (
+              <CampaignDraftEditor campaign={c} disabled={busy} onDone={() => void load()} />
+            ) : null}
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(['ACTIVE', 'PAUSED', 'ENDED'] as const).map((status) => (
+                <button key={status} type="button" disabled={busy || c.status === status} className="rounded border px-2 py-1 text-xs disabled:opacity-40" onClick={() => void setStatus(c, status)}>
+                  {status === 'ACTIVE' ? 'Activeren' : status === 'PAUSED' ? 'Pauzeren' : 'Beëindigen'}
+                </button>
+              ))}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

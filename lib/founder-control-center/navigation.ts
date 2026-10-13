@@ -50,6 +50,7 @@ export type AdminTabId =
   | 'affiliates'
   | 'opportunity-funnel'
   | 'promotions'
+  | 'hc-campaigns'
   | 'notifications'
   | 'disputes'
   | 'moderation'
@@ -104,6 +105,7 @@ export const ADMIN_TAB_DEFINITIONS: AdminTabDef[] = [
   { id: 'affiliates', domain: 'growth', labelKey: 'admin.affiliates', fallbackLabel: 'Affiliates', icon: UserCheck },
   { id: 'opportunity-funnel', domain: 'growth', labelKey: 'admin.opportunityFunnel', fallbackLabel: 'Verdien funnel', icon: BarChart3 },
   { id: 'promotions', domain: 'growth', labelKey: 'admin.promotions', fallbackLabel: 'Promotions', icon: Gift },
+  { id: 'hc-campaigns', domain: 'growth', labelKey: 'admin.hcCampaigns', fallbackLabel: 'HC-campagnes', icon: Gift },
   { id: 'notifications', domain: 'growth', labelKey: 'admin.notifications', fallbackLabel: 'Notifications', icon: Bell },
   { id: 'disputes', domain: 'trust', labelKey: 'admin.disputes', fallbackLabel: 'Disputes', icon: AlertTriangle },
   { id: 'moderation', domain: 'trust', labelKey: 'admin.contentModeration', fallbackLabel: 'Moderation', icon: Shield },

@@ -1,0 +1,71 @@
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
+
+const NO_STORE = { 'Cache-Control': 'private, no-store, max-age=0' } as const;
+
+function growthBase(): string {
+  return (process.env.GROWTH_HC_QUOTE_BASE_URL ?? process.env.GROWTH_API_BASE_URL ?? 'https://growth.homecheff.eu').replace(
+    /\/$/,
+    '',
+  );
+}
+
+function ecosystemSecret(): string {
+  return (
+    process.env.HC_ECOSYSTEM_INTERNAL_SECRET ??
+    process.env.HC_MARKETPLACE_QUOTE_INTERNAL_SECRET ??
+    ''
+  ).trim();
+}
+
+async function requireCampaignAdmin() {
+  const session = await auth();
+  if (!session?.user?.email) return null;
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true, adminRoles: true },
+  });
+  if (!user) return null;
+  const full = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
+  const system = user.adminRoles?.includes('system_admin') === true;
+  if (!full && !system) return null;
+  return user;
+}
+
+/** Marketplace admin → the existing Growth campaign service. No second ledger. */
+export async function POST(req: Request) {
+  const admin = await requireCampaignAdmin();
+  if (!admin) {
+    return NextResponse.json({ ok: false, message: 'Geen toegang.' }, { status: 403, headers: NO_STORE });
+  }
+  const secret = ecosystemSecret();
+  if (!secret) {
+    return NextResponse.json({ ok: false, message: 'Growth is niet gekoppeld.' }, { status: 503, headers: NO_STORE });
+  }
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ ok: false, message: 'Ongeldige aanvraag.' }, { status: 400, headers: NO_STORE });
+  }
+  try {
+    const res = await fetch(`${growthBase()}/api/internal/ecosystem/hc/admin-campaigns`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${secret}`,
+        'Content-Type': 'application/json',
+        'x-marketplace-admin-id': admin.id,
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(body),
+      cache: 'no-store',
+    });
+    const json = await res.json();
+    return NextResponse.json(json, { status: res.status, headers: NO_STORE });
+  } catch {
+    return NextResponse.json({ ok: false, message: 'Growth is tijdelijk niet bereikbaar.' }, { status: 502, headers: NO_STORE });
+  }
+}

@@ -118,6 +118,8 @@ model User {
   hcCampaignCode                         String?
   /// True until Growth confirms the listing reward or a terminal refusal.
   hcCampaignGrantPending                 Boolean                   @default(false)
+  /// Last attempt to deliver a pending listing reward. Used for bounded retry backoff.
+  hcCampaignGrantAttemptAt               DateTime?
   sellerActivatedAt                      DateTime?
   Account                                Account[]
   AdminAction                            AdminAction[]
