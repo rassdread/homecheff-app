@@ -63,6 +63,11 @@ export function createInMemoryHcTreasuryTransferAdapter(): HcTreasuryTransferAda
   };
 }
 
+/** Stripe only accepts a transfer when the destination transfers capability is active. */
+export function destinationTransfersActive(status: string | null | undefined): boolean {
+  return status === 'active';
+}
+
 export function classifyStripeTransferFailure(error: { code?: string; type?: string }): {
   errorCode: string;
   retryable: boolean;

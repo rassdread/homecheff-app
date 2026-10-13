@@ -7,7 +7,7 @@ import {
   resolvePayableAmountCents,
   evaluateRefundAfterPayoutPolicy,
 } from './eligibility';
-import { classifyStripeTransferFailure, payoutPendingCanRetry } from './treasury-transfer-adapter';
+import { classifyStripeTransferFailure, destinationTransfersActive, payoutPendingCanRetry } from './treasury-transfer-adapter';
 import { createIsolatedHcSellerPayoutStore } from './isolated-payout-engine';
 import type {
   HcSellerPayoutExposureView,
@@ -202,6 +202,12 @@ describe('HC seller payout treasury source', () => {
     const result = classifyStripeTransferFailure({ code: 'balance_insufficient', type: 'invalid_request_error' });
     assert.equal(result.retryable, true);
     assert.equal(result.errorCode, 'balance_insufficient');
+  });
+
+  it('refuses a transfer until the destination transfers capability is active', () => {
+    assert.equal(destinationTransfersActive('pending'), false);
+    assert.equal(destinationTransfersActive('inactive'), false);
+    assert.equal(destinationTransfersActive('active'), true);
   });
 
   it('an in-flight idempotency key is retried instead of marked blocked', () => {
