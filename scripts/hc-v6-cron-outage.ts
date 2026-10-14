@@ -1,6 +1,8 @@
 /**
  * Cron authorization and a Growth outage on the local Marketplace database only.
  */
+import { NextRequest } from "next/server";
+
 import { prisma } from "../lib/prisma";
 import { retryPendingCampaignGrant } from "../lib/hc/qualify-first-listing";
 import { GET as cronGet } from "../app/api/cron/hc-campaign-grant-retry/route";
@@ -34,10 +36,10 @@ async function main() {
   });
   if (!afterOutage.hcCampaignGrantPending) throw new Error("outage cleared the pending reward");
 
-  const denied = await cronGet(new Request("http://127.0.0.1/api/cron/hc-campaign-grant-retry"));
+  const denied = await cronGet(new NextRequest("http://127.0.0.1/api/cron/hc-campaign-grant-retry"));
   if (denied.status !== 401) throw new Error(`cron without secret returned ${denied.status}`);
   const allowed = await cronGet(
-    new Request("http://127.0.0.1/api/cron/hc-campaign-grant-retry", {
+    new NextRequest("http://127.0.0.1/api/cron/hc-campaign-grant-retry", {
       headers: { authorization: `Bearer ${process.env.CRON_SECRET}` },
     }),
   );
