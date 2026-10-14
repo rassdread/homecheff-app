@@ -37,10 +37,14 @@ function eurAvailable(balance: Stripe.Balance): { available: number | null; pend
   };
 }
 
+function accountLivemode(account: Stripe.Account): boolean | undefined {
+  return (account as Stripe.Account & { livemode?: boolean }).livemode;
+}
+
 function snapshot(account: Stripe.Account) {
   return {
     id: account.id,
-    livemode: account.livemode,
+    livemode: accountLivemode(account),
     country: account.country,
     type: account.type,
     businessType: account.business_type,
@@ -99,7 +103,7 @@ async function main() {
   params.tos_acceptance = { date: Math.floor(Date.now() / 1000), ip: "127.0.0.1" };
 
   const created = await stripe.accounts.create(params);
-  if (created.livemode === true) {
+  if (accountLivemode(created) === true) {
     console.log(JSON.stringify({ refused: "ACCOUNT_LIVEMODE", id: created.id }));
     process.exit(2);
   }
@@ -123,7 +127,7 @@ async function main() {
   const funds = eurAvailable(await stripe.balance.retrieve());
   const report: Record<string, unknown> = { account: state, balance: funds, transfer: null };
 
-  if (account.capabilities?.transfers === "active" && account.livemode === false) {
+  if (account.capabilities?.transfers === "active" && accountLivemode(account) === false) {
     let available = funds.available ?? 0;
     if (available < 880) {
       const payment = await stripe.paymentIntents.create({

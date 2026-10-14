@@ -33,10 +33,14 @@ function eur(balance: Stripe.Balance) {
   };
 }
 
+function accountLivemode(account: Stripe.Account): boolean | undefined {
+  return (account as Stripe.Account & { livemode?: boolean }).livemode;
+}
+
 function snapshot(account: Stripe.Account) {
   return {
     id: account.id,
-    livemode: account.livemode === true,
+    livemode: accountLivemode(account) === true,
     country: account.country,
     type: account.type,
     businessType: account.business_type,
@@ -61,7 +65,7 @@ async function main() {
   const balance = await stripe.balance.retrieve();
   if (balance.livemode === true) throw new Error("LIVEMODE");
   const existing = await stripe.accounts.retrieve(accountId);
-  if (existing.livemode === true) throw new Error("ACCOUNT_LIVEMODE");
+  if (accountLivemode(existing) === true) throw new Error("ACCOUNT_LIVEMODE");
 
   const banks = await stripe.accounts.listExternalAccounts(accountId, { object: "bank_account", limit: 5 });
   if (banks.data.length === 0) {
