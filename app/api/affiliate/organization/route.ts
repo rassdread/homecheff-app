@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { growthServiceBase } from "@/lib/hc/preview-service-target";
 import {
   normalizeAffiliateCompanyKvk,
   suggestOwnedCompanyIdentity,
@@ -10,11 +11,7 @@ export const dynamic = "force-dynamic";
 const NO_STORE = { "Cache-Control": "private, no-store, max-age=0" } as const;
 
 function growthBase() {
-  return (
-    process.env.GROWTH_HC_QUOTE_BASE_URL ??
-    process.env.GROWTH_API_BASE_URL ??
-    "https://growth.homecheff.eu"
-  ).replace(/\/$/, "");
+  return growthServiceBase();
 }
 
 function growthSecret() {
@@ -53,15 +50,22 @@ export async function GET(req: Request) {
   if (!organizationId) qs.set("centralUserId", user.id);
 
   const secret = growthSecret();
+  const base = growthBase();
   if (!secret) {
     return NextResponse.json(
       { ok: false, degraded: true, code: "GROWTH_SECRET_MISSING" },
       { status: 200, headers: NO_STORE },
     );
   }
+  if (!base) {
+    return NextResponse.json(
+      { ok: false, degraded: true, code: "CONFIGURATION_ERROR" },
+      { status: 200, headers: NO_STORE },
+    );
+  }
 
   const res = await fetch(
-    `${growthBase()}/api/internal/ecosystem/affiliate/organization?${qs.toString()}`,
+    `${base}/api/internal/ecosystem/affiliate/organization?${qs.toString()}`,
     {
       headers: {
         "x-hc-ecosystem-internal-secret": secret,
@@ -118,8 +122,12 @@ export async function POST(req: Request) {
   }
 
   const secret = growthSecret();
+  const base = growthBase();
   if (!secret) {
     return NextResponse.json({ ok: false, code: "GROWTH_SECRET_MISSING" }, { status: 503, headers: NO_STORE });
+  }
+  if (!base) {
+    return NextResponse.json({ ok: false, code: "CONFIGURATION_ERROR" }, { status: 503, headers: NO_STORE });
   }
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
@@ -146,7 +154,7 @@ export async function POST(req: Request) {
     body.kvkNumber = kvkNumber;
     if (action === "CREATE_ORG") body.isCertificationOnly = false;
   }
-  const res = await fetch(`${growthBase()}/api/internal/ecosystem/affiliate/organization`, {
+  const res = await fetch(`${base}/api/internal/ecosystem/affiliate/organization`, {
     method: "POST",
     headers: {
       "content-type": "application/json",

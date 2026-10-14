@@ -1,18 +1,12 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { retryPendingCampaignGrant } from '@/lib/hc/qualify-first-listing';
+import { growthServiceBase } from '@/lib/hc/preview-service-target';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 const NO_STORE = { 'Cache-Control': 'private, no-store, max-age=0' } as const;
-
-function growthBase(): string {
-  return (process.env.GROWTH_HC_QUOTE_BASE_URL ?? process.env.GROWTH_API_BASE_URL ?? 'https://growth.homecheff.eu').replace(
-    /\/$/,
-    '',
-  );
-}
 
 function ecosystemSecret(): string {
   return (
@@ -44,8 +38,9 @@ export async function GET() {
 
   const centralUserId = await resolveCentralUserId(buyer.id);
   void retryPendingCampaignGrant(buyer.id).catch((e) => console.warn('[hc-campaign] retry', e));
+  const base = growthServiceBase();
   const secret = ecosystemSecret();
-  if (!centralUserId || !secret) {
+  if (!centralUserId || !secret || !base) {
     return NextResponse.json(
       {
         ok: true,
@@ -60,7 +55,7 @@ export async function GET() {
   }
 
   try {
-    const res = await fetch(`${growthBase()}/api/internal/ecosystem/hc/wallet`, {
+    const res = await fetch(`${base}/api/internal/ecosystem/hc/wallet`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${secret}`,

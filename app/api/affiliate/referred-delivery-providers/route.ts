@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { growthServiceBase } from '@/lib/hc/preview-service-target';
 
 export const dynamic = 'force-dynamic';
 const NO_STORE = { 'Cache-Control': 'private, no-store, max-age=0' } as const;
@@ -14,11 +15,7 @@ async function resolveCentralUserId(localUserId: string): Promise<string> {
 }
 
 function growthBase() {
-  return (
-    process.env.GROWTH_HC_QUOTE_BASE_URL ??
-    process.env.GROWTH_API_BASE_URL ??
-    'https://growth.homecheff.eu'
-  ).replace(/\/$/, '');
+  return growthServiceBase();
 }
 
 function growthSecret() {
@@ -67,9 +64,16 @@ export async function GET(req: Request) {
     const organizationId = url.searchParams.get('organizationId')?.trim() || '';
     const filter = url.searchParams.get('filter')?.trim() || 'ALL';
     const secret = growthSecret();
+    const base = growthBase();
     if (!secret) {
       return NextResponse.json(
         { ok: false, degraded: true, code: 'GROWTH_SECRET_MISSING' },
+        { status: 200, headers: NO_STORE },
+      );
+    }
+    if (!base) {
+      return NextResponse.json(
+        { ok: false, degraded: true, code: 'CONFIGURATION_ERROR' },
         { status: 200, headers: NO_STORE },
       );
     }
@@ -77,7 +81,7 @@ export async function GET(req: Request) {
     const qs = new URLSearchParams();
     if (organizationId) qs.set('organizationId', organizationId);
     if (filter) qs.set('filter', filter);
-    const growthUrl = `${growthBase()}/api/ecosystem/affiliate/referred-delivery?${qs.toString()}`;
+    const growthUrl = `${base}/api/ecosystem/affiliate/referred-delivery?${qs.toString()}`;
     const res = await fetch(growthUrl, {
       headers: {
         Authorization: `Bearer ${secret}`,

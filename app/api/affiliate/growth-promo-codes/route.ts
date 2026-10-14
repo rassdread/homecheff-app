@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { growthServiceBase } from "@/lib/hc/preview-service-target";
 
 export const dynamic = "force-dynamic";
 const NO_STORE = { "Cache-Control": "private, no-store, max-age=0" } as const;
 
 function growthBase() {
-  return (
-    process.env.GROWTH_HC_QUOTE_BASE_URL ??
-    process.env.GROWTH_API_BASE_URL ??
-    "https://growth.homecheff.eu"
-  ).replace(/\/$/, "");
+  return growthServiceBase();
 }
 
 function growthSecret() {
@@ -51,10 +48,14 @@ export async function GET() {
   const authz = await sessionAffiliate();
   if ("error" in authz) return authz.error;
   const secret = growthSecret();
+  const base = growthBase();
   if (!secret) {
     return NextResponse.json({ ok: false, code: "GROWTH_SECRET_MISSING" }, { status: 503, headers: NO_STORE });
   }
-  const url = new URL(`${growthBase()}/api/internal/ecosystem/affiliate/growth-promo-codes`);
+  if (!base) {
+    return NextResponse.json({ ok: false, code: "CONFIGURATION_ERROR" }, { status: 503, headers: NO_STORE });
+  }
+  const url = new URL(`${base}/api/internal/ecosystem/affiliate/growth-promo-codes`);
   url.searchParams.set("centralUserId", authz.user.id);
   if (authz.affiliate.parentAffiliateId) url.searchParams.set("isSubAffiliate", "1");
   const res = await fetch(url, { headers: internalHeaders(secret), cache: "no-store" });
@@ -66,14 +67,18 @@ export async function POST(req: Request) {
   const authz = await sessionAffiliate();
   if ("error" in authz) return authz.error;
   const secret = growthSecret();
+  const base = growthBase();
   if (!secret) {
     return NextResponse.json({ ok: false, code: "GROWTH_SECRET_MISSING" }, { status: 503, headers: NO_STORE });
+  }
+  if (!base) {
+    return NextResponse.json({ ok: false, code: "CONFIGURATION_ERROR" }, { status: 503, headers: NO_STORE });
   }
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body) {
     return NextResponse.json({ error: "Ongeldige body" }, { status: 400, headers: NO_STORE });
   }
-  const res = await fetch(`${growthBase()}/api/internal/ecosystem/affiliate/growth-promo-codes`, {
+  const res = await fetch(`${base}/api/internal/ecosystem/affiliate/growth-promo-codes`, {
     method: "POST",
     headers: internalHeaders(secret),
     cache: "no-store",

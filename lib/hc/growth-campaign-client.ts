@@ -1,13 +1,7 @@
 import { prisma } from '@/lib/prisma';
+import { resolveGrowthMutationTarget, resolveGrowthServiceTarget } from '@/lib/hc/preview-service-target';
 
 const NO_STORE = { 'Cache-Control': 'private, no-store, max-age=0' } as const;
-
-function growthBase(): string {
-  return (process.env.GROWTH_HC_QUOTE_BASE_URL ?? process.env.GROWTH_API_BASE_URL ?? 'https://growth.homecheff.eu').replace(
-    /\/$/,
-    '',
-  );
-}
 
 function ecosystemSecret(): string {
   return (
@@ -30,11 +24,13 @@ export async function qualifyListingOnGrowth(input: {
   promoCode: string;
   stripeConnectVerified: boolean;
 }): Promise<{ ok: boolean; pending?: boolean; code?: string; message?: string }> {
+  const target = resolveGrowthMutationTarget();
   const secret = ecosystemSecret();
+  if (!target.ok) return { ok: false, code: 'CONFIGURATION_ERROR' };
   if (!secret || !input.centralUserId || !input.promoCode) {
     return { ok: false, code: 'GROWTH_UNAVAILABLE' };
   }
-  const res = await fetch(`${growthBase()}/api/internal/ecosystem/hc/qualify-listing`, {
+  const res = await fetch(`${target.base}/api/internal/ecosystem/hc/qualify-listing`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${secret}`,
@@ -73,9 +69,11 @@ export type PublicCampaignOffer = {
 };
 
 export async function describeCampaignOnGrowth(code: string): Promise<PublicCampaignOffer> {
+  const target = resolveGrowthServiceTarget();
   const secret = ecosystemSecret();
+  if (!target.ok) return { visible: false, reason: 'CONFIGURATION_ERROR' };
   if (!secret || !code) return { visible: false, reason: 'UNAVAILABLE' };
-  const res = await fetch(`${growthBase()}/api/internal/ecosystem/hc/campaign-public`, {
+  const res = await fetch(`${target.base}/api/internal/ecosystem/hc/campaign-public`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${secret}`,

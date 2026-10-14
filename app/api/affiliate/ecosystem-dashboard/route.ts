@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { growthServiceBase } from "@/lib/hc/preview-service-target";
 
 export const dynamic = "force-dynamic";
 
@@ -38,11 +39,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok: false, code: "NO_IDENTITY" }, { status: 422, headers: NO_STORE });
     }
 
-    const origin = (
-      process.env.GROWTH_HC_QUOTE_BASE_URL ??
-      process.env.GROWTH_API_BASE_URL ??
-      "https://growth.homecheff.eu"
-    ).replace(/\/$/, "");
+    const origin = growthServiceBase();
     const secret =
       process.env.HC_ECOSYSTEM_INTERNAL_SECRET?.trim() ||
       process.env.HC_MARKETPLACE_QUOTE_INTERNAL_SECRET?.trim() ||
@@ -50,6 +47,18 @@ export async function GET(req: Request) {
       process.env.HC_INTERNAL_PROBE_SECRET?.trim() ||
       process.env.GROWTH_INTERNAL_SECRET?.trim() ||
       "";
+    if (!secret || !origin) {
+      return NextResponse.json(
+        {
+          ok: false,
+          degraded: true,
+          code: !origin ? "CONFIGURATION_ERROR" : "GROWTH_SECRET_MISSING",
+          message: "Affiliate-overzicht tijdelijk niet beschikbaar.",
+        },
+        { status: 200, headers: NO_STORE },
+      );
+    }
+
     const url = new URL(req.url);
     const source = url.searchParams.get("source") ?? "marketplace";
     const growthUrl = new URL(`${origin}/api/ecosystem/affiliate/dashboard`);
@@ -57,18 +66,6 @@ export async function GET(req: Request) {
     for (const key of ["from", "to", "product"] as const) {
       const value = url.searchParams.get(key);
       if (value) growthUrl.searchParams.set(key, value);
-    }
-
-    if (!secret) {
-      return NextResponse.json(
-        {
-          ok: false,
-          degraded: true,
-          code: "GROWTH_SECRET_MISSING",
-          message: "Affiliate-overzicht tijdelijk niet beschikbaar.",
-        },
-        { status: 200, headers: NO_STORE },
-      );
     }
 
     const res = await fetch(growthUrl.toString(), {

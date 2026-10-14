@@ -1,19 +1,13 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { sumOpenSellerLiabilityCents } from '@/lib/hc/open-seller-liability';
+import { resolveGrowthMutationTarget } from '@/lib/hc/preview-service-target';
 import { prisma } from '@/lib/prisma';
 import { readPlatformTransferBalance } from '@/lib/stripe/platform-transfer-balance';
 
 export const dynamic = 'force-dynamic';
 
 const NO_STORE = { 'Cache-Control': 'private, no-store, max-age=0' } as const;
-
-function growthBase(): string {
-  return (process.env.GROWTH_HC_QUOTE_BASE_URL ?? process.env.GROWTH_API_BASE_URL ?? 'https://growth.homecheff.eu').replace(
-    /\/$/,
-    '',
-  );
-}
 
 function ecosystemSecret(): string {
   return (
@@ -52,6 +46,13 @@ export async function POST(req: Request) {
   if (!admin) {
     return NextResponse.json({ ok: false, message: 'Geen toegang.' }, { status: 403, headers: NO_STORE });
   }
+  const target = resolveGrowthMutationTarget();
+  if (!target.ok) {
+    return NextResponse.json(
+      { ok: false, code: 'CONFIGURATION_ERROR', message: 'Growth is niet gekoppeld.' },
+      { status: 503, headers: NO_STORE },
+    );
+  }
   const secret = ecosystemSecret();
   if (!secret) {
     return NextResponse.json({ ok: false, message: 'Growth is niet gekoppeld.' }, { status: 503, headers: NO_STORE });
@@ -71,7 +72,7 @@ export async function POST(req: Request) {
   const treasury = await attachTreasury(body.action);
   if (treasury) Object.assign(body, treasury);
   try {
-    const res = await fetch(`${growthBase()}/api/internal/ecosystem/hc/admin-campaigns`, {
+    const res = await fetch(`${target.base}/api/internal/ecosystem/hc/admin-campaigns`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${secret}`,

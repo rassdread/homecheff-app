@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { retryPendingCampaignGrant } from '@/lib/hc/qualify-first-listing';
 import { HC_CAMPAIGN_GRANT_RETRY_BACKOFF_MS, HC_CAMPAIGN_GRANT_RETRY_LIMIT } from '@/lib/hc/campaign-grant-retry';
+import { isPreviewDeployment } from '@/lib/hc/preview-service-target';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -15,6 +16,9 @@ function authorizeCron(req: NextRequest): boolean {
 
 /** Bounded retry for listing rewards after a Growth outage. One failure does not stop the batch. */
 export async function GET(req: NextRequest) {
+  if (isPreviewDeployment()) {
+    return NextResponse.json({ ok: true, skipped: true, reason: 'PREVIEW_MUTATIONS_DISABLED' });
+  }
   if (!authorizeCron(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

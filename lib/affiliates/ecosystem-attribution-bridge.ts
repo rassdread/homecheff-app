@@ -2,12 +2,10 @@
  * Bridge Marketplace local attribution / sub-tree → Growth ecosystem (forward-looking).
  * Non-blocking for signup; Delivery accrual treats resolve/record failures as soft skip → legacy path.
  */
+import { growthServiceBase } from "@/lib/hc/preview-service-target";
+
 async function growthInternalBase(): Promise<{ base: string; secret: string } | null> {
-  const base = (
-    process.env.GROWTH_HC_QUOTE_BASE_URL ??
-    process.env.GROWTH_API_BASE_URL ??
-    'https://growth.homecheff.eu'
-  ).replace(/\/$/, '');
+  const base = growthServiceBase();
   const secret = (
     process.env.HC_ECOSYSTEM_INTERNAL_SECRET ??
     process.env.HC_INTERNAL_PROBE_SECRET ??
@@ -15,7 +13,7 @@ async function growthInternalBase(): Promise<{ base: string; secret: string } | 
     process.env.HC_MARKETPLACE_QUOTE_INTERNAL_SECRET ??
     ''
   ).trim();
-  if (!secret) return null;
+  if (!base || !secret) return null;
   return { base, secret };
 }
 

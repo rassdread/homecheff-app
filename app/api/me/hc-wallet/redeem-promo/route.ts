@@ -1,17 +1,11 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { growthServiceBase } from '@/lib/hc/preview-service-target';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 const NO_STORE = { 'Cache-Control': 'private, no-store, max-age=0' } as const;
-
-function growthBase(): string {
-  return (process.env.GROWTH_HC_QUOTE_BASE_URL ?? process.env.GROWTH_API_BASE_URL ?? 'https://growth.homecheff.eu').replace(
-    /\/$/,
-    '',
-  );
-}
 
 function ecosystemSecret(): string {
   return (
@@ -44,7 +38,14 @@ export async function POST(req: Request) {
   }
 
   const centralUserId = await resolveCentralUserId(buyer.id);
+  const base = growthServiceBase();
   const secret = ecosystemSecret();
+  if (!base) {
+    return NextResponse.json(
+      { ok: false, code: 'CONFIGURATION_ERROR', message: 'Growth is niet gekoppeld.' },
+      { status: 503, headers: NO_STORE },
+    );
+  }
   if (!centralUserId || !secret) {
     return NextResponse.json({ ok: false, message: 'Account niet gekoppeld.' }, { status: 400, headers: NO_STORE });
   }
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const res = await fetch(`${growthBase()}/api/internal/ecosystem/hc/redeem-promo`, {
+    const res = await fetch(`${base}/api/internal/ecosystem/hc/redeem-promo`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${secret}`,
