@@ -47,6 +47,15 @@ function eur(cents: number): string {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 }
 
+function budgetFaceCents(campaign: Campaign): number | null {
+  const perClaim = Math.max(0, Math.floor(campaign.hcAmount));
+  const byClaims = campaign.maxClaims == null ? null : perClaim * Math.max(0, campaign.maxClaims);
+  const byBudget = campaign.maxTotalHcIssued == null ? null : Math.max(0, campaign.maxTotalHcIssued);
+  if (byClaims == null && byBudget == null) return null;
+  if (byClaims != null && byBudget != null) return Math.min(byClaims, byBudget);
+  return byClaims ?? byBudget;
+}
+
 function coverageLabel(code: string): string {
   if (code === 'COVERED') return 'voldoende op deze momentopname';
   if (code === 'COVERAGE_UNKNOWN') return 'dekking onbekend';
@@ -347,9 +356,14 @@ export default function AdminHcCampaignsPanel() {
               Marketplace {c.marketplaceEligible ? 'aan' : 'uit'} · Studio {c.studioEligible ? 'aan' : 'uit'} · Growth {c.growthEligible ? 'aan' : 'uit'}
               {c.sellerPrincipalEligible ? ' · treasury-financiering aan' : ''}
             </p>
-            {c.coverage ? (
+            {c.coverage?.code === 'COVERAGE_NOT_REQUIRED' ? (
               <p className="text-gray-700">
-                Nominale waarde {c.coverage.nominalFaceCents == null ? 'onbegrensd' : eur(c.coverage.nominalFaceCents)}
+                HC-budget {budgetFaceCents(c) == null ? 'niet ingesteld' : eur(budgetFaceCents(c) as number)}
+                {' · Stripe-reservering €0,00 · geen Stripe-dekking vereist'}
+              </p>
+            ) : c.coverage ? (
+              <p className="text-gray-700">
+                Nominale waarde {c.coverage.nominalFaceCents == null ? 'geen eindig budget' : eur(c.coverage.nominalFaceCents)}
                 {c.coverage.reservationCents != null ? ` · reservering ${eur(c.coverage.reservationCents)}` : ''}
                 {' · '}{coverageLabel(c.coverage.code)}
               </p>
