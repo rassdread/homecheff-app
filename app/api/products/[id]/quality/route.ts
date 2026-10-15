@@ -16,7 +16,7 @@ const NO_STORE = { "Cache-Control": "private, no-store, max-age=0" } as const;
 /** Owner-only quality. Buyers and anonymous visitors get no score. */
 export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
   const session = await auth();
-  const viewerId = session?.user?.id;
+  const viewerId = (session?.user as { id?: string } | undefined)?.id;
   if (!viewerId) {
     return NextResponse.json({ ok: false }, { status: 401, headers: NO_STORE });
   }
