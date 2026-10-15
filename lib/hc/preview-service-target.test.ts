@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import test from "node:test";
 import {
   PRODUCTION_GROWTH_ORIGIN,
@@ -70,6 +71,11 @@ test("preview without a bypass secret adds no protection header", () => {
     VERCEL_ENV: "preview",
   });
   assert.deepEqual(headers, {});
+});
+
+test("listing qualification sends the preview protection header only through the shared helper", () => {
+  const source = fs.readFileSync(new URL("./growth-campaign-client.ts", import.meta.url), "utf8");
+  assert.equal(source.split("growthPreviewProtectionHeaders(target.base)").length - 1, 2);
 });
 
 test("production keeps the existing Growth origin when no override is set", () => {

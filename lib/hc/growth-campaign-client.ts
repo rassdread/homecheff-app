@@ -1,5 +1,9 @@
 import { prisma } from '@/lib/prisma';
-import { resolveGrowthMutationTarget, resolveGrowthServiceTarget } from '@/lib/hc/preview-service-target';
+import {
+  growthPreviewProtectionHeaders,
+  resolveGrowthMutationTarget,
+  resolveGrowthServiceTarget,
+} from '@/lib/hc/preview-service-target';
 
 const NO_STORE = { 'Cache-Control': 'private, no-store, max-age=0' } as const;
 
@@ -37,6 +41,7 @@ export async function qualifyListingOnGrowth(input: {
       'x-central-user-id': input.centralUserId,
       'Content-Type': 'application/json',
       Accept: 'application/json',
+      ...growthPreviewProtectionHeaders(target.base),
       ...NO_STORE,
     },
     body: JSON.stringify({
@@ -79,6 +84,7 @@ export async function describeCampaignOnGrowth(code: string): Promise<PublicCamp
       Authorization: `Bearer ${secret}`,
       'Content-Type': 'application/json',
       Accept: 'application/json',
+      ...growthPreviewProtectionHeaders(target.base),
     },
     body: JSON.stringify({ code }),
     cache: 'no-store',
