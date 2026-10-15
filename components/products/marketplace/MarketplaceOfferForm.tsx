@@ -1067,15 +1067,17 @@ export default function MarketplaceOfferForm({
 
   return (
     <form onSubmit={(e) => void validateAndSubmit(e)} className="space-y-6">
-      <ListingQualityCard
-        score={liveQuality.scored.score}
-        bandNl={liveQuality.band.nl}
-        bandEn={liveQuality.band.en}
-        hints={liveQuality.hints}
-        summaryNl={liveQuality.reward.nl}
-        summaryEn={liveQuality.reward.en}
-        language={language}
-      />
+      {editMode ? null : (
+        <ListingQualityCard
+          score={liveQuality.scored.score}
+          bandNl={liveQuality.band.nl}
+          bandEn={liveQuality.band.en}
+          hints={liveQuality.hints}
+          summaryNl={liveQuality.reward.nl}
+          summaryEn={liveQuality.reward.en}
+          language={language}
+        />
+      )}
       <MinorAccountGate />
       <CommerceDeclarationModal
         open={commerceModalOpen}
