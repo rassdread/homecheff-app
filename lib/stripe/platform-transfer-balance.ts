@@ -12,6 +12,7 @@ export type PlatformTransferBalance = {
   currency: string | null;
   livemode: boolean | null;
   balanceType: 'payments';
+  readAt: string | null;
 };
 
 const UNKNOWN: PlatformTransferBalance = {
@@ -21,6 +22,7 @@ const UNKNOWN: PlatformTransferBalance = {
   currency: null,
   livemode: null,
   balanceType: 'payments',
+  readAt: null,
 };
 
 type BalanceClient = {
@@ -48,6 +50,7 @@ export async function readPlatformTransferBalance(client?: BalanceClient | null)
       currency: 'eur',
       livemode: balance.livemode === true,
       balanceType: 'payments',
+      readAt: new Date().toISOString(),
     };
   } catch {
     return UNKNOWN;

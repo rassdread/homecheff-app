@@ -41,6 +41,7 @@ type PlatformBalance = {
   availableCents?: number | null;
   pendingCents?: number | null;
   livemode?: boolean | null;
+  readAt?: string | null;
 };
 
 function eur(cents: number): string {
@@ -330,6 +331,8 @@ export default function AdminHcCampaignsPanel() {
             <p>Beschikbaar voor transfers: {eur(platformBalance.availableCents)}{platformBalance.livemode === false ? ' · testgegevens' : ''}</p>
             <p>Nog niet beschikbaar: {platformBalance.pendingCents == null ? 'onbekend' : eur(platformBalance.pendingCents)}</p>
             <p>Openstaande verkopersverplichtingen: {openLiabilities == null ? 'onbekend' : eur(openLiabilities)}</p>
+            <p>Gelezen: {platformBalance.readAt ? new Date(platformBalance.readAt).toLocaleString('nl-NL') : 'tijdens het laden van deze pagina'}</p>
+            <p>Het bedrag dat nog niet beschikbaar is, telt niet als dekking.</p>
           </div>
         ) : (
           <p className="mt-2 text-amber-900">Stripe-saldo onbekend. Onbekende dekking blokkeert het activeren van een Marketplace-campagne en telt niet als €0.</p>
