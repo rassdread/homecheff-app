@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { ArrowLeft, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import CategoryFormSelector from '@/components/products/CategoryFormSelector';
+import { OwnerListingQuality } from '@/components/products/OwnerListingQuality';
 import { getProfileHrefAfterProductEdit } from '@/lib/profileProductTab';
 import {
   buildProductEditPath,
@@ -273,6 +274,7 @@ export default function EditProductPage() {
         )}
 
         {/* Use CategoryFormSelector with correct category */}
+        {product?.id ? <OwnerListingQuality productId={product.id} /> : null}
         {product && (
           <CategoryFormSelector
             category={product.category as 'CHEFF' | 'GARDEN' | 'DESIGNER'}

@@ -17,6 +17,8 @@ type Campaign = {
   growthEligible?: boolean;
   sellerPrincipalEligible?: boolean;
   claimCount: number;
+  qualificationCount?: number;
+  grantedCount?: number;
   maxClaims?: number | null;
   totalHcIssued: number;
   maxTotalHcIssued?: number | null;
@@ -68,6 +70,8 @@ async function post(body: Record<string, unknown>) {
     platformBalance?: PlatformBalance;
     outstandingSellerLiabilityCents?: number | null;
     preview?: { requiresConfirmation?: boolean; faceEurCents?: number };
+    qualifications?: Array<{ centralUserId: string; listingRef: string | null; qualityScore: number | null; rule: string; createdAt: string }>;
+    claims?: Array<{ centralUserId: string; status: string; hcAmount: number; blockReason: string | null }>;
   };
 }
 
@@ -142,6 +146,10 @@ function CampaignDraftEditor({
 
 export default function AdminHcCampaignsPanel() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [facts, setFacts] = useState<Record<string, {
+    qualifications: Array<{ centralUserId: string; listingRef: string | null; qualityScore: number | null; rule: string; createdAt: string }>;
+    claims: Array<{ centralUserId: string; status: string; hcAmount: number; blockReason: string | null }>;
+  } | null>>({});
   const [platformBalance, setPlatformBalance] = useState<PlatformBalance | null>(null);
   const [openLiabilities, setOpenLiabilities] = useState<number | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -319,7 +327,7 @@ export default function AdminHcCampaignsPanel() {
               {c.requireStripeConnect ? ' · Stripe verplicht' : ''}
             </p>
             <p className="text-gray-500">
-              claims {c.claimCount}{c.maxClaims != null ? `/${c.maxClaims}` : ''} · uitgegeven {c.totalHcIssued} HC
+              kwalificaties {c.qualificationCount ?? 0} · claims {c.claimCount}{c.maxClaims != null ? `/${c.maxClaims}` : ''} · toegekend {c.grantedCount ?? 0} · uitgegeven {c.totalHcIssued} HC
               {c.remainingHc != null ? ` · resterend ${c.remainingHc} HC` : ''}
               {` · pending ${c.pendingCount ?? 0}`}
               {` · geweigerd ${c.rejectedCount ?? 0}`}
@@ -343,6 +351,34 @@ export default function AdminHcCampaignsPanel() {
             ) : null}
             {c.status === 'DRAFT' || c.status === 'PAUSED' ? (
               <CampaignDraftEditor campaign={c} disabled={busy} onDone={() => void load()} />
+            ) : null}
+            <button
+              type="button"
+              className="mt-2 text-sm text-emerald-800 underline"
+              onClick={() => void post({ action: 'rewards', campaignId: c.id }).then((json) => {
+                setFacts((prev) => ({
+                  ...prev,
+                  [c.id]: json.ok
+                    ? { qualifications: json.qualifications ?? [], claims: json.claims ?? [] }
+                    : null,
+                }));
+              })}
+            >
+              Kwalificaties bekijken
+            </button>
+            {facts[c.id] ? (
+              <div className="mt-2 space-y-1 text-gray-700">
+                {facts[c.id]?.qualifications.length ? facts[c.id]?.qualifications.map((row) => (
+                  <p key={`${row.centralUserId}-${row.createdAt}`}>
+                    Kwalificatie {row.centralUserId.slice(0, 8)} · listing {row.listingRef ? row.listingRef.slice(0, 8) : 'niet beschikbaar'} · score {row.qualityScore ?? 'niet beschikbaar'} · {row.rule} · geen toekenning in deze regel
+                  </p>
+                )) : <p>Geen kwalificaties.</p>}
+                {facts[c.id]?.claims.length ? facts[c.id]?.claims.map((row) => (
+                  <p key={`${row.centralUserId}-${row.status}`}>
+                    Claim {row.centralUserId.slice(0, 8)} · {row.status} · {row.hcAmount} HC{row.blockReason ? ` · ${row.blockReason}` : ''}
+                  </p>
+                )) : <p>Geen claims.</p>}
+              </div>
             ) : null}
             <div className="mt-2 flex flex-wrap gap-2">
               {(['ACTIVE', 'PAUSED', 'ENDED'] as const).map((status) => (

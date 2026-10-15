@@ -27,6 +27,8 @@ export async function qualifyListingOnGrowth(input: {
   centralUserId: string;
   promoCode: string;
   stripeConnectVerified: boolean;
+  listingRef?: string | null;
+  qualityScore?: number | null;
 }): Promise<{ ok: boolean; pending?: boolean; code?: string; message?: string }> {
   const target = resolveGrowthMutationTarget();
   const secret = ecosystemSecret();
@@ -47,6 +49,8 @@ export async function qualifyListingOnGrowth(input: {
     body: JSON.stringify({
       promoCode: input.promoCode,
       stripeConnectVerified: input.stripeConnectVerified === true,
+      listingRef: input.listingRef ?? null,
+      qualityScore: typeof input.qualityScore === "number" ? input.qualityScore : null,
     }),
     cache: 'no-store',
   }).catch(() => null);

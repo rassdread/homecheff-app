@@ -3,6 +3,13 @@
 import * as React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { ListingQualityCard } from '@/components/products/ListingQualityCard';
+import {
+  explainListingReward,
+  listingQualityBand,
+  listingQualityHints,
+  scoreListingQuality,
+} from '@/lib/acquisition/listing-quality';
 import { Loader2 } from 'lucide-react';
 import SimpleImageUploader from '@/components/products/SimpleImageUploader';
 import VideoUploader from '@/components/ui/VideoUploader';
@@ -141,7 +148,7 @@ export default function MarketplaceOfferForm({
 }: Props) {
   const { data: session } = useSession();
   const { showHcpRewardToast } = useHcpRewardUi();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   const resolvedCategory =
     initialMarketplaceCategory ??
@@ -1001,8 +1008,74 @@ export default function MarketplaceOfferForm({
     }
   };
 
+  const liveQuality = useMemo(() => {
+    const delivery = fulfillment.shipping
+      ? 'SHIPPING'
+      : fulfillment.delivery || sellerCanDeliver
+        ? 'DELIVERY'
+        : fulfillment.pickup
+          ? 'PICKUP'
+          : '';
+    const priceCents = Math.round(Number(price || 0) * 100);
+    const scored = scoreListingQuality({
+      title,
+      description,
+      priceCents: Number.isFinite(priceCents) ? priceCents : 0,
+      priceModel,
+      marketplaceCategory,
+      placeName: placeName || profilePlace,
+      pickupAddress,
+      pickupLat,
+      pickupLng,
+      delivery,
+      sellerCanDeliver,
+      stock: Number(stock) || 0,
+      isActive,
+      imageCount: images.length,
+      hasVideo: Boolean(video),
+      sellerDisplayName: session?.user?.name || null,
+      userCity: profileCity,
+    });
+    const band = listingQualityBand(scored.score);
+    const reward = explainListingReward({
+      score: scored.score,
+      linkedToCampaign: false,
+      isFirstQualifiedListing: false,
+      grantPending: false,
+    });
+    return { scored, band, reward, hints: listingQualityHints(scored) };
+  }, [
+    fulfillment,
+    sellerCanDeliver,
+    price,
+    title,
+    description,
+    priceModel,
+    marketplaceCategory,
+    placeName,
+    profilePlace,
+    pickupAddress,
+    pickupLat,
+    pickupLng,
+    stock,
+    isActive,
+    images.length,
+    video,
+    session?.user?.name,
+    profileCity,
+  ]);
+
   return (
     <form onSubmit={(e) => void validateAndSubmit(e)} className="space-y-6">
+      <ListingQualityCard
+        score={liveQuality.scored.score}
+        bandNl={liveQuality.band.nl}
+        bandEn={liveQuality.band.en}
+        hints={liveQuality.hints}
+        summaryNl={liveQuality.reward.nl}
+        summaryEn={liveQuality.reward.en}
+        language={language}
+      />
       <MinorAccountGate />
       <CommerceDeclarationModal
         open={commerceModalOpen}

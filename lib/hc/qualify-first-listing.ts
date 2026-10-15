@@ -112,6 +112,8 @@ export async function qualifyFirstValidListingReward(input: {
     centralUserId,
     promoCode,
     stripeConnectVerified: stripe.paymentReady === true && Boolean(user.stripeConnectAccountId),
+    listingRef: input.productId,
+    qualityScore: input.qualityScore,
   });
   if (campaignGrantAttemptSettled(result)) {
     await prisma.user.update({
