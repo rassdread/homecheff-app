@@ -1037,7 +1037,7 @@ export async function POST(req: Request) {
           User: { city: user.city },
         },
       });
-      void qualifyFirstValidListingReward({
+      await qualifyFirstValidListingReward({
         userId: user.id,
         productId: result.id,
         isActive: result.isActive,

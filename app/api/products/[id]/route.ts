@@ -1078,7 +1078,7 @@ export async function PATCH(
               ...updatedProduct,
               seller,
             });
-            void qualifyFirstValidListingReward({
+            await qualifyFirstValidListingReward({
               userId: sellerUid,
               productId: updatedProduct.id,
               isActive: updatedProduct.isActive,
