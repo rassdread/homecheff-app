@@ -5,6 +5,7 @@ import {
   ALLOWED_PREVIEW_GOOGLE_BRANCH,
   ALLOWED_PREVIEW_GOOGLE_HOST,
   isExactPreviewGoogleHost,
+  previewGoogleOAuthBlockReason,
   resolvePreviewGoogleOAuthClient,
 } from './preview-google-oauth';
 
@@ -28,6 +29,7 @@ test('the allowlisted preview host can use a separate Google client', () => {
   const client = resolvePreviewGoogleOAuthClient(allowedEnv());
   assert.equal(client?.clientId, previewId);
   assert.equal(client?.source, 'GOOGLE_PREVIEW_WEB_CLIENT_ID');
+  assert.equal(previewGoogleOAuthBlockReason(allowedEnv()), null);
 });
 
 test('production and other previews stay without the preview client', () => {
@@ -77,6 +79,7 @@ test('the auth route hides Google outside the exact preview host', () => {
   assert.match(route, /isExactPreviewGoogleHost/);
   assert.match(route, /delete data\.google/);
   assert.match(route, /signin\/google/);
+  assert.match(route, /handler\(req, context\)/);
 });
 
 test('only the exact preview host is allowed', () => {

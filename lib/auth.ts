@@ -22,7 +22,10 @@ import {
   googleClientIdPreview,
   resolveGoogleWebOAuthClient,
 } from "./auth/google-oauth-clients";
-import { resolvePreviewGoogleOAuthClient } from "./auth/preview-google-oauth";
+import {
+  previewGoogleOAuthBlockReason,
+  resolvePreviewGoogleOAuthClient,
+} from "./auth/preview-google-oauth";
 import { NEXTAUTH_SESSION_COOKIE_NAME } from "./auth/session-cookie-name";
 import { withPrismaRetry } from "./auth/prisma-retry";
 import { sanitizePostAuthRelativeUrl } from "./auth/post-auth-redirect";
@@ -46,9 +49,9 @@ const previewGoogleClient = resolvePreviewGoogleOAuthClient();
 const googleWebClient = productionGoogleClient || previewGoogleClient;
 const isGoogleAuthConfigured = Boolean(googleWebClient);
 if (!isGoogleAuthConfigured) {
-  console.warn(
-    "[auth] Google OAuth disabled: missing GOOGLE_CLIENT_ID/GOOGLE_WEB_CLIENT_ID and/or matching secret",
-  );
+  console.warn("[auth] Google OAuth disabled", {
+    previewReason: isPreviewDeployment() ? previewGoogleOAuthBlockReason() : undefined,
+  });
 } else {
   console.info("[auth] Google web OAuth configured", {
     clientId: googleClientIdPreview(googleWebClient!.clientId),

@@ -19,7 +19,7 @@ function blocksPreviewGoogle(req: Request): boolean {
   return isPreviewDeployment() && !isExactPreviewGoogleHost(requestHost(req));
 }
 
-async function handle(req: Request) {
+async function handle(req: Request, context: { params?: { nextauth?: string[] } }) {
   const path = new URL(req.url).pathname;
   if (blocksPreviewGoogle(req) && path.includes("/signin/google")) {
     return NextResponse.json(
@@ -28,7 +28,7 @@ async function handle(req: Request) {
     );
   }
 
-  const response = await handler(req);
+  const response = await handler(req, context);
   if (blocksPreviewGoogle(req) && path.endsWith("/providers")) {
     const data = await response.clone().json().catch(() => null);
     if (data && typeof data === "object") {
