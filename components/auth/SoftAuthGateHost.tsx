@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
@@ -15,6 +16,7 @@ import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
 
 export default function SoftAuthGateHost() {
   const { t } = useTranslation();
+  const { status } = useSession();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const nativeMounted = useIsNativeAppMounted();
@@ -37,6 +39,10 @@ export default function SoftAuthGateHost() {
     window.addEventListener(SOFT_AUTH_OPEN_EVENT, onOpen as EventListener);
     return () => window.removeEventListener(SOFT_AUTH_OPEN_EVENT, onOpen as EventListener);
   }, [onOpen]);
+
+  useEffect(() => {
+    if (status === 'authenticated') setOpen(false);
+  }, [status]);
 
   const title = t(`softGate.${copyKey}.title`);
   const body = t(`softGate.${copyKey}.body`);

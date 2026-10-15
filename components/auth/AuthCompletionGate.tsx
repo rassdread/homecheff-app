@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   needsProfileOnboardingFromFlags,
   onboardingFlagsFromSessionUser,
@@ -45,6 +47,9 @@ export default function AuthCompletionGate() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { language } = useTranslation();
+  const en = language === 'en';
+  const [noticeDismissed, setNoticeDismissed] = useState(false);
   const lastIntentKey = useRef<string | null>(null);
   const lastReplaceRef = useRef<{ to: string; at: number } | null>(null);
 
@@ -69,11 +74,7 @@ export default function AuthCompletionGate() {
         socialOnboardingCompleted?: boolean | null;
       };
       const flags = onboardingFlagsFromSessionUser(user);
-      if (needsProfileOnboardingFromFlags(flags)) {
-        if (pathSkipsOnboardingGate(pathname)) return;
-        replaceOnce('/onboarding/complete-profile');
-        return;
-      }
+      if (needsProfileOnboardingFromFlags(flags)) return;
 
       if (pathSkipsIntentResume(pathname)) return;
 
@@ -114,5 +115,40 @@ export default function AuthCompletionGate() {
     }
   }, [pathname, router, searchParams, session?.user, status]);
 
-  return null;
+  const user = session?.user as
+    | { username?: string | null; socialOnboardingCompleted?: boolean | null }
+    | undefined;
+  const showNotice =
+    status === 'authenticated' &&
+    !!user &&
+    !noticeDismissed &&
+    !pathSkipsOnboardingGate(pathname) &&
+    needsProfileOnboardingFromFlags(onboardingFlagsFromSessionUser(user));
+
+  if (!showNotice) return null;
+
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-16 z-30 px-3 sm:px-4">
+      <div
+        role="status"
+        className="pointer-events-auto mx-auto flex max-w-3xl items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-950 shadow-sm"
+      >
+        <p className="min-w-0 flex-1 leading-relaxed">
+          {en
+            ? 'Your profile is not complete yet. You can keep using the feed, listings and search.'
+            : 'Je profiel is nog niet compleet. Je kunt de feed, listings en zoeken gewoon blijven gebruiken.'}{' '}
+          <Link href="/settings" className="font-semibold underline">
+            {en ? 'Complete profile' : 'Profiel aanvullen'}
+          </Link>
+        </p>
+        <button
+          type="button"
+          className="shrink-0 rounded-md px-2 py-1 text-xs font-semibold text-amber-950 hover:bg-amber-100"
+          onClick={() => setNoticeDismissed(true)}
+        >
+          {en ? 'Close' : 'Sluiten'}
+        </button>
+      </div>
+    </div>
+  );
 }

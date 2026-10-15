@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type Campaign = {
   id: string;
@@ -170,8 +170,11 @@ export default function AdminHcCampaignsPanel() {
     confirmTreasury: false,
   });
 
+  const loadSeq = useRef(0);
   const load = useCallback(async () => {
+    const seq = ++loadSeq.current;
     const json = await post({ action: 'list' });
+    if (seq !== loadSeq.current) return;
     setPlatformBalance(json.platformBalance ?? { known: false });
     setOpenLiabilities(json.outstandingSellerLiabilityCents ?? null);
     if (json.ok && json.campaigns) setCampaigns(json.campaigns);
@@ -223,15 +226,23 @@ export default function AdminHcCampaignsPanel() {
     }
     if (!window.confirm(prompts[status])) return;
     setBusy(true);
-    const json = await post({
-      action: 'setStatus',
-      campaignId: campaign.id,
-      status,
-      confirmSellerPrincipalTreasury: campaign.sellerPrincipalEligible === true,
-    });
-    setBusy(false);
-    setMessage(json.ok ? `Status ${status}.` : json.message ?? 'Status wijzigen mislukt.');
-    void load();
+    try {
+      const json = await post({
+        action: 'setStatus',
+        campaignId: campaign.id,
+        status,
+        confirmSellerPrincipalTreasury: campaign.sellerPrincipalEligible === true,
+      });
+      if (json.ok) {
+        setCampaigns((prev) => prev.map((row) => (row.id === campaign.id ? { ...row, status } : row)));
+        setMessage(`Status ${status}.`);
+        await load();
+      } else {
+        setMessage(json.message ?? 'Status wijzigen mislukt.');
+      }
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -319,8 +330,8 @@ export default function AdminHcCampaignsPanel() {
       </section>
       <ul className="space-y-3">
         {campaigns.map((c) => (
-          <li key={c.id} className="bg-white rounded-xl border p-4 text-sm">
-            <p className="font-medium">{c.name} · {c.status}</p>
+          <li key={c.id} data-campaign-status={c.status} className="bg-white rounded-xl border p-4 text-sm">
+            <p className="font-medium">{c.name} · <span data-testid="hc-campaign-status">{c.status}</span></p>
             <p className="text-gray-600">
               {c.hcAmount} HC · {c.activationCondition ?? 'IMMEDIATE'}
               {c.promoCode ? ` · ${c.promoCode}` : ''}
@@ -354,7 +365,8 @@ export default function AdminHcCampaignsPanel() {
             ) : null}
             <button
               type="button"
-              className="mt-2 text-sm text-emerald-800 underline"
+              data-testid="hc-view-qualifications"
+              className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline"
               onClick={() => void post({ action: 'rewards', campaignId: c.id }).then((json) => {
                 setFacts((prev) => ({
                   ...prev,
@@ -367,7 +379,7 @@ export default function AdminHcCampaignsPanel() {
               Kwalificaties bekijken
             </button>
             {facts[c.id] ? (
-              <div className="mt-2 space-y-1 text-gray-700">
+              <div data-testid="hc-qualification-details" className="mt-2 space-y-1 text-gray-700">
                 {facts[c.id]?.qualifications.length ? facts[c.id]?.qualifications.map((row) => (
                   <p key={`${row.centralUserId}-${row.createdAt}`}>
                     Kwalificatie {row.centralUserId.slice(0, 8)} · listing {row.listingRef ? row.listingRef.slice(0, 8) : 'niet beschikbaar'} · score {row.qualityScore ?? 'niet beschikbaar'} · {row.rule} · geen toekenning in deze regel

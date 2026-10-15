@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
-import { pathAfterMinimalProfile } from './post-auth-redirect';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import {
+  needsProfileOnboardingFromFlags,
+  pathAfterMinimalProfile,
+  resolvePathAfterSocialAuth,
+} from './post-auth-redirect';
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 
 describe('path after the required profile gate', () => {
   it('opens the marketplace when the user has no saved task', () => {
@@ -25,5 +34,33 @@ describe('path after the required profile gate', () => {
   it('rejects an external redirect', () => {
     assert.equal(pathAfterMinimalProfile('https://example.com'), '/');
     assert.equal(pathAfterMinimalProfile('//evil.example'), '/');
+  });
+});
+
+describe('google login lands on the feed', () => {
+  it('sends a new and an existing google user to the feed, including an incomplete profile', () => {
+    assert.equal(
+      resolvePathAfterSocialAuth({ hasTempUsername: true, onboardingCompleted: false }),
+      '/',
+    );
+    assert.equal(
+      resolvePathAfterSocialAuth({ hasTempUsername: false, onboardingCompleted: true }),
+      '/',
+    );
+    assert.equal(
+      needsProfileOnboardingFromFlags({ hasTempUsername: true, onboardingCompleted: false }),
+      true,
+    );
+  });
+
+  it('does not leave the login page or the soft-auth dialog in front of a session', () => {
+    const login = readFileSync(join(root, 'app/login/page.tsx'), 'utf8');
+    assert.doesNotMatch(login, /router\.replace\('\/onboarding\/complete-profile'\)/);
+    assert.match(login, /sessionStatus === 'authenticated'/);
+    const soft = readFileSync(join(root, 'components/auth/SoftAuthGateHost.tsx'), 'utf8');
+    assert.match(soft, /status === 'authenticated'/);
+    assert.match(soft, /setOpen\(false\)/);
+    const social = readFileSync(join(root, 'components/auth/SocialLoginRedirect.tsx'), 'utf8');
+    assert.doesNotMatch(social, /complete-profile/);
   });
 });

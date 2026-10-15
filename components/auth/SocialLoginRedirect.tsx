@@ -10,22 +10,8 @@ import {
 } from '@/lib/auth/post-auth-redirect';
 
 /**
- * Component that redirects social login users to registration if they need onboarding
- * This ensures users always complete the registration process, even if they navigate away
- * ONLY activates for social login users who haven't completed onboarding
- * 
- * PRIORITY: This component has LOWER priority than:
- * - /auth/social-success (OAuth terugkeer + sessie)
- * - register page (handles its own onboarding check)
- * 
- * This component ONLY acts as a safety net for users who navigate away from onboarding
- * 
- * Flow:
- * 1. User logs in with social (e.g. Google)
- * 2. /auth/social-success redirect naar /onboarding/complete-profile indien nodig
- * 3. register page handles onboarding
- * 4. If user navigates away, this component redirects back to /onboarding/complete-profile
- * 5. Only after onboarding is complete, user gets full access
+ * Social sign-in no longer pulls an incomplete profile off the feed.
+ * Profile notices stay dismissible. This component does not navigate.
  */
 export default function SocialLoginRedirect() {
   const { data: session, status } = useSession();
@@ -98,10 +84,6 @@ export default function SocialLoginRedirect() {
 
           if (needsOnboarding && pathname !== '/register' && !hasRedirected.current) {
             hasRedirected.current = true;
-            console.log(
-              '🔍 [SocialLoginRedirect] User needs onboarding, redirecting to /onboarding/complete-profile',
-            );
-            window.location.href = '/onboarding/complete-profile';
           }
         } catch (error) {
           console.error('❌ [SocialLoginRedirect] Error checking onboarding:', error);

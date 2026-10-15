@@ -21,7 +21,7 @@ import { PRIVACY_URL, SAFETY_STANDARDS_URL, COMMUNITY_GUIDELINES_URL, TERMS_URL 
 export default function CompleteProfilePage() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -191,6 +191,12 @@ export default function CompleteProfilePage() {
           </button>
         </form>
 
+        <Link
+          href="/"
+          className="mt-4 block w-full text-center text-sm font-medium text-emerald-700 underline"
+        >
+          {language === 'en' ? 'Continue to the feed' : 'Doorgaan naar de feed'}
+        </Link>
         <button
           type="button"
           className="mt-4 w-full text-center text-sm text-slate-600 underline"

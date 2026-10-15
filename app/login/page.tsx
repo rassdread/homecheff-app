@@ -5,11 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
 import { clearStorageForCredentialLoginStart } from "@/lib/session-cleanup";
-import {
-  buildSocialSuccessCallbackUrl,
-  needsProfileOnboardingFromFlags,
-  onboardingFlagsFromSessionUser,
-} from "@/lib/auth/post-auth-redirect";
+import { buildSocialSuccessCallbackUrl } from "@/lib/auth/post-auth-redirect";
 import { consumeAndResolvePostAuthUrl } from "@/lib/onboarding/pending-intent";
 import { applySessionMode, setRememberPreference } from "@/lib/session-mode";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -220,11 +216,6 @@ function LoginForm() {
       username?: string | null;
       socialOnboardingCompleted?: boolean | null;
     };
-    const affiliateReturn = typeof callbackUrl === 'string' && callbackUrl.startsWith('/affiliate');
-    if (needsProfileOnboardingFromFlags(onboardingFlagsFromSessionUser(u)) && !affiliateReturn) {
-      router.replace('/onboarding/complete-profile');
-      return;
-    }
     const intentUrl = consumeAndResolvePostAuthUrl(u);
     const target =
       intentUrl || (callbackUrl && callbackUrl !== '/' ? callbackUrl : '/');

@@ -9,10 +9,6 @@ import {
   getPendingIntent,
   isPendingIntentExpired,
 } from '@/lib/onboarding/pending-intent';
-import {
-  needsProfileOnboardingFromFlags,
-  onboardingFlagsFromSessionUser,
-} from '@/lib/auth/post-auth-redirect';
 
 export default function ResumeIntentPage() {
   const router = useRouter();
@@ -27,15 +23,6 @@ export default function ResumeIntentPage() {
       router.replace('/login?callbackUrl=/auth/resume-intent');
       return;
     }
-    const u = session.user as {
-      username?: string | null;
-      socialOnboardingCompleted?: boolean | null;
-    };
-    if (needsProfileOnboardingFromFlags(onboardingFlagsFromSessionUser(u))) {
-      router.replace('/onboarding/complete-profile');
-      return;
-    }
-
     const intent = getPendingIntent();
     if (!intent || isPendingIntentExpired(intent)) {
       clearPendingIntent();

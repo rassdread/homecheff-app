@@ -293,7 +293,7 @@ const fixtures: Fixture[] = [
     defaultMode: 'marketplace',
     workspaceAvailable: true,
     manualSwitch: true,
-    dashboard: '/onboarding/complete-profile',
+    dashboard: '/mijn-homecheff',
     left: [],
     right: 'none',
   },
