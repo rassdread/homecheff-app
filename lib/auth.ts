@@ -22,6 +22,7 @@ import {
   googleClientIdPreview,
   resolveGoogleWebOAuthClient,
 } from "./auth/google-oauth-clients";
+import { resolvePreviewGoogleOAuthClient } from "./auth/preview-google-oauth";
 import { NEXTAUTH_SESSION_COOKIE_NAME } from "./auth/session-cookie-name";
 import { withPrismaRetry } from "./auth/prisma-retry";
 import { sanitizePostAuthRelativeUrl } from "./auth/post-auth-redirect";
@@ -40,8 +41,10 @@ if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_URL) {
 }
 
 const sharedSessionCookieDomain = getAuthSessionCookieDomain();
-const googleWebClient = resolveGoogleWebOAuthClient();
-const isGoogleAuthConfigured = Boolean(googleWebClient) && !isPreviewDeployment();
+const productionGoogleClient = isPreviewDeployment() ? null : resolveGoogleWebOAuthClient();
+const previewGoogleClient = resolvePreviewGoogleOAuthClient();
+const googleWebClient = productionGoogleClient || previewGoogleClient;
+const isGoogleAuthConfigured = Boolean(googleWebClient);
 if (!isGoogleAuthConfigured) {
   console.warn(
     "[auth] Google OAuth disabled: missing GOOGLE_CLIENT_ID/GOOGLE_WEB_CLIENT_ID and/or matching secret",
@@ -49,8 +52,9 @@ if (!isGoogleAuthConfigured) {
 } else {
   console.info("[auth] Google web OAuth configured", {
     clientId: googleClientIdPreview(googleWebClient!.clientId),
-    clientIdSource: googleWebClient!.source.clientId,
-    clientSecretSource: googleWebClient!.source.clientSecret,
+    clientIdSource: productionGoogleClient
+      ? productionGoogleClient.source.clientId
+      : previewGoogleClient?.source,
   });
 }
 const sessionCookieOptions = {

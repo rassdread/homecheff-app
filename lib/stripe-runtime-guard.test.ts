@@ -41,5 +41,7 @@ test("registration does not grant campaign HC", () => {
 
 test("preview Google sign-in is not enabled from the production client", () => {
   const source = readFileSync(new URL("./auth.ts", import.meta.url), "utf8");
-  assert.match(source, /Boolean\(googleWebClient\) && !isPreviewDeployment\(\)/);
+  assert.match(source, /isPreviewDeployment\(\) \? null : resolveGoogleWebOAuthClient\(\)/);
+  assert.match(source, /resolvePreviewGoogleOAuthClient\(\)/);
+  assert.doesNotMatch(source, /Boolean\(googleWebClient\) && !isPreviewDeployment\(\)/);
 });
