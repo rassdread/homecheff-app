@@ -18,7 +18,7 @@ function harness(user: StoredUser) {
   const updates: Array<Record<string, unknown>> = [];
   const prisma = {
     user: {
-      findUnique: async () => user,
+      findUnique: async (): Promise<StoredUser | null> => user,
       update: async ({ data }: { data: Record<string, unknown> }) => {
         updates.push(data);
         user.dateOfBirth = data.dateOfBirth as Date;
