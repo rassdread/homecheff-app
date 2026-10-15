@@ -4,9 +4,10 @@
  */
 import type { PrismaClient } from '@prisma/client';
 import Stripe from 'stripe';
+import { financialStripeSecret } from '@/lib/stripe';
 
 function getStripe(): Stripe | null {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = financialStripeSecret();
   if (!key) return null;
   return new Stripe(key, { apiVersion: '2025-08-27.basil' });
 }

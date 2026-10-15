@@ -11,6 +11,7 @@ import {
 } from '@/lib/delivery/quote-snapshot';
 import { readHcDeliveryRefundMarker } from '@/lib/hc/marketplace-hc-delivery-refund-pure';
 import { resolveChargeIdForCheckoutSession } from '@/lib/payments/seller-settlement';
+import { financialStripeSecret } from '@/lib/stripe';
 
 export type DeliveryPayoutInput = {
   deliveryOrderId: string;
@@ -40,7 +41,7 @@ export type DeliveryPayoutResult = {
 };
 
 function getStripe(): Stripe | null {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = financialStripeSecret();
   if (!key) return null;
   return new Stripe(key, { apiVersion: '2025-08-27.basil' });
 }

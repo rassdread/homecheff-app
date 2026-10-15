@@ -4,10 +4,13 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Button } from "@/components/ui/Button";
 import { CreditCard } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
+import { financialStripePublishableKey } from "@/lib/stripe-runtime-guard";
 
-// Test modus - geen echte Stripe keys nodig
-const isTestMode = !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY === 'test';
-const stripePromise = isTestMode ? null : loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const publishableKey = financialStripePublishableKey(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, {
+  previewHost: typeof window !== "undefined" && window.location.hostname.endsWith(".vercel.app"),
+});
+const isTestMode = !publishableKey;
+const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
 interface PaymentButtonProps {
   productId: string;

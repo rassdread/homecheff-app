@@ -11,14 +11,35 @@ import {
 import { getDuplicateRequestReport } from '@/lib/performance/duplicate-request-detector';
 
 /**
- * Compact opt-in debug panel — only when NEXT_PUBLIC_FEED_PERF_BASELINE=1.
+ * Developer panel. The env flag may be on, but normal visitors stay hidden
+ * until they open the page with ?hcFeedPerf=1. ?hcFeedPerf=0 turns it off.
  */
+function isFeedPerfDebugOptIn(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (process.env.NODE_ENV === 'development') return true;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('hcFeedPerf') === '0') {
+      window.localStorage.removeItem('hc-feed-perf');
+      return false;
+    }
+    if (params.get('hcFeedPerf') === '1') {
+      window.localStorage.setItem('hc-feed-perf', '1');
+      return true;
+    }
+    return window.localStorage.getItem('hc-feed-perf') === '1';
+  } catch {
+    return false;
+  }
+}
+
 export default function FeedPerfDebugPanel() {
   const [open, setOpen] = useState(true);
   const [snapshot, setSnapshot] = useState<Record<string, unknown>>({});
+  const enabled = isFeedPerfBaselineEnabled() && isFeedPerfDebugOptIn();
 
   useEffect(() => {
-    if (!isFeedPerfBaselineEnabled()) return;
+    if (!enabled) return;
     const tick = () => {
       const dup = getDuplicateRequestReport();
       setSnapshot({
@@ -35,10 +56,10 @@ export default function FeedPerfDebugPanel() {
     tick();
     const id = window.setInterval(tick, 1500);
     return () => window.clearInterval(id);
-  }, []);
+  }, [enabled]);
 
-  if (!isFeedPerfBaselineEnabled() || !open) {
-    if (!isFeedPerfBaselineEnabled()) return null;
+  if (!enabled || !open) {
+    if (!enabled) return null;
     return (
       <button
         type="button"

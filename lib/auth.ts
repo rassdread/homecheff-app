@@ -27,6 +27,7 @@ import { withPrismaRetry } from "./auth/prisma-retry";
 import { sanitizePostAuthRelativeUrl } from "./auth/post-auth-redirect";
 import { markNewAccountForMeta } from "./meta/mark-new-account.server";
 import { usernameContainsTempPlaceholder } from "./username-placeholder";
+import { isPreviewDeployment } from "./hc/preview-service-target";
 
 type Role = UserRole | 'SUPERADMIN';
 type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
@@ -40,7 +41,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_URL) {
 
 const sharedSessionCookieDomain = getAuthSessionCookieDomain();
 const googleWebClient = resolveGoogleWebOAuthClient();
-const isGoogleAuthConfigured = Boolean(googleWebClient);
+const isGoogleAuthConfigured = Boolean(googleWebClient) && !isPreviewDeployment();
 if (!isGoogleAuthConfigured) {
   console.warn(
     "[auth] Google OAuth disabled: missing GOOGLE_CLIENT_ID/GOOGLE_WEB_CLIENT_ID and/or matching secret",

@@ -4,13 +4,13 @@ export const dynamic = 'force-dynamic';
 
 import Stripe from "stripe";
 import { findActiveCouponByCode } from "@/lib/promo-codes/coupon-service";
+import { financialStripeSecret } from "@/lib/stripe";
 
-// Test mode - gebruik sandbox keys
-const isTestMode = !process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.startsWith('sk_test');
+const runtimeStripeKey = financialStripeSecret();
+const isTestMode = !runtimeStripeKey || runtimeStripeKey.startsWith('sk_test');
 
-// Initialize Stripe for both test and live mode
-const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+const stripe = runtimeStripeKey
+  ? new Stripe(runtimeStripeKey, {
       apiVersion: '2025-08-27.basil',
     })
   : null;
