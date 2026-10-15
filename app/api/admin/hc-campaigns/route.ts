@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { sumOpenSellerLiabilityCents } from '@/lib/hc/open-seller-liability';
-import { resolveGrowthMutationTarget } from '@/lib/hc/preview-service-target';
+import { growthPreviewProtectionHeaders, resolveGrowthMutationTarget } from '@/lib/hc/preview-service-target';
 import { prisma } from '@/lib/prisma';
 import { readPlatformTransferBalance } from '@/lib/stripe/platform-transfer-balance';
 
@@ -79,6 +79,7 @@ export async function POST(req: Request) {
         'Content-Type': 'application/json',
         'x-marketplace-admin-id': admin.id,
         Accept: 'application/json',
+        ...growthPreviewProtectionHeaders(target.base),
       },
       body: JSON.stringify(body),
       cache: 'no-store',

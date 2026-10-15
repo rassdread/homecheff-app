@@ -79,3 +79,25 @@ export function resolveGrowthMutationTarget(env: RuntimeEnv = process.env): Grow
   }
   return target;
 }
+
+/**
+ * Preview server calls to a protected *.vercel.app Growth deployment.
+ * The secret stays in the preview environment. Production never sends it,
+ * and a production-owned host never receives it.
+ */
+export function growthPreviewProtectionHeaders(
+  targetBase: string,
+  env: RuntimeEnv = process.env,
+): Record<string, string> {
+  if (!isPreviewDeployment(env)) return {};
+  let hostname = "";
+  try {
+    hostname = new URL(targetBase).hostname.toLowerCase();
+  } catch {
+    return {};
+  }
+  if (!hostname.endsWith(".vercel.app") || isProductionOwnedHost(hostname)) return {};
+  const secret = (env.GROWTH_PREVIEW_PROTECTION_BYPASS ?? "").trim();
+  if (!secret) return {};
+  return { "x-vercel-protection-bypass": secret };
+}
