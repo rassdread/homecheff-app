@@ -17,6 +17,8 @@ export interface ProfileSettingsRef {
   isLoading: boolean;
 }
 
+let pendingSettingsNotice: string | null = null;
+
 const DATE_OF_BIRTH_WARNING = {
   nl: 'Let op: Vul je werkelijke geboortedatum in. Het bewust opgeven van een onjuiste geboortedatum om leeftijdsbeperkingen te omzeilen, is in strijd met onze voorwaarden en kan juridische gevolgen hebben.',
   en: 'Please note: Enter your actual date of birth. Knowingly providing an incorrect date of birth to bypass age restrictions violates our terms and may have legal consequences.',
@@ -140,6 +142,11 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  useEffect(() => {
+    if (!pendingSettingsNotice) return;
+    setSuccess(pendingSettingsNotice);
+    pendingSettingsNotice = null;
+  }, []);
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [savedDateOfBirth, setSavedDateOfBirth] = useState('');
 
@@ -206,7 +213,7 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
           ? formData.username.trim()
           : (user?.username || "").trim(),
       };
-      await onSave(dataToSave);
+      let notice = t('profileSettings.profileUpdated');
       if (dateOfBirth !== savedDateOfBirth) {
         const dobRes = await fetch('/api/account/date-of-birth', {
           method: 'PUT',
@@ -232,13 +239,17 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
         const iso = dobData.dateOfBirthIso || dateOfBirth;
         setDateOfBirth(iso);
         setSavedDateOfBirth(iso);
-        setSuccess(
+        notice =
           (en ? dobData.messageEn : dobData.message) ||
-            (en ? 'Date of birth saved.' : 'Geboortedatum opgeslagen.'),
-        );
-      } else {
-        setSuccess(t('profileSettings.profileUpdated'));
+          (en ? 'Date of birth saved.' : 'Geboortedatum opgeslagen.');
       }
+      pendingSettingsNotice = notice;
+      setSuccess(notice);
+      await onSave(dataToSave);
+      const shown = notice;
+      window.setTimeout(() => {
+        if (pendingSettingsNotice === shown) pendingSettingsNotice = null;
+      }, 15000);
       setIsEditing(false);
     } catch (error: any) {
       setError(error.message || t('profileSettings.errorSaving'));
