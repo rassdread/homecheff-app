@@ -65,6 +65,23 @@ export function defaultStudioRedirectUris(): string[] {
   return [];
 }
 
+/**
+ * The only Preview callback this issuer may add.
+ * STUDIO_SSO_PREVIEW_REDIRECT_URI must equal this exact URI.
+ * Any other value, including wildcards and other hosts, is ignored.
+ */
+export const STUDIO_SSO_APPROVED_PREVIEW_CALLBACK =
+  "https://homecheff-motion-git-feature-559061-sergio-s-projects-f7b64ee1.vercel.app/auth/sso/callback";
+
+/** One exact additional callback, or null when the variable is empty or not approved. */
+export function approvedPreviewRedirectUri(
+  raw: string | undefined = process.env.STUDIO_SSO_PREVIEW_REDIRECT_URI,
+): string | null {
+  const value = raw?.trim() ?? "";
+  if (!value || value !== STUDIO_SSO_APPROVED_PREVIEW_CALLBACK) return null;
+  return value;
+}
+
 export function resolveGrowthClient(): SsoClientConfig | null {
   const clientId = process.env.GROWTH_SSO_CLIENT_ID?.trim();
   if (!clientId) return null;
@@ -86,7 +103,10 @@ export function resolveStudioClient(): SsoClientConfig | null {
   if (!clientId) return null;
 
   const fromEnv = splitCsv(process.env.STUDIO_SSO_REDIRECT_URI);
-  const allowedRedirectUris = fromEnv.length > 0 ? fromEnv : defaultStudioRedirectUris();
+  const existing = fromEnv.length > 0 ? fromEnv : defaultStudioRedirectUris();
+  const preview = approvedPreviewRedirectUri();
+  const allowedRedirectUris =
+    preview && !existing.includes(preview) ? [...existing, preview] : existing;
   if (allowedRedirectUris.length === 0) return null;
 
   return {
