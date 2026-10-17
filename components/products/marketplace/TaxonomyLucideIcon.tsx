@@ -12,12 +12,27 @@ type Props = {
   tone?: TaxonomyTone | null;
 };
 
+function isLucideIcon(value: unknown): value is LucideIcon {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "render" in value &&
+    typeof value.render === "function"
+  );
+}
+
+function lucideIconByName(name: string): LucideIcon | null {
+  if (!(name in LucideIcons)) return null;
+  const candidate: unknown = Reflect.get(LucideIcons, name);
+  return isLucideIcon(candidate) ? candidate : null;
+}
+
 export function TaxonomyLucideIcon({
   name,
   className = 'h-4 w-4 shrink-0',
   tone,
 }: Props) {
-  const Icon = (LucideIcons as Record<string, LucideIcon | undefined>)[name];
+  const Icon = lucideIconByName(name);
   if (!Icon) return null;
   return (
     <Icon

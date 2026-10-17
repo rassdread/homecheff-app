@@ -18,13 +18,13 @@ const EmojiPickerReact = dynamic(() => import('emoji-picker-react'), {
  * Geen suggested/recent (leeg), geen custom-tab, geen flags/dieren tenzij later gewenst.
  */
 const STANDARD_EMOJI_PICKER_CATEGORIES = [
-  Categories.SMILEYS_PEOPLE,
-  Categories.FOOD_DRINK,
-  Categories.ACTIVITIES,
-  Categories.TRAVEL_PLACES,
-  Categories.OBJECTS,
-  Categories.SYMBOLS,
-] as const;
+  { category: Categories.SMILEYS_PEOPLE, name: "Smileys & People" },
+  { category: Categories.FOOD_DRINK, name: "Food & Drink" },
+  { category: Categories.ACTIVITIES, name: "Activities" },
+  { category: Categories.TRAVEL_PLACES, name: "Travel & Places" },
+  { category: Categories.OBJECTS, name: "Objects" },
+  { category: Categories.SYMBOLS, name: "Symbols" },
+];
 
 /** Compacte titelbalk (sluitknop); geen thema-tabrij meer. */
 const HEADER_BAR_HEIGHT_PX = 48;
