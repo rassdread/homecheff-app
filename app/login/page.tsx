@@ -221,15 +221,15 @@ function LoginForm() {
       username?: string | null;
       socialOnboardingCompleted?: boolean | null;
     };
-    const affiliateReturn = typeof callbackUrl === 'string' && callbackUrl.startsWith('/affiliate');
-    if (needsProfileOnboardingFromFlags(onboardingFlagsFromSessionUser(u)) && !affiliateReturn) {
-      const deliveryReturn = deliveryRegistrationReturnFromCallback(callbackUrl);
-      if (deliveryReturn) {
-        savePendingIntent({
-          type: 'complete_profile',
-          returnPath: deliveryReturn,
-        });
-      }
+    const deliveryReturn = deliveryRegistrationReturnFromCallback(callbackUrl);
+    if (
+      deliveryReturn &&
+      needsProfileOnboardingFromFlags(onboardingFlagsFromSessionUser(u))
+    ) {
+      savePendingIntent({
+        type: 'complete_profile',
+        returnPath: deliveryReturn,
+      });
       router.replace('/onboarding/complete-profile');
       return;
     }

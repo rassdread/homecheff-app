@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { growthServiceBase } from "@/lib/hc/preview-service-target";
 
 export const dynamic = "force-dynamic";
 const NO_STORE = { "Cache-Control": "private, no-store, max-age=0" } as const;
 
 function growthBase() {
-  return (
-    process.env.GROWTH_HC_QUOTE_BASE_URL ??
-    process.env.GROWTH_API_BASE_URL ??
-    "https://growth.homecheff.eu"
-  ).replace(/\/$/, "");
+  return growthServiceBase();
 }
 
 function growthSecret() {
@@ -39,12 +36,16 @@ export async function POST(
     return NextResponse.json({ error: "Affiliate account not found" }, { status: 404, headers: NO_STORE });
   }
   const secret = growthSecret();
+  const base = growthBase();
   if (!secret) {
     return NextResponse.json({ ok: false, code: "GROWTH_SECRET_MISSING" }, { status: 503, headers: NO_STORE });
   }
+  if (!base) {
+    return NextResponse.json({ ok: false, code: "CONFIGURATION_ERROR" }, { status: 503, headers: NO_STORE });
+  }
   const { id } = params;
   const res = await fetch(
-    `${growthBase()}/api/internal/ecosystem/affiliate/growth-promo-codes/${encodeURIComponent(id)}`,
+    `${base}/api/internal/ecosystem/affiliate/growth-promo-codes/${encodeURIComponent(id)}`,
     {
       method: "POST",
       headers: {

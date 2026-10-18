@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   LISTING_QUALITY_THRESHOLD,
+  explainListingReward,
+  listingQualityHints,
   scoreListingQuality,
   isQualityListing,
 } from "./listing-quality";
@@ -83,5 +85,44 @@ describe("listing quality score", () => {
     });
     assert.ok(result.score <= 100);
     assert.ok(result.score >= 90);
+  });
+
+  it("names the missing quality factors and never promises an HC grant", () => {
+    const thin = scoreListingQuality({
+      title: "x",
+      description: "",
+      priceCents: 0,
+      category: null,
+      imageCount: 0,
+      isActive: false,
+    });
+    const hints = listingQualityHints(thin);
+    assert.ok(hints.some((hint) => hint.dimension === "photo"));
+    assert.ok(hints.some((hint) => hint.dimension === "description"));
+    const exact = scoreListingQuality({
+      title: "Korte soep",
+      description: "Korte beschrijving van soep.",
+      priceCents: 100,
+      priceModel: "ON_REQUEST",
+      category: "CHEFF",
+      imageCount: 0,
+      isActive: true,
+      stock: 1,
+      delivery: "PICKUP",
+      placeName: "Ab",
+      sellerDisplayName: "Preview",
+      sellerBio: "Bio tekst voor het profiel van de maker.",
+    });
+    assert.equal(exact.score, 60);
+    const reward = explainListingReward({
+      score: exact.score,
+      linkedToCampaign: true,
+      isFirstQualifiedListing: true,
+      grantPending: true,
+    });
+    assert.equal(reward.promised, false);
+    assert.equal(reward.granted, false);
+    assert.match(reward.nl, /geen HC toegekend/);
+    assert.doesNotMatch(reward.nl, /verdiend/i);
   });
 });

@@ -6,6 +6,11 @@
  * - Development: localhost / NEXTAUTH_URL
  */
 
+import {
+  ALLOWED_PREVIEW_GOOGLE_HOST,
+  isExactPreviewGoogleHost,
+} from './auth/preview-google-oauth';
+
 export const PRODUCTION_AUTH_ORIGIN = 'https://homecheff.eu';
 
 /** Explicit HomeCheff production origins (exact match, no substring checks). */
@@ -70,6 +75,16 @@ export function resolveAuthDeploymentEnvironment(): AuthDeploymentEnvironment {
 }
 
 function resolvePreviewAuthOrigin(requestBaseUrl?: string): string | null {
+  if (requestBaseUrl) {
+    try {
+      const hostname = new URL(requestBaseUrl).hostname;
+      if (isExactPreviewGoogleHost(hostname)) {
+        return `https://${ALLOWED_PREVIEW_GOOGLE_HOST}`;
+      }
+    } catch {
+      /* keep the existing preview resolution */
+    }
+  }
   const candidates = [
     process.env.PREVIEW_AUTH_URL,
     process.env.AUTH_URL,

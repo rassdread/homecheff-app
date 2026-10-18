@@ -1,17 +1,11 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { growthServiceBase } from '@/lib/hc/preview-service-target';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 const NO_STORE = { 'Cache-Control': 'private, no-store, max-age=0' } as const;
-
-function growthBase(): string {
-  return (process.env.GROWTH_HC_QUOTE_BASE_URL ?? process.env.GROWTH_API_BASE_URL ?? 'https://growth.homecheff.eu').replace(
-    /\/$/,
-    '',
-  );
-}
 
 function ecosystemSecret(): string {
   return (
@@ -35,13 +29,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: 'Inloggen vereist.' }, { status: 401, headers: NO_STORE });
   }
 
-  const buyer = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
+  const buyer = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, stripeConnectAccountId: true, stripeConnectOnboardingCompleted: true },
+  });
   if (!buyer) {
     return NextResponse.json({ ok: false, message: 'Gebruiker niet gevonden.' }, { status: 404, headers: NO_STORE });
   }
 
   const centralUserId = await resolveCentralUserId(buyer.id);
+  const base = growthServiceBase();
   const secret = ecosystemSecret();
+  if (!base) {
+    return NextResponse.json(
+      { ok: false, code: 'CONFIGURATION_ERROR', message: 'Growth is niet gekoppeld.' },
+      { status: 503, headers: NO_STORE },
+    );
+  }
   if (!centralUserId || !secret) {
     return NextResponse.json({ ok: false, message: 'Account niet gekoppeld.' }, { status: 400, headers: NO_STORE });
   }
@@ -54,7 +58,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const res = await fetch(`${growthBase()}/api/internal/ecosystem/hc/redeem-promo`, {
+    const res = await fetch(`${base}/api/internal/ecosystem/hc/redeem-promo`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${secret}`,
@@ -62,7 +66,11 @@ export async function POST(req: Request) {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      body: JSON.stringify({ code: body.code }),
+      body: JSON.stringify({
+        code: body.code,
+        stripeConnectVerified:
+          Boolean(buyer.stripeConnectAccountId) && buyer.stripeConnectOnboardingCompleted === true,
+      }),
       cache: 'no-store',
     });
     const json = await res.json();

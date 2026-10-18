@@ -15,6 +15,7 @@ import {
   type TrustedOrderPayload,
 } from '@/lib/hc/growth-marketplace-mutation-client';
 import { assertMarketplaceHcMixedCheckoutAllowed } from '@/lib/hc/marketplace-hc-pilot-gate';
+import { evaluateHcSelfDealing } from '@/lib/hc/hc-self-dealing';
 import {
   createSettlementExposurePending,
   markSettlementExposureEarned,
@@ -62,7 +63,15 @@ export async function resolveMixedHcCheckoutContext(input: MixedHcCheckoutInput)
       seller: {
         select: {
           userId: true,
-          User: { select: { id: true, city: true, postalCode: true, country: true } },
+          User: {
+            select: {
+              id: true,
+              city: true,
+              postalCode: true,
+              country: true,
+              stripeConnectAccountId: true,
+            },
+          },
         },
       },
     },
@@ -104,6 +113,24 @@ export async function resolveMixedHcCheckoutContext(input: MixedHcCheckoutInput)
 
   const sellerUser = product.seller?.User;
   const sellerUserId = product.seller?.userId ?? sellerUser?.id ?? '';
+  const buyerStripe = await prisma.user.findUnique({
+    where: { id: input.buyerUserId },
+    select: { stripeConnectAccountId: true },
+  });
+  const selfDealing = evaluateHcSelfDealing({
+    buyerUserId: input.buyerUserId,
+    sellerUserId,
+    buyerCentralUserId: centralUserId,
+    sellerCentralUserId: sellerUserId,
+    buyerStripeConnectAccountId: buyerStripe?.stripeConnectAccountId,
+    sellerStripeConnectAccountId: sellerUser?.stripeConnectAccountId,
+  });
+  if (selfDealing.blocked) {
+    return {
+      error: 'HC cannot be spent on your own listing or the same payout destination.',
+      code: selfDealing.code,
+    };
+  }
 
   try {
     assertMarketplaceHcMixedCheckoutAllowed({ centralUserId, listingId: product.id });

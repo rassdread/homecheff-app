@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
-import { normalizeSubscriptionName, PLAN_TO_PRICE } from "@/lib/stripe";
+import { financialStripeSecret, normalizeSubscriptionName, PLAN_TO_PRICE } from "@/lib/stripe";
 import { NotificationService } from "@/lib/notifications/notification-service";
 import { calculateDistance } from "@/lib/geocoding";
 import { DELIVERY_PLATFORM_FEE_PERCENT } from "@/lib/fees";
@@ -58,7 +58,9 @@ async function readBuffer(stream: ReadableStream<Uint8Array>) {
 }
 
 export async function POST(req: NextRequest) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2025-08-27.basil" });
+  const stripeKey = financialStripeSecret();
+  if (!stripeKey) return new NextResponse("Stripe is not configured", { status: 503 });
+  const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
   const sig = req.headers.get("stripe-signature");
   if (!sig) return new NextResponse("Missing signature", { status: 400 });
 

@@ -8,6 +8,7 @@ import { processAttributionOnSignup } from "@/lib/affiliate-attribution";
 import { maybeClaimBetaTesterFromSignupCookies } from "@/lib/beta-tester-rewards";
 import { parseMarketplaceUtmFromCookieHeader } from "@/lib/acquisition/utm-persistence";
 import { upsertMarketplaceAcquisitionFirstTouch } from "@/lib/acquisition/marketplace-acquisition";
+import { persistHcCampaignCodeFirstTouch } from "@/lib/acquisition/persist-hc-campaign-code";
 import { tryAwardAccountCreated } from "@/lib/gamification/award-account-created";
 import { tryNormalizeEmail } from "@/lib/auth/normalize-email";
 import { findUserByCanonicalEmail } from "@/lib/auth/find-user-by-email";
@@ -187,6 +188,7 @@ export async function POST(req: NextRequest) {
         user.id,
         parseMarketplaceUtmFromCookieHeader(cookieHeader),
       );
+      await persistHcCampaignCodeFirstTouch(user.id, cookieHeader);
     } catch (attributionError) {
       console.error('Failed to process attribution:', attributionError);
       // Don't fail registration if attribution fails

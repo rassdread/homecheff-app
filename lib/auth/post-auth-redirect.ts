@@ -68,14 +68,15 @@ export function onboardingFlagsFromSessionUser(user: {
   };
 }
 
-/** After Google / Apple web or native session is established. */
+/**
+ * After Google / Apple web or native session is established.
+ * Incomplete profile data does not replace the feed. Notices stay available;
+ * publish, payout and age gates stay on the actions that require them.
+ */
 export function resolvePathAfterSocialAuth(
-  flags: OnboardingFlags,
-): '/' | '/onboarding/complete-profile' {
-  if (!flags.hasTempUsername && flags.onboardingCompleted) {
-    return '/';
-  }
-  return '/onboarding/complete-profile';
+  _flags: OnboardingFlags,
+): '/' {
+  return '/';
 }
 
 /** Aliases for readability at call sites. */

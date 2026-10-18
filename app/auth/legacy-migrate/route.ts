@@ -5,6 +5,7 @@ import {
   verifyLegacyMigrateTicket,
 } from "@/lib/identity/legacy-product-migrate";
 import { prisma } from "@/lib/prisma";
+import { growthServiceBase, isPreviewDeployment, isProductionGrowthOrigin } from "@/lib/hc/preview-service-target";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,6 +22,17 @@ export async function GET(req: NextRequest) {
       new URL("/login?error=legacy_migrate_expired", req.url),
       303,
     );
+  }
+
+  const productOrigin = isPreviewDeployment()
+    ? verified.returnProduct === "studio"
+      ? process.env.NEXT_PUBLIC_STUDIO_ORIGIN?.trim() || ""
+      : growthServiceBase() ?? ""
+    : verified.returnProduct === "studio"
+      ? process.env.NEXT_PUBLIC_STUDIO_ORIGIN?.trim() || "https://studio.homecheff.eu"
+      : process.env.NEXT_PUBLIC_GROWTH_ORIGIN?.trim() || "https://growth.homecheff.eu";
+  if (isPreviewDeployment() && (!productOrigin || isProductionGrowthOrigin(productOrigin))) {
+    return NextResponse.redirect(new URL("/login?error=configuration", req.url), 303);
   }
 
   const firstRedeem = await markTicketRedeemed(verified.nonce, verified.centralUserId);
@@ -50,11 +62,6 @@ export async function GET(req: NextRequest) {
       },
     },
   });
-
-  const productOrigin =
-    verified.returnProduct === "studio"
-      ? process.env.NEXT_PUBLIC_STUDIO_ORIGIN?.trim() || "https://studio.homecheff.eu"
-      : process.env.NEXT_PUBLIC_GROWTH_ORIGIN?.trim() || "https://growth.homecheff.eu";
 
   const returnTo = verified.returnTo.startsWith("/") ? verified.returnTo : "/growth";
   const continueUrl = new URL("/auth/sso/start", productOrigin);

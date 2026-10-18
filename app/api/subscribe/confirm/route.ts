@@ -4,10 +4,10 @@ export const dynamic = 'force-dynamic';
 
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
-import { normalizeSubscriptionName } from "@/lib/stripe";
+import { financialStripeSecret, normalizeSubscriptionName } from "@/lib/stripe";
 import { auth } from "@/lib/auth";
 
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY?.trim();
+const STRIPE_SECRET_KEY = financialStripeSecret();
 
 const isStripeSubscription = (value: unknown): value is Stripe.Subscription => {
   return typeof value === 'object' && value !== null && 'id' in value && 'status' in value;

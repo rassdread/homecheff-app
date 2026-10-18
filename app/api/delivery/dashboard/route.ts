@@ -8,6 +8,7 @@ import { authOptions } from '@/lib/auth';
 import { calculateDistance } from '@/lib/geocoding';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { Stripe } from 'stripe';
+import { financialStripeSecret } from '@/lib/stripe';
 import { resolveDelivererPosition, resolveDeliveryPickupCoords, resolveSellerCoords } from '@/lib/delivery/delivery-position';
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 import { resolveDeliveryTimeAvailability } from '@/lib/delivery/delivery-time-availability';
@@ -18,9 +19,10 @@ import {
   sellerPhoneForPhase,
 } from '@/lib/delivery/delivery-privacy';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-08-27.basil',
-});
+const dashboardStripeKey = financialStripeSecret();
+const stripe: Stripe | null = dashboardStripeKey
+  ? new Stripe(dashboardStripeKey, { apiVersion: '2025-08-27.basil' })
+  : null;
 
 export async function GET(req: NextRequest) {
   try {
@@ -221,7 +223,7 @@ export async function GET(req: NextRequest) {
       // Filter to only LOCAL_DELIVERY orders by checking Stripe metadata
       const localDeliveryOrders: typeof sellerOrders = [];
       for (const order of sellerOrders) {
-        if (order.stripeSessionId) {
+        if (order.stripeSessionId && stripe) {
           try {
             const stripeSession = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
             const originalDeliveryMode = stripeSession.metadata?.deliveryMode;
@@ -247,7 +249,7 @@ export async function GET(req: NextRequest) {
       // For LOCAL_DELIVERY, seller gets the delivery fee (stored in order metadata or calculated)
       const todayEarningsPromises = todayOrders.map(async (order) => {
         // Try to get delivery fee from Stripe metadata
-        if (order.stripeSessionId) {
+        if (order.stripeSessionId && stripe) {
           try {
             const stripeSession = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
             const deliveryFeeCents = parseInt(stripeSession.metadata?.deliveryFeeCents || '0');
@@ -262,7 +264,7 @@ export async function GET(req: NextRequest) {
       todayEarnings = (await Promise.all(todayEarningsPromises)).reduce((sum, fee) => sum + fee, 0);
 
       const weekEarningsPromises = weekOrders.map(async (order) => {
-        if (order.stripeSessionId) {
+        if (order.stripeSessionId && stripe) {
           try {
             const stripeSession = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
             const deliveryFeeCents = parseInt(stripeSession.metadata?.deliveryFeeCents || '0');
@@ -278,7 +280,7 @@ export async function GET(req: NextRequest) {
       // Calculate total earnings from ALL delivered LOCAL_DELIVERY orders (not just this week)
       const allDeliveredOrders = localDeliveryOrders.filter(order => order.status === 'DELIVERED');
       const totalEarningsPromises = allDeliveredOrders.map(async (order) => {
-        if (order.stripeSessionId) {
+        if (order.stripeSessionId && stripe) {
           try {
             const stripeSession = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
             const deliveryFeeCents = parseInt(stripeSession.metadata?.deliveryFeeCents || '0');
@@ -317,7 +319,7 @@ export async function GET(req: NextRequest) {
         const product = currentOrder.items[0]?.Product;
         // Get delivery fee from Stripe metadata (in cents) or use default
         let deliveryFeeCents = 300; // Default €3.00 in cents
-        if (currentOrder.stripeSessionId) {
+        if (currentOrder.stripeSessionId && stripe) {
           try {
             const stripeSession = await stripe.checkout.sessions.retrieve(currentOrder.stripeSessionId);
             const feeFromMetadata = parseInt(stripeSession.metadata?.deliveryFeeCents || '0');
@@ -372,7 +374,7 @@ export async function GET(req: NextRequest) {
           
           // Get delivery fee from Stripe metadata (in cents) or use default
           let deliveryFeeCents = 300; // Default €3.00 in cents
-          if (order.stripeSessionId) {
+          if (order.stripeSessionId && stripe) {
             try {
               const stripeSession = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
               const feeFromMetadata = parseInt(stripeSession.metadata?.deliveryFeeCents || '0');

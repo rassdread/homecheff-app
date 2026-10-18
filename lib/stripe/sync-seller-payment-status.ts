@@ -57,6 +57,12 @@ export async function loadConnectAccountStatusForUser(params: {
         where: { id: params.userId },
         data: { stripeConnectOnboardingCompleted: snapshot.onboardingCompleted },
       });
+      if (snapshot.paymentReady && snapshot.onboardingCompleted) {
+        const { resumePendingListingCampaign } = await import('@/lib/hc/qualify-first-listing');
+        void resumePendingListingCampaign(params.userId).catch((e) =>
+          console.warn('[hc-campaign] resume after stripe', e),
+        );
+      }
     }
 
     // Keep legacy Affiliate mirror in sync (one Connect account per user).

@@ -11,7 +11,9 @@ import {
 import { getHcSellerPayoutFlags } from './flags';
 import {
   createStripeHcTreasuryTransferAdapter,
+  destinationTransfersActive,
   executeHcTreasurySellerTransfer,
+  payoutPendingCanRetry,
   type HcTreasuryTransferAdapter,
 } from './treasury-transfer-adapter';
 import {
@@ -176,7 +178,7 @@ export async function executeHcSellerPayout(input: {
         amountCents: resolvePayableAmountCents(fresh),
       };
     }
-    if (fresh.status === 'PAYOUT_PENDING') {
+    if (fresh.status === 'PAYOUT_PENDING' && !payoutPendingCanRetry(fresh.payoutAttemptedAt)) {
       return { kind: 'in_progress' as const };
     }
     if (!['EARNED', 'PAYOUT_FAILED_RETRYABLE'].includes(fresh.status)) {
@@ -243,6 +245,28 @@ export async function executeHcSellerPayout(input: {
     if (!stripe) {
       await markPayoutFailed(input.exposureId, attemptId, 'STRIPE_NOT_CONFIGURED', false);
       return { ok: false, code: 'STRIPE_NOT_CONFIGURED', exposureId: input.exposureId, retryable: false };
+    }
+    try {
+      const destination = await stripe.accounts.retrieve(destinationAccountId);
+      if (!destinationTransfersActive(destination.capabilities?.transfers)) {
+        await markPayoutFailed(input.exposureId, attemptId, 'DESTINATION_TRANSFERS_NOT_ACTIVE', true);
+        return {
+          ok: false,
+          code: 'DESTINATION_TRANSFERS_NOT_ACTIVE',
+          exposureId: input.exposureId,
+          retryable: true,
+          status: 'PAYOUT_FAILED_RETRYABLE',
+        };
+      }
+    } catch {
+      await markPayoutFailed(input.exposureId, attemptId, 'STRIPE_ACCOUNT_LOOKUP_FAILED', true);
+      return {
+        ok: false,
+        code: 'STRIPE_ACCOUNT_LOOKUP_FAILED',
+        exposureId: input.exposureId,
+        retryable: true,
+        status: 'PAYOUT_FAILED_RETRYABLE',
+      };
     }
     transferAdapter = createStripeHcTreasuryTransferAdapter(stripe);
   }

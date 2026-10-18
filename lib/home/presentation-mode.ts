@@ -112,7 +112,7 @@ export function dashboardTargetForPresentation(input: {
   user: Record<string, unknown> | null | undefined;
   incompleteProfile?: boolean;
 }): string {
-  if (input.incompleteProfile) return '/onboarding/complete-profile';
+  void input.incompleteProfile;
   return resolvePrimaryDashboardHrefFromUser(input.user ?? null);
 }
 

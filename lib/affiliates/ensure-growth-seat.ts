@@ -1,11 +1,8 @@
 import { prisma } from "@/lib/prisma";
+import { growthServiceBase } from "@/lib/hc/preview-service-target";
 
 function growthBase() {
-  return (
-    process.env.GROWTH_HC_QUOTE_BASE_URL ??
-    process.env.GROWTH_API_BASE_URL ??
-    "https://growth.homecheff.eu"
-  ).replace(/\/$/, "");
+  return growthServiceBase() ?? "";
 }
 
 function growthSecret() {
@@ -29,9 +26,11 @@ export async function ensureGrowthAffiliateCapability(input: {
   displayName?: string | null;
 }): Promise<{ ok: boolean; code?: string }> {
   const secret = growthSecret();
+  const base = growthBase();
   if (!secret) return { ok: false, code: "GROWTH_SECRET_MISSING" };
+  if (!base) return { ok: false, code: "CONFIGURATION_ERROR" };
   try {
-    const res = await fetch(`${growthBase()}/api/internal/ecosystem/affiliate/ensure-growth-seat`, {
+    const res = await fetch(`${base}/api/internal/ecosystem/affiliate/ensure-growth-seat`, {
       method: "POST",
       headers: {
         "content-type": "application/json",

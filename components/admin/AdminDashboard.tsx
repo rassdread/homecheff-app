@@ -33,6 +33,7 @@ import AuditLog from './AuditLog';
 import AffiliateManagement from './AffiliateManagement';
 import OpportunityFunnelAdmin from './OpportunityFunnelAdmin';
 import AdminPromotionsPanel from './AdminPromotionsPanel';
+import AdminHcCampaignsPanel from './AdminHcCampaignsPanel';
 import FinancialAlerts from './FinancialAlerts';
 import RegistrationCampaignPanel from './RegistrationCampaignPanel';
 import MigrateOrdersButton from './MigrateOrdersButton';
@@ -248,11 +249,11 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
   
   const allowedTabs = useMemo(() => {
     let tabs = isSuperAdmin
-      ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates', 'opportunity-funnel', 'promotions']
+      ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates', 'opportunity-funnel', 'promotions', 'hc-campaigns']
       : isAdmin && adminRoles.length > 0
         ? getUserAllowedTabs(adminRoles)
         : isAdmin
-          ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'affiliates', 'opportunity-funnel', 'promotions']
+          ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'affiliates', 'opportunity-funnel', 'promotions', 'hc-campaigns']
           : [];
 
     if (permissions && !isSuperAdmin) {
@@ -462,6 +463,7 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
               <RegistrationCampaignPanel campaign={stats.population.campaign} />
             ) : null}
 
+
             {/* Financial Alerts */}
             <FinancialAlerts />
 
@@ -624,6 +626,7 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
         {activeTab === 'affiliates' && <AffiliateManagement />}
         {activeTab === 'opportunity-funnel' && <OpportunityFunnelAdmin />}
         {activeTab === 'promotions' && <AdminPromotionsPanel />}
+        {activeTab === 'hc-campaigns' && <AdminHcCampaignsPanel />}
     </>
   );
 

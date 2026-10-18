@@ -115,7 +115,7 @@ describe('bottom nav five-item contract', () => {
     );
   });
 
-  it('incomplete profile still opens the profile gate before any dashboard', () => {
+  it('incomplete profile is a notice and does not replace the feed', () => {
     assert.equal(
       needsProfileOnboardingFromFlags({
         hasTempUsername: false,
@@ -124,7 +124,8 @@ describe('bottom nav five-item contract', () => {
       true,
     );
     const gate = readFileSync(join(root, 'components/auth/AuthCompletionGate.tsx'), 'utf8');
-    assert.match(gate, /replaceOnce\('\/onboarding\/complete-profile'\)/);
+    assert.doesNotMatch(gate, /replaceOnce\('\/onboarding\/complete-profile'\)/);
+    assert.match(gate, /href="\/settings"/);
     const register = readFileSync(join(root, 'app/api/register/route.ts'), 'utf8');
     assert.match(register, /\/operations\/vandaag\?welcome=true&newUser=true/);
     const perf = readFileSync(join(root, 'app/verkoper/dashboard/page-client.tsx'), 'utf8');

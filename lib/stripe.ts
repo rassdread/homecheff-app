@@ -5,6 +5,9 @@ import {
   STRIPE_FEE_PERCENTAGE,
 } from './fees';
 import { getBusinessVisibilityProfile } from './business/visibility-profile';
+import { financialStripeSecret } from '@/lib/stripe-runtime-guard';
+
+export { financialStripePublishableKey, financialStripeSecret } from '@/lib/stripe-runtime-guard';
 
 // Helper om omgevingsvariabelen te normaliseren (trim en leeg -> undefined)
 const sanitizeEnv = (value?: string | null): string | undefined => {
@@ -14,7 +17,7 @@ const sanitizeEnv = (value?: string | null): string | undefined => {
 };
 
 // Test mode - gebruik sandbox keys
-const STRIPE_SECRET_KEY = sanitizeEnv(process.env.STRIPE_SECRET_KEY);
+const STRIPE_SECRET_KEY = financialStripeSecret();
 export const isTestMode = !STRIPE_SECRET_KEY || STRIPE_SECRET_KEY.startsWith('sk_test');
 
 // Helper om te detecteren of een Stripe ID test of live is

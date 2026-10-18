@@ -107,6 +107,10 @@ const nextConfig = {
     ],
     // Modern bundling for better performance
     turbo: {
+      resolveAlias: {
+        '@/components/performance/FeedPerfBaselineMount':
+          './components/performance/FeedPerfBaselineMount.noop.tsx',
+      },
       rules: {
         '*.svg': {
           loaders: ['@svgr/webpack'],
@@ -139,10 +143,11 @@ const nextConfig = {
   // Optimize production builds
   productionBrowserSourceMaps: false,
 
-  // Bundle optimization
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
+  // Turbopack rejects this key even when the value is false.
+  // Production builds still strip console calls.
+  ...(process.env.NODE_ENV === 'production'
+    ? { compiler: { removeConsole: true } }
+    : {}),
   // Powerpack optimizations
   poweredByHeader: false,
   
@@ -171,18 +176,24 @@ const nextConfig = {
       },
     ];
     // Security headers voor pagina's worden in middleware gezet (niet voor /api), zodat video-proxy geen CSP krijgt (breekt Edge).
-    return [
-      ...apiAndI18nHeaders,
-      {
-        source: '/_next/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-    ];
+    // Dev chunk names are not content-hashed. An immutable year-long cache
+    // makes the browser keep a stale webpack runtime and crash with
+    // "Cannot read properties of undefined (reading 'call')".
+    const hashedStaticCache =
+      process.env.NODE_ENV === 'production'
+        ? [
+            {
+              source: '/_next/static/:path*',
+              headers: [
+                {
+                  key: 'Cache-Control',
+                  value: 'public, max-age=31536000, immutable',
+                },
+              ],
+            },
+          ]
+        : [];
+    return [...apiAndI18nHeaders, ...hashedStaticCache];
   },
 
   // Enable prefetching for faster navigation (default is true, but explicit is better)

@@ -198,3 +198,98 @@ export function scoreListingQuality(input: ListingQualityInput): ListingQualityR
 export function isQualityListing(input: ListingQualityInput): boolean {
   return scoreListingQuality(input).isQuality;
 }
+
+const HINTS: Record<ListingQualityDimension, { nl: string; en: string }> = {
+  photo: {
+    nl: "Voeg meer foto's toe. Drie foto's, of één foto met een video, geven de hoogste fotopunten.",
+    en: "Add more photos. Three photos, or one photo plus a video, earn the full photo score.",
+  },
+  title: {
+    nl: "Maak de titel specifieker. Een titel van 12 tot 80 tekens scoort het hoogst.",
+    en: "Make the title more specific. A title of 12 to 80 characters scores highest.",
+  },
+  description: {
+    nl: "Schrijf een duidelijkere beschrijving van minstens 80 tekens.",
+    en: "Write a clearer description of at least 80 characters.",
+  },
+  priceClarity: {
+    nl: "Zet een duidelijke prijs. Een prijs op aanvraag scoort lager dan een vaste prijs.",
+    en: "Set a clear price. A price on request scores lower than a fixed price.",
+  },
+  category: {
+    nl: "Kies een categorie die bij een zelfgemaakt product of een persoonlijke dienst hoort.",
+    en: "Choose a category for a homemade product or a personal service.",
+  },
+  location: {
+    nl: "Vul een herkenbare plaats in, zodat de afstand berekend kan worden.",
+    en: "Add a recognizable place so distance can be calculated.",
+  },
+  profile: {
+    nl: "Vul je profielnaam en een korte bio in.",
+    en: "Add your profile name and a short bio.",
+  },
+  availability: {
+    nl: "Geef aan dat de listing beschikbaar is, bijvoorbeeld met voorraad.",
+    en: "Show that the listing is available, for example with stock.",
+  },
+  pickupDelivery: {
+    nl: "Zeg hoe de koper het aanbod krijgt: ophalen, bezorgen of verzenden.",
+    en: "Say how the buyer receives it: pickup, delivery, or shipping.",
+  },
+};
+
+/** Improvement hints for dimensions that are not at their full weight. */
+export function listingQualityHints(
+  result: ListingQualityResult,
+): Array<{ dimension: ListingQualityDimension; nl: string; en: string }> {
+  return (Object.keys(WEIGHTS) as ListingQualityDimension[])
+    .filter((dimension) => result.dimensions[dimension] < WEIGHTS[dimension])
+    .map((dimension) => ({ dimension, ...HINTS[dimension] }));
+}
+
+export function listingQualityBand(score: number): { nl: string; en: string } {
+  if (score >= 80) return { nl: "Goed", en: "Good" };
+  if (score >= LISTING_QUALITY_THRESHOLD) return { nl: "Voldoende", en: "Enough" };
+  return { nl: "Kan beter", en: "Can be improved" };
+}
+
+/**
+ * Quality and a campaign reward are different. This text never says HC was granted.
+ */
+export function explainListingReward(input: {
+  score: number;
+  linkedToCampaign: boolean;
+  isFirstQualifiedListing: boolean;
+  grantPending: boolean;
+}): { nl: string; en: string; promised: false; granted: false } {
+  if (input.linkedToCampaign && input.isFirstQualifiedListing && input.grantPending) {
+    return {
+      nl: "Deze listing is vastgelegd als eerste geldige listing. Er is nog geen HC toegekend.",
+      en: "This listing is recorded as the first valid listing. No HC has been granted.",
+      promised: false,
+      granted: false,
+    };
+  }
+  if (input.linkedToCampaign && !input.isFirstQualifiedListing) {
+    return {
+      nl: "Een eenmalige campagne geldt voor de eerste geldige listing. Voor deze listing is geen extra beloning vastgelegd.",
+      en: "A one-time campaign applies to the first valid listing. No extra reward is recorded for this listing.",
+      promised: false,
+      granted: false,
+    };
+  }
+  if (input.score >= LISTING_QUALITY_THRESHOLD) {
+    return {
+      nl: "Deze listing haalt de minimale kwaliteitsscore van 60. Dat is een kwaliteitsbeoordeling, geen HC-toekenning.",
+      en: "This listing meets the minimum quality score of 60. That is a quality check, not an HC grant.",
+      promised: false,
+      granted: false,
+    };
+  }
+  return {
+    nl: "Deze listing haalt de minimale kwaliteitsscore van 60 nog niet. Er is geen HC toegekend.",
+    en: "This listing does not yet meet the minimum quality score of 60. No HC has been granted.",
+    promised: false,
+    granted: false,
+  };
+}

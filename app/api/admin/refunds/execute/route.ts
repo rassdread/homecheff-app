@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
+import { financialStripeSecret } from '@/lib/stripe';
 import {
   dryRunRefundSettlement,
   executeRefundSettlement,
@@ -12,9 +13,10 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-08-27.basil',
-});
+const refundStripeKey = financialStripeSecret();
+const stripe: Stripe | null = refundStripeKey
+  ? new Stripe(refundStripeKey, { apiVersion: '2025-08-27.basil' })
+  : null;
 
 /**
  * POST /api/admin/refunds/execute
@@ -36,6 +38,9 @@ export async function POST(req: NextRequest) {
 
     if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    }
+    if (!stripe) {
+      return NextResponse.json({ error: 'Stripe is not configured' }, { status: 503 });
     }
 
     const body = await req.json();

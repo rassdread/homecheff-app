@@ -46,6 +46,8 @@ import {
 } from '@/lib/trust/seller-contribution';
 import { maybeActivateSellerFromPublishedListing } from '@/lib/acquisition/marketplace-acquisition';
 import { productToListingQualityInput } from '@/lib/acquisition/product-quality-input';
+import { scoreListingQuality } from '@/lib/acquisition/listing-quality';
+import { qualifyFirstValidListingReward } from '@/lib/hc/qualify-first-listing';
 import { recordListingPublished } from '@/lib/analytics/record-acquisition-event.server';
 import { marketplaceAgeResponse, subjectFromUser } from '@/lib/age/listing-age-guard';
 import {
@@ -1025,6 +1027,24 @@ export async function POST(req: Request) {
           },
         }),
       ).catch((e) => console.warn('[acquisition] seller activation', e));
+      const qualityInput = productToListingQualityInput({
+        ...result,
+        seller: {
+          displayName: user.SellerProfile?.displayName ?? user.name,
+          bio: user.SellerProfile?.bio ?? user.bio,
+          lat: user.SellerProfile?.lat ?? user.lat,
+          lng: user.SellerProfile?.lng ?? user.lng,
+          User: { city: user.city },
+        },
+      });
+      await qualifyFirstValidListingReward({
+        userId: user.id,
+        productId: result.id,
+        isActive: result.isActive,
+        integrityStatus: (result as { integrityStatus?: string | null }).integrityStatus ?? 'ACTIVE',
+        qualityScore: scoreListingQuality(qualityInput).score,
+        cookieHeader: req.headers.get('cookie'),
+      }).catch((e) => console.warn('[hc-campaign] first listing', e));
     }
 
     if (shouldRevalidateAfterProductMutation(null, result)) {

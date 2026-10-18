@@ -39,6 +39,7 @@ import type { MarketplaceCategory } from '@prisma/client';
 import ProductSaleDomainStory from '@/components/product/detail/ProductSaleDomainStory';
 import type { ProductInspirationLink } from '@/components/product/detail/ProductInspirationLinkCard';
 import ProductSaleCommerceZone from '@/components/product/detail/ProductSaleCommerceZone';
+import { OwnerListingQuality } from '@/components/products/OwnerListingQuality';
 import ProductDetailMainSections from '@/components/product/detail/ProductDetailMainSections';
 import ProductSaleStickyCta from '@/components/product/detail/ProductSaleStickyCta';
 import {
@@ -1207,6 +1208,7 @@ export default function ListingDetailPage({
                       />
                     </div>
                   ) : null}
+                  {isOwner ? <OwnerListingQuality productId={product.id} /> : null}
                   {isIntegrityPubliclyDiscoverable(
                     (product as { integrityStatus?: string }).integrityStatus,
                   ) || isOwner ? (

@@ -22,11 +22,16 @@ import {
   googleClientIdPreview,
   resolveGoogleWebOAuthClient,
 } from "./auth/google-oauth-clients";
+import {
+  previewGoogleOAuthBlockReason,
+  resolvePreviewGoogleOAuthClient,
+} from "./auth/preview-google-oauth";
 import { NEXTAUTH_SESSION_COOKIE_NAME } from "./auth/session-cookie-name";
 import { withPrismaRetry } from "./auth/prisma-retry";
 import { sanitizePostAuthRelativeUrl } from "./auth/post-auth-redirect";
 import { markNewAccountForMeta } from "./meta/mark-new-account.server";
 import { usernameContainsTempPlaceholder } from "./username-placeholder";
+import { isPreviewDeployment } from "./hc/preview-service-target";
 
 type Role = UserRole | 'SUPERADMIN';
 type AppUser = { id: string; email: string; role: Role; name?: string; image?: string };
@@ -39,17 +44,20 @@ if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_URL) {
 }
 
 const sharedSessionCookieDomain = getAuthSessionCookieDomain();
-const googleWebClient = resolveGoogleWebOAuthClient();
+const productionGoogleClient = isPreviewDeployment() ? null : resolveGoogleWebOAuthClient();
+const previewGoogleClient = resolvePreviewGoogleOAuthClient();
+const googleWebClient = productionGoogleClient || previewGoogleClient;
 const isGoogleAuthConfigured = Boolean(googleWebClient);
 if (!isGoogleAuthConfigured) {
-  console.warn(
-    "[auth] Google OAuth disabled: missing GOOGLE_CLIENT_ID/GOOGLE_WEB_CLIENT_ID and/or matching secret",
-  );
+  console.warn("[auth] Google OAuth disabled", {
+    previewReason: isPreviewDeployment() ? previewGoogleOAuthBlockReason() : undefined,
+  });
 } else {
   console.info("[auth] Google web OAuth configured", {
     clientId: googleClientIdPreview(googleWebClient!.clientId),
-    clientIdSource: googleWebClient!.source.clientId,
-    clientSecretSource: googleWebClient!.source.clientSecret,
+    clientIdSource: productionGoogleClient
+      ? productionGoogleClient.source.clientId
+      : previewGoogleClient?.source,
   });
 }
 const sessionCookieOptions = {

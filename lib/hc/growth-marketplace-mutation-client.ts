@@ -2,6 +2,8 @@
  * Growth central-HC marketplace mutation client — server-to-server only.
  */
 
+import { isPreviewDeployment, resolveGrowthServiceTarget } from '@/lib/hc/preview-service-target';
+
 export type TrustedOrderPayload = {
   orderId: string;
   listingId: string;
@@ -13,8 +15,10 @@ export type TrustedOrderPayload = {
 };
 
 function growthBaseUrl(): string | null {
-  const base = (process.env.GROWTH_HC_QUOTE_BASE_URL ?? process.env.GROWTH_API_BASE_URL ?? '').replace(/\/$/, '');
-  return base || null;
+  const configured = (process.env.GROWTH_HC_QUOTE_BASE_URL ?? process.env.GROWTH_API_BASE_URL ?? '').trim();
+  if (!configured && !isPreviewDeployment()) return null;
+  const target = resolveGrowthServiceTarget();
+  return target.ok ? target.base : null;
 }
 
 function internalSecret(): string | null {

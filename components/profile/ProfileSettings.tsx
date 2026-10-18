@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { getDisplayName } from '@/lib/displayName';
-import { User, MapPin, Calendar, Edit3, Save, X } from 'lucide-react';
+import { User, MapPin, Calendar, Edit3, Save, X, AlertTriangle } from 'lucide-react';
 import HelpSettings from '@/components/onboarding/HelpSettings';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
@@ -16,6 +16,13 @@ export interface ProfileSettingsRef {
   isEditing: boolean;
   isLoading: boolean;
 }
+
+let pendingSettingsNotice: string | null = null;
+
+const DATE_OF_BIRTH_WARNING = {
+  nl: 'Let op: Vul je werkelijke geboortedatum in. Het bewust opgeven van een onjuiste geboortedatum om leeftijdsbeperkingen te omzeilen, is in strijd met onze voorwaarden en kan juridische gevolgen hebben.',
+  en: 'Please note: Enter your actual date of birth. Knowingly providing an incorrect date of birth to bypass age restrictions violates our terms and may have legal consequences.',
+} as const;
 
 const sellerTypes = [
   { id: "chef", icon: "👨‍🍳", copyKey: "chef" },
@@ -68,7 +75,8 @@ interface ProfileSettingsProps {
 
 const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
   ({ user, onSave, onEditStateChange, scrollToSection }, ref) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const en = language === 'en';
   const [isEditing, setIsEditing] = useState(false);
   
   // Notify parent when edit state changes
@@ -134,8 +142,35 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  useEffect(() => {
+    if (!pendingSettingsNotice) return;
+    setSuccess(pendingSettingsNotice);
+    pendingSettingsNotice = null;
+  }, []);
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [savedDateOfBirth, setSavedDateOfBirth] = useState('');
 
   const canRenameUsername = needsDefinitiveUsername(user?.username);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch('/api/account/date-of-birth', { credentials: 'include' });
+        if (!res.ok) return;
+        const data = (await res.json()) as { dateOfBirthIso?: string | null };
+        if (cancelled) return;
+        const iso = data.dateOfBirthIso || '';
+        setDateOfBirth(iso);
+        setSavedDateOfBirth(iso);
+      } catch {
+        /* the field stays empty and the save call explains the error */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   const profilePlaceResolveEnabled =
     isEditing &&
@@ -178,8 +213,43 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
           ? formData.username.trim()
           : (user?.username || "").trim(),
       };
+      let notice = t('profileSettings.profileUpdated');
+      if (dateOfBirth !== savedDateOfBirth) {
+        const dobRes = await fetch('/api/account/date-of-birth', {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dateOfBirth }),
+        });
+        const dobData = (await dobRes.json().catch(() => ({}))) as {
+          error?: string;
+          errorEn?: string;
+          message?: string;
+          messageEn?: string;
+          dateOfBirthIso?: string;
+        };
+        if (!dobRes.ok) {
+          throw new Error(
+            (en ? dobData.errorEn : dobData.error) ||
+              (en
+                ? 'Could not save your date of birth.'
+                : 'Geboortedatum opslaan lukte niet.'),
+          );
+        }
+        const iso = dobData.dateOfBirthIso || dateOfBirth;
+        setDateOfBirth(iso);
+        setSavedDateOfBirth(iso);
+        notice =
+          (en ? dobData.messageEn : dobData.message) ||
+          (en ? 'Date of birth saved.' : 'Geboortedatum opgeslagen.');
+      }
+      pendingSettingsNotice = notice;
+      setSuccess(notice);
       await onSave(dataToSave);
-      setSuccess(t('profileSettings.profileUpdated'));
+      const shown = notice;
+      window.setTimeout(() => {
+        if (pendingSettingsNotice === shown) pendingSettingsNotice = null;
+      }, 15000);
       setIsEditing(false);
     } catch (error: any) {
       setError(error.message || t('profileSettings.errorSaving'));
@@ -382,6 +452,7 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
       messageGuidelinesAccepted: user?.messageGuidelinesAccepted || false,
       // Bank details now handled via Stripe
     });
+    setDateOfBirth(savedDateOfBirth);
     setIsEditing(false);
   };
 
@@ -533,6 +604,25 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
               <p className="text-xs text-gray-500 mt-1">{t("profileSettings.usernameCannotChange")}</p>
             )}
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="profile-date-of-birth">
+            {en ? 'Date of birth' : 'Geboortedatum'}
+          </label>
+          <input
+            id="profile-date-of-birth"
+            type="date"
+            value={dateOfBirth}
+            onChange={(e) => setDateOfBirth(e.target.value)}
+            disabled={!isEditing}
+            autoComplete="bday"
+            className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
+          />
+          <p className="mt-2 flex items-start gap-2 text-sm leading-relaxed text-rose-800">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>{en ? DATE_OF_BIRTH_WARNING.en : DATE_OF_BIRTH_WARNING.nl}</span>
+          </p>
         </div>
 
         {/* Bio */}

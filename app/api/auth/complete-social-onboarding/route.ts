@@ -8,6 +8,7 @@ import { processAttributionOnSignup } from '@/lib/affiliate-attribution';
 import { maybeClaimBetaTesterFromSignupCookies } from '@/lib/beta-tester-rewards';
 import { parseMarketplaceUtmFromCookieHeader } from '@/lib/acquisition/utm-persistence';
 import { upsertMarketplaceAcquisitionFirstTouch } from '@/lib/acquisition/marketplace-acquisition';
+import { persistHcCampaignCodeFirstTouch } from '@/lib/acquisition/persist-hc-campaign-code';
 import { maybeAcceptPartnerInviteFromRequest } from '@/lib/affiliates/accept-partner-invite';
 import { UserRole } from '@prisma/client';
 import { findUserByCanonicalEmail } from '@/lib/auth/find-user-by-email';
@@ -131,6 +132,7 @@ export async function POST(request: NextRequest) {
           existingUser.id,
           parseMarketplaceUtmFromCookieHeader(cookieHeader),
         );
+        await persistHcCampaignCodeFirstTouch(existingUser.id, cookieHeader);
         await maybeAcceptPartnerInviteFromRequest({
           userId: existingUser.id,
           cookieHeader,
@@ -281,6 +283,7 @@ export async function POST(request: NextRequest) {
         existingUser.id,
         parseMarketplaceUtmFromCookieHeader(cookieHeader),
       );
+      await persistHcCampaignCodeFirstTouch(existingUser.id, cookieHeader);
       await maybeAcceptPartnerInviteFromRequest({
         userId: existingUser.id,
         cookieHeader,

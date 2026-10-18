@@ -3,6 +3,8 @@
  * NO reserve/capture/grant — informational only.
  */
 
+import { resolveGrowthServiceTarget } from "@/lib/hc/preview-service-target";
+
 export type GrowthMarketplaceHcQuote = {
   ok: true;
   readOnly: true;
@@ -51,9 +53,10 @@ export async function fetchGrowthMarketplaceHcQuote(input: {
   centralUserId: string;
   trustedOrder: TrustedOrderPayload;
 }): Promise<GrowthMarketplaceHcQuote | null> {
-  const base = (process.env.GROWTH_HC_QUOTE_BASE_URL ?? process.env.GROWTH_API_BASE_URL ?? "https://growth.homecheff.eu").replace(/\/$/, "");
+  const target = resolveGrowthServiceTarget();
   const secret = (process.env.HC_MARKETPLACE_QUOTE_INTERNAL_SECRET ?? "").trim();
-  if (!secret) return null;
+  if (!target.ok || !secret) return null;
+  const base = target.base;
 
   const res = await fetch(`${base}/api/internal/marketplace/checkout/hc-quote`, {
     method: "POST",

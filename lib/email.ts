@@ -80,6 +80,14 @@ export async function sendVerificationEmail({
     }
 
     const base = getPublicAppUrl();
+    if (!base) {
+      logEmailVerificationDiag('config_invalid_from', {});
+      throw new EmailSendFailure(
+        'EMAIL_PUBLIC_URL_MISSING',
+        'config_missing_from',
+        'EMAIL_NOT_CONFIGURED',
+      );
+    }
     const verificationUrl = `${base}/verify-email?token=${encodeURIComponent(verificationToken)}`;
     const lang: VerificationEmailLocale = locale === 'en' ? 'en' : 'nl';
     const textBody = buildVerificationPlainText({
