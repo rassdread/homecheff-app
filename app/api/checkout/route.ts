@@ -1,5 +1,6 @@
 import type Stripe from 'stripe';
 import { normalizeFulfillmentInput } from '@/lib/delivery/delivery-fulfillment-vocabulary';
+import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -530,6 +531,10 @@ export async function POST(req: NextRequest) {
     const isSellerDeliveryMode =
       fulfillmentNorm.canonical === 'SELLER_DELIVERY' ||
       deliveryMode === 'LOCAL_DELIVERY';
+
+    if (isLocalProviderMode && !isHomeCheffDeliveryEnabled()) {
+      return NextResponse.json(deliveryDisabledBody(), { status: 403 });
+    }
 
     // Phase 3: named provider selection requires targeted provider + confirmed booking
     if (flags.namedProviderSelectionEnabled && isLocalProviderMode) {

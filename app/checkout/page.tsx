@@ -783,7 +783,7 @@ export default function CheckoutPage() {
       icon: <Users className="w-6 h-6" />,
       price: 0,
       estimatedTime: estimatedDeliveryTime ? `${estimatedDeliveryTime} min` : t('checkout.teenDeliveryEstimatedTime'),
-      available: availableDeliveryModes.hasDelivery && !(isDealCheckout && activeCommunityDelivery)
+      available: availableDeliveryModes.hasDelivery && namedProviderSelectionEnabled && !(isDealCheckout && activeCommunityDelivery)
     },
     {
       id: 'shipping',
@@ -1300,7 +1300,7 @@ export default function CheckoutPage() {
                       {t('checkout.errors.activeCommunityDelivery')}
                     </p>
                   ) : null}
-                  {deliveryOptions.map((option) => {
+                  {deliveryOptions.filter((option) => option.id !== 'local_provider' || namedProviderSelectionEnabled).map((option) => {
                     const isTeenDelivery = option.id === 'local_provider' || option.id === 'teen_delivery';
                     const isLocalDelivery = option.id === 'local_delivery';
                     const isShipping = option.id === 'shipping';

@@ -15,6 +15,11 @@ import { stripSpoofedFeeFields } from '@/lib/hc/marketplace-order-fee-snapshot';
 import { assertOneSellerIds } from '@/lib/checkout/fulfillment-phase1';
 import { readMarketplaceUtmFromCookies } from '@/lib/acquisition/read-marketplace-utm-cookie';
 import { marketplaceUtmToStripeMetadata } from '@/lib/acquisition/utm-persistence';
+import {
+  deliveryDisabledBody,
+  isHomeCheffDeliveryEnabled,
+  isNewCourierFulfillmentMode,
+} from '@/lib/delivery/delivery-deployment-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -83,6 +88,10 @@ export async function POST(req: NextRequest) {
         : typeof body?.deliveryProfileId === 'string'
           ? body.deliveryProfileId
           : null;
+
+    if (isNewCourierFulfillmentMode(deliveryMode) && !isHomeCheffDeliveryEnabled()) {
+      return NextResponse.json(deliveryDisabledBody(), { status: 403, headers: NO_STORE });
+    }
 
     if (!items?.length) {
       return NextResponse.json({ ok: false, code: 'NO_ITEMS' }, { status: 400, headers: NO_STORE });

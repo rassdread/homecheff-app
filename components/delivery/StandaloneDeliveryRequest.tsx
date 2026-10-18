@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import DelivererSelector, { type Deliverer } from '@/components/checkout/DelivererSelector';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const DELIVERY_DRAFT_KEY = 'hc-standalone-delivery-draft';
 
@@ -35,7 +36,9 @@ function eur(cents: number) {
 }
 
 export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boolean }) {
+  const { t } = useTranslation();
   const search = useSearchParams();
+  const [deliveryOpen, setDeliveryOpen] = useState<boolean | null>(null);
   const [pickupAddress, setPickupAddress] = useState('Koerierstraat 4, 3511 CD Utrecht');
   const [deliveryAddress, setDeliveryAddress] = useState('Teststraat 12, 3511 AB Utrecht');
   const [itemDescription, setItemDescription] = useState('');
@@ -51,6 +54,21 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [resumeTick, setResumeTick] = useState(0);
+
+  useEffect(() => {
+    let stop = false;
+    fetch('/api/delivery/alignment-flags')
+      .then((response) => response.json())
+      .then((data) => {
+        if (!stop) setDeliveryOpen(Boolean(data?.homeCheffDeliveryEnabled));
+      })
+      .catch(() => {
+        if (!stop) setDeliveryOpen(false);
+      });
+    return () => {
+      stop = true;
+    };
+  }, []);
 
   useEffect(() => {
     const raw = window.sessionStorage.getItem(DELIVERY_DRAFT_KEY);
@@ -246,6 +264,19 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
   }
 
   const Shell = embedded ? 'section' : 'main';
+  const viewingExisting = Boolean(search?.get('request') || paid || cancelled);
+  if (deliveryOpen === null) return null;
+  if (!deliveryOpen && embedded) return null;
+  if (!deliveryOpen && !viewingExisting) {
+    return (
+      <main className="mx-auto max-w-xl px-4 py-8" data-delivery-gate="closed">
+        <h1 className="text-2xl font-bold text-gray-900">{t('deliveryStart.requestLink')}</h1>
+        <p className="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+          {t('deliveryGate.unavailable')}
+        </p>
+      </main>
+    );
+  }
 
   return (
     <Shell className={embedded ? 'mx-auto max-w-xl px-1 py-2 pb-28' : 'mx-auto max-w-xl px-4 py-8 pb-40'} data-delivery-request="standalone">
@@ -261,6 +292,8 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
       {cancelled && <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Betaling geannuleerd. Er is geen actieve bezorgopdracht.</p>}
       {statusText && !paid && !cancelled && <p className="mt-4 text-sm text-gray-700">{statusText}</p>}
 
+      {deliveryOpen ? (
+      <>
       <label className="mt-6 block text-sm font-medium text-gray-800">
         Ophaaladres
         <input className="mt-1 w-full rounded-lg border px-3 py-2" value={pickupAddress} onChange={(event) => setPickupAddress(event.target.value)} />
@@ -314,6 +347,8 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
         </div>
       )}
       </div>
+      </>
+      ) : null}
     </Shell>
   );
 }

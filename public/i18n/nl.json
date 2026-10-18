@@ -11230,7 +11230,11 @@
     "driverBody": "Heb je een uitnodiging ontvangen? Accepteer die om als chauffeur te starten.",
     "alreadyPartner": "Al bezorgpartner?",
     "goDashboard": "Ga naar je bezorgdashboard",
-    "ageNote": "Commerciële bezorging via HomeCheff is beschikbaar vanaf 18 jaar. Minderjarigen kunnen de marktplaats gewoon gebruiken."
+    "ageNote": "Commerciële bezorging via HomeCheff is beschikbaar vanaf 18 jaar. Minderjarigen kunnen de marktplaats gewoon gebruiken.",
+    "requestLink": "Bezorging aanvragen"
+  },
+  "deliveryGate": {
+    "unavailable": "HomeCheff-bezorging is nog niet beschikbaar."
   },
   "affiliateDashboard": {
     "share": {

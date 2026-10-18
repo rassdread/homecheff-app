@@ -11,6 +11,11 @@ import {
 import { stripSpoofedFeeFields } from '@/lib/hc/marketplace-order-fee-snapshot';
 import { assertOneSellerIds } from '@/lib/checkout/fulfillment-phase1';
 import { evaluateMarketplaceEligibility } from '@/lib/age/marketplace-eligibility';
+import {
+  deliveryDisabledBody,
+  isHomeCheffDeliveryEnabled,
+  isNewCourierFulfillmentMode,
+} from '@/lib/delivery/delivery-deployment-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,6 +98,10 @@ export async function POST(req: NextRequest) {
         : typeof body?.deliveryProfileId === 'string'
           ? body.deliveryProfileId
           : null;
+
+    if (isNewCourierFulfillmentMode(deliveryMode) && !isHomeCheffDeliveryEnabled()) {
+      return NextResponse.json(deliveryDisabledBody(), { status: 403, headers: NO_STORE });
+    }
 
     const ctx = await resolveHcOnlyCheckoutContext({
       buyerUserId: buyer.id,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from "@/lib/delivery/delivery-deployment-gate";
 import {
   assertDelivererCanAccept,
   delivererAcceptDenialResponse,
@@ -10,6 +11,9 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    if (!isHomeCheffDeliveryEnabled()) {
+      return NextResponse.json(deliveryDisabledBody(), { status: 403 });
+    }
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });

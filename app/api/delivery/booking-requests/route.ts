@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
 import { prisma } from '@/lib/prisma';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 import {
@@ -19,6 +20,9 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
+    if (!isHomeCheffDeliveryEnabled()) {
+      return NextResponse.json(deliveryDisabledBody(), { status: 403 });
+    }
     const flags = getDeliveryAlignmentFlags();
     if (!flags.namedProviderSelectionEnabled) {
       return NextResponse.json(

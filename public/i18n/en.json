@@ -11230,7 +11230,11 @@
     "driverBody": "Received an invite? Accept it to start as a driver.",
     "alreadyPartner": "Already a delivery partner?",
     "goDashboard": "Go to your delivery dashboard",
-    "ageNote": "Commercial delivery on HomeCheff is available from age 18. Minors can still use the marketplace."
+    "ageNote": "Commercial delivery on HomeCheff is available from age 18. Minors can still use the marketplace.",
+    "requestLink": "Request a delivery"
+  },
+  "deliveryGate": {
+    "unavailable": "HomeCheff delivery is not available yet."
   },
   "affiliateDashboard": {
     "share": {

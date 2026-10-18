@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,9 @@ export async function POST(
   { params }: { params: { orderId: string } }
 ) {
   try {
+    if (!isHomeCheffDeliveryEnabled()) {
+      return NextResponse.json(deliveryDisabledBody(), { status: 403 });
+    }
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });

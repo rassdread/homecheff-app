@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { acceptDeliveryBookingRequest } from '@/lib/delivery/booking-request-service';
+import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,9 @@ export async function POST(
   ctx: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    if (!isHomeCheffDeliveryEnabled()) {
+      return NextResponse.json(deliveryDisabledBody(), { status: 403 });
+    }
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

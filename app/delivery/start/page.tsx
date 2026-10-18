@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Bike, Building2, UserRound } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -13,8 +14,24 @@ import DeliveryRegistrationNotice from '@/components/delivery/DeliveryRegistrati
 export default function DeliveryStartPage() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
+  const [deliveryOpen, setDeliveryOpen] = useState(false);
   const query = searchParams?.toString() || '';
   const withCampaign = (path: string) => (query ? `${path}?${query}` : path);
+
+  useEffect(() => {
+    let stop = false;
+    fetch('/api/delivery/alignment-flags')
+      .then((response) => response.json())
+      .then((data) => {
+        if (!stop) setDeliveryOpen(Boolean(data?.homeCheffDeliveryEnabled));
+      })
+      .catch(() => {
+        if (!stop) setDeliveryOpen(false);
+      });
+    return () => {
+      stop = true;
+    };
+  }, []);
 
   return (
     <div className="min-h-[calc(100vh-4rem)] w-screen max-w-[100vw] overflow-x-clip bg-gradient-to-b from-emerald-50/80 to-gray-50 px-4 pt-10 pb-[calc(8rem+env(safe-area-inset-bottom,0px))]">
@@ -29,9 +46,11 @@ export default function DeliveryStartPage() {
           <p className="text-sm text-gray-600 sm:text-base">{t('deliveryStart.subtitle')}</p>
           <p className="text-xs text-gray-500 sm:text-sm">{t('deliveryStart.ageNote')}</p>
           <DeliveryRegistrationNotice />
-          <Link href="/bezorging/aanvragen" className="inline-block text-sm font-semibold text-emerald-800 underline">
-            Bezorging aanvragen
-          </Link>
+          {deliveryOpen ? (
+            <Link href="/bezorging/aanvragen" className="inline-block text-sm font-semibold text-emerald-800 underline">
+              {t('deliveryStart.requestLink')}
+            </Link>
+          ) : null}
         </header>
 
         <div className="grid gap-4">

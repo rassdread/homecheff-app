@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
 import { bookStandaloneCourier } from '@/lib/delivery/standalone-delivery';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+  if (!isHomeCheffDeliveryEnabled()) {
+    return NextResponse.json(deliveryDisabledBody(), { status: 403 });
+  }
   const session = await auth();
   const userId = (session?.user as { id?: string } | undefined)?.id;
   if (!userId) {
