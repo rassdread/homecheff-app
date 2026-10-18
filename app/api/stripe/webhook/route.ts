@@ -31,6 +31,10 @@ import {
 import { requiresInventoryForCheckout } from "@/lib/proposals/proposal-stock-policy";
 import { parseFulfillmentOptions } from "@/lib/marketplace/listing-taxonomy";
 import { confirmReservationAndDecrementStock } from "@/lib/products/stock-reservation";
+import { CheckoutStockConflictError } from "@/lib/products/checkout-reservation-policy";
+import { releaseUnpaidCheckoutHold } from "@/lib/products/courier-stock-hold";
+import { fulfillStandaloneDeliveryPayment } from "@/lib/delivery/standalone-delivery";
+import { recordCheckoutPaymentIncident } from "@/lib/payments/checkout-payment-incident";
 import { revalidateTag } from "next/cache";
 import { listingProductCacheTag } from "@/lib/marketplace/detail/listing-product-core";
 import { revalidatePublicFeedCache } from "@/lib/feed/revalidate-public-feed";
@@ -667,6 +671,15 @@ export async function POST(req: NextRequest) {
           return new NextResponse("Mixed HC release failed — retry", { status: 500 });
         }
       }
+      try {
+        await releaseUnpaidCheckoutHold(prisma, {
+          checkoutSessionId: expired.id,
+          stockHoldId: expired.metadata?.stockHoldId || null,
+        });
+      } catch (releaseErr) {
+        console.error("[webhook] stock hold release on expire failed", releaseErr);
+        return new NextResponse("Stock hold release failed — retry", { status: 500 });
+      }
       return new NextResponse("ok", { status: 200 });
     }
     else if (event.type === "checkout.session.completed") {
@@ -680,6 +693,17 @@ export async function POST(req: NextRequest) {
       // Skip subscription payments (handled above)
       if (session.mode === "subscription") {
         console.log(`⏭️ Skipping subscription payment for session ${session.id}`);
+        return new NextResponse("ok", { status: 200 });
+      }
+
+      if (session.metadata?.checkoutKind === "STANDALONE_DELIVERY") {
+        const standalone = await fulfillStandaloneDeliveryPayment(session);
+        if (!standalone.handled) {
+          return new NextResponse("ok", { status: 200 });
+        }
+        if (!standalone.ok) {
+          return new NextResponse(standalone.error, { status: standalone.status });
+        }
         return new NextResponse("ok", { status: 200 });
       }
 
@@ -1120,6 +1144,7 @@ export async function POST(req: NextRequest) {
               stripeSessionId: session.id,
               holdId: session.metadata?.stockHoldId || null,
               inventoryRequired,
+              buyerId,
             });
           }
 
@@ -1954,6 +1979,35 @@ export async function POST(req: NextRequest) {
           }
         }
       } catch (orderError: any) {
+        if (
+          orderError instanceof CheckoutStockConflictError ||
+          orderError?.name === 'CheckoutStockConflictError'
+        ) {
+          try {
+            const existingOrder = await prisma.order.findFirst({
+              where: { stripeSessionId: session.id },
+              select: { id: true },
+            });
+            if (existingOrder) {
+              return new NextResponse('ok', { status: 200 });
+            }
+            const paymentIntentId =
+              typeof session.payment_intent === 'string'
+                ? session.payment_intent
+                : session.payment_intent?.id || null;
+            await recordCheckoutPaymentIncident(prisma, {
+              stripeSessionId: session.id,
+              paymentIntentId,
+              reason: orderError.message || 'Stock hold could not be confirmed',
+              code: orderError.code || 'HOLD_EXPIRED',
+              buyerId: session.metadata?.buyerId || null,
+            });
+            return new NextResponse('ok', { status: 200 });
+          } catch (recordErr) {
+            console.error('[webhook] payment incident was not recorded', recordErr);
+            return new NextResponse('Payment incident was not recorded', { status: 500 });
+          }
+        }
         console.error(`❌ CRITICAL: Failed to process order for session ${session.id}:`, orderError);
         
         // Check if order was already created (might have been created before error)

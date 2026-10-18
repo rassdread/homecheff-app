@@ -7,13 +7,19 @@ export const dynamic = 'force-dynamic';
 import { stripe } from '@/lib/stripe';
 import { calculateStripeFeeForBuyer, DELIVERY_PLATFORM_FEE_PERCENT, DELIVERY_DELIVERER_PERCENT } from '@/lib/fees';
 import { calculateDeliveryFee, calculateLongDistanceDeliveryFee } from '@/lib/deliveryPricing';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { assertNotSuspended } from '@/lib/user-suspend';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { calculateDistance } from '@/lib/geocoding';
 import { validateCommunityOrderCheckoutItems } from '@/lib/marketplace/commerce/community-order-checkout';
+import {
+  ACTIVE_COMMUNITY_DELIVERY_STATUSES,
+  assertOneSellerIds,
+  courierBookingBlockedByCommunityDelivery,
+  isCourierCheckoutMode,
+} from '@/lib/checkout/fulfillment-phase1';
 import { resolveCheckoutBlockReason } from '@/lib/marketplace/settlement/settlement-router';
 import { assertProductsAllergenConfirmationOr400 } from '@/lib/legal/assert-food-allergens-for-transaction';
 import {
@@ -38,10 +44,8 @@ import { resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
 import { normalizeCountryCode } from '@/lib/gamification/country-code';
 import { randomUUID } from 'crypto';
 import { revalidateTag } from 'next/cache';
-import {
-  expireHoldReservations,
-  lockAndReserveCheckoutStock,
-} from '@/lib/products/stock-reservation';
+import { expireHoldReservations } from '@/lib/products/stock-reservation';
+import { bindCheckoutSession, holdCheckoutStock } from '@/lib/products/courier-stock-hold';
 import { listingProductCacheTag } from '@/lib/marketplace/detail/listing-product-core';
 import {
   buildAuthoritativeLineItems,
@@ -59,7 +63,6 @@ import { validateShippingAddressSnapshot } from '@/lib/shipping/address-snapshot
 import { evaluateMarketplaceEligibility } from '@/lib/age/marketplace-eligibility';
 import { hasActiveParentalConsent } from '@/lib/age/parental-consent';
 
-const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
@@ -156,7 +159,32 @@ export async function POST(req: NextRequest) {
 
     const buyerId = buyer.id;
 
-    if (communityOrderId && typeof communityOrderId === 'string') {
+    const agreementCheckout = typeof communityOrderId === 'string' && communityOrderId.length > 0;
+    const requestedDeliveryMode = typeof deliveryMode === 'string' ? deliveryMode : '';
+
+    if (agreementCheckout && isCourierCheckoutMode(requestedDeliveryMode)) {
+      const activeCommunityDelivery = await prisma.deliveryRequest.findFirst({
+        where: {
+          communityOrderId,
+          status: { in: [...ACTIVE_COMMUNITY_DELIVERY_STATUSES] },
+        },
+        select: { id: true },
+      });
+      if (
+        courierBookingBlockedByCommunityDelivery({
+          agreementCheckout: true,
+          deliveryMode: requestedDeliveryMode,
+          activeCommunityDelivery: Boolean(activeCommunityDelivery),
+        })
+      ) {
+        return NextResponse.json(
+          { errorKey: 'checkout.errors.activeCommunityDelivery' },
+          { status: 409 },
+        );
+      }
+    }
+
+    if (agreementCheckout) {
       const dealValidation = await validateCommunityOrderCheckoutItems(
         communityOrderId,
         buyerId,
@@ -180,8 +208,10 @@ export async function POST(req: NextRequest) {
     const allergenBlock = await assertProductsAllergenConfirmationOr400(productIds);
     if (allergenBlock) return allergenBlock;
     
-    // Use transaction to atomically check stock and hold units for all products
-    const stockHoldId = randomUUID();
+    // Use transaction to atomically check stock and hold units for all products.
+    // A courier hold created before acceptance is reused; it is not extended.
+    let stockHoldId: string = randomUUID();
+    let adoptedExistingHold = false;
     const stockCheckResult = await prisma.$transaction(async (tx) => {
       const products = await tx.product.findMany({
         where: { id: { in: productIds } },
@@ -372,17 +402,70 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // Check stock atomically for all items and create PENDING holds
-      const { insufficientStock } = await lockAndReserveCheckoutStock(
-        tx as never,
-        items,
-        stockHoldId,
+      const sellerGuard = assertOneSellerIds(
+        products.map((product) => product.seller?.User?.id),
       );
+      if (!sellerGuard.ok) {
+        return {
+          error: 'MULTIPLE_SELLERS',
+          errorKey: 'checkout.errors.multipleSellers',
+          products: null,
+        };
+      }
 
-      return { error: null, products, insufficientStock };
+      const held = await holdCheckoutStock(tx, {
+        items,
+        buyerId,
+        preliminaryHoldId: stockHoldId,
+        bookingRequestId: typeof bookingRequestId === 'string' ? bookingRequestId : null,
+        deliveryMode,
+      });
+      if (held.error) {
+        return {
+          error: held.error,
+          errorKey: held.code,
+          products: null,
+          insufficientStock: held.insufficientStock,
+        };
+      }
+
+      return {
+        error: null,
+        products,
+        insufficientStock: held.insufficientStock,
+        effectiveHoldId: held.effectiveHoldId,
+        adoptedExistingHold: held.adoptedExistingHold,
+      };
     });
+    if (stockCheckResult.effectiveHoldId) {
+      stockHoldId = stockCheckResult.effectiveHoldId;
+    }
+    adoptedExistingHold = Boolean(stockCheckResult.adoptedExistingHold);
 
     if (stockCheckResult.error) {
+      const reservationCodes = new Set([
+        'RESERVATION_EXPIRED',
+        'PAYMENT_DEADLINE',
+        'QTY_MISMATCH',
+        'RESERVATION_ALREADY_CONFIRMED',
+      ]);
+      const reservationCode =
+        'errorKey' in stockCheckResult ? stockCheckResult.errorKey : undefined;
+      if (reservationCode && reservationCodes.has(reservationCode)) {
+        return NextResponse.json(
+          { error: stockCheckResult.error, code: reservationCode },
+          { status: 409 },
+        );
+      }
+      if (stockCheckResult.error === 'MULTIPLE_SELLERS') {
+        return NextResponse.json(
+          {
+            error: stockCheckResult.error,
+            errorKey: 'checkout.errors.multipleSellers',
+          },
+          { status: 409 },
+        );
+      }
       const payload: Record<string, unknown> = {
         error: stockCheckResult.error,
       };
@@ -759,17 +842,13 @@ export async function POST(req: NextRequest) {
           };
         }
       } else if (!(flags.providerPricingEnabled && isLocalProviderMode)) {
-        // Legacy fallback if no coordinates (never for provider-priced path)
-        deliveryFeeCents = 250;
-        deliveryFeeBreakdown = {
-          baseFee: 250,
-          distanceFee: 0,
-          totalDeliveryFee: 250,
-          deliveryPersonCut: Math.round(250 * DELIVERY_DELIVERER_PERCENT / 100),
-          homecheffCut: Math.round(250 * DELIVERY_PLATFORM_FEE_PERCENT / 100),
-          isInternational: false,
-          pricingSource: PRICING_SOURCE_PLATFORM_LEGACY,
-        };
+        return NextResponse.json(
+          {
+            error: 'Bezorgadres is vereist voordat een bezorgprijs kan worden berekend.',
+            code: 'DELIVERY_ROUTE_UNAVAILABLE',
+          },
+          { status: 400 },
+        );
       }
     }
 
@@ -1141,17 +1220,28 @@ export async function POST(req: NextRequest) {
       checkoutSession = await stripe.checkout.sessions.create(sessionParams);
     } catch (stripeError) {
       await prisma.$transaction(async (tx) => {
-        await expireHoldReservations(
-          tx as never,
-          stockHoldId,
-          items.map((item: { productId: string }) => item.productId),
-        );
+        if (!adoptedExistingHold) {
+          await expireHoldReservations(
+            tx as never,
+            stockHoldId,
+            items.map((item: { productId: string }) => item.productId),
+          );
+        }
       });
       throw stripeError;
     }
 
     for (const item of items as Array<{ productId: string }>) {
       revalidateTag(listingProductCacheTag(item.productId));
+    }
+    try {
+      await bindCheckoutSession(prisma, {
+        holdId: stockHoldId,
+        sessionId: checkoutSession.id,
+        productIds: (items as Array<{ productId: string }>).map((item) => item.productId),
+      });
+    } catch (bindError) {
+      console.error('[checkout] could not bind session to stock hold', bindError);
     }
     console.log(`✅ Stock holds ${stockHoldId} bound to session ${checkoutSession.id}`);
 

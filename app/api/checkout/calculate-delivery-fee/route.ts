@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { calculateDeliveryFee, calculateLongDistanceDeliveryFee } from '@/lib/deliveryPricing';
 import { DELIVERY_PLATFORM_FEE_PERCENT, DELIVERY_DELIVERER_PERCENT } from '@/lib/fees';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing';
 import { normalizeFulfillmentInput } from '@/lib/delivery/delivery-fulfillment-vocabulary';
 import { resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
 import { normalizeCountryCode } from '@/lib/gamification/country-code';
 
-const prisma = new PrismaClient();
 
 export const dynamic = 'force-dynamic';
 

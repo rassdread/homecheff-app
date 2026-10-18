@@ -54,11 +54,13 @@ interface RegionInfo {
 }
 
 interface DelivererSelectorProps {
-  productId: string;
+  productId?: string;
   buyerLat?: number;
   buyerLng?: number;
   onSelectDeliverer: (deliverer: Deliverer) => void;
   selectedDelivererId?: string;
+  /** Product-less standalone list. Marketplace checkout does not pass this. */
+  externalDeliverers?: Deliverer[] | null;
 }
 
 export default function DelivererSelector({
@@ -67,6 +69,7 @@ export default function DelivererSelector({
   buyerLng,
   onSelectDeliverer,
   selectedDelivererId,
+  externalDeliverers,
 }: DelivererSelectorProps) {
   const { t, language } = useTranslation();
   const [deliverers, setDeliverers] = useState<Deliverer[]>([]);
@@ -75,12 +78,18 @@ export default function DelivererSelector({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (externalDeliverers) {
+      setDeliverers(externalDeliverers);
+      setLoading(false);
+      return;
+    }
     if (productId) {
       fetchDeliverers();
     }
-  }, [productId, buyerLat, buyerLng]);
+  }, [productId, buyerLat, buyerLng, externalDeliverers]);
 
   const fetchDeliverers = async () => {
+    if (!productId) return;
     setLoading(true);
     setError(null);
 
@@ -252,7 +261,15 @@ export default function DelivererSelector({
           return (
             <div
               key={deliverer.id}
+              role="button"
+              tabIndex={0}
               onClick={() => onSelectDeliverer(deliverer)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onSelectDeliverer(deliverer);
+                }
+              }}
               className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                 selectedDelivererId === deliverer.id
                   ? 'border-green-500 bg-green-50'

@@ -236,7 +236,7 @@ export async function GET(req: NextRequest) {
         totalDeliveries: deliveryOrders.length,
         completedDeliveries: deliveryOrders.filter(o => o.status === 'DELIVERED').length,
         deliveries: deliveryOrders.map(deliveryOrder => ({
-          orderNumber: deliveryOrder.order.orderNumber,
+          orderNumber: deliveryOrder.order?.orderNumber ?? 'Zelfstandige bezorging',
           date: deliveryOrder.createdAt,
           status: deliveryOrder.status,
           deliveryFee: deliveryOrder.deliveryFee || 0

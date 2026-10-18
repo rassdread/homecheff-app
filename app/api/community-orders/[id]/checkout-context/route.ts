@@ -35,6 +35,7 @@ export async function GET(
     return NextResponse.json({
       communityOrderId: result.communityOrderId,
       item: result.item,
+      activeCommunityDelivery: result.activeCommunityDelivery,
     });
   } catch (error) {
     console.error('[community-order checkout-context]', error);

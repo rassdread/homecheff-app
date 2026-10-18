@@ -1,22 +1,26 @@
 'use client';
 import { ShoppingCart } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CartDrawer from './CartDrawer';
 import { useTranslation } from '@/hooks/useTranslation';
+import { subscribeCartDrawer } from '@/lib/checkout/cart-drawer-bus';
 
 export default function CartIcon() {
-  const { items: cart, totalItems } = useCart();
+  const { totalItems } = useCart();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { t } = useTranslation();
+
+  useEffect(() => subscribeCartDrawer(setIsDrawerOpen), []);
 
   return (
     <>
       <button
+        type="button"
         onClick={() => setIsDrawerOpen(true)}
-        className="relative p-2 text-gray-600 hover:text-primary-brand transition-colors rounded-lg hover:bg-gray-50"
-        disabled={false}
+        className="relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-2 text-gray-600 hover:text-primary-brand transition-colors rounded-lg hover:bg-gray-50"
         title={t('cart.title')}
+        aria-label={t('navbar.cart')}
       >
         <ShoppingCart className="w-6 h-6" />
         {totalItems > 0 && (

@@ -599,7 +599,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
           </div>
 
           {/* Work Area */}
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div id="werkgebied" className="bg-white rounded-xl shadow-sm border p-6 scroll-mt-24">
             <div className="flex items-center gap-3 mb-6">
               <MapPin className="w-6 h-6 text-primary-600" />
               <h2 className="text-xl font-semibold text-gray-900">{t('delivery.workAreaTitle')}</h2>
@@ -860,7 +860,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
           </div>
 
           {/* Provider-owned pricing (Phase 2) */}
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div id="bezorgtarief" className="bg-white rounded-xl shadow-sm border p-6 scroll-mt-24">
             <div className="flex items-center gap-3 mb-6">
               <Euro className="w-6 h-6 text-primary-600" />
               <h2 className="text-xl font-semibold text-gray-900">Bezorgprijzen</h2>
@@ -1187,7 +1187,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
           </div>
 
           {/* Availability */}
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div id="beschikbaarheid" className="bg-white rounded-xl shadow-sm border p-6 scroll-mt-24">
             <div className="flex items-center gap-3 mb-6">
               <Clock className="w-6 h-6 text-primary-600" />
               <h2 className="text-xl font-semibold text-gray-900">Beschikbaarheid</h2>

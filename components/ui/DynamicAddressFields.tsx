@@ -4,6 +4,10 @@ import CountrySelector from './CountrySelector';
 import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 import { getAddressFormat, getCountryConfig, isValidPostcode } from '@/lib/global-geocoding';
 import { useTranslation } from '@/hooks/useTranslation';
+import {
+  normalizeNlPostcode,
+  streetLineWithoutHouseNumber,
+} from '@/lib/delivery/delivery-registration-address';
 
 export interface AddressData {
   address?: string;
@@ -26,6 +30,9 @@ export interface DynamicAddressFieldsProps {
   error?: string | null;
   showCountrySelector?: boolean;
   geocodingEnabled?: boolean;
+  /** Always show editable street, house number, postcode and city. Google may fill them. */
+  showStructuredFields?: boolean;
+  fieldErrors?: Partial<Record<'address' | 'houseNumber' | 'postalCode' | 'city', string>>;
 }
 
 export default function DynamicAddressFields({
@@ -39,6 +46,8 @@ export default function DynamicAddressFields({
   error,
   showCountrySelector = true,
   geocodingEnabled = true,
+  showStructuredFields = false,
+  fieldErrors,
 }: DynamicAddressFieldsProps) {
   const { t } = useTranslation();
   
@@ -182,27 +191,26 @@ export default function DynamicAddressFields({
         <>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('addressFields.searchAddress') || 'Zoek adres'} {required && '*'}
+              {t('addressFields.searchAddress') || 'Zoek adres'} {required && !showStructuredFields && '*'}
             </label>
             <GooglePlacesAutocomplete
               value={value.address || ''}
               onChange={(formattedAddress, placeData) => {
                 if (placeData) {
-                  // Auto-fill all fields from Google Places for ALL countries (fully consistent)
-                  // Google Places provides: address (street + house number), city, postalCode, country, lat, lng, houseNumber
+                  const houseNumber = placeData.houseNumber || '';
+                  const postalCode =
+                    (placeData.country || country) === 'NL'
+                      ? normalizeNlPostcode(placeData.postalCode)
+                      : placeData.postalCode;
                   const addressData: AddressData = {
-                    address: placeData.address, // Full address including street and house number
+                    address: streetLineWithoutHouseNumber(placeData.address, houseNumber),
                     city: placeData.city,
-                    postalCode: placeData.postalCode,
+                    postalCode,
                     country: placeData.country || country,
                     lat: placeData.lat,
                     lng: placeData.lng,
+                    houseNumber: houseNumber || value.houseNumber || '',
                   };
-                  
-                  // Extract houseNumber if available (works for all countries, not just NL)
-                  if (placeData.houseNumber) {
-                    addressData.houseNumber = placeData.houseNumber;
-                  }
                   
                   onChange(addressData);
                   
@@ -214,8 +222,7 @@ export default function DynamicAddressFields({
                     });
                   }
                   setGeocodingError(null);
-                } else {
-                  // Just update the address field if typing manually
+                } else if (!showStructuredFields) {
                   handleFieldChange('address', formattedAddress);
                 }
               }}
@@ -223,14 +230,13 @@ export default function DynamicAddressFields({
               placeholder={t('addressFields.searchAddressPlaceholder') || 'Begin met typen om adres te zoeken...'}
               className="w-full"
               disabled={disabled}
-              required={required}
+              required={required && !showStructuredFields}
             />
             <p className="text-xs sm:text-xs text-gray-500 mt-1">
               {t('addressFields.placesAutocompleteHelp') || 'Begin met typen om automatisch adres te vinden - alle velden worden automatisch ingevuld'}
             </p>
             
-            {/* Auto-filled fields (read-only, compact display) */}
-            {(value.address || value.city || value.postalCode) && (
+            {!showStructuredFields && (value.address || value.city || value.postalCode) && (
               <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="text-xs text-gray-600 mb-2 font-medium">
                   {t('addressFields.autoFilledAddress') || 'Automatisch ingevuld adres:'}
@@ -253,7 +259,7 @@ export default function DynamicAddressFields({
             )}
           </div>
         </>
-      ) : (
+      ) : !showStructuredFields ? (
         // Fallback: Manual input fields if Google Maps API key is not available
         // Keep it internationally consistent: 1 address field + city (+ optional postal code)
         <>
@@ -305,6 +311,80 @@ export default function DynamicAddressFields({
             </div>
           </div>
         </>
+      ) : null}
+
+      {showStructuredFields && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700" htmlFor="delivery-street">
+              {t('addressFields.streetName') || 'Straat'} {required && '*'}
+            </label>
+            <input
+              id="delivery-street"
+              type="text"
+              value={value.address || ''}
+              onChange={(e) => handleFieldChange('address', e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-brand focus:ring-2 focus:ring-primary-brand disabled:bg-gray-50"
+              disabled={disabled}
+              autoComplete="address-line1"
+            />
+            {fieldErrors?.address && (
+              <p className="mt-1 text-sm text-red-700" role="alert">{fieldErrors.address}</p>
+            )}
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700" htmlFor="delivery-house-number">
+              {t('addressFields.houseNumber') || 'Huisnummer'} {required && isNetherlands && '*'}
+            </label>
+            <input
+              id="delivery-house-number"
+              type="text"
+              value={value.houseNumber || ''}
+              onChange={(e) => handleFieldChange('houseNumber', e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-brand focus:ring-2 focus:ring-primary-brand disabled:bg-gray-50"
+              disabled={disabled}
+              autoComplete="off"
+              inputMode="text"
+            />
+            {fieldErrors?.houseNumber && (
+              <p className="mt-1 text-sm text-red-700" role="alert">{fieldErrors.houseNumber}</p>
+            )}
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700" htmlFor="delivery-postal-code">
+              {t('addressFields.postalCode') || 'Postcode'} {required && isNetherlands && '*'}
+            </label>
+            <input
+              id="delivery-postal-code"
+              type="text"
+              value={value.postalCode || ''}
+              onChange={(e) => handleFieldChange('postalCode', e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-brand focus:ring-2 focus:ring-primary-brand disabled:bg-gray-50"
+              disabled={disabled}
+              autoComplete="postal-code"
+            />
+            {fieldErrors?.postalCode && (
+              <p className="mt-1 text-sm text-red-700" role="alert">{fieldErrors.postalCode}</p>
+            )}
+          </div>
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-gray-700" htmlFor="delivery-city">
+              {t('addressFields.city') || 'Plaats'} {required && '*'}
+            </label>
+            <input
+              id="delivery-city"
+              type="text"
+              value={value.city || ''}
+              onChange={(e) => handleFieldChange('city', e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-brand focus:ring-2 focus:ring-primary-brand disabled:bg-gray-50"
+              disabled={disabled}
+              autoComplete="address-level2"
+            />
+            {fieldErrors?.city && (
+              <p className="mt-1 text-sm text-red-700" role="alert">{fieldErrors.city}</p>
+            )}
+          </div>
+        </div>
       )}
       
       {/* Error display */}

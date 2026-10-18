@@ -14,10 +14,10 @@ import {
   getPendingIntent,
   isPendingIntentExpired,
   resolvePostAuthIntentRedirect,
+  savePendingIntent,
 } from '@/lib/onboarding/pending-intent';
 import { reportAppDiagnostic } from '@/lib/diagnostics/appDiagnostics';
 import { deliveryRegistrationReturnPath } from '@/lib/auth/delivery-registration-return';
-import { savePendingIntent } from '@/lib/onboarding/pending-intent';
 
 function pathSkipsOnboardingGate(pathname: string | null): boolean {
   if (!pathname) return true;
@@ -31,6 +31,7 @@ function pathSkipsOnboardingGate(pathname: string | null): boolean {
   // Affiliate area is an authenticated destination. A missing public @handle
   // must not replace it with a profile form that looks like a code gate.
   if (pathname.startsWith('/affiliate')) return true;
+  if (deliveryRegistrationReturnPath(pathname)) return true;
   return false;
 }
 
@@ -67,6 +68,17 @@ export default function AuthCompletionGate() {
   };
 
   useEffect(() => {
+    if (status !== 'unauthenticated') return;
+    const returnPath = deliveryRegistrationReturnPath(pathname, searchParams?.toString());
+    if (!returnPath) return;
+    savePendingIntent({
+      type: 'complete_profile',
+      returnPath,
+      persona: 'delivery',
+    });
+  }, [pathname, searchParams, status]);
+
+  useEffect(() => {
     try {
       if (status === 'loading' || status === 'unauthenticated') return;
       if (!session?.user) return;
@@ -76,22 +88,7 @@ export default function AuthCompletionGate() {
         socialOnboardingCompleted?: boolean | null;
       };
       const flags = onboardingFlagsFromSessionUser(user);
-      if (needsProfileOnboardingFromFlags(flags)) {
-        if (!pathSkipsOnboardingGate(pathname)) {
-          const deliveryReturn = deliveryRegistrationReturnPath(
-            pathname,
-            searchParams?.toString(),
-          );
-          if (deliveryReturn) {
-            savePendingIntent({
-              type: 'complete_profile',
-              returnPath: deliveryReturn,
-            });
-            replaceOnce('/onboarding/complete-profile');
-          }
-        }
-        return;
-      }
+      if (needsProfileOnboardingFromFlags(flags)) return;
 
       if (pathSkipsIntentResume(pathname)) return;
 

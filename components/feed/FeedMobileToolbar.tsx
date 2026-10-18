@@ -44,6 +44,8 @@ type Props = {
   onActivateTrade?: () => void;
   tradeActive?: boolean;
   workCompact?: boolean;
+  deliveryRequestOpen?: boolean;
+  onOpenDeliveryRequest?: () => void;
 };
 
 const categoryChipClass = (active: boolean) =>
@@ -91,6 +93,8 @@ export default function FeedMobileToolbar({
   searchQuery,
   onSearchQueryChange,
   workCompact = false,
+  deliveryRequestOpen = false,
+  onOpenDeliveryRequest,
 }: Props) {
   const scopes = [
     [FEED_SCOPE_NEARBY, 'feed.scopeNearby'],
@@ -237,12 +241,21 @@ export default function FeedMobileToolbar({
             <button
               key={legacyChip}
               type="button"
-              className={viewChipClass(feedChip === legacyChip)}
+              className={viewChipClass(!deliveryRequestOpen && feedChip === legacyChip)}
               onClick={() => onFeedChipChange(legacyChip)}
             >
               {t(labelKey)}
             </button>
           ))}
+          <button
+            type="button"
+            data-marketplace-delivery="entry"
+            aria-pressed={deliveryRequestOpen}
+            className={viewChipClass(deliveryRequestOpen)}
+            onClick={() => onOpenDeliveryRequest?.()}
+          >
+            {t('marketplace.canonical.view.delivery')}
+          </button>
         </div>
       </div>
     </div>

@@ -23,10 +23,17 @@ const ZERO_TOLERANCE = new Set(['TS2304']);
 function normalizePathText(value) {
   let text = value.replaceAll('\\', '/');
   const roots = [root.replaceAll('\\', '/'), '/vercel/path0'];
+  try {
+    const modules = fs.realpathSync(path.join(root, 'node_modules'));
+    roots.push(path.dirname(modules).replaceAll('\\', '/'));
+  } catch {
+    // A missing node_modules directory still normalizes source paths below.
+  }
+  roots.sort((left, right) => right.length - left.length);
   for (const prefix of roots) {
     if (prefix) text = text.split(prefix).join('');
   }
-  return text.replace(/\/(?:[^'"()\s]+\/)+(?=(?:app|lib|components|node_modules|prisma|hooks|scripts|e2e)\b)/g, '');
+  return text.replace(/\/(?:[^'"()]+\/)+(?=(?:app|lib|components|node_modules|prisma|hooks|scripts|e2e)\b)/g, '');
 }
 
 function toSignatures(output) {

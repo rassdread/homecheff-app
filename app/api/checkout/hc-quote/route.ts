@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { fetchGrowthMarketplaceHcQuote } from '@/lib/hc/growth-marketplace-quote-client';
 
-const prisma = new PrismaClient();
 
 export const dynamic = 'force-dynamic';
 

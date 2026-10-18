@@ -59,7 +59,8 @@ import { INTERNATIONAL_SHIPPING_COMMERCIALLY_ENABLED } from '@/lib/shipping/carr
 import { isCarrierShippingSelected } from '@/lib/shipping/package-presets';
 import { parseFulfillmentOptions } from '@/lib/marketplace/listing-taxonomy';
 import { normalizeDeliveryModeInput } from '@/lib/productDeliveryMode';
-import { parseStockPatchInput, stockErrorMessage, listingUsesPhysicalInventory } from '@/lib/products/listing-inventory';
+import { parseStockPatchInput, stockErrorMessage, listingUsesPhysicalInventory, availableToBuy } from '@/lib/products/listing-inventory';
+import { sellerStockLabel } from '@/lib/products/checkout-reservation-policy';
 
 export const dynamic = 'force-dynamic';
 
@@ -413,6 +414,12 @@ export async function GET(
         seller: redactMinorSellerRecord((product as { seller?: Record<string, unknown> }).seller, sellerDob),
         Video: sortedVideo,
         reservedStock,
+        stockAvailability: usesInventory
+          ? sellerStockLabel(product.stock ?? 0, reservedStock)
+          : null,
+        remainingQuantity: usesInventory
+          ? availableToBuy(product.stock ?? 0, reservedStock)
+          : null,
       },
       { dateOfBirth: sellerDob },
     ) as unknown as typeof product & { seller?: { User?: Record<string, unknown> } | null };

@@ -32,6 +32,8 @@ interface AddToCartButtonProps {
   surface?: 'light' | 'dark';
   /** Exchange funnel context for commerce-zone checkout clicks. */
   exchangeFunnelListing?: ExchangeFunnelListingInput;
+  /** Overrides the add button label. Detail pages use "Reken direct af". */
+  addLabel?: string;
 }
 
 export default function AddToCartButton({
@@ -42,6 +44,7 @@ export default function AddToCartButton({
   onAdded,
   surface = 'dark',
   exchangeFunnelListing,
+  addLabel,
 }: AddToCartButtonProps) {
   const { t, tOr } = useTranslation();
   const { addItem, items } = useCart();
@@ -151,7 +154,7 @@ export default function AddToCartButton({
     router.push('/checkout');
   };
 
-  const labelAdd = tOr('cart.addToCart', 'Add to cart', 'In winkelwagen');
+  const labelAdd = addLabel || tOr('cart.addToCart', 'Add to cart', 'In winkelwagen');
   const labelAdded = tOr('cart.addedToCart', 'Added to cart', 'Toegevoegd');
   const labelAdding = tOr('cart.adding', 'Adding...', 'Toevoegen...');
   const labelCheckout = tOr('cart.goToCheckout', 'Go to checkout', 'Ga naar afrekenen');

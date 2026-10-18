@@ -515,21 +515,24 @@ async function getRoleSpecificMessages(role: string | null, userId: string, isSe
       take: 10
     });
 
-    messages.push(...deliveryOrders.map(delivery => ({
+    messages.push(...deliveryOrders.flatMap((delivery) => {
+      const linkedOrder = delivery.order;
+      if (!linkedOrder) return [];
+      return [{
       id: `delivery_${delivery.id}`,
       type: 'order' as const,
       category: 'role',
-      senderId: delivery.order.userId,
+      senderId: linkedOrder.userId,
       receiverId: userId,
-      content: `Nieuwe bezorgopdracht: ${delivery.order.deliveryAddress}`,
+      content: `Nieuwe bezorgopdracht: ${linkedOrder.deliveryAddress}`,
       timestamp: delivery.createdAt,
       isRead: false,
       priority: 'high' as const,
       sender: {
-        id: delivery.order.User.id,
-        name: getDisplayName(delivery.order.User),
-        username: delivery.order.User.username,
-        image: delivery.order.User.profileImage,
+        id: linkedOrder.User.id,
+        name: getDisplayName(linkedOrder.User),
+        username: linkedOrder.User.username,
+        image: linkedOrder.User.profileImage,
         role: 'USER'
       },
       receiver: {
@@ -540,7 +543,8 @@ async function getRoleSpecificMessages(role: string | null, userId: string, isSe
         role: role || 'USER'
       },
       product: null
-    })));
+    }];
+    }));
   }
 
   return messages;

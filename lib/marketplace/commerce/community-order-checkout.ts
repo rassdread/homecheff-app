@@ -5,6 +5,10 @@
 
 import { prisma } from '@/lib/prisma';
 import type { SettlementMode } from '@prisma/client';
+import {
+  agreementCurrencyAllowsEurStripe,
+  agreedCurrencyFromSnapshot,
+} from '@/lib/checkout/fulfillment-phase1';
 import { paymentPathFromSummary } from '@/lib/proposals/proposal-accept-routing';
 import type { ProposalSummarySnapshot } from '@/lib/proposals/proposal-settlement';
 
@@ -29,6 +33,7 @@ type CheckoutSuccess = {
   ok: true;
   communityOrderId: string;
   item: CommunityOrderCheckoutItem;
+  activeCommunityDelivery: boolean;
 };
 
 function hasMoneyLeg(mode: SettlementMode): boolean {
@@ -60,6 +65,7 @@ export async function loadCommunityOrderCheckoutContext(
           title: true,
           quantity: true,
           amountCents: true,
+          currency: true,
           settlementMode: true,
           status: true,
           proposalSummary: true,
@@ -158,6 +164,18 @@ export async function loadCommunityOrderCheckoutContext(
     };
   }
 
+  const agreedCurrency = agreedCurrencyFromSnapshot({
+    summaryCurrency: summary?.currency,
+    proposalCurrency: proposal.currency,
+  });
+  if (!agreementCurrencyAllowsEurStripe(agreedCurrency)) {
+    return {
+      ok: false,
+      errorKey: 'communityOrder.checkoutCurrencyUnsupported',
+      status: 409,
+    };
+  }
+
   const product = proposal.Product;
   const sellerUser = product.seller?.User;
   if (!sellerUser?.id) {
@@ -182,9 +200,18 @@ export async function loadCommunityOrderCheckoutContext(
     };
   }
 
+  const activeDelivery = await prisma.deliveryRequest.findFirst({
+    where: {
+      communityOrderId: order.id,
+      status: { in: ['OPEN', 'CLAIMED', 'ASSIGNED'] },
+    },
+    select: { id: true },
+  });
+
   return {
     ok: true,
     communityOrderId: order.id,
+    activeCommunityDelivery: Boolean(activeDelivery),
     item: {
       productId: product.id,
       title: proposal.title || product.title,

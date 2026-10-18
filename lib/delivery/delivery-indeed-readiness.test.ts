@@ -173,6 +173,10 @@ describe('mobile registration layout', () => {
     const gate = read('components/auth/AuthCompletionGate.tsx');
     assert.match(gate, /savePendingIntent/);
     assert.match(gate, /deliveryRegistrationReturnPath/);
-    assert.match(gate, /replaceOnce\('\/onboarding\/complete-profile'\)/);
+    assert.match(gate, /deliveryRegistrationReturnPath\(pathname\)/);
+    assert.doesNotMatch(gate, /replaceOnce\('\/onboarding\/complete-profile'\)/);
+    const login = read('app/login/page.tsx');
+    assert.match(login, /deliveryRegistrationReturnFromCallback/);
+    assert.match(login, /\/onboarding\/complete-profile/);
   });
 });

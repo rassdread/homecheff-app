@@ -7,9 +7,9 @@ import CommunityDeliveryPanel from './CommunityDeliveryPanel';
 import GoOnlineDurationSheet, { type GoOnlineNotice } from './GoOnlineDurationSheet';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
-  aggregateRequirementNotice,
-  noticesForDeliveryMissing,
-} from '@/lib/account/profile-requirement-notice';
+  buildDeliveryActivationChecklist,
+  type DeliveryActivationChecklistItem,
+} from '@/lib/delivery/delivery-activation-checklist';
 import { 
   MapPin, 
   Clock, 
@@ -133,6 +133,8 @@ export default function DeliveryDashboard() {
   const [recentOrders, setRecentOrders] = useState<DeliveryOrder[]>([]);
   const [availableOrders, setAvailableOrders] = useState<DeliveryOrder[]>([]);
   const [upcomingJobs, setUpcomingJobs] = useState<UpcomingDeliveryJob[]>([]);
+  const [deliveryAgreementAcceptedAt, setDeliveryAgreementAcceptedAt] = useState<string | null | undefined>(undefined);
+  const [agreementBusy, setAgreementBusy] = useState(false);
   const [pendingBookingRequests, setPendingBookingRequests] = useState<
     Array<{
       id: string;
@@ -140,6 +142,7 @@ export default function DeliveryDashboard() {
       expiresAt?: string | Date;
       quotedFeeCents?: number | null;
       buyerName?: string;
+      itemDescription?: string | null;
       href?: string;
     }>
   >([]);
@@ -164,8 +167,9 @@ export default function DeliveryDashboard() {
   const [activeTab, setActiveTab] = useState<'delivery' | 'orders'>('delivery');
   const [courierTab, setCourierTab] = useState<'platform' | 'community'>('platform');
   const [feedback, setFeedback] = useState<{ type: 'error' | 'warning'; message: string } | null>(null);
-  const [activationHint, setActivationHint] = useState<string | null>(null);
-  const [activationCta, setActivationCta] = useState('Bezorggegevens aanvullen');
+  const [activationChecklist, setActivationChecklist] = useState<
+    DeliveryActivationChecklistItem[]
+  >([]);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -309,29 +313,23 @@ export default function DeliveryDashboard() {
     try {
       const response = await fetch('/api/delivery/activate');
       if (!response.ok) {
-        setActivationHint(null);
+        setActivationChecklist([]);
         return;
       }
       const data = await response.json();
-      if (data?.canActivate === false) {
-        const missing = Array.isArray(data?.activation?.missing)
-          ? data.activation.missing
-          : [];
-        const notice = aggregateRequirementNotice(noticesForDeliveryMissing(missing));
-        setActivationHint(
-          notice
-            ? `${notice.titleNl}\n${notice.bodyNl}`
-            : data?.activation?.message
-              ? String(data.activation.message)
-              : null,
-        );
-        setActivationCta(notice?.ctaLabelNl || 'Bezorggegevens aanvullen');
-      } else {
-        setActivationHint(null);
-      }
+      const missing = Array.isArray(data?.activation?.missing)
+        ? data.activation.missing
+        : [];
+      setActivationChecklist(
+        buildDeliveryActivationChecklist({
+          missing: data?.canActivate ? [] : missing,
+          eligible: Boolean(data?.canActivate),
+          isOnline: Boolean(data?.isOnline),
+        }),
+      );
     } catch {
       // Soft: never crash dashboard on activation probe failure
-      setActivationHint(null);
+      setActivationChecklist([]);
     }
   };
 
@@ -356,6 +354,7 @@ export default function DeliveryDashboard() {
           availableOrders: data.availableOrders || [],
           upcomingJobs: data.upcomingJobs || [],
           pendingBookingRequests: data.pendingBookingRequests || [],
+          deliveryAgreement: data.deliveryAgreement || null,
           isOnline: data.isOnline || false,
           isTemporarilyOnline: data.isTemporarilyOnline || false,
           availability: data.availability || null,
@@ -373,6 +372,7 @@ export default function DeliveryDashboard() {
         setAvailableOrders(data.availableOrders || []);
         setUpcomingJobs(data.upcomingJobs || []);
         setPendingBookingRequests(data.pendingBookingRequests || []);
+        setDeliveryAgreementAcceptedAt(data.deliveryAgreement?.acceptedAt ?? null);
         setIsOnline(Boolean(data.availability?.available ?? data.isOnline));
         setIsTemporarilyOnline(Boolean(data.isTemporarilyOnline || data.availability?.overrideActive));
         setAvailability(data.availability || null);
@@ -848,15 +848,22 @@ export default function DeliveryDashboard() {
         </div>
       ) : null}
 
-      {!isSeller && activationHint ? (
+      {!isSeller && activationChecklist.length > 0 ? (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          <p className="whitespace-pre-line font-semibold">{activationHint}</p>
-          <Link
-            href="/delivery/settings"
-            className="mt-2 inline-flex min-h-[44px] items-center font-semibold text-amber-800 underline"
-          >
-            {activationCta}
-          </Link>
+          <p className="font-semibold">
+            {language === 'en'
+              ? 'Finish these steps to receive deliveries'
+              : 'Rond deze stappen af om bezorgingen te ontvangen'}
+          </p>
+          <ol className="mt-2 list-decimal space-y-1 pl-5">
+            {activationChecklist.map((item) => (
+              <li key={item.id}>
+                <Link href={item.href} className="font-semibold underline">
+                  {language === 'en' ? item.labelEn : item.labelNl}
+                </Link>
+              </li>
+            ))}
+          </ol>
         </div>
       ) : null}
 
@@ -1058,6 +1065,32 @@ export default function DeliveryDashboard() {
 
         {(isSeller || courierTab === 'platform') ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {!isSeller && deliveryAgreementAcceptedAt === null && (
+            <div className="lg:col-span-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-gray-800">
+              <p className="font-semibold">Bezorgerovereenkomst nog niet vastgelegd</p>
+              <p className="mt-1">De tekst is de overeenkomst in de aanmelding (Bezorgaanbieder-overeenkomst). Bestaande opdrachten blijven beschikbaar.</p>
+              <button
+                type="button"
+                className="mt-3 min-h-[44px] rounded-lg bg-gray-900 px-4 py-2 font-semibold text-white disabled:opacity-60"
+                disabled={agreementBusy}
+                onClick={async () => {
+                  setAgreementBusy(true);
+                  try {
+                    const res = await fetch('/api/delivery/agreement/accept', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ acceptDeliveryAgreement: true }),
+                    });
+                    if (res.ok) await fetchDeliveryData(true);
+                  } finally {
+                    setAgreementBusy(false);
+                  }
+                }}
+              >
+                Ik accepteer de bezorgerovereenkomst
+              </button>
+            </div>
+          )}
           {/* Pending booking requests */}
           {!isSeller && pendingBookingRequests.length > 0 && (
             <div className="lg:col-span-3 mb-2">
@@ -1077,6 +1110,9 @@ export default function DeliveryDashboard() {
                       <p className="font-medium text-sm text-gray-900 truncate">
                         {booking.buyerName || 'Klant'}
                       </p>
+                      {booking.itemDescription ? (
+                        <p className="text-xs text-gray-800 mt-1">{booking.itemDescription}</p>
+                      ) : null}
                       <p className="text-xs text-gray-600 mt-1">
                         {booking.quotedFeeCents != null
                           ? formatCurrencyFromCents(booking.quotedFeeCents)

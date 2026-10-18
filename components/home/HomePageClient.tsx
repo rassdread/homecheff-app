@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useTranslation } from "@/hooks/useTranslation";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState, type ComponentType } from "react";
 import { useSession } from "next-auth/react";
 import HomeHeroSection from "@/components/home/HomeHeroSection";
 import HomepageEcosystemNavLinks from "@/components/home/HomepageEcosystemNavLinks";
@@ -35,8 +35,10 @@ import { WorkspaceFeedPresentationBridge } from "@/components/adaptive-workspace
 import { createControlledFeedHostContract } from "@/lib/adaptive-workspace/sealed/create-controlled-feed-host-contract";
 import { createControlledFeedHostShadowPlacement } from "@/lib/adaptive-workspace/sealed/controlled-feed-host-shadow-placement";
 import { createFeedDiscoveryControlledHostDescriptor } from "@/lib/adaptive-workspace/sealed/controlled-host-registry";
-import type { FeedWorkspaceVisibilityMode } from "@/lib/adaptive-workspace-react";
-import { isFeedWorkspaceLayoutVisible } from "@/lib/adaptive-workspace-react";
+import {
+  isFeedWorkspaceLayoutVisible,
+  type FeedWorkspaceVisibilityMode,
+} from "@/lib/adaptive-workspace-react/feed-workspace-visibility-mode";
 
 import type { FeedViewFilterId } from '@/lib/feed/feed-taxonomy';
 import type { ServerIpApproxSeed } from '@/lib/geo/seeded-feed-location';
@@ -63,14 +65,36 @@ function useBelowWorkspaceAttentionRail(): boolean {
   return below;
 }
 
-const HomeDesktopSidebar = dynamic(
-  () => import("@/components/home/HomeDesktopSidebar"),
-  { ssr: false },
-);
-const HomeDesktopLeftSidebar = dynamic(
-  () => import("@/components/home/HomeDesktopLeftSidebar"),
-  { ssr: false },
-);
+const loadHomeDesktopSidebar = () => import("@/components/home/HomeDesktopSidebar");
+const loadHomeDesktopLeftSidebar = () => import("@/components/home/HomeDesktopLeftSidebar");
+
+function HomeDesktopLeftSidebar() {
+  const [Comp, setComp] = useState<ComponentType | null>(null);
+  useEffect(() => {
+    let live = true;
+    loadHomeDesktopLeftSidebar().then((mod) => {
+      if (live) setComp(() => mod.default);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+  return Comp ? <Comp /> : null;
+}
+
+function HomeDesktopSidebar({ welcomeLine }: { welcomeLine?: string | null | false }) {
+  const [Comp, setComp] = useState<ComponentType<{ welcomeLine?: string | null }> | null>(null);
+  useEffect(() => {
+    let live = true;
+    loadHomeDesktopSidebar().then((mod) => {
+      if (live) setComp(() => mod.default);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+  return Comp ? <Comp welcomeLine={welcomeLine || null} /> : null;
+}
 const UserActionCenter = dynamic(
   () => import("@/components/home/UserActionCenter"),
   { ssr: false },

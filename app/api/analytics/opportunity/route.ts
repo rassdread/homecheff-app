@@ -6,6 +6,10 @@ import {
   trackOpportunityEventServer,
 } from '@/lib/analytics/opportunity-analytics-server';
 import { getCorsHeaders } from '@/lib/apiCors';
+import {
+  DELIVERY_FUNNEL_EVENTS,
+  scrubDeliveryFunnelMetadata,
+} from '@/lib/delivery/delivery-signup-funnel';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +33,7 @@ const ALLOWED = new Set([
   'opportunity_share_link_copied',
   'opportunity_share_native_opened',
   'opportunity_share_link_created',
+  ...DELIVERY_FUNNEL_EVENTS,
 ]);
 
 export async function POST(req: NextRequest) {
@@ -44,9 +49,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, code: 'INVALID_EVENT' }, { status: 400, headers: cors });
     }
 
-    const session = await auth();
+    const deliveryFunnel = (DELIVERY_FUNNEL_EVENTS as readonly string[]).includes(raw);
+    const session = deliveryFunnel ? null : await auth();
     let userId: string | null = null;
-    if (session?.user?.email) {
+    if (!deliveryFunnel && session?.user?.email) {
       const u = await prisma.user.findUnique({
         where: { email: session.user.email },
         select: { id: true },
@@ -57,11 +63,13 @@ export async function POST(req: NextRequest) {
     const result = await trackOpportunityEventServer({
       eventType: normalizeOpportunityEventType(raw),
       userId,
-      entityId: body.entityId ?? null,
-      metadata: {
-        ...(body.metadata && typeof body.metadata === 'object' ? body.metadata : {}),
-        authenticated: Boolean(session?.user),
-      },
+      entityId: deliveryFunnel ? null : body.entityId ?? null,
+      metadata: deliveryFunnel
+        ? scrubDeliveryFunnelMetadata(body.metadata)
+        : {
+            ...(body.metadata && typeof body.metadata === 'object' ? body.metadata : {}),
+            authenticated: Boolean(session?.user),
+          },
     });
 
     return NextResponse.json({ ok: result.ok, id: result.id }, { headers: cors });

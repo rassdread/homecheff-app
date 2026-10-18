@@ -6,6 +6,10 @@
 import type { TransportationMode } from '@prisma/client';
 import { tryNormalizeEmail } from '@/lib/auth/normalize-email';
 import { COMMERCIAL_DELIVERY_MIN_AGE } from '@/lib/delivery/delivery-age';
+import {
+  composeDeliveryHomeAddress,
+  validateDeliveryAddressParts,
+} from '@/lib/delivery/delivery-registration-address';
 
 export const VALID_TRANSPORTATION_MODES = [
   'BIKE',
@@ -40,6 +44,12 @@ export type DeliverySignupInput = {
   contactPhone?: unknown;
   /** Place name only. Not used for account creation. */
   deliveryRegion?: unknown;
+  /** Set by the individual wizard so NL street, house number, postcode and city are checked. */
+  addressCountry?: unknown;
+  street?: unknown;
+  houseNumber?: unknown;
+  postalCode?: unknown;
+  city?: unknown;
 };
 
 export type DeliverySignupErrorCode =
@@ -97,6 +107,11 @@ export const DELIVERY_SIGNUP_NL = {
   userMissing: 'Gebruiker niet gevonden.',
   companyName: 'Vul een bedrijfsnaam in.',
   kvk: 'Vul een geldig KvK-nummer in (8 cijfers).',
+  address: 'Vul je adres in.',
+  houseNumber: 'Vul je huisnummer in.',
+  postalCode: 'Vul je postcode in.',
+  street: 'Vul je straat in.',
+  city: 'Vul je plaats in.',
   resume:
     'Je account bestaat al, maar je bezorgerprofiel is nog niet afgerond. Log in en rond je aanmelding af. Je hoeft geen nieuw account aan te maken.',
   orphanRetry:
@@ -170,6 +185,9 @@ export type ParsedDeliverySignup = {
   homeLat: number | null;
   homeLng: number | null;
   homeAddress: string | null;
+  addressCountry: string | null;
+  postalCode: string | null;
+  houseNumber: string | null;
   acceptDeliveryAgreement: boolean;
   providerType: DeliveryProviderType;
   companyName: string | null;
@@ -236,6 +254,30 @@ export function parseAndValidateDeliverySignupFields(
     vatNumber = normalizeOptionalString(input.vatNumber, 32);
   }
 
+  const addressCountry =
+    typeof input.addressCountry === 'string' ? input.addressCountry.trim().toUpperCase() : '';
+  const structuredAddress =
+    addressCountry === 'NL'
+      ? {
+          address: normalizeOptionalString(input.street, 200),
+          houseNumber: normalizeOptionalString(input.houseNumber, 20),
+          postalCode: normalizeOptionalString(input.postalCode, 20),
+          city: normalizeOptionalString(input.city, 80),
+          country: 'NL',
+        }
+      : null;
+  let homeAddress = normalizeOptionalString(input.homeAddress, 300);
+  if (structuredAddress) {
+    const addressErrors = validateDeliveryAddressParts(structuredAddress);
+    if (addressErrors.includes('street')) fieldErrors.street = NL.street;
+    if (addressErrors.includes('houseNumber')) fieldErrors.houseNumber = NL.houseNumber;
+    if (addressErrors.includes('postalCode')) fieldErrors.postalCode = NL.postalCode;
+    if (addressErrors.includes('city')) fieldErrors.city = NL.city;
+    if (addressErrors.length === 0) {
+      homeAddress = composeDeliveryHomeAddress(structuredAddress);
+    }
+  }
+
   if (Object.keys(fieldErrors).length > 0) {
     const underage =
       age != null && Number.isFinite(age) && age < COMMERCIAL_DELIVERY_MIN_AGE;
@@ -272,7 +314,10 @@ export function parseAndValidateDeliverySignupFields(
       bio: normalizeOptionalString(input.bio, 2000),
       homeLat,
       homeLng,
-      homeAddress: normalizeOptionalString(input.homeAddress, 300),
+      homeAddress,
+      addressCountry: structuredAddress ? 'NL' : addressCountry || null,
+      postalCode: structuredAddress?.postalCode ?? null,
+      houseNumber: structuredAddress?.houseNumber ?? null,
       acceptDeliveryAgreement: true,
       providerType,
       companyName,

@@ -160,7 +160,7 @@ export function resolveProposalCtaLabelKey(
   if (methods.includes('ACCEPTED_VALUE') || methods.includes('BARTER')) {
     return 'marketplace.cta.makeProposal';
   }
-  return 'marketplace.cta.startConversation';
+  return 'marketplace.cta.negotiateWithSeller';
 }
 
 /**

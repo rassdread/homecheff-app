@@ -39,6 +39,12 @@ export function isStripeTestId(id: string | null | undefined): boolean {
 // Helper om te checken of een Stripe ID matcht met de huidige mode
 export function matchesCurrentMode(id: string | null | undefined): boolean {
   if (!id) return false;
+  // Real Stripe Connect ids are acct_… in both test and live mode.
+  // acct_test_ is only a local fake prefix. Do not drop a real acct_ id
+  // because it lacks that prefix; livemode is checked on retrieve.
+  if (id.startsWith('acct_') && !id.startsWith('acct_test_')) {
+    return true;
+  }
   const isTestId = isStripeTestId(id);
   return isTestId === isTestMode;
 }

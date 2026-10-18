@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Plus, Download, LayoutGrid } from 'lucide-react';
 import { sanitizePostAuthRelativeUrl } from '@/lib/auth/post-auth-redirect';
+import { deliveryGuestAuthHrefs } from '@/lib/auth/delivery-guest-auth';
 import { savePendingIntent } from '@/lib/onboarding/pending-intent';
 import { setPendingOpenQuickAddAfterLogin } from '@/lib/afterLoginCreateIntent';
 import GuestExplanationPanel from '@/components/home/GuestExplanationPanel';
@@ -148,13 +149,19 @@ export default function BottomNavigation() {
     (id: GuestBottomNavPanelId, returnPath: string, onBeforeOpen?: () => void) => {
       onBeforeOpen?.();
       const safeReturn = sanitizePostAuthRelativeUrl(returnPath) || returnPath;
-      setGuestPanelAuthPaths({
-        register: `/register?returnUrl=${encodeURIComponent(safeReturn)}`,
-        login: `/login?callbackUrl=${encodeURIComponent(safeReturn)}`,
-      });
+      const deliveryAuth = deliveryGuestAuthHrefs(
+        pathname,
+        typeof window !== 'undefined' ? window.location.search : ''
+      );
+      setGuestPanelAuthPaths(
+        deliveryAuth || {
+          register: `/register?returnUrl=${encodeURIComponent(safeReturn)}`,
+          login: `/login?callbackUrl=${encodeURIComponent(safeReturn)}`,
+        }
+      );
       setGuestBottomNavPanel(id);
     },
-    []
+    [pathname]
   );
 
   const isQuickAddDebug =

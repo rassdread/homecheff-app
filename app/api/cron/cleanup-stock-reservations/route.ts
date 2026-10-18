@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { notifyReservationBuyer } from '@/lib/delivery/reservation-notifications';
+import { releaseExpiredUnpaidHolds } from '@/lib/products/courier-stock-hold';
+import {
+  loadIncidentFactsFromStripe,
+  reviewCheckoutPaymentIncident,
+} from '@/lib/payments/checkout-payment-incident';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,50 +19,33 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const now = new Date();
-    
-    // Find all expired PENDING reservations
-    const expiredReservations = await prisma.stockReservation.findMany({
-      where: {
-        status: 'PENDING',
-        expiresAt: { lt: now }
-      },
-      select: {
-        id: true,
-        productId: true,
-        quantity: true
-      }
-    });
-
-    if (expiredReservations.length === 0) {
-      return NextResponse.json({ 
-        message: 'No expired reservations to clean up',
-        cleaned: 0
-      });
+    const result = await releaseExpiredUnpaidHolds(prisma);
+    for (const buyerId of result.buyers) {
+      await notifyReservationBuyer(buyerId, 'expired');
     }
 
-    // Update expired reservations to EXPIRED status
-    const result = await prisma.$transaction(async (tx) => {
-      const updated = await tx.stockReservation.updateMany({
-        where: {
-          id: { in: expiredReservations.map(r => r.id) },
-          status: 'PENDING',
-          expiresAt: { lt: now }
-        },
-        data: {
-          status: 'EXPIRED'
-        }
-      });
-
-      return updated.count;
+    const openIncidents = await prisma.checkoutPaymentIncident.findMany({
+      where: { status: 'REFUND_REQUIRED' },
+      select: { id: true },
+      take: 20,
     });
+    let incidentsReviewed = 0;
+    for (const incident of openIncidents) {
+      const review = await reviewCheckoutPaymentIncident(prisma, incident.id, {
+        loadFacts: loadIncidentFactsFromStripe,
+      });
+      if (review.claimed) incidentsReviewed += 1;
+    }
 
-    console.log(`✅ Cleaned up ${result} expired stock reservations`);
+    console.log(`✅ Cleaned up ${result.cleaned} expired stock reservations`);
 
     return NextResponse.json({
-      message: 'Expired reservations cleaned up',
-      cleaned: result,
-      totalExpired: expiredReservations.length
+      message: result.cleaned === 0
+        ? 'No expired reservations to clean up'
+        : 'Expired reservations cleaned up',
+      cleaned: result.cleaned,
+      totalExpired: result.cleaned,
+      incidentsReviewed,
     });
 
   } catch (error: any) {

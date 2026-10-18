@@ -12,6 +12,7 @@ import { financialStripeSecret } from '@/lib/stripe';
 import { resolveDelivererPosition, resolveDeliveryPickupCoords, resolveSellerCoords } from '@/lib/delivery/delivery-position';
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 import { resolveDeliveryTimeAvailability } from '@/lib/delivery/delivery-time-availability';
+import { readStandaloneBookingMeta } from '@/lib/delivery/standalone-booking-meta';
 import {
   customerAddressForPhase,
   customerPhoneForPhase,
@@ -71,6 +72,8 @@ export async function GET(req: NextRequest) {
         totalDeliveries: true,
         averageRating: true,
         totalEarnings: true,
+        deliveryAgreementAcceptedAt: true,
+        deliveryAgreementDocumentId: true,
         deliveryMode: true,
         gpsTrackingEnabled: true,
         currentLat: true,
@@ -663,7 +666,37 @@ export async function GET(req: NextRequest) {
         ['PENDING', 'ACCEPTED', 'PICKED_UP'].includes(order.status)
       );
 
-      if (currentOrder) {
+      if (currentOrder && !currentOrder.order) {
+        transformedCurrentOrder = {
+          id: currentOrder.id,
+          orderId: currentOrder.orderId,
+          status: currentOrder.status,
+          deliveryFee: currentOrder.deliveryFee,
+          estimatedTime: currentOrder.estimatedTime || 30,
+          distance: currentOrder.routeDistanceKmSnapshot || 0,
+          customerName: 'Aanvrager',
+          customerAddress: currentOrder.status === 'PENDING'
+            ? 'Adres na acceptatie'
+            : (currentOrder.deliveryAddress || ''),
+          customerPhone: null,
+          notes: currentOrder.itemDescription || currentOrder.notes || '',
+          createdAt: currentOrder.createdAt,
+          pickedUpAt: currentOrder.pickedUpAt,
+          deliveredAt: currentOrder.deliveredAt,
+          conversationId: null,
+          product: {
+            title: currentOrder.itemDescription || 'Zelfstandige bezorging',
+            image: '',
+            seller: {
+              name: 'Ophaaladres',
+              address: currentOrder.status === 'PENDING' ? '' : (currentOrder.pickupAddress || ''),
+              phone: null,
+              lat: null,
+              lng: null,
+            },
+          },
+        };
+      } else if (currentOrder && currentOrder.order) {
         const conversation = await prisma.conversation.findFirst({
           where: {
             orderId: currentOrder.orderId,
@@ -739,6 +772,34 @@ export async function GET(req: NextRequest) {
       // Transform recent orders (met echte route-afstand waar coördinaten beschikbaar zijn)
       const recentWithDistance = await Promise.all(
         deliveryProfile.deliveryOrders.slice(0, 5).map(async (order) => {
+          if (!order.order) {
+            return {
+              id: order.id,
+              orderId: order.orderId,
+              status: order.status,
+              deliveryFee: order.deliveryFee,
+              estimatedTime: order.estimatedTime || 30,
+              distance: order.routeDistanceKmSnapshot || 0,
+              customerName: 'Aanvrager',
+              customerAddress: order.deliveryAddress || '',
+              customerPhone: null,
+              notes: order.itemDescription || order.notes || '',
+              createdAt: order.createdAt,
+              pickedUpAt: order.pickedUpAt,
+              deliveredAt: order.deliveredAt,
+              product: {
+                title: order.itemDescription || 'Zelfstandige bezorging',
+                image: '',
+                seller: {
+                  name: 'Ophaaladres',
+                  address: order.pickupAddress || '',
+                  phone: null,
+                  lat: null,
+                  lng: null,
+                },
+              },
+            };
+          }
           let dist = 0;
           let estMin = order.estimatedTime || 30;
           const sUser = order.order.items[0]?.Product?.seller?.User;
@@ -888,7 +949,10 @@ export async function GET(req: NextRequest) {
       const ordersWithDistance = await Promise.all(
         availableDeliveryOrders
           .filter((deliveryOrder) => {
-            if (!timeAvailability.available || !deliveryOrder.order) return false;
+            if (!deliveryOrder.order) {
+              return deliveryOrder.origin === 'STANDALONE' && deliveryOrder.deliveryProfileId === deliveryProfile.id;
+            }
+            if (!timeAvailability.available) return false;
             const product = deliveryOrder.order.items[0]?.Product;
             const pickupCoords = resolveDeliveryPickupCoords(product);
             const buyerUser = deliveryOrder.order.User;
@@ -906,7 +970,16 @@ export async function GET(req: NextRequest) {
           })
           .slice(0, 20)
           .map(async (deliveryOrder) => {
-            const product = deliveryOrder.order!.items[0]?.Product!;
+            if (!deliveryOrder.order) {
+              return {
+                deliveryOrder,
+                distanceToSeller: 0,
+                distanceToBuyer: 0,
+                totalDistance: deliveryOrder.routeDistanceKmSnapshot || 0,
+                estimatedMinutes: deliveryOrder.estimatedTime || 30,
+              };
+            }
+            const product = deliveryOrder.order.items[0]?.Product!;
             const pickupCoords = resolveDeliveryPickupCoords(product);
             const buyerLat = deliveryOrder.order!.User!.lat;
             const buyerLng = deliveryOrder.order!.User!.lng;
@@ -974,10 +1047,10 @@ export async function GET(req: NextRequest) {
             'available'
           ),
           customerPhone: customerPhoneForPhase(buyerUser, 'available'),
-          notes: deliveryOrder.notes || '',
+          notes: deliveryOrder.notes || deliveryOrder.itemDescription || '',
           createdAt: deliveryOrder.createdAt,
           product: {
-            title: product?.title || 'Product',
+            title: product?.title || deliveryOrder.itemDescription || 'Product',
             image: product?.Image?.[0]?.fileUrl || '',
             seller: {
               name: sellerUser?.name || 'Verkoper',
@@ -1129,6 +1202,7 @@ export async function GET(req: NextRequest) {
         quotedFeeCents: b.quotedFeeCents,
         routeDistanceKm: b.routeDistanceKm,
         buyerName: b.buyer?.name || b.buyer?.username || 'Klant',
+        itemDescription: readStandaloneBookingMeta(b.notes)?.itemDescription || null,
         href: `/delivery/dashboard#booking-${b.id}`,
       }));
     }
@@ -1176,6 +1250,12 @@ export async function GET(req: NextRequest) {
       availableOrders: transformedAvailableOrders,
       upcomingJobs,
       pendingBookingRequests,
+      deliveryAgreement: deliveryProfile
+        ? {
+            acceptedAt: deliveryProfile.deliveryAgreementAcceptedAt,
+            documentId: deliveryProfile.deliveryAgreementDocumentId,
+          }
+        : null,
       isSeller: isSeller && !deliveryProfile, // True if seller without delivery profile (only delivering own products)
       shippingOrders: [] // Will be populated for sellers
     });

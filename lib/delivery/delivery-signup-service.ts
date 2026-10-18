@@ -12,6 +12,9 @@ import {
   delivererAcceptDenialResponse,
 } from '@/lib/delivery/delivery-eligibility';
 import { tryAwardAccountCreated } from '@/lib/gamification/award-account-created';
+import { marketplaceUserPatchForDeliveryProfile } from '@/lib/auth/delivery-guest-auth';
+import { applyDutchHomeCoordinates } from '@/lib/delivery/delivery-home-coordinates';
+import { deliveryAgreementAcceptanceData } from '@/lib/delivery/delivery-agreement';
 import {
   DELIVERY_SIGNUP_NL as NL,
   parseAndValidateDeliverySignupFields,
@@ -54,6 +57,7 @@ function profileCreateData(
     homeAddress: data.homeAddress,
     isActive: true,
     providerType: data.providerType,
+    ...deliveryAgreementAcceptanceData(),
   };
 }
 
@@ -146,6 +150,16 @@ async function completeForExistingUser(
   });
 
   if (existingProfile) {
+    const recorded = await prisma.deliveryProfile.findUnique({
+      where: { id: existingProfile.id },
+      select: { deliveryAgreementAcceptedAt: true },
+    });
+    if (!recorded?.deliveryAgreementAcceptedAt && data.acceptDeliveryAgreement) {
+      await prisma.deliveryProfile.update({
+        where: { id: existingProfile.id },
+        data: deliveryAgreementAcceptanceData(),
+      });
+    }
     return successPayload({
       user,
       deliveryProfile: existingProfile,
@@ -177,14 +191,7 @@ async function completeForExistingUser(
 
         const updatedUser = await tx.user.update({
           where: { id: user.id },
-          data: {
-            role:
-              user.role === 'ADMIN' || user.role === 'SUPERADMIN'
-                ? user.role
-                : 'DELIVERY',
-            ...(data.contactPhone ? { phoneNumber: data.contactPhone } : {}),
-            ...(data.homeAddress ? { address: data.homeAddress } : {}),
-          },
+          data: marketplaceUserPatchForDeliveryProfile(user.role, data.contactPhone),
           select: {
             id: true,
             name: true,
@@ -261,6 +268,7 @@ export async function runDeliverySignup(params: {
       requireAccountFields: false,
     });
     if (!parsed.ok) return parsed.result;
+    const data = await applyDutchHomeCoordinates(parsed.data);
 
     const user = await prisma.user.findUnique({ where: { id: sessionUserId } });
     if (!user) {
@@ -271,14 +279,14 @@ export async function runDeliverySignup(params: {
         error: NL.userMissing,
       };
     }
-    return completeForExistingUser(prisma, user, parsed.data);
+    return completeForExistingUser(prisma, user, data);
   }
 
   const parsed = parseAndValidateDeliverySignupFields(input, {
     requireAccountFields: true,
   });
   if (!parsed.ok) return parsed.result;
-  const data = parsed.data;
+  const data = await applyDutchHomeCoordinates(parsed.data);
 
   const ageGate = assertCommercialCourierAgeForActivation({
     claimedAge: data.age,

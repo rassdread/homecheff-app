@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { isParcelCarrierConfigured } from '@/lib/ectaroship/partner-client';
 import { getAuthoritativeCarrierShippingQuote } from '@/lib/shipping/quote-service';
 
 export const dynamic = 'force-dynamic';
@@ -8,6 +9,10 @@ export const dynamic = 'force-dynamic';
  * Display quote options for HomeCheff shipping (Partner API products).
  * UI display only — checkout re-quotes server-authoritatively.
  */
+export async function GET() {
+  return NextResponse.json({ configured: isParcelCarrierConfigured() });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();

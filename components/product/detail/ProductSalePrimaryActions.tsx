@@ -110,7 +110,7 @@ export default function ProductSalePrimaryActions({
             makerName={sellerName}
             channels={publicContactChannels}
             productId={product.id}
-            chatButtonLabel={t(cta.proposalLabelKey)}
+            chatButtonLabel={t('marketplace.cta.negotiateWithSeller')}
             className={compact ? '!p-3' : '!border-gray-200 !bg-gray-50 text-gray-900 shadow-sm'}
           />
         </div>
@@ -149,7 +149,7 @@ export default function ProductSalePrimaryActions({
             sellerName={sellerName}
             publicContactChannels={publicContactChannels}
             primary
-            chatButtonLabel={t(cta.proposalLabelKey)}
+            chatButtonLabel={t('marketplace.cta.negotiateWithSeller')}
             exchangeFunnelListing={exchangeFunnelListing}
           />
         ) : !hasContactChannels ? (
@@ -223,7 +223,7 @@ export default function ProductSalePrimaryActions({
             sellerName={sellerName}
             publicContactChannels={publicContactChannels}
             primary
-            chatButtonLabel={t(cta.proposalLabelKey)}
+            chatButtonLabel={t('marketplace.cta.negotiateWithSeller')}
             exchangeFunnelListing={exchangeFunnelListing}
           />
         ) : null}
@@ -256,6 +256,7 @@ export default function ProductSalePrimaryActions({
                 : 'w-full !bg-primary-brand !text-white font-bold shadow-lg hover:!bg-primary-700 hover:!scale-[1.02]',
             )}
             size={compact ? 'sm' : 'lg'}
+            addLabel={t('marketplace.cta.payDirectly')}
             variant="outline"
             quantity={quantity}
             onAdded={onAdded}
@@ -271,7 +272,7 @@ export default function ProductSalePrimaryActions({
           sellerName={sellerName}
           publicContactChannels={publicContactChannels}
           primary={!cta.showCheckout}
-          chatButtonLabel={t(cta.proposalLabelKey)}
+          chatButtonLabel={t('marketplace.cta.negotiateWithSeller')}
           exchangeFunnelListing={exchangeFunnelListing}
         />
       ) : null}

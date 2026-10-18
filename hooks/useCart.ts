@@ -6,6 +6,10 @@ import {
   getCart, 
   saveCart, 
   clearAllCartData, 
+  removeCartProducts,
+  rememberPendingCheckoutProducts,
+  readPendingCheckoutProducts,
+  discardPendingCheckoutProducts,
   setCartUserId,
   CartItem as LibCartItem,
   Cart
@@ -268,6 +272,27 @@ export function useCart() {
     setItems([]);
   };
 
+  const removeProductIds = (productIds: string[]) => {
+    const cart = removeCartProducts(productIds);
+    setItems([...cart.items]);
+  };
+
+  const rememberCheckoutProducts = (productIds: string[]) => {
+    rememberPendingCheckoutProducts(productIds);
+  };
+
+  const commitPendingCheckoutProducts = () => {
+    const productIds = readPendingCheckoutProducts();
+    discardPendingCheckoutProducts();
+    if (productIds.length === 0) return;
+    const cart = removeCartProducts(productIds);
+    setItems([...cart.items]);
+  };
+
+  const discardCheckoutProducts = () => {
+    discardPendingCheckoutProducts();
+  };
+
   const totalPrice = items.reduce((sum, item) => sum + (item.priceCents * item.quantity), 0);
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -277,6 +302,10 @@ export function useCart() {
     removeItem,
     updateQuantity,
     clearCart,
+    removeProductIds,
+    rememberCheckoutProducts,
+    commitPendingCheckoutProducts,
+    discardCheckoutProducts,
     totalPrice,
     totalItems,
     isOpen,

@@ -146,7 +146,7 @@ export default function ProductSaleStickyCta({
             productId={product.id}
             sellerId={sellerId}
             sellerName={sellerName}
-            label={t(cta.proposalLabelKey)}
+            label={t('marketplace.cta.negotiateWithSeller')}
             funnelListing={{
               listingId: product.id,
               barterOpenness: product.barterOpenness,
@@ -162,14 +162,14 @@ export default function ProductSaleStickyCta({
     );
   }
 
-  let actionLabel = t('cart.addToCart');
+  let actionLabel = t('marketplace.cta.payDirectly');
   let onAction: () => void = handleAdd;
   let disabled = isAdding || isOutOfStock;
   let showCartIcon = true;
   let showCheck = false;
 
   if (cta.checkoutNeedsConnect && cta.showProposal) {
-    actionLabel = t(cta.proposalLabelKey);
+    actionLabel = t('marketplace.cta.negotiateWithSeller');
     onAction = () => scrollToCta();
     disabled = false;
     showCartIcon = false;
@@ -189,7 +189,7 @@ export default function ProductSaleStickyCta({
     disabled = false;
     showCartIcon = false;
   } else if (cta.showContactOnly && publicContactChannels.length > 0) {
-    actionLabel = t(cta.proposalLabelKey);
+    actionLabel = t('marketplace.cta.negotiateWithSeller');
     onAction = () => scrollToCta();
     disabled = false;
     showCartIcon = false;

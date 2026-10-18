@@ -594,7 +594,15 @@
     "providerFallback": "provider",
     "clearAll": "Remove all items",
     "totalLabel": "Total:",
-    "checkoutWithCount": "Checkout ({count} items)"
+    "checkoutWithCount": "Checkout ({count} items)",
+    "agreementsHeading": "My agreements",
+    "agreementsHint": "Accepted agreements. These cannot be edited here like ordinary products.",
+    "agreementsEmpty": "You have no open agreements as a buyer.",
+    "agreementsLoading": "Loading agreements...",
+    "agreementsError": "Agreements could not be loaded.",
+    "viewAgreement": "View agreement",
+    "checkoutThisSeller": "Checkout with {name}",
+    "mixedSellersHint": "Each seller is paid separately. The other products stay in your cart."
   },
   "hero": {
     "title": "HomeCheff: Homemade. Home Delivered.",
@@ -3328,7 +3336,7 @@
       },
       "5": {
         "question": "How do I become a deliverer on HomeCheff?",
-        "answer": "Deliverers can sign up via /delivery/signup. You must be between 15-23 years old, have a valid ID, and agree to our terms. Minors need parental consent.\n\n🤝 LOCAL COMMUNITY:\n• Bike delivery is preferred\n• Local routes support the neighborhood\n• Combined delivery is more efficient\n• Use reusable packaging\n\n⚠️ IMPORTANT: As a deliverer, you are a self-employed entrepreneur. HomeCheff is not your employer; selected couriers act as independent delivery providers."
+        "answer": "Deliverers can sign up via /delivery/signup. You must be 18 or older, have a valid ID, and agree to our terms.\n\n🤝 LOCAL COMMUNITY:\n• Bike delivery is preferred\n• Local routes support the neighborhood\n• Combined delivery is more efficient\n• Use reusable packaging\n\n⚠️ IMPORTANT: As a deliverer, you are a self-employed entrepreneur. HomeCheff is not your employer; selected couriers act as independent delivery providers."
       },
       "6": {
         "question": "What do I earn as a deliverer?",
@@ -4651,7 +4659,9 @@
       "contactOnly": "This listing is ordered by contacting the maker directly, not through the cart.",
       "paymentsNotReady": "The maker still needs to set up payments before you can checkout via HomeCheff.",
       "barterOnly": "This listing is barter only. Use chat and send a proposal instead of checkout.",
-      "minimumNotMet": "Online payment via HomeCheff is available from €10. For smaller amounts, arrange payment directly with the provider."
+      "minimumNotMet": "Online payment via HomeCheff is available from €10. For smaller amounts, arrange payment directly with the provider.",
+      "multipleSellers": "One payment can contain only one seller. Choose one seller. The other products stay in your cart.",
+      "activeCommunityDelivery": "A delivery has already been requested for this agreement. A second courier booking is not created. Pickup remains available."
     },
     "checkoutTitle": "Checkout",
     "completeOrder": "Complete your order",
@@ -4681,6 +4691,7 @@
     "shippingDescription": "Ship via DHL/PostNL",
     "dhlPostnl": "DHL / PostNL",
     "shippingEstimatedTime": "1-3 business days",
+    "priceAfterAddress": "Price after address check",
     "selectDeliveryOption": "Select a delivery option",
     "validateAddressFirst": "Validate your address before continuing",
     "teenDeliveryUnavailable": "Local delivery is not available at this address",
@@ -5248,9 +5259,69 @@
       "enterPostcodeHouseNumber": "Enter postal code and house number",
       "addressLookupFailed": "Address lookup failed",
       "addressNotFound": "Address not found",
-      "accountCreationFailed": "Account creation failed"
+      "accountCreationFailed": "Account creation failed",
+      "enterHouseNumber": "Enter your house number.",
+      "enterPostalCode": "Enter your postal code.",
+      "enterStreet": "Enter your street.",
+      "enterCity": "Enter your city.",
+      "invalidPostalCode": "Enter a valid postal code, for example 3011 AD.",
+      "completeStep": "Fill in the required fields to continue."
     },
+    "loginToFinish": "Log in to finish your delivery application",
+    "loginToFinishProfile": "Log in and finish your delivery profile",
+    "currentAge": "Your selected age: {age}",
+    "minimumAge": "Minimum age: 18",
+    "manualAddressHint": "Choose an address, or enter the street, house number, postal code and city yourself.",
+    "sessionLoading": "Loading session...",
+    "resumeDraft": "Your earlier application was restored. Enter your password again before you finish.",
     "registrationSuccess": "Registration successful! Log in now with your new account."
+  },
+  "deliveryCompanySignup": {
+    "title": "Register a delivery company",
+    "subtitle": "Register your company as a delivery partner. The contact person or manager must be 18 or older.",
+    "individualLink": "Individual courier? Go to individual registration",
+    "step": "Step {step} of 5",
+    "account": "Contact person account",
+    "fullName": "Full name",
+    "email": "Email",
+    "username": "Username",
+    "password": "Password (at least 6 characters)",
+    "company": "Company details",
+    "companyName": "Company name",
+    "kvk": "Chamber of Commerce number (8 digits)",
+    "vat": "VAT number (optional)",
+    "phone": "Business phone number (optional)",
+    "ageVehicle": "Age and vehicle",
+    "ageHelp": "Age of the manager or courier who manages this account. Minimum age: 18.",
+    "years": "{age} years",
+    "workArea": "Work area",
+    "businessAddress": "Business address or base",
+    "radius": "Radius: {km} km",
+    "terms": "Terms",
+    "teamNote": "More drivers under one company will follow later through team invitations. This account is the primary company contact and must be 18 or older.",
+    "accept": "I accept the Delivery Agreement and confirm that the manager or courier is 18 or older.",
+    "previous": "Previous",
+    "next": "Next",
+    "submit": "Register company",
+    "loading": "Working…",
+    "sessionLoading": "Loading session…",
+    "underage": "Commercial delivery through HomeCheff is available from age 18.",
+    "checkFields": "Check the required fields and try again.",
+    "loginToFinish": "Log in to finish your company registration",
+    "createdLogin": "Company account created. Log in to open your dashboard.",
+    "submitFailed": "Something went wrong while finishing your company registration. Your details are kept. Try again.",
+    "completeStep": "Fill in the required fields to continue."
+  },
+  "addressFields": {
+    "searchAddress": "Search address",
+    "searchAddressPlaceholder": "Start typing to search for an address...",
+    "placesAutocompleteHelp": "Choose a suggestion, or fill in the fields yourself.",
+    "placesUnavailable": "Address search is unavailable right now. Enter the street, house number, postal code and city below. You can continue.",
+    "streetName": "Street",
+    "houseNumber": "House number",
+    "postalCode": "Postal code",
+    "city": "City",
+    "address": "Address"
   },
   "moderation": {
     "mustBeLoggedIn": "You must be logged in to upload photos",
@@ -9051,6 +9122,8 @@
     },
     "cta": {
       "checkoutHomeCheff": "Pay securely via HomeCheff",
+      "negotiateWithSeller": "Negotiate with seller",
+      "payDirectly": "Pay directly",
       "startConversation": "Start conversation",
       "makeProposal": "Make a proposal",
       "discussBarter": "Discuss barter",
@@ -9487,7 +9560,8 @@
         "all": "All",
         "offered": "Offered",
         "wanted": "Ask / Wanted",
-        "inspiration": "Inspiration"
+        "inspiration": "Inspiration",
+        "delivery": "Delivery"
       },
       "category": {
         "food": "Food",
@@ -10513,7 +10587,8 @@
     "checkoutNotRequired": "HomeCheff checkout is not required for this deal.",
     "checkoutMissingSeller": "Seller details are missing for checkout.",
     "checkoutInvalidAmount": "The checkout amount is invalid.",
-    "checkoutItemMismatch": "Checkout does not match the accepted proposal."
+    "checkoutItemMismatch": "Checkout does not match the accepted proposal.",
+    "checkoutCurrencyUnsupported": "This agreement is not in euros. Online payment via HomeCheff is not available for it yet. The agreed amount stays unchanged."
   },
   "agreement": {
     "snapshot": {

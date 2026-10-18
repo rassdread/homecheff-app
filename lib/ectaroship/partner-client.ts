@@ -28,6 +28,11 @@ function getApiKey(): string | null {
   return key || null;
 }
 
+/** True only when a real carrier key is present. Does not invent a rate. */
+export function isParcelCarrierConfigured(): boolean {
+  return getApiKey() !== null;
+}
+
 export function isEctaroShipConfigured(): boolean {
   return Boolean(getApiKey());
 }

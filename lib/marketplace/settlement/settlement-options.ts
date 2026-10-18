@@ -147,11 +147,10 @@ export function resolveSettlementOptions(
 
   const canDiscussDirectly = acceptsDirectContact || allowsBarter || hasAcceptedValues;
 
-  const canMakeProposal =
-    acceptsDirectContact ||
-    allowsBarter ||
-    hasAcceptedValues ||
-    String(input.listingIntent ?? '').toUpperCase() === 'REQUEST';
+  // Negotiation is a purchase route on every listing. It does not require
+  // Stripe Connect or the "direct contact" listing flag. Direct checkout
+  // stays behind acceptHomeCheffPayment + a ready payout profile.
+  const canMakeProposal = true;
 
   return {
     acceptsHomeCheffCheckout,

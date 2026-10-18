@@ -12,6 +12,7 @@ import {
 } from '@/lib/delivery/delivery-status';
 import { getPublicAppUrl } from '@/lib/public-app-url';
 import { resolveDeliveryOrderAccess } from '@/lib/delivery/delivery-order-access';
+import { applyStandalonePaidCancellation } from '@/lib/delivery/standalone-cancellation';
 
 export async function POST(
   req: NextRequest,
@@ -102,7 +103,12 @@ export async function POST(
       notes: notes || null,
     };
 
-    if (status === 'CANCELLED' && shouldReopenDeliveryAfterCancel(existingOrder.status)) {
+    const standalonePaidCancel = status === 'CANCELLED' && existingOrder.origin === 'STANDALONE';
+    if (
+      status === 'CANCELLED' &&
+      shouldReopenDeliveryAfterCancel(existingOrder.status) &&
+      !standalonePaidCancel
+    ) {
       updateData.status = 'PENDING';
       updateData.deliveryProfileId = null;
     }
@@ -136,6 +142,13 @@ export async function POST(
       shouldReopenDeliveryAfterCancel(existingOrder.status)
         ? { id: orderId }
         : { id: orderId, deliveryProfileId: profile.id };
+
+    if (standalonePaidCancel) {
+      await prisma.standaloneDeliveryRequest.updateMany({
+        where: { deliveryOrderId: existingOrder.id },
+        data: { status: 'CANCELLED_AFTER_PAYMENT', updatedAt: new Date() },
+      });
+    }
 
     const updatedOrder = await prisma.deliveryOrder.update({
       where: updateWhere,
@@ -171,6 +184,35 @@ export async function POST(
         }
       }
     });
+
+    if (!updatedOrder.order || !updatedOrder.orderId) {
+      if (standalonePaidCancel) {
+        const review = await applyStandalonePaidCancellation(prisma, {
+          deliveryOrderId: existingOrder.id,
+          previousStatus: existingOrder.status,
+          actorUserId,
+          actor: 'COURIER',
+        });
+        return NextResponse.json({
+          success: true,
+          order: updatedOrder,
+          refund: review.ok ? review.view : { status: 'REVIEW_REQUIRED', stripeRefundId: null },
+        });
+      }
+      if (status === 'DELIVERED' && updatedOrder.requesterUserId) {
+        await ensureDeliveryPayout(prisma, {
+          deliveryOrderId: updatedOrder.id,
+          orderId: updatedOrder.id,
+          delivererUserId: access.settlementUserId,
+          buyerUserId: updatedOrder.requesterUserId,
+        });
+        await prisma.standaloneDeliveryRequest.updateMany({
+          where: { deliveryOrderId: updatedOrder.id },
+          data: { status: 'COMPLETED', updatedAt: new Date() },
+        });
+      }
+      return NextResponse.json({ success: true, order: updatedOrder });
+    }
 
     // Send notifications based on status
     try {

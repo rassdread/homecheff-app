@@ -10,6 +10,7 @@ import {
   trackExchangeFunnelEvent,
 } from '@/lib/marketplace/exchange/exchange-funnel-analytics';
 import { trackMetaPurchase } from '@/lib/meta/browser';
+import { productIdsFromCheckoutMetadata } from '@/lib/checkout/fulfillment-phase1';
 
 type ViewState = 'loading' | 'missing' | 'error' | 'success';
 
@@ -42,12 +43,16 @@ function PaymentSuccessContent() {
   const urlSessionId = searchParams?.get('session_id') ?? null;
   if (urlSessionId) retainedPaymentSessionId = urlSessionId;
   const sessionId = urlSessionId || retainedPaymentSessionId;
-  const { clearCart } = useCart();
-  const clearCartRef = useRef(clearCart);
+  const { removeProductIds, discardCheckoutProducts, commitPendingCheckoutProducts } = useCart();
+  const removePaidLinesRef = useRef(removeProductIds);
+  const discardPendingRef = useRef(discardCheckoutProducts);
+  const commitPendingRef = useRef(commitPendingCheckoutProducts);
 
   useEffect(() => {
-    clearCartRef.current = clearCart;
-  }, [clearCart]);
+    removePaidLinesRef.current = removeProductIds;
+    discardPendingRef.current = discardCheckoutProducts;
+    commitPendingRef.current = commitPendingCheckoutProducts;
+  }, [removeProductIds, discardCheckoutProducts, commitPendingCheckoutProducts]);
 
   const [viewState, setViewState] = useState<ViewState>('loading');
   const [session, setSession] = useState<any>(null);
@@ -81,7 +86,17 @@ function PaymentSuccessContent() {
 
         setSession(payload);
         setViewState('success');
-        clearCartRef.current?.();
+        const paymentStatus = typeof payload?.payment_status === 'string' ? payload.payment_status : '';
+        const paid = paymentStatus === 'paid' || paymentStatus === 'no_payment_required';
+        if (paid) {
+          const paidIds = productIdsFromCheckoutMetadata(payload?.metadata);
+          if (paidIds.length > 0) {
+            removePaidLinesRef.current?.(paidIds);
+            discardPendingRef.current?.();
+          } else {
+            commitPendingRef.current?.();
+          }
+        }
 
         try {
           trackMetaPurchase({

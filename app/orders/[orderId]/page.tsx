@@ -1,6 +1,8 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useCart } from '@/hooks/useCart';
 import OrderTracking from '@/components/orders/OrderTracking';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
@@ -10,8 +12,15 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 export default function OrderTrackingPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const orderId = params?.orderId as string;
   const { tOr } = useTranslation();
+  const { commitPendingCheckoutProducts } = useCart();
+
+  useEffect(() => {
+    if (searchParams.get('success') !== '1') return;
+    commitPendingCheckoutProducts();
+  }, [searchParams, commitPendingCheckoutProducts]);
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -156,6 +156,41 @@ export function addToCart(product: {
   return cart;
 }
 
+const PENDING_CHECKOUT_KEY = 'homecheff_pending_checkout_products';
+
+export function rememberPendingCheckoutProducts(productIds: string[]): void {
+  if (typeof window === 'undefined') return;
+  const ids = [...new Set(productIds.filter((id) => typeof id === 'string' && id.trim()))];
+  sessionStorage.setItem(PENDING_CHECKOUT_KEY, JSON.stringify(ids));
+}
+
+export function readPendingCheckoutProducts(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = sessionStorage.getItem(PENDING_CHECKOUT_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((id) => typeof id === 'string' && id.trim());
+  } catch {
+    return [];
+  }
+}
+
+export function discardPendingCheckoutProducts(): void {
+  if (typeof window === 'undefined') return;
+  sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
+}
+
+export function removeCartProducts(productIds: string[]): Cart {
+  const cart = getCart();
+  const purchased = new Set(productIds);
+  cart.items = cart.items.filter((item) => !purchased.has(item.productId));
+  cart.totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  cart.totalAmount = cart.items.reduce((sum, item) => sum + item.priceCents * item.quantity, 0);
+  saveCart(cart);
+  return cart;
+}
+
 export function updateCartItemQuantity(itemId: string, quantity: number): Cart {
   const cart = getCart();
   const itemIndex = cart.items.findIndex(item => item.id === itemId);

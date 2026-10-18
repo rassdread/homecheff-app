@@ -82,7 +82,7 @@ export class DeliveryCountdownService {
     });
 
     for (const order of activeOrders) {
-      if (!order.deliveryDate) continue;
+      if (!order.deliveryDate || !order.order || !order.orderId) continue;
 
       const remainingMinutes = Math.floor((order.deliveryDate.getTime() - now.getTime()) / (1000 * 60));
       const warningsSent: number[] = [];

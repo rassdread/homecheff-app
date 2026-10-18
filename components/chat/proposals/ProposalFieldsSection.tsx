@@ -115,7 +115,7 @@ export default function ProposalFieldsSection({
   const availablePaymentPaths = PAYMENT_PATHS.filter((path) => {
     if (!product) return false;
     if (path === 'HOMECHEFF_CHECKOUT') return product.acceptHomeCheffPayment;
-    if (path === 'DIRECT_CONTACT') return product.acceptDirectContact;
+    if (path === 'DIRECT_CONTACT') return true;
     return false;
   }).sort((a, b) => {
     if (a === 'HOMECHEFF_CHECKOUT') return -1;
@@ -200,12 +200,10 @@ export default function ProposalFieldsSection({
       settlementMode: form.settlementMode,
       amountCents: nextCents,
     });
-    if (eligible && form.paymentPath !== 'HOMECHEFF_CHECKOUT') {
+    if (eligible && form.paymentPath === 'NONE') {
       next.paymentPath = 'HOMECHEFF_CHECKOUT';
     } else if (!eligible && form.paymentPath === 'HOMECHEFF_CHECKOUT') {
-      next.paymentPath = product.acceptDirectContact
-        ? 'DIRECT_CONTACT'
-        : 'NONE';
+      next.paymentPath = 'DIRECT_CONTACT';
     }
     onChange(next);
   };

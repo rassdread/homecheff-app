@@ -138,52 +138,15 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// Create a new delivery order (unassigned – bezorgers zien hem in dashboard en accepteren daar)
-// Normaal wordt dit gedaan door de Stripe webhook na betaling; deze POST is voor fallback/alternatieve flows.
-export async function POST(req: NextRequest) {
-  try {
-    const { orderId, deliveryMode, address, deliveryFeeCents } = await req.json();
-
-    if (
-      deliveryMode !== 'TEEN_DELIVERY' &&
-      deliveryMode !== 'DELIVERY' &&
-      deliveryMode !== 'LOCAL_PROVIDER'
-    ) {
-      return NextResponse.json({ message: 'Geen delivery order nodig voor deze mode' });
-    }
-
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      select: { id: true, userId: true, deliveryAddress: true },
-    });
-    if (!order) {
-      return NextResponse.json({ error: 'Order niet gevonden' }, { status: 404 });
-    }
-
-    const existing = await prisma.deliveryOrder.findUnique({
-      where: { orderId },
-    });
-    if (existing) {
-      return NextResponse.json({
-        success: true,
-        deliveryOrder: existing,
-        message: 'DeliveryOrder bestond al',
-      });
-    }
-
-    const deliveryOrder = await prisma.deliveryOrder.create({
-      data: {
-        orderId,
-        deliveryProfileId: null,
-        deliveryAddress: address ?? order.deliveryAddress ?? '',
-        deliveryFee: deliveryFeeCents ?? 200,
-        status: 'PENDING',
-      },
-    });
-
-    return NextResponse.json({ success: true, deliveryOrder });
-  } catch (error) {
-    console.error('Delivery order create error:', error);
-    return NextResponse.json({ error: 'Kon bezorgopdracht niet aanmaken' }, { status: 500 });
-  }
+/**
+ * Fallback creation is closed.
+ * A paid marketplace order gets its DeliveryOrder from the Stripe webhook.
+ * This POST trusted a caller-supplied order id, address and fee, and middleware
+ * does not require a session for /api routes.
+ */
+export async function POST() {
+  return NextResponse.json(
+    { error: 'Bezorgopdrachten worden alleen na een geslaagde betaling aangemaakt.' },
+    { status: 405 },
+  );
 }

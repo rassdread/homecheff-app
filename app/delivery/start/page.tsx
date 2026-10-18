@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Bike, Building2, UserRound } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import EcosystemShareAction from '@/components/share/EcosystemShareAction';
@@ -11,6 +12,9 @@ import DeliveryRegistrationNotice from '@/components/delivery/DeliveryRegistrati
  */
 export default function DeliveryStartPage() {
   const { t } = useTranslation();
+  const searchParams = useSearchParams();
+  const query = searchParams?.toString() || '';
+  const withCampaign = (path: string) => (query ? `${path}?${query}` : path);
 
   return (
     <div className="min-h-[calc(100vh-4rem)] w-screen max-w-[100vw] overflow-x-clip bg-gradient-to-b from-emerald-50/80 to-gray-50 px-4 pt-10 pb-[calc(8rem+env(safe-area-inset-bottom,0px))]">
@@ -25,12 +29,15 @@ export default function DeliveryStartPage() {
           <p className="text-sm text-gray-600 sm:text-base">{t('deliveryStart.subtitle')}</p>
           <p className="text-xs text-gray-500 sm:text-sm">{t('deliveryStart.ageNote')}</p>
           <DeliveryRegistrationNotice />
+          <Link href="/bezorging/aanvragen" className="inline-block text-sm font-semibold text-emerald-800 underline">
+            Bezorging aanvragen
+          </Link>
         </header>
 
         <div className="grid gap-4">
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <Link
-              href="/delivery/signup"
+              href={withCampaign('/delivery/signup')}
               className="flex items-start gap-4 transition hover:opacity-90"
             >
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
@@ -61,7 +68,7 @@ export default function DeliveryStartPage() {
 
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <Link
-              href="/delivery/company/signup"
+              href={withCampaign('/delivery/company/signup')}
               className="flex items-start gap-4 transition hover:opacity-90"
             >
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-700">

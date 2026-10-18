@@ -28,6 +28,7 @@ import dynamic from "next/dynamic";
 import FeedSearchContextBar from "@/components/feed/FeedSearchContextBar";
 import DiscoveryContinuityBand from "@/components/feed/DiscoveryContinuityBand";
 import FeedMobileToolbar from "@/components/feed/FeedMobileToolbar";
+import { StandaloneDeliveryRequest } from "@/components/delivery/StandaloneDeliveryRequest";
 import { useWorkspaceFeedPresentationBridge } from "@/components/adaptive-workspace/WorkspaceFeedPresentationBridge";
 import { requestPlaceInputFocus } from "@/lib/feed/place-input-focus-request";
 import { useLandscapeWorkPosture } from "@/components/adaptive-workspace/WorkspaceChromeProvider";
@@ -208,7 +209,6 @@ import {
   feedSealedNoteRequestKey,
   feedSealedNoteRequestStart,
 } from "@/lib/feed/feed-sealed-runtime-instrumentation";
-import { installFeedSealedProbeBridge } from "@/lib/feed/feed-sealed-probe-bridge";
 import {
   isAwaitingSessionResolution,
   recordSessionFastPathObservability,
@@ -1185,7 +1185,11 @@ export default function GeoFeed({
     feedSealedNoteGeoFeedMount();
   1080|    feedSealedNoteNativePaintKeyAbsent();
     installFeedPerfBaselineReporter();
-    installFeedSealedProbeBridge();
+    if (process.env.NEXT_PUBLIC_FEED_SEALED_BASELINE === "1") {
+      void import("@/lib/feed/feed-sealed-probe-bridge").then((mod) => {
+        mod.installFeedSealedProbeBridge();
+      });
+    }
     feedPerfMark("nav:start");
     return () => {
       feedSealedNoteGeoFeedUnmount();
@@ -1362,6 +1366,12 @@ export default function GeoFeed({
     initialFeedChip ?? "all"
   );
   feedChipRef.current = feedChip;
+  const [deliveryRequestOpen, setDeliveryRequestOpen] = useState(false);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("bezorging") === "1") {
+      setDeliveryRequestOpen(true);
+    }
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 350);
   const [sortBy, setSortBy] = useState<
@@ -2532,6 +2542,15 @@ export default function GeoFeed({
   }, []);
 
   const selectFeedView = useCallback((next: FeedChip) => {
+    setDeliveryRequestOpen(false);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has("bezorging") || url.searchParams.has("request")) {
+        url.searchParams.delete("bezorging");
+        url.searchParams.delete("request");
+        window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+      }
+    }
     if (feedChipRef.current === next) return;
     discoveryIntentRef.current = true;
     discoveryEpochAtIntentRef.current = discoveryEpochNowRef.current;
@@ -6536,12 +6555,26 @@ export default function GeoFeed({
           <button
             key={legacyChip}
             type="button"
-            className={viewChipBtn(feedChip === legacyChip)}
+            className={viewChipBtn(!deliveryRequestOpen && feedChip === legacyChip)}
             onClick={() => selectFeedView(legacyChip)}
           >
             {t(labelKey)}
           </button>
         ))}
+        <button
+          type="button"
+          data-marketplace-delivery="entry"
+          aria-pressed={deliveryRequestOpen}
+          className={viewChipBtn(deliveryRequestOpen)}
+          onClick={() => {
+            setDeliveryRequestOpen(true);
+            const url = new URL(window.location.href);
+            url.searchParams.set("bezorging", "1");
+            window.history.replaceState(null, "", `${url.pathname}${url.search}#homecheff-feed`);
+          }}
+        >
+          {t("marketplace.canonical.view.delivery")}
+        </button>
       </div>
     </>
   );
@@ -6793,6 +6826,13 @@ export default function GeoFeed({
         t={t}
         feedChip={feedChip}
         onFeedChipChange={selectFeedView}
+        deliveryRequestOpen={deliveryRequestOpen}
+        onOpenDeliveryRequest={() => {
+          setDeliveryRequestOpen(true);
+          const url = new URL(window.location.href);
+          url.searchParams.set("bezorging", "1");
+          window.history.replaceState(null, "", `${url.pathname}${url.search}#homecheff-feed`);
+        }}
         appliedCategory={appliedCategory}
         onCategoryChange={selectVerticalChip}
         appliedScope={appliedScope}
@@ -6811,7 +6851,7 @@ export default function GeoFeed({
         tradeActive={discoveryDirection === "offer"}
       />
       {mobileFilterSheetEl}
-      {resultCountEl}
+      {deliveryRequestOpen ? null : resultCountEl}
     </>
   ) : workspaceRailOwnsFilters ? (
     /* WX Phase 1C / 1C.1 — start rail owns full filters; stage keeps search + compact chrome. */
@@ -6846,7 +6886,7 @@ export default function GeoFeed({
             onChange={setDesktopFeedColumns}
           />
         </div>
-        {resultCountEl}
+        {deliveryRequestOpen ? null : resultCountEl}
       </div>
     </div>
   ) : (
@@ -6916,7 +6956,7 @@ export default function GeoFeed({
             {filterPanelBodyEl}
           </div>
         ) : null}
-        {resultCountEl}
+        {deliveryRequestOpen ? null : resultCountEl}
       </div>
     </div>
   );
@@ -6942,7 +6982,7 @@ export default function GeoFeed({
           {t(quickCreateLabelKey(feedQuickCreateIntent))}
         </button>
       ) : null}
-      {resultCountEl}
+      {deliveryRequestOpen ? null : resultCountEl}
     </div>
   ) : null;
 
@@ -7188,7 +7228,11 @@ export default function GeoFeed({
   };
 
 
-  const feedResultsBlock = (
+  const feedResultsBlock = deliveryRequestOpen ? (
+    <div className="rounded-xl border border-emerald-100 bg-white p-3" data-marketplace-delivery-panel="1">
+      <StandaloneDeliveryRequest embedded />
+    </div>
+  ) : (
     <>
       {searchContextBarEl}
       {showFeedSkeleton ? (

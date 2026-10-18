@@ -33,21 +33,44 @@ import {
   type ConsumerCommerceContext,
 } from '@/lib/legal/consumer-commerce-context';
 import { consumerContextFromProductPayload } from '@/lib/legal/consumer-context-from-product';
+import { RESERVATION_COPY } from '@/lib/products/checkout-reservation-policy';
+import { selectOrdinaryCheckoutItems } from '@/lib/checkout/fulfillment-phase1';
+
+function formatServerRemaining(remainingMs: number | null) {
+  if (remainingMs == null) return null;
+  const totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
 
 function ManualBookingPoller({
   bookingRequestId,
   onStatus,
 }: {
   bookingRequestId: string;
-  onStatus: (status: string) => void;
+  onStatus: (snapshot: {
+    status: string;
+    remainingMs: number | null;
+    paymentRemainingMs: number | null;
+    phase: string | null;
+  }) => void;
 }) {
+  const { tOr } = useTranslation();
   useEffect(() => {
     let cancelled = false;
     const tick = async () => {
       try {
         const res = await fetch(`/api/delivery/booking-requests/${bookingRequestId}`);
         const data = await res.json();
-        if (!cancelled && data.status) onStatus(data.status);
+        if (!cancelled && data.status) {
+          onStatus({
+            status: data.status,
+            remainingMs: data.reservation?.remainingMs ?? null,
+            paymentRemainingMs: data.reservation?.paymentRemainingMs ?? null,
+            phase: data.reservation?.phase ?? null,
+          });
+        }
       } catch {
         /* ignore poll errors */
       }
@@ -63,7 +86,11 @@ function ManualBookingPoller({
   return (
     <p className="text-sm text-amber-800 flex items-center gap-2">
       <Loader2 className="w-4 h-4 animate-spin" />
-      Wachten op bevestiging van de bezorger (max. 5 minuten)…
+      {tOr(
+        'checkout.reservation.waiting',
+        'Waiting for the courier to confirm (max. 5 minutes)…',
+        'Wachten op bevestiging van de bezorger (max. 5 minuten)…',
+      )}
     </p>
   );
 }
@@ -97,20 +124,23 @@ export default function CheckoutPage() {
   const { t, tOr, language } = useTranslation();
   const searchParams = useSearchParams();
   const dealCommunityOrderId = searchParams.get('communityOrderId');
+  const checkoutSellerId = searchParams.get('sellerId');
   const hcCancelledOrderId = searchParams.get('orderId');
   const hcCancelFlag = searchParams.get('hc');
-  const { items: cartItems, clearCart } = useCart();
+  const { items: cartItems, removeProductIds, rememberCheckoutProducts, discardCheckoutProducts } = useCart();
   const { data: session, status } = useSession();
   const cartIdentifier = getActiveCartIdentifier();
   const checkoutStorageKey = `homecheff_checkout_draft_${cartIdentifier}`;
   const [dealLoading, setDealLoading] = useState(Boolean(dealCommunityOrderId));
   const [dealErrorKey, setDealErrorKey] = useState<string | null>(null);
   const [dealItem, setDealItem] = useState<CartItem | null>(null);
+  const [activeCommunityDelivery, setActiveCommunityDelivery] = useState(false);
   /** Explicit HC consent — default 0 (do not auto-consume). */
   const [selectedHc, setSelectedHc] = useState(0);
 
   useEffect(() => {
     if (hcCancelFlag !== 'cancelled' || !hcCancelledOrderId) return;
+    discardCheckoutProducts();
     void fetch('/api/checkout/hc-release', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -139,10 +169,15 @@ export default function CheckoutPage() {
       ttl: 12 * 60 * 60 * 1000, // 12 uur
     });
 
-  const checkoutItems = useMemo(
-    () => (dealItem ? [dealItem] : cartItems),
-    [dealItem, cartItems],
+  const ordinarySelection = useMemo(
+    () => selectOrdinaryCheckoutItems(cartItems, checkoutSellerId),
+    [cartItems, checkoutSellerId],
   );
+  const checkoutItems = useMemo(
+    () => (dealItem ? [dealItem] : dealCommunityOrderId ? [] : ordinarySelection.items),
+    [dealItem, dealCommunityOrderId, ordinarySelection.items],
+  );
+  const blockedMixedCheckout = !dealCommunityOrderId && ordinarySelection.blockedMixed;
   const isDealCheckout = Boolean(dealCommunityOrderId && dealItem);
 
   useEffect(() => {
@@ -171,6 +206,7 @@ export default function CheckoutPage() {
         }
 
         if (!cancelled && data.item) {
+          setActiveCommunityDelivery(data.activeCommunityDelivery === true);
           setDealItem({
             id: data.item.productId,
             productId: data.item.productId,
@@ -235,11 +271,16 @@ export default function CheckoutPage() {
   const [selectedShippingMethodId, setSelectedShippingMethodId] = useState<string | null>(null);
   const [isCalculatingFee, setIsCalculatingFee] = useState(false);
   const [namedProviderSelectionEnabled, setNamedProviderSelectionEnabled] = useState(false);
+  const [parcelCarrierConfigured, setParcelCarrierConfigured] = useState(false);
   const [selectedDeliverer, setSelectedDeliverer] = useState<Deliverer | null>(null);
   const [bookingRequestId, setBookingRequestId] = useState<string | null>(null);
   const [bookingStatus, setBookingStatus] = useState<string | null>(null);
   const [bookingBusy, setBookingBusy] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [reservationRemainingMs, setReservationRemainingMs] = useState<number | null>(null);
+  const [paymentRemainingMs, setPaymentRemainingMs] = useState<number | null>(null);
+  const [reservationPhase, setReservationPhase] = useState<string | null>(null);
+  const reservationCopy = language === 'en' ? RESERVATION_COPY.en : RESERVATION_COPY.nl;
 
   useEffect(() => {
     fetch('/api/delivery/alignment-flags')
@@ -248,6 +289,10 @@ export default function CheckoutPage() {
         setNamedProviderSelectionEnabled(Boolean(d.namedProviderSelectionEnabled));
       })
       .catch(() => setNamedProviderSelectionEnabled(false));
+    fetch('/api/shipping/calculate-price')
+      .then((r) => r.json())
+      .then((d) => setParcelCarrierConfigured(Boolean(d.configured)))
+      .catch(() => setParcelCarrierConfigured(false));
   }, []);
 
   // Get product locations from cart for delivery matching
@@ -727,7 +772,7 @@ export default function CheckoutPage() {
       name: t('checkout.localDelivery'),
       description: t('checkout.localDeliveryDescription'),
       icon: <Truck className="w-6 h-6" />,
-      price: 3,
+      price: 0,
       estimatedTime: t('checkout.localDeliveryEstimatedTime'),
       available: availableDeliveryModes.hasDelivery && availableDeliveryModes.hasSellerDelivery
     },
@@ -736,18 +781,18 @@ export default function CheckoutPage() {
       name: t('checkout.teenDelivery'),
       description: t('checkout.teenDeliveryDescription'),
       icon: <Users className="w-6 h-6" />,
-      price: 2,
+      price: 0,
       estimatedTime: estimatedDeliveryTime ? `${estimatedDeliveryTime} min` : t('checkout.teenDeliveryEstimatedTime'),
-      available: availableDeliveryModes.hasDelivery
+      available: availableDeliveryModes.hasDelivery && !(isDealCheckout && activeCommunityDelivery)
     },
     {
       id: 'shipping',
       name: t('checkout.shipping'),
       description: t('checkout.shippingDescription') || t('checkout.dhlPostnl'),
       icon: <Truck className="w-6 h-6" />,
-      price: actualDeliveryFee?.deliveryFeeCents ? actualDeliveryFee.deliveryFeeCents / 100 : 8, // Use calculated price or default
+      price: 0,
       estimatedTime: t('checkout.shippingEstimatedTime'),
-      available: availableDeliveryModes.hasShipping // Only available if at least one product supports shipping
+      available: availableDeliveryModes.hasShipping && parcelCarrierConfigured
     }
   ];
 
@@ -770,6 +815,9 @@ export default function CheckoutPage() {
   const deliveryFeeCents = useMemo(() => {
     if (actualDeliveryFee && checkoutDraft.addressValidated) {
       return actualDeliveryFee.deliveryFeeCents;
+    }
+    if (checkoutDraft.selectedDelivery && checkoutDraft.selectedDelivery !== 'pickup') {
+      return 0;
     }
     return Math.round((selectedOption?.price ?? 0) * 100);
   }, [actualDeliveryFee, selectedOption?.price, checkoutDraft.addressValidated]);
@@ -822,6 +870,14 @@ export default function CheckoutPage() {
 
     if (isLocalProviderUnavailable) {
       setCheckoutError(t('checkout.teenDeliveryUnavailable'));
+      return;
+    }
+
+    if (
+      checkoutDraft.selectedDelivery !== 'pickup' &&
+      !actualDeliveryFee
+    ) {
+      setCheckoutError(t('checkout.priceAfterAddress'));
       return;
     }
 
@@ -915,7 +971,9 @@ export default function CheckoutPage() {
             throw new Error(hcOnlyData.message || hcOnlyData.code || 'HC-betaling mislukt');
           }
           resetCheckoutDraft();
-          if (!isDealCheckout) clearCart();
+          if (!isDealCheckout) {
+            removeProductIds(checkoutItems.map((item) => item.productId));
+          }
           setIsRedirecting(true);
           didRedirect = true;
           window.location.href = `/orders/${hcOnlyData.orderId}?hc=full&success=1`;
@@ -938,7 +996,9 @@ export default function CheckoutPage() {
           throw new Error(mixedData.message || mixedData.code || 'Gemengde HC-betaling mislukt');
         }
         resetCheckoutDraft();
-        if (!isDealCheckout) clearCart();
+        if (!isDealCheckout) {
+          rememberCheckoutProducts(checkoutItems.map((item) => item.productId));
+        }
         setIsRedirecting(true);
         didRedirect = true;
         window.location.href = mixedData.checkoutUrl;
@@ -1007,7 +1067,7 @@ export default function CheckoutPage() {
       if (data.url) {
         resetCheckoutDraft();
         if (!isDealCheckout) {
-          clearCart();
+          rememberCheckoutProducts(checkoutItems.map((item) => item.productId));
         }
         setIsRedirecting(true);
         didRedirect = true;
@@ -1017,7 +1077,7 @@ export default function CheckoutPage() {
         // For development mode
         resetCheckoutDraft();
         if (!isDealCheckout) {
-          clearCart();
+          rememberCheckoutProducts(checkoutItems.map((item) => item.productId));
         }
         setIsRedirecting(true);
         didRedirect = true;
@@ -1061,6 +1121,21 @@ export default function CheckoutPage() {
   }
 
   if (!isProcessing && !isRedirecting && checkoutItems.length === 0) {
+    if (blockedMixedCheckout) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center max-w-md px-4">
+            <AlertCircle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('checkout.checkoutTitle')}</h1>
+            <p className="text-gray-600 mb-8">{t('checkout.errors.multipleSellers')}</p>
+            <Link href="/">
+              <Button>{t('checkout.continueShopping')}</Button>
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
     if (dealLoading) {
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -1220,6 +1295,11 @@ export default function CheckoutPage() {
                 </h2>
 
                 <div className="space-y-4">
+                  {isDealCheckout && activeCommunityDelivery ? (
+                    <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                      {t('checkout.errors.activeCommunityDelivery')}
+                    </p>
+                  ) : null}
                   {deliveryOptions.map((option) => {
                     const isTeenDelivery = option.id === 'local_provider' || option.id === 'teen_delivery';
                     const isLocalDelivery = option.id === 'local_delivery';
@@ -1292,8 +1372,8 @@ export default function CheckoutPage() {
                                 </span>
                               )}
                               {showFallbackFee && (
-                                <span className="text-lg font-bold text-gray-500">
-                                  {displayPrice === 0 ? t('checkout.free') : `€${displayPrice.toFixed(2)}`}
+                                <span className="text-sm font-medium text-gray-500">
+                                  {t('checkout.priceAfterAddress')}
                                 </span>
                               )}
                               {!isTeenDelivery && !isLocalDelivery && !isShipping && (
@@ -1424,10 +1504,9 @@ export default function CheckoutPage() {
                             buyerLng={checkoutDraft.coordinates.lng}
                             selectedDelivererId={selectedDeliverer?.id}
                             onSelectDeliverer={async (d) => {
+                              const previousBookingId = bookingRequestId;
                               setSelectedDeliverer(d);
                               setBookingError(null);
-                              setBookingRequestId(null);
-                              setBookingStatus(null);
                               setBookingBusy(true);
                               try {
                                 const res = await fetch('/api/delivery/booking-requests', {
@@ -1436,20 +1515,37 @@ export default function CheckoutPage() {
                                   body: JSON.stringify({
                                     deliveryProfileId: d.id,
                                     productId: checkoutItems[0]?.productId,
+                                    quantity: checkoutItems[0]?.quantity ?? 1,
                                     buyerLat: checkoutDraft.coordinates?.lat,
                                     buyerLng: checkoutDraft.coordinates?.lng,
                                     routeDistanceKm: d.totalDeliveryDistance,
                                     quotedFeeCents:
                                       d.quotedFeeCents ?? d.calculatedDeliveryPrice ?? null,
+                                    replacesBookingRequestId:
+                                      previousBookingId &&
+                                      selectedDeliverer?.id &&
+                                      selectedDeliverer.id !== d.id
+                                        ? previousBookingId
+                                        : undefined,
                                   }),
                                 });
                                 const data = await res.json();
                                 if (!res.ok) {
-                                  setBookingError(tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'));
+                                  if (data.code === 'COURIER_ALREADY_ACCEPTED' && data.bookingRequestId) {
+                                    setBookingRequestId(data.bookingRequestId);
+                                    setBookingStatus('ACCEPTED');
+                                  }
+                                  setBookingError(
+                                    data.error ||
+                                      tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'),
+                                  );
                                   return;
                                 }
                                 setBookingRequestId(data.bookingRequestId);
                                 setBookingStatus(data.status);
+                                setReservationRemainingMs(data.reservation?.remainingMs ?? null);
+                                setPaymentRemainingMs(data.reservation?.paymentRemainingMs ?? null);
+                                setReservationPhase(data.reservation?.phase ?? null);
                               } catch (e) {
                                 setBookingError(tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'));
                               } finally {
@@ -1471,27 +1567,85 @@ export default function CheckoutPage() {
                         {bookingError && (
                           <p className="text-sm text-red-700">{bookingError}</p>
                         )}
-                        {bookingStatus === 'AUTO_CONFIRMED' && (
-                          <p className="text-sm text-green-700 font-medium">
-                            {tOr('surfaceLang.bookingConfirmed', 'Confirmed immediately. You can continue to payment.', 'Direct bevestigd. Je kunt doorgaan naar betalen.')}
+                        {reservationRemainingMs === 0 && (
+                          <p className="text-sm text-amber-900 font-medium">{reservationCopy.expired}</p>
+                        )}
+                        {reservationPhase === 'AWAITING_COURIER' && reservationRemainingMs !== 0 && (
+                          <p className="text-sm text-blue-800">
+                            {reservationCopy.reserved}
+                            {formatServerRemaining(reservationRemainingMs)
+                              ? ` ${formatServerRemaining(reservationRemainingMs)}`
+                              : ''}
                           </p>
                         )}
-                        {bookingStatus === 'PENDING' && bookingRequestId && (
+                        {bookingStatus === 'AUTO_CONFIRMED' && (
+                          <p className="text-sm text-green-700 font-medium">
+                            {reservationCopy.accepted}
+                            {formatServerRemaining(paymentRemainingMs)
+                              ? ` ${formatServerRemaining(paymentRemainingMs)}`
+                              : ''}
+                          </p>
+                        )}
+                        {bookingStatus === 'PENDING' && bookingRequestId && reservationRemainingMs !== 0 && (
                           <ManualBookingPoller
                             bookingRequestId={bookingRequestId}
-                            onStatus={(s) => setBookingStatus(s)}
+                            onStatus={(snapshot) => {
+                              setBookingStatus(snapshot.status);
+                              setReservationRemainingMs(snapshot.remainingMs);
+                              setPaymentRemainingMs(snapshot.paymentRemainingMs);
+                              setReservationPhase(snapshot.phase);
+                            }}
                           />
                         )}
                         {bookingStatus === 'ACCEPTED' && (
                           <p className="text-sm text-green-700 font-medium">
-                            Bezorger heeft bevestigd. Je kunt doorgaan naar betalen.
+                            {reservationCopy.accepted}
+                            {formatServerRemaining(paymentRemainingMs)
+                              ? ` ${formatServerRemaining(paymentRemainingMs)}`
+                              : ''}
                           </p>
                         )}
-                        {(bookingStatus === 'REJECTED' || bookingStatus === 'EXPIRED') && (
-                          <p className="text-sm text-amber-800">
-                            Deze aanvraag is {bookingStatus === 'EXPIRED' ? 'verlopen' : 'geweigerd'}.
-                            Kies een andere bezorger. Er wordt nooit automatisch een andere bezorger toegewezen.
-                          </p>
+                        {bookingStatus === 'REJECTED' && reservationRemainingMs !== 0 && (
+                          <p className="text-sm text-amber-800">{reservationCopy.rejected}</p>
+                        )}
+                        {bookingStatus === 'EXPIRED' && (
+                          <p className="text-sm text-amber-900">{reservationCopy.expired}</p>
+                        )}
+                        {bookingRequestId && bookingStatus !== 'CONSUMED' && reservationRemainingMs !== 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              className="text-sm px-3 py-2 rounded-lg border border-gray-300"
+                              onClick={async () => {
+                                const res = await fetch(`/api/delivery/booking-requests/${bookingRequestId}/pickup`, {
+                                  method: 'POST',
+                                });
+                                if (!res.ok) return;
+                                updateDraft({ selectedDelivery: 'pickup' });
+                                setSelectedDeliverer(null);
+                                setBookingStatus('CANCELLED');
+                              }}
+                            >
+                              {tOr('checkout.reservation.pickup', 'Pick up instead', 'Zelf afhalen')}
+                            </button>
+                            <button
+                              type="button"
+                              className="text-sm px-3 py-2 rounded-lg border border-red-200 text-red-800"
+                              onClick={async () => {
+                                const res = await fetch(`/api/delivery/booking-requests/${bookingRequestId}/cancel`, {
+                                  method: 'POST',
+                                });
+                                if (!res.ok) return;
+                                setBookingRequestId(null);
+                                setBookingStatus(null);
+                                setSelectedDeliverer(null);
+                                setReservationRemainingMs(null);
+                                setReservationPhase(null);
+                              }}
+                            >
+                              {tOr('checkout.reservation.cancel', 'Cancel reservation', 'Reservering annuleren')}
+                            </button>
+                          </div>
                         )}
                       </>
                     ) : (

@@ -1,6 +1,6 @@
 import type Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
-import { matchesCurrentMode, stripe } from '@/lib/stripe';
+import { isTestMode, matchesCurrentMode, stripe } from '@/lib/stripe';
 import {
   deriveConnectAccountStatusFromDb,
   deriveConnectAccountStatusFromStripe,
@@ -40,6 +40,23 @@ export async function loadConnectAccountStatusForUser(params: {
 
   try {
     const account = await stripe.accounts.retrieve(accountId);
+    const livemode = Boolean(
+      (account as unknown as { livemode?: boolean }).livemode,
+    );
+    if (livemode === isTestMode) {
+      await prisma.user.update({
+        where: { id: params.userId },
+        data: {
+          stripeConnectAccountId: null,
+          stripeConnectOnboardingCompleted: false,
+          stripeConnectTrack: null,
+        },
+      });
+      return deriveConnectAccountStatusFromDb({
+        stripeConnectAccountId: null,
+        stripeConnectOnboardingCompleted: false,
+      });
+    }
     const track =
       params.stripeConnectTrack === 'PARTICULAR' ||
       params.stripeConnectTrack === 'BUSINESS'

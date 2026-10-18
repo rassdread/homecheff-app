@@ -121,6 +121,7 @@ export async function GET(req: NextRequest) {
     const matchedOrders = await Promise.all(
       availableOrders.map(async (deliveryOrder) => {
         const order = deliveryOrder.order;
+        if (!order) return null;
         const product = order.items[0]?.Product;
         
         if (!product || !product.seller.lat || !product.seller.lng) {

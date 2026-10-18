@@ -4,6 +4,10 @@ import { prisma } from '@/lib/prisma';
 import {
   expireStaleBookingRequests,
 } from '@/lib/delivery/booking-request-service';
+import {
+  releaseExpiredUnpaidHolds,
+  reservationTiming,
+} from '@/lib/products/courier-stock-hold';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +22,7 @@ export async function GET(
     }
     const { id } = await Promise.resolve(ctx.params);
     await expireStaleBookingRequests(prisma, [id]);
+    await releaseExpiredUnpaidHolds(prisma);
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
@@ -52,14 +57,24 @@ export async function GET(
       }
     }
 
+    const fresh = await prisma.deliveryBookingRequest.findUnique({
+      where: { id },
+      select: { status: true },
+    });
+    const hold = await prisma.stockReservation.findFirst({
+      where: { bookingRequestId: id },
+      orderBy: { createdAt: 'desc' },
+    });
+
     return NextResponse.json({
       id: request.id,
-      status: request.status,
+      status: fresh?.status ?? request.status,
       acceptanceMode: request.acceptanceModeSnapshot,
       expiresAt: request.expiresAt,
       quotedFeeCents: request.quotedFeeCents,
       providerName: request.deliveryProfile.user?.name,
       deliveryProfileId: request.deliveryProfileId,
+      reservation: reservationTiming(hold),
     });
   } catch (error) {
     console.error('get booking request', error);

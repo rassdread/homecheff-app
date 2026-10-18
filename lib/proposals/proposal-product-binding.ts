@@ -247,9 +247,9 @@ export function validatePaymentPath(input: {
   }
 
   if (paymentPath === 'DIRECT_CONTACT') {
-    if (productCtx && !productCtx.acceptDirectContact) {
-      return { ok: false, errorKey: 'proposal.productBinding.directContactNotAllowed' };
-    }
+    // Cash and other offline arrangements are the negotiation route.
+    // They stay available when the listing only offers HomeCheff checkout,
+    // and they do not change that listing flag.
     return { ok: true };
   }
 
@@ -280,10 +280,8 @@ export function defaultPaymentPath(input: {
   ) {
     return 'HOMECHEFF_CHECKOUT';
   }
-  // Seller eligible but amount not yet set → prefer direct contact as safe default.
-  if (input.productCtx?.acceptDirectContact) return 'DIRECT_CONTACT';
-  if (input.productCtx?.sellerEligibleForProposalHomeCheff) return 'NONE';
-  return 'NONE';
+  // Offline payment is the safe default when platform checkout is not eligible.
+  return 'DIRECT_CONTACT';
 }
 
 export { canProposalHomeCheffCheckout, proposalHomeCheffCheckoutBlockedReason };

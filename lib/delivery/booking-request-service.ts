@@ -18,6 +18,10 @@ import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing'
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { normalizeCountryCode } from '@/lib/gamification/country-code';
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
+import { notifyReservationBuyer } from '@/lib/delivery/reservation-notifications';
+import { openPaymentWindowForBooking } from '@/lib/products/courier-stock-hold';
+import { readStandaloneBookingMeta } from '@/lib/delivery/standalone-booking-meta';
+import { assertCourierBookableAt } from '@/lib/delivery/standalone-availability';
 
 export async function expireStaleBookingRequests(
   prisma: PrismaClient,
@@ -161,6 +165,12 @@ export async function createDeliveryBookingRequest(
     /** Ignored when server can recompute (Phase 5.7). */
     quotedFeeCents?: number | null;
     notes?: string | null;
+    /** Original product hold. The courier window cannot extend past it. */
+    holdUntil?: Date | null;
+    /** Evaluate courier rules at this instant. Marketplace callers omit it and use now. */
+    evaluateAt?: Date | null;
+    /** Shown to the selected courier only. Marketplace callers omit it. */
+    itemSummary?: string | null;
   }
 ) {
   await expireExpiredTemporaryOnline(prisma);
@@ -261,6 +271,7 @@ export async function createDeliveryBookingRequest(
       dateOfBirth: profile.user?.dateOfBirth,
     },
     {
+      now: input.evaluateAt ?? undefined,
       routeDistanceKm,
       activeDeliveryCount: activeCount,
       requirePricingEnabled: flags.providerPricingEnabled,
@@ -268,7 +279,12 @@ export async function createDeliveryBookingRequest(
   );
 
   const mode = profile.acceptanceMode || ACCEPTANCE_MODE_MANUAL;
-  const expiresAt = new Date(Date.now() + BOOKING_REQUEST_TTL_MS);
+  const responseDeadline = Date.now() + BOOKING_REQUEST_TTL_MS;
+  const expiresAt = new Date(
+    input.holdUntil
+      ? Math.min(responseDeadline, input.holdUntil.getTime())
+      : responseDeadline,
+  );
 
   if (mode === ACCEPTANCE_MODE_AUTO) {
     if (!validation.ok) {
@@ -362,7 +378,9 @@ export async function createDeliveryBookingRequest(
       userId: profile.userId,
       message: {
         title: 'Nieuwe bezorgaanvraag',
-        body: 'Een koper wil jou als bezorger. Bevestig binnen 5 minuten.',
+        body: input.itemSummary
+          ? `Een koper wil jou als bezorger. Omschrijving: ${input.itemSummary.slice(0, 140)}. Bevestig binnen 5 minuten.`
+          : 'Een koper wil jou als bezorger. Bevestig binnen 5 minuten.',
         urgent: true,
         data: {
           type: 'DELIVERY_ORDER_AVAILABLE',
@@ -395,7 +413,7 @@ export async function acceptDeliveryBookingRequest(
 
   const request = await prisma.deliveryBookingRequest.findUnique({
     where: { id: params.requestId },
-    include: { deliveryProfile: true },
+    include: { deliveryProfile: { include: { user: { select: { dateOfBirth: true } } } } },
   });
   if (!request) {
     return { ok: false as const, status: 404, error: 'Aanvraag niet gevonden' };
@@ -410,35 +428,97 @@ export async function acceptDeliveryBookingRequest(
     return { ok: false as const, status: 409, error: 'Aanvraag is al afgehandeld' };
   }
 
-  const updated = await prisma.deliveryBookingRequest.update({
+  const standaloneMeta = readStandaloneBookingMeta(request.notes);
+  if (standaloneMeta?.requestedPickupAt) {
+    const at = new Date(standaloneMeta.requestedPickupAt);
+    if (!Number.isNaN(at.getTime())) {
+      const bookable = assertCourierBookableAt(
+        {
+          id: request.deliveryProfile.id,
+          isActive: request.deliveryProfile.isActive,
+          isVerified: request.deliveryProfile.isVerified,
+          isBlocked: request.deliveryProfile.isBlocked,
+          isOnline: request.deliveryProfile.isOnline,
+          onlineUntil: request.deliveryProfile.onlineUntil,
+          pricingEnabled: request.deliveryProfile.pricingEnabled,
+          baseFeeCents: request.deliveryProfile.baseFeeCents,
+          pricePerKmCents: request.deliveryProfile.pricePerKmCents,
+          minimumFeeCents: request.deliveryProfile.minimumFeeCents,
+          age: request.deliveryProfile.age,
+          maxDistance: request.deliveryProfile.maxDistance,
+          nationalCoverage: request.deliveryProfile.nationalCoverage,
+          temporaryOffline: request.deliveryProfile.temporaryOffline,
+          vacationStart: request.deliveryProfile.vacationStart,
+          vacationEnd: request.deliveryProfile.vacationEnd,
+          workStartTime: request.deliveryProfile.workStartTime,
+          workEndTime: request.deliveryProfile.workEndTime,
+          breakWindows: request.deliveryProfile.breakWindows,
+          availableDays: request.deliveryProfile.availableDays,
+          availableTimeSlots: request.deliveryProfile.availableTimeSlots,
+          transportation: request.deliveryProfile.transportation,
+          acceptanceMode: request.deliveryProfile.acceptanceMode,
+          dateOfBirth: request.deliveryProfile.user?.dateOfBirth,
+        },
+        at,
+        request.routeDistanceKm,
+      );
+      if (!bookable.ok) {
+        return { ok: false as const, status: 422, error: bookable.error, code: bookable.code };
+      }
+    }
+  }
+
+  const now = new Date();
+  const claimed = await prisma.$transaction(async (tx) => {
+    const updated = await tx.deliveryBookingRequest.updateMany({
+      where: { id: request.id, status: 'PENDING' },
+      data: {
+        status: 'ACCEPTED',
+        respondedAt: now,
+        updatedAt: now,
+      },
+    });
+    if (updated.count !== 1) return false;
+    await tx.deliveryCalendarEntry.create({
+      data: {
+        deliveryProfileId: request.deliveryProfileId,
+        bookingRequestId: request.id,
+        title: 'Handmatig bevestigde bezorging',
+        pickupAt: new Date(
+          now.getTime() +
+            ((request.deliveryProfile.estimatedPickupDelayMinutes ?? 10) +
+              (request.deliveryProfile.preparationTimeMinutes ?? 15)) *
+              60_000,
+        ),
+        status: 'CONFIRMED',
+        earningsCents: request.quotedFeeCents
+          ? Math.round(request.quotedFeeCents * 0.88)
+          : null,
+        updatedAt: now,
+      },
+    });
+    await openPaymentWindowForBooking(tx, request.id, now);
+    return true;
+  });
+  if (!claimed) {
+    return { ok: false as const, status: 409, error: 'Aanvraag is al afgehandeld' };
+  }
+
+  await notifyReservationBuyer(request.buyerId, 'accepted');
+  if (standaloneMeta?.standaloneRequestId) {
+    await prisma.standaloneDeliveryRequest.updateMany({
+      where: { id: standaloneMeta.standaloneRequestId, paymentStatus: 'UNPAID' },
+      data: {
+        status: 'AWAITING_PAYMENT',
+        quoteExpiresAt: new Date(now.getTime() + 20 * 60 * 1000),
+        updatedAt: now,
+      },
+    });
+  }
+  const fresh = await prisma.deliveryBookingRequest.findUnique({
     where: { id: request.id },
-    data: {
-      status: 'ACCEPTED',
-      respondedAt: new Date(),
-      updatedAt: new Date(),
-    },
   });
-
-  await prisma.deliveryCalendarEntry.create({
-    data: {
-      deliveryProfileId: request.deliveryProfileId,
-      bookingRequestId: request.id,
-      title: 'Handmatig bevestigde bezorging',
-      pickupAt: new Date(
-        Date.now() +
-          ((request.deliveryProfile.estimatedPickupDelayMinutes ?? 10) +
-            (request.deliveryProfile.preparationTimeMinutes ?? 15)) *
-            60_000
-      ),
-      status: 'CONFIRMED',
-      earningsCents: request.quotedFeeCents
-        ? Math.round(request.quotedFeeCents * 0.88)
-        : null,
-      updatedAt: new Date(),
-    },
-  });
-
-  return { ok: true as const, request: updated };
+  return { ok: true as const, request: fresh ?? request };
 }
 
 export async function rejectDeliveryBookingRequest(
@@ -459,14 +539,182 @@ export async function rejectDeliveryBookingRequest(
     return { ok: false as const, status: 409, error: 'Aanvraag is al afgehandeld' };
   }
 
-  const updated = await prisma.deliveryBookingRequest.update({
-    where: { id: request.id },
+  const now = new Date();
+  const updated = await prisma.deliveryBookingRequest.updateMany({
+    where: { id: request.id, status: 'PENDING' },
     data: {
       status: 'REJECTED',
-      respondedAt: new Date(),
-      updatedAt: new Date(),
+      respondedAt: now,
+      updatedAt: now,
     },
   });
+  if (updated.count !== 1) {
+    return { ok: false as const, status: 409, error: 'Aanvraag is al afgehandeld' };
+  }
 
-  return { ok: true as const, request: updated };
+  await notifyReservationBuyer(request.buyerId, 'rejected');
+  const rejectedMeta = readStandaloneBookingMeta(request.notes);
+  if (rejectedMeta?.standaloneRequestId) {
+    await prisma.standaloneDeliveryRequest.updateMany({
+      where: { id: rejectedMeta.standaloneRequestId, paymentStatus: 'UNPAID' },
+      data: { status: 'REJECTED', updatedAt: now },
+    });
+  }
+  const fresh = await prisma.deliveryBookingRequest.findUnique({
+    where: { id: request.id },
+  });
+  return { ok: true as const, request: fresh ?? request };
+}
+
+export async function cancelPendingBookingForReplacement(
+  prisma: PrismaClient,
+  params: { requestId: string; buyerId: string },
+) {
+  const request = await prisma.deliveryBookingRequest.findUnique({
+    where: { id: params.requestId },
+  });
+  if (!request) {
+    return { ok: false as const, status: 404, code: 'NOT_FOUND', error: 'Aanvraag niet gevonden' };
+  }
+  if (request.buyerId !== params.buyerId) {
+    return { ok: false as const, status: 403, code: 'NOT_OWNED', error: 'Niet geautoriseerd' };
+  }
+  const now = new Date();
+  const updated = await prisma.deliveryBookingRequest.updateMany({
+    where: { id: request.id, buyerId: params.buyerId, status: 'PENDING' },
+    data: { status: 'CANCELLED', cancelledAt: now, updatedAt: now },
+  });
+  if (updated.count !== 1) {
+    return {
+      ok: false as const,
+      status: 409,
+      code: 'COURIER_ALREADY_ACCEPTED',
+      error: 'De bezorger heeft al bevestigd. Rond die betaling af.',
+    };
+  }
+  await prisma.deliveryCalendarEntry.updateMany({
+    where: {
+      bookingRequestId: request.id,
+      deliveryOrderId: null,
+      status: 'CONFIRMED',
+    },
+    data: { status: 'CANCELLED' },
+  });
+  return { ok: true as const };
+}
+
+export async function markBookingSuperseded(
+  prisma: PrismaClient,
+  previousRequestId: string,
+  nextRequestId: string,
+) {
+  await prisma.deliveryBookingRequest.updateMany({
+    where: { id: previousRequestId, status: 'CANCELLED' },
+    data: { supersededByRequestId: nextRequestId },
+  });
+}
+
+export async function switchBookingToSelfPickup(
+  prisma: PrismaClient,
+  params: { requestId: string; buyerId: string },
+) {
+  const request = await prisma.deliveryBookingRequest.findUnique({
+    where: { id: params.requestId },
+  });
+  if (!request) {
+    return { ok: false as const, status: 404, code: 'NOT_FOUND', error: 'Aanvraag niet gevonden' };
+  }
+  if (request.buyerId !== params.buyerId) {
+    return { ok: false as const, status: 403, code: 'NOT_OWNED', error: 'Niet geautoriseerd' };
+  }
+  if (request.status === 'CONSUMED') {
+    return {
+      ok: false as const,
+      status: 409,
+      code: 'FUTURE_REFUND_REQUIRED',
+      error: 'Na betaling kan bezorging nog niet automatisch worden omgezet naar afhalen.',
+    };
+  }
+  const now = new Date();
+  if (['PENDING', 'ACCEPTED', 'AUTO_CONFIRMED', 'REJECTED'].includes(request.status)) {
+    const updated = await prisma.deliveryBookingRequest.updateMany({
+      where: {
+        id: request.id,
+        buyerId: params.buyerId,
+        status: { in: ['PENDING', 'ACCEPTED', 'AUTO_CONFIRMED', 'REJECTED'] },
+      },
+      data: { status: 'CANCELLED', cancelledAt: now, updatedAt: now },
+    });
+    if (updated.count !== 1 && request.status !== 'REJECTED') {
+      return { ok: false as const, status: 409, code: 'NOT_ACTIVE', error: 'Aanvraag is al afgehandeld' };
+    }
+  }
+  await prisma.deliveryCalendarEntry.updateMany({
+    where: {
+      bookingRequestId: request.id,
+      deliveryOrderId: null,
+      status: 'CONFIRMED',
+    },
+    data: { status: 'CANCELLED' },
+  });
+  await openPaymentWindowForBooking(prisma, request.id, now);
+  return { ok: true as const, deliveryFeeCents: 0 };
+}
+
+export async function cancelBuyerProductHold(
+  prisma: PrismaClient,
+  params: { requestId: string; buyerId: string },
+) {
+  const request = await prisma.deliveryBookingRequest.findUnique({
+    where: { id: params.requestId },
+  });
+  if (!request) {
+    return { ok: false as const, status: 404, code: 'NOT_FOUND', error: 'Aanvraag niet gevonden' };
+  }
+  if (request.buyerId !== params.buyerId) {
+    return { ok: false as const, status: 403, code: 'NOT_OWNED', error: 'Niet geautoriseerd' };
+  }
+  if (request.status === 'CONSUMED') {
+    return { ok: false as const, status: 409, code: 'ALREADY_PAID', error: 'Bestelling is al betaald' };
+  }
+  const now = new Date();
+  await prisma.deliveryBookingRequest.updateMany({
+    where: {
+      id: request.id,
+      buyerId: params.buyerId,
+      status: { in: ['PENDING', 'ACCEPTED', 'AUTO_CONFIRMED', 'REJECTED'] },
+    },
+    data: { status: 'CANCELLED', cancelledAt: now, updatedAt: now },
+  });
+  await prisma.deliveryCalendarEntry.updateMany({
+    where: {
+      bookingRequestId: request.id,
+      deliveryOrderId: null,
+      status: 'CONFIRMED',
+    },
+    data: { status: 'CANCELLED' },
+  });
+  await prisma.stockReservation.updateMany({
+    where: {
+      buyerId: params.buyerId,
+      status: 'PENDING',
+      OR: [
+        { bookingRequestId: request.id },
+        ...(request.productId ? [{ productId: request.productId, bookingRequestId: request.id }] : []),
+      ],
+    },
+    data: { status: 'CANCELLED' },
+  });
+  if (request.productId) {
+    await prisma.stockReservation.updateMany({
+      where: {
+        buyerId: params.buyerId,
+        productId: request.productId,
+        bookingRequestId: request.id,
+        status: 'PENDING',
+      },
+      data: { status: 'CANCELLED' },
+    });
+  }
+  return { ok: true as const };
 }

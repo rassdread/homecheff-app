@@ -47,7 +47,7 @@ export async function getCombinedRequestablePayout(
       where: { deliveryProfileId: deliveryProfile.id, status: 'DELIVERED' },
       select: { orderId: true },
     });
-    const deliveredOrderIds = new Set(delivered.map((d) => d.orderId));
+    const deliveredOrderIds = delivered.flatMap((d) => (d.orderId ? [d.orderId] : []));
 
     const deliveryPayouts = await prisma.payout.findMany({
       where: {
@@ -56,8 +56,9 @@ export async function getCombinedRequestablePayout(
         OR: [
           { transactionId: { contains: 'txn_delivery' } },
           { id: { startsWith: 'payout_delivery_' } },
-          // Legacy: orderId was incorrectly used as transactionId
-          { transactionId: { in: Array.from(deliveredOrderIds) } },
+          ...(deliveredOrderIds.length
+            ? [{ transactionId: { in: deliveredOrderIds } }]
+            : []),
         ],
       },
       select: { id: true, amountCents: true },

@@ -1,11 +1,17 @@
 'use client';
 import * as React from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
+import {
+  placeDetailsToAddress,
+  placesPredictionStatusUnavailable,
+  placesSearchShouldRecover,
+} from '@/lib/delivery/places-autocomplete-fallback';
 
 declare global {
   interface Window {
     google: any;
     initGooglePlaces: () => void;
+    gm_authFailure?: () => void;
   }
 }
 
@@ -40,9 +46,15 @@ export default function GooglePlacesAutocomplete({
   const { t } = useTranslation();
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [placesUnavailable, setPlacesUnavailable] = React.useState(false);
+  const [suggestions, setSuggestions] = React.useState<Array<{ placeId: string; description: string }>>([]);
   const autocompleteRef = React.useRef<HTMLInputElement>(null);
-  const autocompleteInstanceRef = React.useRef<any>(null);
+  const isUserTypingRef = React.useRef(false);
+  const lastValueRef = React.useRef(value);
+  const onChangeRef = React.useRef(onChange);
+  const requestIdRef = React.useRef(0);
+  const searchTimerRef = React.useRef<number | null>(null);
+  onChangeRef.current = onChange;
 
   // Load Google Maps JavaScript API
   React.useEffect(() => {
@@ -80,18 +92,9 @@ export default function GooglePlacesAutocomplete({
     // In Next.js, NEXT_PUBLIC_ variables are available at runtime (embedded during build)
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     
-    console.log('[GooglePlacesAutocomplete] API Key check:', apiKey ? `Found (${apiKey.substring(0, 10)}...)` : 'NOT FOUND');
-    console.log('[GooglePlacesAutocomplete] process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:', process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? 'exists' : 'undefined');
-    
     if (!apiKey || apiKey.trim() === '') {
-      const errorMsg = 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not set';
-      console.error('[GooglePlacesAutocomplete] ❌', errorMsg);
-      console.error('[GooglePlacesAutocomplete] Make sure:');
-      console.error('  1. Key is set in .env.local (for local dev)');
-      console.error('  2. Key is set in Vercel environment variables (for production)');
-      console.error('  3. Dev server is restarted after adding .env.local');
-      console.error('  4. Production is redeployed after adding Vercel env vars');
-      setError(errorMsg);
+      console.error('[GooglePlacesAutocomplete] Maps key is not set');
+      setPlacesUnavailable(true);
       return;
     }
 
@@ -108,16 +111,14 @@ export default function GooglePlacesAutocomplete({
         setIsLoaded(true);
         setIsLoading(false);
       } else {
-        const errorMsg = 'Script loaded but Places API not available. Check if Places API is enabled in Google Cloud Console';
-        console.error('[GooglePlacesAutocomplete]', errorMsg);
-        setError(errorMsg);
+        console.error('[GooglePlacesAutocomplete] Places library did not load');
+        setPlacesUnavailable(true);
         setIsLoading(false);
       }
     };
     script.onerror = (error) => {
-      const errorMsg = 'Failed to load Google Maps API. Check: 1) API key is valid, 2) Places API is enabled, 3) HTTP referrers are set correctly';
-      console.error('[GooglePlacesAutocomplete]', errorMsg, error);
-      setError(errorMsg);
+      console.error('[GooglePlacesAutocomplete] Maps script failed to load');
+      setPlacesUnavailable(true);
       setIsLoading(false);
     };
     document.head.appendChild(script);
@@ -127,177 +128,155 @@ export default function GooglePlacesAutocomplete({
     };
   }, []);
 
-  // Initialize Autocomplete when loaded
-  React.useEffect(() => {
-    if (!isLoaded) {
-      console.log('[GooglePlacesAutocomplete] Not loaded yet, waiting...');
+  const applyPlace = React.useCallback((place: any) => {
+    const mapped = placeDetailsToAddress(place, country);
+    if (!mapped) {
+      setPlacesUnavailable(true);
       return;
     }
-    
-    // Wait a bit to ensure the input is in the DOM
-    const initTimeout = setTimeout(() => {
-      if (!autocompleteRef.current) {
-        console.error('[GooglePlacesAutocomplete] Input ref is not available after timeout');
-        return;
-      }
-      
-      if (!window.google?.maps?.places) {
-        console.error('[GooglePlacesAutocomplete] Google Maps Places API is not available');
-        return;
-      }
+    isUserTypingRef.current = false;
+    if (autocompleteRef.current) {
+      autocompleteRef.current.value = mapped.formattedAddress;
+      lastValueRef.current = mapped.formattedAddress;
+    }
+    setSuggestions([]);
+    setPlacesUnavailable(false);
+    onChangeRef.current(mapped.formattedAddress, mapped);
+  }, [country]);
 
-      console.log('[GooglePlacesAutocomplete] Initializing Autocomplete...');
-
-      // Destroy existing instance if any
-      if (autocompleteInstanceRef.current) {
-        console.log('[GooglePlacesAutocomplete] Destroying existing autocomplete instance');
-        window.google.maps.event.clearInstanceListeners(autocompleteInstanceRef.current);
-        autocompleteInstanceRef.current = null;
-      }
-
-      // Create new Autocomplete instance
-      // Optimized for better Google autocomplete results (desktop + mobile)
-      const autocompleteOptions: any = {
-        fields: ['address_components', 'geometry', 'formatted_address'],
-        types: ['address'], // Only show addresses, not businesses
+  const requestPredictions = React.useCallback((query: string) => {
+    if (searchTimerRef.current) window.clearTimeout(searchTimerRef.current);
+    const trimmed = query.trim();
+    if (!isLoaded || trimmed.length < 3 || !window.google?.maps?.places?.AutocompleteService) {
+      setSuggestions([]);
+      return;
+    }
+    searchTimerRef.current = window.setTimeout(() => {
+      const requestId = ++requestIdRef.current;
+      const service = new window.google.maps.places.AutocompleteService();
+      const options: Record<string, unknown> = {
+        input: trimmed,
+        types: ['address'],
       };
-      
-      // Apply country restriction for better autocomplete suggestions
-      // This helps Google prioritize results from the selected country
       if (country && country.length === 2) {
-        autocompleteOptions.componentRestrictions = { country: country.toLowerCase() };
-        console.log('[GooglePlacesAutocomplete] Country restriction:', country.toLowerCase());
+        options.componentRestrictions = { country: country.toLowerCase() };
       }
-
-      // Mobile-specific optimizations
-      // Ensure autocomplete works well on touch devices
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
-        console.log('[GooglePlacesAutocomplete] Mobile device detected, applying mobile optimizations');
-        // Don't restrict too much on mobile - let Google handle it
-        // The types: ['address'] already limits to addresses
-      }
-      
-      let autocomplete;
-      try {
-        autocomplete = new window.google.maps.places.Autocomplete(
-          autocompleteRef.current,
-          autocompleteOptions
-        );
-
-        autocompleteInstanceRef.current = autocomplete;
-        console.log('[GooglePlacesAutocomplete] Autocomplete instance created successfully');
-
-        // Mobile-specific: Ensure autocomplete dropdown is clickable/tappable
-        // Google's autocomplete should handle this, but we ensure proper setup
-        if (autocompleteRef.current) {
-          // Ensure input is not readonly (Google Autocomplete needs this)
-          autocompleteRef.current.readOnly = false;
-          
-          // Add mobile-specific event listeners for better UX
-          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-          if (isMobile) {
-            // On mobile, ensure we can tap suggestions properly
-            autocompleteRef.current.addEventListener('focus', () => {
-              console.log('[GooglePlacesAutocomplete] Input focused on mobile');
-              // Small delay to ensure Google's dropdown is ready
-              setTimeout(() => {
-                if (autocompleteRef.current) {
-                  // Scroll into view on mobile keyboards
-                  autocompleteRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-              }, 300);
-            });
-          }
-        }
-      } catch (error) {
-        console.error('[GooglePlacesAutocomplete] Error creating Autocomplete instance:', error);
-        return;
-      }
-
-      if (!autocomplete) {
-        console.error('[GooglePlacesAutocomplete] Autocomplete instance is null');
-        return;
-      }
-
-      // Handle place selection
-      autocomplete.addListener('place_changed', () => {
-        console.log('[GooglePlacesAutocomplete] Place changed event triggered');
-        const place = autocomplete.getPlace();
-        console.log('[GooglePlacesAutocomplete] Selected place:', place);
-        
-        if (!place.geometry || !place.geometry.location) {
-          console.warn('[GooglePlacesAutocomplete] Place has no geometry');
+      let settled = false;
+      const timeout = window.setTimeout(() => {
+        if (settled || requestIdRef.current !== requestId) return;
+        settled = true;
+        setSuggestions([]);
+        setPlacesUnavailable(true);
+      }, 8000);
+      service.getPlacePredictions(options, (predictions: any[] | null, status: string) => {
+        if (requestIdRef.current !== requestId) return;
+        settled = true;
+        window.clearTimeout(timeout);
+        if (status === 'OK' && predictions && predictions.length > 0) {
+          setPlacesUnavailable(false);
+          setSuggestions(
+            predictions.slice(0, 5).map((item) => ({
+              placeId: String(item.place_id || ''),
+              description: String(item.description || ''),
+            })).filter((item) => item.placeId && item.description),
+          );
           return;
         }
-
-        // Extract address components
-        const addressComponents = place.address_components || [];
-        let street = '';
-        let streetNumber = '';
-        let houseNumber = '';
-        let city = '';
-        let postalCode = '';
-        let countryCode = country;
-
-        addressComponents.forEach((component: any) => {
-          const types = component.types;
-          
-          if (types.includes('street_number')) {
-            streetNumber = component.long_name;
-            houseNumber = component.long_name; // For Netherlands format
-          } else if (types.includes('route')) {
-            street = component.long_name;
-          } else if (types.includes('locality') || types.includes('postal_town')) {
-            city = component.long_name;
-          } else if (types.includes('postal_code')) {
-            postalCode = component.long_name;
-          } else if (types.includes('country')) {
-            countryCode = component.short_name;
-          }
-        });
-
-        const fullAddress = street + (streetNumber ? ' ' + streetNumber : '');
-        const lat = place.geometry.location.lat();
-        const lng = place.geometry.location.lng();
-
-        // Mark that we're setting a place (not user typing)
-        isUserTypingRef.current = false;
-        
-        // Update input value to show formatted address
-        if (autocompleteRef.current) {
-          autocompleteRef.current.value = place.formatted_address;
-          lastValueRef.current = place.formatted_address;
-        }
-        
-        onChange(place.formatted_address, {
-          address: fullAddress.trim(),
-          houseNumber: houseNumber, // Include houseNumber for Netherlands format
-          city: city,
-          postalCode: postalCode,
-          country: countryCode,
-          lat: lat,
-          lng: lng,
-          formattedAddress: place.formatted_address,
-        });
+        setSuggestions([]);
+        if (placesPredictionStatusUnavailable(status)) setPlacesUnavailable(true);
       });
-    }, 100); // Small delay to ensure DOM is ready
+    }, 250);
+  }, [country, isLoaded]);
 
+  const selectSuggestion = React.useCallback((placeId: string, description: string) => {
+    setSuggestions([]);
+    if (!window.google?.maps?.places?.PlacesService) {
+      setPlacesUnavailable(true);
+      return;
+    }
+    if (autocompleteRef.current) {
+      autocompleteRef.current.value = description;
+      lastValueRef.current = description;
+    }
+    const places = new window.google.maps.places.PlacesService(document.createElement('div'));
+    places.getDetails(
+      { placeId, fields: ['address_components', 'geometry', 'formatted_address'] },
+      (place: any, status: string) => {
+        if (status !== 'OK' || !place) {
+          setPlacesUnavailable(true);
+          return;
+        }
+        applyPlace(place);
+      },
+    );
+  }, [applyPlace]);
+
+  React.useEffect(() => {
     return () => {
-      clearTimeout(initTimeout);
-      if (autocompleteInstanceRef.current) {
-        window.google.maps.event.clearInstanceListeners(autocompleteInstanceRef.current);
-      }
+      if (searchTimerRef.current) window.clearTimeout(searchTimerRef.current);
     };
-  }, [isLoaded, country]); // Removed onChange from dependencies to avoid re-initialization
+  }, []);
 
-  const defaultPlaceholder = placeholder || t('addressFields.searchAddress') || 'Zoek adres...';
+  const defaultPlaceholder = placeholder || t('addressFields.searchAddressPlaceholder') || t('addressFields.searchAddress') || 'Zoek adres...';
+  const fallbackMessage =
+    t('addressFields.placesUnavailable') ||
+    'Adreszoeken is nu niet beschikbaar. Vul straat, huisnummer, postcode en plaats hieronder in. Je kunt gewoon verder.';
+
+  React.useEffect(() => {
+    const previous = window.gm_authFailure;
+    window.gm_authFailure = () => {
+      setPlacesUnavailable(true);
+      if (typeof previous === 'function') previous();
+    };
+    return () => {
+      window.gm_authFailure = previous;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    const input = autocompleteRef.current;
+    if (!input) return;
+    const recover = () => {
+      if (
+        !placesSearchShouldRecover({
+          disabled: input.disabled,
+          placeholder: input.placeholder,
+          value: input.value,
+        })
+      ) {
+        return;
+      }
+      input.disabled = false;
+      input.readOnly = false;
+      if (
+        placesSearchShouldRecover({
+          disabled: false,
+          placeholder: input.placeholder,
+          value: input.value,
+        })
+      ) {
+        if (input.value && placesSearchShouldRecover({ disabled: false, value: input.value })) {
+          input.value = '';
+        }
+        input.placeholder = defaultPlaceholder;
+      }
+      setPlacesUnavailable(true);
+    };
+    const observer = new MutationObserver(recover);
+    observer.observe(input, {
+      attributes: true,
+      attributeFilter: ['disabled', 'placeholder', 'readonly'],
+    });
+    const timers = [400, 1200, 2500].map((ms) => window.setTimeout(recover, ms));
+    return () => {
+      observer.disconnect();
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [defaultPlaceholder, isLoaded, placesUnavailable]);
 
   // Use uncontrolled input for better Google Autocomplete compatibility
   // Google Autocomplete works better with uncontrolled inputs
-  const [inputKey, setInputKey] = React.useState(0);
-  const isUserTypingRef = React.useRef(false);
-  const lastValueRef = React.useRef(value);
+  const [inputKey] = React.useState(0);
 
   // Update input when value prop changes (from parent) - but only if user is not actively typing
   React.useEffect(() => {
@@ -323,19 +302,10 @@ export default function GooglePlacesAutocomplete({
         type="text"
         defaultValue={value}
         onChange={(e) => {
-          // Allow manual typing - notify parent
           isUserTypingRef.current = true;
-          onChange(e.target.value);
-          // Reset typing flag after a short delay
-          setTimeout(() => {
-            isUserTypingRef.current = false;
-          }, 500);
-        }}
-        onInput={(e) => {
-          // Also handle input events for better compatibility
-          isUserTypingRef.current = true;
-          onChange((e.target as HTMLInputElement).value);
-          // Reset typing flag after a short delay
+          const next = e.target.value;
+          onChange(next);
+          requestPredictions(next);
           setTimeout(() => {
             isUserTypingRef.current = false;
           }, 500);
@@ -352,8 +322,12 @@ export default function GooglePlacesAutocomplete({
           }
         }}
         className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand disabled:bg-gray-50 disabled:text-gray-500 text-base sm:text-sm touch-manipulation"
-        placeholder={isLoading ? (t('addressFields.loading') || 'Laden...') : defaultPlaceholder}
-        disabled={disabled || isLoading}
+        placeholder={
+          isLoading && !placesUnavailable
+            ? t('addressFields.loading') || 'Laden...'
+            : defaultPlaceholder
+        }
+        disabled={disabled || (isLoading && !placesUnavailable)}
         required={required}
         autoComplete="off"
         autoCapitalize="none"
@@ -373,7 +347,7 @@ export default function GooglePlacesAutocomplete({
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-brand"></div>
         </div>
       )}
-      {isLoaded && !isLoading && !error && (
+      {isLoaded && !isLoading && !placesUnavailable && (
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
           <svg
             className="w-4 h-4 text-green-500"
@@ -396,27 +370,31 @@ export default function GooglePlacesAutocomplete({
           </svg>
         </div>
       )}
-      {error && (
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-          <svg
-            className="w-4 h-4 text-red-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </div>
+      {suggestions.length > 0 && (
+        <ul
+          role="listbox"
+          className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg"
+        >
+          {suggestions.map((suggestion) => (
+            <li key={suggestion.placeId} role="option">
+              <button
+                type="button"
+                className="w-full px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-50"
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  selectSuggestion(suggestion.placeId, suggestion.description);
+                }}
+              >
+                {suggestion.description}
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
-      {error && (
-        <div className="mt-1 text-xs text-red-600">
-          ⚠️ {error}
-        </div>
+      {placesUnavailable && (
+        <p className="mt-1 text-xs text-amber-800" role="status">
+          {fallbackMessage}
+        </p>
       )}
     </div>
   );

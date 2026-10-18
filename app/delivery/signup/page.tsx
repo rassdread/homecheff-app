@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
@@ -8,6 +8,18 @@ import { Bike, MapPin, Clock, Users, CheckCircle, ArrowRight, User, Mail, Lock, 
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import DeliveryRegistrationNotice from '@/components/delivery/DeliveryRegistrationNotice';
+import { CANONICAL_DELIVERY_DAYS } from '@/lib/delivery/delivery-profile-canonical';
+import {
+  prefillDeliveryAddress,
+  validateDeliveryAddressParts,
+} from '@/lib/delivery/delivery-registration-address';
+import {
+  clearDeliverySignupDraft,
+  newDeliveryFlowId,
+  readDeliverySignupDraft,
+  writeDeliverySignupDraft,
+} from '@/lib/delivery/delivery-signup-draft';
+import { trackDeliverySignupFunnel } from '@/lib/delivery/delivery-signup-funnel';
 
 interface DeliverySignupData {
   // Account creation
@@ -54,7 +66,16 @@ interface ValidationState {
 export default function DeliverySignupPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const flowIdRef = useRef('');
+  const draftReady = useRef(false);
+  const skipDraftWrite = useRef(true);
+  const [passwordReentry, setPasswordReentry] = useState(false);
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [stepNotice, setStepNotice] = useState<string | null>(null);
+  const [addressErrors, setAddressErrors] = useState<
+    Partial<Record<'address' | 'houseNumber' | 'postalCode' | 'city', string>>
+  >({});
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -114,15 +135,20 @@ export default function DeliverySignupPage() {
     { id: 'CAR', label: t('deliverySignup.transportation.car'), icon: <Car className="w-5 h-5" />, maxRange: 25 }
   ];
 
-  const dayOptions = [
-    t('deliverySignup.days.monday'),
-    t('deliverySignup.days.tuesday'),
-    t('deliverySignup.days.wednesday'),
-    t('deliverySignup.days.thursday'),
-    t('deliverySignup.days.friday'),
-    t('deliverySignup.days.saturday'),
-    t('deliverySignup.days.sunday')
-  ];
+  const dayOptions = CANONICAL_DELIVERY_DAYS.map((id, index) => ({
+    id,
+    label: t(
+      [
+        'deliverySignup.days.monday',
+        'deliverySignup.days.tuesday',
+        'deliverySignup.days.wednesday',
+        'deliverySignup.days.thursday',
+        'deliverySignup.days.friday',
+        'deliverySignup.days.saturday',
+        'deliverySignup.days.sunday',
+      ][index]
+    ),
+  }));
 
   const timeSlotOptions = [
     { id: 'morning', label: t('deliverySignup.timeSlots.morning') },
@@ -216,6 +242,37 @@ export default function DeliverySignupPage() {
     }
   };
 
+  const campaignMeta = () => {
+    const params = new URLSearchParams(window.location.search);
+    const meta: Record<string, string | number> = {
+      registrationType: isExistingUser ? 'existing_user' : 'new_user',
+      language,
+      flowId: flowIdRef.current,
+    };
+    for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'] as const) {
+      const value = params.get(key);
+      if (value) meta[key] = value;
+    }
+    return meta;
+  };
+
+  const collectAddressErrors = () => {
+    const parts = formData.addressData;
+    const codes = validateDeliveryAddressParts(parts);
+    const next: Partial<Record<'address' | 'houseNumber' | 'postalCode' | 'city', string>> = {};
+    if (codes.includes('street')) next.address = t('deliverySignup.validation.enterStreet');
+    if (codes.includes('houseNumber')) {
+      next.houseNumber = t('deliverySignup.validation.enterHouseNumber');
+    }
+    if (codes.includes('postalCode')) {
+      next.postalCode = parts.postalCode?.trim()
+        ? t('deliverySignup.validation.invalidPostalCode')
+        : t('deliverySignup.validation.enterPostalCode');
+    }
+    if (codes.includes('city')) next.city = t('deliverySignup.validation.enterCity');
+    return next;
+  };
+
   const buildHomeAddress = () => {
     if (!formData.addressData.address) return null;
     if (
@@ -247,6 +304,10 @@ export default function DeliverySignupPage() {
     setIsLoading(true);
     setSubmitError(null);
     setResumeLoginHint(false);
+    trackDeliverySignupFunnel('delivery_signup_submitted', {
+      ...campaignMeta(),
+      step: 9,
+    });
     try {
       const homeAddress = buildHomeAddress();
       const sharedProfile = {
@@ -261,6 +322,11 @@ export default function DeliverySignupPage() {
         homeLat: formData.addressData.lat ?? null,
         homeLng: formData.addressData.lng ?? null,
         homeAddress,
+        addressCountry: formData.addressData.country || 'NL',
+        street: formData.addressData.address,
+        houseNumber: formData.addressData.houseNumber,
+        postalCode: formData.addressData.postalCode,
+        city: formData.addressData.city,
         acceptDeliveryAgreement: formData.acceptDeliveryAgreement,
         deliveryRegion: formData.addressData.city,
         providerType: formData.providerType,
@@ -302,8 +368,19 @@ export default function DeliverySignupPage() {
             result?.code === 'RESUME_REQUIRED' ||
             result?.incompleteDeliveryOnboarding === true
         );
+        trackDeliverySignupFunnel('delivery_signup_validation_failed', {
+          ...campaignMeta(),
+          step: 9,
+          reason: 'submit_rejected',
+        });
         return;
       }
+
+      clearDeliverySignupDraft();
+      trackDeliverySignupFunnel('delivery_signup_completed', {
+        ...campaignMeta(),
+        step: 9,
+      });
 
       if (isExistingUser) {
         router.push('/delivery/dashboard?welcome=true&newSignup=true');
@@ -342,10 +419,84 @@ export default function DeliverySignupPage() {
     }
   };
 
-  // Scroll naar boven bij stapwissel
   useEffect(() => {
+    const draft = readDeliverySignupDraft();
+    if (draft) {
+      flowIdRef.current = draft.flowId;
+      setFormData((prev) => ({
+        ...prev,
+        name: draft.name || prev.name,
+        email: draft.email || prev.email,
+        username: draft.username || prev.username,
+        age: draft.age || prev.age,
+        transportation: draft.transportation.length ? draft.transportation : prev.transportation,
+        availableDays: draft.availableDays,
+        availableTimeSlots: draft.availableTimeSlots,
+        bio: draft.bio,
+        deliveryMode: draft.deliveryMode,
+        preferredRadius: draft.preferredRadius,
+        maxDistance: draft.maxDistance,
+        acceptDeliveryAgreement: draft.acceptDeliveryAgreement,
+        addressData: {
+          address: draft.address.address || '',
+          houseNumber: draft.address.houseNumber || '',
+          postalCode: draft.address.postalCode || '',
+          city: draft.address.city || '',
+          country: draft.address.country || 'NL',
+          lat: draft.address.lat ?? null,
+          lng: draft.address.lng ?? null,
+        },
+      }));
+      setCurrentStep(draft.currentStep);
+      setPasswordReentry(draft.currentStep > 2);
+    } else {
+      flowIdRef.current = newDeliveryFlowId();
+    }
+    draftReady.current = true;
+    skipDraftWrite.current = true;
+    setDraftLoaded(true);
+    trackDeliverySignupFunnel('delivery_signup_started', {
+      registrationType: 'new_user',
+      language,
+      flowId: flowIdRef.current,
+      step: draft?.currentStep || 1,
+    });
+    // Hydrate once. Language changes must not reload the draft.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!draftReady.current || skipDraftWrite.current) {
+      skipDraftWrite.current = false;
+      return;
+    }
+    writeDeliverySignupDraft({
+      currentStep,
+      flowId: flowIdRef.current || newDeliveryFlowId(),
+      name: formData.name,
+      email: formData.email,
+      username: formData.username,
+      age: formData.age,
+      transportation: formData.transportation,
+      availableDays: formData.availableDays,
+      availableTimeSlots: formData.availableTimeSlots,
+      bio: formData.bio,
+      deliveryMode: formData.deliveryMode,
+      preferredRadius: formData.preferredRadius,
+      maxDistance: formData.maxDistance,
+      acceptDeliveryAgreement: formData.acceptDeliveryAgreement,
+      address: formData.addressData,
+    });
+  }, [currentStep, formData]);
+
+  useEffect(() => {
+    if (!draftLoaded || !flowIdRef.current) return;
+    trackDeliverySignupFunnel('delivery_signup_step_viewed', {
+      ...campaignMeta(),
+      step: currentStep,
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [currentStep]);
+  }, [draftLoaded, currentStep, language, isExistingUser]);
 
   // Pre-fill existing user data if logged in
   useEffect(() => {
@@ -366,15 +517,27 @@ export default function DeliverySignupPage() {
             email: user.email || prev.email,
             username: user.username || prev.username,
             // Address info
-            addressData: {
-              address: user.address || prev.addressData.address,
-              postalCode: user.postalCode || prev.addressData.postalCode,
-              houseNumber: '',
-              city: user.city || user.place || prev.addressData.city,
-              country: user.country || prev.addressData.country || 'NL',
-              lat: user.lat ?? prev.addressData.lat ?? null,
-              lng: user.lng ?? prev.addressData.lng ?? null,
-            },
+            addressData: (() => {
+              const prefilled = prefillDeliveryAddress({
+                address: user.address,
+                postalCode: user.postalCode,
+                city: user.city,
+                place: user.place,
+                country: user.country,
+                lat: user.lat,
+                lng: user.lng,
+                houseNumber: prev.addressData.houseNumber,
+              });
+              return {
+                address: prev.addressData.address || prefilled.address || '',
+                postalCode: prev.addressData.postalCode || prefilled.postalCode || '',
+                houseNumber: prev.addressData.houseNumber || prefilled.houseNumber || '',
+                city: prev.addressData.city || prefilled.city || '',
+                country: prev.addressData.country || prefilled.country || 'NL',
+                lat: prev.addressData.lat ?? prefilled.lat ?? null,
+                lng: prev.addressData.lng ?? prefilled.lng ?? null,
+              };
+            })(),
             // Bio if available
             bio: user.bio || prev.bio,
           }));
@@ -391,6 +554,10 @@ export default function DeliverySignupPage() {
       loadExistingUserData();
     }
   }, [session?.user?.email, status]);
+
+  useEffect(() => {
+    if (isExistingUser) setPasswordReentry(false);
+  }, [isExistingUser]);
 
   // Debounced email validatie (alleen als nieuwe gebruiker)
   useEffect(() => {
@@ -415,6 +582,34 @@ export default function DeliverySignupPage() {
   const firstStep = isExistingUser ? 3 : 1;
 
   const nextStep = () => {
+    if (currentStep === 7) {
+      const errors = collectAddressErrors();
+      setAddressErrors(errors);
+      if (Object.keys(errors).length > 0) {
+        setStepNotice(t('deliverySignup.validation.completeStep'));
+        trackDeliverySignupFunnel('delivery_signup_validation_failed', {
+          ...campaignMeta(),
+          step: 7,
+          reason: Object.keys(errors).join('_'),
+        });
+        return;
+      }
+    }
+    if (!isStepValid()) {
+      setStepNotice(t('deliverySignup.validation.completeStep'));
+      trackDeliverySignupFunnel('delivery_signup_validation_failed', {
+        ...campaignMeta(),
+        step: currentStep,
+        reason: 'step_incomplete',
+      });
+      return;
+    }
+    setStepNotice(null);
+    setAddressErrors({});
+    trackDeliverySignupFunnel('delivery_signup_step_completed', {
+      ...campaignMeta(),
+      step: currentStep,
+    });
     if (currentStep < 9) setCurrentStep(currentStep + 1);
   };
 
@@ -445,16 +640,12 @@ export default function DeliverySignupPage() {
         return formData.availableDays.length > 0;
       case 6:
         return formData.availableTimeSlots.length > 0;
-      case 7: {
-        const hasAddress = Boolean(
-          formData.addressData.address?.trim() &&
-            formData.addressData.city?.trim() &&
-            (formData.addressData.country !== 'NL' ||
-              (formData.addressData.postalCode?.trim() &&
-                formData.addressData.houseNumber?.trim()))
+      case 7:
+        return (
+          formData.preferredRadius > 0 &&
+          Boolean(formData.deliveryMode) &&
+          validateDeliveryAddressParts(formData.addressData).length === 0
         );
-        return formData.preferredRadius > 0 && formData.deliveryMode && hasAddress;
-      }
       case 8:
         return true; // Bio is optional
       case 9: {
@@ -488,7 +679,7 @@ export default function DeliverySignupPage() {
       <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-brand mx-auto mb-4"></div>
-          <p className="text-gray-600">Sessie wordt geladen...</p>
+          <p className="text-gray-600">{t('deliverySignup.sessionLoading')}</p>
         </div>
       </div>
     );
@@ -511,10 +702,12 @@ export default function DeliverySignupPage() {
           <h1 className="mb-2 max-w-full whitespace-normal break-words text-2xl font-bold text-gray-900 sm:text-3xl">
             {t('deliverySignup.title')}
           </h1>
-          <p className="mx-auto max-w-full break-words text-sm text-gray-600 sm:text-base">
-            {t('deliverySignup.subtitle')}
-          </p>
-          <DeliveryRegistrationNotice />
+          <div className={currentStep === 3 ? 'hidden sm:block' : undefined}>
+            <p className="mx-auto max-w-full break-words text-sm text-gray-600 sm:text-base">
+              {t('deliverySignup.subtitle')}
+            </p>
+            <DeliveryRegistrationNotice />
+          </div>
         </div>
 
         {/* Progress — 9 columns so every step stays inside a 390px screen */}
@@ -624,7 +817,7 @@ export default function DeliverySignupPage() {
                               href={`/login?callbackUrl=${encodeURIComponent('/delivery/signup')}`}
                               className="font-semibold underline"
                             >
-                              Log in en rond je bezorgerprofiel af
+                              {t('deliverySignup.loginToFinishProfile')}
                             </a>
                           </div>
                         )}
@@ -690,17 +883,17 @@ export default function DeliverySignupPage() {
             {/* Step 3: Age Verification */}
             {currentStep === 3 && (
               <div className="text-center">
-                <div className="bg-green-100 text-green-800 p-4 rounded-xl mb-6">
-                  <CheckCircle className="w-8 h-8 mx-auto mb-2" />
+                <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950">
                   <h3 className="text-lg font-semibold">{t('deliverySignup.ageVerification')}</h3>
-                  <p className="text-sm">{t('deliverySignup.ageVerificationText')}</p>
+                  <p className="mt-1 text-sm">{t('deliverySignup.minimumAge')}</p>
                 </div>
                 
                 <div className="space-y-4">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700" htmlFor="delivery-age">
                     {t('deliverySignup.howOld')}
                   </label>
                   <select
+                    id="delivery-age"
                     value={formData.age}
                     onChange={(e) => setFormData(prev => ({ ...prev, age: parseInt(e.target.value) }))}
                     className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-transparent"
@@ -709,6 +902,9 @@ export default function DeliverySignupPage() {
                       <option key={age} value={age}>{age} {t('deliverySignup.yearsOld')}</option>
                     ))}
                   </select>
+                  <p className="text-sm font-medium text-gray-800">
+                    {t('deliverySignup.currentAge').replace('{age}', String(formData.age))}
+                  </p>
                   
                   {formData.age < 18 && (
                     <div className="bg-red-50 text-red-800 p-4 rounded-xl">
@@ -717,6 +913,13 @@ export default function DeliverySignupPage() {
                       </p>
                     </div>
                   )}
+                  <Button
+                    onClick={nextStep}
+                    className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 text-base"
+                  >
+                    {t('deliverySignup.next')}
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             )}
@@ -757,15 +960,16 @@ export default function DeliverySignupPage() {
                 <div className="grid grid-cols-2 gap-3">
                   {dayOptions.map((day) => (
                     <button
-                      key={day}
-                      onClick={() => handleDayChange(day)}
+                      key={day.id}
+                      type="button"
+                      onClick={() => handleDayChange(day.id)}
                       className={`p-3 rounded-xl border-2 transition-all text-sm font-medium ${
-                        formData.availableDays.includes(day)
+                        formData.availableDays.includes(day.id)
                           ? 'border-primary-brand bg-primary-50 text-primary-brand'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      {day.charAt(0).toUpperCase() + day.slice(1)}
+                      {day.label.charAt(0).toUpperCase() + day.label.slice(1)}
                     </button>
                   ))}
                 </div>
@@ -880,10 +1084,16 @@ export default function DeliverySignupPage() {
                     <p className="text-xs text-gray-500 mb-4">
                       {t('deliverySignup.addressDetailsText')}
                     </p>
+                    <p className="mb-3 text-sm text-gray-700">
+                      {t('deliverySignup.manualAddressHint')}
+                    </p>
                     
                     <DynamicAddressFields
                       value={formData.addressData}
+                      showStructuredFields
+                      fieldErrors={addressErrors}
                       onChange={(data) => {
+                        setAddressErrors({});
                         setFormData(prev => ({
                           ...prev,
                           addressData: data,
@@ -945,7 +1155,7 @@ export default function DeliverySignupPage() {
                         transportationOptions.find(opt => opt.id === transport)?.label
                       ).join(', ')}</li>
                       <li>• {t('deliverySignup.workArea')}: {formData.deliveryMode === 'FIXED' ? t('deliverySignup.fixedArea') : t('deliverySignup.flexible')} ({formData.preferredRadius}km)</li>
-                      <li>• {t('deliverySignup.available')}: {formData.availableDays.join(', ')}</li>
+                      <li>• {t('deliverySignup.available')}: {formData.availableDays.map((id) => dayOptions.find((day) => day.id === id)?.label || id).join(', ')}</li>
                       <li>• {t('deliverySignup.timeSlots')}: {formData.availableTimeSlots.length} {t('deliverySignup.selected')}</li>
                     </ul>
                   </div>
@@ -1024,6 +1234,18 @@ export default function DeliverySignupPage() {
             )}
 
             {/* Navigation Buttons */}
+            {passwordReentry && !isExistingUser && (
+              <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950" role="status">
+                {t('deliverySignup.resumeDraft')}
+              </div>
+            )}
+
+            {stepNotice && (
+              <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">
+                {stepNotice}
+              </div>
+            )}
+
             {submitError && (
               <div
                 className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
@@ -1036,7 +1258,7 @@ export default function DeliverySignupPage() {
                       href={`/login?callbackUrl=${encodeURIComponent('/delivery/signup')}`}
                       className="font-semibold text-primary-brand underline"
                     >
-                      Log in om je bezorgeraanmelding af te ronden
+                      {t('deliverySignup.loginToFinish')}
                     </a>
                   </p>
                 )}
@@ -1055,17 +1277,27 @@ export default function DeliverySignupPage() {
               {currentStep < 9 ? (
                 <Button
                   onClick={nextStep}
-                  disabled={!isStepValid()}
-                  className="flex items-center gap-2"
+                  className="flex min-h-12 items-center gap-2"
                 >
                   {t('deliverySignup.next')}
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               ) : (
                 <Button
-                  onClick={handleSubmit}
-                  disabled={isLoading || submitLock || !isStepValid()}
-                  className="flex items-center gap-2"
+                  onClick={() => {
+                    if (!isStepValid()) {
+                      setStepNotice(t('deliverySignup.acceptToContinue'));
+                      trackDeliverySignupFunnel('delivery_signup_validation_failed', {
+                        ...campaignMeta(),
+                        step: 9,
+                        reason: 'agreement',
+                      });
+                      return;
+                    }
+                    void handleSubmit();
+                  }}
+                  disabled={isLoading || submitLock}
+                  className="flex min-h-12 items-center gap-2"
                 >
                   {isLoading ? t('deliverySignup.loading') : 
                    !isStepValid() ? t('deliverySignup.acceptToContinue') : 

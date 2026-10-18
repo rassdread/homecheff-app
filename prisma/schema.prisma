@@ -1758,7 +1758,7 @@ model Order {
   pickupAddress          String?
   pickupDate             DateTime?
   platformFeeCollected   Boolean          @default(false)
-  stripeSessionId        String?
+  stripeSessionId        String?          @unique
   // Shipping fields (EctaroShip)
   shippingCostCents      Int? // BUYER_SHIPPING_CHARGE (legacy alias)
   shippingLabelCostCents Int? // ECTAROSHIP_ACTUAL_COST (legacy alias)
@@ -1811,19 +1811,65 @@ model Order {
 }
 
 model StockReservation {
-  id              String                 @id @default(uuid())
-  productId       String
-  stripeSessionId String                 @unique
-  quantity        Int
-  expiresAt       DateTime
-  status          StockReservationStatus @default(PENDING)
-  createdAt       DateTime               @default(now())
-  updatedAt       DateTime               @updatedAt
-  product         Product                @relation("ProductStockReservations", fields: [productId], references: [id], onDelete: Cascade)
+  id                String                 @id @default(uuid())
+  productId         String
+  stripeSessionId   String                 @unique
+  quantity          Int
+  expiresAt         DateTime
+  status            StockReservationStatus @default(PENDING)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  /// Buyer who owns this hold. Null on reservations created before checkout safety v1.
+  buyerId           String?
+  /// Named courier request this hold is protecting. Null for pickup and shipping checkout.
+  bookingRequestId  String?
+  /// AWAITING_COURIER | AWAITING_PAYMENT | CHECKOUT. Null on legacy rows.
+  phase             String?
+  /// Hard end of the hold. Set once. Courier changes must not move it later.
+  holdUntil         DateTime?
+  /// Buyer must pay before this moment. Never later than holdUntil.
+  paymentDeadline   DateTime?
+  /// Groups one purchase across products. Metadata stockHoldId.
+  purchaseKey       String?
+  /// Stripe Checkout Session id once payment starts. Not unique: one session can cover several products.
+  checkoutSessionId String?
+  product           Product                @relation("ProductStockReservations", fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId, status, expiresAt])
   @@index([stripeSessionId])
   @@index([expiresAt])
+  @@index([buyerId, status])
+  @@index([bookingRequestId])
+  @@index([purchaseKey])
+  @@index([checkoutSessionId])
+  @@index([holdUntil])
+}
+
+/// Durable record when Stripe captured money but an order could not be created safely.
+/// No live refund is performed here. One row per Checkout Session.
+model CheckoutPaymentIncident {
+  id              String   @id @default(uuid())
+  stripeSessionId String   @unique
+  paymentIntentId String?
+  /// REFUND_REQUIRED | MANUAL_REVIEW | RESOLVED_ORDER_EXISTS | REFUND_RECORDED
+  status          String    @default("REFUND_REQUIRED")
+  reason          String
+  code            String
+  buyerId         String?
+  attemptCount    Int       @default(0)
+  lockedAt        DateTime?
+  lockToken       String?
+  resolvedAt      DateTime?
+  /// AUTO_REFUND_BLOCKED | ORDER_EXISTS | REFUND_ALREADY_EXISTS
+  resolution      String?
+  refundId        String?
+  orderId         String?
+  lastError       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status])
+  @@map("CheckoutPaymentIncident")
 }
 
 model OrderItem {
@@ -2126,6 +2172,10 @@ model DeliveryProfile {
   maxDeliveriesPerSlot           Int      @default(2)
   preparationTimeMinutes         Int      @default(15)
   estimatedPickupDelayMinutes    Int      @default(10)
+  /// Set only when this courier accepts the signup agreement modal. Not privacy consent.
+  deliveryAgreementAcceptedAt    DateTime?
+  /// Identifies the document the checkbox presented. Null means no recorded acceptance.
+  deliveryAgreementDocumentId    String?
   detailedAvailability DeliveryAvailability[]
   notificationSettings DeliveryNotificationSettings?
   deliveryOrders       DeliveryOrder[]
@@ -2218,6 +2268,10 @@ model DeliveryBookingRequest {
   buyerLng                 Float?
   notes                    String?
   respondedAt              DateTime?
+  /// Set when the buyer replaces or cancels this request before payment.
+  cancelledAt              DateTime?
+  /// The booking that replaced this one. The cancelled request can no longer be accepted.
+  supersededByRequestId    String?
   createdAt                DateTime        @default(now())
   updatedAt                DateTime        @updatedAt
   deliveryProfile          DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
@@ -2434,7 +2488,7 @@ model DynamicSeller {
 
 model DeliveryOrder {
   id                   String           @id @default(cuid())
-  orderId              String           @unique
+  orderId              String?          @unique
   deliveryProfileId    String?
   status               String           @default("PENDING")
   /// Legacy compatibility field. Runtime unit is cents (integer stored as Float). Prefer quotedFeeCents for new provider-priced orders.
@@ -2452,6 +2506,11 @@ model DeliveryOrder {
   deliveryDate         DateTime?
   deliveryTime         String?
   productId            String?
+  /// MARKETPLACE (default) or STANDALONE. Standalone jobs have no marketplace Order.
+  origin               String           @default("MARKETPLACE")
+  requesterUserId      String?
+  pickupAddress        String?
+  itemDescription      String?
   /// Phase 2.2: immutable provider quote snapshot (additive; nullable for legacy rows).
   quotedFeeCents                 Int?
   providerDisplayNameSnapshot    String?
@@ -2470,11 +2529,52 @@ model DeliveryOrder {
   assignedByUserId               String?
   deliveryProfile      DeliveryProfile? @relation(fields: [deliveryProfileId], references: [id])
   assignedDriver       User?            @relation("DeliveryOrderAssignedDriver", fields: [assignedDriverUserId], references: [id], onDelete: SetNull)
-  order                Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order                Order?           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product              Product?         @relation(fields: [productId], references: [id])
 
   @@index([assignedDriverUserId])
+  @@index([requesterUserId])
+  @@index([origin])
   @@map("DeliveryOrder")
+}
+
+/// Paid local delivery that is not a marketplace product, agreement, or CommunityOrder.
+/// The courier job is still a DeliveryOrder. This row only holds the quote and payment.
+model StandaloneDeliveryRequest {
+  id                      String   @id
+  requesterUserId         String
+  pickupAddress           String
+  deliveryAddress         String
+  pickupLat               Float
+  pickupLng               Float
+  dropoffLat              Float
+  dropoffLng              Float
+  itemDescription         String
+  deliveryProfileId       String
+  providerDisplayName     String
+  quotedFeeCents          Int
+  stripeFeeCents          Int
+  buyerTotalCents         Int
+  routeDistanceKm         Float
+  baseFeeCents            Int
+  pricePerKmCents         Int
+  minimumFeeCents         Int
+  platformCommissionCents Int
+  providerNetPayoutCents  Int
+  quoteExpiresAt          DateTime
+  /// Requested pickup instant. Null means as soon as possible.
+  /// This is not the courier-response deadline and not the payment window.
+  requestedPickupAt       DateTime?
+  bookingRequestId        String?  @unique
+  stripeSessionId         String?  @unique
+  paymentStatus           String   @default("UNPAID")
+  status                  String   @default("QUOTED")
+  deliveryOrderId         String?  @unique
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([requesterUserId])
+  @@map("StandaloneDeliveryRequest")
 }
 
 model HomeCheffCollection {

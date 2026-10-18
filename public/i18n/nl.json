@@ -529,7 +529,15 @@
     "providerFallback": "aanbieder",
     "clearAll": "Alle items verwijderen",
     "totalLabel": "Totaal:",
-    "checkoutWithCount": "Afrekenen ({count} items)"
+    "checkoutWithCount": "Afrekenen ({count} items)",
+    "agreementsHeading": "Mijn afspraken",
+    "agreementsHint": "Geaccepteerde afspraken. Deze kun je hier niet als gewone producten wijzigen.",
+    "agreementsEmpty": "Je hebt nu geen open afspraken als koper.",
+    "agreementsLoading": "Afspraken laden...",
+    "agreementsError": "Afspraken konden niet worden geladen.",
+    "viewAgreement": "Bekijk afspraak",
+    "checkoutThisSeller": "Afrekenen bij {name}",
+    "mixedSellersHint": "Elke verkoper rekent apart af. De andere producten blijven in je winkelwagen."
   },
   "hero": {
     "title": "HomeCheff. Thuisgemaakt. Thuisgebracht.",
@@ -3712,7 +3720,7 @@
       },
       "5": {
         "question": "Hoe word ik bezorger op HomeCheff?",
-        "answer": "Bezorgers kunnen zich aanmelden via /delivery/signup. Je moet tussen de 15-23 jaar oud zijn, een geldig identiteitsbewijs hebben en akkoord gaan met onze voorwaarden. Minderjarigen hebben ouderlijke toestemming nodig.\n\n🤝 LOKALE GEMEENSCHAP:\n• Fietsbezorging is de voorkeur\n• Lokale routes ondersteunen de buurt\n• Gecombineerde bezorging is efficiënter\n• Herbruikbare verpakking gebruiken\n\n⚠️ BELANGRIJK: Als bezorger ben je zelfstandige ondernemer. HomeCheff is niet je werkgever; geselecteerde bezorgers handelen als zelfstandige bezorgdienst."
+        "answer": "Bezorgers kunnen zich aanmelden via /delivery/signup. Je moet 18 jaar of ouder zijn, een geldig identiteitsbewijs hebben en akkoord gaan met onze voorwaarden.\n\n🤝 LOKALE GEMEENSCHAP:\n• Fietsbezorging is de voorkeur\n• Lokale routes ondersteunen de buurt\n• Gecombineerde bezorging is efficiënter\n• Herbruikbare verpakking gebruiken\n\n⚠️ BELANGRIJK: Als bezorger ben je zelfstandige ondernemer. HomeCheff is niet je werkgever; geselecteerde bezorgers handelen als zelfstandige bezorgdienst."
       },
       "6": {
         "question": "Wat verdien ik als bezorger?",
@@ -5948,7 +5956,9 @@
       "contactOnly": "Dit aanbod bestel je via direct contact met de maker, niet via de winkelwagen.",
       "paymentsNotReady": "De maker moet betalingen nog instellen voordat je via HomeCheff kunt afrekenen.",
       "barterOnly": "Dit aanbod is alleen te ruil. Gebruik chat en stuur een voorstel in plaats van afrekenen.",
-      "minimumNotMet": "Online betalen via HomeCheff is beschikbaar vanaf €10. Spreek voor kleinere bedragen rechtstreeks een betaalwijze af met de aanbieder."
+      "minimumNotMet": "Online betalen via HomeCheff is beschikbaar vanaf €10. Spreek voor kleinere bedragen rechtstreeks een betaalwijze af met de aanbieder.",
+      "multipleSellers": "Een betaling kan maar één verkoper bevatten. Kies één verkoper. De andere producten blijven in je winkelwagen.",
+      "activeCommunityDelivery": "Voor deze afspraak is al een bezorging aangevraagd. Er wordt geen tweede koeriersboeking gemaakt. Afhalen blijft mogelijk."
     },
     "checkoutTitle": "Afrekenen",
     "completeOrder": "Rond je bestelling af",
@@ -5978,6 +5988,7 @@
     "shippingDescription": "Verzenden via DHL/PostNL",
     "dhlPostnl": "DHL / PostNL",
     "shippingEstimatedTime": "1-3 werkdagen",
+    "priceAfterAddress": "Prijs na adrescontrole",
     "selectDeliveryOption": "Kies een bezorgoptie",
     "validateAddressFirst": "Valideer eerst je adres voordat je doorgaat",
     "teenDeliveryUnavailable": "Lokale bezorging is niet beschikbaar op dit adres",
@@ -6228,9 +6239,69 @@
       "enterPostcodeHouseNumber": "Voer postcode en huisnummer in",
       "addressLookupFailed": "Adres lookup mislukt",
       "addressNotFound": "Adres niet gevonden",
-      "accountCreationFailed": "Account aanmaken mislukt"
+      "accountCreationFailed": "Account aanmaken mislukt",
+      "enterHouseNumber": "Vul je huisnummer in.",
+      "enterPostalCode": "Vul je postcode in.",
+      "enterStreet": "Vul je straat in.",
+      "enterCity": "Vul je plaats in.",
+      "invalidPostalCode": "Vul een geldige postcode in, bijvoorbeeld 3011 AD.",
+      "completeStep": "Vul de verplichte velden in om verder te gaan."
     },
+    "loginToFinish": "Log in om je bezorgeraanmelding af te ronden",
+    "loginToFinishProfile": "Log in en rond je bezorgerprofiel af",
+    "currentAge": "Je geselecteerde leeftijd: {age} jaar",
+    "minimumAge": "Minimumleeftijd: 18 jaar",
+    "manualAddressHint": "Kies een adres of vul straat, huisnummer, postcode en plaats zelf in.",
+    "sessionLoading": "Sessie wordt geladen...",
+    "resumeDraft": "Je eerdere aanmelding is teruggezet. Vul je wachtwoord opnieuw in voordat je afrondt.",
     "registrationSuccess": "Registratie succesvol! Log nu in met je nieuwe account."
+  },
+  "deliveryCompanySignup": {
+    "title": "Bezorgbedrijf aanmelden",
+    "subtitle": "Registreer je bedrijf als bezorgpartner. De contactpersoon of bestuurder moet 18 jaar of ouder zijn.",
+    "individualLink": "Particulier? Ga naar particuliere aanmelding",
+    "step": "Stap {step} van 5",
+    "account": "Account contactpersoon",
+    "fullName": "Volledige naam",
+    "email": "E-mail",
+    "username": "Gebruikersnaam",
+    "password": "Wachtwoord (minimaal 6 tekens)",
+    "company": "Bedrijfsgegevens",
+    "companyName": "Bedrijfsnaam",
+    "kvk": "KvK-nummer (8 cijfers)",
+    "vat": "BTW-nummer (optioneel)",
+    "phone": "Zakelijk telefoonnummer (optioneel)",
+    "ageVehicle": "Leeftijd en vervoer",
+    "ageHelp": "Leeftijd van de bestuurder of bezorger die dit account beheert. Minimumleeftijd: 18 jaar.",
+    "years": "{age} jaar",
+    "workArea": "Werkgebied",
+    "businessAddress": "Zakelijk adres of standplaats",
+    "radius": "Radius: {km} km",
+    "terms": "Voorwaarden",
+    "teamNote": "Meerdere chauffeurs onder één bedrijf volgen later via team-uitnodigingen. Dit account is de primaire bedrijfscontactpersoon en moet 18 jaar of ouder zijn.",
+    "accept": "Ik accepteer de Bezorger Overeenkomst en bevestig dat de bestuurder of bezorger 18 jaar of ouder is.",
+    "previous": "Vorige",
+    "next": "Volgende",
+    "submit": "Bedrijf registreren",
+    "loading": "Bezig…",
+    "sessionLoading": "Sessie wordt geladen…",
+    "underage": "Commerciële bezorging via HomeCheff is beschikbaar vanaf 18 jaar.",
+    "checkFields": "Controleer de verplichte velden en probeer opnieuw.",
+    "loginToFinish": "Log in om je bedrijfsregistratie af te ronden",
+    "createdLogin": "Bedrijfsaccount aangemaakt. Log in om je dashboard te openen.",
+    "submitFailed": "Er ging iets mis bij het afronden van je bedrijfsregistratie. Je gegevens zijn bewaard. Probeer het opnieuw.",
+    "completeStep": "Vul de verplichte velden in om verder te gaan."
+  },
+  "addressFields": {
+    "searchAddress": "Zoek adres",
+    "searchAddressPlaceholder": "Begin met typen om een adres te zoeken...",
+    "placesAutocompleteHelp": "Kies een suggestie of vul de velden zelf in.",
+    "placesUnavailable": "Adreszoeken is nu niet beschikbaar. Vul straat, huisnummer, postcode en plaats hieronder in. Je kunt gewoon verder.",
+    "streetName": "Straat",
+    "houseNumber": "Huisnummer",
+    "postalCode": "Postcode",
+    "city": "Plaats",
+    "address": "Adres"
   },
   "delivery": {
     "setupNow": "Nu Opzetten",
@@ -9051,6 +9122,8 @@
     },
     "cta": {
       "checkoutHomeCheff": "Veilig afrekenen via HomeCheff",
+      "negotiateWithSeller": "Onderhandel met verkoper",
+      "payDirectly": "Reken direct af",
       "startConversation": "Start gesprek",
       "makeProposal": "Doe een voorstel",
       "discussBarter": "Bespreek ruil",
@@ -9487,7 +9560,8 @@
         "all": "Alles",
         "offered": "Aangeboden",
         "wanted": "Vraag / Gezocht",
-        "inspiration": "Inspiratie"
+        "inspiration": "Inspiratie",
+        "delivery": "Bezorging"
       },
       "category": {
         "food": "Eten",
@@ -10513,7 +10587,8 @@
     "checkoutNotRequired": "Voor deze afspraak is geen HomeCheff-checkout nodig.",
     "checkoutMissingSeller": "Verkopergegevens ontbreken voor checkout.",
     "checkoutInvalidAmount": "Het bedrag voor checkout is ongeldig.",
-    "checkoutItemMismatch": "Checkout komt niet overeen met het geaccepteerde voorstel."
+    "checkoutItemMismatch": "Checkout komt niet overeen met het geaccepteerde voorstel.",
+    "checkoutCurrencyUnsupported": "Deze afspraak staat niet in euro. Online betalen via HomeCheff is daar nu niet voor beschikbaar. Het afgesproken bedrag blijft ongewijzigd."
   },
   "agreement": {
     "snapshot": {

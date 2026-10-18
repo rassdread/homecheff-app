@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { ArrowRight, Building2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import DeliveryRegistrationNotice from '@/components/delivery/DeliveryRegistrationNotice';
+import { useTranslation } from '@/hooks/useTranslation';
+import { CANONICAL_DELIVERY_DAYS } from '@/lib/delivery/delivery-profile-canonical';
+import { trackDeliverySignupFunnel } from '@/lib/delivery/delivery-signup-funnel';
+import { newDeliveryFlowId } from '@/lib/delivery/delivery-signup-draft';
 
 type FormState = {
   name: string;
@@ -26,32 +30,40 @@ type FormState = {
   acceptDeliveryAgreement: boolean;
 };
 
-const TRANSPORT = [
-  { id: 'BIKE', label: 'Fiets' },
-  { id: 'EBIKE', label: 'E-bike' },
-  { id: 'SCOOTER', label: 'Scooter' },
-  { id: 'CAR', label: 'Auto' },
+const TRANSPORT = ['BIKE', 'EBIKE', 'SCOOTER', 'CAR'] as const;
+const TRANSPORT_KEYS: Record<(typeof TRANSPORT)[number], string> = {
+  BIKE: 'deliverySignup.transportation.bike',
+  EBIKE: 'deliverySignup.transportation.ebike',
+  SCOOTER: 'deliverySignup.transportation.scooter',
+  CAR: 'deliverySignup.transportation.car',
+};
+const SLOT_IDS = ['morning', 'afternoon', 'evening'] as const;
+
+const DAY_LABEL_KEYS = [
+  'deliverySignup.days.monday',
+  'deliverySignup.days.tuesday',
+  'deliverySignup.days.wednesday',
+  'deliverySignup.days.thursday',
+  'deliverySignup.days.friday',
+  'deliverySignup.days.saturday',
+  'deliverySignup.days.sunday',
 ] as const;
-
-const DAYS = [
-  'maandag',
-  'dinsdag',
-  'woensdag',
-  'donderdag',
-  'vrijdag',
-  'zaterdag',
-  'zondag',
-];
-
-const SLOTS = [
-  { id: 'morning', label: 'Ochtend' },
-  { id: 'afternoon', label: 'Middag' },
-  { id: 'evening', label: 'Avond' },
-];
 
 export default function DeliveryCompanySignupPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { t, language } = useTranslation();
+  const searchParams = useSearchParams();
+  const individualHref = searchParams?.toString()
+    ? `/delivery/signup?${searchParams.toString()}`
+    : '/delivery/signup';
+  const flowId = useState(() => newDeliveryFlowId())[0];
+  const funnel = (stepNumber: number) => ({
+    registrationType: 'company' as const,
+    language,
+    flowId,
+    step: stepNumber,
+  });
   const [step, setStep] = useState(1);
   const [isExistingUser, setIsExistingUser] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -104,6 +116,16 @@ export default function DeliveryCompanySignupPage() {
     };
   }, [session?.user?.email, status]);
 
+  useEffect(() => {
+    trackDeliverySignupFunnel('delivery_signup_started', funnel(step));
+    // One start event for this page load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    trackDeliverySignupFunnel('delivery_signup_step_viewed', funnel(step));
+  }, [step, language]);
+
   const firstStep = isExistingUser ? 2 : 1;
 
   const toggle = (key: 'transportation' | 'availableDays' | 'availableTimeSlots', value: string) => {
@@ -150,9 +172,10 @@ export default function DeliveryCompanySignupPage() {
   const submit = async () => {
     if (submitLock || loading) return;
     if (form.age < 18) {
-      setError('Commerciële bezorging via HomeCheff is beschikbaar vanaf 18 jaar.');
+      setError(t('deliveryCompanySignup.underage'));
       return;
     }
+    trackDeliverySignupFunnel('delivery_signup_submitted', funnel(5));
     setSubmitLock(true);
     setLoading(true);
     setError(null);
@@ -210,8 +233,12 @@ export default function DeliveryCompanySignupPage() {
             ? data.error
             : typeof data?.message === 'string'
               ? data.message
-              : 'Controleer de gemarkeerde gegevens en probeer opnieuw.'
+              : t('deliveryCompanySignup.checkFields')
         );
+        trackDeliverySignupFunnel('delivery_signup_validation_failed', {
+          ...funnel(5),
+          reason: 'submit_rejected',
+        });
         setResumeHint(
           data?.resumeHint === 'login_and_resume' ||
             data?.code === 'RESUME_REQUIRED'
@@ -228,16 +255,17 @@ export default function DeliveryCompanySignupPage() {
         if (!login?.ok) {
           router.push(
             `/login?message=${encodeURIComponent(
-              'Bedrijfsaccount aangemaakt. Log in om je dashboard te openen.'
+              t('deliveryCompanySignup.createdLogin')
             )}&callbackUrl=${encodeURIComponent('/delivery/dashboard')}`
           );
           return;
         }
       }
+      trackDeliverySignupFunnel('delivery_signup_completed', funnel(5));
       router.push('/delivery/dashboard?welcome=true&newSignup=true&business=true');
     } catch {
       setError(
-        'Er ging iets mis bij het afronden van je bedrijfsregistratie. Je gegevens zijn bewaard. Probeer het opnieuw.'
+        t('deliveryCompanySignup.submitFailed')
       );
     } finally {
       setLoading(false);
@@ -248,7 +276,7 @@ export default function DeliveryCompanySignupPage() {
   if (status === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-slate-600">Sessie wordt geladen…</p>
+        <p className="text-slate-600">{t('deliveryCompanySignup.sessionLoading')}</p>
       </div>
     );
   }
@@ -261,44 +289,43 @@ export default function DeliveryCompanySignupPage() {
             <Building2 className="h-6 w-6 sm:h-8 sm:w-8" />
           </div>
           <h1 className="max-w-full whitespace-normal break-words text-2xl font-bold text-slate-900 sm:text-3xl">
-            Bezorgbedrijf aanmelden
+            {t('deliveryCompanySignup.title')}
           </h1>
           <p className="mt-2 text-slate-600">
-            Registreer je bedrijf als bezorgpartner. De contactpersoon/bestuurder moet 18+ zijn.
+            {t('deliveryCompanySignup.subtitle')}
           </p>
           <DeliveryRegistrationNotice />
           <p className="mt-2 text-sm text-slate-500">
-            Particulier?{' '}
-            <Link href="/delivery/signup" className="font-medium text-sky-800 underline">
-              Ga naar particuliere aanmelding
+            <Link href={individualHref} className="font-medium text-sky-800 underline">
+              {t('deliveryCompanySignup.individualLink')}
             </Link>
           </p>
         </div>
 
         <div className="mb-3 text-center text-sm text-slate-500 sm:mb-6">
-          Stap {step} van 5
+          {t('deliveryCompanySignup.step').replace('{step}', String(step))}
         </div>
 
         <div className="rounded-2xl bg-white p-4 shadow-lg sm:p-8">
           {step === 1 && !isExistingUser && (
             <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-slate-900">Account contactpersoon</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{t('deliveryCompanySignup.account')}</h2>
               <input
                 className="w-full rounded-xl border border-slate-300 px-4 py-3"
-                placeholder="Volledige naam"
+                placeholder={t('deliveryCompanySignup.fullName')}
                 value={form.name}
                 onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
               />
               <input
                 className="w-full rounded-xl border border-slate-300 px-4 py-3"
-                placeholder="E-mail"
+                placeholder={t('deliveryCompanySignup.email')}
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
               />
               <input
                 className="w-full rounded-xl border border-slate-300 px-4 py-3"
-                placeholder="Gebruikersnaam"
+                placeholder={t('deliveryCompanySignup.username')}
                 value={form.username}
                 onChange={(e) =>
                   setForm((p) => ({ ...p, username: e.target.value.toLowerCase() }))
@@ -306,7 +333,7 @@ export default function DeliveryCompanySignupPage() {
               />
               <input
                 className="w-full rounded-xl border border-slate-300 px-4 py-3"
-                placeholder="Wachtwoord (min. 6)"
+                placeholder={t('deliveryCompanySignup.password')}
                 type="password"
                 value={form.password}
                 onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
@@ -316,28 +343,28 @@ export default function DeliveryCompanySignupPage() {
 
           {step === 2 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900">Bedrijfsgegevens</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{t('deliveryCompanySignup.company')}</h2>
               <input
                 className="w-full rounded-xl border border-slate-300 px-4 py-3"
-                placeholder="Bedrijfsnaam *"
+                placeholder={t('deliveryCompanySignup.companyName')}
                 value={form.companyName}
                 onChange={(e) => setForm((p) => ({ ...p, companyName: e.target.value }))}
               />
               <input
                 className="w-full rounded-xl border border-slate-300 px-4 py-3"
-                placeholder="KvK-nummer (8 cijfers) *"
+                placeholder={t('deliveryCompanySignup.kvk')}
                 value={form.kvkNumber}
                 onChange={(e) => setForm((p) => ({ ...p, kvkNumber: e.target.value }))}
               />
               <input
                 className="w-full rounded-xl border border-slate-300 px-4 py-3"
-                placeholder="BTW-nummer (optioneel)"
+                placeholder={t('deliveryCompanySignup.vat')}
                 value={form.vatNumber}
                 onChange={(e) => setForm((p) => ({ ...p, vatNumber: e.target.value }))}
               />
               <input
                 className="w-full rounded-xl border border-slate-300 px-4 py-3"
-                placeholder="Zakelijk telefoonnummer (optioneel)"
+                placeholder={t('deliveryCompanySignup.phone')}
                 value={form.contactPhone}
                 onChange={(e) => setForm((p) => ({ ...p, contactPhone: e.target.value }))}
               />
@@ -346,9 +373,9 @@ export default function DeliveryCompanySignupPage() {
 
           {step === 3 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900">Leeftijd & vervoer</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{t('deliveryCompanySignup.ageVehicle')}</h2>
               <p className="text-sm text-slate-600">
-                Leeftijd van de bestuurder/bezorger die dit account beheert (hard 18+).
+                {t('deliveryCompanySignup.ageHelp')}
               </p>
               <select
                 className="w-full rounded-xl border border-slate-300 px-4 py-3"
@@ -357,23 +384,23 @@ export default function DeliveryCompanySignupPage() {
               >
                 {Array.from({ length: 82 }, (_, i) => i + 18).map((age) => (
                   <option key={age} value={age}>
-                    {age} jaar
+                    {t('deliveryCompanySignup.years').replace('{age}', String(age))}
                   </option>
                 ))}
               </select>
               <div className="grid grid-cols-2 gap-3">
-                {TRANSPORT.map((t) => (
+                {TRANSPORT.map((id) => (
                   <button
-                    key={t.id}
+                    key={id}
                     type="button"
-                    onClick={() => toggle('transportation', t.id)}
+                    onClick={() => toggle('transportation', id)}
                     className={`rounded-xl border-2 p-3 text-sm font-medium ${
-                      form.transportation.includes(t.id)
+                      form.transportation.includes(id)
                         ? 'border-sky-700 bg-sky-50 text-sky-900'
                         : 'border-slate-200'
                     }`}
                   >
-                    {t.label}
+                    {t(TRANSPORT_KEYS[id])}
                   </button>
                 ))}
               </div>
@@ -382,15 +409,15 @@ export default function DeliveryCompanySignupPage() {
 
           {step === 4 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900">Werkgebied</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{t('deliveryCompanySignup.workArea')}</h2>
               <input
                 className="w-full rounded-xl border border-slate-300 px-4 py-3"
-                placeholder="Zakelijk adres / standplaats *"
+                placeholder={t('deliveryCompanySignup.businessAddress')}
                 value={form.homeAddress}
                 onChange={(e) => setForm((p) => ({ ...p, homeAddress: e.target.value }))}
               />
               <label className="block text-sm text-slate-700">
-                Radius: {form.preferredRadius} km
+                {t('deliveryCompanySignup.radius').replace('{km}', String(form.preferredRadius))}
                 <input
                   type="range"
                   min={2}
@@ -403,34 +430,34 @@ export default function DeliveryCompanySignupPage() {
                 />
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {DAYS.map((day) => (
+                {CANONICAL_DELIVERY_DAYS.map((day, index) => (
                   <button
                     key={day}
                     type="button"
                     onClick={() => toggle('availableDays', day)}
-                    className={`rounded-xl border-2 p-2 text-sm capitalize ${
+                    className={`rounded-xl border-2 p-2 text-sm ${
                       form.availableDays.includes(day)
                         ? 'border-sky-700 bg-sky-50'
                         : 'border-slate-200'
                     }`}
                   >
-                    {day}
+                    {t(DAY_LABEL_KEYS[index])}
                   </button>
                 ))}
               </div>
               <div className="space-y-2">
-                {SLOTS.map((slot) => (
+                {SLOT_IDS.map((slot) => (
                   <button
-                    key={slot.id}
+                    key={slot}
                     type="button"
-                    onClick={() => toggle('availableTimeSlots', slot.id)}
+                    onClick={() => toggle('availableTimeSlots', slot)}
                     className={`w-full rounded-xl border-2 p-3 text-left text-sm ${
-                      form.availableTimeSlots.includes(slot.id)
+                      form.availableTimeSlots.includes(slot)
                         ? 'border-sky-700 bg-sky-50'
                         : 'border-slate-200'
                     }`}
                   >
-                    {slot.label}
+                    {t(`deliverySignup.timeSlots.${slot}`)}
                   </button>
                 ))}
               </div>
@@ -439,10 +466,9 @@ export default function DeliveryCompanySignupPage() {
 
           {step === 5 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900">Voorwaarden</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{t('deliveryCompanySignup.terms')}</h2>
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                Meerdere chauffeurs onder één bedrijf volgen later via team-uitnodigingen.
-                Dit account is de primaire bedrijfscontactpersoon en moet 18+ zijn.
+                {t('deliveryCompanySignup.teamNote')}
               </div>
               <label className="flex items-start gap-3 text-sm text-slate-700">
                 <input
@@ -457,7 +483,7 @@ export default function DeliveryCompanySignupPage() {
                   }
                 />
                 <span>
-                  Ik accepteer de Bezorger Overeenkomst en bevestig dat de bestuurder/bezorger 18+ is.
+                  {t('deliveryCompanySignup.accept')}
                 </span>
               </label>
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
@@ -476,7 +502,7 @@ export default function DeliveryCompanySignupPage() {
                     href={`/login?callbackUrl=${encodeURIComponent('/delivery/company/signup')}`}
                     className="font-semibold underline"
                   >
-                    Log in om je bedrijfsregistratie af te ronden
+                    {t('deliveryCompanySignup.loginToFinish')}
                   </Link>
                 </p>
               )}
@@ -489,22 +515,39 @@ export default function DeliveryCompanySignupPage() {
               disabled={step === firstStep}
               onClick={() => setStep((s) => Math.max(firstStep, s - 1))}
             >
-              Vorige
+              {t('deliveryCompanySignup.previous')}
             </Button>
             {step < 5 ? (
               <Button
-                disabled={!stepValid()}
-                onClick={() => setStep((s) => s + 1)}
-                className="inline-flex items-center gap-2"
+                onClick={() => {
+                  if (!stepValid()) {
+                    setError(t('deliveryCompanySignup.completeStep'));
+                    trackDeliverySignupFunnel('delivery_signup_validation_failed', {
+                      ...funnel(step),
+                      reason: 'step_incomplete',
+                    });
+                    return;
+                  }
+                  setError(null);
+                  trackDeliverySignupFunnel('delivery_signup_step_completed', funnel(step));
+                  setStep((s) => s + 1);
+                }}
+                className="inline-flex min-h-12 items-center gap-2"
               >
-                Volgende <ArrowRight className="h-4 w-4" />
+                {t('deliveryCompanySignup.next')} <ArrowRight className="h-4 w-4" />
               </Button>
             ) : (
               <Button
-                disabled={!stepValid() || loading || submitLock}
-                onClick={submit}
+                disabled={loading || submitLock}
+                onClick={() => {
+                  if (!stepValid()) {
+                    setError(t('deliveryCompanySignup.completeStep'));
+                    return;
+                  }
+                  void submit();
+                }}
               >
-                {loading ? 'Bezig…' : 'Bedrijf registreren'}
+                {loading ? t('deliveryCompanySignup.loading') : t('deliveryCompanySignup.submit')}
               </Button>
             )}
           </div>

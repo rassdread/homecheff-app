@@ -1,5 +1,10 @@
+import type { Prisma } from '@prisma/client';
 import { listingUsesPhysicalInventory, availableToBuy, stockHoldSessionId, STOCK_RESERVATION_TTL_MS } from '@/lib/products/listing-inventory';
 import { parseFulfillmentOptions } from '@/lib/marketplace/listing-taxonomy';
+import {
+  CheckoutStockConflictError,
+  evaluateStockConfirm,
+} from '@/lib/products/checkout-reservation-policy';
 
 type Tx = {
   $queryRaw: (query: TemplateStringsArray, ...values: unknown[]) => Promise<unknown>;
@@ -24,11 +29,7 @@ type Tx = {
   };
   stockReservation: {
     aggregate: (args: {
-      where: {
-        productId: string;
-        status: 'PENDING';
-        expiresAt: { gt: Date };
-      };
+      where: Record<string, unknown>;
       _sum: { quantity: true };
     }) => Promise<{ _sum: { quantity: number | null } }>;
     create: (args: {
@@ -38,12 +39,26 @@ type Tx = {
         quantity: number;
         expiresAt: Date;
         status: 'PENDING';
+        buyerId?: string | null;
+        bookingRequestId?: string | null;
+        phase?: string | null;
+        holdUntil?: Date | null;
+        paymentDeadline?: Date | null;
+        purchaseKey?: string | null;
       };
     }) => Promise<unknown>;
     findFirst: (args: {
       where: Record<string, unknown>;
       select?: Record<string, boolean>;
-    }) => Promise<{ id: string; status: string; quantity: number } | null>;
+    }) => Promise<{
+      id: string;
+      status: string;
+      quantity: number;
+      expiresAt?: Date;
+      holdUntil?: Date | null;
+      paymentDeadline?: Date | null;
+      buyerId?: string | null;
+    } | null>;
     update: (args: {
       where: { id: string };
       data: Record<string, unknown>;
@@ -85,6 +100,7 @@ export async function lockAndReserveCheckoutStock(
   tx: Tx,
   items: Array<{ productId: string; quantity: number }>,
   holdId: string,
+  options?: { buyerId?: string | null },
 ): Promise<{ insufficientStock: InsufficientStockItem[] }> {
     const insufficientStock: InsufficientStockItem[] = [];
     const eligible: Array<{
@@ -169,6 +185,11 @@ export async function lockAndReserveCheckoutStock(
           quantity: item.quantity,
           expiresAt,
           status: 'PENDING',
+          buyerId: options?.buyerId ?? null,
+          phase: 'CHECKOUT',
+          holdUntil: expiresAt,
+          paymentDeadline: expiresAt,
+          purchaseKey: holdId,
         },
       });
     }
@@ -194,51 +215,120 @@ export async function expireHoldReservations(
 
 /** Confirm reservation and decrement Product.stock once. Idempotent on retry. */
 export async function confirmReservationAndDecrementStock(
-  tx: Pick<Tx, 'product' | 'stockReservation'>,
+  tx: Prisma.TransactionClient,
   input: {
     productId: string;
     quantity: number;
     stripeSessionId: string;
     holdId?: string | null;
     inventoryRequired: boolean;
+    buyerId?: string | null;
+    now?: Date;
   },
 ): Promise<void> {
   if (!input.inventoryRequired) return;
 
+  const now = input.now ?? new Date();
+  if (typeof tx.$queryRaw === 'function') {
+    await tx.$queryRaw`SELECT id FROM "Product" WHERE id = ${input.productId} FOR UPDATE`;
+  }
+
   const orHold = input.holdId
-    ? [{ stripeSessionId: stockHoldSessionId(input.holdId, input.productId) }]
+    ? [
+        { stripeSessionId: stockHoldSessionId(input.holdId, input.productId) },
+        { purchaseKey: input.holdId },
+        { id: input.holdId },
+      ]
     : [];
 
   const reservation = await tx.stockReservation.findFirst({
     where: {
       productId: input.productId,
-      status: { in: ['PENDING', 'CONFIRMED'] },
-      OR: [{ stripeSessionId: input.stripeSessionId }, ...orHold],
+      OR: [
+        { stripeSessionId: input.stripeSessionId },
+        { checkoutSessionId: input.stripeSessionId },
+        ...orHold,
+      ],
     },
-    select: { id: true, status: true, quantity: true },
+    select: {
+      id: true,
+      status: true,
+      quantity: true,
+      expiresAt: true,
+      holdUntil: true,
+      paymentDeadline: true,
+      buyerId: true,
+    },
   });
 
-  if (reservation?.status === 'CONFIRMED') {
-    return;
+  const others = reservation
+    ? await tx.stockReservation.aggregate({
+        where: {
+          productId: input.productId,
+          status: 'PENDING',
+          expiresAt: { gt: now },
+          id: { not: reservation.id },
+        },
+        _sum: { quantity: true },
+      })
+    : { _sum: { quantity: 0 } };
+
+  const product = await tx.product.findUnique({
+    where: { id: input.productId },
+    select: {
+      stock: true,
+      priceModel: true,
+      marketplaceCategory: true,
+      category: true,
+      fulfillmentOptions: true,
+      specializations: true,
+      listingIntent: true,
+      title: true,
+    },
+  });
+
+  const decision = evaluateStockConfirm({
+    inventoryRequired: true,
+    now,
+    reservation: reservation
+      ? {
+          status: reservation.status,
+          quantity: reservation.quantity,
+          expiresAt: reservation.expiresAt ?? now,
+          holdUntil: reservation.holdUntil,
+          paymentDeadline: reservation.paymentDeadline,
+          buyerId: reservation.buyerId,
+        }
+      : null,
+    requestedQuantity: input.quantity,
+    buyerId: input.buyerId,
+    stock: product?.stock ?? 0,
+    otherPendingQuantity: others._sum.quantity ?? 0,
+  });
+
+  if (decision.action === 'skip' || decision.action === 'noop') return;
+  if (decision.action === 'conflict') {
+    throw new CheckoutStockConflictError(decision.code);
   }
 
-  const qty = reservation?.quantity ?? input.quantity;
-
-  if (reservation?.status === 'PENDING') {
-    await tx.stockReservation.update({
-      where: { id: reservation.id },
-      data: { status: 'CONFIRMED' },
-    });
+  const claimed = await tx.stockReservation.updateMany({
+    where: {
+      id: reservation!.id,
+      status: 'PENDING',
+      expiresAt: { gt: now },
+    },
+    data: { status: 'CONFIRMED' },
+  });
+  if (claimed.count !== 1) {
+    throw new CheckoutStockConflictError('HOLD_EXPIRED');
   }
 
   const updated = await tx.product.updateMany({
-    where: { id: input.productId, stock: { gte: qty } },
-    data: { stock: { decrement: qty } },
+    where: { id: input.productId, stock: { gte: decision.quantity } },
+    data: { stock: { decrement: decision.quantity } },
   });
 
   if (updated.count !== 1) {
-    throw new Error(
-      `ATOMIC_STOCK_DECREMENT_FAILED product=${input.productId} qty=${qty}`,
-    );
+    throw new CheckoutStockConflictError('HELD_BY_OTHER');
   }
 }

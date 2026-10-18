@@ -5,12 +5,14 @@ import { createPortal } from 'react-dom';
 import SafeImage from '@/components/ui/SafeImage';
 import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
+import { deliveryGuestAuthHrefs } from '@/lib/auth/delivery-guest-auth';
 import type { EcosystemProductId } from '@/lib/ecosystem-navigation/contract';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
 import { Home, User, LogOut, Menu, X, HelpCircle, ShoppingCart, ChevronDown, MessageCircle, Shield, Heart, Info, Smartphone, Download, Plus, Award, CalendarClock, Bell, Briefcase } from 'lucide-react';
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import CartIcon from '@/components/cart/CartIcon';
+import { openCartDrawer } from '@/lib/checkout/cart-drawer-bus';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { setCartUserId, clearAllCartData } from '@/lib/cart';
@@ -670,7 +672,13 @@ export default function NavBar() {
                   href="/login"
                   prefetch={false}
                   className={guestAuthLoginClass}
-                  onClick={() => navDebug('navbar:auth-cta', { href: '/login' })}
+                  onClick={(event) => {
+                    const hrefs = deliveryGuestAuthHrefs(pathname, window.location.search);
+                    navDebug('navbar:auth-cta', { href: hrefs?.login || '/login' });
+                    if (!hrefs) return;
+                    event.preventDefault();
+                    router.push(hrefs.login);
+                  }}
                 >
                   {t('navbar.login')}
                 </Link>
@@ -678,7 +686,13 @@ export default function NavBar() {
                   href="/register"
                   prefetch={false}
                   className={guestAuthRegisterClass}
-                  onClick={() => navDebug('navbar:auth-cta', { href: '/register' })}
+                  onClick={(event) => {
+                    const hrefs = deliveryGuestAuthHrefs(pathname, window.location.search);
+                    navDebug('navbar:auth-cta', { href: hrefs?.register || '/register' });
+                    if (!hrefs) return;
+                    event.preventDefault();
+                    router.push(hrefs.register);
+                  }}
                 >
                   {t('navbar.register')}
                 </Link>
@@ -687,7 +701,6 @@ export default function NavBar() {
 
             {user && (
               <div className="hidden xl:flex items-center flex-shrink-0 min-w-0 gap-1">
-                <CartIcon />
                 <div className="relative z-[110] shrink-0">
                   <NotificationBell />
                 </div>
@@ -759,6 +772,7 @@ export default function NavBar() {
               </div>
             )}
 
+            {user ? <CartIcon /> : null}
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -938,9 +952,13 @@ export default function NavBar() {
                     href="/login"
                     prefetch={false}
                     className={cn(mobileNavRowClass, 'text-gray-700 hover:text-primary-brand')}
-                    onClick={() => {
+                    onClick={(event) => {
                       setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { href: '/login' });
+                      const hrefs = deliveryGuestAuthHrefs(pathname, window.location.search);
+                      navDebug('navbar:mobile', { href: hrefs?.login || '/login' });
+                      if (!hrefs) return;
+                      event.preventDefault();
+                      router.push(hrefs.login);
                     }}
                   >
                     {t('navbar.login')}
@@ -952,9 +970,13 @@ export default function NavBar() {
                       mobileNavRowClass,
                       'hc-btn-secondary justify-center font-semibold'
                     )}
-                    onClick={() => {
+                    onClick={(event) => {
                       setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { href: '/register' });
+                      const hrefs = deliveryGuestAuthHrefs(pathname, window.location.search);
+                      navDebug('navbar:mobile', { href: hrefs?.register || '/register' });
+                      if (!hrefs) return;
+                      event.preventDefault();
+                      router.push(hrefs.register);
                     }}
                   >
                     {t('navbar.register')}
@@ -964,13 +986,13 @@ export default function NavBar() {
 
               {user && (
                 <>
-                  <Link
-                    href="/checkout"
-                    prefetch={false}
-                    className={cn(mobileNavRowClass, 'relative')}
+                  <button
+                    type="button"
+                    className={cn(mobileNavRowClass, 'relative w-full text-left')}
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      navDebug('navbar:mobile', { href: '/checkout' });
+                      openCartDrawer();
+                      navDebug('navbar:mobile', { href: 'cart-drawer' });
                     }}
                   >
                     <ShoppingCart className="w-4 h-4 shrink-0" />
@@ -980,7 +1002,7 @@ export default function NavBar() {
                         {cartItemCount > 99 ? '99+' : cartItemCount}
                       </span>
                     )}
-                  </Link>
+                  </button>
 
                   <SimplifiedAccountMenu
                     currentProduct={ecosystemCurrentProduct}

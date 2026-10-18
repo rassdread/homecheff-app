@@ -38,6 +38,7 @@ export const APP_FIRST_SEGMENTS = [
   'auth',
   'aviliate',
   'aw-settings-harness',
+  'bezorging',
   'bezorger',
   'bezorger-worden',
   'bijverdienen-vanuit-huis',

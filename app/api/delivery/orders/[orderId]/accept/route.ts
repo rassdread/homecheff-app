@@ -159,6 +159,30 @@ export async function POST(
       select: { name: true, username: true }
     });
 
+    if (!updatedOrder.order || !updatedOrder.orderId) {
+      return NextResponse.json({
+        success: true,
+        order: {
+          id: updatedOrder.id,
+          orderId: null,
+          status: 'ACCEPTED',
+          deliveryFee: updatedOrder.deliveryFee,
+          customerName: 'Aanvrager',
+          customerAddress: updatedOrder.deliveryAddress,
+          notes: updatedOrder.itemDescription || updatedOrder.notes || '',
+          product: {
+            title: updatedOrder.itemDescription || 'Zelfstandige bezorging',
+            image: '',
+            seller: {
+              name: 'Ophaaladres',
+              address: updatedOrder.pickupAddress || '',
+              phone: null,
+            },
+          },
+        },
+      });
+    }
+
     // Create or get conversation for delivery communication
     let deliveryConversation = await prisma.conversation.findFirst({
       where: {

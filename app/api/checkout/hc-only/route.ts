@@ -9,6 +9,7 @@ import {
   resolveHcOnlyCheckoutContext,
 } from '@/lib/hc/marketplace-hc-order-service';
 import { stripSpoofedFeeFields } from '@/lib/hc/marketplace-order-fee-snapshot';
+import { assertOneSellerIds } from '@/lib/checkout/fulfillment-phase1';
 import { evaluateMarketplaceEligibility } from '@/lib/age/marketplace-eligibility';
 
 export const dynamic = 'force-dynamic';
@@ -67,6 +68,18 @@ export async function POST(req: NextRequest) {
     const items = body?.items as Array<{ productId: string; quantity: number }> | undefined;
     if (!items?.length) {
       return NextResponse.json({ ok: false, code: 'NO_ITEMS' }, { status: 400, headers: NO_STORE });
+    }
+
+    const sellerRows = await prisma.product.findMany({
+      where: { id: { in: items.map((item) => item.productId) } },
+      select: { seller: { select: { userId: true } } },
+    });
+    const sellerGuard = assertOneSellerIds(sellerRows.map((row) => row.seller?.userId));
+    if (!sellerGuard.ok || sellerRows.length !== items.length) {
+      return NextResponse.json(
+        { ok: false, code: 'MULTIPLE_SELLERS', errorKey: 'checkout.errors.multipleSellers' },
+        { status: 409, headers: NO_STORE },
+      );
     }
 
     const deliveryFeeCents = Math.max(0, Math.round(Number(body?.deliveryFeeCents ?? 0)));
