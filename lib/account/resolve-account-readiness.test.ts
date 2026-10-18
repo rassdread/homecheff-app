@@ -102,6 +102,7 @@ describe('resolveAccountReadiness', () => {
         availableTimeSlots: ['morning'],
         workStartTime: '09:00',
         workEndTime: '21:00',
+        dateOfBirth: new Date('1990-01-01'),
       },
     });
     assert.equal(result.stripe.state, 'READY');
@@ -145,6 +146,7 @@ describe('resolveAccountReadiness', () => {
         availableTimeSlots: ['morning'],
         workStartTime: '09:00',
         workEndTime: '21:00',
+        dateOfBirth: new Date('1990-01-01'),
       },
     });
     assert.equal(result.delivery.state, 'READY');

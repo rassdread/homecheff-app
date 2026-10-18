@@ -55,7 +55,8 @@ describe('google login lands on the feed', () => {
 
   it('does not leave the login page or the soft-auth dialog in front of a session', () => {
     const login = readFileSync(join(root, 'app/login/page.tsx'), 'utf8');
-    assert.doesNotMatch(login, /router\.replace\('\/onboarding\/complete-profile'\)/);
+    assert.match(login, /deliveryRegistrationReturnFromCallback/);
+    assert.doesNotMatch(login, /!affiliateReturn/);
     assert.match(login, /sessionStatus === 'authenticated'/);
     const soft = readFileSync(join(root, 'components/auth/SoftAuthGateHost.tsx'), 'utf8');
     assert.match(soft, /status === 'authenticated'/);
