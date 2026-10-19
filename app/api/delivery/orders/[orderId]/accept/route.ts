@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
+import { deliveryAccessDeniedBody, evaluateDeliveryAccess } from '@/lib/delivery/delivery-pilot-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -112,6 +113,15 @@ export async function POST(
 
     if (!deliveryOrder) {
       return NextResponse.json({ error: 'Bezorgopdracht niet gevonden' }, { status: 404 });
+    }
+
+    const acceptAccess = evaluateDeliveryAccess({
+      requesterUserId: deliveryOrder.requesterUserId || deliveryOrder.order?.User?.id || null,
+      courierProfileId: profile.id,
+      courierUserId: profile.userId,
+    });
+    if (!acceptAccess.allowed) {
+      return NextResponse.json(deliveryAccessDeniedBody(acceptAccess.code), { status: 403 });
     }
 
     if (deliveryOrder.status !== 'PENDING') {

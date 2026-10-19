@@ -34,6 +34,14 @@ import { confirmReservationAndDecrementStock } from "@/lib/products/stock-reserv
 import { CheckoutStockConflictError } from "@/lib/products/checkout-reservation-policy";
 import { releaseUnpaidCheckoutHold } from "@/lib/products/courier-stock-hold";
 import { fulfillStandaloneDeliveryPayment } from "@/lib/delivery/standalone-delivery";
+import {
+  expireUnpaidStandaloneCheckout,
+  noteStandalonePaymentFailure,
+  observeStandaloneChargeRefund,
+  observeStandaloneDispute,
+  recordDeliveryTransferCreated,
+  syncCourierConnectAccount,
+} from "@/lib/delivery/delivery-webhook-events";
 import { recordCheckoutPaymentIncident } from "@/lib/payments/checkout-payment-incident";
 import { revalidateTag } from "next/cache";
 import { listingProductCacheTag } from "@/lib/marketplace/detail/listing-product-core";
@@ -423,6 +431,22 @@ export async function POST(req: NextRequest) {
           console.error(`❌ Failed to process commission reversal for charge ${charge.id}:`, reversalError.message);
         }
       }
+      try {
+        await observeStandaloneChargeRefund(prisma, charge, async (paymentIntentId) => {
+          if (!stripe) return null;
+          try {
+            const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+            return { metadata: paymentIntent.metadata };
+          } catch (lookupError: any) {
+            if (charge.metadata?.checkoutKind === "STANDALONE_DELIVERY") throw lookupError;
+            console.error(`delivery refund lookup skipped for ${charge.id}:`, lookupError?.message || lookupError);
+            return null;
+          }
+        });
+      } catch (deliveryRefundError: any) {
+        console.error(`delivery refund observation failed for ${charge.id}:`, deliveryRefundError?.message || deliveryRefundError);
+        return NextResponse.json({ error: "delivery_refund_observation_failed" }, { status: 500 });
+      }
     }
     // Handle chargebacks / disputes — durable DisputeSettlement + recipient recovery
     else if (
@@ -442,6 +466,24 @@ export async function POST(req: NextRequest) {
           stripe,
           event,
           autoRecover: true,
+        });
+        const dispute = event.data.object as Stripe.Dispute;
+        const chargeId = typeof dispute.charge === "string" ? dispute.charge : dispute.charge?.id;
+        let metadata: Record<string, string> | null = null;
+        if (stripe && chargeId) {
+          try {
+            const charge = await stripe.charges.retrieve(chargeId);
+            metadata = charge.metadata;
+          } catch (lookupError: any) {
+            console.error(`delivery dispute lookup skipped for ${dispute.id}:`, lookupError?.message || lookupError);
+          }
+        }
+        await observeStandaloneDispute(prisma, {
+          disputeId: dispute.id,
+          status: dispute.status,
+          metadata,
+          amountCents: dispute.amount,
+          currency: dispute.currency,
         });
         console.log(
           `[dispute-settlement] ${event.type} ${result.message}`,
@@ -537,12 +579,16 @@ export async function POST(req: NextRequest) {
               // Don't fail webhook if notification fails
             }
           } else {
-            // Check if this is a new transfer we haven't created a payout for yet
-            // (This might happen if transfer was created outside our system)
-            console.log(`⚠️ Transfer ${transfer.id} not found in payouts table`);
+            await recordDeliveryTransferCreated(prisma, {
+              id: transfer.id,
+              amount: transfer.amount,
+              currency: transfer.currency,
+              metadata: transfer.metadata,
+            });
           }
         } catch (error: any) {
           console.error(`❌ Error processing transfer.created for ${transfer.id}:`, error.message);
+          if (transfer.metadata?.purpose === "delivery_provider_principal") throw error;
         }
       }
     }
@@ -656,6 +702,9 @@ export async function POST(req: NextRequest) {
     // Handle payment events
     else if (event.type === "checkout.session.expired") {
       const expired = event.data.object as Stripe.Checkout.Session;
+      if (expired.metadata?.checkoutKind === "STANDALONE_DELIVERY") {
+        await expireUnpaidStandaloneCheckout(prisma, expired);
+      }
       if (expired.metadata?.paymentMode === "MIXED_HC_EUR" && expired.metadata?.orderId) {
         try {
           await releaseMixedHcReservation(expired.metadata.orderId, "BUYER_CANCELLED");
@@ -681,6 +730,36 @@ export async function POST(req: NextRequest) {
         return new NextResponse("Stock hold release failed — retry", { status: 500 });
       }
       return new NextResponse("ok", { status: 200 });
+    }
+    else if (event.type === "checkout.session.async_payment_failed") {
+      const failed = event.data.object as Stripe.Checkout.Session;
+      if (failed.metadata?.checkoutKind === "STANDALONE_DELIVERY") {
+        await noteStandalonePaymentFailure(prisma, { metadata: failed.metadata });
+      }
+      return new NextResponse("ok", { status: 200 });
+    }
+    else if (event.type === "payment_intent.payment_failed") {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      if (paymentIntent.metadata?.checkoutKind === "STANDALONE_DELIVERY") {
+        await noteStandalonePaymentFailure(prisma, { metadata: paymentIntent.metadata });
+      }
+      return new NextResponse("ok", { status: 200 });
+    }
+    else if (event.type === "account.updated") {
+      const account = event.data.object as Stripe.Account;
+      await syncCourierConnectAccount(prisma, account);
+      return new NextResponse("ok", { status: 200 });
+    }
+    else if (event.type === "checkout.session.async_payment_succeeded") {
+      const session = event.data.object as Stripe.Checkout.Session;
+      if (session.metadata?.checkoutKind !== "STANDALONE_DELIVERY") {
+        return new NextResponse("ok", { status: 200 });
+      }
+      const standalone = await fulfillStandaloneDeliveryPayment(session);
+      if (!standalone.handled || standalone.ok) {
+        return new NextResponse("ok", { status: 200 });
+      }
+      return new NextResponse(standalone.error, { status: standalone.status });
     }
     else if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;

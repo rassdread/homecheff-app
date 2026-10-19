@@ -16,6 +16,7 @@ import {
   isHomeCheffDeliveryEnabled,
   isNewCourierFulfillmentMode,
 } from '@/lib/delivery/delivery-deployment-gate';
+import { deliveryAccessDeniedBody, evaluateDeliveryAccess } from '@/lib/delivery/delivery-pilot-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,6 +102,15 @@ export async function POST(req: NextRequest) {
 
     if (isNewCourierFulfillmentMode(deliveryMode) && !isHomeCheffDeliveryEnabled()) {
       return NextResponse.json(deliveryDisabledBody(), { status: 403, headers: NO_STORE });
+    }
+    if (isNewCourierFulfillmentMode(deliveryMode)) {
+      const access = evaluateDeliveryAccess({
+        requesterUserId: buyer.id,
+        courierProfileId: deliveryProfileId,
+      });
+      if (!access.allowed) {
+        return NextResponse.json(deliveryAccessDeniedBody(access.code), { status: 403, headers: NO_STORE });
+      }
     }
 
     const ctx = await resolveHcOnlyCheckoutContext({

@@ -180,7 +180,11 @@ export async function ensureDeliveryPayout(
     if (existingPayout && !existingPayout.providerRef) {
       await prisma.payout.update({
         where: { id: existingPayout.id },
-        data: { providerRef: 'failed_connect_missing' },
+        data: {
+          providerRef: 'failed_connect_missing',
+          transferFailureCode: payable.ok ? 'COURIER_CONNECT_REQUIRED' : payable.code,
+          transferFailureAt: new Date(),
+        },
       });
     }
     return {
@@ -361,6 +365,13 @@ export async function ensureDeliveryPayout(
       `[delivery-payout] Connect transfer failed deliveryOrder=${deliveryOrderId}:`,
       message,
     );
+    await prisma.payout.update({
+      where: { id: payoutId },
+      data: {
+        transferFailureCode: 'CONNECT_TRANSFER_FAILED',
+        transferFailureAt: new Date(),
+      },
+    });
     return {
       created,
       payoutId,

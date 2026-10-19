@@ -1310,6 +1310,9 @@ model Payout {
   providerRef                 String?
   /// Connect account id snapshotted at transfer time (immutable obligation destination)
   destinationConnectAccountId String?
+  /// Set when a courier transfer could not be created. Null providerRef still allows one retry.
+  transferFailureCode         String?
+  transferFailureAt           DateTime?
   User                        User        @relation(fields: [toUserId], references: [id], onDelete: Cascade)
   Transaction                 Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
 }
@@ -2179,6 +2182,8 @@ model DeliveryProfile {
   /// Last Stripe capability check. `active` means capabilities.transfers is active. Not payouts_enabled.
   stripeTransfersStatus          String?
   stripeTransfersCheckedAt       DateTime?
+  /// Last Stripe payouts_enabled value. Null means the check did not record it yet.
+  stripePayoutsEnabled           Boolean?
   detailedAvailability DeliveryAvailability[]
   agreementAcceptances DeliveryAgreementAcceptance[]
   notificationSettings DeliveryNotificationSettings?

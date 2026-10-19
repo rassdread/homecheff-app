@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 import { financialStripeSecret } from '@/lib/stripe';
 import { executeDeliveryRefundDecision } from '@/lib/delivery/delivery-refund-review';
+import { describeDeliveryPayout } from '@/lib/delivery/delivery-ops-queue';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,6 +52,52 @@ export async function GET() {
       updatedAt: true,
     },
   });
+  const failedPayouts = await prisma.payout.findMany({
+    where: {
+      id: { startsWith: 'payout_delivery_' },
+      OR: [{ transferFailureCode: { not: null } }, { providerRef: 'failed_connect_missing' }],
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+  });
+  const marketplaceCases = await prisma.deliveryOrder.findMany({
+    where: {
+      origin: 'MARKETPLACE',
+      quotedFeeCents: { gt: 0 },
+      status: { in: ['CANCELLED', 'CANCELLED_AFTER_PAYMENT'] },
+      order: { stripeSessionId: { not: null } },
+    },
+    orderBy: { updatedAt: 'desc' },
+    take: 50,
+    select: {
+      id: true,
+      orderId: true,
+      status: true,
+      quotedFeeCents: true,
+      deliveryProfile: { select: { userId: true } },
+      order: { select: { stripeSessionId: true, totalAmount: true } },
+    },
+  });
+  const paymentCases = await prisma.standaloneDeliveryRequest.findMany({
+    where: { status: { in: ['PAYMENT_FAILED', 'EXPIRED'] }, stripeSessionId: { not: null } },
+    orderBy: { updatedAt: 'desc' },
+    take: 50,
+    select: { id: true, status: true, paymentStatus: true, deliveryProfileId: true, updatedAt: true },
+  });
+  const connectRestrictions = await prisma.deliveryProfile.findMany({
+    where: {
+      OR: [{ stripePayoutsEnabled: false }, { stripeTransfersStatus: 'inactive' }],
+      deliveryOrders: { some: { status: { in: ['PENDING', 'ACCEPTED'] } } },
+    },
+    take: 50,
+    select: {
+      id: true,
+      userId: true,
+      stripeTransfersStatus: true,
+      stripePayoutsEnabled: true,
+      stripeTransfersCheckedAt: true,
+    },
+  });
   return NextResponse.json({
     cases: cases.map((row) => ({
       deliveryOrderId: row.id,
@@ -62,6 +109,20 @@ export async function GET() {
       request: requests.find((item) => item.deliveryOrderId === row.id) ?? null,
       decisions: decisions.filter((item) => item.deliveryOrderId === row.id),
     })),
+    failedTransfers: failedPayouts.map(describeDeliveryPayout),
+    marketplaceCases: marketplaceCases.map((row) => ({
+      deliveryOrderId: row.id,
+      orderId: row.orderId,
+      bookingStatus: row.status,
+      quotedFeeCents: row.quotedFeeCents,
+      orderTotalCents: row.order?.totalAmount ?? null,
+      courierUserId: row.deliveryProfile?.userId ?? null,
+      ownership: 'MARKETPLACE_ORDER_PAYMENT',
+      automaticRefund: false,
+      code: 'MARKETPLACE_PAYMENT_NOT_ISOLATED',
+    })),
+    paymentCases,
+    connectRestrictions,
   });
 }
 

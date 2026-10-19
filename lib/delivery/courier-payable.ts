@@ -7,7 +7,8 @@ import {
   type AgreementLanguage,
 } from '@/lib/delivery/delivery-agreement-version';
 import {
-  courierTransferReady,
+  courierPayoutReady,
+  payoutsEnabledFromAccount,
   transfersStatusFromAccount,
 } from '@/lib/delivery/courier-connect-eligibility';
 
@@ -51,6 +52,7 @@ export async function ensureCourierPayable(
       userId: true,
       stripeTransfersStatus: true,
       stripeTransfersCheckedAt: true,
+      stripePayoutsEnabled: true,
       user: { select: { stripeConnectAccountId: true } },
     },
   });
@@ -59,9 +61,15 @@ export async function ensureCourierPayable(
   }
 
   let status = profile.stripeTransfersStatus;
+  let payoutsEnabled = profile.stripePayoutsEnabled;
   let checkedAt = profile.stripeTransfersCheckedAt;
   let accountId = profile.user.stripeConnectAccountId;
-  let gate = courierTransferReady({ accountId, transfersStatus: status, checkedAt });
+  let gate = courierPayoutReady({
+    accountId,
+    transfersStatus: status,
+    payoutsEnabled,
+    checkedAt,
+  });
 
   if (!gate.ready && gate.stale && accountId) {
     const stripe = stripeClient();
@@ -76,12 +84,23 @@ export async function ensureCourierPayable(
     try {
       const account = await stripe.accounts.retrieve(accountId);
       status = transfersStatusFromAccount(account);
+      payoutsEnabled = payoutsEnabledFromAccount(account);
       checkedAt = new Date();
       await prisma.deliveryProfile.update({
         where: { id: profile.id },
-        data: { stripeTransfersStatus: status, stripeTransfersCheckedAt: checkedAt },
+        data: {
+          stripeTransfersStatus: status,
+          stripePayoutsEnabled: payoutsEnabled,
+          stripeTransfersCheckedAt: checkedAt,
+        },
       });
-      gate = courierTransferReady({ accountId, transfersStatus: status, checkedAt, now: checkedAt });
+      gate = courierPayoutReady({
+        accountId,
+        transfersStatus: status,
+        payoutsEnabled,
+        checkedAt,
+        now: checkedAt,
+      });
     } catch {
       return {
         ok: false,
@@ -100,7 +119,9 @@ export async function ensureCourierPayable(
       error:
         gate.code === 'COURIER_CONNECT_REQUIRED'
           ? 'Deze bezorger kan nog geen uitbetalingen ontvangen. Stripe Connect moet eerst afgerond zijn.'
-          : 'Deze bezorger moet Stripe-overboekingen afronden voordat een betaalde opdracht kan starten.',
+          : gate.code === 'COURIER_PAYOUT_NOT_READY'
+            ? 'Deze bezorger is nog niet gereed voor uitbetaling. Stripe-uitbetalingen zijn niet actief.'
+            : 'Deze bezorger moet Stripe-overboekingen afronden voordat een betaalde opdracht kan starten.',
     };
   }
 

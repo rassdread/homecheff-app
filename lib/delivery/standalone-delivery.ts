@@ -10,6 +10,7 @@ import { isCommerciallyMatchableDeliverer } from '@/lib/delivery/delivery-eligib
 import { splitDeliveryCommission } from '@/lib/delivery/quote-snapshot';
 import { NotificationService } from '@/lib/notifications/notification-service';
 import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
+import { courierListedInPilot, servicePilotDenial } from '@/lib/delivery/delivery-pilot-access';
 import { createDeliveryBookingRequest } from '@/lib/delivery/booking-request-service';
 import { assertCourierBookableAt } from '@/lib/delivery/standalone-availability';
 import { standaloneBookingNotes } from '@/lib/delivery/standalone-booking-meta';
@@ -104,6 +105,10 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput) {
   if (coords.some((value) => !Number.isFinite(value))) {
     return { ok: false as const, status: 400, code: 'MISSING_ADDRESS', error: 'Coördinaten zijn verplicht voor een lokale route.' };
   }
+  const pilot = servicePilotDenial({ requesterUserId: input.requesterUserId, requireCourier: false });
+  if (pilot) {
+    return { ok: false as const, status: 403, code: pilot.code, error: 'HomeCheff-bezorging is beperkt tot de goedgekeurde pilot.' };
+  }
 
   const route = await getRouteDistance(
     { lat: input.pickupLat, lng: input.pickupLng },
@@ -145,6 +150,7 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput) {
       profileAge: profile.age,
     });
     if (!eligible) continue;
+    if (!courierListedInPilot(profile.id, profile.user?.id)) continue;
     const quote = calculateProviderDeliveryPrice({
       pricing: {
         pricingEnabled: profile.pricingEnabled,
@@ -371,6 +377,18 @@ export async function createStandaloneCheckout(input: {
   if (row.requesterUserId !== input.requesterUserId) {
     return { ok: false as const, status: 403, code: 'FORBIDDEN', error: 'Deze offerte hoort bij een andere gebruiker.' };
   }
+  const courierUser = await prisma.deliveryProfile.findUnique({
+    where: { id: row.deliveryProfileId },
+    select: { userId: true },
+  });
+  const pilot = servicePilotDenial({
+    requesterUserId: row.requesterUserId,
+    courierProfileId: row.deliveryProfileId,
+    courierUserId: courierUser?.userId,
+  });
+  if (pilot) {
+    return { ok: false as const, status: 403, code: pilot.code, error: 'HomeCheff-bezorging is beperkt tot de goedgekeurde pilot.' };
+  }
   if (!row.bookingRequestId) {
     return { ok: false as const, status: 409, code: 'DELIVERY_BOOKING_REQUIRED', error: 'Kies eerst een bezorger en wacht op bevestiging.' };
   }
@@ -477,6 +495,14 @@ export async function createStandaloneCheckout(input: {
       quotedFeeCents: String(row.quotedFeeCents),
       buyerTotalCents: String(row.buyerTotalCents),
       deliveryProfileId: row.deliveryProfileId,
+    },
+    payment_intent_data: {
+      metadata: {
+        checkoutKind: 'STANDALONE_DELIVERY',
+        standaloneRequestId: row.id,
+        requesterUserId: row.requesterUserId,
+        deliveryProfileId: row.deliveryProfileId,
+      },
     },
   });
 

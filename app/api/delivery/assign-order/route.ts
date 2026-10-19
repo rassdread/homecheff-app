@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from "@/lib/delivery/delivery-deployment-gate";
+import { deliveryAccessDeniedBody, evaluateDeliveryAccess } from "@/lib/delivery/delivery-pilot-access";
 import {
   assertDelivererCanAccept,
   delivererAcceptDenialResponse,
@@ -38,6 +39,19 @@ export async function POST(req: NextRequest) {
         delivererAcceptDenialResponse(acceptCheck),
         { status: acceptCheck.status }
       );
+    }
+
+    const marketplaceOrder = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { userId: true },
+    });
+    const assignAccess = evaluateDeliveryAccess({
+      requesterUserId: marketplaceOrder?.userId ?? null,
+      courierProfileId: deliveryProfile?.id ?? deliveryProfileId,
+      courierUserId: deliveryProfile?.user?.id ?? null,
+    });
+    if (!assignAccess.allowed) {
+      return NextResponse.json(deliveryAccessDeniedBody(assignAccess.code), { status: 403 });
     }
 
     // Check if the order exists and is not already assigned

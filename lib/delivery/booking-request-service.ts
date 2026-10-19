@@ -7,6 +7,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
+import { servicePilotDenial } from '@/lib/delivery/delivery-pilot-access';
 import {
   ACCEPTANCE_MODE_AUTO,
   ACCEPTANCE_MODE_MANUAL,
@@ -188,6 +189,20 @@ export async function createDeliveryBookingRequest(
       status: 404,
       code: 'DELIVERY_PROVIDER_REQUIRED',
       error: 'Bezorgaanbieder niet gevonden.',
+    };
+  }
+
+  const pilot = servicePilotDenial({
+    requesterUserId: input.buyerId,
+    courierProfileId: profile.id,
+    courierUserId: profile.user.id,
+  });
+  if (pilot) {
+    return {
+      ok: false as const,
+      status: 403,
+      code: pilot.code,
+      error: 'HomeCheff-bezorging is beperkt tot de goedgekeurde pilot.',
     };
   }
 
@@ -424,6 +439,19 @@ export async function acceptDeliveryBookingRequest(
   }
   if (request.deliveryProfile.userId !== params.deliveryProfileUserId) {
     return { ok: false as const, status: 403, error: 'Niet geautoriseerd' };
+  }
+  const acceptPilot = servicePilotDenial({
+    requesterUserId: request.buyerId,
+    courierProfileId: request.deliveryProfileId,
+    courierUserId: request.deliveryProfile.userId,
+  });
+  if (acceptPilot) {
+    return {
+      ok: false as const,
+      status: 403,
+      code: acceptPilot.code,
+      error: 'HomeCheff-bezorging is beperkt tot de goedgekeurde pilot.',
+    };
   }
   if (request.status === 'EXPIRED') {
     return { ok: false as const, status: 410, error: 'Aanvraag verlopen', code: 'DELIVERY_BOOKING_EXPIRED' };

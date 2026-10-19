@@ -1,6 +1,7 @@
 import type Stripe from 'stripe';
 import { normalizeFulfillmentInput } from '@/lib/delivery/delivery-fulfillment-vocabulary';
 import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
+import { deliveryAccessDeniedBody, evaluateDeliveryAccess } from '@/lib/delivery/delivery-pilot-access';
 import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -535,6 +536,15 @@ export async function POST(req: NextRequest) {
 
     if (isLocalProviderMode && !isHomeCheffDeliveryEnabled()) {
       return NextResponse.json(deliveryDisabledBody(), { status: 403 });
+    }
+    if (isLocalProviderMode) {
+      const access = evaluateDeliveryAccess({
+        requesterUserId: buyerId,
+        courierProfileId: typeof selectedProviderId === 'string' ? selectedProviderId : null,
+      });
+      if (!access.allowed) {
+        return NextResponse.json(deliveryAccessDeniedBody(access.code), { status: 403 });
+      }
     }
 
     // Phase 3: named provider selection requires targeted provider + confirmed booking

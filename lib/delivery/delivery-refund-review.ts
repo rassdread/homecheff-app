@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import { NotificationService } from '@/lib/notifications/notification-service';
+import { marketplaceDeliveryRefundPlan } from '@/lib/delivery/delivery-ops-queue';
 import { splitDeliveryCommission } from '@/lib/delivery/quote-snapshot';
 
 export type CustomerRefundStatus =
@@ -113,13 +114,65 @@ export async function executeDeliveryRefundDecision(
 
   const order = await prisma.deliveryOrder.findUnique({
     where: { id: input.deliveryOrderId },
-    select: { id: true, orderId: true, deliveryProfileId: true, notes: true, deliveryProfile: { select: { userId: true } } },
+    select: {
+      id: true,
+      orderId: true,
+      deliveryProfileId: true,
+      notes: true,
+      quotedFeeCents: true,
+      deliveryProfile: { select: { userId: true } },
+    },
   });
   const request = await prisma.standaloneDeliveryRequest.findFirst({
     where: { deliveryOrderId: input.deliveryOrderId },
   });
-  if (!order || !request || request.paymentStatus !== 'PAID' || !request.stripeSessionId) {
+  if (!order) {
     return { ok: false as const, status: 404, code: 'NOT_REFUNDABLE', error: 'Geen betaalde bezorging gevonden.' };
+  }
+  if (!request || request.paymentStatus !== 'PAID' || !request.stripeSessionId) {
+    const marketplaceOrder = order.orderId
+      ? await prisma.order.findUnique({
+          where: { id: order.orderId },
+          select: { stripeSessionId: true, totalAmount: true },
+        })
+      : null;
+    const plan = marketplaceDeliveryRefundPlan({
+      hasStandalonePaidSession: false,
+      orderStripeSessionId: marketplaceOrder?.stripeSessionId,
+      quotedFeeCents: order.quotedFeeCents,
+      orderTotalCents: marketplaceOrder?.totalAmount,
+    });
+    if (plan.action !== 'MANUAL') {
+      return { ok: false as const, status: 404, code: 'NOT_REFUNDABLE', error: 'Geen betaalde bezorging gevonden.' };
+    }
+    const manualKey = refundIdempotencyKey(order.id);
+    const manualExisting = await prisma.deliveryRefundDecision.findUnique({ where: { idempotencyKey: manualKey } });
+    if (manualExisting) {
+      return { ok: true as const, duplicate: true, decision: manualExisting, customerStatus: customerRefundStatus(manualExisting) };
+    }
+    const manualSaved = await prisma.deliveryRefundDecision.create({
+      data: {
+        deliveryOrderId: order.id,
+        orderId: order.orderId,
+        idempotencyKey: manualKey,
+        decision: 'MANUAL',
+        reason: `${input.reason.trim()} Marketplace-betaling dekt ook de producten. Er is geen automatische bezorgterugbetaling uitgevoerd.`,
+        amountCents: order.quotedFeeCents ?? 0,
+        currency: 'EUR',
+        stripePaymentRef: marketplaceOrder?.stripeSessionId ?? null,
+        stripeStatus: 'MANUAL',
+        outstandingCents: order.quotedFeeCents ?? 0,
+        adminUserId: input.adminUserId,
+        executedAt: new Date(),
+      },
+    });
+    return {
+      ok: true as const,
+      duplicate: false,
+      decision: manualSaved,
+      customerStatus: customerRefundStatus(manualSaved),
+      code: plan.code,
+    };
   }
 
   const key = refundIdempotencyKey(order.id);

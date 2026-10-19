@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 import { isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
+import { isDeliveryPilotRestricted } from '@/lib/delivery/delivery-pilot-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,7 @@ export async function GET() {
   const homeCheffDeliveryEnabled = isHomeCheffDeliveryEnabled();
   return NextResponse.json({
     homeCheffDeliveryEnabled,
+    deliveryPilotRestricted: homeCheffDeliveryEnabled && isDeliveryPilotRestricted(),
     namedProviderSelectionEnabled:
       homeCheffDeliveryEnabled && flags.namedProviderSelectionEnabled,
     providerPricingEnabled: homeCheffDeliveryEnabled && flags.providerPricingEnabled,
