@@ -1,7 +1,8 @@
 import { randomUUID } from 'crypto';
 import type Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
-import { stripe } from '@/lib/stripe';
+import { financialStripeSecret, stripe } from '@/lib/stripe';
+import { recordCheckoutPaymentIncident } from '@/lib/payments/checkout-payment-incident';
 import { calculateStripeFeeForBuyer } from '@/lib/fees';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing';
@@ -15,6 +16,17 @@ import { standaloneBookingNotes } from '@/lib/delivery/standalone-booking-meta';
 import type { ProviderAcceptanceProfile } from '@/lib/delivery/provider-acceptance';
 
 const PAYMENT_WINDOW_MS = 20 * 60 * 1000;
+const FULFILLABLE_STATUSES = new Set(['AWAITING_PAYMENT', 'CHECKOUT', 'PAID']);
+
+/** Live fulfillment is allowed when the session mode matches the configured key. */
+export function standalonePaymentModeMatches(
+  livemode: boolean | null | undefined,
+  secret: string | null,
+) {
+  if (typeof livemode !== 'boolean') return false;
+  const testKey = !secret || secret.startsWith('sk_test_');
+  return testKey ? livemode === false : livemode === true;
+}
 
 export type StandaloneQuoteInput = {
   requesterUserId: string;
@@ -476,42 +488,101 @@ export async function createStandaloneCheckout(input: {
   return { ok: true as const, url: session.url, sessionId: session.id, buyerTotalCents: row.buyerTotalCents };
 }
 
-export async function fulfillStandaloneDeliveryPayment(session: Stripe.Checkout.Session) {
+type FulfillDeps = {
+  db?: typeof prisma;
+  stripeSecret?: string | null;
+  notify?: (userId: string, deliveryOrderId: string, feeCents: number, distanceKm: number) => Promise<void>;
+};
+
+async function rememberUnfulfilledPayment(
+  db: typeof prisma,
+  session: Stripe.Checkout.Session,
+  code: string,
+  reason: string,
+  buyerId?: string | null,
+) {
+  const paymentIntentId =
+    typeof session.payment_intent === 'string'
+      ? session.payment_intent
+      : session.payment_intent?.id || null;
+  await recordCheckoutPaymentIncident(db, {
+    stripeSessionId: session.id,
+    paymentIntentId,
+    reason,
+    code,
+    buyerId: buyerId || null,
+  });
+  return { handled: true as const, ok: true as const, recovery: true as const };
+}
+
+export async function fulfillStandaloneDeliveryPayment(
+  session: Stripe.Checkout.Session,
+  deps: FulfillDeps = {},
+) {
+  const db = deps.db ?? prisma;
   if (session.metadata?.checkoutKind !== 'STANDALONE_DELIVERY') {
     return { handled: false as const };
-  }
-  if (session.livemode) {
-    return { handled: true as const, ok: false as const, status: 400, error: 'Live mode refused' };
   }
   if (session.payment_status !== 'paid') {
     return { handled: true as const, ok: true as const };
   }
+  const secret = deps.stripeSecret === undefined ? financialStripeSecret() : deps.stripeSecret;
+  if (!standalonePaymentModeMatches(session.livemode, secret)) {
+    return rememberUnfulfilledPayment(
+      db,
+      session,
+      'STRIPE_MODE_MISMATCH',
+      'Betaalde Checkout-sessie hoort bij een andere Stripe-omgeving dan deze server.',
+      session.metadata?.requesterUserId,
+    );
+  }
   const requestId = session.metadata.standaloneRequestId;
   if (!requestId) {
-    return { handled: true as const, ok: false as const, status: 400, error: 'Missing request' };
+    return rememberUnfulfilledPayment(db, session, 'MISSING_REQUEST', 'Betaalde Checkout-sessie mist de bezorgaanvraag.');
   }
-  const row = await prisma.standaloneDeliveryRequest.findUnique({ where: { id: requestId } });
+  const row = await db.standaloneDeliveryRequest.findUnique({ where: { id: requestId } });
   if (!row) {
-    return { handled: true as const, ok: false as const, status: 404, error: 'Request missing' };
+    return rememberUnfulfilledPayment(
+      db,
+      session,
+      'REQUEST_MISSING',
+      'Betaalde Checkout-sessie verwijst naar een onbekende bezorgaanvraag.',
+      session.metadata.requesterUserId,
+    );
   }
   if (row.deliveryOrderId) {
-    return { handled: true as const, ok: true as const, duplicate: true };
+    return { handled: true as const, ok: true as const, duplicate: true, deliveryOrderId: row.deliveryOrderId };
+  }
+  if (row.stripeSessionId && row.stripeSessionId !== session.id) {
+    return rememberUnfulfilledPayment(db, session, 'SESSION_MISMATCH', 'Deze betaling hoort niet bij de opgeslagen Checkout-sessie.', row.requesterUserId);
+  }
+  if (session.metadata.requesterUserId !== row.requesterUserId) {
+    return rememberUnfulfilledPayment(db, session, 'CUSTOMER_MISMATCH', 'De betaler hoort niet bij deze bezorgaanvraag.', row.requesterUserId);
+  }
+  if (session.metadata.deliveryProfileId && session.metadata.deliveryProfileId !== row.deliveryProfileId) {
+    return rememberUnfulfilledPayment(db, session, 'COURIER_MISMATCH', 'De bezorger in de betaling hoort niet bij deze aanvraag.', row.requesterUserId);
+  }
+  if ((session.currency || '').toLowerCase() !== 'eur') {
+    return rememberUnfulfilledPayment(db, session, 'CURRENCY_MISMATCH', 'De betaalvaluta is niet euro.', row.requesterUserId);
   }
   if (session.amount_total !== row.buyerTotalCents) {
-    return { handled: true as const, ok: false as const, status: 409, error: 'Amount mismatch' };
+    return rememberUnfulfilledPayment(db, session, 'AMOUNT_MISMATCH', 'Het betaalde bedrag wijkt af van de vastgelegde prijs.', row.requesterUserId);
+  }
+  if (!FULFILLABLE_STATUSES.has(row.status)) {
+    return rememberUnfulfilledPayment(db, session, 'BOOKING_NOT_FULFILLABLE', 'De bezorgaanvraag staat niet meer open voor deze betaling.', row.requesterUserId);
   }
 
-  const profile = await prisma.deliveryProfile.findUnique({
+  const profile = await db.deliveryProfile.findUnique({
     where: { id: row.deliveryProfileId },
     select: { userId: true },
   });
   if (!profile) {
-    return { handled: true as const, ok: false as const, status: 422, error: 'Courier missing' };
+    return rememberUnfulfilledPayment(db, session, 'COURIER_MISSING', 'De bezorger van deze betaalde aanvraag bestaat niet meer.', row.requesterUserId);
   }
 
-  const fulfilled = await prisma.$transaction(async (tx) => {
+  const fulfilled = await db.$transaction(async (tx) => {
     const claimed = await tx.standaloneDeliveryRequest.updateMany({
-      where: { id: row.id, deliveryOrderId: null, paymentStatus: { not: 'PAID' } },
+      where: { id: row.id, deliveryOrderId: null },
       data: { paymentStatus: 'PAID', status: 'PAID', stripeSessionId: session.id, updatedAt: new Date() },
     });
     if (claimed.count !== 1) {
@@ -519,7 +590,10 @@ export async function fulfillStandaloneDeliveryPayment(session: Stripe.Checkout.
         where: { id: row.id },
         select: { deliveryOrderId: true },
       });
-      return { duplicate: true as const, deliveryOrderId: fresh?.deliveryOrderId ?? null };
+      if (fresh?.deliveryOrderId) {
+        return { duplicate: true as const, deliveryOrderId: fresh.deliveryOrderId };
+      }
+      throw new Error('standalone fulfillment claim lost before the delivery record was stored');
     }
     const deliveryOrder = await tx.deliveryOrder.create({
       data: {
@@ -583,15 +657,19 @@ export async function fulfillStandaloneDeliveryPayment(session: Stripe.Checkout.
   const deliveryOrder = { id: fulfilled.deliveryOrderId };
 
   try {
-    await NotificationService.sendDeliveryOrderAvailableNotification(
-      profile.userId,
-      deliveryOrder.id,
-      deliveryOrder.id,
-      'Zelfstandige bezorging',
-      row.quotedFeeCents,
-      row.routeDistanceKm,
-      0,
-    );
+    if (deps.notify) {
+      await deps.notify(profile.userId, deliveryOrder.id, row.quotedFeeCents, row.routeDistanceKm);
+    } else {
+      await NotificationService.sendDeliveryOrderAvailableNotification(
+        profile.userId,
+        deliveryOrder.id,
+        deliveryOrder.id,
+        'Zelfstandige bezorging',
+        row.quotedFeeCents,
+        row.routeDistanceKm,
+        0,
+      );
+    }
   } catch (error) {
     console.warn('standalone courier notify failed', error);
   }
