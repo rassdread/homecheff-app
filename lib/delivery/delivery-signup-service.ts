@@ -15,6 +15,7 @@ import { tryAwardAccountCreated } from '@/lib/gamification/award-account-created
 import { marketplaceUserPatchForDeliveryProfile } from '@/lib/auth/delivery-guest-auth';
 import { applyDutchHomeCoordinates } from '@/lib/delivery/delivery-home-coordinates';
 import { deliveryAgreementAcceptanceData } from '@/lib/delivery/delivery-agreement';
+import { recordAgreementAcceptance } from '@/lib/delivery/courier-payable';
 import {
   DELIVERY_SIGNUP_NL as NL,
   parseAndValidateDeliverySignupFields,
@@ -159,6 +160,11 @@ async function completeForExistingUser(
         where: { id: existingProfile.id },
         data: deliveryAgreementAcceptanceData(),
       });
+      await recordAgreementAcceptance(prisma, {
+        deliveryProfileId: existingProfile.id,
+        userId: user.id,
+        language: 'nl',
+      });
     }
     return successPayload({
       user,
@@ -185,6 +191,11 @@ async function completeForExistingUser(
             isActive: true,
             providerType: true,
           },
+        });
+        await recordAgreementAcceptance(tx, {
+          deliveryProfileId: deliveryProfile.id,
+          userId: user.id,
+          language: 'nl',
         });
 
         const business = await ensureBusinessForUser(tx, user.id, data);
@@ -416,6 +427,11 @@ export async function runDeliverySignup(params: {
           isActive: true,
           providerType: true,
         },
+      });
+      await recordAgreementAcceptance(tx, {
+        deliveryProfileId: deliveryProfile.id,
+        userId: user.id,
+        language: 'nl',
       });
 
       const business = await ensureBusinessForUser(tx, user.id, data);

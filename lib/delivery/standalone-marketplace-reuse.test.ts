@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { bookStandaloneCourier, createStandaloneQuote } from '@/lib/delivery/standalone-delivery';
 import { acceptDeliveryBookingRequest, rejectDeliveryBookingRequest } from '@/lib/delivery/booking-request-service';
 import { DELIVERY_MARKET_TIMEZONE, weekdayNlInTimeZone, zonedLocalToUtc } from '@/lib/delivery/delivery-time-availability';
+import { agreementAcceptanceRow } from '@/lib/delivery/delivery-agreement-version';
 
 const databaseUrl = process.env.DATABASE_URL || '';
 const local = databaseUrl.includes('127.0.0.1:5432/hc_v6_mkt') && !databaseUrl.includes('neon');
@@ -43,7 +44,10 @@ test('standalone quote no longer auto-selects the cheapest courier', { skip: !lo
 
   const courierA = await prisma.deliveryProfile.findUnique({ where: { userId: courierAUser } });
   assert.ok(courierA);
-  const courierAUserRow = await prisma.user.findUnique({ where: { id: courierAUser }, select: { dateOfBirth: true } });
+  const courierAUserRow = await prisma.user.findUnique({
+    where: { id: courierAUser },
+    select: { dateOfBirth: true, stripeConnectAccountId: true },
+  });
   await prisma.user.update({
     where: { id: courierAUser },
     data: { dateOfBirth: new Date('1990-04-04') },
@@ -61,7 +65,31 @@ test('standalone quote no longer auto-selects the cheapest courier', { skip: !lo
     minimumFeeCents: courierA.minimumFeeCents,
     pricingEnabled: courierA.pricingEnabled,
     temporaryOffline: courierA.temporaryOffline,
+    stripeTransfersStatus: courierA.stripeTransfersStatus,
+    stripeTransfersCheckedAt: courierA.stripeTransfersCheckedAt,
   };
+  async function markPayable(profileId: string, userId: string) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { stripeConnectAccountId: `acct_test_${userId.slice(0, 8)}` },
+    });
+    await prisma.deliveryProfile.update({
+      where: { id: profileId },
+      data: { stripeTransfersStatus: 'active', stripeTransfersCheckedAt: new Date() },
+    });
+    const row = agreementAcceptanceRow({ deliveryProfileId: profileId, userId });
+    await prisma.deliveryAgreementAcceptance.upsert({
+      where: {
+        deliveryProfileId_version_language: {
+          deliveryProfileId: profileId,
+          version: row.version,
+          language: row.language,
+        },
+      },
+      create: row,
+      update: {},
+    });
+  }
   const bUser = await prisma.user.create({
     data: {
       email: `iso-courier-b-${Date.now()}@example.com`,
@@ -126,6 +154,8 @@ test('standalone quote no longer auto-selects the cheapest courier', { skip: !lo
     assert.ok(costly.quotedFeeCents > cheap.quotedFeeCents);
     const byName = [...listed.couriers].sort((a, b) => a.name.localeCompare(b.name, 'nl'));
     assert.deepEqual(listed.couriers.map((c) => c.id), byName.map((c) => c.id));
+    await markPayable(bProfile.id, bUser.id);
+    await markPayable(courierA.id, courierAUser);
 
     const booked = await bookStandaloneCourier({
       ...route,
@@ -258,7 +288,13 @@ test('standalone quote no longer auto-selects the cheapest courier', { skip: !lo
     await prisma.deliveryProfile.deleteMany({ where: { id: bProfile.id } });
     await prisma.user.deleteMany({ where: { id: bUser.id } });
     await prisma.deliveryProfile.update({ where: { id: courierA.id }, data: original });
-    await prisma.user.update({ where: { id: courierAUser }, data: { dateOfBirth: courierAUserRow?.dateOfBirth ?? null } });
+    await prisma.user.update({
+      where: { id: courierAUser },
+      data: {
+        dateOfBirth: courierAUserRow?.dateOfBirth ?? null,
+        stripeConnectAccountId: courierAUserRow?.stripeConnectAccountId ?? null,
+      },
+    });
     await prisma.$disconnect();
   }
 });

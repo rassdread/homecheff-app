@@ -11236,6 +11236,14 @@
   "deliveryGate": {
     "unavailable": "HomeCheff-bezorging is nog niet beschikbaar."
   },
+  "deliveryRefund": {
+    "underReview": "De annulering wordt beoordeeld. Er is nog geen geld teruggestort.",
+    "approved": "Terugbetaling goedgekeurd. Stripe heeft dit nog niet bevestigd.",
+    "processing": "Terugbetaling wordt verwerkt.",
+    "refunded": "Stripe heeft de terugbetaling bevestigd.",
+    "rejected": "Terugbetaling afgewezen.",
+    "manual": "Handmatige afhandeling nodig. Dit is nog niet financieel afgerond."
+  },
   "affiliateDashboard": {
     "share": {
       "title": "Deel & verdien",

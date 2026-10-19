@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { readHcDeliveryRefundMarker } from '@/lib/hc/marketplace-hc-delivery-refund-pure';
 import { standaloneRefundView } from '@/lib/delivery/standalone-cancellation';
+import { customerRefundStatus, REFUND_STATUS_COPY } from '@/lib/delivery/delivery-refund-review';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +34,14 @@ export async function GET(
         select: { id: true, status: true, expiresAt: true, notes: true },
       })
     : null;
+  const decision = row.deliveryOrderId
+    ? await prisma.deliveryRefundDecision.findFirst({
+        where: { deliveryOrderId: row.deliveryOrderId },
+        orderBy: { createdAt: 'desc' },
+        select: { decision: true, stripeStatus: true, stripeRefundId: true, outstandingCents: true },
+      })
+    : null;
+  const refundStatus = readHcDeliveryRefundMarker(job?.notes) ? customerRefundStatus(decision) : null;
   return NextResponse.json({
     id: row.id,
     status: row.status,
@@ -48,5 +57,7 @@ export async function GET(
     booking,
     delivery: job ? { id: job.id, status: job.status, deliveryProfileId: job.deliveryProfileId, deliveredAt: job.deliveredAt, pickedUpAt: job.pickedUpAt } : null,
     refund: standaloneRefundView(readHcDeliveryRefundMarker(job?.notes)),
+    refundStatus,
+    refundMessage: refundStatus ? REFUND_STATUS_COPY[refundStatus] : null,
   });
 }

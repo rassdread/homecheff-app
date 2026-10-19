@@ -11236,6 +11236,14 @@
   "deliveryGate": {
     "unavailable": "HomeCheff delivery is not available yet."
   },
+  "deliveryRefund": {
+    "underReview": "The cancellation is under review. No money has been returned yet.",
+    "approved": "Refund approved. Stripe has not confirmed it yet.",
+    "processing": "Refund is processing.",
+    "refunded": "Stripe has confirmed the refund.",
+    "rejected": "Refund rejected.",
+    "manual": "Manual resolution is required. This is not financially settled."
+  },
   "affiliateDashboard": {
     "share": {
       "title": "Share & earn",

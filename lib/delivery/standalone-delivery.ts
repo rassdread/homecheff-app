@@ -8,6 +8,7 @@ import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing'
 import { isCommerciallyMatchableDeliverer } from '@/lib/delivery/delivery-eligibility';
 import { splitDeliveryCommission } from '@/lib/delivery/quote-snapshot';
 import { NotificationService } from '@/lib/notifications/notification-service';
+import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
 import { createDeliveryBookingRequest } from '@/lib/delivery/booking-request-service';
 import { assertCourierBookableAt } from '@/lib/delivery/standalone-availability';
 import { standaloneBookingNotes } from '@/lib/delivery/standalone-booking-meta';
@@ -379,6 +380,8 @@ export async function createStandaloneCheckout(input: {
   if (booking.status !== 'ACCEPTED' && booking.status !== 'AUTO_CONFIRMED') {
     return { ok: false as const, status: 409, code: 'DELIVERY_BOOKING_REQUIRED', error: 'Betalen kan pas nadat de gekozen bezorger heeft bevestigd.' };
   }
+  const payable = await ensureCourierPayable(prisma, row.deliveryProfileId);
+  if (!payable.ok) return payable;
   if (row.paymentStatus === 'PAID' || row.deliveryOrderId) {
     return { ok: false as const, status: 409, code: 'ALREADY_PAID', error: 'Deze bezorging is al betaald.' };
   }

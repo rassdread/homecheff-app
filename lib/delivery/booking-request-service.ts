@@ -6,6 +6,7 @@
 
 import type { PrismaClient } from '@prisma/client';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
+import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
 import {
   ACCEPTANCE_MODE_AUTO,
   ACCEPTANCE_MODE_MANUAL,
@@ -189,6 +190,9 @@ export async function createDeliveryBookingRequest(
       error: 'Bezorgaanbieder niet gevonden.',
     };
   }
+
+  const payable = await ensureCourierPayable(prisma, profile.id);
+  if (!payable.ok) return payable;
 
   const authoritative = await resolveAuthoritativeQuote(prisma, {
     productId: input.productId,

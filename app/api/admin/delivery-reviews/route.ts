@@ -1,0 +1,88 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import Stripe from 'stripe';
+import { financialStripeSecret } from '@/lib/stripe';
+import { executeDeliveryRefundDecision } from '@/lib/delivery/delivery-refund-review';
+
+export const dynamic = 'force-dynamic';
+
+async function requireAdmin() {
+  const session = await auth();
+  if (!session?.user?.email) return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true },
+  });
+  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
+    return { error: NextResponse.json({ error: 'Admin access required' }, { status: 403 }) };
+  }
+  return { user };
+}
+
+export async function GET() {
+  const gate = await requireAdmin();
+  if (gate.error) return gate.error;
+  const cases = await prisma.deliveryOrder.findMany({
+    where: { notes: { contains: 'REVIEW_REQUIRED_NO_AUTOMATIC_STRIPE_REFUND' } },
+    orderBy: { updatedAt: 'desc' },
+    take: 50,
+    select: {
+      id: true,
+      orderId: true,
+      status: true,
+      notes: true,
+      updatedAt: true,
+      deliveryProfile: { select: { user: { select: { id: true, name: true } } } },
+    },
+  });
+  const decisions = await prisma.deliveryRefundDecision.findMany({
+    where: { deliveryOrderId: { in: cases.map((row) => row.id) } },
+    orderBy: { createdAt: 'desc' },
+  });
+  const requests = await prisma.standaloneDeliveryRequest.findMany({
+    where: { deliveryOrderId: { in: cases.map((row) => row.id) } },
+    select: {
+      deliveryOrderId: true,
+      requesterUserId: true,
+      buyerTotalCents: true,
+      quotedFeeCents: true,
+      paymentStatus: true,
+      updatedAt: true,
+    },
+  });
+  return NextResponse.json({
+    cases: cases.map((row) => ({
+      deliveryOrderId: row.id,
+      orderId: row.orderId,
+      bookingStatus: row.status,
+      courierName: row.deliveryProfile?.user.name ?? null,
+      courierUserId: row.deliveryProfile?.user.id ?? null,
+      updatedAt: row.updatedAt,
+      request: requests.find((item) => item.deliveryOrderId === row.id) ?? null,
+      decisions: decisions.filter((item) => item.deliveryOrderId === row.id),
+    })),
+  });
+}
+
+export async function POST(req: NextRequest) {
+  const gate = await requireAdmin();
+  if (gate.error) return gate.error;
+  const body = await req.json().catch(() => null);
+  if (!body || body.confirm !== true || body.confirmFinancialPreview !== true) {
+    return NextResponse.json({ error: 'Expliciete bevestiging is verplicht.', code: 'CONFIRMATION_REQUIRED' }, { status: 400 });
+  }
+  const key = financialStripeSecret();
+  if (!key) return NextResponse.json({ error: 'Stripe is not configured' }, { status: 503 });
+  const stripe = new Stripe(key, { apiVersion: '2025-08-27.basil' });
+  const result = await executeDeliveryRefundDecision(prisma, stripe, {
+    deliveryOrderId: String(body.deliveryOrderId ?? ''),
+    adminUserId: gate.user.id,
+    decision: body.decision === 'REJECT' ? 'REJECT' : 'APPROVE',
+    reason: String(body.reason ?? ''),
+    amountCents: Number.isFinite(body.amountCents) ? Math.round(body.amountCents) : null,
+    confirm: true,
+  });
+  if (!result.ok) return NextResponse.json({ error: result.error, code: result.code }, { status: result.status });
+  return NextResponse.json({ ok: true, duplicate: result.duplicate, decisionId: result.decision.id, customerStatus: result.customerStatus });
+}

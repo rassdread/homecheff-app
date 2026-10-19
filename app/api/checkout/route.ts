@@ -1,6 +1,7 @@
 import type Stripe from 'stripe';
 import { normalizeFulfillmentInput } from '@/lib/delivery/delivery-fulfillment-vocabulary';
 import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
+import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -587,6 +588,10 @@ export async function POST(req: NextRequest) {
           },
           { status: 409 }
         );
+      }
+      const payable = await ensureCourierPayable(prisma, selectedProviderId);
+      if (!payable.ok) {
+        return NextResponse.json({ error: payable.error, code: payable.code }, { status: payable.status });
       }
       namedSelectionMeta = {
         namedProviderSelection: 'true',

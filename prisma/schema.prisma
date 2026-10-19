@@ -2176,7 +2176,11 @@ model DeliveryProfile {
   deliveryAgreementAcceptedAt    DateTime?
   /// Identifies the document the checkbox presented. Null means no recorded acceptance.
   deliveryAgreementDocumentId    String?
+  /// Last Stripe capability check. `active` means capabilities.transfers is active. Not payouts_enabled.
+  stripeTransfersStatus          String?
+  stripeTransfersCheckedAt       DateTime?
   detailedAvailability DeliveryAvailability[]
+  agreementAcceptances DeliveryAgreementAcceptance[]
   notificationSettings DeliveryNotificationSettings?
   deliveryOrders       DeliveryOrder[]
   bookingRequests      DeliveryBookingRequest[]
@@ -2191,6 +2195,46 @@ model DeliveryProfile {
 
   @@index([onlineUntil])
   @@map("DeliveryProfile")
+}
+
+/// One row per courier, version, and language. Later terms never rewrite this row.
+model DeliveryAgreementAcceptance {
+  id                String          @id @default(cuid())
+  deliveryProfileId String
+  userId            String
+  version           String
+  contentHash       String
+  language          String
+  documentId        String
+  acceptedAt        DateTime        @default(now())
+  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([deliveryProfileId, version, language])
+  @@index([userId, acceptedAt])
+  @@map("DeliveryAgreementAcceptance")
+}
+
+/// Admin decision for a paid delivery cancellation. Opening the queue does not create a row.
+model DeliveryRefundDecision {
+  id               String    @id @default(cuid())
+  deliveryOrderId  String
+  orderId          String?
+  idempotencyKey   String    @unique
+  decision         String
+  reason           String
+  amountCents      Int
+  currency         String    @default("EUR")
+  stripePaymentRef String?
+  stripeRefundId   String?
+  stripeReversalId String?
+  stripeStatus     String?
+  outstandingCents Int       @default(0)
+  adminUserId      String
+  createdAt        DateTime  @default(now())
+  executedAt       DateTime?
+
+  @@index([deliveryOrderId, createdAt])
+  @@map("DeliveryRefundDecision")
 }
 
 /// Membership of a user under a DELIVERY_BUSINESS DeliveryProfile (company provider).

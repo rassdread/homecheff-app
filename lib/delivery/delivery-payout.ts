@@ -5,6 +5,7 @@ import {
   DELIVERY_PLATFORM_FEE_PERCENT,
 } from '@/lib/fees';
 import { assertCommercialCourierCanReceivePayout } from '@/lib/delivery/delivery-eligibility';
+import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
 import {
   resolveLockedDeliveryGrossCents,
   splitDeliveryCommission,
@@ -158,8 +159,47 @@ export async function ensureDeliveryPayout(
   let payoutId = existingPayout?.id ?? stablePayoutId;
   let created = false;
 
+  if (existingPayout?.providerRef?.startsWith('tr_')) {
+    return {
+      created: false,
+      payoutId: existingPayout.id,
+      amountCents: existingPayout.amountCents,
+      grossFeeCents,
+      amountSource,
+      transferId: existingPayout.providerRef,
+      transferStatus: 'ALREADY_DONE',
+      connectedAccountId: existingPayout.destinationConnectAccountId,
+    };
+  }
+
+  const payable = profile
+    ? await ensureCourierPayable(prisma, profile.id, { requireAgreement: false })
+    : { ok: false as const, status: 404, code: 'DELIVERY_PROVIDER_REQUIRED', error: 'Bezorgaanbieder niet gevonden.' };
+  const destination = payable.ok ? profile?.user?.stripeConnectAccountId ?? null : null;
+  if (!payable.ok || !destination || deliveryPersonCut <= 0) {
+    if (existingPayout && !existingPayout.providerRef) {
+      await prisma.payout.update({
+        where: { id: existingPayout.id },
+        data: { providerRef: 'failed_connect_missing' },
+      });
+    }
+    return {
+      created: false,
+      payoutId,
+      amountCents: deliveryPersonCut,
+      grossFeeCents: split.grossFeeCents,
+      amountSource,
+      blocked: true,
+      blockCode: payable.ok ? 'COURIER_CONNECT_REQUIRED' : payable.code,
+      transferId: null,
+      transferStatus: 'FAILED',
+      connectedAccountId: destination,
+    };
+  }
+
   if (!existingPayout) {
-    await prisma.$transaction(async (tx) => {
+    try {
+      await prisma.$transaction(async (tx) => {
       let transaction = await tx.transaction.findUnique({
         where: { id: stableTxnId },
       });
@@ -202,36 +242,25 @@ export async function ensureDeliveryPayout(
         },
       });
     });
-    created = true;
-    payoutId = stablePayoutId;
-  } else if (
-    existingPayout.providerRef &&
-    existingPayout.providerRef.startsWith('tr_')
-  ) {
-    return {
-      created: false,
-      payoutId: existingPayout.id,
-      amountCents: existingPayout.amountCents,
-      grossFeeCents,
-      amountSource,
-      transferId: existingPayout.providerRef,
-      transferStatus: 'ALREADY_DONE',
-      connectedAccountId: existingPayout.destinationConnectAccountId,
-    };
-  }
-
-  const destination = profile?.user?.stripeConnectAccountId ?? null;
-  if (!destination || deliveryPersonCut <= 0) {
-    return {
-      created,
-      payoutId,
-      amountCents: deliveryPersonCut,
-      grossFeeCents: split.grossFeeCents,
-      amountSource,
-      transferId: null,
-      transferStatus: 'LEDGER_ONLY_NO_CONNECT',
-      connectedAccountId: destination,
-    };
+      created = true;
+      payoutId = stablePayoutId;
+    } catch (error) {
+      const again = await prisma.payout.findUnique({ where: { id: stablePayoutId } });
+      if (!again) throw error;
+      if (again.providerRef?.startsWith('tr_')) {
+        return {
+          created: false,
+          payoutId: again.id,
+          amountCents: again.amountCents,
+          grossFeeCents,
+          amountSource,
+          transferId: again.providerRef,
+          transferStatus: 'ALREADY_DONE',
+          connectedAccountId: again.destinationConnectAccountId,
+        };
+      }
+      payoutId = again.id;
+    }
   }
 
   const stripe = getStripe();
