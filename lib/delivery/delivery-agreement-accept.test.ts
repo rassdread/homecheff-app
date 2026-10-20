@@ -210,7 +210,7 @@ describe('signup agreement display and private regression', () => {
     );
     assert.equal(accepted.ok, true);
     if (!accepted.ok) return;
-    assert.equal(accepted.data.contentHash, undefined);
+    assert.equal(Object.hasOwn(accepted.data, 'contentHash'), false);
     const row = agreementAcceptanceRow({
       deliveryProfileId: 'profile-business',
       userId: 'user-owner',
