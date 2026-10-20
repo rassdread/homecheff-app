@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import DeliveryNotificationListener from './DeliveryNotificationListener';
 import CommunityDeliveryPanel from './CommunityDeliveryPanel';
+import DeliveryAgreementModal from './DeliveryAgreementModal';
 import GoOnlineDurationSheet, { type GoOnlineNotice } from './GoOnlineDurationSheet';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
@@ -133,7 +134,8 @@ export default function DeliveryDashboard() {
   const [recentOrders, setRecentOrders] = useState<DeliveryOrder[]>([]);
   const [availableOrders, setAvailableOrders] = useState<DeliveryOrder[]>([]);
   const [upcomingJobs, setUpcomingJobs] = useState<UpcomingDeliveryJob[]>([]);
-  const [deliveryAgreementAcceptedAt, setDeliveryAgreementAcceptedAt] = useState<string | null | undefined>(undefined);
+  const [agreementCurrentAccepted, setAgreementCurrentAccepted] = useState<boolean | null>(null);
+  const [showAgreement, setShowAgreement] = useState(false);
   const [agreementBusy, setAgreementBusy] = useState(false);
   const [pendingBookingRequests, setPendingBookingRequests] = useState<
     Array<{
@@ -372,7 +374,7 @@ export default function DeliveryDashboard() {
         setAvailableOrders(data.availableOrders || []);
         setUpcomingJobs(data.upcomingJobs || []);
         setPendingBookingRequests(data.pendingBookingRequests || []);
-        setDeliveryAgreementAcceptedAt(data.deliveryAgreement?.acceptedAt ?? null);
+        setAgreementCurrentAccepted(data.deliveryAgreement?.currentVersionAccepted === true);
         setIsOnline(Boolean(data.availability?.available ?? data.isOnline));
         setIsTemporarilyOnline(Boolean(data.isTemporarilyOnline || data.availability?.overrideActive));
         setAvailability(data.availability || null);
@@ -1065,10 +1067,17 @@ export default function DeliveryDashboard() {
 
         {(isSeller || courierTab === 'platform') ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          {!isSeller && deliveryAgreementAcceptedAt === null && (
+          {!isSeller && agreementCurrentAccepted === false && (
             <div className="lg:col-span-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-gray-800">
-              <p className="font-semibold">Bezorgerovereenkomst nog niet vastgelegd</p>
-              <p className="mt-1">De tekst is de overeenkomst in de aanmelding (Bezorgaanbieder-overeenkomst). Bestaande opdrachten blijven beschikbaar.</p>
+              <p className="font-semibold">Huidige bezorgerovereenkomst nog niet geaccepteerd</p>
+              <p className="mt-1">Lees de tekst en bevestig hem expliciet. Een eerdere acceptatie blijft bewaard en geldt niet voor deze versie. Bestaande opdrachten blijven beschikbaar.</p>
+              <button
+                type="button"
+                className="mt-3 min-h-[44px] rounded-lg border border-gray-300 bg-white px-4 py-2 font-semibold text-gray-900"
+                onClick={() => setShowAgreement(true)}
+              >
+                Lees de overeenkomst
+              </button>
               <button
                 type="button"
                 className="mt-3 min-h-[44px] rounded-lg bg-gray-900 px-4 py-2 font-semibold text-white disabled:opacity-60"
@@ -1089,6 +1098,7 @@ export default function DeliveryDashboard() {
               >
                 Ik accepteer de bezorgerovereenkomst
               </button>
+              <DeliveryAgreementModal open={showAgreement} onClose={() => setShowAgreement(false)} />
             </div>
           )}
           {/* Pending booking requests */}

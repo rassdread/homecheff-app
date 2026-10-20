@@ -19,6 +19,7 @@ import {
   sellerAddressForPhase,
   sellerPhoneForPhase,
 } from '@/lib/delivery/delivery-privacy';
+import { acceptanceMatchesCurrent } from '@/lib/delivery/delivery-agreement-version';
 
 const dashboardStripeKey = financialStripeSecret();
 const stripe: Stripe | null = dashboardStripeKey
@@ -1238,6 +1239,14 @@ export async function GET(req: NextRequest) {
         })
       : null;
 
+    const latestAgreement = deliveryProfile
+      ? await prisma.deliveryAgreementAcceptance.findFirst({
+          where: { deliveryProfileId: deliveryProfile.id },
+          orderBy: { acceptedAt: 'desc' },
+          select: { version: true, contentHash: true, language: true },
+        })
+      : null;
+
     return NextResponse.json({
       stats,
       isOnline: timeAvailability?.available ?? false,
@@ -1254,6 +1263,7 @@ export async function GET(req: NextRequest) {
         ? {
             acceptedAt: deliveryProfile.deliveryAgreementAcceptedAt,
             documentId: deliveryProfile.deliveryAgreementDocumentId,
+            currentVersionAccepted: acceptanceMatchesCurrent(latestAgreement),
           }
         : null,
       isSeller: isSeller && !deliveryProfile, // True if seller without delivery profile (only delivering own products)

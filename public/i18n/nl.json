@@ -3728,7 +3728,7 @@
       },
       "7": {
         "question": "Welke verzekeringen heb ik nodig als bezorger?",
-        "answer": "Je bent verplicht om een aansprakelijkheidsverzekering (min. €1.000.000) en ongevallenverzekering af te sluiten. Ook moet je je vervoersmiddel verzekeren. HomeCheff biedt geen werkgeversverzekeringen."
+        "answer": "Voor incidentele particuliere bezorging stelt HomeCheff geen algemene verplichting om een zakelijke aansprakelijkheidsverzekering van €1.000.000 of een afzonderlijke ongevallenverzekering te hebben. Je blijft zelf verantwoordelijk voor de regels die op je vervoermiddel en activiteiten gelden. Een particuliere verzekering dekt niet automatisch betaalde bezorgingen. Zakelijke en beroepsmatige bezorgers moeten een passende verzekering hebben, waaronder aansprakelijkheid van minimaal €1.000.000, een ongevallenverzekering en een voertuigverzekering voor zakelijk gebruik. HomeCheff biedt geen werkgeversverzekeringen en controleert geen polissen."
       },
       "8": {
         "question": "Hoe werkt de betaling voor bezorgers?",
@@ -6192,8 +6192,8 @@
     "yesContinue": "✅ Ja, je kunt doorgaan",
     "noAccept": "❌ Nee, accepteer alle voorwaarden",
     "importantReminder": "📋 Belangrijke Herinnering",
-    "reminder1": "Je opereert als volledig zelfstandig ondernemer",
-    "reminder2": "Je bent zelf verantwoordelijk voor je verzekeringen",
+    "reminder1": "Je meldt je aan als particuliere bezorger en kiest zelf welke opdrachten je aanneemt",
+    "reminder2": "Voor incidentele particuliere bezorging stelt HomeCheff geen zakelijke aansprakelijkheidsverzekering van €1.000.000 of een aparte ongevallenverzekering verplicht",
     "reminder3": "Je voert een eigen administratie en belastingaangifte",
     "reminder4": "Je zorgt voor naleving van alle regelgeving",
     "reminder5": "Je kunt een adviseur raadplegen voor juridisch/fiscaal advies",
@@ -6214,13 +6214,13 @@
     "liability2": "HomeCheff is niet aansprakelijk voor schade aan jouw eigendommen of personen",
     "liability3": "Je bent verantwoordelijk voor het volgen van alle verkeersregels",
     "liability4": "Je bent verantwoordelijk voor de veiligheid van de bestellingen",
-    "insurance": "4. Verzekeringen",
-    "insurance1": "Je moet een aansprakelijkheidsverzekering hebben (minimaal €1.000.000 dekking)",
-    "insurance2": "Je moet een ongevallenverzekering hebben",
-    "insurance3": "Je moet je vervoermiddel verzekerd hebben",
-    "insurance4": "Je bent zelf verantwoordelijk voor het controleren van je verzekeringsdekking",
+    "insurance": "4. Verantwoordelijkheid en verzekering",
+    "insurance1": "Als particuliere bezorger bepaal je zelf wanneer en hoe vaak je een bezorgopdracht uitvoert. Je bent zelf verantwoordelijk voor een zorgvuldige en veilige uitvoering van de opdrachten die je accepteert.",
+    "insurance2": "Voor incidentele particuliere bezorgingen stelt HomeCheff geen algemene verplichting om een zakelijke aansprakelijkheidsverzekering met €1.000.000 dekking of een afzonderlijke ongevallenverzekering te hebben. Je blijft verantwoordelijk voor het naleven van de wet- en regelgeving die op jouw activiteiten en vervoermiddel van toepassing is. Controleer zelf of eventuele verzekeringen dekking bieden voor de werkzaamheden die je uitvoert. Een particuliere verzekering dekt niet automatisch betaalde bezorgingen. Wanneer je regelmatig of beroepsmatig tegen betaling gaat bezorgen, kunnen aanvullende verplichtingen gelden, waaronder registratie- en verzekeringseisen. Je bent zelf verantwoordelijk voor het tijdig controleren en naleven van die verplichtingen.",
+    "insurance3": "Als zakelijke of beroepsmatige bezorger ben je zelf verantwoordelijk voor een passende verzekering voor de bezorgactiviteiten die je uitvoert. Je moet een aansprakelijkheidsverzekering hebben met minimaal €1.000.000 dekking, een ongevallenverzekering, en een verzekering voor je vervoermiddel die past bij dat vervoermiddel en bij zakelijk gebruik. De dekking moet gelden voor de daadwerkelijke bezorgactiviteiten. Je moet de wet- en regelgeving volgen die op die activiteiten van toepassing is. Een KvK-nummer bewijst niet dat deze verzekeringen bestaan.",
+    "insurance4": "HomeCheff vraagt bij aanmelding geen verzekeringsdocumenten en controleert die niet. Dat neemt je eigen verantwoordelijkheid niet weg.",
     "taxes": "5. Belastingen",
-    "taxes1": "Je bent zelfstandige ondernemer, geen werknemer van HomeCheff",
+    "taxes1": "Je bent geen werknemer van HomeCheff. Een incidentele particuliere bezorger is niet automatisch een zelfstandige ondernemer. Je blijft zelf verantwoordelijk voor de fiscale gevolgen van je activiteiten.",
     "taxes2": "Je bent zelf verantwoordelijk voor het opgeven van je inkomsten bij de Belastingdienst",
     "taxes3": "Je moet je eigen administratie bijhouden",
     "taxes4": "Je bent zelf verantwoordelijk voor het betalen van belastingen",
@@ -6232,7 +6232,7 @@
     "platformRules4": "Je mag geen misbruik maken van het platform",
     "platformRules5": "HomeCheff behoudt zich het recht voor om je account te deactiveren bij overtredingen",
     "importantNote": "⚠️ Belangrijke Opmerking",
-    "importantNoteText": "Als bezorger ben je een zelfstandige ondernemer. HomeCheff is geen werkgever en biedt geen werknemersbescherming. Zorg ervoor dat je alle juridische en praktische aspecten van zelfstandig ondernemerschap begrijpt voordat je begint.",
+    "importantNoteText": "HomeCheff is geen werkgever en biedt geen werknemersbescherming. Een particuliere bezorger is niet automatisch een zelfstandige ondernemer of een zakelijke bezorger. Wanneer je regelmatig of beroepsmatig bezorgt, kunnen aanvullende verplichtingen gelden.",
     "validation": {
       "validEmail": "Voer een geldig e-mailadres in",
       "emailCheckError": "Er is een fout opgetreden bij het controleren van het e-mailadres",

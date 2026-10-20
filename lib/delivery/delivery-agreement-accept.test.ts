@@ -9,6 +9,7 @@ import {
   acceptanceMatchesCurrent,
   agreementAcceptanceRow,
   agreementContentHash,
+  agreementSnapshot,
   decideDashboardAgreementWrite,
   DELIVERY_AGREEMENT_VERSION,
 } from './delivery-agreement-version';
@@ -71,6 +72,30 @@ describe('dashboard agreement write', () => {
     assert.equal(decision.writeVersionRow, true);
     assert.equal(acceptanceMatchesCurrent({ version: 'legacy', contentHash: nl, language: 'nl' }), false);
   });
+
+  it('does not treat the previous agreement version as the current one', () => {
+    const previous = {
+      version: 'delivery-agreement-2026-10-18',
+      contentHash: 'c1effe940da1b856b30f06c77876640b18ada233bc267e5f192f58ab39562ff9',
+      language: 'nl',
+    };
+    assert.equal(acceptanceMatchesCurrent(previous), false);
+    const decision = decideDashboardAgreementWrite({
+      profileAcceptedAt: new Date('2026-10-18T00:00:00.000Z'),
+      existing: previous,
+    });
+    assert.equal(decision.writeVersionRow, true);
+    assert.equal(decision.writeProfileTimestamp, false);
+    assert.equal(decision.unchanged, false);
+    const row = agreementAcceptanceRow({
+      deliveryProfileId: 'profile-1',
+      userId: 'user-b',
+      language: 'nl',
+    });
+    assert.equal(row.version, DELIVERY_AGREEMENT_VERSION);
+    assert.notEqual(row.version, previous.version);
+    assert.notEqual(row.contentHash, previous.contentHash);
+  });
 });
 
 describe('signup agreement display and private regression', () => {
@@ -82,8 +107,45 @@ describe('signup agreement display and private regression', () => {
     assert.equal(nl.signupAsAmbassador, 'Aanmelden als particuliere bezorger');
     assert.equal(en.title, 'Become a private courier');
     assert.equal(nl.legalModalTitle, 'Bezorgaanbieder-overeenkomst');
-    assert.equal(agreementContentHash('nl'), 'c1effe940da1b856b30f06c77876640b18ada233bc267e5f192f58ab39562ff9');
+    assert.equal(DELIVERY_AGREEMENT_VERSION, 'delivery-agreement-2026-10-20');
+    assert.notEqual(
+      agreementContentHash('nl'),
+      'c1effe940da1b856b30f06c77876640b18ada233bc267e5f192f58ab39562ff9',
+    );
     assert.doesNotMatch(JSON.stringify({ title: nl.title, subtitle: nl.subtitle, button: nl.signupAsAmbassador }), /Ambassadeur/);
+  });
+
+  it('shows private and business insurance duties in one agreement', () => {
+    const nl = agreementSnapshot('nl');
+    const en = agreementSnapshot('en');
+    const nlCopy = JSON.parse(read('public/i18n/nl.json')).deliverySignup;
+    const enCopy = JSON.parse(read('public/i18n/en.json')).deliverySignup;
+    for (const key of Object.keys(nl)) {
+      assert.equal(nlCopy[key], nl[key], key);
+      assert.equal(enCopy[key], en[key], key);
+    }
+    assert.match(nl.insurance2, /geen algemene verplichting/);
+    assert.match(nl.insurance2, /€1\.000\.000/);
+    assert.match(nl.insurance2, /ongevallenverzekering/);
+    assert.match(nl.insurance2, /niet automatisch betaalde bezorgingen/);
+    assert.match(nl.insurance2, /regelmatig of beroepsmatig/);
+    assert.doesNotMatch(nl.insurance1, /€1\.000\.000/);
+    assert.match(nl.insurance3, /zakelijke of beroepsmatige bezorger/);
+    assert.match(nl.insurance3, /minimaal €1\.000\.000 dekking/);
+    assert.match(nl.insurance3, /ongevallenverzekering/);
+    assert.match(nl.insurance3, /zakelijk gebruik/);
+    assert.match(nl.insurance3, /KvK-nummer bewijst niet/);
+    assert.match(en.insurance2, /does not set a general requirement/);
+    assert.match(en.insurance2, /does not automatically cover paid deliveries/);
+    assert.match(en.insurance3, /at least €1,000,000 cover/);
+    assert.match(en.insurance3, /does not prove that this insurance exists/);
+    assert.doesNotMatch(nl.insurance2, /Je moet een aansprakelijkheidsverzekering hebben/);
+    const payable = read('lib/delivery/courier-payable.ts');
+    assert.match(payable, /acceptanceMatchesCurrent/);
+    assert.match(payable, /AGREEMENT_ACCEPTANCE_REQUIRED/);
+    assert.match(read('app/api/delivery/dashboard/route.ts'), /currentVersionAccepted/);
+    assert.match(read('components/delivery/DeliveryDashboard.tsx'), /agreementCurrentAccepted === false/);
+    assert.match(read('components/delivery/DeliveryDashboard.tsx'), /DeliveryAgreementModal/);
   });
 
   it('shows the same agreement modal on the business final step', () => {
@@ -154,7 +216,7 @@ describe('signup agreement display and private regression', () => {
       userId: 'user-owner',
       language: 'nl',
     });
-    assert.equal(row.version, 'delivery-agreement-2026-10-18');
+    assert.equal(row.version, DELIVERY_AGREEMENT_VERSION);
     assert.equal(row.contentHash, agreementContentHash('nl'));
   });
 });

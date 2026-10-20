@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
 
 /**
- * The signup modal whose strings are hashed as delivery-agreement-2026-10-18.
+ * Shared courier agreement. Private and business insurance duties are separate sections.
  * Closing it does not accept the agreement.
  */
 export default function DeliveryAgreementModal({
