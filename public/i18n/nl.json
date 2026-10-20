@@ -6094,8 +6094,8 @@
     "continueShopping": "Verder Winkelen"
   },
   "deliverySignup": {
-    "title": "Word Ambassadeur van HomeCheff!",
-    "subtitle": "Vertegenwoordig ons merk als zelfstandig ondernemer en bezorg bestellingen in je buurt. Commerciële bezorging is beschikbaar vanaf 18 jaar.",
+    "title": "Word particuliere bezorger",
+    "subtitle": "Bezorg wanneer het jou uitkomt. Help iemand in jouw buurt met het vervoeren van een pakketje en ontvang daarvoor een afgesproken vergoeding. Je bepaalt zelf welke opdrachten je aanneemt. Commerciële bezorging is beschikbaar vanaf 18 jaar.",
     "freeSignup": "Aanmelden als bezorgpartner is gratis.",
     "commissionDisclosure": "Van elke bezorgvergoeding gaat {deliverer}% naar de bezorger en {platform}% naar HomeCheff.",
     "step": "Stap",
@@ -6202,7 +6202,7 @@
     "next": "Volgende",
     "loading": "Bezig...",
     "acceptToContinue": "Accepteer de Bezorger Overeenkomst om door te gaan",
-    "signupAsAmbassador": "Aanmelden als zelfstandige bezorgaanbieder",
+    "signupAsAmbassador": "Aanmelden als particuliere bezorger",
     "legalModalTitle": "Bezorgaanbieder-overeenkomst",
     "close": "Sluiten",
     "generalTerms": "1. Algemene Voorwaarden",

@@ -5,6 +5,8 @@ import {
   DELIVERY_AGREEMENT_DOCUMENT_ID,
   deliveryAgreementAcceptanceData,
 } from '@/lib/delivery/delivery-agreement';
+import { decideDashboardAgreementWrite } from '@/lib/delivery/delivery-agreement-version';
+import { recordAgreementAcceptance } from '@/lib/delivery/courier-payable';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,23 +30,35 @@ export async function POST(req: NextRequest) {
   if (!profile) {
     return NextResponse.json({ error: 'Geen bezorgprofiel', code: 'NO_PROFILE' }, { status: 404 });
   }
-  if (profile.deliveryAgreementAcceptedAt) {
-    return NextResponse.json({
-      accepted: true,
-      acceptedAt: profile.deliveryAgreementAcceptedAt,
-      documentId: profile.deliveryAgreementDocumentId,
-      unchanged: true,
+  const existing = await prisma.deliveryAgreementAcceptance.findFirst({
+    where: { deliveryProfileId: profile.id },
+    orderBy: { acceptedAt: 'desc' },
+  });
+  const decision = decideDashboardAgreementWrite({
+    profileAcceptedAt: profile.deliveryAgreementAcceptedAt,
+    existing,
+  });
+  if (decision.writeVersionRow) {
+    await recordAgreementAcceptance(prisma, {
+      deliveryProfileId: profile.id,
+      userId,
+      language: 'nl',
     });
   }
-  const saved = await prisma.deliveryProfile.update({
+  if (decision.writeProfileTimestamp) {
+    await prisma.deliveryProfile.update({
+      where: { id: profile.id },
+      data: deliveryAgreementAcceptanceData(),
+    });
+  }
+  const saved = await prisma.deliveryProfile.findUnique({
     where: { id: profile.id },
-    data: deliveryAgreementAcceptanceData(),
     select: { deliveryAgreementAcceptedAt: true, deliveryAgreementDocumentId: true },
   });
   return NextResponse.json({
     accepted: true,
-    acceptedAt: saved.deliveryAgreementAcceptedAt,
-    documentId: saved.deliveryAgreementDocumentId ?? DELIVERY_AGREEMENT_DOCUMENT_ID,
-    unchanged: false,
+    acceptedAt: saved?.deliveryAgreementAcceptedAt ?? profile.deliveryAgreementAcceptedAt,
+    documentId: saved?.deliveryAgreementDocumentId ?? profile.deliveryAgreementDocumentId ?? DELIVERY_AGREEMENT_DOCUMENT_ID,
+    unchanged: decision.unchanged,
   });
 }

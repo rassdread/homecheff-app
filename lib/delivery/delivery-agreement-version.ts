@@ -133,3 +133,20 @@ export function acceptanceMatchesCurrent(row: { version: string; contentHash: st
   const language: AgreementLanguage = row.language === 'en' ? 'en' : 'nl';
   return row.version === DELIVERY_AGREEMENT_VERSION && row.contentHash === agreementContentHash(language);
 }
+
+/**
+ * A profile timestamp is not a versioned acceptance.
+ * A matching version row is not written again.
+ * An explicit accept may add the missing version row without moving an existing timestamp.
+ */
+export function decideDashboardAgreementWrite(input: {
+  profileAcceptedAt: Date | null;
+  existing: { version: string; contentHash: string; language: string } | null;
+}) {
+  const versionMatches = acceptanceMatchesCurrent(input.existing);
+  return {
+    writeProfileTimestamp: input.profileAcceptedAt == null,
+    writeVersionRow: !versionMatches,
+    unchanged: input.profileAcceptedAt != null && versionMatches,
+  };
+}

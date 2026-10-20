@@ -5114,8 +5114,8 @@
     }
   },
   "deliverySignup": {
-    "title": "Become a HomeCheff Ambassador!",
-    "subtitle": "Represent our brand as an independent entrepreneur and deliver orders in your neighborhood. Commercial delivery is available from age 18.",
+    "title": "Become a private courier",
+    "subtitle": "Deliver when it suits you. Help someone in your neighborhood move a package and receive an agreed fee. You choose which assignments you accept. Commercial delivery is available from age 18.",
     "freeSignup": "Signing up as a delivery partner is free.",
     "commissionDisclosure": "Of each delivery fee, {deliverer}% goes to the courier and {platform}% to HomeCheff.",
     "step": "Step",
@@ -5222,7 +5222,7 @@
     "next": "Next",
     "loading": "Loading...",
     "acceptToContinue": "Accept the Delivery Agreement to continue",
-    "signupAsAmbassador": "Sign up as Delivery Ambassador",
+    "signupAsAmbassador": "Sign up as a private courier",
     "legalModalTitle": "Delivery Ambassador Agreement",
     "close": "Close",
     "generalTerms": "1. General Terms",

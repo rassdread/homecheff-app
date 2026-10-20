@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import { ArrowRight, Building2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import DeliveryAgreementModal from '@/components/delivery/DeliveryAgreementModal';
 import DeliveryRegistrationNotice from '@/components/delivery/DeliveryRegistrationNotice';
 import { useTranslation } from '@/hooks/useTranslation';
 import { CANONICAL_DELIVERY_DAYS } from '@/lib/delivery/delivery-profile-canonical';
@@ -65,6 +66,7 @@ export default function DeliveryCompanySignupPage() {
     step: stepNumber,
   });
   const [step, setStep] = useState(1);
+  const [showAgreement, setShowAgreement] = useState(false);
   const [isExistingUser, setIsExistingUser] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitLock, setSubmitLock] = useState(false);
@@ -482,10 +484,16 @@ export default function DeliveryCompanySignupPage() {
                     }))
                   }
                 />
-                <span>
-                  {t('deliveryCompanySignup.accept')}
-                </span>
+                <span>{t('deliveryCompanySignup.accept')}</span>
               </label>
+              <button
+                type="button"
+                onClick={() => setShowAgreement(true)}
+                className="text-sm font-medium text-sky-800 underline"
+              >
+                {t('deliverySignup.fullDeliveryAgreement')}
+              </button>
+              <DeliveryAgreementModal open={showAgreement} onClose={() => setShowAgreement(false)} />
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
                 <CheckCircle className="mb-1 inline h-4 w-4" /> {form.companyName || 'Bedrijf'} · KvK{' '}
                 {form.kvkNumber || '—'} · {form.age}+
