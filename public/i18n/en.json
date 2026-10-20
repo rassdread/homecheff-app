@@ -3336,11 +3336,11 @@
       },
       "5": {
         "question": "How do I become a deliverer on HomeCheff?",
-        "answer": "Deliverers can sign up via /delivery/signup. You must be 18 or older, have a valid ID, and agree to our terms.\n\n🤝 LOCAL COMMUNITY:\n• Bike delivery is preferred\n• Local routes support the neighborhood\n• Combined delivery is more efficient\n• Use reusable packaging\n\n⚠️ IMPORTANT: As a deliverer, you are a self-employed entrepreneur. HomeCheff is not your employer; selected couriers act as independent delivery providers."
+        "answer": "Deliverers can sign up via /delivery/signup. You must be 18 or older, have a valid ID, and agree to our terms.\n\n🤝 LOCAL COMMUNITY:\n• Bike delivery is preferred\n• Local routes support the neighborhood\n• Combined delivery is more efficient\n• Use reusable packaging\n\n⚠️ IMPORTANT: You do not have to be an entrepreneur. You can sign up as a private individual for occasional deliveries, or as a business if you deliver professionally. HomeCheff is not your employer."
       },
       "6": {
         "question": "What do I earn as a deliverer?",
-        "answer": "You earn per delivery. The exact amount depends on distance and complexity. You are a self-employed entrepreneur and are responsible for taxes and insurance.\n\n💰 PRACTICAL BENEFITS:\n• Extra reward for bike delivery\n• Bonus for combined routes\n• Reward for reusable packaging\n• Incentive for local delivery\n\nIMPORTANT: The product/service agreement is between buyer and provider; HomeCheff facilitates the platform and payment. We are not your employer and do not provide employer insurance."
+        "answer": "You can receive an agreed fee for a delivery assignment. As a private courier, that can be a fee for an occasional delivery. As a business or professional courier, the earnings belong to your business activities. The amount depends on the assignment. HomeCheff does not guarantee income. Earnings can have tax consequences. You remain responsible for the taxes that apply to your situation.\n\nIMPORTANT: The product or service agreement is between the buyer and the provider. HomeCheff facilitates the marketplace transaction and the payment. HomeCheff is not your employer and does not provide employer insurance."
       },
       "7": {
         "question": "What insurance do I need as a deliverer?",
@@ -3352,11 +3352,11 @@
       },
       "9": {
         "question": "Can I set my own working hours as a deliverer?",
-        "answer": "Yes, as a self-employed deliverer, you decide when you're available. You can set your availability in your deliverer dashboard and accept or decline deliveries."
+        "answer": "Yes. You decide when you are available and which assignments you accept, whether you deliver occasionally as a private individual or as a business. You can set your availability in your courier dashboard and accept or decline assignments."
       },
       "10": {
-        "question": "What if sowithhing goes wrong during a delivery?",
-        "answer": "As a deliverer, you are responsible for damage or problems during delivery. Ensure adequate insurance. For serious incidents, you can contact our support."
+        "question": "What if something goes wrong during a delivery?",
+        "answer": "You are responsible for damage or problems during a delivery you accept. For occasional private delivery, HomeCheff does not set a general requirement to hold business liability insurance of €1,000,000 or a separate accident policy. Check yourself whether insurance covers paid deliveries. Business and professional couriers must have the insurance stated in the courier agreement. For a serious incident, you can contact support."
       },
       "11": {
         "question": "How is my location used as a deliverer?",
@@ -3389,6 +3389,10 @@
       "18": {
         "question": "How does local delivery work exactly?",
         "answer": "Local delivery means you as the seller deliver the product yourself:\n\n📍 SETTINGS:\n• Set your delivery radius (e.g. 5 km)\n• Indicate if you deliver yourself (sellerCanDeliver)\n• Determine your delivery costs (standard €3)\n• Choose your available time slots\n\n🚴 PROCESS:\n• Customer orders and chooses 'Local delivery'\n• You receive notification of new order\n• You accept the order\n• You prepare the product\n• You deliver the product to the specified address\n• You mark as delivered in your dashboard\n\n💰 EARNINGS:\n• You receive the delivery fee (€3+)\n• Plus the product price\n• Payout within 2-3 business days\n\n⚠️ IMPORTANT:\n• Ensure good packaging\n• Consider traffic rules\n• Use reusable packaging where possible\n• Communicate clearly with customer about delivery time"
+      },
+      "20": {
+        "question": "Do I have to be an entrepreneur to deliver?",
+        "answer": "No. You can also sign up as a private individual and carry out occasional delivery assignments.\n\nYou choose which assignments you accept and when you are available.\n\nIf you start delivering regularly or professionally for payment, additional registration, tax and insurance obligations may apply.\n\nYou are responsible for checking and following the rules that apply to your activities."
       },
       "19": {
         "question": "What do I need to do as a seller for shipping?",

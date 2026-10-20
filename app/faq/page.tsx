@@ -167,6 +167,7 @@ const getFAQData = (t: (key: string) => string) => {
       getItem('delivery', 3),
       getItem('delivery', 4),
       getItem('delivery', 5),
+      getItem('delivery', 20),
       getItem('delivery', 6),
       getItem('delivery', 7),
       getItem('delivery', 8),

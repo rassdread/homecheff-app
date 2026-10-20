@@ -3720,11 +3720,11 @@
       },
       "5": {
         "question": "Hoe word ik bezorger op HomeCheff?",
-        "answer": "Bezorgers kunnen zich aanmelden via /delivery/signup. Je moet 18 jaar of ouder zijn, een geldig identiteitsbewijs hebben en akkoord gaan met onze voorwaarden.\n\n🤝 LOKALE GEMEENSCHAP:\n• Fietsbezorging is de voorkeur\n• Lokale routes ondersteunen de buurt\n• Gecombineerde bezorging is efficiënter\n• Herbruikbare verpakking gebruiken\n\n⚠️ BELANGRIJK: Als bezorger ben je zelfstandige ondernemer. HomeCheff is niet je werkgever; geselecteerde bezorgers handelen als zelfstandige bezorgdienst."
+        "answer": "Bezorgers kunnen zich aanmelden via /delivery/signup. Je moet 18 jaar of ouder zijn, een geldig identiteitsbewijs hebben en akkoord gaan met onze voorwaarden.\n\n🤝 LOKALE GEMEENSCHAP:\n• Fietsbezorging is de voorkeur\n• Lokale routes ondersteunen de buurt\n• Gecombineerde bezorging is efficiënter\n• Herbruikbare verpakking gebruiken\n\n⚠️ BELANGRIJK: Je hoeft geen ondernemer te zijn. Je kunt je als particulier aanmelden voor incidentele bezorgingen, of als bedrijf als je beroepsmatig bezorgt. HomeCheff is niet je werkgever."
       },
       "6": {
         "question": "Wat verdien ik als bezorger?",
-        "answer": "Je verdient per bezorging. Het exacte bedrag hangt af van de afstand en complexiteit. Je bent zelfstandige ondernemer en bent zelf verantwoordelijk voor belastingen en verzekeringen.\n\n💰 PRAKTISCHE VOORDELEN:\n• Extra beloning voor fietsbezorging\n• Bonus voor gecombineerde routes\n• Beloning voor herbruikbare verpakking\n• Incentive voor lokale bezorging\n\n⚠️ BELANGRIJK: De product-/dienstovereenkomst is tussen koper en aanbieder; HomeCheff faciliteert platform en betaling. Wij zijn niet je werkgever en bieden geen werkgeversverzekeringen."
+        "answer": "Je kunt een afgesproken vergoeding ontvangen voor een bezorgopdracht. Als particulier kan dat een vergoeding zijn voor een incidentele bezorging. Als zakelijke of beroepsmatige bezorger horen de verdiensten bij je bedrijfsactiviteiten. Het bedrag hangt af van de opdracht. HomeCheff garandeert geen inkomsten. Verdiensten kunnen fiscale gevolgen hebben. Je blijft zelf verantwoordelijk voor de belastingen die op jouw situatie van toepassing zijn.\n\n⚠️ BELANGRIJK: De product-/dienstovereenkomst is tussen koper en aanbieder. HomeCheff faciliteert de marktplaatstransactie en de betaling. HomeCheff is niet je werkgever en biedt geen werkgeversverzekeringen."
       },
       "7": {
         "question": "Welke verzekeringen heb ik nodig als bezorger?",
@@ -3732,15 +3732,15 @@
       },
       "8": {
         "question": "Hoe werkt de betaling voor bezorgers?",
-        "answer": "Bezorgerverdiensten zijn een aparte bezorgvergoeding voor de geselecteerde zelfstandige bezorgdienst. Op dit moment worden deze verdiensten in de administratie bijgehouden; bankuitbetaling volgt via het platformproces wanneer daarvoor is opgezet. Je blijft zelf verantwoordelijk voor het opgeven van inkomsten bij de Belastingdienst."
+        "answer": "Bezorgerverdiensten zijn een aparte bezorgvergoeding voor de geselecteerde bezorger. Op dit moment worden deze verdiensten in de administratie bijgehouden; bankuitbetaling volgt via het platformproces wanneer daarvoor is opgezet. Je blijft zelf verantwoordelijk voor het opgeven van inkomsten bij de Belastingdienst."
       },
       "9": {
         "question": "Kan ik als bezorger mijn werktijden zelf bepalen?",
-        "answer": "Ja, als zelfstandige bezorger bepaal je zelf wanneer je beschikbaar bent. Je kunt je beschikbaarheid instellen in je bezorger dashboard en bezorgingen accepteren of weigeren."
+        "answer": "Ja. Je bepaalt zelf wanneer je beschikbaar bent en welke opdrachten je accepteert, of je nu incidenteel als particulier bezorgt of als bedrijf. Je kunt je beschikbaarheid instellen in je bezorgerdashboard en opdrachten accepteren of weigeren."
       },
       "10": {
         "question": "Wat als er iets misgaat tijdens een bezorging?",
-        "answer": "Als bezorger ben je zelf verantwoordelijk voor schade of problemen tijdens bezorging. Zorg voor adequate verzekeringen. Bij ernstige incidenten kun je contact opnemen met onze support."
+        "answer": "Je bent zelf verantwoordelijk voor schade of problemen tijdens een bezorging die je accepteert. Voor incidentele particuliere bezorging stelt HomeCheff geen algemene verplichting om een zakelijke aansprakelijkheidsverzekering van €1.000.000 of een afzonderlijke ongevallenverzekering te hebben. Controleer zelf of een verzekering betaalde bezorgingen dekt. Zakelijke en beroepsmatige bezorgers moeten de verzekeringen hebben die in de bezorgerovereenkomst staan. Bij een ernstig incident kun je contact opnemen met support."
       },
       "11": {
         "question": "Hoe wordt mijn locatie gebruikt als bezorger?",
@@ -3773,6 +3773,10 @@
       "18": {
         "question": "Hoe werkt lokale bezorging precies?",
         "answer": "Lokale bezorging betekent dat jij als verkoper het product zelf bezorgt:\n\n📍 INSTELLINGEN:\n• Stel je bezorgradius in (bijv. 5 km)\n• Geef aan of je zelf bezorgt (sellerCanDeliver)\n• Bepaal je bezorgkosten (standaard €3)\n• Kies je beschikbare tijdstippen\n\n🚴 PROCES:\n• Klant bestelt en kiest 'Lokale bezorging'\n• Jij ontvangt notificatie van nieuwe bestelling\n• Je accepteert de bestelling\n• Je bereidt het product voor\n• Je bezorgt het product op het opgegeven adres\n• Je markeert als bezorgd in je dashboard\n\n💰 VERDIENSTEN:\n• Je ontvangt de bezorgkosten (€3+)\n• Plus de productprijs\n• Uitbetaling binnen 2-3 werkdagen\n\n⚠️ BELANGRIJK:\n• Zorg voor goede verpakking\n• Houd rekening met verkeersregels\n• Gebruik herbruikbare verpakking waar mogelijk\n• Communiceer duidelijk met klant over bezorgtijd"
+      },
+      "20": {
+        "question": "Moet ik ondernemer zijn om te bezorgen?",
+        "answer": "Nee. Je kunt je ook als particulier aanmelden en incidenteel bezorgopdrachten uitvoeren.\n\nJe bepaalt zelf welke opdrachten je accepteert en wanneer je beschikbaar bent.\n\nGa je regelmatig of beroepsmatig tegen betaling bezorgen, dan kunnen aanvullende registratie-, belasting- en verzekeringsverplichtingen gelden.\n\nJe bent zelf verantwoordelijk voor het controleren en naleven van de regels die op jouw activiteiten van toepassing zijn."
       },
       "19": {
         "question": "Wat moet ik doen als verkoper bij verzending?",
