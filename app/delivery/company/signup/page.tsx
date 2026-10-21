@@ -285,7 +285,7 @@ export default function DeliveryCompanySignupPage() {
 
   return (
     <div className="min-h-screen w-screen max-w-[100vw] overflow-x-clip bg-gradient-to-br from-sky-50 via-white to-slate-50">
-      <div className="mx-auto max-w-2xl px-4 pt-3 pb-[calc(8rem+env(safe-area-inset-bottom,0px))] sm:pt-8">
+      <div className="mx-auto max-w-2xl px-4 pt-3 pb-[calc(8rem+var(--hc-cookie-banner-offset,0px)+env(safe-area-inset-bottom,0px))] sm:pt-8">
         <div className="mb-2 text-center sm:mb-8">
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-sky-700 text-white sm:mb-4 sm:h-16 sm:w-16">
             <Building2 className="h-6 w-6 sm:h-8 sm:w-8" />
@@ -517,7 +517,13 @@ export default function DeliveryCompanySignupPage() {
             </div>
           )}
 
-          <div className="mt-4 flex justify-between gap-3 scroll-mb-28">
+          <div
+            className="sticky z-[70] mt-4 flex justify-between gap-3 bg-white py-2"
+            style={{
+              bottom: 'calc(var(--hc-cookie-banner-offset, 0px) + 0.75rem)',
+              scrollMarginBottom: 'calc(var(--hc-cookie-banner-offset, 0px) + 1rem)',
+            }}
+          >
             <Button
               variant="outline"
               disabled={step === firstStep}

@@ -693,7 +693,7 @@ export default function DeliverySignupPage() {
   }
 
   return (
-    <div className="w-screen max-w-[100vw] overflow-x-clip min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 pb-[calc(8rem+env(safe-area-inset-bottom,0px))]">
+    <div className="w-screen max-w-[100vw] overflow-x-clip min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 pb-[calc(8rem+var(--hc-cookie-banner-offset,0px)+env(safe-area-inset-bottom,0px))]">
       <div className="container mx-auto px-4 pt-2 pb-6 sm:py-8">
         {/* Header */}
         <div className="mb-2 text-center sm:mb-8">
@@ -1266,7 +1266,13 @@ export default function DeliverySignupPage() {
               </div>
             )}
 
-            <div className="mt-4 flex justify-between gap-3 scroll-mb-28">
+            <div
+              className="sticky z-[70] mt-4 flex justify-between gap-3 bg-white py-2"
+              style={{
+                bottom: 'calc(var(--hc-cookie-banner-offset, 0px) + 0.75rem)',
+                scrollMarginBottom: 'calc(var(--hc-cookie-banner-offset, 0px) + 1rem)',
+              }}
+            >
               <Button
                 variant="outline"
                 onClick={prevStep}

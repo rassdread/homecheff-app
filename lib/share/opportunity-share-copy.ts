@@ -84,21 +84,21 @@ const NL: Record<OpportunityId, OpportunityShareCopy> = {
     title: 'Bezorgen',
     shortText: 'Flexibel bezorgen in je omgeving via HomeCheff.',
     longText:
-      'Wil je flexibel bezorgen in je eigen omgeving? Bekijk hoe je als zelfstandig bezorger kunt meedoen via HomeCheff. Voor bezorgers geldt een leeftijdsgrens van 18+.',
+      'Wil je flexibel bezorgen in je eigen omgeving? Bekijk hoe je als bezorger kunt meedoen via HomeCheff. Voor bezorgers geldt een leeftijdsgrens van 18+.',
     professionalText:
-      'HomeCheff verbindt lokale bezorgers met opdrachten in de buurt.\n\nOntdek hoe je als zelfstandig bezorger (18+) kunt meedoen.',
+      'HomeCheff verbindt lokale bezorgers met opdrachten in de buurt.\n\nOntdek hoe je als bezorger (18+) kunt meedoen.',
     communityText:
-      'Op zoek naar flexibel bijverdienen met bezorgen in je buurt? HomeCheff zoekt zelfstandige bezorgers (18+).',
+      'Op zoek naar flexibel bijverdienen met bezorgen in je buurt? HomeCheff zoekt bezorgers (18+).',
     shortPost: 'Flexibel bezorgen in je buurt via HomeCheff (18+).',
     emailSubject: 'Bezorgen via HomeCheff',
     emailBody:
-      'Wil je flexibel bezorgen in je eigen omgeving? Bekijk hoe je als zelfstandig bezorger (18+) kunt meedoen via HomeCheff:',
+      'Wil je flexibel bezorgen in je eigen omgeving? Bekijk hoe je als bezorger (18+) kunt meedoen via HomeCheff:',
     socialCaption:
       'Flexibel bezorgen in je buurt via HomeCheff (18+). Bekijk hoe je meedoet.',
     hashtags: ['HomeCheff', 'Bezorgen', 'Lokaal'],
     ogTitle: 'Bezorg in je buurt met HomeCheff',
     ogDescription:
-      'Ontdek hoe je als zelfstandig bezorger (18+) kunt meedoen via HomeCheff.',
+      'Ontdek hoe je als bezorger (18+) kunt meedoen via HomeCheff.',
     ogHeadline: 'Bezorg in je buurt',
     ogSubline: 'Ontdek hoe je kunt meedoen · 18+',
     ecosystem: 'marketplace',
@@ -325,19 +325,19 @@ const EN: Record<OpportunityId, OpportunityShareCopy> = {
     title: 'Deliver',
     shortText: 'Flexible local deliveries via HomeCheff.',
     longText:
-      'Want flexible deliveries in your area? See how to join as an independent courier via HomeCheff. Couriers must be 18+.',
+      'Want flexible deliveries in your area? See how to join as a courier via HomeCheff. Couriers must be 18+.',
     professionalText:
-      'HomeCheff connects local couriers with nearby jobs.\n\nSee how to join as an independent courier (18+).',
+      'HomeCheff connects local couriers with nearby jobs.\n\nSee how to join as a courier (18+).',
     communityText:
-      'Looking for flexible delivery work nearby? HomeCheff needs independent couriers (18+).',
+      'Looking for flexible delivery work nearby? HomeCheff needs couriers (18+).',
     shortPost: 'Flexible local deliveries via HomeCheff (18+).',
     emailSubject: 'Deliver with HomeCheff',
     emailBody:
-      'Want flexible deliveries nearby? See how to join as an independent courier (18+) via HomeCheff:',
+      'Want flexible deliveries nearby? See how to join as a courier (18+) via HomeCheff:',
     socialCaption: 'Flexible local deliveries via HomeCheff (18+).',
     hashtags: ['HomeCheff', 'Delivery', 'Local'],
     ogTitle: 'Deliver nearby with HomeCheff',
-    ogDescription: 'Join as an independent courier (18+) via HomeCheff.',
+    ogDescription: 'Join as a courier (18+) via HomeCheff.',
     ogHeadline: 'Deliver nearby',
     ogSubline: 'See how to join · 18+',
     ecosystem: 'marketplace',

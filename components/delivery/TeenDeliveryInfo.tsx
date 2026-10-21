@@ -16,7 +16,7 @@ export default function TeenDeliveryInfo() {
         className="flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
       >
         <Info className="w-4 h-4" />
-        Over lokale bezorgaanbieders
+        Over lokale bezorgers
       </button>
     );
   }
@@ -36,15 +36,15 @@ export default function TeenDeliveryInfo() {
             <Info className="w-5 h-5 text-blue-600" />
           </div>
           <h3 className="text-lg font-semibold text-gray-900">
-            Lokale bezorgaanbieders via HomeCheff
+            Lokale bezorgers via HomeCheff
           </h3>
         </div>
 
         <div className="space-y-4 text-sm text-gray-700">
           <div>
-            <p className="font-medium text-gray-900">Zelfstandige aanbieders</p>
+            <p className="font-medium text-gray-900">Bezorgers</p>
             <p>
-              Bezorging wordt uitgevoerd door een zelfstandige bezorgaanbieder.
+              Bezorging wordt uitgevoerd door een bezorger.
               HomeCheff faciliteert het contact en de boeking.
             </p>
           </div>

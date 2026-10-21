@@ -12,11 +12,11 @@ export default function CommunityDeliveryInfo() {
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-primary-brand mb-2">
-            Lokale bezorgaanbieders via HomeCheff
+            Lokale bezorgers via HomeCheff
           </h3>
           <p className="text-gray-700 mb-4">
             HomeCheff faciliteert het contact en de boeking. Transport wordt
-            uitgevoerd door een zelfstandige bezorgaanbieder, niet door HomeCheff
+            uitgevoerd door een bezorger, niet door HomeCheff
             als vervoerder of werkgever.
           </p>
 
@@ -27,7 +27,7 @@ export default function CommunityDeliveryInfo() {
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Heart className="w-4 h-4 text-red-600" />
-              <span>Zelfstandige bezorgaanbieders</span>
+              <span>Lokale bezorgers</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Clock className="w-4 h-4 text-blue-600" />
@@ -44,15 +44,15 @@ export default function CommunityDeliveryInfo() {
             <div className="text-sm text-gray-600 space-y-1">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-3 h-3 text-green-600" />
-                <span>Je kiest of gebruikt een lokale bezorgaanbieder via HomeCheff</span>
+                <span>Je kiest of gebruikt een lokale bezorger via HomeCheff</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-3 h-3 text-green-600" />
-                <span>De aanbieder accepteert of weigert het verzoek</span>
+                <span>De bezorger accepteert of weigert het verzoek</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-3 h-3 text-green-600" />
-                <span>Transport wordt uitgevoerd door de gekozen aanbieder</span>
+                <span>Transport wordt uitgevoerd door de gekozen bezorger</span>
               </div>
             </div>
           </div>

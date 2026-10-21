@@ -274,7 +274,7 @@ function fallbackDescription(id: OpportunityId): string {
     case 'seller':
       return 'Breng makers naar HomeCheff en verdien volgens het geldende affiliateprogramma.';
     case 'delivery_individual':
-      return 'Nodig zelfstandige bezorgers uit om lokaal opdrachten te ontvangen.';
+      return 'Nodig bezorgers uit om lokaal opdrachten te ontvangen.';
     case 'delivery_company':
       return 'Introduceer lokale bezorgbedrijven met eigen chauffeurs.';
     case 'affiliate':

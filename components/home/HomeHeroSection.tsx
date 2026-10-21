@@ -55,7 +55,7 @@ export default function HomeHeroSection() {
           <div className="flex min-w-0 items-center justify-between gap-2">
             <h1
               id="home-compact-header-title"
-              className="min-w-0 truncate text-sm font-semibold leading-snug tracking-tight text-[var(--hc-text)] sm:text-base"
+              className="min-w-0 flex-1 whitespace-normal text-sm font-semibold leading-snug tracking-tight text-[var(--hc-text)] sm:text-base"
             >
               {heroGeo.city
                 ? t('homePhase1.orientationTitleInCity', { city: heroGeo.city })

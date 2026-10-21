@@ -41,7 +41,7 @@ export const verdienHubNl = {
     "delivery": {
       "title": "Bezorgen",
       "proposition": "Bezorg flexibel in jouw omgeving.",
-      "forWhom": "Zelfstandige bezorgaanbieders vanaf 18 jaar.",
+      "forWhom": "Bezorgers vanaf 18 jaar.",
       "howStart": "Meld je aan en bepaal zelf je beschikbaarheid.",
       "cta": "Start als bezorger",
       "share": "Nodig een bezorger uit"
@@ -97,7 +97,7 @@ export const verdienHubNl = {
   },
   "shareCopy": {
     "seller": "Maak of doe jij iets waar anderen iets aan hebben? Via HomeCheff kun je lokaal jouw producten of diensten aanbieden. Bekijk hoe je kunt beginnen.",
-    "delivery_individual": "Wil je flexibel bezorgen in je eigen omgeving? Bekijk hoe je als zelfstandig bezorger kunt meedoen via HomeCheff. Voor bezorgers geldt een leeftijdsgrens van 18+.",
+    "delivery_individual": "Wil je flexibel bezorgen in je eigen omgeving? Bekijk hoe je als bezorger kunt meedoen via HomeCheff. Voor bezorgers geldt een leeftijdsgrens van 18+.",
     "delivery_company": "Heb je een lokaal bezorgbedrijf? Via HomeCheff kun je bezorgopdrachten ontvangen en je eigen chauffeurs inzetten.",
     "affiliate": "Ken jij mensen die bij HomeCheff passen? Deel HomeCheff en verdien mee wanneer jouw netwerk actief wordt binnen het ecosysteem. Geen gegarandeerd inkomen.",
     "affiliate_company": "Werk je in sales, marketing of acquisitie? Ontdek hoe je als zakelijke partner kunt meebouwen aan de groei van HomeCheff.",
@@ -108,14 +108,14 @@ export const verdienHubNl = {
   },
   "deliveryHighlight": {
     "title": "Bezorgen via HomeCheff",
-    "body": "Als zelfstandige of via je bezorgbedrijf. HomeCheff faciliteert matching en settlement; jij bepaalt beschikbaarheid en (binnen de regels) je aanbod.",
+    "body": "Als particulier of via je bezorgbedrijf. HomeCheff faciliteert matching en settlement; jij bepaalt beschikbaarheid en (binnen de regels) je aanbod.",
     "point1": "Individueel: eigen aanmelding en beschikbaarheid",
     "point2": "Bedrijf: team, toewijzing en bedrijfsuitbetaling",
     "point3": "Nodig iemand uit: bij affiliate-context reist attributie mee"
   },
   "employment": {
     "title": "Werken bij HomeCheff (intern)",
-    "body": "Dit is alleen voor echte HomeCheff-dienstverbanden of stages, niet voor zelfstandige bezorgers, verkopers of affiliates.",
+    "body": "Dit is alleen voor echte HomeCheff-dienstverbanden of stages, niet voor bezorgers, verkopers of affiliates.",
     "cta": "Naar vacatures",
     "nav": "Vacatures",
     "pageTitle": "Werken bij HomeCheff",
@@ -165,7 +165,7 @@ export const verdienHubEn = {
     "delivery": {
       "title": "Deliver",
       "proposition": "Deliver flexibly in your area.",
-      "forWhom": "Independent delivery providers aged 18+.",
+      "forWhom": "Couriers aged 18+.",
       "howStart": "Sign up and set your own availability.",
       "cta": "Start as a courier",
       "share": "Invite a courier"
@@ -221,7 +221,7 @@ export const verdienHubEn = {
   },
   "shareCopy": {
     "seller": "Do you make or do something others value? Offer your products or services locally via HomeCheff. See how to start.",
-    "delivery_individual": "Want flexible deliveries in your area? See how to join as an independent courier via HomeCheff. Couriers must be 18+.",
+    "delivery_individual": "Want flexible deliveries in your area? See how to join as a courier via HomeCheff. Couriers must be 18+.",
     "delivery_company": "Run a local delivery company? Receive jobs via HomeCheff and use your own drivers.",
     "affiliate": "Know people who fit HomeCheff? Share HomeCheff and earn when your network becomes active in the ecosystem. No guaranteed income.",
     "affiliate_company": "Work in sales, marketing, or acquisition? Discover how to grow HomeCheff as a business partner.",
@@ -232,14 +232,14 @@ export const verdienHubEn = {
   },
   "deliveryHighlight": {
     "title": "Deliver with HomeCheff",
-    "body": "As an independent provider or through your delivery company. HomeCheff facilitates matching and settlement; you set availability and (within the rules) your offer.",
+    "body": "As a private courier or through your delivery company. HomeCheff facilitates matching and settlement; you set availability and (within the rules) your offer.",
     "point1": "Individual: own signup and availability",
     "point2": "Company: team, assignment and company payout",
     "point3": "Invite someone, with affiliate context, attribution travels with the share"
   },
   "employment": {
     "title": "Work at HomeCheff (internal)",
-    "body": "This is only for real HomeCheff employment or internships, not for independent couriers, sellers or affiliates.",
+    "body": "This is only for real HomeCheff employment or internships, not for couriers, sellers or affiliates.",
     "cta": "Go to vacancies",
     "nav": "Careers",
     "pageTitle": "Careers",

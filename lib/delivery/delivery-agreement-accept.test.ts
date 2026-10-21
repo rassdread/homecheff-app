@@ -80,6 +80,26 @@ describe('dashboard agreement write', () => {
       language: 'nl',
     };
     assert.equal(acceptanceMatchesCurrent(previous), false);
+    const priorWording = {
+      version: 'delivery-agreement-2026-10-20',
+      contentHash: '78f6d521f98ed77376cbb868f089d055ec81193161e1816278af5477ba2b80ca',
+      language: 'nl',
+    };
+    assert.notEqual(DELIVERY_AGREEMENT_VERSION, priorWording.version);
+    assert.notEqual(agreementContentHash('nl'), priorWording.contentHash);
+    assert.equal(acceptanceMatchesCurrent(priorWording), false);
+    const priorEnglish = {
+      version: 'delivery-agreement-2026-10-20',
+      contentHash: 'dc95ea2395c827dfb58f870704ab889cb830fb6f8a6afb071d2e3c2149d3c24e',
+      language: 'en',
+    };
+    assert.equal(acceptanceMatchesCurrent(priorEnglish), false);
+    const priorDecision = decideDashboardAgreementWrite({
+      profileAcceptedAt: new Date('2026-10-20T12:00:00.000Z'),
+      existing: priorWording,
+    });
+    assert.equal(priorDecision.writeVersionRow, true);
+    assert.equal(priorDecision.writeProfileTimestamp, false);
     const decision = decideDashboardAgreementWrite({
       profileAcceptedAt: new Date('2026-10-18T00:00:00.000Z'),
       existing: previous,
@@ -107,7 +127,11 @@ describe('signup agreement display and private regression', () => {
     assert.equal(nl.signupAsAmbassador, 'Aanmelden als particuliere bezorger');
     assert.equal(en.title, 'Become a private courier');
     assert.equal(nl.legalModalTitle, 'Bezorgaanbieder-overeenkomst');
-    assert.equal(DELIVERY_AGREEMENT_VERSION, 'delivery-agreement-2026-10-20');
+    assert.equal(DELIVERY_AGREEMENT_VERSION, 'delivery-agreement-2026-10-20-2');
+    assert.match(nl.generalTermsText, /als bezorger via HomeCheff/);
+    assert.doesNotMatch(nl.generalTermsText, /zelfstandige bezorgaanbieder/);
+    assert.match(en.generalTermsText, /as a courier via HomeCheff/);
+    assert.doesNotMatch(en.generalTermsText, /independent delivery provider/);
     assert.notEqual(
       agreementContentHash('nl'),
       'c1effe940da1b856b30f06c77876640b18ada233bc267e5f192f58ab39562ff9',
@@ -135,6 +159,9 @@ describe('signup agreement display and private regression', () => {
     assert.match(nl.insurance3, /ongevallenverzekering/);
     assert.match(nl.insurance3, /zakelijk gebruik/);
     assert.match(nl.insurance3, /KvK-nummer bewijst niet/);
+    assert.match(nl.taxes1, /niet automatisch een zelfstandige ondernemer/);
+    assert.match(en.taxes1, /not automatically a self-employed entrepreneur/);
+    assert.match(nl.importantNoteText, /niet automatisch een zelfstandige ondernemer/);
     assert.match(en.insurance2, /does not set a general requirement/);
     assert.match(en.insurance2, /does not automatically cover paid deliveries/);
     assert.match(en.insurance3, /at least €1,000,000 cover/);
@@ -155,6 +182,9 @@ describe('signup agreement display and private regression', () => {
     assert.match(company, /acceptDeliveryAgreement: false/);
     assert.match(modal, /deliverySignup.insurance1/);
     assert.match(modal, /deliverySignup.legalModalTitle/);
+    assert.match(modal, /min-h-0 flex-1 overflow-y-auto/);
+    assert.match(modal, /shrink-0 justify-end/);
+    assert.doesNotMatch(modal, /max-h-\[calc\(90vh-120px\)\]/);
     assert.doesNotMatch(modal, /acceptDeliveryAgreement:\s*true/);
   });
 

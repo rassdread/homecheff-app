@@ -89,7 +89,7 @@ export const ROLE_REQUIREMENTS: Record<string, RoleRequirement> = {
       taxResponsibility: false,
       marketing: false
     },
-    description: 'Zelfstandige lokale bezorgaanbieder via HomeCheff',
+    description: 'Lokale bezorger via HomeCheff',
     ageRestrictionMessage:
       'Commerciële bezorgdiensten via HomeCheff zijn momenteel beschikbaar vanaf 18 jaar. Je account en andere mogelijkheden op HomeCheff blijven gewoon beschikbaar.'
   }

@@ -351,7 +351,7 @@ ${LLMS_TXT}
 - Direct contact: arrange outside checkout when listing allows
 - Proposals / negotiation: chat proposals may lead to CommunityOrder conversion
 - Barter: value exchange without implying a standard priced Product offer when no money price applies
-- Local delivery: optional independent delivery providers; quotes use seller pickup → buyer drop-off road distance; browsing location is not the contractual delivery address
+- Local delivery: optional couriers; quotes use seller pickup → buyer drop-off road distance; browsing location is not the contractual delivery address
 - National coverage: country-bound for courier profiles, not global by default
 - Parcel shipping: separate logistics path when offered
 

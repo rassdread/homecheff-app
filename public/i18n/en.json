@@ -4689,7 +4689,7 @@
     "localDeliveryDescription": "Delivered by a local courier",
     "localDeliveryEstimatedTime": "Same-day possible",
     "teenDelivery": "Local delivery provider",
-    "teenDeliveryDescription": "Delivered by an independent delivery provider via HomeCheff",
+    "teenDeliveryDescription": "Delivered by a courier via HomeCheff",
     "teenDeliveryEstimatedTime": "Depends on availability",
     "shipping": "Shipping",
     "shippingDescription": "Ship via DHL/PostNL",
@@ -4938,7 +4938,7 @@
     "inYourNeighborhood": "In Your Neighborhood",
     "onlyOrdersWithin3km": "Only orders within 3km of your location",
     "signUpAsDeliverer": "Sign Up as Deliverer",
-    "from15Years": "From 18 years • Independent delivery provider • HomeCheff facilitates booking",
+    "from15Years": "From 18 years • Courier • HomeCheff facilitates booking",
     "categories": "Categories",
     "startLocationForDistance": "📍 Start location for distance",
     "addressValidated": "Address validated",
@@ -5230,7 +5230,7 @@
     "legalModalTitle": "Delivery provider agreement",
     "close": "Close",
     "generalTerms": "1. General Terms",
-    "generalTermsText": "By signing up as an independent delivery provider via HomeCheff, you accept the General Terms. These are available at",
+    "generalTermsText": "By signing up as a courier via HomeCheff, you accept the General Terms. These are available at",
     "privacyPolicy": "2. Privacy Policy",
     "privacyPolicyText": "Your data is processed according to our Privacy Policy. This is available at",
     "liability": "3. Liability",
@@ -5689,11 +5689,11 @@
     "localEconomy": "Help Local Economy",
     "localEconomyDesc": "Support local entrepreneurs and the community",
     "from15Years": "From 18 years",
-    "from15YearsDesc": "Commercial delivery from age 18 as an independent provider",
+    "from15YearsDesc": "Commercial delivery from age 18 as a courier",
     "readyToStart": "Ready to start?",
     "readyToStartDesc": "Choose an option above to get started",
     "signUpNow": "Sign Up as Deliverer",
-    "legalInfo": "From 18 years • Independent delivery provider • HomeCheff facilitates booking"
+    "legalInfo": "From 18 years • Courier • HomeCheff facilitates booking"
   },
   "reporting": {
     "report": "Report",
@@ -11133,7 +11133,7 @@
       "delivery": {
         "title": "Deliver",
         "proposition": "Deliver flexibly in your area.",
-        "forWhom": "Independent delivery providers aged 18+.",
+        "forWhom": "Couriers aged 18+.",
         "howStart": "Sign up and set your own availability.",
         "cta": "Start as a courier",
         "share": "Invite a courier"
@@ -11201,14 +11201,14 @@
     },
     "deliveryHighlight": {
       "title": "Deliver with HomeCheff",
-      "body": "As an independent provider or through your delivery company. HomeCheff facilitates matching and settlement; you set availability and (within the rules) your offer.",
+      "body": "As a private courier or through your delivery company. HomeCheff facilitates matching and settlement; you set availability and (within the rules) your offer.",
       "point1": "Individual: own signup and availability",
       "point2": "Company: team, assignment and company payout",
       "point3": "Invite someone, with affiliate context, attribution travels with the share"
     },
     "employment": {
       "title": "Work at HomeCheff (internal)",
-      "body": "This is only for real HomeCheff employment or internships, not for independent couriers, sellers or affiliates.",
+      "body": "This is only for real HomeCheff employment or internships, not for couriers, sellers or affiliates.",
       "cta": "Go to vacancies",
       "nav": "Vacancies",
       "pageTitle": "Work at HomeCheff",
@@ -11225,7 +11225,7 @@
   },
   "deliveryStart": {
     "title": "How do you want to deliver?",
-    "subtitle": "Choose what fits. HomeCheff is not an employer. You or your company deliver as an independent partner.",
+    "subtitle": "Choose what fits. HomeCheff is not an employer. You deliver as a private courier, or your company delivers as a business courier.",
     "individualTitle": "I deliver myself",
     "individualBody": "Personal delivery profile: availability, area, rates and jobs.",
     "companyTitle": "I have a delivery company",
@@ -11262,7 +11262,7 @@
       },
       "delivery": {
         "title": "Refer couriers",
-        "description": "Invite independent couriers to receive local delivery jobs."
+        "description": "Invite couriers to receive local delivery jobs."
       },
       "deliveryCompany": {
         "title": "Refer delivery companies",

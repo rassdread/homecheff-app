@@ -50,14 +50,18 @@ describe('courier FAQ', () => {
     assert.match(nl['10'].answer, /geen algemene verplichting/);
     assert.match(en['7'].answer, /does not set a general requirement/);
     assert.match(en['10'].answer, /at least €1,000,000|€1,000,000/);
-    assert.equal(DELIVERY_AGREEMENT_VERSION, 'delivery-agreement-2026-10-20');
+    assert.equal(DELIVERY_AGREEMENT_VERSION, 'delivery-agreement-2026-10-20-2');
     assert.equal(
       agreementContentHash('nl'),
-      '78f6d521f98ed77376cbb868f089d055ec81193161e1816278af5477ba2b80ca',
+      'd19d0c5f047d6bfe789ee3093602b131bf7b724c3fd1a0993c1a491123188efa',
     );
     assert.equal(
       agreementContentHash('en'),
-      'dc95ea2395c827dfb58f870704ab889cb830fb6f8a6afb071d2e3c2149d3c24e',
+      '27aa0237dfd684b79dc1f8ce2c3f2d80ddcf3f210d182dd6e138bece215e1e34',
+    );
+    assert.notEqual(
+      agreementContentHash('nl'),
+      '78f6d521f98ed77376cbb868f089d055ec81193161e1816278af5477ba2b80ca',
     );
   });
 });

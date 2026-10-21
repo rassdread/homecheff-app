@@ -3,10 +3,12 @@ import { DELIVERY_AGREEMENT_DOCUMENT_ID } from '@/lib/delivery/delivery-agreemen
 
 /**
  * Snapshot of the signup modal. Dutch is the source text.
- * This version splits occasional private insurance from business insurance.
+ * 2026-10-20-2 keeps section 1 on the private-courier model:
+ * a courier is not automatically a self-employed entrepreneur.
+ * Insurance duties and commercial terms are unchanged.
  * It is not a legal opinion.
  */
-export const DELIVERY_AGREEMENT_VERSION = 'delivery-agreement-2026-10-20';
+export const DELIVERY_AGREEMENT_VERSION = 'delivery-agreement-2026-10-20-2';
 
 const MODAL_KEYS = [
   'legalModalTitle',
@@ -43,7 +45,7 @@ const MODAL_KEYS = [
 const NL: Record<(typeof MODAL_KEYS)[number], string> = {
   legalModalTitle: 'Bezorgaanbieder-overeenkomst',
   generalTerms: '1. Algemene Voorwaarden',
-  generalTermsText: 'Door je aan te melden als zelfstandige bezorgaanbieder via HomeCheff, accepteer je de Algemene Voorwaarden. Deze zijn beschikbaar op',
+  generalTermsText: 'Door je aan te melden als bezorger via HomeCheff, accepteer je de Algemene Voorwaarden. Deze zijn beschikbaar op',
   privacyPolicy: '2. Privacy Policy',
   privacyPolicyText: 'Je gegevens worden verwerkt volgens onze Privacy Policy. Deze is beschikbaar op',
   liability: '3. Aansprakelijkheid',
@@ -75,7 +77,7 @@ const NL: Record<(typeof MODAL_KEYS)[number], string> = {
 const EN: Record<(typeof MODAL_KEYS)[number], string> = {
   legalModalTitle: 'Delivery provider agreement',
   generalTerms: '1. General Terms',
-  generalTermsText: 'By signing up as an independent delivery provider via HomeCheff, you accept the General Terms. These are available at',
+  generalTermsText: 'By signing up as a courier via HomeCheff, you accept the General Terms. These are available at',
   privacyPolicy: '2. Privacy Policy',
   privacyPolicyText: 'Your data is processed according to our Privacy Policy. This is available at',
   liability: '3. Liability',

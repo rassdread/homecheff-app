@@ -4726,11 +4726,11 @@
     "localEconomy": "Help Lokale Economie",
     "localEconomyDesc": "Ondersteun lokale ondernemers en de gemeenschap",
     "from15Years": "Vanaf 18 jaar",
-    "from15YearsDesc": "Commerciële bezorging vanaf 18 jaar als zelfstandige aanbieder",
+    "from15YearsDesc": "Commerciële bezorging vanaf 18 jaar als bezorger",
     "readyToStart": "Klaar om te beginnen?",
     "readyToStartDesc": "Kies een optie hierboven om te starten",
     "signUpNow": "Meld Je Aan als Bezorger",
-    "legalInfo": "Vanaf 18 jaar • Zelfstandige bezorgaanbieder • HomeCheff faciliteert boeking"
+    "legalInfo": "Vanaf 18 jaar • Bezorger • HomeCheff faciliteert de boeking"
   },
   "privacySettingsPage": {
     "backToHome": "Terug naar Home",
@@ -5986,7 +5986,7 @@
     "localDeliveryDescription": "Laten bezorgen door een lokale bezorger",
     "localDeliveryEstimatedTime": "Zelfde dag mogelijk",
     "teenDelivery": "Lokale bezorgaanbieder",
-    "teenDeliveryDescription": "Laten bezorgen door een zelfstandige bezorgaanbieder via HomeCheff",
+    "teenDeliveryDescription": "Laten bezorgen door een bezorger via HomeCheff",
     "teenDeliveryEstimatedTime": "Afhankelijk van beschikbaarheid",
     "shipping": "Verzending",
     "shippingDescription": "Verzenden via DHL/PostNL",
@@ -6210,7 +6210,7 @@
     "legalModalTitle": "Bezorgaanbieder-overeenkomst",
     "close": "Sluiten",
     "generalTerms": "1. Algemene Voorwaarden",
-    "generalTermsText": "Door je aan te melden als zelfstandige bezorgaanbieder via HomeCheff, accepteer je de Algemene Voorwaarden. Deze zijn beschikbaar op",
+    "generalTermsText": "Door je aan te melden als bezorger via HomeCheff, accepteer je de Algemene Voorwaarden. Deze zijn beschikbaar op",
     "privacyPolicy": "2. Privacy Policy",
     "privacyPolicyText": "Je gegevens worden verwerkt volgens onze Privacy Policy. Deze is beschikbaar op",
     "liability": "3. Aansprakelijkheid",
@@ -6807,7 +6807,7 @@
     "inYourNeighborhood": "In Je Buurt",
     "onlyOrdersWithin3km": "Alleen bestellingen binnen 3km van je locatie",
     "signUpAsDeliverer": "Meld Je Aan als Bezorger",
-    "from15Years": "Vanaf 18 jaar • Zelfstandige bezorgaanbieder • HomeCheff faciliteert boeking",
+    "from15Years": "Vanaf 18 jaar • Bezorger • HomeCheff faciliteert de boeking",
     "categories": "Categorieën",
     "startLocationForDistance": "📍 Startlocatie voor afstand",
     "addressValidated": "Adres gevalideerd",
@@ -11133,7 +11133,7 @@
       "delivery": {
         "title": "Bezorgen",
         "proposition": "Bezorg flexibel in jouw omgeving.",
-        "forWhom": "Zelfstandige bezorgaanbieders vanaf 18 jaar.",
+        "forWhom": "Bezorgers vanaf 18 jaar.",
         "howStart": "Meld je aan en bepaal zelf je beschikbaarheid.",
         "cta": "Start als bezorger",
         "share": "Nodig een bezorger uit"
@@ -11201,14 +11201,14 @@
     },
     "deliveryHighlight": {
       "title": "Bezorgen via HomeCheff",
-      "body": "Als zelfstandige of via je bezorgbedrijf. HomeCheff faciliteert matching en settlement; jij bepaalt beschikbaarheid en (binnen de regels) je aanbod.",
+      "body": "Als particulier of via je bezorgbedrijf. HomeCheff faciliteert matching en settlement; jij bepaalt beschikbaarheid en (binnen de regels) je aanbod.",
       "point1": "Individueel: eigen aanmelding en beschikbaarheid",
       "point2": "Bedrijf: team, toewijzing en bedrijfsuitbetaling",
       "point3": "Nodig iemand uit: bij affiliate-context reist attributie mee"
     },
     "employment": {
       "title": "Werken bij HomeCheff (intern)",
-      "body": "Dit is alleen voor echte HomeCheff-dienstverbanden of stages, niet voor zelfstandige bezorgers, verkopers of affiliates.",
+      "body": "Dit is alleen voor echte HomeCheff-dienstverbanden of stages, niet voor bezorgers, verkopers of affiliates.",
       "cta": "Naar vacatures",
       "nav": "Vacatures",
       "pageTitle": "Werken bij HomeCheff",
@@ -11225,7 +11225,7 @@
   },
   "deliveryStart": {
     "title": "Hoe wil je bezorgen?",
-    "subtitle": "Kies wat bij jou past. HomeCheff is geen werkgever. Jij of jouw bedrijf levert als zelfstandige bezorgpartner.",
+    "subtitle": "Kies wat bij jou past. HomeCheff is geen werkgever. Je bezorgt als particulier, of je bedrijf bezorgt als bezorgpartner.",
     "individualTitle": "Ik bezorg zelf",
     "individualBody": "Persoonlijk bezorgprofiel: beschikbaarheid, werkgebied, tarieven en opdrachten.",
     "companyTitle": "Ik heb een bezorgbedrijf",
@@ -11262,7 +11262,7 @@
       },
       "delivery": {
         "title": "Bezorgers aanmelden",
-        "description": "Nodig zelfstandige bezorgers uit om lokaal opdrachten te ontvangen."
+        "description": "Nodig bezorgers uit om lokaal opdrachten te ontvangen."
       },
       "deliveryCompany": {
         "title": "Bezorgbedrijven aanmelden",

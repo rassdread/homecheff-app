@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import { clearPendingMetaEvents } from '@/lib/meta/browser';
@@ -19,6 +19,28 @@ const PrivacyNotice: React.FC = () => {
   const [mode, setMode] = useState<'hidden' | 'full' | 'marketing'>('hidden');
   const bannerAtScreenBottom = isBottomNavigationHidden(pathname);
   const [marketingChecked, setMarketingChecked] = useState(false);
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    if (mode === 'hidden') {
+      root.style.removeProperty('--hc-cookie-banner-offset');
+      return;
+    }
+    const banner = bannerRef.current;
+    if (!banner) return;
+    const apply = () => {
+      const height = Math.ceil(banner.getBoundingClientRect().height);
+      root.style.setProperty('--hc-cookie-banner-offset', `${height}px`);
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(banner);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty('--hc-cookie-banner-offset');
+    };
+  }, [mode]);
 
   useEffect(() => {
     const analytics = localStorage.getItem(ANALYTICS_CONSENT_KEY);
@@ -72,6 +94,7 @@ const PrivacyNotice: React.FC = () => {
 
   return (
     <div
+      ref={bannerRef}
       data-wx-cookie-banner=""
       data-wx-cookie-compact="1"
       className={
