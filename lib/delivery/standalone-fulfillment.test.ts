@@ -137,6 +137,7 @@ function fulfill(db: ReturnType<typeof memory>, event: unknown, secret: string) 
     db: db.api as never,
     stripeSecret: secret,
     notify: async () => undefined,
+    accrue: async () => undefined,
   });
 }
 
@@ -224,10 +225,19 @@ test('mismatched payment details are visible and do not create a delivery', asyn
 
 test('unpaid, expired, cancelled, and already fulfilled sessions do not add a second order', async () => {
   const unpaid = memory();
-  const unpaidResult = await fulfill(unpaid, session({ payment_status: 'unpaid' }), TEST);
+  const accrueCalls: unknown[] = [];
+  const unpaidResult = await fulfillStandaloneDeliveryPayment(session({ payment_status: 'unpaid' }) as never, {
+    db: unpaid.api as never,
+    stripeSecret: TEST,
+    notify: async () => undefined,
+    accrue: async (input) => {
+      accrueCalls.push(input);
+    },
+  });
   assert.equal(unpaidResult.ok, true);
   assert.equal(unpaid.orders.length, 0);
   assert.equal(unpaid.incidents.length, 0);
+  assert.equal(accrueCalls.length, 0);
 
   const expired = memory();
   const expiredResult = await fulfill(expired, session({ payment_status: 'unpaid' }), LIVE);
@@ -248,4 +258,52 @@ test('unpaid, expired, cancelled, and already fulfilled sessions do not add a se
   assert.equal(doneResult.ok, true);
   assert.equal('duplicate' in doneResult && doneResult.duplicate, true);
   assert.equal(done.orders.length, 0);
+});
+
+test('paid fulfillment accrues once per call and stores an expanded payment intent', async () => {
+  const source = readFileSync(new URL('./standalone-delivery.ts', import.meta.url), 'utf8');
+  assert.equal(source.includes('accrueHcDeliveryPlatformFeeAffiliate'), true);
+
+  const calls: Array<Record<string, unknown>> = [];
+  const db = memory();
+  const paid = await fulfillStandaloneDeliveryPayment(session({ payment_intent: { id: 'pi_expanded' } }) as never, {
+    db: db.api as never,
+    stripeSecret: TEST,
+    notify: async () => undefined,
+    accrue: async (input) => {
+      calls.push(input);
+    },
+  });
+  assert.equal(paid.ok, true);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].orderId, 'req_1');
+  assert.equal(calls[0].deliveryFeeCents, 10000);
+  assert.equal(calls[0].buyerUserId, 'buyer_1');
+  assert.equal(calls[0].providerUserId, 'courier_1');
+  assert.equal(db.payouts[0].providerRef, 'pi_expanded');
+
+  const replay = await fulfillStandaloneDeliveryPayment(session({ payment_intent: { id: 'pi_expanded' } }) as never, {
+    db: db.api as never,
+    stripeSecret: TEST,
+    notify: async () => undefined,
+    accrue: async (input) => {
+      calls.push(input);
+    },
+  });
+  assert.equal('duplicate' in replay && replay.duplicate, true);
+  assert.equal(calls.length, 2);
+  assert.equal(db.orders.length, 1);
+
+  const unpaid = memory();
+  const unpaidCalls: unknown[] = [];
+  await fulfillStandaloneDeliveryPayment(session({ payment_status: 'unpaid' }) as never, {
+    db: unpaid.api as never,
+    stripeSecret: TEST,
+    notify: async () => undefined,
+    accrue: async (input) => {
+      unpaidCalls.push(input);
+    },
+  });
+  assert.equal(unpaidCalls.length, 0);
+  assert.equal(unpaid.orders.length, 0);
 });

@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { NotificationService } from '@/lib/notifications/notification-service';
 import { marketplaceDeliveryRefundPlan } from '@/lib/delivery/delivery-ops-queue';
+import { reconcileDeliveryRefundBooks } from '@/lib/delivery/delivery-refund-books';
 import { splitDeliveryCommission } from '@/lib/delivery/quote-snapshot';
 
 export type CustomerRefundStatus =
@@ -178,6 +179,15 @@ export async function executeDeliveryRefundDecision(
   const key = refundIdempotencyKey(order.id);
   const existing = await prisma.deliveryRefundDecision.findUnique({ where: { idempotencyKey: key } });
   if (existing?.stripeRefundId || existing?.decision === 'REJECT' || existing?.stripeStatus === 'MANUAL') {
+    if (existing.stripeRefundId && existing.stripeStatus === 'succeeded' && existing.outstandingCents === 0) {
+      await reconcileSavedDeliveryRefund(prisma, {
+        deliveryOrderId: order.id,
+        refundedCents: existing.amountCents,
+        chargeCents: request.buyerTotalCents,
+        stripeRefundId: existing.stripeRefundId,
+        affiliateSourceOrderId: `${request.id}_delivery_${order.id}`,
+      });
+    }
     return { ok: true as const, duplicate: true, decision: existing };
   }
 
@@ -295,6 +305,15 @@ export async function executeDeliveryRefundDecision(
       });
 
   const status = customerRefundStatus(saved);
+  if (saved.stripeRefundId && saved.stripeStatus === 'succeeded' && saved.outstandingCents === 0) {
+    await reconcileSavedDeliveryRefund(prisma, {
+      deliveryOrderId: order.id,
+      refundedCents: saved.amountCents,
+      chargeCents: paid,
+      stripeRefundId: saved.stripeRefundId,
+      affiliateSourceOrderId: `${request.id}_delivery_${order.id}`,
+    });
+  }
   const copy = REFUND_STATUS_COPY[status];
   const recipients = [request.requesterUserId, order.deliveryProfile?.userId].filter(Boolean) as string[];
   await Promise.all(recipients.map((userId) => NotificationService.send({
@@ -305,4 +324,28 @@ export async function executeDeliveryRefundDecision(
   }).catch(() => undefined)));
 
   return { ok: true as const, duplicate: Boolean(existing), decision: saved, customerStatus: status };
+}
+
+async function reconcileSavedDeliveryRefund(
+  prisma: PrismaClient,
+  input: {
+    deliveryOrderId: string;
+    refundedCents: number;
+    chargeCents: number;
+    stripeRefundId: string | null;
+    affiliateSourceOrderId: string | null;
+  },
+) {
+  try {
+    await reconcileDeliveryRefundBooks(prisma, {
+      deliveryOrderId: input.deliveryOrderId,
+      refundedCents: input.refundedCents,
+      chargeCents: input.chargeCents,
+      stripeRefundId: input.stripeRefundId,
+      clawbackCourier: true,
+      affiliateSourceOrderId: input.affiliateSourceOrderId,
+    });
+  } catch (error) {
+    console.error('[delivery-refund-books]', error);
+  }
 }

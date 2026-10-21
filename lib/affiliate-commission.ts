@@ -15,7 +15,8 @@ import {
   LEDGER_PENDING_DAYS,
 } from './affiliate-config';
 import { splitAffiliateLineForHierarchy } from '@/lib/affiliates/main-partner-split';
-import { CommissionLedgerEventType, CommissionLedgerStatus } from '@prisma/client';
+import { beneficiaryUserIdBlocked, parentOverrideAllowed } from '@/lib/affiliates/self-referral-guard';
+import { CommissionLedgerEventType, CommissionLedgerStatus, type PrismaClient } from '@prisma/client';
 import { marketplaceCalendarWindowBlocksCommission } from '@/lib/affiliate-revenue-window';
 
 /**
@@ -25,11 +26,13 @@ export async function processCommissionForInvoice(
   invoiceId: string,
   subscriptionId: string,
   amountPaidCents: number,
-  metadata?: Record<string, string>
+  metadata?: Record<string, string>,
+  database?: PrismaClient,
 ): Promise<void> {
   try {
+    const db = database ?? prisma;
     // Get BusinessSubscription
-    const businessSubscription = await prisma.businessSubscription.findFirst({
+    const businessSubscription = await db.businessSubscription.findFirst({
       where: { stripeSubscriptionId: subscriptionId },
       include: {
         attribution: {
@@ -61,7 +64,7 @@ export async function processCommissionForInvoice(
     }
 
     // Check idempotency - prevent duplicate ledger entries
-    const existingLedger = await prisma.commissionLedger.findUnique({
+    const existingLedger = await db.commissionLedger.findUnique({
       where: { eventId: invoiceId },
     });
 
@@ -83,7 +86,12 @@ export async function processCommissionForInvoice(
     }
 
     const l1Affiliate = businessSubscription.attribution.affiliate;
-    
+    const commissionParties = [businessSubscription.businessUserId, businessSubscription.attribution.userId];
+    if (beneficiaryUserIdBlocked(l1Affiliate.userId, commissionParties)) {
+      console.warn(`[affiliate] self-referral blocked invoice=${invoiceId}`);
+      return;
+    }
+
     // Check if this is a sub-affiliate (has parent)
     const isSubAffiliate = !!l1Affiliate.parentAffiliateId;
     
@@ -126,7 +134,7 @@ export async function processCommissionForInvoice(
 
     // Affiliate commission (50% voor direct, 40% voor sub, minus korting als die is gegeven)
     if (finalAffiliateCommissionCents > 0) {
-      await prisma.commissionLedger.create({
+      await db.commissionLedger.create({
         data: {
           eventId: invoiceId,
           eventType: CommissionLedgerEventType.INVOICE_PAID,
@@ -154,7 +162,17 @@ export async function processCommissionForInvoice(
     }
     
     // If this is a sub-affiliate, also create commission for parent affiliate (10% or custom)
-    if (isSubAffiliate && l1Affiliate.parentAffiliateId) {
+    const parentAffiliate = l1Affiliate.parentAffiliate;
+    const parentPayable =
+      isSubAffiliate &&
+      parentOverrideAllowed({
+        affiliateId: l1Affiliate.id,
+        affiliateUserId: l1Affiliate.userId,
+        parentAffiliateId: l1Affiliate.parentAffiliateId,
+        parentUserId: parentAffiliate?.userId,
+        partyUserIds: commissionParties,
+      });
+    if (parentPayable && l1Affiliate.parentAffiliateId) {
       const { calculateParentAffiliateBusinessCommission } = await import('./affiliate-config');
       const parentCommissionCents = calculateParentAffiliateBusinessCommission(
         amountPaidCents,
@@ -162,7 +180,7 @@ export async function processCommissionForInvoice(
       );
       
       if (parentCommissionCents > 0) {
-        await prisma.commissionLedger.create({
+        await db.commissionLedger.create({
           data: {
             eventId: `${invoiceId}_parent`,
             eventType: CommissionLedgerEventType.INVOICE_PAID,
@@ -221,12 +239,14 @@ export async function processCommissionForOrder(
   homecheffFeeCents: number,
   buyerId: string,
   sellerId: string,
-  metadata?: Record<string, string>
+  metadata?: Record<string, string>,
+  database?: PrismaClient,
 ): Promise<void> {
   try {
+    const db = database ?? prisma;
     const now = new Date();
 
-    const existingAny = await prisma.commissionLedger.findFirst({
+    const existingAny = await db.commissionLedger.findFirst({
       where: {
         OR: [
           { eventId: orderId },
@@ -251,7 +271,7 @@ export async function processCommissionForOrder(
     const [buyerEco, sellerEco, buyerAttribution, sellerAttribution] = await Promise.all([
       resolveActiveEcosystemAttribution({ referredUserId: buyerId, at: now }),
       resolveActiveEcosystemAttribution({ referredUserId: sellerId, at: now }),
-      prisma.attribution.findFirst({
+      db.attribution.findFirst({
         where: {
           userId: buyerId,
           type: 'USER_SIGNUP',
@@ -260,7 +280,7 @@ export async function processCommissionForOrder(
         include: { affiliate: true },
         orderBy: { createdAt: 'asc' },
       }),
-      prisma.attribution.findFirst({
+      db.attribution.findFirst({
         where: {
           userId: sellerId,
           type: 'USER_SIGNUP',
@@ -295,9 +315,9 @@ export async function processCommissionForOrder(
     });
 
     async function ensureAffiliateSeat(userId: string) {
-      const existing = await prisma.affiliate.findUnique({ where: { userId } });
+      const existing = await db.affiliate.findUnique({ where: { userId } });
       if (existing) return existing;
-      return prisma.affiliate.create({
+      return db.affiliate.create({
         data: { userId, status: 'ACTIVE', populationClass: 'TECHNICAL' },
       });
     }
@@ -314,7 +334,7 @@ export async function processCommissionForOrder(
       if (!buyerAffiliate.parentAffiliateId && buyerEco.affiliateParentCentralUserId) {
         const parentSeat = await ensureAffiliateSeat(buyerEco.affiliateParentCentralUserId);
         if (parentSeat.id !== buyerAffiliate.id) {
-          buyerAffiliate = await prisma.affiliate.update({
+          buyerAffiliate = await db.affiliate.update({
             where: { id: buyerAffiliate.id },
             data: { parentAffiliateId: parentSeat.id },
           });
@@ -330,7 +350,7 @@ export async function processCommissionForOrder(
       if (!sellerAffiliate.parentAffiliateId && sellerEco.affiliateParentCentralUserId) {
         const parentSeat = await ensureAffiliateSeat(sellerEco.affiliateParentCentralUserId);
         if (parentSeat.id !== sellerAffiliate.id) {
-          sellerAffiliate = await prisma.affiliate.update({
+          sellerAffiliate = await db.affiliate.update({
             where: { id: sellerAffiliate.id },
             data: { parentAffiliateId: parentSeat.id },
           });
@@ -369,12 +389,19 @@ export async function processCommissionForOrder(
       const affiliate =
         line.affiliateId === buyerAffiliateId
           ? buyerAffiliate ??
-            (await prisma.affiliate.findUnique({ where: { id: line.affiliateId } }))
+            (await db.affiliate.findUnique({ where: { id: line.affiliateId } }))
           : line.affiliateId === sellerAffiliateId
             ? sellerAffiliate ??
-              (await prisma.affiliate.findUnique({ where: { id: line.affiliateId } }))
-            : await prisma.affiliate.findUnique({ where: { id: line.affiliateId } });
+              (await db.affiliate.findUnique({ where: { id: line.affiliateId } }))
+            : await db.affiliate.findUnique({ where: { id: line.affiliateId } });
       if (!affiliate) continue;
+
+      const referredPartyIds =
+        line.side === 'BUYER' ? [buyerId] : line.side === 'SELLER' ? [sellerId] : [buyerId, sellerId];
+      if (beneficiaryUserIdBlocked(affiliate.userId, referredPartyIds)) {
+        console.warn(`[affiliate] self-referral blocked order=${orderId} side=${line.side}`);
+        continue;
+      }
 
       const isSub = !!affiliate.parentAffiliateId;
       const split = splitAffiliateLineForHierarchy({
@@ -383,29 +410,35 @@ export async function processCommissionForOrder(
       });
       const directCents = split.partnerOrDirectCents;
       const parentCents = split.mainOverrideCents;
-      if (isSub && affiliate.parentAffiliateId) {
-        // Keep canonical tree in sync with local parent (prospective, non-blocking).
-        void prisma.affiliate
-          .findUnique({
-            where: { id: affiliate.parentAffiliateId },
-            select: { userId: true },
-          })
-          .then((parentAff) => {
-            if (!parentAff) return;
-            return import('@/lib/affiliates/ecosystem-attribution-bridge').then(
-              ({ bridgeMarketplaceParentEdgeToEcosystem }) =>
-                bridgeMarketplaceParentEdgeToEcosystem({
-                  childUserId: affiliate.userId,
-                  parentUserId: parentAff.userId,
-                  context: `marketplace_commission:${orderId}`,
-                }),
-            );
-          })
-          .catch(() => undefined);
+      let parentPayable = false;
+      if (parentCents > 0 && affiliate.parentAffiliateId) {
+        const parentAff = await db.affiliate.findUnique({
+          where: { id: affiliate.parentAffiliateId },
+          select: { userId: true },
+        });
+        parentPayable = parentOverrideAllowed({
+          affiliateId: affiliate.id,
+          affiliateUserId: affiliate.userId,
+          parentAffiliateId: affiliate.parentAffiliateId,
+          parentUserId: parentAff?.userId,
+          partyUserIds: referredPartyIds,
+        });
+        const parentUserId = parentAff?.userId;
+        if (parentPayable && parentUserId) {
+          void import('@/lib/affiliates/ecosystem-attribution-bridge')
+            .then(({ bridgeMarketplaceParentEdgeToEcosystem }) =>
+              bridgeMarketplaceParentEdgeToEcosystem({
+                childUserId: affiliate.userId,
+                parentUserId,
+                context: `marketplace_commission:${orderId}`,
+              }),
+            )
+            .catch(() => undefined);
+        }
       }
 
       if (directCents > 0) {
-        await prisma.commissionLedger.create({
+        await db.commissionLedger.create({
           data: {
             eventId: `${orderId}:${line.affiliateId}:${line.side}`,
             eventType: CommissionLedgerEventType.ORDER_PAID,
@@ -433,8 +466,8 @@ export async function processCommissionForOrder(
         totalCommissionCents += directCents;
       }
 
-      if (parentCents > 0 && affiliate.parentAffiliateId) {
-        await prisma.commissionLedger.create({
+      if (parentPayable && parentCents > 0 && affiliate.parentAffiliateId) {
+        await db.commissionLedger.create({
           data: {
             eventId: `${orderId}:${affiliate.parentAffiliateId}:PARENT:${line.side}`,
             eventType: CommissionLedgerEventType.ORDER_PAID,
@@ -502,6 +535,11 @@ export type CommissionReversalInput = {
   invoiceId?: string | null;
   /** Marketplace order id — reverses ORDER_PAID ledgers for that order */
   orderId?: string | null;
+  /**
+   * Optional client for callers that already hold the request transaction.
+   * Marketplace callers omit this and keep the shared Prisma client.
+   */
+  db?: PrismaClient;
 };
 
 function proportionalCommissionRefund(
@@ -551,6 +589,7 @@ export async function processCommissionReversal(
     refundedAmountCents,
     chargeAmountCents,
     eventType: reversalType,
+    db = prisma,
   } = input;
 
   if (!invoiceId && !orderId) {
@@ -578,7 +617,7 @@ export async function processCommissionReversal(
       eventIdOr.push({ eventId: { startsWith: `${orderId}:` } });
     }
 
-    const byEventId = await prisma.commissionLedger.findMany({
+    const byEventId = await db.commissionLedger.findMany({
       where: {
         OR: eventIdOr,
         status: {
@@ -601,7 +640,7 @@ export async function processCommissionReversal(
     // Also match ORDER_PAID rows via meta.orderId (authoritative marketplace key)
     let byMetaOrder: typeof byEventId = [];
     if (orderId) {
-      byMetaOrder = await prisma.commissionLedger.findMany({
+      byMetaOrder = await db.commissionLedger.findMany({
         where: {
           eventType: CommissionLedgerEventType.ORDER_PAID,
           status: {
@@ -631,12 +670,12 @@ export async function processCommissionReversal(
 
     for (const ledger of originalLedgers) {
       const reversalRowEventId = `${reversalEventId}_${ledger.id}`;
-      const existingReversal = await prisma.commissionLedger.findUnique({
+      const existingReversal = await db.commissionLedger.findUnique({
         where: { eventId: reversalRowEventId },
       });
       if (existingReversal) {
         if (ledger.status !== CommissionLedgerStatus.REVERSED) {
-          await prisma.commissionLedger.update({
+          await db.commissionLedger.update({
             where: { id: ledger.id },
             data: { status: CommissionLedgerStatus.REVERSED },
           });
@@ -657,7 +696,7 @@ export async function processCommissionReversal(
       );
       if (refundAmount <= 0) continue;
 
-      await prisma.commissionLedger.create({
+      await db.commissionLedger.create({
         data: {
           eventId: reversalRowEventId,
           eventType:
@@ -683,7 +722,7 @@ export async function processCommissionReversal(
         },
       });
 
-      await prisma.commissionLedger.update({
+      await db.commissionLedger.update({
         where: { id: ledger.id },
         data: { status: CommissionLedgerStatus.REVERSED },
       });

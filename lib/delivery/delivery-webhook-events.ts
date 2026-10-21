@@ -1,4 +1,5 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
+import { reconcileDeliveryRefundBooks } from '@/lib/delivery/delivery-refund-books';
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -10,6 +11,7 @@ type SessionLike = {
 
 type ChargeLike = {
   id: string;
+  amount?: number | null;
   amount_refunded?: number | null;
   currency?: string | null;
   payment_intent?: string | { id: string } | null;
@@ -99,24 +101,33 @@ export async function observeStandaloneChargeRefund(
   if (!row?.deliveryOrderId) return { handled: true as const, ok: true as const, ignored: 'no_delivery' as const };
   const key = `delivery_refund_observed_${charge.id}`;
   const existing = await db.deliveryRefundDecision.findUnique({ where: { idempotencyKey: key } });
-  if (existing) return { handled: true as const, ok: true as const, duplicate: true as const };
-  await db.deliveryRefundDecision.create({
-    data: {
-      deliveryOrderId: row.deliveryOrderId,
-      orderId: null,
-      idempotencyKey: key,
-      decision: 'OBSERVED',
-      reason: 'Stripe meldde charge.refunded voor deze bezorgbetaling. Er is geen nieuwe terugbetaling gemaakt.',
-      amountCents: charge.amount_refunded ?? 0,
-      currency: (charge.currency || 'eur').toUpperCase(),
-      stripePaymentRef: typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id || null,
-      stripeStatus: 'succeeded',
-      outstandingCents: 0,
-      adminUserId: 'stripe-webhook',
-      executedAt: new Date(),
-    },
-  });
-  return { handled: true as const, ok: true as const };
+  const payout = typeof db.payout?.findUnique === 'function'
+    ? await db.payout.findUnique({ where: { id: `payout_delivery_${row.deliveryOrderId}` } })
+    : null;
+  const transferred = Boolean(payout?.providerRef?.startsWith('tr_'));
+  const reversalRecorded = Boolean(
+    existing && 'stripeReversalId' in existing && existing.stripeReversalId,
+  );
+  if (!existing) {
+    await db.deliveryRefundDecision.create({
+      data: {
+        deliveryOrderId: row.deliveryOrderId,
+        orderId: null,
+        idempotencyKey: key,
+        decision: 'OBSERVED',
+        reason: 'Stripe meldde charge.refunded voor deze bezorgbetaling. Er is geen nieuwe terugbetaling gemaakt.',
+        amountCents: charge.amount_refunded ?? 0,
+        currency: (charge.currency || 'eur').toUpperCase(),
+        stripePaymentRef: typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id || null,
+        stripeStatus: 'succeeded',
+        outstandingCents: transferred && !reversalRecorded ? payout?.amountCents ?? 0 : 0,
+        adminUserId: 'stripe-webhook',
+        executedAt: new Date(),
+      },
+    });
+  }
+  await reconcileObservedStandaloneRefund(db, row, charge, transferred && !reversalRecorded);
+  return { handled: true as const, ok: true as const, duplicate: Boolean(existing) };
 }
 
 export async function observeStandaloneDispute(
@@ -202,4 +213,25 @@ export async function recordDeliveryTransferCreated(
     data: { providerRef: transfer.id, transferFailureCode: null, transferFailureAt: null },
   });
   return { matched: true as const };
+}
+
+async function reconcileObservedStandaloneRefund(
+  db: Db,
+  row: { id: string; deliveryOrderId: string | null; buyerTotalCents?: number | null },
+  charge: ChargeLike,
+  courierStillPaid: boolean,
+) {
+  if (!row.deliveryOrderId) return;
+  try {
+    await reconcileDeliveryRefundBooks(db as PrismaClient, {
+      deliveryOrderId: row.deliveryOrderId,
+      refundedCents: charge.amount_refunded ?? 0,
+      chargeCents: charge.amount ?? row.buyerTotalCents ?? 0,
+      stripeRefundId: charge.id,
+      clawbackCourier: !courierStillPaid,
+      affiliateSourceOrderId: `${row.id}_delivery_${row.deliveryOrderId}`,
+    });
+  } catch (error) {
+    console.error('[delivery-refund-books]', error);
+  }
 }

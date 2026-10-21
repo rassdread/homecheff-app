@@ -10,6 +10,7 @@ import {
   splitDeliveryCommission,
 } from '@/lib/hc/marketplace-hc-delivery-economics';
 import { ensureDeliveryPayout } from '@/lib/delivery/delivery-payout';
+import { beneficiaryUserIdBlocked } from '@/lib/affiliates/self-referral-guard';
 
 export {
   HC_DELIVERY_POLICY_VERSION,
@@ -156,7 +157,19 @@ export async function accrueHcDeliveryPlatformFeeAffiliate(input: {
     },
   });
 
-  if (sides.buyerSource === 'ECOSYSTEM' && sides.buyerAffiliateKey) {
+  const buyerEcoIsSelf =
+    sides.buyerSource === 'ECOSYSTEM' &&
+    Boolean(sides.buyerAffiliateKey) &&
+    beneficiaryUserIdBlocked(sides.buyerAffiliateKey, [input.buyerUserId]);
+  const providerEcoIsSelf =
+    sides.providerSource === 'ECOSYSTEM' &&
+    Boolean(sides.providerAffiliateKey) &&
+    beneficiaryUserIdBlocked(sides.providerAffiliateKey, [input.providerUserId]);
+  if (buyerEcoIsSelf || providerEcoIsSelf) {
+    console.warn('[delivery-affiliate] self-referral blocked before ecosystem accrual');
+  }
+
+  if (sides.buyerSource === 'ECOSYSTEM' && sides.buyerAffiliateKey && !buyerEcoIsSelf) {
     const eco = await recordDeliveryPlatformFeeEcosystemCommission({
       referredUserId: input.buyerUserId,
       sourceTransactionId,
@@ -179,7 +192,7 @@ export async function accrueHcDeliveryPlatformFeeAffiliate(input: {
     );
   }
 
-  if (sides.providerSource === 'ECOSYSTEM' && sides.providerAffiliateKey && !sides.buyerAffiliateKey) {
+  if (sides.providerSource === 'ECOSYSTEM' && sides.providerAffiliateKey && !sides.buyerAffiliateKey && !providerEcoIsSelf) {
     const eco = await recordDeliveryPlatformFeeEcosystemCommission({
       referredUserId: input.providerUserId,
       sourceTransactionId,

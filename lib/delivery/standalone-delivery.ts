@@ -514,11 +514,49 @@ export async function createStandaloneCheckout(input: {
   return { ok: true as const, url: session.url, sessionId: session.id, buyerTotalCents: row.buyerTotalCents };
 }
 
+type AccrueStandaloneInput = {
+  orderId: string;
+  deliveryOrderId: string;
+  deliveryFeeCents: number;
+  buyerUserId: string;
+  providerUserId: string;
+};
+
 type FulfillDeps = {
   db?: typeof prisma;
   stripeSecret?: string | null;
   notify?: (userId: string, deliveryOrderId: string, feeCents: number, distanceKm: number) => Promise<void>;
+  accrue?: (input: AccrueStandaloneInput) => Promise<unknown>;
 };
+
+function checkoutPaymentIntentId(session: Stripe.Checkout.Session) {
+  if (typeof session.payment_intent === 'string') return session.payment_intent;
+  if (session.payment_intent && typeof session.payment_intent === 'object') return session.payment_intent.id;
+  return null;
+}
+
+async function accrueStandaloneAffiliate(
+  deps: FulfillDeps,
+  row: { id: string; quotedFeeCents: number; requesterUserId: string },
+  deliveryOrderId: string,
+  providerUserId: string,
+) {
+  try {
+    const accrue = deps.accrue ?? (async (input: AccrueStandaloneInput) => {
+      const { accrueHcDeliveryPlatformFeeAffiliate } = await import('@/lib/hc/marketplace-hc-delivery');
+      return accrueHcDeliveryPlatformFeeAffiliate(input);
+    });
+    await accrue({
+      orderId: row.id,
+      deliveryOrderId,
+      deliveryFeeCents: row.quotedFeeCents,
+      buyerUserId: row.requesterUserId,
+      providerUserId,
+    });
+  } catch (error) {
+    console.error('[standalone-affiliate] accrual failed', error);
+  }
+}
 
 async function rememberUnfulfilledPayment(
   db: typeof prisma,
@@ -577,6 +615,13 @@ export async function fulfillStandaloneDeliveryPayment(
     );
   }
   if (row.deliveryOrderId) {
+    const profile = await db.deliveryProfile.findUnique({
+      where: { id: row.deliveryProfileId },
+      select: { userId: true },
+    });
+    if (profile && row.paymentStatus === 'PAID') {
+      await accrueStandaloneAffiliate(deps, row, row.deliveryOrderId, profile.userId);
+    }
     return { handled: true as const, ok: true as const, duplicate: true, deliveryOrderId: row.deliveryOrderId };
   }
   if (row.stripeSessionId && row.stripeSessionId !== session.id) {
@@ -664,7 +709,7 @@ export async function fulfillStandaloneDeliveryPayment(
         transactionId: txnId,
         toUserId: profile.userId,
         amountCents: row.providerNetPayoutCents,
-        providerRef: typeof session.payment_intent === 'string' ? session.payment_intent : null,
+        providerRef: checkoutPaymentIntentId(session),
       },
     });
     await tx.deliveryProfile.update({
@@ -678,9 +723,11 @@ export async function fulfillStandaloneDeliveryPayment(
     return { duplicate: false as const, deliveryOrderId: deliveryOrder.id };
   });
   if (fulfilled.duplicate) {
+    await accrueStandaloneAffiliate(deps, row, fulfilled.deliveryOrderId, profile.userId);
     return { handled: true as const, ok: true as const, duplicate: true, deliveryOrderId: fulfilled.deliveryOrderId };
   }
   const deliveryOrder = { id: fulfilled.deliveryOrderId };
+  await accrueStandaloneAffiliate(deps, row, deliveryOrder.id, profile.userId);
 
   try {
     if (deps.notify) {

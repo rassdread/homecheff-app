@@ -58,7 +58,8 @@ function getStripe(): Stripe | null {
  */
 export async function ensureDeliveryPayout(
   prisma: PrismaClient,
-  input: DeliveryPayoutInput
+  input: DeliveryPayoutInput,
+  deps?: { stripe?: Stripe | null },
 ): Promise<DeliveryPayoutResult> {
   const { deliveryOrderId, orderId, delivererUserId, buyerUserId } = input;
 
@@ -111,6 +112,16 @@ export async function ensureDeliveryPayout(
         blockCode: 'HC_DELIVERY_REFUNDED',
       };
     }
+    if (deliveryOrder.status !== 'DELIVERED') {
+      return {
+        created: false,
+        payoutId: `payout_delivery_${deliveryOrderId}`,
+        amountCents: 0,
+        blocked: true,
+        blockCode: 'DELIVERY_NOT_COMPLETE',
+        transferStatus: 'SKIPPED',
+      };
+    }
   }
 
   let grossFeeCents: number;
@@ -153,6 +164,8 @@ export async function ensureDeliveryPayout(
       amountCents: true,
       providerRef: true,
       destinationConnectAccountId: true,
+      transferFailureCode: true,
+      transferFailureAt: true,
     },
   });
 
@@ -267,7 +280,7 @@ export async function ensureDeliveryPayout(
     }
   }
 
-  const stripe = getStripe();
+  const stripe = deps && Object.prototype.hasOwnProperty.call(deps, 'stripe') ? deps.stripe ?? null : getStripe();
   if (!stripe) {
     return {
       created,
@@ -283,6 +296,7 @@ export async function ensureDeliveryPayout(
   }
 
   let sourceTransactionChargeId: string | null = null;
+  let sourceChargeAmount: number | null = null;
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     select: {
@@ -291,21 +305,113 @@ export async function ensureDeliveryPayout(
     },
   });
 
+  let checkoutSessionId: string | null = null;
+  let paymentMethod = order?.paymentMethod || '';
   if (order?.stripeSessionId && order.paymentMethod !== 'HC_ONLY') {
+    checkoutSessionId = order.stripeSessionId;
+  } else if (!order?.stripeSessionId) {
+    const standalone = await prisma.standaloneDeliveryRequest.findFirst({
+      where: { deliveryOrderId },
+      select: { stripeSessionId: true, paymentStatus: true },
+    });
+    if (standalone?.paymentStatus === 'PAID' && standalone.stripeSessionId) {
+      checkoutSessionId = standalone.stripeSessionId;
+      paymentMethod = 'STANDALONE_DELIVERY';
+    }
+  }
+
+  if (checkoutSessionId) {
     try {
-      const resolved = await resolveChargeIdForCheckoutSession(
-        stripe,
-        order.stripeSessionId,
-      );
+      const resolved = await resolveChargeIdForCheckoutSession(stripe, checkoutSessionId);
       sourceTransactionChargeId = resolved.chargeId;
+      sourceChargeAmount =
+        resolved.charge && typeof resolved.charge.amount === 'number' ? resolved.charge.amount : null;
     } catch {
       sourceTransactionChargeId = null;
     }
   }
 
+  const transferAmount = Math.min(
+    deliveryPersonCut,
+    existingPayout?.amountCents ?? deliveryPersonCut,
+  );
+  if (transferAmount <= 0) {
+    return {
+      created,
+      payoutId,
+      amountCents: 0,
+      grossFeeCents: split.grossFeeCents,
+      amountSource,
+      blocked: true,
+      blockCode: 'NOTHING_TO_TRANSFER',
+      transferStatus: 'SKIPPED',
+      connectedAccountId: destination,
+    };
+  }
+  if (sourceChargeAmount !== null && transferAmount > sourceChargeAmount) {
+    return {
+      created,
+      payoutId,
+      amountCents: transferAmount,
+      grossFeeCents: split.grossFeeCents,
+      amountSource,
+      blocked: true,
+      blockCode: 'TRANSFER_EXCEEDS_SOURCE',
+      transferStatus: 'FAILED',
+      connectedAccountId: destination,
+    };
+  }
+  if (paymentMethod === 'STANDALONE_DELIVERY' && !sourceTransactionChargeId) {
+    await prisma.payout.update({
+      where: { id: payoutId },
+      data: {
+        transferFailureCode: 'SOURCE_CHARGE_MISSING',
+        transferFailureAt: new Date(),
+      },
+    });
+    return {
+      created,
+      payoutId,
+      amountCents: transferAmount,
+      grossFeeCents: split.grossFeeCents,
+      amountSource,
+      blocked: true,
+      blockCode: 'SOURCE_CHARGE_MISSING',
+      transferStatus: 'FAILED',
+      connectedAccountId: destination,
+    };
+  }
+
   try {
+    const existingTransfer = await findConfirmedDeliveryTransfer(stripe, {
+      orderId,
+      deliveryOrderId,
+      amount: transferAmount,
+    });
+    if (existingTransfer) {
+      await prisma.payout.update({
+        where: { id: payoutId },
+        data: {
+          providerRef: existingTransfer,
+          destinationConnectAccountId: destination,
+          transferFailureCode: null,
+          transferFailureAt: null,
+        },
+      });
+      return {
+        created,
+        payoutId,
+        amountCents: transferAmount,
+        grossFeeCents: split.grossFeeCents,
+        amountSource,
+        transferId: existingTransfer,
+        transferStatus: 'ALREADY_DONE',
+        connectedAccountId: destination,
+      };
+    }
+
     const transferParams: Stripe.TransferCreateParams = {
-      amount: deliveryPersonCut,
+      amount: transferAmount,
       currency: 'eur',
       destination,
       transfer_group: `order_${orderId}`,
@@ -315,29 +421,39 @@ export async function ensureDeliveryPayout(
         purpose: 'delivery_provider_principal',
         providerUserId: delivererUserId,
         sourceTransactionChargeId: sourceTransactionChargeId || '',
-        paymentMethod: order?.paymentMethod || '',
+        paymentMethod,
       },
     };
     if (sourceTransactionChargeId) {
       transferParams.source_transaction = sourceTransactionChargeId;
     }
 
+    const retryStamp = existingPayout?.transferFailureAt
+      ? `_${existingPayout.transferFailureAt.getTime()}`
+      : existingPayout?.transferFailureCode
+        ? `_${existingPayout.transferFailureCode}`
+        : '';
     const transfer = await stripe.transfers.create(transferParams, {
-      idempotencyKey: `delivery_xfer_${deliveryOrderId}_v1`,
+      idempotencyKey: `delivery_xfer_${deliveryOrderId}_${sourceTransactionChargeId || 'balance'}${retryStamp}`,
     });
+    if (!transfer.id?.startsWith('tr_')) {
+      throw new Error('Stripe did not confirm a transfer id');
+    }
 
     await prisma.payout.update({
       where: { id: payoutId },
       data: {
         providerRef: transfer.id,
         destinationConnectAccountId: destination,
+        transferFailureCode: null,
+        transferFailureAt: null,
       },
     });
 
     return {
       created,
       payoutId,
-      amountCents: deliveryPersonCut,
+      amountCents: transferAmount,
       grossFeeCents: split.grossFeeCents,
       amountSource,
       transferId: transfer.id,
@@ -346,14 +462,15 @@ export async function ensureDeliveryPayout(
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
+    const lower = message.toLowerCase();
     if (
-      message.includes('idempoten') ||
-      message.toLowerCase().includes('already')
+      (lower.includes('idempoten') || lower.includes('already')) &&
+      !lower.includes('mismatch')
     ) {
       return {
         created,
         payoutId,
-        amountCents: deliveryPersonCut,
+        amountCents: transferAmount,
         grossFeeCents: split.grossFeeCents,
         amountSource,
         transferId: null,
@@ -365,24 +482,50 @@ export async function ensureDeliveryPayout(
       `[delivery-payout] Connect transfer failed deliveryOrder=${deliveryOrderId}:`,
       message,
     );
+    const failureCode = lower.includes('insufficient')
+      ? 'INSUFFICIENT_BALANCE'
+      : 'CONNECT_TRANSFER_FAILED';
     await prisma.payout.update({
       where: { id: payoutId },
       data: {
-        transferFailureCode: 'CONNECT_TRANSFER_FAILED',
+        transferFailureCode: failureCode,
         transferFailureAt: new Date(),
       },
     });
     return {
       created,
       payoutId,
-      amountCents: deliveryPersonCut,
+      amountCents: transferAmount,
       grossFeeCents: split.grossFeeCents,
       amountSource,
       transferId: null,
       transferStatus: 'FAILED',
       connectedAccountId: destination,
-      blockCode: 'CONNECT_TRANSFER_FAILED',
+      blockCode: failureCode,
     };
+  }
+}
+
+async function findConfirmedDeliveryTransfer(
+  stripe: Stripe,
+  input: { orderId: string; deliveryOrderId: string; amount: number },
+): Promise<string | null> {
+  if (typeof stripe.transfers.list !== 'function') return null;
+  try {
+    const listed = await stripe.transfers.list({
+      transfer_group: `order_${input.orderId}`,
+      limit: 20,
+    });
+    const match = listed.data.find(
+      (transfer) =>
+        transfer.id.startsWith('tr_') &&
+        transfer.metadata?.deliveryOrderId === input.deliveryOrderId &&
+        transfer.amount === input.amount &&
+        transfer.reversed !== true,
+    );
+    return match?.id ?? null;
+  } catch {
+    return null;
   }
 }
 
