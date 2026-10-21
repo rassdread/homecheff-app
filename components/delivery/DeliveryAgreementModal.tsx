@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -7,6 +9,10 @@ import { useTranslation } from '@/hooks/useTranslation';
 /**
  * Shared courier agreement. Private and business insurance duties are separate sections.
  * Closing it does not accept the agreement.
+ *
+ * Signup pages use overflow-x-clip, which traps a nested z-index below the sticky
+ * header (z-[100]). Portaling to document.body uses the same layer as other
+ * Marketplace dialogs that must clear that header.
  */
 export default function DeliveryAgreementModal({
   open,
@@ -16,11 +22,17 @@ export default function DeliveryAgreementModal({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-  if (!open) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!open || !mounted) return null;
+
+  return createPortal(
     <div
-      className="fixed inset-x-0 top-0 z-[75] flex items-center justify-center bg-black bg-opacity-50 p-3 sm:p-4"
+      className="fixed inset-x-0 top-0 z-[110] flex items-center justify-center bg-black bg-opacity-50 p-3 sm:p-4"
       style={{ bottom: 'var(--hc-cookie-banner-offset, 0px)' }}
       role="dialog"
       aria-modal="true"
@@ -114,6 +126,7 @@ export default function DeliveryAgreementModal({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

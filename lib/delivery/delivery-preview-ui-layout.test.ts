@@ -14,7 +14,10 @@ describe('delivery preview ui layout', () => {
   it('keeps the agreement footer inside a scrolling panel', () => {
     const modal = read('components/delivery/DeliveryAgreementModal.tsx');
     assert.match(modal, /--hc-cookie-banner-offset/);
-    assert.match(modal, /z-\[75\]/);
+    assert.match(modal, /createPortal\(/);
+    assert.match(modal, /document\.body/);
+    assert.match(modal, /z-\[110\]/);
+    assert.doesNotMatch(modal, /z-\[75\]/);
     assert.match(modal, /max-h-full/);
     assert.match(modal, /min-h-0 flex-1 overflow-y-auto/);
     assert.match(modal, /shrink-0 justify-end/);
