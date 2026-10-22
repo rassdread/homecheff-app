@@ -1,8 +1,8 @@
 import type { PrismaClient } from '@prisma/client';
 import { NotificationService } from '@/lib/notifications/notification-service';
 import { marketplaceDeliveryRefundPlan } from '@/lib/delivery/delivery-ops-queue';
+import { recoverCourierTransfer } from '@/lib/delivery/courier-transfer-recovery';
 import { reconcileDeliveryRefundBooks } from '@/lib/delivery/delivery-refund-books';
-import { splitDeliveryCommission } from '@/lib/delivery/quote-snapshot';
 
 export type CustomerRefundStatus =
   | 'CANCELLATION_REQUESTED'
@@ -178,17 +178,8 @@ export async function executeDeliveryRefundDecision(
 
   const key = refundIdempotencyKey(order.id);
   const existing = await prisma.deliveryRefundDecision.findUnique({ where: { idempotencyKey: key } });
-  if (existing?.stripeRefundId || existing?.decision === 'REJECT' || existing?.stripeStatus === 'MANUAL') {
-    if (existing.stripeRefundId && existing.stripeStatus === 'succeeded' && existing.outstandingCents === 0) {
-      await reconcileSavedDeliveryRefund(prisma, {
-        deliveryOrderId: order.id,
-        refundedCents: existing.amountCents,
-        chargeCents: request.buyerTotalCents,
-        stripeRefundId: existing.stripeRefundId,
-        affiliateSourceOrderId: `${request.id}_delivery_${order.id}`,
-      });
-    }
-    return { ok: true as const, duplicate: true, decision: existing };
+  if (existing?.decision === 'REJECT') {
+    return { ok: true as const, duplicate: true, decision: existing, customerStatus: customerRefundStatus(existing) };
   }
 
   const session = await stripe.checkout.sessions.retrieve(request.stripeSessionId);
@@ -198,10 +189,36 @@ export async function executeDeliveryRefundDecision(
     return { ok: false as const, status: 409, code: 'PAYMENT_REFERENCE_MISSING', error: 'Stripe-betaling ontbreekt.' };
   }
 
-  const priorRefunded = existing?.stripeStatus === 'succeeded' ? existing.amountCents : 0;
-  const remaining = paid - priorRefunded;
-  const requested = input.decision === 'REJECT' ? 0 : input.amountCents ?? remaining;
-  if (input.decision === 'APPROVE' && (requested <= 0 || requested > remaining)) {
+  const alreadyRefundedCents = existing?.stripeRefundId ? existing.amountCents : 0;
+  const settledReplay = Boolean(
+    existing?.stripeRefundId
+    && existing.outstandingCents === 0
+    && existing.stripeStatus === 'succeeded'
+    && (input.amountCents == null
+      ? alreadyRefundedCents >= paid
+      : input.amountCents === existing.amountCents),
+  );
+  if (settledReplay && existing) {
+    await reconcileSavedDeliveryRefund(prisma, {
+      deliveryOrderId: order.id,
+      refundedCents: existing.amountCents,
+      chargeCents: paid,
+      stripeRefundId: existing.stripeRefundId,
+      clawbackCourier: true,
+      affiliateSourceOrderId: `${request.id}_delivery_${order.id}`,
+    });
+    return { ok: true as const, duplicate: true, decision: existing, customerStatus: customerRefundStatus(existing) };
+  }
+  const recoveryRetry = Boolean(
+    existing?.stripeRefundId
+    && existing.outstandingCents > 0
+    && (input.amountCents == null || input.amountCents === existing.amountCents),
+  );
+  const remaining = paid - alreadyRefundedCents;
+  const requested = recoveryRetry
+    ? 0
+    : input.decision === 'REJECT' ? 0 : input.amountCents ?? remaining;
+  if (!recoveryRetry && input.decision === 'APPROVE' && (requested <= 0 || requested > remaining)) {
     return { ok: false as const, status: 409, code: 'REFUND_AMOUNT_INVALID', error: 'Het bedrag is hoger dan het resterende terugbetaalbare bedrag.' };
   }
 
@@ -212,37 +229,14 @@ export async function executeDeliveryRefundDecision(
     },
   });
   const transferred = Boolean(payout?.providerRef?.startsWith('tr_'));
-  const partial = input.decision === 'APPROVE' && requested < remaining;
-  if (partial && transferred) {
-    return {
-      ok: false as const,
-      status: 409,
-      code: 'PARTIAL_REFUND_UNSUPPORTED',
-      error: 'Een gedeeltelijke terugbetaling is niet beschikbaar nadat de bezorger is uitbetaald.',
-    };
-  }
-
-  const split = splitDeliveryCommission(request.quotedFeeCents);
-  let reversalId: string | null = null;
-  let outstanding = 0;
+  let reversalId: string | null = existing?.stripeReversalId ?? null;
+  let outstanding = existing?.outstandingCents ?? 0;
   let stripeStatus = input.decision === 'REJECT' ? 'rejected' : 'PENDING';
-  let refundId: string | null = null;
+  let refundId: string | null = existing?.stripeRefundId ?? null;
+  let cumulativeRefunded = alreadyRefundedCents;
+  let recoveredCents = 0;
 
-  if (input.decision === 'APPROVE' && transferred && payout?.providerRef) {
-    try {
-      const reversal = await stripe.transfers.createReversal(
-        payout.providerRef,
-        { amount: split.providerNetPayoutCents },
-        { idempotencyKey: `delivery_reversal_${order.id}_v1` },
-      );
-      reversalId = reversal.id;
-    } catch {
-      outstanding = split.providerNetPayoutCents;
-      stripeStatus = 'MANUAL';
-    }
-  }
-
-  if (input.decision === 'APPROVE' && stripeStatus !== 'MANUAL') {
+  if (input.decision === 'APPROVE' && !recoveryRetry) {
     try {
       const refund = await stripe.refunds.create(
         { payment_intent: paymentRef, amount: requested },
@@ -250,10 +244,39 @@ export async function executeDeliveryRefundDecision(
       );
       refundId = refund.id;
       stripeStatus = refund.status ?? 'pending';
+      cumulativeRefunded = alreadyRefundedCents + requested;
     } catch {
+      refundId = existing?.stripeRefundId ?? null;
       outstanding = requested;
       stripeStatus = 'MANUAL';
     }
+  }
+
+  if (input.decision === 'APPROVE' && refundId && transferred && payout?.providerRef) {
+    const recovery = await recoverCourierTransfer({
+      transferId: payout.providerRef,
+      transferredCents: payout.amountCents,
+      refundedCents: cumulativeRefunded,
+      chargeCents: paid,
+      stripe: {
+        listReversals: (transferId) => listTransferReversals(stripe, transferId),
+        createReversal: async (transferId, amountCents, idempotencyKey) => {
+          const reversal = await stripe.transfers.createReversal(
+            transferId,
+            { amount: amountCents },
+            { idempotencyKey },
+          );
+          return { id: reversal.id, amount: amountCents };
+        },
+      },
+    });
+    recoveredCents = recovery.recoveredCents;
+    outstanding = recovery.outstandingCents;
+    reversalId = recovery.reversalId ?? reversalId;
+    stripeStatus = recovery.uncertain || outstanding > 0 ? 'MANUAL' : 'succeeded';
+  } else if (input.decision === 'APPROVE' && refundId && !transferred) {
+    outstanding = 0;
+    if (stripeStatus !== 'MANUAL') stripeStatus = stripeStatus === 'pending' ? 'pending' : 'succeeded';
   }
 
   const saved = existing
@@ -262,7 +285,7 @@ export async function executeDeliveryRefundDecision(
         data: {
           decision: stripeStatus === 'MANUAL' ? 'MANUAL' : input.decision,
           reason: input.reason.trim(),
-          amountCents: requested,
+          amountCents: refundId ? cumulativeRefunded : requested,
           stripePaymentRef: paymentRef,
           stripeRefundId: refundId,
           stripeReversalId: reversalId,
@@ -278,7 +301,7 @@ export async function executeDeliveryRefundDecision(
           idempotencyKey: key,
           decision: stripeStatus === 'MANUAL' ? 'MANUAL' : input.decision,
           reason: input.reason.trim(),
-          amountCents: requested,
+          amountCents: refundId ? cumulativeRefunded : requested,
           stripePaymentRef: paymentRef,
           stripeRefundId: refundId,
           stripeReversalId: reversalId,
@@ -291,7 +314,8 @@ export async function executeDeliveryRefundDecision(
         if (error?.code !== 'P2002') throw error;
         const raced = await prisma.deliveryRefundDecision.findUnique({ where: { idempotencyKey: key } });
         if (!raced) throw error;
-        if (raced.stripeRefundId || raced.stripeStatus === 'MANUAL' || raced.decision === 'REJECT') return raced;
+        if (raced.decision === 'REJECT') return raced;
+        if (raced.stripeRefundId && raced.outstandingCents === 0 && (raced.stripeReversalId || !transferred)) return raced;
         return prisma.deliveryRefundDecision.update({
           where: { id: raced.id },
           data: {
@@ -305,12 +329,14 @@ export async function executeDeliveryRefundDecision(
       });
 
   const status = customerRefundStatus(saved);
-  if (saved.stripeRefundId && saved.stripeStatus === 'succeeded' && saved.outstandingCents === 0) {
+  if (saved.stripeRefundId) {
     await reconcileSavedDeliveryRefund(prisma, {
       deliveryOrderId: order.id,
       refundedCents: saved.amountCents,
       chargeCents: paid,
       stripeRefundId: saved.stripeRefundId,
+      clawbackCourier: !transferred || recoveredCents > 0,
+      courierClawbackTargetCents: transferred ? recoveredCents : null,
       affiliateSourceOrderId: `${request.id}_delivery_${order.id}`,
     });
   }
@@ -326,6 +352,19 @@ export async function executeDeliveryRefundDecision(
   return { ok: true as const, duplicate: Boolean(existing), decision: saved, customerStatus: status };
 }
 
+async function listTransferReversals(
+  stripe: StripeLike,
+  transferId: string,
+): Promise<Array<{ id: string; amount: number }>> {
+  const list = (stripe.transfers as StripeLike['transfers'] & {
+    listReversals?: (id: string) => Promise<{ data?: Array<{ id: string; amount: number }> } | Array<{ id: string; amount: number }>>;
+  }).listReversals;
+  if (typeof list !== 'function') return [];
+  const page = await list(transferId);
+  if (Array.isArray(page)) return page;
+  return page.data ?? [];
+}
+
 async function reconcileSavedDeliveryRefund(
   prisma: PrismaClient,
   input: {
@@ -333,6 +372,8 @@ async function reconcileSavedDeliveryRefund(
     refundedCents: number;
     chargeCents: number;
     stripeRefundId: string | null;
+    clawbackCourier: boolean;
+    courierClawbackTargetCents?: number | null;
     affiliateSourceOrderId: string | null;
   },
 ) {
@@ -342,10 +383,11 @@ async function reconcileSavedDeliveryRefund(
       refundedCents: input.refundedCents,
       chargeCents: input.chargeCents,
       stripeRefundId: input.stripeRefundId,
-      clawbackCourier: true,
+      clawbackCourier: input.clawbackCourier,
+      courierClawbackTargetCents: input.courierClawbackTargetCents,
       affiliateSourceOrderId: input.affiliateSourceOrderId,
     });
   } catch (error) {
-    console.error('[delivery-refund-books]', error);
+    console.error('[delivery-refund-books]', error instanceof Error ? error.name : 'refund_books');
   }
 }

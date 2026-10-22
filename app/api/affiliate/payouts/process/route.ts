@@ -17,6 +17,12 @@ import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/affiliate-config";
 import { CommissionLedgerStatus, AffiliatePayoutStatus } from "@prisma/client";
+import {
+  claimCommissionRows,
+  markClaimedCommissionsPaid,
+  payoutIntentOf,
+  settleAffiliatePayout,
+} from "@/lib/affiliate-payout-safety";
 
 export const dynamic = 'force-dynamic';
 
@@ -42,6 +48,7 @@ export async function POST(req: NextRequest) {
     if (!stripe) {
       return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
     }
+    const stripeClient = stripe;
 
     // Get all available commissions (status = AVAILABLE, availableAt <= now)
     const now = new Date();
@@ -113,8 +120,8 @@ export async function POST(req: NextRequest) {
 
     for (const [affiliateId, group] of affiliateGroups) {
       try {
-        // Check minimum payout amount
-        if (group.totalCents < MIN_PAYOUT_AMOUNT_CENTS) {
+        const hasResume = group.commissions.some((commission) => payoutIntentOf(commission.meta));
+        if (!hasResume && group.totalCents < MIN_PAYOUT_AMOUNT_CENTS) {
           results.skipped++;
           continue;
         }
@@ -150,7 +157,19 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
-        // Calculate period (last 7 days or since last payout)
+        const resumed = new Map<string, typeof group.commissions>();
+        const fresh: typeof group.commissions = [];
+        for (const commission of group.commissions) {
+          const intent = payoutIntentOf(commission.meta);
+          if (!intent) {
+            fresh.push(commission);
+            continue;
+          }
+          const rows: typeof group.commissions = resumed.get(intent) ?? [];
+          rows.push(commission);
+          resumed.set(intent, rows);
+        }
+
         const lastPayout = await prisma.affiliatePayout.findFirst({
           where: {
             affiliateId,
@@ -158,66 +177,120 @@ export async function POST(req: NextRequest) {
           },
           orderBy: { periodEnd: 'desc' },
         });
-
         const periodStart = lastPayout
           ? new Date(lastPayout.periodEnd.getTime() + 1)
-          : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // Last 7 days
+          : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const periodEnd = now;
-
-        // Create Stripe transfer
-        let transferId: string | null = null;
-        try {
-          const transfer = await stripe.transfers.create({
-            amount: group.totalCents,
-            currency: 'eur',
-            destination: destination.accountId,
-            metadata: {
-              type: 'affiliate_commission',
-              affiliateId,
-              commissionCount: group.commissions.length.toString(),
-              periodStart: periodStart.toISOString(),
-              periodEnd: periodEnd.toISOString(),
-            },
-          });
-          transferId = transfer.id;
-        } catch (transferError: any) {
-          console.error(`Failed to create transfer for affiliate ${affiliateId}:`, transferError);
-          results.failed++;
-          results.errors.push(
-            `Transfer failed for affiliate ${affiliateId}: ${transferError.message}`
-          );
+        const batches = [
+          ...[...resumed.values()].map((rows) => ({ rows, resume: true })),
+          ...(fresh.reduce((sum, row) => sum + row.amountCents, 0) >= MIN_PAYOUT_AMOUNT_CENTS
+            ? [{ rows: fresh, resume: false }]
+            : []),
+        ];
+        if (batches.length === 0) {
+          results.skipped++;
           continue;
         }
 
-        // Create AffiliatePayout record
-        const payout = await prisma.affiliatePayout.create({
-          data: {
+        const store = {
+          findPayout: (id: string) => prisma.affiliatePayout.findUnique({
+            where: { id },
+            select: { id: true, status: true, stripeTransferId: true, amountCents: true },
+          }),
+          createPayout: async (payout: {
+            id: string;
+            affiliateId: string;
+            amountCents: number;
+            currency: string;
+            periodStart: Date;
+            periodEnd: Date;
+          }) => {
+            try {
+              await prisma.affiliatePayout.create({
+                data: { ...payout, status: AffiliatePayoutStatus.CREATED },
+              });
+              return 'created' as const;
+            } catch (error) {
+              const code = error && typeof error === 'object' && 'code' in error
+                ? String((error as { code?: unknown }).code || '')
+                : '';
+              if (code === 'P2002') return 'exists' as const;
+              throw error;
+            }
+          },
+          saveTransfer: async (id: string, stripeTransferId: string) => {
+            await prisma.affiliatePayout.update({
+              where: { id },
+              data: { stripeTransferId, status: AffiliatePayoutStatus.SENT },
+            });
+          },
+          markFailed: async (id: string) => {
+            await prisma.affiliatePayout.update({
+              where: { id },
+              data: { status: AffiliatePayoutStatus.FAILED },
+            });
+          },
+          claim: (ids: string[], intentId: string) => claimCommissionRows(prisma, ids, intentId),
+          markPaid: (ids: string[], intentId: string, stripeTransferId: string) =>
+            markClaimedCommissionsPaid(prisma, ids, intentId, stripeTransferId),
+        };
+        const transfers = {
+          findTransfer: async (intentId: string) => {
+            const page = await stripeClient.transfers.list({ transfer_group: intentId, limit: 10 });
+            const match = page.data.find((row) => row.id.startsWith('tr_'));
+            return match ? { id: match.id } : null;
+          },
+          createTransfer: async (transfer: {
+            amountCents: number;
+            currency: string;
+            destinationAccountId: string;
+            intentId: string;
+            idempotencyKey: string;
+          }) => {
+            const created = await stripeClient.transfers.create({
+              amount: transfer.amountCents,
+              currency: transfer.currency,
+              destination: transfer.destinationAccountId,
+              transfer_group: transfer.intentId,
+              metadata: {
+                type: 'affiliate_commission',
+                affiliateId,
+                payoutIntentId: transfer.intentId,
+              },
+            }, { idempotencyKey: transfer.idempotencyKey });
+            return { id: created.id };
+          },
+        };
+
+        for (const batch of batches) {
+          const settled = await settleAffiliatePayout({
             affiliateId,
-            amountCents: group.totalCents,
+            commissions: batch.rows,
             currency: 'eur',
-            status: AffiliatePayoutStatus.SENT,
-            stripeTransferId: transferId,
+            destinationAccountId: destination.accountId,
+            onboardingCompleted: destination.onboardingCompleted,
             periodStart,
             periodEnd,
-          },
-        });
-
-        // Mark all commissions as PAID
-        await prisma.commissionLedger.updateMany({
-          where: {
-            id: {
-              in: group.commissions.map((c) => c.id),
-            },
-          },
-          data: {
-            status: CommissionLedgerStatus.PAID,
-          },
-        });
-
-        results.processed++;
-        console.log(
-          `✅ Payout processed for affiliate ${affiliateId}: €${(group.totalCents / 100).toFixed(2)}`
-        );
+            minimumCents: MIN_PAYOUT_AMOUNT_CENTS,
+            resume: batch.resume,
+            store,
+            stripe: transfers,
+          });
+          if (settled.outcome === 'paid' || settled.outcome === 'already_paid') {
+            results.processed++;
+          } else if (settled.outcome === 'failed' || settled.outcome === 'uncertain') {
+            results.failed++;
+            results.errors.push(`Affiliate ${affiliateId} payout ${settled.outcome}:${settled.reason || 'unspecified'}`);
+          } else {
+            results.skipped++;
+          }
+          console.log(JSON.stringify({
+            affiliateId,
+            outcome: settled.outcome,
+            intentId: settled.intentId,
+            transferId: settled.stripeTransferId,
+          }));
+        }
       } catch (error: any) {
         console.error(`Error processing payout for affiliate ${affiliateId}:`, error);
         results.failed++;

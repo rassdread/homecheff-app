@@ -80,9 +80,11 @@ function earningsRefundId(deliveryOrderId: string, targetCents: number) {
  * Delivery fulfillment status is left untouched: a delivered package stays
  * delivered when the payment is refunded later.
  *
- * Courier earnings move only when `clawbackCourier` is true (no successful
- * Connect transfer, or that transfer was reversed). Affiliate commission
- * uses the stored ledger amount, not a second percentage engine.
+ * Courier earnings move only when `clawbackCourier` is true. Pass
+ * `courierClawbackTargetCents` when a Stripe reversal confirmed a smaller
+ * amount than the refund proportion. A local earnings change is not itself
+ * proof that Stripe recovered a transfer. Affiliate commission uses the
+ * stored ledger amount, not a second percentage engine.
  */
 export async function reconcileDeliveryRefundBooks(
   db: PrismaClient,
@@ -92,6 +94,8 @@ export async function reconcileDeliveryRefundBooks(
     chargeCents: number;
     stripeRefundId?: string | null;
     clawbackCourier: boolean;
+    /** Confirmed Stripe reversal total. Omit to use the refund proportion. */
+    courierClawbackTargetCents?: number | null;
     affiliateSourceOrderId: string | null;
   },
 ): Promise<DeliveryRefundBooksResult> {
@@ -121,12 +125,14 @@ export async function reconcileDeliveryRefundBooks(
 
   const gross = order.quotedFeeCents ?? order.deliveryFee ?? 0;
   const allocation = splitDeliveryCommission(gross).providerNetPayoutCents;
+  const proportional = courierClawbackCents({
+    courierAllocationCents: allocation,
+    refundedCents: input.refundedCents,
+    chargeCents: input.chargeCents,
+  });
+  const confirmed = input.courierClawbackTargetCents;
   const target = input.clawbackCourier
-    ? courierClawbackCents({
-        courierAllocationCents: allocation,
-        refundedCents: input.refundedCents,
-        chargeCents: input.chargeCents,
-      })
+    ? Math.min(allocation, confirmed == null ? proportional : Math.max(0, Math.trunc(confirmed)))
     : 0;
 
   let courierDelta = 0;

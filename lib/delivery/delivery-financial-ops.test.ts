@@ -71,7 +71,7 @@ test('payout and review paths keep the existing transfer and confirmation guards
   assert.equal(payout.includes('failed_connect_missing'), true);
   const review = readFileSync(new URL('./delivery-refund-review.ts', import.meta.url), 'utf8');
   assert.equal(review.includes('CONFIRMATION_REQUIRED'), true);
-  assert.equal(review.includes('PARTIAL_REFUND_UNSUPPORTED'), true);
+  assert.equal(review.includes('recoverCourierTransfer'), true);
   assert.equal(review.includes('createReversal'), true);
   const admin = readFileSync(new URL('../../app/api/admin/delivery-reviews/route.ts', import.meta.url), 'utf8');
   assert.equal(admin.includes('confirmFinancialPreview'), true);
@@ -79,7 +79,7 @@ test('payout and review paths keep the existing transfer and confirmation guards
 });
 
 test('refund decision is idempotent against a fake Stripe client', async () => {
-  const calls = { refunds: 0, reversals: 0 };
+  const calls = { refunds: 0, reversals: 0, reversalAmounts: [] as number[] };
   const store: { row: Record<string, unknown> | null } = { row: null };
   const prisma = {
     deliveryOrder: {
@@ -117,6 +117,7 @@ test('refund decision is idempotent against a fake Stripe client', async () => {
       },
     },
     payout: { findFirst: async () => ({ providerRef: 'tr_test', amountCents: 880 }) },
+    transaction: { findUnique: undefined },
   };
   const stripe = {
     checkout: { sessions: { retrieve: async () => ({ payment_intent: 'pi_test', amount_total: 1000 }) } },
@@ -127,8 +128,9 @@ test('refund decision is idempotent against a fake Stripe client', async () => {
       },
     },
     transfers: {
-      createReversal: async () => {
+      createReversal: async (_id: string, params: { amount: number }) => {
         calls.reversals += 1;
+        calls.reversalAmounts.push(params.amount);
         return { id: 'trr_test' };
       },
     },
@@ -142,9 +144,6 @@ test('refund decision is idempotent against a fake Stripe client', async () => {
   };
   const denied = await executeDeliveryRefundDecision(prisma as never, stripe as never, { ...input, confirm: false });
   assert.equal(denied.ok, false);
-  const partial = await executeDeliveryRefundDecision(prisma as never, stripe as never, { ...input, amountCents: 100 });
-  assert.equal(partial.ok, false);
-  if (!partial.ok) assert.equal(partial.code, 'PARTIAL_REFUND_UNSUPPORTED');
   const first = await executeDeliveryRefundDecision(prisma as never, stripe as never, input);
   assert.equal(first.ok, true);
   const second = await executeDeliveryRefundDecision(prisma as never, stripe as never, input);
@@ -152,8 +151,23 @@ test('refund decision is idempotent against a fake Stripe client', async () => {
   if (second.ok) assert.equal(second.duplicate, true);
   assert.equal(calls.refunds, 1);
   assert.equal(calls.reversals, 1);
+  assert.equal(calls.reversalAmounts[0], 880);
 
   store.row = null;
+  calls.refunds = 0;
+  calls.reversals = 0;
+  calls.reversalAmounts = [];
+  const partial = await executeDeliveryRefundDecision(prisma as never, stripe as never, { ...input, amountCents: 100 });
+  assert.equal(partial.ok, true);
+  if (partial.ok) {
+    assert.equal(partial.decision.stripeRefundId, 're_test');
+    assert.equal(partial.decision.outstandingCents, 0);
+  }
+  assert.equal(calls.reversalAmounts[0], 88);
+  assert.equal(calls.refunds, 1);
+
+  store.row = null;
+  calls.refunds = 0;
   stripe.transfers.createReversal = async () => {
     throw new Error('reversal failed');
   };
@@ -161,8 +175,11 @@ test('refund decision is idempotent against a fake Stripe client', async () => {
   assert.equal(manual.ok, true);
   if (manual.ok) {
     assert.equal(manual.decision.stripeStatus, 'MANUAL');
-    assert.equal(manual.decision.stripeRefundId, null);
+    assert.equal(manual.decision.stripeRefundId, 're_test');
     assert.ok(manual.decision.outstandingCents > 0);
   }
+  assert.equal(calls.refunds, 1);
+  const retry = await executeDeliveryRefundDecision(prisma as never, stripe as never, input);
+  assert.equal(retry.ok, true);
   assert.equal(calls.refunds, 1);
 });

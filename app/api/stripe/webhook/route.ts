@@ -33,10 +33,12 @@ import { parseFulfillmentOptions } from "@/lib/marketplace/listing-taxonomy";
 import { confirmReservationAndDecrementStock } from "@/lib/products/stock-reservation";
 import { CheckoutStockConflictError } from "@/lib/products/checkout-reservation-policy";
 import { releaseUnpaidCheckoutHold } from "@/lib/products/courier-stock-hold";
+import { isHomeCheffDeliveryEnabled } from "@/lib/delivery/delivery-deployment-gate";
 import { fulfillStandaloneDeliveryPayment } from "@/lib/delivery/standalone-delivery";
 import {
   expireUnpaidStandaloneCheckout,
   noteStandalonePaymentFailure,
+  deliveryWebhookClass,
   observeStandaloneChargeRefund,
   observeStandaloneDispute,
   recordDeliveryTransferCreated,
@@ -432,6 +434,12 @@ export async function POST(req: NextRequest) {
         }
       }
       try {
+        console.log(JSON.stringify({
+          eventId: event.id,
+          type: event.type,
+          chargeId: charge.id,
+          action: "EXISTING_DELIVERY_RECONCILIATION",
+        }));
         await observeStandaloneChargeRefund(prisma, charge, async (paymentIntentId) => {
           if (!stripe) return null;
           try {
@@ -442,7 +450,20 @@ export async function POST(req: NextRequest) {
             console.error(`delivery refund lookup skipped for ${charge.id}:`, lookupError?.message || lookupError);
             return null;
           }
-        });
+        }, stripe ? {
+          listReversals: async (transferId) => {
+            const page = await stripe.transfers.listReversals(transferId, { limit: 100 });
+            return page.data.map((reversal) => ({ id: reversal.id, amount: reversal.amount }));
+          },
+          createReversal: async (transferId, amountCents, idempotencyKey) => {
+            const reversal = await stripe.transfers.createReversal(
+              transferId,
+              { amount: amountCents, metadata: { purpose: "delivery_courier_recovery" } },
+              { idempotencyKey },
+            );
+            return { id: reversal.id, amount: reversal.amount };
+          },
+        } : null);
       } catch (deliveryRefundError: any) {
         console.error(`delivery refund observation failed for ${charge.id}:`, deliveryRefundError?.message || deliveryRefundError);
         return NextResponse.json({ error: "delivery_refund_observation_failed" }, { status: 500 });
@@ -755,6 +776,13 @@ export async function POST(req: NextRequest) {
       if (session.metadata?.checkoutKind !== "STANDALONE_DELIVERY") {
         return new NextResponse("ok", { status: 200 });
       }
+      console.log(JSON.stringify({
+        eventId: event.id,
+        type: event.type,
+        reference: session.metadata.standaloneRequestId || session.id,
+        action: "EXISTING_DELIVERY_RECONCILIATION",
+        paymentStatus: session.payment_status,
+      }));
       const standalone = await fulfillStandaloneDeliveryPayment(session);
       if (!standalone.handled || standalone.ok) {
         return new NextResponse("ok", { status: 200 });
@@ -763,19 +791,36 @@ export async function POST(req: NextRequest) {
     }
     else if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
-      
-      console.log(`🔔 Webhook received: checkout.session.completed for session ${session.id}`);
-      console.log(`📋 Session metadata:`, JSON.stringify(session.metadata, null, 2));
-      console.log(`💰 Payment status: ${session.payment_status}, Mode: ${session.mode}`);
-      console.log(`💳 Amount total: ${session.amount_total}, Currency: ${session.currency}`);
-      
+      console.log(JSON.stringify({
+        eventId: event.id,
+        type: event.type,
+        reference: session.metadata?.standaloneRequestId || session.metadata?.orderId || session.id,
+        paymentStatus: session.payment_status,
+        mode: session.mode,
+      }));
+
       // Skip subscription payments (handled above)
       if (session.mode === "subscription") {
-        console.log(`⏭️ Skipping subscription payment for session ${session.id}`);
+        console.log(JSON.stringify({ eventId: event.id, type: event.type, result: "subscription_skipped" }));
         return new NextResponse("ok", { status: 200 });
       }
 
       if (session.metadata?.checkoutKind === "STANDALONE_DELIVERY") {
+        const standaloneClass = deliveryWebhookClass({
+          eventType: event.type,
+          paymentStatus: session.payment_status,
+          deliveryEnabled: isHomeCheffDeliveryEnabled(),
+        });
+        console.log(JSON.stringify({
+          eventId: event.id,
+          type: event.type,
+          reference: session.metadata.standaloneRequestId || session.id,
+          action: standaloneClass,
+          paymentStatus: session.payment_status,
+        }));
+        if (standaloneClass === "BLOCKED") {
+          return new NextResponse("ok", { status: 200 });
+        }
         const standalone = await fulfillStandaloneDeliveryPayment(session);
         if (!standalone.handled) {
           return new NextResponse("ok", { status: 200 });

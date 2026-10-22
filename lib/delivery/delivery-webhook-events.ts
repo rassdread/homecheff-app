@@ -1,4 +1,5 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
+import { recoverCourierTransfer, type CourierRecoveryClient } from '@/lib/delivery/courier-transfer-recovery';
 import { reconcileDeliveryRefundBooks } from '@/lib/delivery/delivery-refund-books';
 
 type Db = PrismaClient | Prisma.TransactionClient;
@@ -28,6 +29,30 @@ function requestIdFromMetadata(metadata?: Record<string, string> | null) {
   if (metadata?.checkoutKind !== 'STANDALONE_DELIVERY') return null;
   const requestId = metadata.standaloneRequestId?.trim();
   return requestId || null;
+}
+
+export function deliveryWebhookClass(input: {
+  eventType: string;
+  paymentStatus?: string | null;
+  deliveryEnabled: boolean;
+}): 'NEW_DELIVERY_CREATION' | 'EXISTING_DELIVERY_RECONCILIATION' | 'BLOCKED' {
+  if (
+    input.eventType === 'charge.refunded'
+    || input.eventType === 'checkout.session.async_payment_succeeded'
+    || input.eventType === 'checkout.session.async_payment_failed'
+    || input.eventType === 'payment_intent.payment_failed'
+    || input.eventType === 'account.updated'
+    || input.eventType.startsWith('charge.dispute.')
+    || input.eventType.startsWith('transfer.')
+  ) {
+    return 'EXISTING_DELIVERY_RECONCILIATION';
+  }
+  if (input.eventType === 'checkout.session.completed') {
+    if (input.paymentStatus === 'paid') return 'EXISTING_DELIVERY_RECONCILIATION';
+    if (!input.deliveryEnabled) return 'BLOCKED';
+    return 'NEW_DELIVERY_CREATION';
+  }
+  return 'EXISTING_DELIVERY_RECONCILIATION';
 }
 
 export function standaloneCheckoutEventAction(
@@ -87,6 +112,7 @@ export async function observeStandaloneChargeRefund(
   db: Db,
   charge: ChargeLike,
   lookupPaymentIntent?: (id: string) => Promise<{ metadata?: Record<string, string> | null } | null>,
+  recovery?: CourierRecoveryClient | null,
 ) {
   let requestId = requestIdFromMetadata(charge.metadata);
   if (!requestId && lookupPaymentIntent) {
@@ -105,9 +131,55 @@ export async function observeStandaloneChargeRefund(
     ? await db.payout.findUnique({ where: { id: `payout_delivery_${row.deliveryOrderId}` } })
     : null;
   const transferred = Boolean(payout?.providerRef?.startsWith('tr_'));
-  const reversalRecorded = Boolean(
-    existing && 'stripeReversalId' in existing && existing.stripeReversalId,
-  );
+  const refundedCents = charge.amount_refunded ?? 0;
+  const chargeCents = charge.amount ?? row.buyerTotalCents ?? 0;
+  let recoveredCents = 0;
+  let outstandingCents = transferred ? payout?.amountCents ?? 0 : 0;
+  let reversalId: string | null = existing && 'stripeReversalId' in existing
+    ? (existing.stripeReversalId as string | null)
+    : null;
+  let uncertain = false;
+  if (transferred && recovery && payout?.providerRef) {
+    const recoveryResult = await recoverCourierTransfer({
+      transferId: payout.providerRef,
+      transferredCents: payout.amountCents ?? 0,
+      refundedCents,
+      chargeCents,
+      stripe: recovery,
+    });
+    recoveredCents = recoveryResult.recoveredCents;
+    outstandingCents = recoveryResult.outstandingCents;
+    reversalId = recoveryResult.reversalId;
+    uncertain = recoveryResult.uncertain;
+    if (reversalId && typeof db.deliveryRefundDecision?.create === 'function') {
+      await db.deliveryRefundDecision.create({
+        data: {
+          deliveryOrderId: row.deliveryOrderId,
+          orderId: null,
+          idempotencyKey: `delivery_recovery_${reversalId}`,
+          decision: recoveryResult.state,
+          reason: 'Stripe-bevestigde terugvordering van de bezorgersoverboeking.',
+          amountCents: recoveryResult.recoveredCents,
+          currency: (charge.currency || 'eur').toUpperCase(),
+          stripePaymentRef: typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id || null,
+          stripeReversalId: reversalId,
+          stripeStatus: recoveryResult.state,
+          outstandingCents,
+          adminUserId: 'stripe-webhook',
+          executedAt: new Date(),
+        },
+      }).catch((error: { code?: string }) => {
+        if (error?.code !== 'P2002') throw error;
+      });
+    }
+  }
+  const decisionData = {
+    amountCents: refundedCents,
+    stripeStatus: uncertain || outstandingCents > 0 ? 'MANUAL' : 'succeeded',
+    stripeReversalId: reversalId,
+    outstandingCents,
+    executedAt: new Date(),
+  };
   if (!existing) {
     await db.deliveryRefundDecision.create({
       data: {
@@ -116,18 +188,26 @@ export async function observeStandaloneChargeRefund(
         idempotencyKey: key,
         decision: 'OBSERVED',
         reason: 'Stripe meldde charge.refunded voor deze bezorgbetaling. Er is geen nieuwe terugbetaling gemaakt.',
-        amountCents: charge.amount_refunded ?? 0,
         currency: (charge.currency || 'eur').toUpperCase(),
         stripePaymentRef: typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id || null,
-        stripeStatus: 'succeeded',
-        outstandingCents: transferred && !reversalRecorded ? payout?.amountCents ?? 0 : 0,
         adminUserId: 'stripe-webhook',
-        executedAt: new Date(),
+        ...decisionData,
       },
     });
+  } else if (typeof db.deliveryRefundDecision.update === 'function') {
+    await db.deliveryRefundDecision.update({
+      where: { id: existing.id },
+      data: decisionData,
+    });
   }
-  await reconcileObservedStandaloneRefund(db, row, charge, transferred && !reversalRecorded);
-  return { handled: true as const, ok: true as const, duplicate: Boolean(existing) };
+  await reconcileObservedStandaloneRefund(db, row, charge, {
+    courierStillPaid: transferred && recoveredCents <= 0,
+    confirmedCourierCents: transferred ? recoveredCents : null,
+  });
+  if (uncertain) {
+    throw new Error('courier_recovery_uncertain');
+  }
+  return { handled: true as const, ok: true as const, duplicate: Boolean(existing), outstandingCents };
 }
 
 export async function observeStandaloneDispute(
@@ -219,7 +299,7 @@ async function reconcileObservedStandaloneRefund(
   db: Db,
   row: { id: string; deliveryOrderId: string | null; buyerTotalCents?: number | null },
   charge: ChargeLike,
-  courierStillPaid: boolean,
+  recovery: { courierStillPaid: boolean; confirmedCourierCents: number | null },
 ) {
   if (!row.deliveryOrderId) return;
   try {
@@ -228,10 +308,11 @@ async function reconcileObservedStandaloneRefund(
       refundedCents: charge.amount_refunded ?? 0,
       chargeCents: charge.amount ?? row.buyerTotalCents ?? 0,
       stripeRefundId: charge.id,
-      clawbackCourier: !courierStillPaid,
+      clawbackCourier: !recovery.courierStillPaid,
+      courierClawbackTargetCents: recovery.confirmedCourierCents,
       affiliateSourceOrderId: `${row.id}_delivery_${row.deliveryOrderId}`,
     });
   } catch (error) {
-    console.error('[delivery-refund-books]', error);
+    console.error('[delivery-refund-books]', error instanceof Error ? error.name : 'refund_books');
   }
 }
