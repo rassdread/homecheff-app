@@ -250,7 +250,7 @@ export default function DeliveryCompanySignupPage() {
 
       if (!isExistingUser) {
         const login = await signIn('credentials', {
-          email: form.email,
+          emailOrUsername: form.email,
           password: form.password,
           redirect: false,
         });
@@ -263,8 +263,10 @@ export default function DeliveryCompanySignupPage() {
           return;
         }
       }
-      trackDeliverySignupFunnel('delivery_signup_completed', funnel(5));
-      router.push('/delivery/dashboard?welcome=true&newSignup=true&business=true');
+      try { trackDeliverySignupFunnel('delivery_signup_completed', funnel(5)); } catch { /* ignore */ }
+      try { window.sessionStorage.removeItem('homecheff_pending_intent_v1'); } catch { /* ignore */ }
+      window.location.assign('/delivery/dashboard?welcome=true&newSignup=true&business=true');
+      return;
     } catch {
       setError(
         t('deliveryCompanySignup.submitFailed')

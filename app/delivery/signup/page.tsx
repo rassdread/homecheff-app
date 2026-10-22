@@ -384,19 +384,22 @@ export default function DeliverySignupPage() {
       });
 
       if (isExistingUser) {
-        router.push('/delivery/dashboard?welcome=true&newSignup=true');
+        try { window.sessionStorage.removeItem('homecheff_pending_intent_v1'); } catch { /* ignore */ }
+        window.location.assign('/delivery/dashboard?welcome=true&newSignup=true');
         return;
       }
 
       try {
         const loginResponse = await signIn('credentials', {
-          email: formData.email,
+          emailOrUsername: formData.email,
           password: formData.password,
           redirect: false,
         });
 
         if (loginResponse?.ok) {
-          router.push('/delivery/dashboard?welcome=true&newSignup=true');
+          try { window.sessionStorage.removeItem('homecheff_pending_intent_v1'); } catch { /* ignore */ }
+          window.location.assign('/delivery/dashboard?welcome=true&newSignup=true');
+          return;
         } else {
           router.push(
             `/login?message=${encodeURIComponent(
