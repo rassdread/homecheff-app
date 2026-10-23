@@ -53,9 +53,51 @@ function getStripe(): Stripe | null {
  * Never re-reads current DeliveryProfile pricing rates.
  *
  * Connect transfer (when destination ready):
- * - Stripe-paid orders: prefer source_transaction from Checkout charge
- * - HC-only / no charge: platform-balance treasury transfer (same pattern as HC seller payout)
+ * Every commercial delivery transfer requires the original successful charge
+ * for this order, linked with source_transaction. A missing, invalid,
+ * refunded, or wrong-order charge does not fall back to the platform balance.
  */
+type DeliverySourceCharge = {
+  id?: string;
+  amount?: number | null;
+  amount_refunded?: number | null;
+  currency?: string | null;
+  status?: string | null;
+  refunded?: boolean | null;
+  metadata?: { orderId?: string | null } | null;
+};
+
+export function assessDeliverySourceCharge(input: {
+  chargeId: string | null;
+  charge: DeliverySourceCharge | null;
+  orderId: string;
+}): { ok: true; chargeId: string; amount: number | null } | { ok: false; blockCode: string } {
+  const chargeId = input.chargeId;
+  if (!chargeId) return { ok: false, blockCode: 'SOURCE_CHARGE_MISSING' };
+  if (!/^(ch|py)_/.test(chargeId)) return { ok: false, blockCode: 'SOURCE_CHARGE_INVALID' };
+  const charge = input.charge;
+  if (charge?.id && charge.id !== chargeId) return { ok: false, blockCode: 'SOURCE_CHARGE_INVALID' };
+  if (charge?.status && charge.status !== 'succeeded') {
+    return { ok: false, blockCode: 'SOURCE_CHARGE_INVALID' };
+  }
+  if (charge?.currency && charge.currency.toLowerCase() !== 'eur') {
+    return { ok: false, blockCode: 'SOURCE_CHARGE_INVALID' };
+  }
+  const metaOrder = charge?.metadata?.orderId;
+  if (metaOrder && metaOrder !== input.orderId) {
+    return { ok: false, blockCode: 'SOURCE_CHARGE_WRONG_ORDER' };
+  }
+  const amount = typeof charge?.amount === 'number' ? charge.amount : null;
+  const refunded = typeof charge?.amount_refunded === 'number' ? charge.amount_refunded : 0;
+  if (charge?.refunded === true || (amount !== null && amount > 0 && refunded >= amount)) {
+    return { ok: false, blockCode: 'SOURCE_CHARGE_REFUNDED' };
+  }
+  return {
+    ok: true,
+    chargeId,
+    amount: amount === null ? null : Math.max(0, amount - refunded),
+  };
+}
 export async function ensureDeliveryPayout(
   prisma: PrismaClient,
   input: DeliveryPayoutInput,
@@ -296,7 +338,7 @@ export async function ensureDeliveryPayout(
   }
 
   let sourceTransactionChargeId: string | null = null;
-  let sourceChargeAmount: number | null = null;
+  let sourceCharge: DeliverySourceCharge | null = null;
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     select: {
@@ -324,10 +366,10 @@ export async function ensureDeliveryPayout(
     try {
       const resolved = await resolveChargeIdForCheckoutSession(stripe, checkoutSessionId);
       sourceTransactionChargeId = resolved.chargeId;
-      sourceChargeAmount =
-        resolved.charge && typeof resolved.charge.amount === 'number' ? resolved.charge.amount : null;
+      sourceCharge = resolved.charge;
     } catch {
       sourceTransactionChargeId = null;
+      sourceCharge = null;
     }
   }
 
@@ -348,6 +390,14 @@ export async function ensureDeliveryPayout(
       connectedAccountId: destination,
     };
   }
+  const assessedCharge = assessDeliverySourceCharge({
+    chargeId: sourceTransactionChargeId,
+    charge: sourceCharge,
+    orderId,
+  });
+  const sourceChargeAmount = assessedCharge.ok ? assessedCharge.amount : null;
+  if (assessedCharge.ok) sourceTransactionChargeId = assessedCharge.chargeId;
+
   if (sourceChargeAmount !== null && transferAmount > sourceChargeAmount) {
     return {
       created,
@@ -357,26 +407,6 @@ export async function ensureDeliveryPayout(
       amountSource,
       blocked: true,
       blockCode: 'TRANSFER_EXCEEDS_SOURCE',
-      transferStatus: 'FAILED',
-      connectedAccountId: destination,
-    };
-  }
-  if (paymentMethod === 'STANDALONE_DELIVERY' && !sourceTransactionChargeId) {
-    await prisma.payout.update({
-      where: { id: payoutId },
-      data: {
-        transferFailureCode: 'SOURCE_CHARGE_MISSING',
-        transferFailureAt: new Date(),
-      },
-    });
-    return {
-      created,
-      payoutId,
-      amountCents: transferAmount,
-      grossFeeCents: split.grossFeeCents,
-      amountSource,
-      blocked: true,
-      blockCode: 'SOURCE_CHARGE_MISSING',
       transferStatus: 'FAILED',
       connectedAccountId: destination,
     };
@@ -442,6 +472,27 @@ export async function ensureDeliveryPayout(
       };
     }
 
+    if (!assessedCharge.ok || !sourceTransactionChargeId) {
+      await prisma.payout.update({
+        where: { id: payoutId },
+        data: {
+          transferFailureCode: assessedCharge.ok ? 'SOURCE_CHARGE_MISSING' : assessedCharge.blockCode,
+          transferFailureAt: new Date(),
+        },
+      });
+      return {
+        created,
+        payoutId,
+        amountCents: transferAmount,
+        grossFeeCents: split.grossFeeCents,
+        amountSource,
+        blocked: true,
+        blockCode: assessedCharge.ok ? 'SOURCE_CHARGE_MISSING' : assessedCharge.blockCode,
+        transferStatus: 'FAILED',
+        connectedAccountId: destination,
+      };
+    }
+
     const transferParams: Stripe.TransferCreateParams = {
       amount: transferAmount,
       currency: 'eur',
@@ -452,13 +503,11 @@ export async function ensureDeliveryPayout(
         deliveryOrderId,
         purpose: 'delivery_provider_principal',
         providerUserId: delivererUserId,
-        sourceTransactionChargeId: sourceTransactionChargeId || '',
+        sourceTransactionChargeId,
         paymentMethod,
       },
     };
-    if (sourceTransactionChargeId) {
-      transferParams.source_transaction = sourceTransactionChargeId;
-    }
+    transferParams.source_transaction = sourceTransactionChargeId;
 
     const retryStamp = existingPayout?.transferFailureAt
       ? `_${existingPayout.transferFailureAt.getTime()}`
@@ -466,7 +515,7 @@ export async function ensureDeliveryPayout(
         ? `_${existingPayout.transferFailureCode}`
         : '';
     const transfer = await stripe.transfers.create(transferParams, {
-      idempotencyKey: `delivery_xfer_${deliveryOrderId}_${sourceTransactionChargeId || 'balance'}${retryStamp}`,
+      idempotencyKey: `delivery_xfer_${deliveryOrderId}_${sourceTransactionChargeId}${retryStamp}`,
     });
     if (!transfer.id?.startsWith('tr_')) {
       throw new Error('Stripe did not confirm a transfer id');

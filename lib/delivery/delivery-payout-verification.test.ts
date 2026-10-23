@@ -61,10 +61,29 @@ function harness(profile: Profile, options?: { payout?: Record<string, unknown> 
   let payout = options?.payout === undefined ? null : options.payout;
   const queue = options?.profiles ? [...options.profiles] : [];
   const stripe = {
+    checkout: {
+      sessions: {
+        retrieve: async () => ({
+          id: 'cs_order',
+          payment_intent: {
+            id: 'pi_order',
+            latest_charge: {
+              id: 'ch_order',
+              amount: 1040,
+              amount_refunded: 0,
+              currency: 'eur',
+              status: 'succeeded',
+              refunded: false,
+              metadata: { orderId: 'd1' },
+            },
+          },
+        }),
+      },
+    },
     transfers: {
       list: async () => ({ data: [] }),
-      create: async (params: { amount: number }) => {
-        calls.push('create');
+      create: async (params: { amount: number; source_transaction?: string }) => {
+        calls.push(params.source_transaction ?? 'create');
         return { id: 'tr_test_new', amount: params.amount };
       },
     },
@@ -92,7 +111,9 @@ function harness(profile: Profile, options?: { payout?: Record<string, unknown> 
         notes: null,
       }),
     },
-    order: { findUnique: async () => null },
+    order: {
+      findUnique: async () => ({ stripeSessionId: 'cs_order', paymentMethod: 'IDEAL' }),
+    },
     standaloneDeliveryRequest: { findFirst: async () => null },
     payout: {
       findFirst: async () => payout,

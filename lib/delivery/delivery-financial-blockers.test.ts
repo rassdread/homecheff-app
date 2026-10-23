@@ -104,6 +104,7 @@ function payoutHarness(options?: {
   payout?: Record<string, unknown> | null;
   failMessage?: string | null;
   listed?: Array<Record<string, unknown>>;
+  charges?: Record<string, Record<string, unknown> | null>;
 }) {
   const calls: TransferCall[] = [];
   const profile = courierProfile();
@@ -125,10 +126,14 @@ function payoutHarness(options?: {
     checkout: {
       sessions: {
         retrieve: async (id: string) => {
-          const charges: Record<string, { id: string; amount: number } | null> = {
-            cs_market: { id: 'ch_market', amount: 1040 },
-            cs_standalone: { id: 'ch_standalone', amount: 1040 },
-            cs_small: { id: 'ch_small', amount: 100 },
+          const defaults = {
+            cs_market: { id: 'ch_market', amount: 1040, amount_refunded: 0, currency: 'eur', status: 'succeeded', refunded: false },
+            cs_standalone: { id: 'ch_standalone', amount: 1040, amount_refunded: 0, currency: 'eur', status: 'succeeded', refunded: false },
+            cs_small: { id: 'ch_small', amount: 100, amount_refunded: 0, currency: 'eur', status: 'succeeded', refunded: false },
+          };
+          const charges: Record<string, Record<string, unknown> | null> = {
+            ...defaults,
+            ...(options?.charges ?? {}),
           };
           const charge = charges[id] ?? null;
           return {
@@ -263,8 +268,123 @@ test('standalone transfer uses the customer charge and marketplace orders keep t
   const balance = await ensureDeliveryPayout(hcOnly.prisma as never, { ...payoutInput, orderId: 'order_hc' }, {
     stripe: hcOnly.stripe as never,
   });
-  assert.equal(balance.transferStatus, 'SUCCEEDED');
-  assert.equal(hcOnly.calls[0].source, undefined);
+  assert.equal(balance.blockCode, 'SOURCE_CHARGE_MISSING');
+  assert.equal(balance.transferStatus, 'FAILED');
+  assert.equal(hcOnly.calls.length, 0);
+  assert.equal(String(hcOnly.payout()?.providerRef ?? '').startsWith('tr_'), false);
+});
+
+test('marketplace payouts require the original charge and never use the platform balance', async () => {
+  const absent = payoutHarness({
+    order: { stripeSessionId: 'cs_absent', paymentMethod: 'IDEAL' },
+    standalone: null,
+  });
+  const missing = await ensureDeliveryPayout(
+    absent.prisma as never,
+    { ...payoutInput, orderId: 'order_absent' },
+    { stripe: absent.stripe as never },
+  );
+  assert.equal(missing.blockCode, 'SOURCE_CHARGE_MISSING');
+  assert.equal(absent.calls.length, 0);
+
+  const invalid = payoutHarness({
+    order: { stripeSessionId: 'cs_invalid', paymentMethod: 'IDEAL' },
+    standalone: null,
+    charges: {
+      cs_invalid: { id: 'ch_invalid', amount: 1040, currency: 'eur', status: 'failed', refunded: false },
+    },
+  });
+  const invalidResult = await ensureDeliveryPayout(
+    invalid.prisma as never,
+    { ...payoutInput, orderId: 'order_invalid' },
+    { stripe: invalid.stripe as never },
+  );
+  assert.equal(invalidResult.blockCode, 'SOURCE_CHARGE_INVALID');
+  assert.equal(invalid.calls.length, 0);
+
+  const wrong = payoutHarness({
+    order: { stripeSessionId: 'cs_wrong', paymentMethod: 'IDEAL' },
+    standalone: null,
+    charges: {
+      cs_wrong: {
+        id: 'ch_wrong',
+        amount: 1040,
+        currency: 'eur',
+        status: 'succeeded',
+        refunded: false,
+        metadata: { orderId: 'order_other' },
+      },
+    },
+  });
+  const wrongResult = await ensureDeliveryPayout(
+    wrong.prisma as never,
+    { ...payoutInput, orderId: 'order_right' },
+    { stripe: wrong.stripe as never },
+  );
+  assert.equal(wrongResult.blockCode, 'SOURCE_CHARGE_WRONG_ORDER');
+  assert.equal(wrong.calls.length, 0);
+
+  const refunded = payoutHarness({
+    order: { stripeSessionId: 'cs_refunded', paymentMethod: 'IDEAL' },
+    standalone: null,
+    charges: {
+      cs_refunded: {
+        id: 'ch_refunded',
+        amount: 1040,
+        amount_refunded: 1040,
+        currency: 'eur',
+        status: 'succeeded',
+        refunded: true,
+      },
+    },
+  });
+  const refundedResult = await ensureDeliveryPayout(
+    refunded.prisma as never,
+    { ...payoutInput, orderId: 'order_refunded' },
+    { stripe: refunded.stripe as never },
+  );
+  assert.equal(refundedResult.blockCode, 'SOURCE_CHARGE_REFUNDED');
+  assert.equal(refunded.calls.length, 0);
+
+  const recovered = payoutHarness({
+    order: { stripeSessionId: 'cs_market', paymentMethod: 'IDEAL' },
+    charges: { cs_market: null },
+  });
+  recovered.prisma.standaloneDeliveryRequest.findFirst = async () => {
+    throw new Error('marketplace payout must not read a standalone request');
+  };
+  const blocked = await ensureDeliveryPayout(
+    recovered.prisma as never,
+    { ...payoutInput, orderId: 'order_1' },
+    { stripe: recovered.stripe as never },
+  );
+  assert.equal(blocked.blockCode, 'SOURCE_CHARGE_MISSING');
+  assert.equal(recovered.calls.length, 0);
+  recovered.stripe.checkout.sessions.retrieve = async () => ({
+    id: 'cs_market',
+    payment_intent: {
+      id: 'pi_cs_market',
+      latest_charge: {
+        id: 'ch_market',
+        amount: 1040,
+        amount_refunded: 0,
+        currency: 'eur',
+        status: 'succeeded',
+        refunded: false,
+        metadata: { orderId: 'order_1' },
+      },
+    },
+  });
+  const paid = await ensureDeliveryPayout(
+    recovered.prisma as never,
+    { ...payoutInput, orderId: 'order_1' },
+    { stripe: recovered.stripe as never },
+  );
+  assert.equal(paid.transferStatus, 'SUCCEEDED');
+  assert.equal(paid.amountCents, 880);
+  assert.equal(recovered.calls.length, 1);
+  assert.equal(recovered.calls[0].source, 'ch_market');
+  assert.equal(recovered.calls[0].key.includes('balance'), false);
 });
 
 test('failed, retried, missing, early, and duplicate transfers stay inside the courier allocation', async () => {
