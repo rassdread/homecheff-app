@@ -410,6 +410,38 @@ export async function ensureDeliveryPayout(
       };
     }
 
+    const freshProfile = await prisma.deliveryProfile.findUnique({
+      where: { userId: delivererUserId },
+      include: {
+        user: {
+          select: {
+            dateOfBirth: true,
+            id: true,
+            stripeConnectAccountId: true,
+            stripeConnectOnboardingCompleted: true,
+          },
+        },
+      },
+    });
+    const freshGate = assertCommercialCourierCanReceivePayout({
+      profile: freshProfile,
+      dateOfBirth: freshProfile?.user?.dateOfBirth,
+    });
+    if (!freshGate.ok) {
+      return {
+        created,
+        payoutId,
+        amountCents: transferAmount,
+        grossFeeCents: split.grossFeeCents,
+        amountSource,
+        blocked: true,
+        blockCode: freshGate.code,
+        transferId: null,
+        transferStatus: 'SKIPPED',
+        connectedAccountId: destination,
+      };
+    }
+
     const transferParams: Stripe.TransferCreateParams = {
       amount: transferAmount,
       currency: 'eur',

@@ -294,8 +294,11 @@ export function delivererMatchingWhere() {
 }
 
 /**
- * Payout gate — under-18 must not receive new commercial courier payouts.
+ * Payout gate for a new courier transfer.
+ * Reads the current persisted profile. A revoked verification or an admin
+ * block stops the transfer and leaves any existing ledger row untouched.
  * Zero fee does not bypass (caller still invokes gate).
+ * isActive is not required: pausing availability is not a suspension.
  */
 export function assertCommercialCourierCanReceivePayout(params: {
   profile: DelivererAcceptProfile | null | undefined;
@@ -341,6 +344,31 @@ export function assertCommercialCourierCanReceivePayout(params: {
       status: 403,
       error: COMMERCIAL_DELIVERY_UNDERAGE_MESSAGE_NL,
       code,
+    };
+  }
+
+  if (profile.isBlocked) {
+    logCommercialAgeBlock({
+      boundary: 'payout',
+      userId: profile.userId,
+      profileId: profile.id,
+      reason: 'DELIVERY_BLOCKED',
+    });
+    return {
+      ok: false,
+      status: 403,
+      error: 'Je bezorgerprofiel is geblokkeerd.',
+      code: 'DELIVERY_BLOCKED',
+    };
+  }
+
+  if (!profile.isVerified) {
+    return {
+      ok: false,
+      status: 403,
+      error:
+        'Je bezorgerprofiel is nog niet geverifieerd. Zodra HomeCheff je profiel heeft goedgekeurd, kun je opdrachten accepteren.',
+      code: 'DELIVERY_NOT_VERIFIED',
     };
   }
 
