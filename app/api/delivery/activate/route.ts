@@ -8,6 +8,7 @@ import { isDeliveryBusinessProvider } from '@/lib/delivery/provider-identity';
 import {
   assertCommercialCourierAgeForActivation,
   delivererAcceptDenialResponse,
+  deliverySelfServiceActivationDecision,
 } from '@/lib/delivery/delivery-eligibility';
 
 export const dynamic = 'force-dynamic';
@@ -60,6 +61,18 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const activation = deliverySelfServiceActivationDecision(profile, wantActive);
+  if (!activation.ok) {
+    return NextResponse.json(
+      {
+        ok: false,
+        ...delivererAcceptDenialResponse(activation),
+        message: activation.error,
+      },
+      { status: activation.status },
+    );
+  }
+
   if (wantActive) {
     const ageGate = assertCommercialCourierAgeForActivation({
       dateOfBirth: profile.user?.dateOfBirth,
@@ -92,9 +105,10 @@ export async function POST(req: NextRequest) {
   const updated = await prisma.deliveryProfile.update({
     where: { id: profile.id },
     data: {
-      isActive: wantActive,
+      isActive: activation.isActive,
       // Self-service commercial activation implies verified for matching (no admin queue).
-      ...(wantActive ? { isVerified: true } : {}),
+      // An admin block refuses activation above and never reaches this write.
+      ...(activation.verify ? { isVerified: true } : {}),
       isOnline: wantActive ? wantOnline || profile.isOnline : false,
     },
     select: {

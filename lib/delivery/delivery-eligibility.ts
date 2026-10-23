@@ -21,6 +21,8 @@ export type DelivererAcceptProfile = Pick<
   } | null;
 };
 
+export const DELIVERY_BLOCKED_MESSAGE_NL = 'Je bezorgerprofiel is geblokkeerd.';
+
 export type DelivererAcceptDenial = {
   ok: false;
   status: 403;
@@ -80,7 +82,7 @@ export function assertCommercialCourierEligible(
     return {
       ok: false,
       status: 403,
-      error: 'Je bezorgerprofiel is geblokkeerd.',
+      error: DELIVERY_BLOCKED_MESSAGE_NL,
       code: 'DELIVERY_BLOCKED',
     };
   }
@@ -357,7 +359,7 @@ export function assertCommercialCourierCanReceivePayout(params: {
     return {
       ok: false,
       status: 403,
-      error: 'Je bezorgerprofiel is geblokkeerd.',
+      error: DELIVERY_BLOCKED_MESSAGE_NL,
       code: 'DELIVERY_BLOCKED',
     };
   }
@@ -373,4 +375,46 @@ export function assertCommercialCourierCanReceivePayout(params: {
   }
 
   return { ok: true };
+}
+
+/**
+ * Profile completion may set isVerified. That flag is not an admin decision.
+ * A blocked profile stays blocked, and completion must not verify it.
+ */
+export function deliveryProfileAutoVerifyPatch(
+  profile: { isVerified: boolean; isBlocked?: boolean | null },
+  profileComplete: boolean,
+): { isVerified: true } | Record<string, never> {
+  if (profile.isBlocked || profile.isVerified || !profileComplete) return {};
+  return { isVerified: true };
+}
+
+/**
+ * Self-service may pause. It may not turn availability back on while an
+ * admin block is in place. undefined leaves the stored value unchanged.
+ */
+export function deliverySelfServiceIsActivePatch(
+  profile: { isBlocked?: boolean | null },
+  requested: boolean | undefined,
+): boolean | undefined {
+  if (requested === undefined) return undefined;
+  if (profile.isBlocked && requested === true) return undefined;
+  return requested;
+}
+
+export function deliverySelfServiceActivationDecision(
+  profile: { isBlocked?: boolean | null },
+  wantActive: boolean,
+):
+  | DelivererAcceptDenial
+  | { ok: true; isActive: boolean; verify: boolean } {
+  if (profile.isBlocked && wantActive) {
+    return {
+      ok: false,
+      status: 403,
+      error: DELIVERY_BLOCKED_MESSAGE_NL,
+      code: 'DELIVERY_BLOCKED',
+    };
+  }
+  return { ok: true, isActive: wantActive, verify: wantActive && !profile.isBlocked };
 }

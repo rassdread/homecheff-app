@@ -440,6 +440,14 @@ export async function acceptDeliveryBookingRequest(
   if (request.deliveryProfile.userId !== params.deliveryProfileUserId) {
     return { ok: false as const, status: 403, error: 'Niet geautoriseerd' };
   }
+  if (request.deliveryProfile.isBlocked) {
+    return {
+      ok: false as const,
+      status: 403,
+      code: 'DELIVERY_BLOCKED',
+      error: 'Je bezorgerprofiel is geblokkeerd.',
+    };
+  }
   const acceptPilot = servicePilotDenial({
     requesterUserId: request.buyerId,
     courierProfileId: request.deliveryProfileId,

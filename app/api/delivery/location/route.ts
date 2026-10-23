@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { deliverySelfServiceIsActivePatch } from '@/lib/delivery/delivery-eligibility';
 
 // Update delivery driver's current location
 export async function POST(req: NextRequest) {
@@ -31,6 +32,15 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
+    const existingBlock = await prisma.deliveryProfile.findUnique({
+      where: { userId: user.id },
+      select: { isBlocked: true },
+    });
+    const nextActive = deliverySelfServiceIsActivePatch(
+      { isBlocked: Boolean(existingBlock?.isBlocked) },
+      isActive !== undefined ? Boolean(isActive) : true,
+    );
+
     // Update delivery profile with current location
     const updatedProfile = await prisma.deliveryProfile.update({
       where: { userId: user.id },
@@ -38,7 +48,7 @@ export async function POST(req: NextRequest) {
         currentLat: lat,
         currentLng: lng,
         currentAddress: address || null,
-        isActive: isActive !== undefined ? isActive : true,
+        ...(nextActive !== undefined ? { isActive: nextActive } : {}),
         lastLocationUpdate: new Date()
       }
     });

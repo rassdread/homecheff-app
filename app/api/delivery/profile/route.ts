@@ -175,6 +175,18 @@ export async function PUT(req: NextRequest) {
       homeAddress
     } = await req.json();
 
+    const existingBlock = await prisma.deliveryProfile.findUnique({
+      where: { userId: user!.id },
+      select: { isBlocked: true },
+    });
+    const { deliverySelfServiceIsActivePatch } = await import(
+      '@/lib/delivery/delivery-eligibility'
+    );
+    const nextActive = deliverySelfServiceIsActivePatch(
+      { isBlocked: Boolean(existingBlock?.isBlocked) },
+      typeof isActive === 'boolean' ? isActive : undefined,
+    );
+
     // Commercial delivery 18+ — replace legacy 15–25 band on profile updates
     if ((age !== undefined && age !== null) || isActive === true) {
       const dbUser = await prisma.user.findUnique({
@@ -241,7 +253,7 @@ export async function PUT(req: NextRequest) {
         ...(Array.isArray(availableDays) ? { availableDays } : {}),
         ...(Array.isArray(availableTimeSlots) ? { availableTimeSlots } : {}),
         ...(bio !== undefined && { bio }),
-        ...(isActive !== undefined && { isActive }),
+        ...(nextActive !== undefined ? { isActive: nextActive } : {}),
         ...(deliveryMode && { deliveryMode }),
         ...(Array.isArray(deliveryRegions) ? { deliveryRegions } : {}),
         ...(finalHomeLat != null ? { homeLat: finalHomeLat } : {}),

@@ -13,6 +13,7 @@ import {
   noticesForOnlineGate,
   serializeRequirementNotice,
 } from '@/lib/account/profile-requirement-notice';
+import { DELIVERY_BLOCKED_MESSAGE_NL } from '@/lib/delivery/delivery-eligibility';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,6 +42,13 @@ export async function POST(req: NextRequest) {
 
     if (!deliveryProfile) {
       return NextResponse.json({ error: 'Delivery profile not found' }, { status: 404 });
+    }
+
+    if (wantOnline && deliveryProfile.isBlocked) {
+      return NextResponse.json(
+        { error: DELIVERY_BLOCKED_MESSAGE_NL, code: 'DELIVERY_BLOCKED' },
+        { status: 403 },
+      );
     }
 
     if (!wantOnline) {

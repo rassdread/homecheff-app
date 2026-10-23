@@ -12,6 +12,10 @@ import {
   resolveCanonicalServiceCoords,
 } from '@/lib/delivery/delivery-profile-canonical';
 import { getDeliveryProfileCompletion } from '@/lib/delivery/delivery-profile-completion';
+import {
+  deliveryProfileAutoVerifyPatch,
+  deliverySelfServiceIsActivePatch,
+} from '@/lib/delivery/delivery-eligibility';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +24,7 @@ const PROFILE_SELECT = {
   isActive: true,
   isOnline: true,
   isVerified: true,
+  isBlocked: true,
   maxDistance: true,
   preferredRadius: true,
   homeLat: true,
@@ -166,10 +171,14 @@ export async function GET() {
       ...toProviderActivationProfile(deliveryProfile, user),
       dateOfBirth: user.dateOfBirth,
     });
-    if (completionNow.isComplete && !deliveryProfile.isVerified) {
+    const verifyPatch = deliveryProfileAutoVerifyPatch(
+      deliveryProfile,
+      completionNow.isComplete,
+    );
+    if ('isVerified' in verifyPatch) {
       deliveryProfile = await prisma.deliveryProfile.update({
         where: { userId: user.id },
-        data: { isVerified: true },
+        data: verifyPatch,
         select: PROFILE_SELECT,
       });
     }
@@ -317,7 +326,7 @@ export async function PUT(req: NextRequest) {
       const updated = await tx.deliveryProfile.update({
         where: { userId: user.id },
         data: {
-          isActive: patch.isActive,
+          isActive: deliverySelfServiceIsActivePatch(existing, patch.isActive),
           maxDistance: patch.maxDistance,
           preferredRadius: patch.preferredRadius,
           availableDays: patch.availableDays,
@@ -357,9 +366,7 @@ export async function PUT(req: NextRequest) {
           homeLat: patch.homeLat,
           homeLng: patch.homeLng,
           homeAddress: patch.homeAddress,
-          ...(completionPreview.isComplete && !existing.isVerified
-            ? { isVerified: true }
-            : {}),
+          ...deliveryProfileAutoVerifyPatch(existing, completionPreview.isComplete),
           updatedAt: new Date(),
         },
         select: PROFILE_SELECT,

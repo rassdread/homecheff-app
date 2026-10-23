@@ -641,7 +641,15 @@ export class DeliveryRequestService {
   }> {
     const profile = await prisma.deliveryProfile.findUnique({
       where: { userId },
-      select: { id: true, isActive: true, isVerified: true, age: true, maxDistance: true },
+      select: {
+        id: true,
+        userId: true,
+        isActive: true,
+        isVerified: true,
+        isBlocked: true,
+        age: true,
+        maxDistance: true,
+      },
     });
     const gate = assertDelivererCanAccept(profile);
     if (!gate.ok) {
@@ -750,7 +758,14 @@ export class DeliveryRequestService {
   ): Promise<DeliveryRequestActionResult> {
     const profile = await prisma.deliveryProfile.findUnique({
       where: { userId },
-      select: { id: true, isActive: true, isVerified: true, age: true },
+      select: {
+        id: true,
+        userId: true,
+        isActive: true,
+        isVerified: true,
+        isBlocked: true,
+        age: true,
+      },
     });
     const gate = assertDelivererCanAccept(profile);
     if (!gate.ok) {
