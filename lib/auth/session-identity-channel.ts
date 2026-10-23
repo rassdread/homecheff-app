@@ -43,3 +43,31 @@ export function readRememberedMarketplaceAuthUserId(): string | null {
     return null;
   }
 }
+
+/**
+ * Same-tab credential login is about to hard-navigate itself.
+ * SessionGuard reloads 400ms after a guest becomes a user, which aborts that
+ * navigation and leaves the courier on the registration wizard.
+ * Marketplace login does not set this flag, so its reload stays in place.
+ */
+const SAME_TAB_LOGIN_NAV_KEY = "homecheff_same_tab_login_nav_v1";
+
+export function markSameTabCredentialNavigation(): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(SAME_TAB_LOGIN_NAV_KEY, "1");
+  } catch {
+    /* private mode */
+  }
+}
+
+export function consumeSameTabCredentialNavigation(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    if (sessionStorage.getItem(SAME_TAB_LOGIN_NAV_KEY) !== "1") return false;
+    sessionStorage.removeItem(SAME_TAB_LOGIN_NAV_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}

@@ -12,6 +12,10 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { CANONICAL_DELIVERY_DAYS } from '@/lib/delivery/delivery-profile-canonical';
 import { trackDeliverySignupFunnel } from '@/lib/delivery/delivery-signup-funnel';
 import { newDeliveryFlowId } from '@/lib/delivery/delivery-signup-draft';
+import {
+  consumeSameTabCredentialNavigation,
+  markSameTabCredentialNavigation,
+} from '@/lib/auth/session-identity-channel';
 
 type FormState = {
   name: string;
@@ -249,12 +253,15 @@ export default function DeliveryCompanySignupPage() {
       }
 
       if (!isExistingUser) {
+        try { window.sessionStorage.removeItem('homecheff_pending_intent_v1'); } catch { /* ignore */ }
+        markSameTabCredentialNavigation();
         const login = await signIn('credentials', {
           emailOrUsername: form.email,
           password: form.password,
           redirect: false,
         });
         if (!login?.ok) {
+          consumeSameTabCredentialNavigation();
           router.push(
             `/login?message=${encodeURIComponent(
               t('deliveryCompanySignup.createdLogin')
@@ -265,9 +272,10 @@ export default function DeliveryCompanySignupPage() {
       }
       try { trackDeliverySignupFunnel('delivery_signup_completed', funnel(5)); } catch { /* ignore */ }
       try { window.sessionStorage.removeItem('homecheff_pending_intent_v1'); } catch { /* ignore */ }
-      window.location.assign('/delivery/dashboard?welcome=true&newSignup=true&business=true');
+      window.location.assign('/delivery/company/dashboard?welcome=true&newSignup=true');
       return;
     } catch {
+      consumeSameTabCredentialNavigation();
       setError(
         t('deliveryCompanySignup.submitFailed')
       );

@@ -24,6 +24,9 @@ assert.match(guard, /pageshow/);
 assert.match(guard, /getSession/);
 assert.match(guard, /Sessie gewijzigd/);
 assert.match(guard, /clearSensitiveUserDataOnLogout/);
+assert.match(guard, /consumeSameTabCredentialNavigation/);
+assert.match(guard, /prev == null && nextUserId && consumeSameTabCredentialNavigation\(\)/);
+assert.doesNotMatch(read("app/login/page.tsx"), /markSameTabCredentialNavigation/);
 ok("CROSS_TAB_ACCOUNT_SWITCH_INVALIDATION");
 
 const cleanup = read("lib/session-cleanup.ts");

@@ -17,7 +17,10 @@ import {
   savePendingIntent,
 } from '@/lib/onboarding/pending-intent';
 import { reportAppDiagnostic } from '@/lib/diagnostics/appDiagnostics';
-import { deliveryRegistrationReturnPath } from '@/lib/auth/delivery-registration-return';
+import {
+  deliveryRegistrationReturnPath,
+  shouldResumeDeliveryRegistrationIntent,
+} from '@/lib/auth/delivery-registration-return';
 
 function pathSkipsOnboardingGate(pathname: string | null): boolean {
   if (!pathname) return true;
@@ -108,6 +111,11 @@ export default function AuthCompletionGate() {
 
       const qs = searchParams?.toString() || '';
       const here = `${pathname || ''}${qs ? `?${qs}` : ''}`;
+      if (!shouldResumeDeliveryRegistrationIntent(here, url)) {
+        clearPendingIntent();
+        lastIntentKey.current = `${intent.type}:${intent.createdAt}`;
+        return;
+      }
       if (url === here) return;
 
       const dedupeKey = `${intent.type}:${intent.createdAt}`;

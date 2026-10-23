@@ -21,6 +21,10 @@ import {
   writeDeliverySignupDraft,
 } from '@/lib/delivery/delivery-signup-draft';
 import { trackDeliverySignupFunnel } from '@/lib/delivery/delivery-signup-funnel';
+import {
+  consumeSameTabCredentialNavigation,
+  markSameTabCredentialNavigation,
+} from '@/lib/auth/session-identity-channel';
 
 interface DeliverySignupData {
   // Account creation
@@ -390,6 +394,8 @@ export default function DeliverySignupPage() {
       }
 
       try {
+        try { window.sessionStorage.removeItem('homecheff_pending_intent_v1'); } catch { /* ignore */ }
+        markSameTabCredentialNavigation();
         const loginResponse = await signIn('credentials', {
           emailOrUsername: formData.email,
           password: formData.password,
@@ -401,6 +407,7 @@ export default function DeliverySignupPage() {
           window.location.assign('/delivery/dashboard?welcome=true&newSignup=true');
           return;
         } else {
+          consumeSameTabCredentialNavigation();
           router.push(
             `/login?message=${encodeURIComponent(
               t('deliverySignup.registrationSuccess')
@@ -408,6 +415,7 @@ export default function DeliverySignupPage() {
           );
         }
       } catch {
+        consumeSameTabCredentialNavigation();
         router.push(
           '/login?message=Registratie%20succesvol!%20Log%20nu%20in%20met%20je%20nieuwe%20account.&callbackUrl=%2Fdelivery%2Fdashboard'
         );

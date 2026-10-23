@@ -45,6 +45,7 @@ describe('delivery registration auto-login payload', () => {
     assert.match(block, /redirect:\s*false/);
     const page = read('app/delivery/signup/page.tsx');
     assert.match(page, /homecheff_pending_intent_v1/);
+    assert.match(page, /markSameTabCredentialNavigation\(\)/);
     assert.match(
       page,
       /window\.location\.assign\('\/delivery\/dashboard\?welcome=true&newSignup=true'\)/
@@ -59,9 +60,10 @@ describe('delivery registration auto-login payload', () => {
     assert.match(block, /redirect:\s*false/);
     const page = read('app/delivery/company/signup/page.tsx');
     assert.match(page, /homecheff_pending_intent_v1/);
+    assert.match(page, /markSameTabCredentialNavigation\(\)/);
     assert.match(
       page,
-      /window\.location\.assign\('\/delivery\/dashboard\?welcome=true&newSignup=true&business=true'\)/
+      /window\.location\.assign\('\/delivery\/company\/dashboard\?welcome=true&newSignup=true'\)/
     );
   });
 
@@ -100,6 +102,7 @@ describe('delivery registration auto-login payload', () => {
     const block = register.slice(start, start + 250);
     assert.match(block, /emailOrUsername:\s*state\.email/);
     assert.doesNotMatch(block, /\bemail:\s*state\.email/);
+    assert.doesNotMatch(register, /markSameTabCredentialNavigation/);
   });
 });
 

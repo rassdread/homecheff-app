@@ -13,6 +13,7 @@ import {
 import { clearPx4aItemFormDraft } from '@/lib/studio/px4a-item-form-draft';
 import {
   MARKETPLACE_AUTH_CHANNEL,
+  consumeSameTabCredentialNavigation,
   rememberMarketplaceAuthUserId,
   type MarketplaceAuthChannelMessage,
 } from '@/lib/auth/session-identity-channel';
@@ -53,6 +54,14 @@ export default function SessionGuard() {
     }
     const prev = knownUserIdRef.current;
     if (prev === nextUserId) return;
+
+    // Guest → user on a page that will navigate itself (delivery registration).
+    // A reload here aborts window.location.assign and returns the courier to the wizard.
+    if (prev == null && nextUserId && consumeSameTabCredentialNavigation()) {
+      knownUserIdRef.current = nextUserId;
+      rememberMarketplaceAuthUserId(nextUserId);
+      return;
+    }
 
     reloadingRef.current = true;
     knownUserIdRef.current = nextUserId;
