@@ -31,6 +31,7 @@ type FormState = {
   availableDays: string[];
   availableTimeSlots: string[];
   preferredRadius: number;
+  maxDistance: number;
   homeAddress: string;
   acceptDeliveryAgreement: boolean;
 };
@@ -89,7 +90,8 @@ export default function DeliveryCompanySignupPage() {
     transportation: [],
     availableDays: [],
     availableTimeSlots: [],
-    preferredRadius: 10,
+    preferredRadius: 0,
+    maxDistance: 0,
     homeAddress: '',
     acceptDeliveryAgreement: false,
   });
@@ -166,7 +168,11 @@ export default function DeliveryCompanySignupPage() {
         return (
           form.availableDays.length > 0 &&
           form.availableTimeSlots.length > 0 &&
-          form.homeAddress.trim().length > 3
+          form.homeAddress.trim().length > 3 &&
+          form.preferredRadius >= 0.5 &&
+          form.preferredRadius <= 500 &&
+          form.maxDistance >= 0.5 &&
+          form.maxDistance <= 500
         );
       case 5:
         return form.acceptDeliveryAgreement && form.age >= 18;
@@ -194,7 +200,7 @@ export default function DeliveryCompanySignupPage() {
             availableDays: form.availableDays,
             availableTimeSlots: form.availableTimeSlots,
             preferredRadius: form.preferredRadius,
-            maxDistance: form.preferredRadius,
+            maxDistance: form.maxDistance,
             homeAddress: form.homeAddress,
             deliveryRegion: form.homeAddress,
             acceptDeliveryAgreement: form.acceptDeliveryAgreement,
@@ -214,7 +220,7 @@ export default function DeliveryCompanySignupPage() {
             availableDays: form.availableDays,
             availableTimeSlots: form.availableTimeSlots,
             preferredRadius: form.preferredRadius,
-            maxDistance: form.preferredRadius,
+            maxDistance: form.maxDistance,
             homeAddress: form.homeAddress,
             deliveryRegion: form.homeAddress,
             acceptDeliveryAgreement: form.acceptDeliveryAgreement,
@@ -428,19 +434,42 @@ export default function DeliveryCompanySignupPage() {
                 value={form.homeAddress}
                 onChange={(e) => setForm((p) => ({ ...p, homeAddress: e.target.value }))}
               />
-              <label className="block text-sm text-slate-700">
-                {t('deliveryCompanySignup.radius').replace('{km}', String(form.preferredRadius))}
+              <div>
+                <label className="block text-sm text-slate-700" htmlFor="company-pickup-radius">
+                  {t('deliveryCompanySignup.pickupRadius')}
+                </label>
+                <p className="mb-2 text-xs text-slate-500">{t('deliveryCompanySignup.pickupRadiusHelp')}</p>
                 <input
-                  type="range"
-                  min={2}
-                  max={50}
-                  value={form.preferredRadius}
+                  id="company-pickup-radius"
+                  type="number"
+                  min={0.5}
+                  max={500}
+                  step={0.5}
+                  value={form.preferredRadius || ''}
                   onChange={(e) =>
                     setForm((p) => ({ ...p, preferredRadius: Number(e.target.value) }))
                   }
-                  className="mt-2 w-full"
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3"
                 />
-              </label>
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700" htmlFor="company-transport-distance">
+                  {t('deliveryCompanySignup.transportDistance')}
+                </label>
+                <p className="mb-2 text-xs text-slate-500">{t('deliveryCompanySignup.transportDistanceHelp')}</p>
+                <input
+                  id="company-transport-distance"
+                  type="number"
+                  min={0.5}
+                  max={500}
+                  step={0.5}
+                  value={form.maxDistance || ''}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, maxDistance: Number(e.target.value) }))
+                  }
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3"
+                />
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 {CANONICAL_DELIVERY_DAYS.map((day, index) => (
                   <button

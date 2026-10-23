@@ -7,6 +7,10 @@ import type { TransportationMode } from '@prisma/client';
 import { tryNormalizeEmail } from '@/lib/auth/normalize-email';
 import { COMMERCIAL_DELIVERY_MIN_AGE } from '@/lib/delivery/delivery-age';
 import {
+  DISTANCE_SEMANTICS_V1,
+  validateConfigurableDistanceKm,
+} from '@/lib/delivery/distance-semantics';
+import {
   composeDeliveryHomeAddress,
   validateDeliveryAddressParts,
 } from '@/lib/delivery/delivery-registration-address';
@@ -178,6 +182,7 @@ export type ParsedDeliverySignup = {
   transportation: TransportationMode[];
   maxDistance: number;
   preferredRadius: number;
+  distanceSemanticsVersion: typeof DISTANCE_SEMANTICS_V1;
   deliveryMode: string;
   availableDays: string[];
   availableTimeSlots: string[];
@@ -278,7 +283,12 @@ export function parseAndValidateDeliverySignupFields(
     }
   }
 
-  if (Object.keys(fieldErrors).length > 0) {
+  const pickupCheck = validateConfigurableDistanceKm(input.preferredRadius);
+  const transportCheck = validateConfigurableDistanceKm(input.maxDistance);
+  if (!pickupCheck.ok) fieldErrors.preferredRadius = pickupCheck.error;
+  if (!transportCheck.ok) fieldErrors.maxDistance = transportCheck.error;
+
+  if (Object.keys(fieldErrors).length > 0 || !pickupCheck.ok || !transportCheck.ok) {
     const underage =
       age != null && Number.isFinite(age) && age < COMMERCIAL_DELIVERY_MIN_AGE;
     return {
@@ -293,8 +303,8 @@ export function parseAndValidateDeliverySignupFields(
     };
   }
 
-  const maxDistance = asFiniteNumber(input.maxDistance) ?? 3;
-  const preferredRadius = asFiniteNumber(input.preferredRadius) ?? 5;
+  const maxDistance = transportCheck.km;
+  const preferredRadius = pickupCheck.km;
   const homeLat = asFiniteNumber(input.homeLat);
   const homeLng = asFiniteNumber(input.homeLng);
 
@@ -303,8 +313,9 @@ export function parseAndValidateDeliverySignupFields(
     data: {
       age: age!,
       transportation,
-      maxDistance: Math.min(Math.max(maxDistance, 0.5), 100),
-      preferredRadius: Math.min(Math.max(preferredRadius, 0.5), 100),
+      maxDistance,
+      preferredRadius,
+      distanceSemanticsVersion: DISTANCE_SEMANTICS_V1,
       deliveryMode:
         input.deliveryMode === 'DYNAMIC' || input.deliveryMode === 'FIXED'
           ? String(input.deliveryMode)

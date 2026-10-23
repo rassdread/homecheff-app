@@ -198,6 +198,8 @@ describe('signup agreement display and private regression', () => {
         age: 30,
         transportation: ['BIKE'],
         acceptDeliveryAgreement: true,
+        preferredRadius: 10,
+        maxDistance: 25,
       },
       { requireAccountFields: true },
     );
@@ -235,6 +237,8 @@ describe('signup agreement display and private regression', () => {
         providerType: 'DELIVERY_BUSINESS',
         companyName: 'Nearby Rides',
         kvkNumber: '12345678',
+        preferredRadius: 10,
+        maxDistance: 25,
       },
       { requireAccountFields: true },
     );

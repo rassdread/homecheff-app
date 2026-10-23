@@ -28,6 +28,11 @@ import {
   resolveDelivererPosition,
   resolveSellerCoords,
 } from "@/lib/delivery/delivery-position";
+import {
+  distanceSemanticsMode,
+  isCaribbeanCountry,
+  version1DistanceEligible,
+} from "@/lib/delivery/distance-semantics";
 import { requiresInventoryForCheckout } from "@/lib/proposals/proposal-stock-policy";
 import { parseFulfillmentOptions } from "@/lib/marketplace/listing-taxonomy";
 import { confirmReservationAndDecrementStock } from "@/lib/products/stock-reservation";
@@ -1464,14 +1469,15 @@ export async function POST(req: NextRequest) {
                   }
                 },
                 include: {
-                  user: {
-                    select: {
-                      id: true,
-                      name: true,
-                      lat: true,
-                      lng: true
+                    user: {
+                      select: {
+                        id: true,
+                        name: true,
+                        lat: true,
+                        lng: true,
+                        country: true
+                      }
                     }
-                  }
                 }
               });
 
@@ -1488,7 +1494,8 @@ export async function POST(req: NextRequest) {
                       User: {
                         select: {
                           lat: true,
-                          lng: true
+                          lng: true,
+                          country: true
                         }
                       }
                     }
@@ -1697,7 +1704,32 @@ export async function POST(req: NextRequest) {
                     coordinates.lat,
                     coordinates.lng
                   );
-                  return distanceToSeller <= deliverer.maxDistance && distanceToBuyer <= deliverer.maxDistance;
+                  const distanceMode = distanceSemanticsMode(deliverer.distanceSemanticsVersion);
+                  if (distanceMode === 'unsupported') return false;
+                  if (distanceMode === 'legacy') {
+                    return distanceToSeller <= deliverer.maxDistance && distanceToBuyer <= deliverer.maxDistance;
+                  }
+                  const sellerCountry = firstProduct?.seller?.User?.country;
+                  const courierCountry = deliverer.user?.country;
+                  const norm = (value?: string | null) => (value || '').trim().toUpperCase();
+                  const sellerCode = norm(sellerCountry);
+                  const courierCode = norm(courierCountry);
+                  const sameCountry = !sellerCode || !courierCode || sellerCode === courierCode;
+                  const transportKm = calculateDistance(
+                    sellerCoords.lat,
+                    sellerCoords.lng,
+                    coordinates.lat,
+                    coordinates.lng,
+                  );
+                  return version1DistanceEligible({
+                    nationalCoverage: Boolean(deliverer.nationalCoverage),
+                    isCaribbean: isCaribbeanCountry(courierCountry),
+                    sameCountry,
+                    distanceToPickupKm: distanceToSeller,
+                    pickupToDestinationKm: transportKm,
+                    preferredRadiusKm: deliverer.preferredRadius,
+                    maxDistanceKm: deliverer.maxDistance,
+                  }).ok;
                 });
 
                 for (const deliverer of eligibleDeliverers) {

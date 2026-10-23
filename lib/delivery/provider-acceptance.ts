@@ -28,6 +28,8 @@ export type ProviderAcceptanceProfile = {
   minimumFeeCents?: number | null;
   age?: number | null;
   maxDistance: number;
+  preferredRadius?: number | null;
+  distanceSemanticsVersion?: number | null;
   nationalCoverage?: boolean | null;
   temporaryOffline?: boolean | null;
   vacationStart?: Date | string | null;
@@ -49,6 +51,7 @@ export type ProviderAcceptanceProfile = {
 export type AutoConfirmContext = {
   now?: Date;
   routeDistanceKm?: number | null;
+  distanceToPickupKm?: number | null;
   activeDeliveryCount?: number;
   slotDeliveryCount?: number;
   requiredVehicle?: string | null;
@@ -169,6 +172,22 @@ export function validateProviderAutoConfirm(
     if (isWithinBreak(minutesNow, profile.breakWindows)) {
       failed.push('break');
     }
+  }
+
+  if (
+    profile.distanceSemanticsVersion != null &&
+    profile.distanceSemanticsVersion !== 1
+  ) {
+    failed.push('radius');
+  } else if (
+    profile.distanceSemanticsVersion === 1 &&
+    ctx.distanceToPickupKm != null &&
+    Number.isFinite(ctx.distanceToPickupKm) &&
+    !profile.nationalCoverage &&
+    (profile.preferredRadius == null ||
+      ctx.distanceToPickupKm > profile.preferredRadius)
+  ) {
+    failed.push('radius');
   }
 
   if (

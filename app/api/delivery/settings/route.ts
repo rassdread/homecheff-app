@@ -16,6 +16,7 @@ import {
   deliveryProfileAutoVerifyPatch,
   deliverySelfServiceIsActivePatch,
 } from '@/lib/delivery/delivery-eligibility';
+import { planDistanceSettingsWrite } from '@/lib/delivery/distance-semantics';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +28,7 @@ const PROFILE_SELECT = {
   isBlocked: true,
   maxDistance: true,
   preferredRadius: true,
+  distanceSemanticsVersion: true,
   homeLat: true,
   homeLng: true,
   homeAddress: true,
@@ -156,17 +158,6 @@ export async function GET() {
       });
     }
 
-    if (
-      deliveryProfile.preferredRadius == null &&
-      typeof deliveryProfile.maxDistance === 'number'
-    ) {
-      deliveryProfile = await prisma.deliveryProfile.update({
-        where: { userId: user.id },
-        data: { preferredRadius: deliveryProfile.maxDistance },
-        select: PROFILE_SELECT,
-      });
-    }
-
     const completionNow = getDeliveryProfileCompletion({
       ...toProviderActivationProfile(deliveryProfile, user),
       dateOfBirth: user.dateOfBirth,
@@ -254,6 +245,29 @@ export async function PUT(req: NextRequest) {
     }
 
     const patch = built.data;
+    const distancePlan = planDistanceSettingsWrite({
+      existingVersion: existing.distanceSemanticsVersion ?? null,
+      existingPreferredRadius: existing.preferredRadius,
+      existingMaxDistance: existing.maxDistance,
+      acceptDistanceModelA: body.acceptDistanceModelA === true,
+      preferredRadius: body.preferredRadius,
+      maxDistance: body.maxDistance,
+      preferredRadiusProvided: Object.prototype.hasOwnProperty.call(body, 'preferredRadius'),
+      maxDistanceProvided: Object.prototype.hasOwnProperty.call(body, 'maxDistance'),
+    });
+    if (!distancePlan.ok) {
+      return NextResponse.json(
+        { error: distancePlan.error, code: 'DELIVERY_DISTANCE_INVALID' },
+        { status: 400 },
+      );
+    }
+    if (distancePlan.apply) {
+      patch.preferredRadius = distancePlan.preferredRadius;
+      patch.maxDistance = distancePlan.maxDistance;
+    } else {
+      delete patch.preferredRadius;
+      delete patch.maxDistance;
+    }
 
     const mergedPricing = {
       pricingEnabled:
@@ -329,6 +343,9 @@ export async function PUT(req: NextRequest) {
           isActive: deliverySelfServiceIsActivePatch(existing, patch.isActive),
           maxDistance: patch.maxDistance,
           preferredRadius: patch.preferredRadius,
+          distanceSemanticsVersion: distancePlan.apply
+            ? distancePlan.distanceSemanticsVersion
+            : undefined,
           availableDays: patch.availableDays,
           availableTimeSlots: patch.availableTimeSlots,
           transportation:

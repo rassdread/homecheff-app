@@ -110,6 +110,8 @@ describe('delivery registration server address', () => {
       providerType: 'DELIVERY_BUSINESS',
       companyName: 'Rotterdam Rides',
       kvkNumber: '12345678',
+      preferredRadius: 10,
+      maxDistance: 25,
       homeAddress: 'Coolsingel 40, Rotterdam',
     }, { requireAccountFields: true });
     assert.equal(result.ok, true);

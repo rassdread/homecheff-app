@@ -269,9 +269,7 @@ export function buildCanonicalSettingsUpdate(params: {
   const { body, existing, user } = params;
 
   const nextMaxDistance = coerceKm(body.maxDistance);
-  const nextPreferred =
-    coerceKm(body.preferredRadius) ??
-    (nextMaxDistance !== undefined ? nextMaxDistance : undefined);
+  const nextPreferred = coerceKm(body.preferredRadius);
 
   const timeSlots =
     body.availableTimes !== undefined
@@ -419,6 +417,7 @@ export function serializeCanonicalSettingsProfile(profile: {
   currency: string;
   nationalCoverage: boolean;
   isVerified: boolean;
+  distanceSemanticsVersion?: number | null;
 }) {
   const timeSlots = profile.availableTimeSlots || [];
   return {
@@ -427,7 +426,8 @@ export function serializeCanonicalSettingsProfile(profile: {
     isOnline: profile.isOnline || false,
     isVerified: profile.isVerified,
     maxDistance: profile.maxDistance,
-    preferredRadius: profile.preferredRadius ?? profile.maxDistance,
+    preferredRadius: profile.preferredRadius,
+    distanceSemanticsVersion: profile.distanceSemanticsVersion ?? null,
     homeLat: profile.homeLat,
     homeLng: profile.homeLng,
     homeAddress: profile.homeAddress,

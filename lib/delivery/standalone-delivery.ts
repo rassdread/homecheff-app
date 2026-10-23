@@ -5,6 +5,13 @@ import { financialStripeSecret, stripe } from '@/lib/stripe';
 import { recordCheckoutPaymentIncident } from '@/lib/payments/checkout-payment-incident';
 import { calculateStripeFeeForBuyer } from '@/lib/fees';
 import { getRouteDistance } from '@/lib/google-maps-distance';
+import { calculateDistance } from '@/lib/geocoding';
+import { resolveDelivererPosition } from '@/lib/delivery/delivery-position';
+import {
+  distanceSemanticsMode,
+  isCaribbeanCountry,
+  version1DistanceEligible,
+} from '@/lib/delivery/distance-semantics';
 import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing';
 import { isCommerciallyMatchableDeliverer } from '@/lib/delivery/delivery-eligibility';
 import { splitDeliveryCommission } from '@/lib/delivery/quote-snapshot';
@@ -126,7 +133,7 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput) {
       isBlocked: false,
     },
     include: {
-      user: { select: { id: true, name: true, dateOfBirth: true } },
+      user: { select: { id: true, name: true, dateOfBirth: true, lat: true, lng: true, country: true } },
     },
   });
   if (profiles.length === 0) {
@@ -151,6 +158,28 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput) {
     });
     if (!eligible) continue;
     if (!courierListedInPilot(profile.id, profile.user?.id)) continue;
+    const distanceMode = distanceSemanticsMode(profile.distanceSemanticsVersion);
+    if (distanceMode === 'unsupported') continue;
+    if (distanceMode === 'v1') {
+      const position = resolveDelivererPosition(profile);
+      const providerCountry = (profile.user.country || '').trim().toUpperCase();
+      if (!position) continue;
+      const decision = version1DistanceEligible({
+        nationalCoverage: profile.nationalCoverage,
+        isCaribbean: isCaribbeanCountry(providerCountry),
+        sameCountry: !providerCountry || providerCountry === 'NL',
+        distanceToPickupKm: calculateDistance(
+          position.lat,
+          position.lng,
+          input.pickupLat,
+          input.pickupLng,
+        ),
+        pickupToDestinationKm: route.distance,
+        preferredRadiusKm: profile.preferredRadius,
+        maxDistanceKm: profile.maxDistance,
+      });
+      if (!decision.ok) continue;
+    }
     const quote = calculateProviderDeliveryPrice({
       pricing: {
         pricingEnabled: profile.pricingEnabled,

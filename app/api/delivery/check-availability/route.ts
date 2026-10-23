@@ -9,6 +9,11 @@ import { delivererMatchingWhere } from '@/lib/delivery/delivery-eligibility';
 import { resolveDelivererPosition } from '@/lib/delivery/delivery-position';
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 import { resolveDeliveryTimeAvailability } from '@/lib/delivery/delivery-time-availability';
+import {
+  distanceSemanticsMode,
+  isCaribbeanCountry,
+  version1DistanceEligible,
+} from '@/lib/delivery/distance-semantics';
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,6 +52,8 @@ export async function POST(req: NextRequest) {
       select: {
         id: true,
         maxDistance: true,
+        preferredRadius: true,
+        distanceSemanticsVersion: true,
         nationalCoverage: true,
         gpsTrackingEnabled: true,
         currentLat: true,
@@ -117,17 +124,32 @@ export async function POST(req: NextRequest) {
     const profilesInRange = profilesWithDistances.filter(
       (profile): profile is NonNullable<typeof profile> => {
         if (!profile) return false;
-        if (profile.nationalCoverage) {
-          // National = same-country only (already filtered by sellerCountry when provided).
-          return true;
+        const mode = distanceSemanticsMode(profile.distanceSemanticsVersion);
+        if (mode === 'unsupported') return false;
+        if (mode === 'legacy') {
+          if (profile.nationalCoverage) {
+            // National = same-country only (already filtered by sellerCountry when provided).
+            return true;
+          }
+          if (sellerLat && sellerLng) {
+            return (
+              profile.distanceToSeller <= profile.maxDistance &&
+              profile.distanceToBuyer <= profile.maxDistance
+            );
+          }
+          return profile.distanceToBuyer <= profile.maxDistance;
         }
-        if (sellerLat && sellerLng) {
-          return (
-            profile.distanceToSeller <= profile.maxDistance &&
-            profile.distanceToBuyer <= profile.maxDistance
-          );
-        }
-        return profile.distanceToBuyer <= profile.maxDistance;
+        if (sellerLat == null || sellerLng == null) return false;
+        const transportKm = calculateDistance(sellerLat, sellerLng, lat, lng);
+        return version1DistanceEligible({
+          nationalCoverage: Boolean(profile.nationalCoverage),
+          isCaribbean: isCaribbeanCountry(profile.user.country),
+          sameCountry: true,
+          distanceToPickupKm: profile.distanceToSeller,
+          pickupToDestinationKm: transportKm,
+          preferredRadiusKm: profile.preferredRadius,
+          maxDistanceKm: profile.maxDistance,
+        }).ok;
       }
     );
 

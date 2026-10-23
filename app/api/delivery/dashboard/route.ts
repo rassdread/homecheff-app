@@ -20,6 +20,11 @@ import {
   sellerPhoneForPhase,
 } from '@/lib/delivery/delivery-privacy';
 import { acceptanceMatchesCurrent } from '@/lib/delivery/delivery-agreement-version';
+import {
+  distanceSemanticsMode,
+  isCaribbeanCountry,
+  version1DistanceEligible,
+} from '@/lib/delivery/distance-semantics';
 
 const dashboardStripeKey = financialStripeSecret();
 const stripe: Stripe | null = dashboardStripeKey
@@ -70,6 +75,9 @@ export async function GET(req: NextRequest) {
         isActive: true,
         isVerified: true,
         maxDistance: true,
+        preferredRadius: true,
+        distanceSemanticsVersion: true,
+        nationalCoverage: true,
         totalDeliveries: true,
         averageRating: true,
         totalEarnings: true,
@@ -162,7 +170,7 @@ export async function GET(req: NextRequest) {
     // Get user location
     const userLocation = await prisma.user.findUnique({
       where: { id: userId },
-      select: { lat: true, lng: true }
+      select: { lat: true, lng: true, country: true }
     });
 
     if (isSeller && sellerProfileId && !deliveryProfile) {
@@ -890,7 +898,8 @@ export async function GET(req: NextRequest) {
                               place: true,
                               phoneNumber: true,
                               lat: true,
-                              lng: true
+                              lng: true,
+                              country: true
                             }
                           }
                         }
@@ -910,7 +919,8 @@ export async function GET(req: NextRequest) {
                   city: true,
                   place: true,
                   lat: true,
-                  lng: true
+                  lng: true,
+                  country: true
                 }
               }
             }
@@ -967,6 +977,31 @@ export async function GET(req: NextRequest) {
             }
             const dPickup = calculateDistance(delivererLat, delivererLng, pickupCoords.lat, pickupCoords.lng);
             const dBuyer = calculateDistance(delivererLat, delivererLng, buyerUser.lat, buyerUser.lng);
+            const distanceMode = distanceSemanticsMode(deliveryProfile.distanceSemanticsVersion);
+            if (distanceMode === 'unsupported') return false;
+            if (distanceMode === 'v1') {
+              const sellerCountry = product?.seller?.User?.country;
+              const buyerCountry = buyerUser.country;
+              const courierCountry = userLocation?.country;
+              const known = [sellerCountry, buyerCountry, courierCountry].filter(Boolean);
+              const sameCountry = known.every(
+                (country) => String(country).trim().toUpperCase() === String(known[0]).trim().toUpperCase(),
+              );
+              return version1DistanceEligible({
+                nationalCoverage: Boolean(deliveryProfile.nationalCoverage),
+                isCaribbean: isCaribbeanCountry(courierCountry),
+                sameCountry,
+                distanceToPickupKm: dPickup,
+                pickupToDestinationKm: calculateDistance(
+                  pickupCoords.lat,
+                  pickupCoords.lng,
+                  buyerUser.lat,
+                  buyerUser.lng,
+                ),
+                preferredRadiusKm: deliveryProfile.preferredRadius,
+                maxDistanceKm: deliveryProfile.maxDistance,
+              }).ok;
+            }
             return dPickup <= deliveryProfile.maxDistance * 1.5 && dBuyer <= deliveryProfile.maxDistance * 1.5;
           })
           .slice(0, 20)
@@ -1026,7 +1061,34 @@ export async function GET(req: NextRequest) {
       const filteredAvailableOrders = ordersWithDistance.filter((o) => {
         const isTargeted = o.deliveryOrder.deliveryProfileId === deliveryProfile.id;
         if (isTargeted && o.totalDistance === 0) return true;
-        return o.distanceToSeller <= deliveryProfile.maxDistance && o.distanceToBuyer <= deliveryProfile.maxDistance;
+        const distanceMode = distanceSemanticsMode(deliveryProfile.distanceSemanticsVersion);
+        if (distanceMode === 'unsupported') return false;
+        if (distanceMode === 'legacy') {
+          return o.distanceToSeller <= deliveryProfile.maxDistance && o.distanceToBuyer <= deliveryProfile.maxDistance;
+        }
+        const product = o.deliveryOrder.order?.items[0]?.Product;
+        const pickupCoords = resolveDeliveryPickupCoords(product);
+        const buyerUser = o.deliveryOrder.order?.User;
+        const pickupToDestinationKm =
+          pickupCoords && buyerUser?.lat != null && buyerUser?.lng != null
+            ? calculateDistance(pickupCoords.lat, pickupCoords.lng, buyerUser.lat, buyerUser.lng)
+            : null;
+        const sellerCountry = product?.seller?.User?.country;
+        const buyerCountry = buyerUser?.country;
+        const courierCountry = userLocation?.country;
+        const known = [sellerCountry, buyerCountry, courierCountry].filter(Boolean);
+        const sameCountry = known.every(
+          (country) => String(country).trim().toUpperCase() === String(known[0]).trim().toUpperCase(),
+        );
+        return version1DistanceEligible({
+          nationalCoverage: Boolean(deliveryProfile.nationalCoverage),
+          isCaribbean: isCaribbeanCountry(courierCountry),
+          sameCountry,
+          distanceToPickupKm: o.distanceToSeller,
+          pickupToDestinationKm,
+          preferredRadiusKm: deliveryProfile.preferredRadius,
+          maxDistanceKm: deliveryProfile.maxDistance,
+        }).ok;
       });
 
       // Transform available orders for frontend (echte route-afstand en geschatte tijd)

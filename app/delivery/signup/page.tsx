@@ -103,14 +103,14 @@ export default function DeliverySignupPage() {
     // Delivery profile
     age: 18,
     transportation: [],
-    maxDistance: 3,
+    maxDistance: 0,
     availableDays: [],
     availableTimeSlots: [],
     bio: '',
     
     // Work area settings
     deliveryMode: 'FIXED',
-    preferredRadius: 5,
+    preferredRadius: 0,
     
     // Address details (for delivery home location)
     addressData: {
@@ -654,7 +654,10 @@ export default function DeliverySignupPage() {
         return formData.availableTimeSlots.length > 0;
       case 7:
         return (
-          formData.preferredRadius > 0 &&
+          formData.preferredRadius >= 0.5 &&
+          formData.preferredRadius <= 500 &&
+          formData.maxDistance >= 0.5 &&
+          formData.maxDistance <= 500 &&
           Boolean(formData.deliveryMode) &&
           validateDeliveryAddressParts(formData.addressData).length === 0
         );
@@ -1066,25 +1069,38 @@ export default function DeliverySignupPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('deliverySignup.maxDistance')}
-                    </label>
-                    <input
-                      type="range"
-                      min="2"
-                      max="15"
-                      value={formData.preferredRadius}
-                      onChange={(e) => setFormData(prev => ({ ...prev, preferredRadius: parseInt(e.target.value) }))}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>2 km</span>
-                      <span className="font-medium text-primary-brand">{formData.preferredRadius} km</span>
-                      <span>15 km</span>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="pickup-radius">
+                        {t('deliverySignup.pickupRadius')}
+                      </label>
+                      <p className="mb-2 text-xs text-gray-500">{t('deliverySignup.pickupRadiusHelp')}</p>
+                      <input
+                        id="pickup-radius"
+                        type="number"
+                        min="0.5"
+                        max="500"
+                        step="0.5"
+                        value={formData.preferredRadius || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, preferredRadius: Number(e.target.value) }))}
+                        className="w-full rounded-xl border border-gray-300 px-4 py-3"
+                      />
                     </div>
-                    <p className="text-xs text-gray-500">
-                      {t('deliverySignup.maxDistanceHint').replace('{distance}', formData.preferredRadius.toString())}
-                    </p>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="transport-distance">
+                        {t('deliverySignup.transportDistance')}
+                      </label>
+                      <p className="mb-2 text-xs text-gray-500">{t('deliverySignup.transportDistanceHelp')}</p>
+                      <input
+                        id="transport-distance"
+                        type="number"
+                        min="0.5"
+                        max="500"
+                        step="0.5"
+                        value={formData.maxDistance || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, maxDistance: Number(e.target.value) }))}
+                        className="w-full rounded-xl border border-gray-300 px-4 py-3"
+                      />
+                    </div>
                   </div>
 
                   {/* Address Details (Private) */}
@@ -1166,7 +1182,8 @@ export default function DeliverySignupPage() {
                       <li>• {t('deliverySignup.transportation')}: {formData.transportation.map(transport => 
                         transportationOptions.find(opt => opt.id === transport)?.label
                       ).join(', ')}</li>
-                      <li>• {t('deliverySignup.workArea')}: {formData.deliveryMode === 'FIXED' ? t('deliverySignup.fixedArea') : t('deliverySignup.flexible')} ({formData.preferredRadius}km)</li>
+                      <li>• {t('deliverySignup.pickupRadius')}: {formData.preferredRadius} km</li>
+                      <li>• {t('deliverySignup.transportDistance')}: {formData.maxDistance} km</li>
                       <li>• {t('deliverySignup.available')}: {formData.availableDays.map((id) => dayOptions.find((day) => day.id === id)?.label || id).join(', ')}</li>
                       <li>• {t('deliverySignup.timeSlots')}: {formData.availableTimeSlots.length} {t('deliverySignup.selected')}</li>
                     </ul>

@@ -183,7 +183,8 @@ describe('canonical GET serialization', () => {
     });
     assert.deepEqual(serialized.availableTimes, ['morning']);
     assert.deepEqual(serialized.availableTimeSlots, ['morning']);
-    assert.equal(serialized.preferredRadius, 10);
+    assert.equal(serialized.preferredRadius, null);
+    assert.equal(serialized.distanceSemanticsVersion, null);
     assert.equal(serialized.deliveryMode, 'FIXED');
     assert.equal(serialized.homeLat, 51.9);
     assert.equal(serialized.baseFeeCents, 250);

@@ -2116,6 +2116,8 @@ model DeliveryProfile {
   transportation       TransportationMode[]
   maxDistance          Float                         @default(3.0)
   preferredRadius      Float?
+  /// NULL = legacy matching. 1 = model A after an explicit distance save. No default and no backfill.
+  distanceSemanticsVersion Int?
   homeLat              Float?
   homeLng              Float?
   homeAddress          String?

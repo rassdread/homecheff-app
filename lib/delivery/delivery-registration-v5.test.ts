@@ -19,6 +19,8 @@ const manualNl = {
   age: 30,
   transportation: ['CAR'],
   acceptDeliveryAgreement: true,
+  preferredRadius: 10,
+  maxDistance: 25,
   addressCountry: 'NL',
   street: 'Coolsingel',
   houseNumber: '40',

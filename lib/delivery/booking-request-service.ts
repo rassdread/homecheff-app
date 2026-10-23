@@ -15,7 +15,13 @@ import {
   validateProviderAutoConfirm,
 } from '@/lib/delivery/provider-acceptance';
 import { NotificationService } from '@/lib/notifications/notification-service';
-import { resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
+import { resolveDelivererPosition, resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
+import { calculateDistance } from '@/lib/geocoding';
+import {
+  distanceSemanticsMode,
+  isCaribbeanCountry,
+  version1DistanceEligible,
+} from '@/lib/delivery/distance-semantics';
 import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { normalizeCountryCode } from '@/lib/gamification/country-code';
@@ -55,7 +61,16 @@ async function resolveAuthoritativeQuote(
       maxDistance: number;
       currency: string | null;
       nationalCoverage: boolean;
-      user?: { country?: string | null } | null;
+      distanceSemanticsVersion?: number | null;
+      preferredRadius?: number | null;
+      gpsTrackingEnabled?: boolean | null;
+      isOnline?: boolean | null;
+      currentLat?: number | null;
+      currentLng?: number | null;
+      lastGpsUpdate?: Date | null;
+      homeLat?: number | null;
+      homeLng?: number | null;
+      user?: { country?: string | null; lat?: number | null; lng?: number | null } | null;
     };
   }
 ): Promise<
@@ -118,6 +133,55 @@ async function resolveAuthoritativeQuote(
   const routeDistanceKm = Math.round(routeResult.distance * 10) / 10;
   const pickupCc = normalizeCountryCode(product?.seller?.User?.country);
   const providerCc = normalizeCountryCode(input.profile.user?.country) || pickupCc;
+  const distanceMode = distanceSemanticsMode(input.profile.distanceSemanticsVersion);
+  if (distanceMode === 'unsupported') {
+    return {
+      ok: false,
+      status: 422,
+      code: 'DELIVERY_OUT_OF_RADIUS',
+      error: 'Deze bezorger gebruikt een afstandsversie die niet beschikbaar is.',
+    };
+  }
+  if (distanceMode === 'v1') {
+    const position = resolveDelivererPosition({
+      gpsTrackingEnabled: Boolean(input.profile.gpsTrackingEnabled),
+      isOnline: Boolean(input.profile.isOnline),
+      currentLat: input.profile.currentLat ?? null,
+      currentLng: input.profile.currentLng ?? null,
+      lastGpsUpdate: input.profile.lastGpsUpdate ?? null,
+      homeLat: input.profile.homeLat ?? null,
+      homeLng: input.profile.homeLng ?? null,
+      user: {
+        lat: input.profile.user?.lat ?? null,
+        lng: input.profile.user?.lng ?? null,
+      },
+    });
+    if (!position) {
+      return {
+        ok: false,
+        status: 422,
+        code: 'DELIVERY_OUT_OF_RADIUS',
+        error: 'De standplaats van deze bezorger ontbreekt.',
+      };
+    }
+    const decision = version1DistanceEligible({
+      nationalCoverage: input.profile.nationalCoverage,
+      isCaribbean: isCaribbeanCountry(input.profile.user?.country),
+      sameCountry: !providerCc || !pickupCc || providerCc === pickupCc,
+      distanceToPickupKm: calculateDistance(position.lat, position.lng, pickup.lat, pickup.lng),
+      pickupToDestinationKm: routeDistanceKm,
+      preferredRadiusKm: input.profile.preferredRadius ?? null,
+      maxDistanceKm: input.profile.maxDistance,
+    });
+    if (!decision.ok) {
+      return {
+        ok: false,
+        status: 422,
+        code: 'DELIVERY_OUT_OF_RADIUS',
+        error: 'Afstand ligt buiten het bezorggebied van de aanbieder.',
+      };
+    }
+  }
 
   if (flags.providerPricingEnabled) {
     const quote = calculateProviderDeliveryPrice({
@@ -180,7 +244,7 @@ export async function createDeliveryBookingRequest(
   const profile = await prisma.deliveryProfile.findUnique({
     where: { id: input.deliveryProfileId },
     include: {
-      user: { select: { id: true, name: true, dateOfBirth: true, country: true } },
+      user: { select: { id: true, name: true, dateOfBirth: true, country: true, lat: true, lng: true } },
     },
   });
   if (!profile) {

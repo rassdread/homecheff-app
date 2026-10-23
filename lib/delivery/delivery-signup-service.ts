@@ -49,6 +49,7 @@ function profileCreateData(
     transportation: data.transportation,
     maxDistance: data.maxDistance,
     preferredRadius: data.preferredRadius,
+    distanceSemanticsVersion: data.distanceSemanticsVersion,
     deliveryMode: data.deliveryMode,
     availableDays: data.availableDays,
     availableTimeSlots: data.availableTimeSlots,

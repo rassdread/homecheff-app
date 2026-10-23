@@ -19,6 +19,7 @@ import type {
 } from './delivery-marketplace-types';
 import { assertDelivererCanAccept } from './delivery-eligibility';
 import { calculateDistance } from '@/lib/geocoding';
+import { distanceSemanticsMode } from '@/lib/delivery/distance-semantics';
 
 const ACTIVE_REQUEST_STATUSES: DeliveryRequestStatus[] = [
   'OPEN',
@@ -649,6 +650,8 @@ export class DeliveryRequestService {
         isBlocked: true,
         age: true,
         maxDistance: true,
+        preferredRadius: true,
+        distanceSemanticsVersion: true,
       },
     });
     const gate = assertDelivererCanAccept(profile);
@@ -741,7 +744,22 @@ export class DeliveryRequestService {
       }
 
       if (item.canClaim) {
-        if (distanceKm != null && distanceKm > maxKm) continue;
+        const distanceMode = distanceSemanticsMode(profile?.distanceSemanticsVersion);
+        if (distanceMode === 'unsupported') continue;
+        if (distanceMode === 'v1') {
+          // Community requests store no destination coordinates.
+          // Version 1 therefore checks the pickup radius only and fails closed
+          // when that distance cannot be measured.
+          if (
+            distanceKm == null ||
+            profile?.preferredRadius == null ||
+            distanceKm > profile.preferredRadius
+          ) {
+            continue;
+          }
+        } else if (distanceKm != null && distanceKm > maxKm) {
+          continue;
+        }
         available.push(item);
       }
     }

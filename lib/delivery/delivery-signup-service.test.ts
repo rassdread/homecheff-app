@@ -61,6 +61,8 @@ describe('delivery signup validation', () => {
         acceptDeliveryAgreement: true,
         availableDays: ['maandag'],
         availableTimeSlots: ['morning'],
+        preferredRadius: 10,
+        maxDistance: 25,
       },
       { requireAccountFields: true }
     );
@@ -103,6 +105,8 @@ describe('delivery signup validation', () => {
         providerType: 'DELIVERY_BUSINESS',
         companyName: 'SnelBezorg BV',
         kvkNumber: '12345678',
+        preferredRadius: 10,
+        maxDistance: 25,
       },
       { requireAccountFields: true }
     );
@@ -132,6 +136,8 @@ describe('delivery signup validation', () => {
         age: 22,
         transportation: ['EBIKE'],
         acceptDeliveryAgreement: true,
+        preferredRadius: 10,
+        maxDistance: 25,
       },
       { requireAccountFields: false }
     );

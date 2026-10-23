@@ -17,6 +17,10 @@ import { auth } from "@/lib/auth";
 import { isProviderVisibleToBuyer } from "@/lib/delivery/delivery-cert-scope";
 import { expireExpiredTemporaryOnline } from "@/lib/delivery/delivery-online-session";
 import { resolveDeliveryTimeAvailability } from "@/lib/delivery/delivery-time-availability";
+import {
+  isCaribbeanCountry,
+  marketplaceDistanceEligible,
+} from "@/lib/delivery/distance-semantics";
 
 export const dynamic = "force-dynamic";
 
@@ -88,6 +92,8 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         maxDistance: true,
+        preferredRadius: true,
+        distanceSemanticsVersion: true,
         transportation: true,
         deliveryMode: true,
         averageRating: true,
@@ -167,8 +173,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Check if this is a Caribbean country/island
-    const caribbeanCountries = ['CW', 'AW', 'SX', 'BQ', 'JM', 'TT', 'BB', 'BS', 'CU', 'DO', 'HT', 'PR', 'VI', 'VG', 'AG', 'DM', 'GD', 'KN', 'LC', 'VC', 'SR'];
-    const isCaribbean = sellerCountry && caribbeanCountries.includes(sellerCountry);
+    const isCaribbean = isCaribbeanCountry(sellerCountry);
 
     // Calculate distances and filter deliverers within range
     // Use Google Maps for accurate route distances
@@ -260,24 +265,21 @@ export async function GET(req: NextRequest) {
         }).available,
       )
       .filter(delivery => {
-        if (isCaribbean) {
-          // For Caribbean islands: only check if deliverer is on the same island
-          // Distance is less important since islands are small
-          return delivery.distanceToSeller <= 50; // Max 50km on same island
-        } else {
-          // National coverage: same-country only (already filtered); radius not required.
-          if (delivery.nationalCoverage) {
-            return true;
-          }
-          // Local: deliverer must be within radius of BOTH seller and buyer
-          const withinRadiusOfSeller = delivery.distanceToSeller <= delivery.deliveryRadius;
-          const withinRadiusOfBuyer = buyerLat && buyerLng 
-            ? delivery.distanceFromDelivererToBuyer <= delivery.deliveryRadius 
-            : true; // If no buyer location, only check seller
-          const reasonableDistance = delivery.totalDeliveryDistance <= 100;
-          
-          return withinRadiusOfSeller && withinRadiusOfBuyer && reasonableDistance;
-        }
+        const hasBuyer = Boolean(buyerLat && buyerLng);
+        return marketplaceDistanceEligible({
+          version: delivery.distanceSemanticsVersion,
+          isCaribbean: Boolean(isCaribbean),
+          nationalCoverage: Boolean(delivery.nationalCoverage),
+          sameCountry: true,
+          distanceToPickupKm: delivery.distanceToSeller,
+          distanceFromCourierToDestinationKm: hasBuyer
+            ? delivery.distanceFromDelivererToBuyer
+            : null,
+          pickupToDestinationKm: hasBuyer ? delivery.distanceToBuyer : null,
+          totalRouteKm: delivery.totalDeliveryDistance,
+          maxDistanceKm: delivery.maxDistance,
+          preferredRadiusKm: delivery.preferredRadius,
+        });
       })
       .sort((a, b) => {
         if (isCaribbean) {

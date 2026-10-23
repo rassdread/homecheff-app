@@ -35,11 +35,12 @@ interface DeliveryProfile {
   age: number;
   transportation: string[];
   maxDistance: number;
+  distanceSemanticsVersion?: number | null;
   availableDays: string[];
   availableTimeSlots: string[];
   bio: string | null;
   deliveryMode: string;
-  preferredRadius: number;
+  preferredRadius: number | null;
   homeLat?: number | null;
   homeLng?: number | null;
   homeAddress?: string | null;
@@ -112,8 +113,8 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
   const [formData, setFormData] = useState({
     transportation: deliveryProfile.transportation || [],
     maxDistance: deliveryProfile.maxDistance || 5,
-    preferredRadius:
-      deliveryProfile.preferredRadius || deliveryProfile.maxDistance || 5,
+    preferredRadius: deliveryProfile.preferredRadius ?? deliveryProfile.maxDistance ?? 5,
+    distanceSemanticsVersion: deliveryProfile.distanceSemanticsVersion ?? null,
     deliveryMode: deliveryProfile.deliveryMode === 'DYNAMIC' ? 'DYNAMIC' : 'FIXED',
     availableDays: deliveryProfile.availableDays || [],
     availableTimeSlots: deliveryProfile.availableTimeSlots || [],
@@ -142,6 +143,8 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [distanceDraft, setDistanceDraft] = useState({ pickup: '', transport: '' });
+  const [distanceError, setDistanceError] = useState<string | null>(null);
   const [completionHint, setCompletionHint] = useState<string | null>(
     deliveryProfile.completion?.isComplete
       ? null
@@ -189,8 +192,13 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
       transportation: (profile.transportation as string[]) || prev.transportation,
       maxDistance: Number(profile.maxDistance ?? prev.maxDistance) || prev.maxDistance,
       preferredRadius:
-        Number(profile.preferredRadius ?? profile.maxDistance ?? prev.preferredRadius) ||
-        prev.preferredRadius,
+        profile.preferredRadius == null
+          ? prev.preferredRadius
+          : Number(profile.preferredRadius),
+      distanceSemanticsVersion:
+        profile.distanceSemanticsVersion == null
+          ? null
+          : Number(profile.distanceSemanticsVersion),
       deliveryMode: profile.deliveryMode === 'DYNAMIC' ? 'DYNAMIC' : 'FIXED',
       availableDays: (profile.availableDays as string[]) || [],
       availableTimeSlots: slots,
@@ -224,6 +232,29 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
         (user?.place as string) ||
         prev.homeAddress,
     }));
+  };
+
+  const confirmDistanceModel = async () => {
+    setDistanceError(null);
+    setSaveError(null);
+    const response = await fetch('/api/delivery/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      body: JSON.stringify({
+        acceptDistanceModelA: true,
+        preferredRadius: Number(distanceDraft.pickup),
+        maxDistance: Number(distanceDraft.transport),
+      }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data?.profile) {
+      setDistanceError(data?.error || 'De afstanden zijn niet opgeslagen. Je oude instellingen blijven gelden.');
+      return;
+    }
+    applyPersistedProfile(data.profile, data.user);
+    setDistanceDraft({ pickup: '', transport: '' });
+    setSuccess(true);
   };
 
   useEffect(() => {
@@ -296,33 +327,15 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     { id: 'evening', label: 'Avond (17:00-21:00)' }
   ];
 
-  // Calculate max distance based on transportation (get the highest)
-  const getMaxDistanceForTransport = () => {
-    if (formData.transportation.length === 0) return 10;
-    
-    const maxRange = transportationOptions
-      .filter(t => formData.transportation.includes(t.id))
-      .reduce((max, t) => Math.max(max, t.maxRange), 0);
-      
-    return maxRange;
-  };
-
   const handleTransportationChange = (transportId: string) => {
     setFormData(prev => {
       const newTransportation = prev.transportation.includes(transportId)
         ? prev.transportation.filter(t => t !== transportId)
         : [...prev.transportation, transportId];
-      
-      // Update max distance based on transportation
-      const maxRange = transportationOptions
-        .filter(t => newTransportation.includes(t.id))
-        .reduce((max, t) => Math.max(max, t.maxRange), 0);
-      
+
       return {
         ...prev,
         transportation: newTransportation,
-        maxDistance: Math.min(prev.maxDistance, maxRange),
-        preferredRadius: Math.min(prev.preferredRadius, maxRange)
       };
     });
   };
@@ -337,8 +350,13 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     try {
       const payload = {
         transportation: formData.transportation,
-        maxDistance: formData.maxDistance,
-        preferredRadius: formData.preferredRadius || formData.maxDistance,
+        ...(formData.distanceSemanticsVersion === 1
+          ? {
+              acceptDistanceModelA: true,
+              maxDistance: formData.maxDistance,
+              preferredRadius: formData.preferredRadius,
+            }
+          : {}),
         deliveryMode: formData.deliveryMode,
         availableDays: formData.availableDays,
         availableTimeSlots: formData.availableTimeSlots,
@@ -568,33 +586,9 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                   <div className="flex flex-col items-center gap-2">
                     {option.icon}
                     <span className="text-sm font-medium">{option.label}</span>
-                    <span className="text-xs text-gray-600">Max {option.maxRange}km</span>
                   </div>
                 </button>
               ))}
-            </div>
-            
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800">
-                {(() => {
-                  const label = t('delivery.maxDistanceLabel', {
-                    defaultValue: 'Maximale afstand',
-                  });
-                  return label ? (
-                    <>
-                      <strong>{label}:</strong>{' '}
-                    </>
-                  ) : null;
-                })()}
-                {getMaxDistanceForTransport()}km{' '}
-                ({formData.transportation.length > 1
-                  ? t('delivery.maxDistanceBasedOnTransportPlural', {
-                      defaultValue: 'op basis van je gekozen vervoersmiddelen',
-                    })
-                  : t('delivery.maxDistanceBasedOnTransport', {
-                      defaultValue: 'op basis van je gekozen vervoersmiddel',
-                    })})
-              </p>
             </div>
           </div>
 
@@ -771,88 +765,96 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
               </div>
 
               <div className="space-y-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  {t('delivery.deliveryRadiusLabel', {
-                    defaultValue: 'Bezorgstraal',
-                  })}
-                </label>
-                <div className="space-y-2">
-                  <input
-                    type="range"
-                    min="2"
-                    max={getMaxDistanceForTransport()}
-                    step="1"
-                    value={formData.maxDistance}
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      maxDistance: parseInt(e.target.value),
-                      preferredRadius: Math.min(prev.preferredRadius, parseInt(e.target.value))
-                    }))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-brand"
-                    aria-label={t('delivery.deliveryRadiusLabel', {
-                      defaultValue: 'Bezorgstraal',
-                    })}
-                  />
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>2 km</span>
-                    <span className="font-bold text-lg text-primary-brand">{formData.maxDistance} km</span>
-                    <span>
-                      {getMaxDistanceForTransport()}{' '}
-                      {t('delivery.kmMax', { defaultValue: 'km max' })}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
-                  {(() => {
-                    const title = t('delivery.howItWorks', {
-                      defaultValue: 'Hoe het werkt',
-                    });
-                    const bullets = [
-                      t('delivery.howItWorksBullet1', {
-                        km: formData.maxDistance,
-                        defaultValue: `Je moet binnen ${formData.maxDistance}km van de verkoper zijn (ophalen)`,
-                      }),
-                      t('delivery.howItWorksBullet2', {
-                        km: formData.maxDistance,
-                        defaultValue: `Je moet binnen ${formData.maxDistance}km van de koper zijn (afleveren)`,
-                      }),
-                      t('delivery.howItWorksBullet3', {
-                        defaultValue: 'Alleen opdrachten in jouw tijdvak verschijnen',
-                      }),
-                    ].filter((b) => Boolean(b?.trim()));
-                    if (!title && bullets.length === 0) return null;
-                    return (
-                      <>
-                        {title ? (
-                          <p className="text-sm text-gray-700 mb-2">
-                            <strong>{title}:</strong>
-                          </p>
-                        ) : null}
-                        {bullets.length > 0 ? (
-                          <ul className="text-xs text-gray-600 space-y-1">
-                            {bullets.map((b) => (
-                              <li key={b}>✓ {b}</li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </>
-                    );
-                  })()}
-                </div>
-                {formData.transportation.length > 0 && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600 bg-yellow-50 p-3 rounded-lg">
-                    <span aria-hidden>🚴</span>
-                    <span>
-                      {formData.transportation.length === 1
-                        ? t('delivery.withChosenTransport', {
-                            km: getMaxDistanceForTransport(),
-                            defaultValue: `Met je gekozen vervoersmiddel kun je tot ${getMaxDistanceForTransport()}km bezorgen`,
-                          })
-                        : t('delivery.withChosenTransportPlural', {
-                            km: getMaxDistanceForTransport(),
-                            defaultValue: `Met je gekozen vervoersmiddelen kun je tot ${getMaxDistanceForTransport()}km bezorgen`,
-                          })}
-                    </span>
+                {formData.distanceSemanticsVersion === 1 ? (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="settings-pickup-radius">
+                        {t('deliverySignup.pickupRadius')}
+                      </label>
+                      <p className="mb-2 text-xs text-gray-500">{t('deliverySignup.pickupRadiusHelp')}</p>
+                      <input
+                        id="settings-pickup-radius"
+                        type="number"
+                        min="0.5"
+                        max="500"
+                        step="0.5"
+                        value={formData.preferredRadius ?? ''}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, preferredRadius: Number(e.target.value) }))
+                        }
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="settings-transport-distance">
+                        {t('deliverySignup.transportDistance')}
+                      </label>
+                      <p className="mb-2 text-xs text-gray-500">{t('deliverySignup.transportDistanceHelp')}</p>
+                      <input
+                        id="settings-transport-distance"
+                        type="number"
+                        min="0.5"
+                        max="500"
+                        step="0.5"
+                        value={formData.maxDistance}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, maxDistance: Number(e.target.value) }))
+                        }
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-3">
+                    <p className="text-sm text-amber-950">
+                      Huidige instelling: {formData.maxDistance} km. Dit is nog de oude betekenis
+                      (straal rondom jou, plus een maximum van 100 km voor de hele rit). Die waarde
+                      wordt niet automatisch je nieuwe voorkeur.
+                    </p>
+                    <p className="text-sm text-amber-950">
+                      Kies hieronder zelf een ophaalradius en een maximale transportafstand. Pas na
+                      bevestigen gelden de nieuwe regels.
+                    </p>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="legacy-pickup-radius">
+                        {t('deliverySignup.pickupRadius')}
+                      </label>
+                      <p className="mb-2 text-xs text-gray-600">{t('deliverySignup.pickupRadiusHelp')}</p>
+                      <input
+                        id="legacy-pickup-radius"
+                        type="number"
+                        min="0.5"
+                        max="500"
+                        step="0.5"
+                        value={distanceDraft.pickup}
+                        onChange={(e) =>
+                          setDistanceDraft((prev) => ({ ...prev, pickup: e.target.value }))
+                        }
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700" htmlFor="legacy-transport-distance">
+                        {t('deliverySignup.transportDistance')}
+                      </label>
+                      <p className="mb-2 text-xs text-gray-600">{t('deliverySignup.transportDistanceHelp')}</p>
+                      <input
+                        id="legacy-transport-distance"
+                        type="number"
+                        min="0.5"
+                        max="500"
+                        step="0.5"
+                        value={distanceDraft.transport}
+                        onChange={(e) =>
+                          setDistanceDraft((prev) => ({ ...prev, transport: e.target.value }))
+                        }
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                      />
+                    </div>
+                    {distanceError ? <p className="text-sm text-red-700">{distanceError}</p> : null}
+                    <Button type="button" onClick={confirmDistanceModel}>
+                      Bevestig nieuwe afstanden
+                    </Button>
                   </div>
                 )}
               </div>
@@ -1132,12 +1134,12 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                     min="0.5"
                     step="0.5"
                     value={formData.maxDistance}
+                    disabled={formData.distanceSemanticsVersion !== 1}
                     onChange={(e) => {
                       const v = Number(e.target.value) || 0;
                       setFormData((prev) => ({
                         ...prev,
                         maxDistance: v,
-                        preferredRadius: Math.min(prev.preferredRadius, v || prev.preferredRadius),
                       }));
                     }}
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-primary-brand focus:outline-none focus:ring-1 focus:ring-primary-brand"
