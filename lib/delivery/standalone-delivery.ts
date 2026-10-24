@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { financialStripeSecret, stripe } from '@/lib/stripe';
 import { recordCheckoutPaymentIncident } from '@/lib/payments/checkout-payment-incident';
 import { calculateStripeFeeForBuyer } from '@/lib/fees';
-import { getRouteDistance } from '@/lib/google-maps-distance';
+import { getRouteDistance, isVerifiedRoadDistance, COMMERCIAL_DISTANCE_UNAVAILABLE } from '@/lib/google-maps-distance';
 import { calculateDistance } from '@/lib/geocoding';
 import { resolveDelivererPosition } from '@/lib/delivery/delivery-position';
 import {
@@ -122,8 +122,8 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput) {
     { lat: input.dropoffLat, lng: input.dropoffLng },
     'driving',
   );
-  if (!('distance' in route)) {
-    return { ok: false as const, status: 422, code: 'DELIVERY_ROUTE_UNAVAILABLE', error: 'Routeafstand ontbreekt; prijs kan niet worden berekend.' };
+  if (!isVerifiedRoadDistance(route)) {
+    return { ok: false as const, status: 422, code: COMMERCIAL_DISTANCE_UNAVAILABLE.code, error: COMMERCIAL_DISTANCE_UNAVAILABLE.error, message: COMMERCIAL_DISTANCE_UNAVAILABLE.message };
   }
 
   const profiles = await prisma.deliveryProfile.findMany({
@@ -359,8 +359,8 @@ async function revalidateStoredQuote(requestId: string) {
     { lat: row.dropoffLat, lng: row.dropoffLng },
     'driving',
   );
-  if (!('distance' in route)) {
-    return { ok: false as const, status: 422, code: 'DELIVERY_ROUTE_UNAVAILABLE', error: 'Route is niet meer beschikbaar.' };
+  if (!isVerifiedRoadDistance(route)) {
+    return { ok: false as const, status: 422, code: COMMERCIAL_DISTANCE_UNAVAILABLE.code, error: COMMERCIAL_DISTANCE_UNAVAILABLE.error, message: COMMERCIAL_DISTANCE_UNAVAILABLE.message };
   }
   const profile = await prisma.deliveryProfile.findUnique({ where: { id: row.deliveryProfileId } });
   if (!profile) {

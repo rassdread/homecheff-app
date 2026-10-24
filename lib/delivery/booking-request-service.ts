@@ -23,7 +23,7 @@ import {
   version1DistanceEligible,
 } from '@/lib/delivery/distance-semantics';
 import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing';
-import { getRouteDistance } from '@/lib/google-maps-distance';
+import { getRouteDistance, isVerifiedRoadDistance, COMMERCIAL_DISTANCE_UNAVAILABLE } from '@/lib/google-maps-distance';
 import { normalizeCountryCode } from '@/lib/gamification/country-code';
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 import { notifyReservationBuyer } from '@/lib/delivery/reservation-notifications';
@@ -121,12 +121,13 @@ async function resolveAuthoritativeQuote(
     'driving'
   );
 
-  if (!('distance' in routeResult)) {
+  if (!isVerifiedRoadDistance(routeResult)) {
     return {
       ok: false,
       status: 422,
-      code: 'DELIVERY_ROUTE_UNAVAILABLE',
-      error: 'Routeafstand ontbreekt; prijs kan niet worden berekend.',
+      code: COMMERCIAL_DISTANCE_UNAVAILABLE.code,
+      error: COMMERCIAL_DISTANCE_UNAVAILABLE.error,
+      message: COMMERCIAL_DISTANCE_UNAVAILABLE.message,
     };
   }
 

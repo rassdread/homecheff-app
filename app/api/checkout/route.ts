@@ -14,7 +14,7 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { assertNotSuspended } from '@/lib/user-suspend';
-import { getRouteDistance } from '@/lib/google-maps-distance';
+import { getRouteDistance, isVerifiedRoadDistance, COMMERCIAL_DISTANCE_UNAVAILABLE } from '@/lib/google-maps-distance';
 import { calculateDistance } from '@/lib/geocoding';
 import { validateCommunityOrderCheckoutItems } from '@/lib/marketplace/commerce/community-order-checkout';
 import {
@@ -633,10 +633,13 @@ export async function POST(req: NextRequest) {
         let sellerCountry = 'NL';
         let routeOk = false;
         
+        let sawPickup = false;
+        
         for (const item of items) {
           const product = products.find(p => p.id === item.productId);
           const pickup = resolveDeliveryPickupCoords(product);
           if (pickup) {
+            sawPickup = true;
             sellerCountry =
               normalizeCountryCode(product?.seller?.User?.country) || 'NL';
             
@@ -650,16 +653,18 @@ export async function POST(req: NextRequest) {
               'driving'
             );
             
-            if ('distance' in routeResult) {
+            if (isVerifiedRoadDistance(routeResult)) {
               totalDistance = Math.max(totalDistance, routeResult.distance);
               routeOk = true;
-            } else if (!(flags.providerPricingEnabled && isLocalProviderMode)) {
-              console.warn('Route distance calculation failed, using fallback');
             }
           }
         }
         
         totalDistance = Math.round(totalDistance * 10) / 10;
+
+        if (sawPickup && !routeOk) {
+          return NextResponse.json(COMMERCIAL_DISTANCE_UNAVAILABLE, { status: 422 });
+        }
 
         // --- Provider-owned pricing (flag on + LOCAL_PROVIDER) ---
         if (flags.providerPricingEnabled && isLocalProviderMode) {

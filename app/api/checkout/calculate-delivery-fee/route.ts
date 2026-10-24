@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRouteDistance } from '@/lib/google-maps-distance';
+import { getRouteDistance, isVerifiedRoadDistance, COMMERCIAL_DISTANCE_UNAVAILABLE } from '@/lib/google-maps-distance';
 import { calculateDeliveryFee, calculateLongDistanceDeliveryFee } from '@/lib/deliveryPricing';
 import { DELIVERY_PLATFORM_FEE_PERCENT, DELIVERY_DELIVERER_PERCENT } from '@/lib/fees';
 import { prisma } from '@/lib/prisma';
@@ -97,10 +97,13 @@ export async function POST(req: NextRequest) {
     let sellerCountry = 'NL';
     let routeOk = false;
 
+    let sawPickup = false;
+
     for (const item of items) {
       const product = products.find((p) => p.id === item.productId);
       const pickup = resolveDeliveryPickupCoords(product);
       if (pickup) {
+        sawPickup = true;
         sellerCountry =
           normalizeCountryCode(product?.seller?.User?.country) || 'NL';
 
@@ -114,7 +117,7 @@ export async function POST(req: NextRequest) {
           'driving'
         );
 
-        if ('distance' in routeResult) {
+        if (isVerifiedRoadDistance(routeResult)) {
           totalDistance = Math.max(totalDistance, routeResult.distance);
           routeOk = true;
         }
@@ -122,6 +125,10 @@ export async function POST(req: NextRequest) {
     }
 
     totalDistance = Math.round(totalDistance * 10) / 10;
+
+    if (sawPickup && !routeOk) {
+      return NextResponse.json(COMMERCIAL_DISTANCE_UNAVAILABLE, { status: 422 });
+    }
 
     const flags = getDeliveryAlignmentFlags();
 

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { calculateDistance } from "@/lib/geocoding";
-import { getRouteDistance } from "@/lib/google-maps-distance";
+import { getRouteDistance, isVerifiedRoadDistance } from "@/lib/google-maps-distance";
 import { assertDelivererCanAccept } from "@/lib/delivery/delivery-eligibility";
 import { resolveDelivererPosition } from "@/lib/delivery/delivery-position";
 
@@ -135,14 +134,8 @@ export async function GET(req: NextRequest) {
           'driving'
         );
         
-        const distance = 'distance' in routeResult
-          ? Math.round(routeResult.distance * 10) / 10
-          : Math.round(calculateDistance(
-              delivererLat,
-              delivererLng,
-              product.seller.lat!,
-              product.seller.lng!
-            ) * 10) / 10;
+        if (!isVerifiedRoadDistance(routeResult)) return null;
+        const distance = Math.round(routeResult.distance * 10) / 10;
 
         return {
           ...deliveryOrder,

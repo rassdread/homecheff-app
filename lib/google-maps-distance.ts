@@ -2,13 +2,75 @@
 // Calculates route distances and travel times between locations
 import { calculateDistance } from './geocoding';
 
-const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+function mapsApiKey(override?: string | null): string {
+  if (override !== undefined) return override || '';
+  return process.env.GOOGLE_MAPS_API_KEY || '';
+}
 
 export interface RouteDistance {
   distance: number; // in kilometers
   duration: number; // in minutes
   distanceText: string; // formatted distance (e.g., "7.8 km")
   durationText: string; // formatted duration (e.g., "12 min")
+  distanceSource?: 'google' | 'haversine';
+}
+
+export const COMMERCIAL_DISTANCE_UNAVAILABLE = {
+  code: 'DELIVERY_ROUTE_UNRELIABLE' as const,
+  error:
+    'De bezorgafstand kan momenteel niet betrouwbaar worden berekend. Probeer het later opnieuw.',
+  message:
+    'The delivery distance cannot currently be calculated reliably. Please try again later.',
+};
+
+export function isVerifiedRoadDistance(
+  value: RouteDistance | RouteDistanceError | null | undefined,
+): value is RouteDistance {
+  return Boolean(
+    value &&
+      'distance' in value &&
+      value.distanceSource === 'google' &&
+      Number.isFinite(value.distance) &&
+      value.distance > 0 &&
+      Number.isFinite(value.duration) &&
+      value.duration > 0,
+  );
+}
+
+export function interpretDistanceMatrixElement(data: {
+  status?: string;
+  rows?: Array<{ elements?: Array<Record<string, unknown>> }>;
+} | null | undefined): RouteDistance | null {
+  if (!data || data.status !== 'OK' || !data.rows?.length) return null;
+  const element = data.rows[0]?.elements?.[0] as
+    | {
+        status?: string;
+        distance?: { value?: number; text?: string };
+        duration?: { value?: number; text?: string };
+      }
+    | undefined;
+  const meters = element?.distance?.value;
+  const seconds = element?.duration?.value;
+  if (
+    element?.status !== 'OK' ||
+    typeof meters !== 'number' ||
+    !Number.isFinite(meters) ||
+    meters <= 0 ||
+    typeof seconds !== 'number' ||
+    !Number.isFinite(seconds) ||
+    seconds <= 0
+  ) {
+    return null;
+  }
+  const distanceKm = meters / 1000;
+  const durationMinutes = Math.ceil(seconds / 60);
+  return {
+    distance: Math.round(distanceKm * 10) / 10,
+    duration: durationMinutes,
+    distanceText: element.distance?.text || `${distanceKm.toFixed(1)} km`,
+    durationText: element.duration?.text || `${durationMinutes} min`,
+    distanceSource: 'google',
+  };
 }
 
 export interface RouteDistanceError {
@@ -27,10 +89,13 @@ const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 export async function getRouteDistance(
   origin: { lat: number; lng: number },
   destination: { lat: number; lng: number },
-  mode: 'driving' | 'walking' | 'bicycling' = 'driving'
+  mode: 'driving' | 'walking' | 'bicycling' = 'driving',
+  options?: { fetchImpl?: typeof fetch; apiKey?: string | null },
 ): Promise<RouteDistance | RouteDistanceError> {
+  const apiKey = mapsApiKey(options?.apiKey);
+  const fetchImpl = options?.fetchImpl ?? fetch;
   // Check if API key is available
-  if (!GOOGLE_MAPS_API_KEY) {
+  if (!apiKey) {
     console.warn('⚠️ GOOGLE_MAPS_API_KEY not found - using Haversine fallback');
     return getHaversineDistance(origin, destination);
   }
@@ -45,9 +110,9 @@ export async function getRouteDistance(
   }
 
   try {
-    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin.lat},${origin.lng}&destinations=${destination.lat},${destination.lng}&mode=${mode}&key=${GOOGLE_MAPS_API_KEY}&units=metric`;
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin.lat},${origin.lng}&destinations=${destination.lat},${destination.lng}&mode=${mode}&key=${apiKey}&units=metric`;
     
-    const response = await fetch(url, {
+    const response = await fetchImpl(url, {
       headers: {
         'Accept': 'application/json'
       }
@@ -58,30 +123,11 @@ export async function getRouteDistance(
     }
 
     const data = await response.json();
-
-    if (data.status !== 'OK' || !data.rows || data.rows.length === 0) {
-      // Fallback to Haversine if API fails
-      console.warn('Google Maps API returned error, using Haversine fallback:', data.status);
+    const result = interpretDistanceMatrixElement(data);
+    if (!result) {
+      console.warn('Google Maps API returned error, using Haversine fallback:', data?.status);
       return getHaversineDistance(origin, destination);
     }
-
-    const element = data.rows[0]?.elements[0];
-    
-    if (!element || element.status !== 'OK') {
-      // Fallback to Haversine if route not found
-      console.warn('Google Maps route not found, using Haversine fallback');
-      return getHaversineDistance(origin, destination);
-    }
-
-    const distanceKm = element.distance.value / 1000; // Convert meters to kilometers
-    const durationMinutes = Math.ceil(element.duration.value / 60); // Convert seconds to minutes
-
-    const result: RouteDistance = {
-      distance: Math.round(distanceKm * 10) / 10, // Round to 1 decimal
-      duration: durationMinutes,
-      distanceText: element.distance.text,
-      durationText: element.duration.text
-    };
 
     // Cache the result
     distanceCache.set(cacheKey, { result, timestamp: Date.now() });
@@ -112,7 +158,8 @@ function getHaversineDistance(
     distance: Math.round(distance * 10) / 10,
     duration: estimatedDuration,
     distanceText: `${distance.toFixed(1)} km`,
-    durationText: `~${estimatedDuration} min`
+    durationText: `~${estimatedDuration} min`,
+    distanceSource: 'haversine',
   };
 }
 
@@ -125,7 +172,8 @@ export async function getBatchRouteDistances(
   destinations: Array<{ lat: number; lng: number }>,
   mode: 'driving' | 'walking' | 'bicycling' = 'driving'
 ): Promise<Array<RouteDistance | RouteDistanceError>> {
-  if (!GOOGLE_MAPS_API_KEY || destinations.length === 0) {
+  const apiKey = mapsApiKey();
+  if (!apiKey || destinations.length === 0) {
     // Fallback to individual Haversine calculations
     return Promise.all(
       destinations.map(dest => getRouteDistance(origin, dest, mode))
@@ -134,7 +182,7 @@ export async function getBatchRouteDistances(
 
   try {
     const destString = destinations.map(d => `${d.lat},${d.lng}`).join('|');
-    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin.lat},${origin.lng}&destinations=${destString}&mode=${mode}&key=${GOOGLE_MAPS_API_KEY}&units=metric`;
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin.lat},${origin.lng}&destinations=${destString}&mode=${mode}&key=${apiKey}&units=metric`;
     
     const response = await fetch(url, {
       headers: {
@@ -158,19 +206,11 @@ export async function getBatchRouteDistances(
     const elements = data.rows[0]?.elements || [];
 
     return elements.map((element: any, index: number) => {
-      if (element.status !== 'OK') {
-        return getHaversineDistance(origin, destinations[index]);
-      }
-
-      const distanceKm = element.distance.value / 1000;
-      const durationMinutes = Math.ceil(element.duration.value / 60);
-
-      return {
-        distance: Math.round(distanceKm * 10) / 10,
-        duration: durationMinutes,
-        distanceText: element.distance.text,
-        durationText: element.duration.text
-      };
+      const interpreted = interpretDistanceMatrixElement({
+        status: 'OK',
+        rows: [{ elements: [element] }],
+      });
+      return interpreted ?? getHaversineDistance(origin, destinations[index]);
     });
 
   } catch (error) {

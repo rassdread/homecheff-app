@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { calculateDistance } from "@/lib/geocoding";
-import { getRouteDistance } from "@/lib/google-maps-distance";
+import { getRouteDistance, isVerifiedRoadDistance } from "@/lib/google-maps-distance";
 import { delivererMatchingWhere, isCommerciallyMatchableDeliverer } from "@/lib/delivery/delivery-eligibility";
 import { resolveDelivererPosition, resolveDeliveryPickupCoords } from "@/lib/delivery/delivery-position";
 import { logCommercialAgeBlock } from "@/lib/delivery/delivery-age";
@@ -192,48 +191,27 @@ export async function GET(req: NextRequest) {
           { lat: pickup.lat, lng: pickup.lng },
           'driving'
         );
-        const distanceToSeller = 'distance' in routeToSeller 
-          ? Math.round(routeToSeller.distance * 10) / 10
-          : Math.round(calculateDistance(
-              delivererLat,
-              delivererLng,
-              pickup.lat,
-              pickup.lng
-            ) * 10) / 10;
+        if (!isVerifiedRoadDistance(routeToSeller)) return null;
+        const distanceToSeller = Math.round(routeToSeller.distance * 10) / 10;
 
-        // Calculate distance from delivery person to buyer (delivery location)
         let distanceToBuyer = 0;
         let distanceFromDelivererToBuyer = 0;
         if (buyerLat && buyerLng) {
-          // Route distance from seller to buyer (total delivery route)
           const routeSellerToBuyer = await getRouteDistance(
             { lat: pickup.lat, lng: pickup.lng },
             { lat: buyerLat, lng: buyerLng },
             'driving'
           );
-          distanceToBuyer = 'distance' in routeSellerToBuyer
-            ? Math.round(routeSellerToBuyer.distance * 10) / 10
-            : Math.round(calculateDistance(
-                pickup.lat,
-                pickup.lng,
-                buyerLat,
-                buyerLng
-              ) * 10) / 10;
-          
-          // Route distance from deliverer's current location (GPS or home) to buyer
           const routeDelivererToBuyer = await getRouteDistance(
             { lat: delivererLat, lng: delivererLng },
             { lat: buyerLat, lng: buyerLng },
             'driving'
           );
-          distanceFromDelivererToBuyer = 'distance' in routeDelivererToBuyer
-            ? Math.round(routeDelivererToBuyer.distance * 10) / 10
-            : Math.round(calculateDistance(
-                delivererLat,
-                delivererLng,
-                buyerLat,
-                buyerLng
-              ) * 10) / 10;
+          if (!isVerifiedRoadDistance(routeSellerToBuyer) || !isVerifiedRoadDistance(routeDelivererToBuyer)) {
+            return null;
+          }
+          distanceToBuyer = Math.round(routeSellerToBuyer.distance * 10) / 10;
+          distanceFromDelivererToBuyer = Math.round(routeDelivererToBuyer.distance * 10) / 10;
         }
 
         // Total delivery distance (from deliverer to seller, then to buyer)

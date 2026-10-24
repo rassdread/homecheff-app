@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from '@/lib/prisma';
 import { calculateDistance } from '@/lib/geocoding';
-import { getRouteDistance } from '@/lib/google-maps-distance';
+import { getRouteDistance, isVerifiedRoadDistance } from '@/lib/google-maps-distance';
 import { delivererMatchingWhere } from '@/lib/delivery/delivery-eligibility';
 import { resolveDelivererPosition } from '@/lib/delivery/delivery-position';
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
@@ -96,21 +96,18 @@ export async function POST(req: NextRequest) {
           { lat, lng },
           'driving'
         );
-        const distanceToBuyer = 'distance' in routeToBuyer
-          ? Math.round(routeToBuyer.distance * 10) / 10
-          : Math.round(calculateDistance(delivererLat, delivererLng, lat, lng) * 10) / 10;
+        if (!isVerifiedRoadDistance(routeToBuyer)) return null;
+        const distanceToBuyer = Math.round(routeToBuyer.distance * 10) / 10;
 
         let distanceToSeller = 0;
         if (sellerLat && sellerLng) {
-          // Calculate route distance from deliverer to seller using Google Maps
           const routeToSeller = await getRouteDistance(
             { lat: delivererLat, lng: delivererLng },
             { lat: sellerLat, lng: sellerLng },
             'driving'
           );
-          distanceToSeller = 'distance' in routeToSeller
-            ? Math.round(routeToSeller.distance * 10) / 10
-            : Math.round(calculateDistance(delivererLat, delivererLng, sellerLat, sellerLng) * 10) / 10;
+          if (!isVerifiedRoadDistance(routeToSeller)) return null;
+          distanceToSeller = Math.round(routeToSeller.distance * 10) / 10;
         }
 
         return {
