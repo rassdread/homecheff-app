@@ -3609,6 +3609,17 @@ model StripeWebhookReceipt {
   @@index([status, updatedAt])
 }
 
+/// Admin recovery attempt for one failed webhook. The Stripe payload is not stored.
+model StripeWebhookRecoveryAttempt {
+  id          String   @id @default(cuid())
+  eventId     String
+  actorUserId String
+  result      String
+  createdAt   DateTime @default(now())
+
+  @@index([eventId, createdAt])
+}
+
 enum Role {
   BUYER
   SELLER

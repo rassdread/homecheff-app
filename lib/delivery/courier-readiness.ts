@@ -31,6 +31,7 @@ export function resolveCourierReadiness(input: {
   ageEligible?: boolean | null;
   transfersActive?: boolean | null;
   payoutsEnabled?: boolean | null;
+  stripeIdentity?: 'RESTRICTED' | null;
 }): CourierReadiness {
   if (!input.hasProfile) {
     return {
@@ -61,22 +62,22 @@ export function resolveCourierReadiness(input: {
     };
   }
   if (input.transfersActive && input.payoutsEnabled) {
-    return {
+    return restricted({
       stage: 'ELIGIBLE_FOR_EXTERNAL_PAYOUT',
       canAcceptAssignments: true,
       canReceiveTransfer: true,
       canReceiveExternalPayout: true,
       identitySource: 'STRIPE_CONNECT',
-    };
+    }, input.stripeIdentity);
   }
   if (input.transfersActive) {
-    return {
+    return restricted({
       stage: 'ELIGIBLE_FOR_TRANSFER',
       canAcceptAssignments: true,
       canReceiveTransfer: true,
       canReceiveExternalPayout: false,
       identitySource: 'STRIPE_CONNECT',
-    };
+    }, input.stripeIdentity);
   }
   return {
     stage: 'ELIGIBLE_TO_ACCEPT',
@@ -84,5 +85,16 @@ export function resolveCourierReadiness(input: {
     canReceiveTransfer: false,
     canReceiveExternalPayout: false,
     identitySource: 'PROFILE_ONLY',
+  };
+}
+
+function restricted(result: CourierReadiness, stripeIdentity?: 'RESTRICTED' | null): CourierReadiness {
+  if (stripeIdentity !== 'RESTRICTED') return result;
+  return {
+    ...result,
+    stage: result.canAcceptAssignments ? 'ELIGIBLE_TO_ACCEPT' : result.stage,
+    canReceiveTransfer: false,
+    canReceiveExternalPayout: false,
+    identitySource: 'STRIPE_CONNECT',
   };
 }

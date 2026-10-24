@@ -1,7 +1,7 @@
 // Google Maps Distance Matrix API integration
 // Calculates route distances and travel times between locations
 import { calculateDistance } from './geocoding';
-import { serverDistanceMatrixKey } from '@/lib/delivery/maps-key-placement';
+import { assessMapsProductionConfig, serverDistanceMatrixKey } from '@/lib/delivery/maps-key-placement';
 
 function mapsApiKey(override?: string | null): string {
   if (override !== undefined) return override || '';
@@ -91,12 +91,28 @@ export async function getRouteDistance(
   origin: { lat: number; lng: number },
   destination: { lat: number; lng: number },
   mode: 'driving' | 'walking' | 'bicycling' = 'driving',
-  options?: { fetchImpl?: typeof fetch; apiKey?: string | null },
+  options?: { fetchImpl?: typeof fetch; apiKey?: string | null; env?: NodeJS.ProcessEnv },
 ): Promise<RouteDistance | RouteDistanceError> {
+  const env = options?.env ?? process.env;
+  const productionConfig = assessMapsProductionConfig(env);
+  const explicitKey = options?.apiKey !== undefined;
+  if (!explicitKey && productionConfig.runtime === 'production' && !productionConfig.payable) {
+    return {
+      error: productionConfig.reason,
+      message: 'Distance Matrix is not configured for this production runtime.',
+    };
+  }
   const apiKey = mapsApiKey(options?.apiKey);
   const fetchImpl = options?.fetchImpl ?? fetch;
+  const productionRuntime = productionConfig.runtime === 'production';
   // Check if API key is available
   if (!apiKey) {
+    if (productionRuntime) {
+      return {
+        error: 'PRODUCTION_KEY_MISSING',
+        message: 'Distance Matrix is not configured for this production runtime.',
+      };
+    }
     console.warn('⚠️ GOOGLE_MAPS_API_KEY not found - using Haversine fallback');
     return getHaversineDistance(origin, destination);
   }
@@ -126,6 +142,12 @@ export async function getRouteDistance(
     const data = await response.json();
     const result = interpretDistanceMatrixElement(data);
     if (!result) {
+      if (productionRuntime) {
+        return {
+          error: 'DISTANCE_MATRIX_UNAVAILABLE',
+          message: 'Distance Matrix did not return a road distance.',
+        };
+      }
       console.warn('Google Maps API returned error, using Haversine fallback:', data?.status);
       return getHaversineDistance(origin, destination);
     }
@@ -136,8 +158,13 @@ export async function getRouteDistance(
     return result;
 
   } catch (error) {
-    console.error('Google Maps Distance Matrix error:', error);
-    // Fallback to Haversine on error
+    console.error('Google Maps Distance Matrix error:', error instanceof Error ? error.name : 'error');
+    if (productionRuntime) {
+      return {
+        error: 'DISTANCE_MATRIX_UNAVAILABLE',
+        message: 'Distance Matrix did not return a road distance.',
+      };
+    }
     return getHaversineDistance(origin, destination);
   }
 }

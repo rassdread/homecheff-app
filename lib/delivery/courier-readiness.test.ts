@@ -88,5 +88,17 @@ describe('courier readiness stages', () => {
     assert.equal(ready.stage, 'ELIGIBLE_FOR_EXTERNAL_PAYOUT');
     assert.equal(ready.identitySource, 'STRIPE_CONNECT');
     assert.equal(assertDelivererCanAccept(adult, { dateOfBirth: adult.user.dateOfBirth }).ok, true);
+    const restricted = resolveCourierReadiness({
+      hasProfile: true,
+      profileComplete: true,
+      ageEligible: true,
+      isActive: true,
+      transfersActive: true,
+      payoutsEnabled: true,
+      stripeIdentity: 'RESTRICTED',
+    });
+    assert.equal(restricted.canAcceptAssignments, true);
+    assert.equal(restricted.canReceiveTransfer, false);
+    assert.equal(restricted.canReceiveExternalPayout, false);
   });
 });

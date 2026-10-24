@@ -58,6 +58,7 @@ import {
   settleSellerOrderItem,
   resolveChargeIdForCheckoutSession,
   isEligibleSourceCharge,
+  type SellerSettlementResult,
 } from "@/lib/payments/seller-settlement";
 import {
   finalizeMixedHcAfterStripePaid,
@@ -76,7 +77,18 @@ async function readBuffer(stream: ReadableStream<Uint8Array>) {
   return Buffer.from(total);
 }
 
-async function dispatchVerifiedStripeWebhook(
+function standaloneFailureResponse(result: {
+  handled: boolean;
+  ok?: boolean;
+  error?: string;
+  status?: number;
+}): NextResponse | null {
+  if (!result.handled || result.ok !== false) return null;
+  if (typeof result.error !== "string" || typeof result.status !== "number") return null;
+  return new NextResponse(result.error, { status: result.status });
+}
+
+export async function dispatchVerifiedStripeWebhook(
   stripe: Stripe,
   event: Stripe.Event,
 ): Promise<NextResponse> {
@@ -776,10 +788,9 @@ try {
       paymentStatus: session.payment_status,
     }));
     const standalone = await fulfillStandaloneDeliveryPayment(session);
-    if (!standalone.handled || standalone.ok) {
-      return new NextResponse("ok", { status: 200 });
-    }
-    return new NextResponse(standalone.error, { status: standalone.status });
+    const failure = standaloneFailureResponse(standalone);
+    if (failure) return failure;
+    return new NextResponse("ok", { status: 200 });
   }
   else if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
@@ -814,12 +825,8 @@ try {
         return new NextResponse("ok", { status: 200 });
       }
       const standalone = await fulfillStandaloneDeliveryPayment(session);
-      if (!standalone.handled) {
-        return new NextResponse("ok", { status: 200 });
-      }
-      if (!standalone.ok) {
-        return new NextResponse(standalone.error, { status: standalone.status });
-      }
+      const failure = standaloneFailureResponse(standalone);
+      if (failure) return failure;
       return new NextResponse("ok", { status: 200 });
     }
 
@@ -1908,7 +1915,7 @@ try {
         }
       }
 
-      const sellerSettlementResults = [];
+      const sellerSettlementResults: SellerSettlementResult[] = [];
       for (const item of items) {
         const product = await prisma.product.findUnique({
           where: { id: item.productId },
