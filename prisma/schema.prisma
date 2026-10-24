@@ -3595,6 +3595,20 @@ model AffiliateMarketInterest {
   @@index([email, countryCode, status])
 }
 
+/// Verified Stripe webhook receipt. Payload is not stored.
+model StripeWebhookReceipt {
+  eventId      String   @id
+  eventType    String
+  livemode     Boolean
+  status       String
+  httpStatus   Int?
+  attemptCount Int      @default(1)
+  receivedAt   DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status, updatedAt])
+}
+
 enum Role {
   BUYER
   SELLER

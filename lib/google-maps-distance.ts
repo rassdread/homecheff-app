@@ -1,10 +1,11 @@
 // Google Maps Distance Matrix API integration
 // Calculates route distances and travel times between locations
 import { calculateDistance } from './geocoding';
+import { serverDistanceMatrixKey } from '@/lib/delivery/maps-key-placement';
 
 function mapsApiKey(override?: string | null): string {
   if (override !== undefined) return override || '';
-  return process.env.GOOGLE_MAPS_API_KEY || '';
+  return serverDistanceMatrixKey();
 }
 
 export interface RouteDistance {

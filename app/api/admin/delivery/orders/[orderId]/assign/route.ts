@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdminPermission } from '@/lib/admin-guard';
 import { logAdminAction } from '@/lib/admin-audit';
+import {
+  assertDelivererCanAccept,
+  delivererAcceptDenialResponse,
+} from '@/lib/delivery/delivery-eligibility';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,11 +42,22 @@ export async function POST(
 
   const profile = await prisma.deliveryProfile.findUnique({
     where: { id: deliveryProfileId },
-    select: { id: true, isActive: true, isBlocked: true },
+    select: {
+      id: true,
+      userId: true,
+      isActive: true,
+      isBlocked: true,
+      isVerified: true,
+      age: true,
+      user: { select: { dateOfBirth: true } },
+    },
   });
 
-  if (!profile || !profile.isActive || profile.isBlocked) {
-    return NextResponse.json({ error: 'Courier not available' }, { status: 400 });
+  const eligibility = assertDelivererCanAccept(profile, {
+    dateOfBirth: profile?.user?.dateOfBirth,
+  });
+  if (!eligibility.ok) {
+    return NextResponse.json(delivererAcceptDenialResponse(eligibility), { status: eligibility.status });
   }
 
   const updated = await prisma.deliveryOrder.update({
