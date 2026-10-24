@@ -82,8 +82,8 @@ Failure:
 
 Rollback:
 
-- The app fails open if the receipt table is missing, so the previous application can run without these tables.
-- Dropping the two new tables removes receipt and recovery history only. It does not reverse charges or transfers. Do that only with explicit approval.
+- Marketplace checkout still runs if the receipt table is missing. Standalone Delivery financial events do not. Those events return HTTP 500 and Stripe retries them. They are not acknowledged as processed.
+- Dropping the two new tables removes receipt and recovery history only. It does not reverse charges or transfers. Do that only with explicit approval. After a drop, leave Delivery disabled until the tables exist again.
 
 Evidence:
 

@@ -95,8 +95,7 @@ export async function getRouteDistance(
 ): Promise<RouteDistance | RouteDistanceError> {
   const env = options?.env ?? process.env;
   const productionConfig = assessMapsProductionConfig(env);
-  const explicitKey = options?.apiKey !== undefined;
-  if (!explicitKey && productionConfig.runtime === 'production' && !productionConfig.payable) {
+  if (productionConfig.runtime === 'production' && !productionConfig.payable) {
     return {
       error: productionConfig.reason,
       message: 'Distance Matrix is not configured for this production runtime.',
@@ -198,13 +197,24 @@ function getHaversineDistance(
 export async function getBatchRouteDistances(
   origin: { lat: number; lng: number },
   destinations: Array<{ lat: number; lng: number }>,
-  mode: 'driving' | 'walking' | 'bicycling' = 'driving'
+  mode: 'driving' | 'walking' | 'bicycling' = 'driving',
+  options?: { fetchImpl?: typeof fetch; env?: NodeJS.ProcessEnv },
 ): Promise<Array<RouteDistance | RouteDistanceError>> {
-  const apiKey = mapsApiKey();
+  const env = options?.env ?? process.env;
+  const productionConfig = assessMapsProductionConfig(env);
+  const productionRuntime = productionConfig.runtime === 'production';
+  const unavailable = (): RouteDistanceError => ({
+    error: productionConfig.payable ? 'DISTANCE_MATRIX_UNAVAILABLE' : productionConfig.reason,
+    message: 'Distance Matrix is not configured for this production runtime.',
+  });
+  if (productionRuntime && !productionConfig.payable) {
+    return destinations.map(() => unavailable());
+  }
+  const fetchImpl = options?.fetchImpl ?? fetch;
+  const apiKey = serverDistanceMatrixKey(env);
   if (!apiKey || destinations.length === 0) {
-    // Fallback to individual Haversine calculations
     return Promise.all(
-      destinations.map(dest => getRouteDistance(origin, dest, mode))
+      destinations.map((dest) => getRouteDistance(origin, dest, mode, { env, fetchImpl, apiKey }))
     );
   }
 
@@ -212,7 +222,7 @@ export async function getBatchRouteDistances(
     const destString = destinations.map(d => `${d.lat},${d.lng}`).join('|');
     const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin.lat},${origin.lng}&destinations=${destString}&mode=${mode}&key=${apiKey}&units=metric`;
     
-    const response = await fetch(url, {
+    const response = await fetchImpl(url, {
       headers: {
         'Accept': 'application/json'
       }
@@ -225,7 +235,7 @@ export async function getBatchRouteDistances(
     const data = await response.json();
 
     if (data.status !== 'OK' || !data.rows || data.rows.length === 0) {
-      // Fallback to Haversine
+      if (productionRuntime) return destinations.map(() => unavailable());
       return Promise.all(
         destinations.map(dest => getHaversineDistance(origin, dest))
       );
@@ -238,12 +248,14 @@ export async function getBatchRouteDistances(
         status: 'OK',
         rows: [{ elements: [element] }],
       });
-      return interpreted ?? getHaversineDistance(origin, destinations[index]);
+      return interpreted ?? (productionRuntime
+        ? unavailable()
+        : getHaversineDistance(origin, destinations[index]));
     });
 
   } catch (error) {
-    console.error('Google Maps batch distance error:', error);
-    // Fallback to Haversine
+    console.error('Google Maps batch distance error:', error instanceof Error ? error.name : 'error');
+    if (productionRuntime) return destinations.map(() => unavailable());
     return Promise.all(
       destinations.map(dest => getHaversineDistance(origin, dest))
     );

@@ -7,6 +7,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
+import { assertDelivererCanAccept } from '@/lib/delivery/delivery-eligibility';
 import { servicePilotDenial } from '@/lib/delivery/delivery-pilot-access';
 import {
   ACCEPTANCE_MODE_AUTO,
@@ -74,7 +75,7 @@ async function resolveAuthoritativeQuote(
     };
   }
 ): Promise<
-  | { ok: true; routeDistanceKm: number; quotedFeeCents: number }
+  | { ok: true; routeDistanceKm: number; quotedFeeCents: number | null }
   | { ok: false; status: number; code: string; error: string }
   | { ok: true; routeDistanceKm: null; quotedFeeCents: null }
 > {
@@ -127,7 +128,6 @@ async function resolveAuthoritativeQuote(
       status: 422,
       code: COMMERCIAL_DISTANCE_UNAVAILABLE.code,
       error: COMMERCIAL_DISTANCE_UNAVAILABLE.error,
-      message: COMMERCIAL_DISTANCE_UNAVAILABLE.message,
     };
   }
 
@@ -511,6 +511,26 @@ export async function acceptDeliveryBookingRequest(
       status: 403,
       code: 'DELIVERY_BLOCKED',
       error: 'Je bezorgerprofiel is geblokkeerd.',
+    };
+  }
+  const acceptGate = assertDelivererCanAccept(
+    {
+      id: request.deliveryProfile.id,
+      userId: request.deliveryProfile.userId,
+      isVerified: request.deliveryProfile.isVerified,
+      isActive: request.deliveryProfile.isActive,
+      isBlocked: request.deliveryProfile.isBlocked,
+      age: request.deliveryProfile.age,
+      user: { dateOfBirth: request.deliveryProfile.user?.dateOfBirth ?? null },
+    },
+    { dateOfBirth: request.deliveryProfile.user?.dateOfBirth ?? null },
+  );
+  if (!acceptGate.ok) {
+    return {
+      ok: false as const,
+      status: acceptGate.status,
+      code: acceptGate.code,
+      error: acceptGate.error,
     };
   }
   const acceptPilot = servicePilotDenial({

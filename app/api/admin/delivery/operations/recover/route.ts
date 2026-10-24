@@ -7,6 +7,7 @@ import { dispatchVerifiedStripeWebhook } from '@/app/api/stripe/webhook/route';
 import { prismaWebhookReceiptStore } from '@/lib/stripe/webhook-receipt-store';
 import { beginStripeWebhookReceipt, finishStripeWebhookReceipt } from '@/lib/stripe/webhook-receipt';
 import { recoverFailedStripeEvent } from '@/lib/stripe/webhook-recovery';
+import { isMissingDatabaseRelation } from '@/lib/stripe/delivery-webhook-persistence';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,17 +31,38 @@ export async function POST(req: NextRequest) {
   }
 
   const actorUserId = guard.admin.user.id;
-  const record = (result: string) =>
-    prisma.stripeWebhookRecoveryAttempt.create({
-      data: { eventId: eventId || 'invalid', actorUserId, result },
-    });
+  const record = async (result: string) => {
+    try {
+      await prisma.stripeWebhookRecoveryAttempt.create({
+        data: { eventId: eventId || 'invalid', actorUserId, result },
+      });
+    } catch (error) {
+      if (!isMissingDatabaseRelation(error)) throw error;
+    }
+  };
 
-  const receipt = await prisma.stripeWebhookReceipt.findUnique({ where: { eventId } }).catch(() => null);
-  const recentAttemptCount = receipt
-    ? await prisma.stripeWebhookRecoveryAttempt.count({
+  let receipt: Awaited<ReturnType<typeof prisma.stripeWebhookReceipt.findUnique>> = null;
+  try {
+    receipt = await prisma.stripeWebhookReceipt.findUnique({ where: { eventId } });
+  } catch (error) {
+    if (isMissingDatabaseRelation(error)) {
+      return NextResponse.json({ code: 'RECEIPT_STORE_UNAVAILABLE' }, { status: 503 });
+    }
+    throw error;
+  }
+  let recentAttemptCount = 0;
+  if (receipt) {
+    try {
+      recentAttemptCount = await prisma.stripeWebhookRecoveryAttempt.count({
         where: { eventId, createdAt: { gte: new Date(Date.now() - HOUR_MS) } },
-      })
-    : 0;
+      });
+    } catch (error) {
+      if (isMissingDatabaseRelation(error)) {
+        return NextResponse.json({ code: 'RECEIPT_STORE_UNAVAILABLE' }, { status: 503 });
+      }
+      throw error;
+    }
+  }
 
   const secret = financialStripeSecret();
   const secretIsLive = Boolean(secret?.startsWith('sk_live'));

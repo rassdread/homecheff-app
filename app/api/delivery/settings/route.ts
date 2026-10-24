@@ -91,7 +91,7 @@ function jsonProfile(
 ) {
   const serialized = serializeCanonicalSettingsProfile(profile);
   const completion = getDeliveryProfileCompletion({
-    ...toProviderActivationProfile(profile, user),
+    ...toProviderActivationProfile({ ...profile, isOnline: profile.isOnline === true }, user),
     dateOfBirth: user?.dateOfBirth ?? null,
   });
   return {

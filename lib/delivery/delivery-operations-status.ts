@@ -7,6 +7,7 @@ export type DeliveryOpsAlert =
   | 'WEBHOOK_FAILED_REPEATED'
   | 'WEBHOOK_PROCESSING_STALE'
   | 'WEBHOOK_REJECTED'
+  | 'WEBHOOK_RECEIPT_STORE_UNAVAILABLE'
   | 'PAYOUT_MISSING_TRANSFER'
   | 'MAPS_PRODUCTION_NOT_READY';
 
@@ -30,8 +31,10 @@ export function classifyDeliveryOperations(input: {
   payoutsMissingTransfer: number;
   mapsRuntime: 'production' | 'non_production';
   mapsPayable: boolean;
+  receiptStoreReady?: boolean;
 }): DeliveryOpsAlert[] {
   const alerts: DeliveryOpsAlert[] = [];
+  if (input.receiptStoreReady === false) alerts.push('WEBHOOK_RECEIPT_STORE_UNAVAILABLE');
   if (input.failedRepeated > 0) alerts.push('WEBHOOK_FAILED_REPEATED');
   if (input.processingStale > 0) alerts.push('WEBHOOK_PROCESSING_STALE');
   if (input.rejected > 0) alerts.push('WEBHOOK_REJECTED');

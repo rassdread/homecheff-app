@@ -2251,6 +2251,13 @@ export async function POST(req: NextRequest) {
     "@/lib/stripe/webhook-receipt"
   );
   const { prismaWebhookReceiptStore } = await import("@/lib/stripe/webhook-receipt-store");
+  const { isStandaloneDeliveryFinancialEvent, receiptUnavailableDecision, statusAfterReceiptFinish } =
+    await import("@/lib/stripe/delivery-webhook-persistence");
+  const deliveryEvent = event as {
+    type: string;
+    data?: { object?: { metadata?: Record<string, string | null> | null } | null } | null;
+  };
+  const standaloneDelivery = isStandaloneDeliveryFinancialEvent(deliveryEvent);
   let receipt: { action: "PROCESS" | "SKIP" | "IN_FLIGHT" } = { action: "PROCESS" };
   let receiptStore: ReturnType<typeof prismaWebhookReceiptStore> | null = null;
   try {
@@ -2262,6 +2269,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (receiptError) {
     console.error("Webhook receipt unavailable", receiptError instanceof Error ? receiptError.name : "error");
+    if (receiptUnavailableDecision(deliveryEvent) === "FAIL_CLOSED") {
+      return new NextResponse("Delivery webhook receipt unavailable", { status: 500 });
+    }
     receipt = { action: "PROCESS" };
     receiptStore = null;
   }
@@ -2274,17 +2284,25 @@ export async function POST(req: NextRequest) {
 
 
   const response = await dispatchVerifiedStripeWebhook(stripe, event);
+  let receiptFinished = false;
   if (receiptStore && receipt.action === "PROCESS") {
     try {
       await finishStripeWebhookReceipt(receiptStore, {
         eventId: event.id,
         httpStatus: response.status,
       });
+      receiptFinished = true;
     } catch (receiptError) {
       console.error("Webhook receipt finish failed", receiptError instanceof Error ? receiptError.name : "error");
     }
   }
-  return response;
+  const status = statusAfterReceiptFinish({
+    standaloneDelivery,
+    handlerStatus: response.status,
+    receiptFinished: receiptStore ? receiptFinished : !standaloneDelivery,
+  });
+  if (status === response.status) return response;
+  return new NextResponse("Delivery webhook receipt unavailable", { status });
 }
 
 

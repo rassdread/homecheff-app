@@ -6,6 +6,7 @@ import {
   assertDelivererCanAccept,
   delivererAcceptDenialResponse,
 } from '@/lib/delivery/delivery-eligibility';
+import { manualAssignmentStatus } from '@/lib/delivery/locked-booking-price';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,11 +61,19 @@ export async function POST(
     return NextResponse.json(delivererAcceptDenialResponse(eligibility), { status: eligibility.status });
   }
 
+  const nextStatus = manualAssignmentStatus(deliveryOrder.status);
+  if (!nextStatus.ok) {
+    return NextResponse.json(
+      { error: 'Deze opdracht kan niet meer worden toegewezen.', code: nextStatus.code },
+      { status: nextStatus.status },
+    );
+  }
+
   const updated = await prisma.deliveryOrder.update({
     where: { id: deliveryOrder.id },
     data: {
       deliveryProfileId,
-      status: 'ASSIGNED',
+      status: nextStatus.status,
     },
   });
 

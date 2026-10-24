@@ -195,22 +195,20 @@ describe('versioned delivery distance semantics', () => {
   });
 
   it('Q: independent signup assigns version 1 and both distances', () => {
-    const result = parseAndValidateDeliverySignupFields(
-      {
-        name: 'Ada',
-        email: 'ada@example.com',
-        password: 'secret12',
-        username: 'ada_rider',
-        age: 28,
-        transportation: ['BIKE'],
-        acceptDeliveryAgreement: true,
-        preferredRadius: 12,
-        maxDistance: 250,
-        distanceSemanticsVersion: 99,
-        providerType: 'INDEPENDENT',
-      },
-      { requireAccountFields: true },
-    );
+    const signup = {
+      name: 'Ada',
+      email: 'ada@example.com',
+      password: 'secret12',
+      username: 'ada_rider',
+      age: 28,
+      transportation: ['BIKE'],
+      acceptDeliveryAgreement: true,
+      preferredRadius: 12,
+      maxDistance: 250,
+      distanceSemanticsVersion: 99,
+      providerType: 'INDEPENDENT' as const,
+    };
+    const result = parseAndValidateDeliverySignupFields(signup, { requireAccountFields: true });
     assert.equal(result.ok, true);
     if (!result.ok) return;
     assert.equal(result.data.preferredRadius, 12);

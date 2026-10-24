@@ -6,6 +6,7 @@ import {
   isHomeCheffDeliveryEnabled,
   isNewCourierFulfillmentMode,
 } from './delivery-deployment-gate';
+import { deliveryWebhookClass } from './delivery-webhook-events';
 import { POST as bookPost } from '../../app/api/delivery/standalone/book/route';
 import { POST as checkoutPost } from '../../app/api/delivery/standalone/checkout/route';
 import { POST as bookingPost } from '../../app/api/delivery/booking-requests/route';
@@ -86,12 +87,26 @@ describe('new delivery routes stay closed when the gate is off', () => {
   });
 });
 
-describe('the gate does not wrap existing recovery', () => {
-  it('leaves Stripe webhook settlement and campaign qualification ungated', () => {
-    const webhook = source('app/api/stripe/webhook/route.ts');
+describe('the delivery flag does not block marketplace settlement', () => {
+  it('blocks a new unpaid standalone session and still reconciles one that is already paid', () => {
+    assert.equal(
+      deliveryWebhookClass({
+        eventType: 'checkout.session.completed',
+        paymentStatus: 'unpaid',
+        deliveryEnabled: false,
+      }),
+      'BLOCKED',
+    );
+    assert.equal(
+      deliveryWebhookClass({
+        eventType: 'checkout.session.completed',
+        paymentStatus: 'paid',
+        deliveryEnabled: false,
+      }),
+      'EXISTING_DELIVERY_RECONCILIATION',
+    );
     const products = source('app/api/products/create/route.ts');
     const checkout = source('app/api/checkout/route.ts');
-    assert.equal(webhook.includes('isHomeCheffDeliveryEnabled'), false);
     assert.equal(products.includes('isHomeCheffDeliveryEnabled'), false);
     assert.match(checkout, /isLocalProviderMode && !isHomeCheffDeliveryEnabled\(\)/);
     assert.doesNotMatch(checkout, /isParcelShippingMode && !isHomeCheffDeliveryEnabled/);

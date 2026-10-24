@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { resolveCourierReadiness } from './courier-readiness';
+import { classifyStripeConnectIdentity } from './courier-identity';
 import { assertDelivererCanAccept, assertCommercialCourierCanReceivePayout } from './delivery-eligibility';
 
 const adult = {
@@ -100,5 +101,40 @@ describe('courier readiness stages', () => {
     assert.equal(restricted.canAcceptAssignments, true);
     assert.equal(restricted.canReceiveTransfer, false);
     assert.equal(restricted.canReceiveExternalPayout, false);
+  });
+
+  it('does not let a caller-supplied age or Stripe verified status bypass the server gate', () => {
+    const underage = assertDelivererCanAccept(
+      { ...adult, age: 30, user: { dateOfBirth: new Date('2015-01-01T00:00:00Z') } },
+      { dateOfBirth: new Date('2015-01-01T00:00:00Z'), now: new Date('2026-10-24T00:00:00Z') },
+    );
+    assert.equal(underage.ok, false);
+    if (!underage.ok) assert.equal(underage.code, 'DELIVERY_UNDERAGE');
+
+    const incomplete = assertDelivererCanAccept(
+      { ...adult, isVerified: false },
+      { dateOfBirth: adult.user.dateOfBirth, now: new Date('2026-10-24T00:00:00Z') },
+    );
+    assert.equal(incomplete.ok, false);
+    if (!incomplete.ok) assert.equal(incomplete.code, 'DELIVERY_NOT_VERIFIED');
+
+    const identity = classifyStripeConnectIdentity({
+      id: 'acct_123',
+      payouts_enabled: true,
+      individual: { verification: { status: 'verified' } },
+    });
+    assert.equal(identity.stripeReportsIdentityVerified, true);
+    assert.equal(identity.governmentDocumentStoredByHomeCheff, false);
+    assert.equal(identity.assignmentBlockedForMissingDocument, false);
+    const verifiedWithoutTransfers = resolveCourierReadiness({
+      hasProfile: true,
+      profileComplete: true,
+      ageEligible: true,
+      isActive: true,
+      transfersActive: false,
+      payoutsEnabled: true,
+    });
+    assert.equal(verifiedWithoutTransfers.canReceiveTransfer, false);
+    assert.equal(verifiedWithoutTransfers.canReceiveExternalPayout, false);
   });
 });

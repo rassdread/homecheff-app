@@ -148,6 +148,7 @@ export async function GET(req: NextRequest) {
     payoutsMissingTransfer: openPayouts.length,
     mapsRuntime: maps.runtime,
     mapsPayable: maps.payable,
+    receiptStoreReady,
   });
 
   return NextResponse.json({
@@ -160,6 +161,7 @@ export async function GET(req: NextRequest) {
     recentRecoveryAttempts,
     alerts,
     deliveryPayoutsMissingTransfer: openPayouts,
+    livemodeRecoveryEnabled: process.env.HOMECHEFF_WEBHOOK_RECOVERY_LIVEMODE === 'enabled',
     maps: {
       runtime: maps.runtime,
       source: maps.serverKeyConfigured ? 'server' : 'missing',

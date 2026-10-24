@@ -97,6 +97,51 @@ describe('certified delivery contribution', () => {
     });
     assert.equal(settled.realizedProfitCents, 63);
   });
+
+  it('keeps realized profit null while a fee or affiliate liability is unresolved', () => {
+    const base = {
+      grossCents: 1502,
+      productCents: 500,
+      deliveryFeeCents: 955,
+      buyerSurchargeCents: 47,
+      sellerTransferCents: 440,
+      courierTransferCents: 840,
+      platformProductFeeCents: 60,
+      platformDeliveryShareCents: 115,
+      affiliateProductCommissionCents: 30,
+      affiliateDeliveryCommissionCents: 57,
+    };
+    const missingFee = platformContribution({
+      ...base,
+      stripeFeeCents: null,
+      stripeFeeFinal: false,
+      affiliateLiabilitySettled: true,
+    });
+    assert.equal(missingFee.realizedProfitCents, null);
+    assert.equal(missingFee.stripeFeeSource, 'unavailable');
+    const pendingSettledAffiliate = platformContribution({
+      ...base,
+      stripeFeeCents: 72,
+      stripeFeeFinal: false,
+      affiliateLiabilitySettled: true,
+    });
+    assert.equal(pendingSettledAffiliate.realizedProfitCents, null);
+    const availableUnpaidAffiliate = platformContribution({
+      ...base,
+      stripeFeeCents: 72,
+      stripeFeeFinal: true,
+      affiliateLiabilitySettled: false,
+    });
+    assert.equal(availableUnpaidAffiliate.netAfterKnownCostsCents, 63);
+    assert.equal(availableUnpaidAffiliate.realizedProfitCents, null);
+    const again = platformContribution({
+      ...base,
+      stripeFeeCents: 72,
+      stripeFeeFinal: false,
+      affiliateLiabilitySettled: true,
+    });
+    assert.deepEqual(again, pendingSettledAffiliate);
+  });
 });
 
 describe('distance matrix key placement', () => {

@@ -15,6 +15,7 @@ import { auth } from '@/lib/auth';
 import { assertAccountRequirementsOr403 } from '@/lib/account-requirements-server';
 import { assertNotSuspended } from '@/lib/user-suspend';
 import { getRouteDistance, isVerifiedRoadDistance, COMMERCIAL_DISTANCE_UNAVAILABLE } from '@/lib/google-maps-distance';
+import { lockedBookingCheckoutPrice } from '@/lib/delivery/locked-booking-price';
 import { calculateDistance } from '@/lib/geocoding';
 import { validateCommunityOrderCheckoutItems } from '@/lib/marketplace/commerce/community-order-checkout';
 import {
@@ -547,6 +548,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    let lockedBookingPrice: {
+      quotedFeeCents: number;
+      routeDistanceKm: number;
+      lat: number;
+      lng: number;
+    } | null = null;
+
     // Phase 3: named provider selection requires targeted provider + confirmed booking
     if (flags.namedProviderSelectionEnabled && isLocalProviderMode) {
       if (!selectedProviderId) {
@@ -603,6 +611,22 @@ export async function POST(req: NextRequest) {
       if (!payable.ok) {
         return NextResponse.json({ error: payable.error, code: payable.code }, { status: payable.status });
       }
+      const lockedPrice = lockedBookingCheckoutPrice({
+        quotedFeeCents: booking.quotedFeeCents,
+        routeDistanceKm: booking.routeDistanceKm,
+        buyerLat: booking.buyerLat,
+        buyerLng: booking.buyerLng,
+        bodyLat: coordinates?.lat,
+        bodyLng: coordinates?.lng,
+        clientQuoteCents,
+      });
+      if (!lockedPrice.ok) {
+        return NextResponse.json(
+          { error: lockedPrice.error, code: lockedPrice.code },
+          { status: lockedPrice.status },
+        );
+      }
+      lockedBookingPrice = lockedPrice;
       namedSelectionMeta = {
         namedProviderSelection: 'true',
         bookingRequestId: booking.id,
@@ -613,7 +637,10 @@ export async function POST(req: NextRequest) {
     }
     
     if (isLocalProviderMode || isSellerDeliveryMode) {
-      if (!coordinates || !coordinates.lat || !coordinates.lng) {
+      const dropoff = lockedBookingPrice
+        ? { lat: lockedBookingPrice.lat, lng: lockedBookingPrice.lng }
+        : coordinates;
+      if (!dropoff || !dropoff.lat || !dropoff.lng) {
         if (isLocalProviderMode && flags.providerPricingEnabled) {
           return NextResponse.json(
             {
@@ -625,7 +652,7 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      if (coordinates) {
+      if (dropoff?.lat && dropoff?.lng) {
         const buyerCountryCode = normalizeCountryCode(country) || 'NL';
         
         let totalDistance = 0;
@@ -649,7 +676,7 @@ export async function POST(req: NextRequest) {
             
             const routeResult = await getRouteDistance(
               { lat: pickup.lat, lng: pickup.lng },
-              { lat: coordinates.lat, lng: coordinates.lng },
+              { lat: dropoff.lat, lng: dropoff.lng },
               'driving'
             );
             
@@ -773,6 +800,11 @@ export async function POST(req: NextRequest) {
             dropoffCountryCode: buyerCountryCode,
             providerCountryCode: sellerCountry,
           });
+
+          if (quote.ok && lockedBookingPrice) {
+            quote.deliveryFeeCents = lockedBookingPrice.quotedFeeCents;
+            quote.routeDistanceKm = lockedBookingPrice.routeDistanceKm;
+          }
 
           if (!quote.ok) {
             const status =
