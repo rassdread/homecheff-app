@@ -18,7 +18,7 @@ The Gate A application is deployed. Customer-facing Delivery stays disabled.
 | Current production deployment | `dpl_4RUE5T9gRx8XDPmeAS2LhcZqrg4P`, project `homecheff-app`, domains `homecheff.eu`, `www.homecheff.eu`, `homecheff.nl`, and `www.homecheff.nl`, commit `ca492a89385c064875f63ac4d5ef9a83d4c7293f` on `main`, state READY. Created `2026-10-26T16:13:48Z`. Ready `2026-10-26T16:18:16Z`. Same application commit as the previous production deployment, rebuilt so the Maps environment is active. |
 | Previous production deployment | `dpl_4XmVR5L2r631aVsPS1XQncQ7VJzL`, commit `4ee318ae1fbd01b1e77ccbbec9b5b672553174e2`, remains READY and is the rollback target. It was not promoted again. |
 | Production database | MIGRATED. Endpoint `ep-summer-darkness-a2l0745u`, database `neondb`, Neon project `snowy-breeze-08059562` (`app homecheff`), branch `br-fragrant-frost-a2sm13lm` named `production`. Vercel production `DATABASE_URL` uses the pooler on that endpoint. `DIRECT_URL` uses the direct host. Preview endpoint `ep-green-wind-a2cspmqw` is a different branch. |
-| Production Stripe | Live key prefix confirmed. No Stripe configuration was changed. |
+| Production Stripe | Live account `acct_1S1TFM2KvmKfeN9t`. Marketplace endpoint `we_1SQHOx2KvmKfeN9t0uwLGujx` verified. No endpoint, secret, or subscription was changed. |
 | Production Google Maps | PASS. Dedicated Distance Matrix key `c32f15dd-cbdb-48df-9c6e-21557a1b4218`. Role `production`. |
 | Production smoke test | NOT_STARTED |
 | Regional pilot | NOT_STARTED |
@@ -141,12 +141,26 @@ Required production environment, names only:
 3. Deploy this commit to the production Vercel project. Delivery stays disabled. Done.
 4. Confirm marketplace home, authentication, and checkout still load. Done after Gate C.
 5. Gate C: production Maps key and role. Done. Road distance works. Delivery stays disabled.
-6. Gate D: signed production webhook, one test event, receipt row with `livemode` true. Invalid signatures stay 400.
+6. Gate D: signed production webhook, one non-financial live event, receipt row with `livemode` true. Done. Invalid signatures stay 400.
 7. Gate E: operations view shows receipt health, Maps readiness, and courier obligations. Live recovery stays off.
 8. Gate F: one authorized small live delivery. Exactly one obligation and one transfer. Stop on any mismatch.
 9. Gate G: enable Delivery for a named regional pilot only.
 
 If the application deploy breaks existing marketplace routes, roll back the Vercel deployment. Do not drop the new tables as that rollback. They are additive. Dropping them deletes receipt and obligation history.
+
+## Gate D completed on 2026-10-26
+
+The owner authorized one signed, non-financial live webhook. The live account is `acct_1S1TFM2KvmKfeN9t`. The deployed route is `POST /api/stripe/webhook`. The matching live endpoint is `we_1SQHOx2KvmKfeN9t0uwLGujx` at `https://homecheff.eu/api/stripe/webhook`, status enabled. A separate endpoint points at `growth.homecheff.eu` and was not used. The production signing secret is present and starts with the Stripe webhook prefix. It was not replaced. `HOMECHEFF_WEBHOOK_RECOVERY_LIVEMODE` is unset. Delivery stays disabled.
+
+`customer.created` is not in the marketplace subscription, and subscriptions were not edited. The safe subscribed type is `coupon.created`. The handler does not bill, transfer, or create an order for that type. It stores a receipt and returns 200.
+
+One unused coupon, `hc_gate_d_cf41694d`, was created in live mode. It is 1 cent, once, maximum one redemption, and it expires at `2026-10-26T16:49:40Z`. It had zero redemptions. Stripe event `evt_1UUqr92KvmKfeN9tT4zB4C6V`, type `coupon.created`, livemode true, was created at `2026-10-26T16:34:43Z`. Stripe reported no pending deliveries. The receipt row is the only row in `StripeWebhookReceipt`: status `PROCESSED`, HTTP 200, livemode true, attempt count 1, received `2026-10-26T16:34:44.395Z`. No recovery attempt was written.
+
+The same event was resent once through Stripe's event retry to that endpoint. The receipt stayed one row, attempt count 1, and the update time did not move. A processed duplicate is skipped. Isolated receipt tests passed, 6 of 6. An unsigned-looking request with signature `t=1,v1=deadbeef` returned 400 `Invalid signature` and added no row.
+
+After the test: charges 0, payment intents 0, transfers 0, refunds 0, payouts 0 in that window. Orders stayed 36. Delivery orders stayed 4. Homepage, marketplace square, seller page, login, and checkout returned 200. The delivery flag stayed false.
+
+The marketplace endpoint subscribes to checkout, payment intent, transfer, payout, balance, account, and coupon events. It does not subscribe to `charge.refunded`. That event is on the growth endpoint. The subscription list was not changed.
 
 ## Stripe test evidence already collected
 
