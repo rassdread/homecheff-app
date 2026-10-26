@@ -20,6 +20,8 @@ The Gate A application is deployed. Customer-facing Delivery stays disabled.
 | Production database | MIGRATED. Endpoint `ep-summer-darkness-a2l0745u`, database `neondb`, Neon project `snowy-breeze-08059562` (`app homecheff`), branch `br-fragrant-frost-a2sm13lm` named `production`. Vercel production `DATABASE_URL` uses the pooler on that endpoint. `DIRECT_URL` uses the direct host. Preview endpoint `ep-green-wind-a2cspmqw` is a different branch. |
 | Production Stripe | Live account `acct_1S1TFM2KvmKfeN9t`. Marketplace endpoint `we_1SQHOx2KvmKfeN9t0uwLGujx` verified. No endpoint, secret, or subscription was changed. |
 | Production Google Maps | PASS. Dedicated Distance Matrix key `c32f15dd-cbdb-48df-9c6e-21557a1b4218`. Role `production`. |
+| Gate D | PASS. One live `coupon.created` receipt, duplicate skipped, invalid signature rejected. |
+| Gate E | BLOCKED. The operations API and its server-side guards are in place, and live recovery is off. No authorized administrator session was available, so the production view was not opened. |
 | Production smoke test | NOT_STARTED |
 | Regional pilot | NOT_STARTED |
 
@@ -142,7 +144,7 @@ Required production environment, names only:
 4. Confirm marketplace home, authentication, and checkout still load. Done after Gate C.
 5. Gate C: production Maps key and role. Done. Road distance works. Delivery stays disabled.
 6. Gate D: signed production webhook, one non-financial live event, receipt row with `livemode` true. Done. Invalid signatures stay 400.
-7. Gate E: operations view shows receipt health, Maps readiness, and courier obligations. Live recovery stays off.
+7. Gate E: operations view shows receipt health, Maps readiness, and courier obligations. Live recovery stays off. Blocked until an existing superadmin opens the view. The refund subscription gap is a Gate F blocker.
 8. Gate F: one authorized small live delivery. Exactly one obligation and one transfer. Stop on any mismatch.
 9. Gate G: enable Delivery for a named regional pilot only.
 
@@ -161,6 +163,32 @@ The same event was resent once through Stripe's event retry to that endpoint. Th
 After the test: charges 0, payment intents 0, transfers 0, refunds 0, payouts 0 in that window. Orders stayed 36. Delivery orders stayed 4. Homepage, marketplace square, seller page, login, and checkout returned 200. The delivery flag stayed false.
 
 The marketplace endpoint subscribes to checkout, payment intent, transfer, payout, balance, account, and coupon events. It does not subscribe to `charge.refunded`. That event is on the growth endpoint. The subscription list was not changed.
+
+## Gate E on 2026-10-26
+
+The owner authorized inspection of production operations and monitoring. Delivery stayed disabled. No charge, transfer, refund, payout, order, role change, migration, Stripe change, Google change, or live recovery was made.
+
+The operations surface is `GET /api/admin/delivery/operations`. There is no separate page that renders this payload. It requires `canViewDeliveryDetails`. A superadmin passes that check. An administrator without that permission is denied. `POST /api/admin/delivery/operations/recover` requires a superadmin, and live recovery runs only when `HOMECHEFF_WEBHOOK_RECOVERY_LIVEMODE` is exactly `enabled`. That variable is absent in production. The route was not called with an administrator session.
+
+An unauthenticated GET of the operations route returned 401 `Unauthorized`. An unauthenticated POST of the recovery route, naming the Gate D event, also returned 401. `StripeWebhookRecoveryAttempt` stayed at 0 rows, so that denied request did not record or replay anything. The browser was not logged in and returned the same 401. No password was entered and no user was impersonated. Three existing users have role `SUPERADMIN`, and all three have `canViewDeliveryDetails`. No user has role `ADMIN`. Authenticated non-admin and non-superadmin requests were not sent. The denial is server-side in `getPlatformAdmin`, before the queries.
+
+Read-only production data, endpoint `ep-summer-darkness-a2l0745u`, database `neondb`:
+
+- `StripeWebhookReceipt` has one row: `evt_1UUqr92KvmKfeN9tT4zB4C6V`, `coupon.created`, livemode true, `PROCESSED`, HTTP 200, attempt count 1. It was not reprocessed.
+- Recovery attempts: 0.
+- `CourierTransferObligation`: 0. That is zero records, confirmed by a successful count. The operations response lists only `UNKNOWN`, `FAILED`, `REQUIRES_REVIEW`, and `PROCESSING`. A thrown obligation query is returned as an empty list, so a query failure is not distinguished from zero obligations. Receipt-store failure is distinguished: the response sets `webhookReceiptStoreReady` false and alert `WEBHOOK_RECEIPT_STORE_UNAVAILABLE`.
+- Delivery orders: 2 `CANCELLED`, 2 `DELIVERED`. Orders: 36. The operations response does not include delivery-order status counts or a list of unassigned paid orders.
+- The obligation record, when one exists, stores the delivery order, charge, transfer id, amount, currency, state, and timestamps. Once `stripeCreateAttemptedAt` is set, settlement does not create another transfer. A lookup failure or a changed destination becomes `REQUIRES_REVIEW`.
+
+The response alerts are labels inside that JSON. They do not page anyone. The repository has no Sentry or other alerting client. Vercel production logs for the six hours ending `2026-10-26T17:28Z` can be queried. In that window there were no runtime logs for the delivery or webhook routes. Request logs show the webhook returning 200 twice and 400 five times, and `/api/distance` returning 200 four times and 400 once. The only HTTP 500s were six calls to `/api/cron/schedule-shift-notifications`. Error-level runtime lines were Node `url.parse` deprecation warnings on `/api/users/online-status`. Manual inspection of Vercel logs and the operations JSON is available. Automated alerting is not configured. Manual review is enough for one watched payment. It is not automated monitoring for a pilot.
+
+Marketplace refund handling is implemented on `charge.refunded` in the marketplace webhook route. It reverses affiliate commission when an order can be resolved, and `observeStandaloneChargeRefund` reconciles a standalone delivery refund, including a courier-transfer reversal when a recovery client is supplied. The marketplace endpoint does not subscribe to `charge.refunded`. The growth endpoint does, at a different URL, and this repository has no handler showing that growth updates marketplace orders or courier obligations. No other subscribed marketplace event performs that refund work. A missing subscription is a financial-correctness risk for both marketplace commission reversal and delivery courier clawback. It is a Gate F blocker. Subscriptions were not changed and no refund was created.
+
+Production deployment remains `dpl_4RUE5T9gRx8XDPmeAS2LhcZqrg4P`, commit `ca492a89385c064875f63ac4d5ef9a83d4c7293f`, READY and aliased. Stripe live account remains `acct_1S1TFM2KvmKfeN9t`. Homepage, `/dorpsplein`, `/verkoper`, `/login`, and `/checkout` returned 200. An unsigned webhook POST returned 400. `/api/delivery/alignment-flags` still reports `homeCheffDeliveryEnabled` false.
+
+Isolated tests for recovery refusal, in-flight duplicate protection, receipt fail-closed behavior, and operations alert classification passed: 10 of 10. Live recovery was not executed.
+
+Gate E is blocked until an existing superadmin opens `https://homecheff.eu/api/admin/delivery/operations` and the response shows one processed receipt, no unresolved receipts, no obligations, `livemodeRecoveryEnabled` false, and Maps payable. Do not POST the recovery route. Gate F also stays closed until the `charge.refunded` gap is fixed or explicitly accepted. Delivery is not operationally ready for a real payment.
 
 ## Stripe test evidence already collected
 
