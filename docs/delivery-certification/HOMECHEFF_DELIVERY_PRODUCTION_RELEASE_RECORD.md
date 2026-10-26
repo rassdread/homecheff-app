@@ -7,15 +7,16 @@ Production application: https://homecheff.eu
 
 ## Status
 
-Delivery code is remediated locally. It is not deployed. Customer-facing Delivery stays disabled.
+The Gate A application is deployed. Customer-facing Delivery stays disabled.
 
 | Item | State |
 | --- | --- |
 | Gate A | APPROVED for `490945c39fc92a7139eac05f981828cab68a930c` |
 | Gate B | PASS. Five migrations applied on 2026-10-26. |
-| Production Delivery flag | VERIFIED false on `/api/delivery/alignment-flags` after the migration |
-| Production deployment of `490945c3` | NOT_STARTED |
-| Current production deployment | `dpl_4XmVR5L2r631aVsPS1XQncQ7VJzL`, project `homecheff-app`, domains `homecheff.eu` and `homecheff.nl`, commit `4ee318ae1fbd01b1e77ccbbec9b5b672553174e2` on `main`, state READY |
+| Production Delivery flag | VERIFIED false on `/api/delivery/alignment-flags` after the deploy |
+| Production deployment of the Gate A code | DEPLOYED as `ca492a89385c064875f63ac4d5ef9a83d4c7293f`. That commit contains `490945c3` plus the Gate B record and a build-memory fix. |
+| Current production deployment | `dpl_Hx4RMgXYA4xDYmEjEfVGhVL7LroH`, project `homecheff-app`, domains `homecheff.eu`, `www.homecheff.eu`, `homecheff.nl`, and `www.homecheff.nl`, commit `ca492a89385c064875f63ac4d5ef9a83d4c7293f` on `main`, state READY. Created `2026-10-26T15:39:40Z`. Ready `2026-10-26T15:46:10Z`. |
+| Previous production deployment | `dpl_4XmVR5L2r631aVsPS1XQncQ7VJzL`, commit `4ee318ae1fbd01b1e77ccbbec9b5b672553174e2`, remains READY and is the rollback target. It was not promoted again. |
 | Production database | MIGRATED. Endpoint `ep-summer-darkness-a2l0745u`, database `neondb`, Neon project `snowy-breeze-08059562` (`app homecheff`), branch `br-fragrant-frost-a2sm13lm` named `production`. Vercel production `DATABASE_URL` uses the pooler on that endpoint. `DIRECT_URL` uses the direct host. Preview endpoint `ep-green-wind-a2cspmqw` is a different branch. |
 | Production Stripe | Live key prefix confirmed. No Stripe configuration was changed. |
 | Production Google Maps | NOT_STARTED |
@@ -72,11 +73,35 @@ Verified after the run:
 
 Marketplace after the migration: homepage 200, `/dorpsplein` 200, `/verkoper` 200, login 200, checkout 200. An unsigned webhook POST returns 400. Delivery flag remains false. No charge or transfer was created. The running deployment is still `dpl_4XmVR5L2r631aVsPS1XQncQ7VJzL`.
 
-The next release step is a separate approval to deploy the Gate A application commit with Delivery left disabled. Gate C, the production Maps key, stays closed until that approval is given on its own.
+The deploy itself was not part of Gate B. It was authorized afterward and is recorded below. Gate C, the production Maps key, stays closed until that approval is given on its own.
 
-## Code ready for a later deploy
+## Application deploy on 2026-10-26
 
-The commit that contains the V6B remediation is the release candidate after it is committed. It includes the V6A obligation table and the V6B identity, webhook, and livemode fixes. `HOMECHEFF_DELIVERY_ENABLED` must stay false on production during the first deploy.
+The owner authorized deployment of the Gate A code to project `homecheff-app`. `main` was a fast-forward from `4ee318ae` to the release. No history was rewritten.
+
+The first production build, `dpl_HE8AXpEnWWSZP38RXEsNf3EkDTeB`, failed because the standard 8 GB builder killed the Next.js process. Its alias was not assigned, so `homecheff.eu` stayed on `dpl_4XmVR5L2r631aVsPS1XQncQ7VJzL`. The build script now uses a 4 GB heap, and Vercel builds use one worker. That change is `ca492a89385c064875f63ac4d5ef9a83d4c7293f`.
+
+`dpl_Hx4RMgXYA4xDYmEjEfVGhVL7LroH` is READY and serves `homecheff.eu`. The deployment URL is `homecheff-muxatuzuf-sergio-s-projects-f7b64ee1.vercel.app`. No migration ran during the build. `HOMECHEFF_DELIVERY_ENABLED` is absent, which the application reads as disabled. `HOMECHEFF_WEBHOOK_RECOVERY_LIVEMODE` is absent. Stripe remains the existing live key. `GOOGLE_MAPS_KEY_ROLE` is absent, so Distance Matrix stays closed.
+
+Checks after the alias moved:
+
+- Homepage, marketplace feed, seller page, login, and checkout return 200.
+- The marketplace feed returned active listings from the production database.
+- Login shows the email and password form. Checkout asks an anonymous visitor to log in before an order.
+- `/api/auth/session` returns an empty session.
+- An unsigned webhook POST returns 400, `Missing signature`.
+- Standalone delivery quote returns 403, `DELIVERY_DISABLED`.
+- A distance request returns `PRODUCTION_ROLE_REQUIRED` and does not produce a price.
+- The delivery flag is false.
+- Existing delivery orders are only `DELIVERED` or `CANCELLED`, so there is no in-flight order that can be completed into a new courier transfer.
+
+Seller local-delivery pricing stays fail-closed until Gate C. Pickup listings and the checkout page do not depend on that key. No charge or transfer was created.
+
+Rollback remains the previous READY deployment `dpl_4XmVR5L2r631aVsPS1XQncQ7VJzL`. It was not needed. The additive schema from Gate B stays compatible with that older application.
+
+## Code deployed with Delivery disabled
+
+The deployed commit contains the V6A obligation table and the V6B identity, webhook, and livemode fixes. `HOMECHEFF_DELIVERY_ENABLED` stays false.
 
 Required production environment, names only:
 
@@ -93,7 +118,7 @@ Required production environment, names only:
 
 1. Gate A accepted by the owner.
 2. Gate B: backup, then apply the five authorized migrations. Delivery stays disabled. Done.
-3. Deploy this commit to the production Vercel project. Delivery stays disabled.
+3. Deploy this commit to the production Vercel project. Delivery stays disabled. Done.
 4. Confirm marketplace home, authentication, and checkout still load.
 5. Gate C: production Maps key and role. Distance pricing must fail closed until this is true.
 6. Gate D: signed production webhook, one test event, receipt row with `livemode` true. Invalid signatures stay 400.
