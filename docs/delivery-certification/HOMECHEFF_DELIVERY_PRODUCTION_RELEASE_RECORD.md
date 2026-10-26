@@ -22,7 +22,7 @@ The Gate A application is deployed. Customer-facing Delivery stays disabled.
 | Production Google Maps | PASS. Dedicated Distance Matrix key `c32f15dd-cbdb-48df-9c6e-21557a1b4218`. Role `production`. |
 | Gate D | PASS. One live `coupon.created` receipt, duplicate skipped, invalid signature rejected. |
 | Gate E | PASS. Owner opened the operations view. Refund routing is subscribed after the handler deploy. Partial and ambiguous refunds stop for manual review. Live recovery stays off. |
-| Gate F | BLOCKED. V6J is deployed. The restricted pilot is on for one buyer and one courier. No listing is approved and no quote or payment was created. |
+| Gate F | BLOCKED. The named seller email is the approved buyer. That account has no Stripe Connect account, and its only listing is pickup-only. |
 | Production smoke test | NOT_STARTED |
 | Regional pilot | NOT_STARTED |
 
@@ -298,6 +298,22 @@ Seven active listings allow delivery or both, from €9.00 to €35.00, and all 
 Anonymous checks on the live domain: the public flag is false, a body user id does not open a quote or booking, matching returns `DELIVERY_PILOT_REQUIRED`, acceptance requires a session, operations and recovery return 401, and an unsigned webhook returns 400. Home, login, and checkout return 200. The signed-in buyer and courier screens were not clicked. No order, payment, transfer, refund, or payout was created. Live recovery stays off.
 
 The next owner action is to choose one existing listing whose seller can be paid, confirm a delivery destination, and approve the resulting quote. Do not take a payment before that.
+
+## V6L seller check on 2026-10-26
+
+No production data, Stripe setting, pilot variable, order, or payment was changed. The public flag remains unset. The restricted pilot remains production-only for buyer `7647bf21-e9ab-4e3a-af83-eeec23e24dcb` and courier `c2ae8bae-343f-4f59-bc0e-15562b97f87e` / profile `cmtuj15up0001gm0avj2ssuy1`. Anonymous quote still returns 401. `https://homecheff.eu` still serves `dpl_GCvxauoBqD8vDzrbvVmrXNXeBbET`.
+
+The exact email `r.sergioarrias@gmail.com` is that same buyer account. It is active and not suspended. Role `SUPERADMIN`. `stripeConnectOnboardingCompleted` is false, `sellerActivatedAt` is empty, and there is no `stripeConnectAccountId`. Live Stripe was not changed. This account cannot receive a Marketplace seller payout.
+
+It has one seller profile and one listing, `fcc5ff2a-651a-4983-9d17-b3f1acf7ca17`, title `HomeCheff Design Studio`, price 0 cents, category `DESIGNER`, delivery mode `PICKUP`, stock 0, and `sellerCanDeliver` false. Pickup coordinates exist. It is not a HomeCheff courier listing. No listing was modified.
+
+The buyer and the seller are the same user id. HC checkout blocks that with `SELF_PURCHASE` through `evaluateHcSelfDealing`. The card checkout route `POST /api/checkout` does not call that guard. A same-owner card payment would not be an independent settlement test. No bypass was added.
+
+The courier remains active, not blocked, profile-verified, bike, and a 10 km radius. Live Stripe still reports `individual.verification.status` verified, transfers active, and payouts enabled. The identity cache was not written by hand.
+
+The buyer account has a saved address. It was not read and it is not an approved delivery destination. No quote was created.
+
+The next owner action is to name a seller account that is not the buyer and that has completed Stripe Connect, with an existing listing whose delivery mode is `DELIVERY` or `BOTH`. Then confirm the destination. Do not take a payment before that.
 
 ## Activation
 
