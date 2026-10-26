@@ -17,6 +17,8 @@ import {
   deliverySelfServiceIsActivePatch,
 } from '@/lib/delivery/delivery-eligibility';
 import { planDistanceSettingsWrite } from '@/lib/delivery/distance-semantics';
+import { enforcePaidDeliveryIdentity } from '@/lib/delivery/courier-identity-sync';
+import { courierIdentityMessage } from '@/lib/delivery/courier-identity';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,6 +66,9 @@ const PROFILE_SELECT = {
   freeDeliveryRadiusKm: true,
   currency: true,
   nationalCoverage: true,
+  stripeIdentityState: true,
+  stripeIdentityReason: true,
+  stripeIdentityCheckedAt: true,
 } as const;
 
 const USER_LOCATION_SELECT = {
@@ -174,9 +179,20 @@ export async function GET() {
       });
     }
 
+    await enforcePaidDeliveryIdentity(prisma, deliveryProfile.id).catch(() => null);
+    const identityRow = await prisma.deliveryProfile.findUnique({
+      where: { id: deliveryProfile.id },
+      select: { stripeIdentityState: true },
+    });
+    const identityState = identityRow?.stripeIdentityState ?? deliveryProfile.stripeIdentityState;
+
     return NextResponse.json({
       ...jsonProfile(deliveryProfile, user),
-      user,
+      user: {
+        ...user,
+        stripeIdentityState: identityState ?? 'UNKNOWN',
+        stripeIdentityMessage: courierIdentityMessage(identityState),
+      },
     });
   } catch (error) {
     console.error('Error fetching delivery settings:', error);

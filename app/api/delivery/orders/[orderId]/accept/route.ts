@@ -12,6 +12,7 @@ import {
   assertDelivererCanAccept,
   delivererAcceptDenialResponse,
 } from '@/lib/delivery/delivery-eligibility';
+import { enforcePaidDeliveryIdentity } from '@/lib/delivery/courier-identity-sync';
 import { resolveDelivererPosition, resolveSellerCoords } from '@/lib/delivery/delivery-position';
 import {
   customerAddressForPhase,
@@ -52,9 +53,15 @@ export async function POST(
         { status: acceptCheck.status }
       );
     }
-
     if (!profile) {
       return NextResponse.json({ error: 'Geen bezorger profiel gevonden' }, { status: 404 });
+    }
+    const identity = await enforcePaidDeliveryIdentity(prisma, profile.id);
+    if (!identity.ok) {
+      return NextResponse.json(
+        { error: identity.error, errorEn: identity.errorEn, code: identity.code, state: identity.state },
+        { status: identity.status },
+      );
     }
 
     // Check if order exists and is still available

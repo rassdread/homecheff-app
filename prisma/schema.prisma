@@ -2186,6 +2186,11 @@ model DeliveryProfile {
   stripeTransfersCheckedAt       DateTime?
   /// Last Stripe payouts_enabled value. Null means the check did not record it yet.
   stripePayoutsEnabled           Boolean?
+  /// Last Stripe individual.verification classification. Not a stored identity document.
+  stripeIdentityState            String?
+  /// Short reason code. Not a document number or personal data.
+  stripeIdentityReason           String?
+  stripeIdentityCheckedAt        DateTime?
   detailedAvailability DeliveryAvailability[]
   agreementAcceptances DeliveryAgreementAcceptance[]
   notificationSettings DeliveryNotificationSettings?
@@ -2201,6 +2206,7 @@ model DeliveryProfile {
   vehiclePhotos        VehiclePhoto[]
 
   @@index([onlineUntil])
+  @@index([stripeIdentityState, stripeIdentityCheckedAt])
   @@map("DeliveryProfile")
 }
 

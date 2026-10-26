@@ -6,6 +6,7 @@ import {
   resolveCommercialDeliveryAgeYears,
 } from '@/lib/delivery/delivery-age';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
+import { COURIER_TRANSFER_FRESH_MS } from '@/lib/delivery/courier-connect-eligibility';
 
 /** @deprecated Use COMMERCIAL_DELIVERY_MIN_AGE — kept as alias for imports. */
 export const DELIVERY_MIN_AGE = COMMERCIAL_DELIVERY_MIN_AGE;
@@ -287,11 +288,14 @@ export function delivererAcceptDenialResponse(denial: DelivererAcceptDenial) {
 }
 
 /** Matching / availability: only verified active profiles (age filtered in query layer). */
-export function delivererMatchingWhere() {
+export function delivererMatchingWhere(now = new Date()) {
+  const freshAfter = new Date(now.getTime() - COURIER_TRANSFER_FRESH_MS);
   return {
     isActive: true,
     isVerified: true,
     isBlocked: false,
+    stripeIdentityState: 'VERIFIED',
+    stripeIdentityCheckedAt: { gte: freshAfter },
   } as const;
 }
 

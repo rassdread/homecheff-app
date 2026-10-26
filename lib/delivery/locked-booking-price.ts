@@ -89,6 +89,8 @@ export function lockedBookingCheckoutPrice(input: {
 export function manualAssignmentStatus(
   current: string,
 ): { ok: true; status: 'ACCEPTED' } | { ok: false; status: 409; code: 'DELIVERY_ASSIGNMENT_CLOSED' } {
-  if (current === 'PENDING' || current === 'ASSIGNED') return { ok: true, status: 'ACCEPTED' };
+  if (current === 'PENDING' || current === 'ASSIGNED' || current === 'ACCEPTED' || current === 'PICKED_UP') {
+    return { ok: true, status: 'ACCEPTED' };
+  }
   return { ok: false, status: 409, code: 'DELIVERY_ASSIGNMENT_CLOSED' };
 }

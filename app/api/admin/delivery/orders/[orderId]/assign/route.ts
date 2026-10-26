@@ -6,6 +6,7 @@ import {
   assertDelivererCanAccept,
   delivererAcceptDenialResponse,
 } from '@/lib/delivery/delivery-eligibility';
+import { enforcePaidDeliveryIdentity } from '@/lib/delivery/courier-identity-sync';
 import { manualAssignmentStatus } from '@/lib/delivery/locked-booking-price';
 
 export const dynamic = 'force-dynamic';
@@ -57,8 +58,20 @@ export async function POST(
   const eligibility = assertDelivererCanAccept(profile, {
     dateOfBirth: profile?.user?.dateOfBirth,
   });
-  if (!eligibility.ok) {
-    return NextResponse.json(delivererAcceptDenialResponse(eligibility), { status: eligibility.status });
+  if (!eligibility.ok || !profile) {
+    return NextResponse.json(
+      eligibility.ok
+        ? { error: 'Geen bezorger profiel gevonden', code: 'DELIVERY_NOT_ACTIVE' }
+        : delivererAcceptDenialResponse(eligibility),
+      { status: eligibility.ok ? 403 : eligibility.status },
+    );
+  }
+  const identity = await enforcePaidDeliveryIdentity(prisma, profile.id);
+  if (!identity.ok) {
+    return NextResponse.json(
+      { error: identity.error, errorEn: identity.errorEn, code: identity.code, state: identity.state },
+      { status: identity.status },
+    );
   }
 
   const nextStatus = manualAssignmentStatus(deliveryOrder.status);
@@ -74,6 +87,7 @@ export async function POST(
     data: {
       deliveryProfileId,
       status: nextStatus.status,
+      ...(deliveryOrder.status === 'PICKED_UP' ? { pickedUpAt: null } : {}),
     },
   });
 

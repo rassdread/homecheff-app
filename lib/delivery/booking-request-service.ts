@@ -8,6 +8,7 @@ import type { PrismaClient } from '@prisma/client';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
 import { assertDelivererCanAccept } from '@/lib/delivery/delivery-eligibility';
+import { enforcePaidDeliveryIdentity } from '@/lib/delivery/courier-identity-sync';
 import { servicePilotDenial } from '@/lib/delivery/delivery-pilot-access';
 import {
   ACCEPTANCE_MODE_AUTO,
@@ -380,6 +381,15 @@ export async function createDeliveryBookingRequest(
         failedChecks: validation.failedChecks,
       };
     }
+    const identity = await enforcePaidDeliveryIdentity(prisma, profile.id);
+    if (!identity.ok) {
+      return {
+        ok: false as const,
+        status: identity.status,
+        code: identity.code,
+        error: identity.error,
+      };
+    }
 
     const request = await prisma.deliveryBookingRequest.create({
       data: {
@@ -531,6 +541,15 @@ export async function acceptDeliveryBookingRequest(
       status: acceptGate.status,
       code: acceptGate.code,
       error: acceptGate.error,
+    };
+  }
+  const identity = await enforcePaidDeliveryIdentity(prisma, request.deliveryProfileId);
+  if (!identity.ok) {
+    return {
+      ok: false as const,
+      status: identity.status,
+      code: identity.code,
+      error: identity.error,
     };
   }
   const acceptPilot = servicePilotDenial({

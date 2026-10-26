@@ -13,6 +13,7 @@ import {
 import { getPublicAppUrl } from '@/lib/public-app-url';
 import { resolveDeliveryOrderAccess } from '@/lib/delivery/delivery-order-access';
 import { applyStandalonePaidCancellation } from '@/lib/delivery/standalone-cancellation';
+import { enforcePaidDeliveryIdentity } from '@/lib/delivery/courier-identity-sync';
 
 export async function POST(
   req: NextRequest,
@@ -95,6 +96,23 @@ export async function POST(
     );
     if (!transition.ok) {
       return NextResponse.json({ error: transition.error }, { status: 400 });
+    }
+
+    if (status === 'PICKED_UP' || status === 'DELIVERED') {
+      const identity = await enforcePaidDeliveryIdentity(prisma, profile.id);
+      if (!identity.ok) {
+        return NextResponse.json(
+          {
+            error: identity.error,
+            errorEn: identity.errorEn,
+            code: identity.code,
+            state: identity.state,
+            recovery:
+              'De opdracht blijft op de huidige status. Een beheerder kan hem toewijzen aan een bezorger met een actuele Stripe-identiteitsstatus.',
+          },
+          { status: identity.status },
+        );
+      }
     }
 
     // Update delivery order status

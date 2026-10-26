@@ -1,4 +1,5 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
+import { classifyCourierStripeIdentity, type CourierStripeAccount } from '@/lib/delivery/courier-identity';
 import { recoverCourierTransfer, type CourierRecoveryClient } from '@/lib/delivery/courier-transfer-recovery';
 import { reconcileDeliveryRefundBooks } from '@/lib/delivery/delivery-refund-books';
 
@@ -19,9 +20,8 @@ type ChargeLike = {
   metadata?: Record<string, string> | null;
 };
 
-type AccountLike = {
+type AccountLike = CourierStripeAccount & {
   id: string;
-  payouts_enabled?: boolean | null;
   capabilities?: { transfers?: string | null } | null;
 };
 
@@ -251,22 +251,28 @@ export async function observeStandaloneDispute(
 }
 
 export async function syncCourierConnectAccount(db: Db, account: AccountLike) {
-  const user = await db.user.findFirst({
+  const users = await db.user.findMany({
     where: { stripeConnectAccountId: account.id },
     select: { id: true },
+    take: 2,
   });
-  if (!user) return { updated: false as const };
+  if (users.length !== 1) return { updated: false as const, reason: 'OWNERSHIP' as const };
+  const user = users[0];
   const profile = await db.deliveryProfile.findUnique({ where: { userId: user.id }, select: { id: true } });
   if (!profile) return { updated: false as const };
+  const identity = classifyCourierStripeIdentity(account);
   await db.deliveryProfile.update({
     where: { id: profile.id },
     data: {
       stripeTransfersStatus: account.capabilities?.transfers === 'active' ? 'active' : 'inactive',
       stripePayoutsEnabled: account.payouts_enabled === true,
       stripeTransfersCheckedAt: new Date(),
+      stripeIdentityState: identity.state,
+      stripeIdentityReason: identity.reason,
+      stripeIdentityCheckedAt: new Date(),
     },
   });
-  return { updated: true as const };
+  return { updated: true as const, identity: identity.state };
 }
 
 export async function recordDeliveryTransferCreated(

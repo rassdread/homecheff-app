@@ -205,7 +205,10 @@ test('refund, dispute, connect, and transfer events stay idempotent', async () =
         return row;
       },
     },
-    user: { findFirst: async () => ({ id: 'courier' }) },
+    user: {
+      findFirst: async () => ({ id: 'courier' }),
+      findMany: async () => [{ id: 'courier' }],
+    },
     deliveryProfile: {
       findUnique: async () => ({ id: 'profile_ok' }),
       update: async ({ data }: { data: Record<string, unknown> }) => {

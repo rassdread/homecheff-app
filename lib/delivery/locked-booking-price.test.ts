@@ -32,6 +32,8 @@ describe('locked booking checkout price', () => {
     assert.deepEqual(manualAssignmentStatus('PENDING'), { ok: true, status: 'ACCEPTED' });
     assert.deepEqual(manualAssignmentStatus('ASSIGNED'), { ok: true, status: 'ACCEPTED' });
     assert.equal(manualAssignmentStatus('DELIVERED').ok, false);
-    assert.equal(manualAssignmentStatus('PICKED_UP').ok, false);
+    const pickedUp = manualAssignmentStatus('PICKED_UP');
+    assert.equal(pickedUp.ok, true);
+    if (pickedUp.ok) assert.equal(pickedUp.status, 'ACCEPTED');
   });
 });

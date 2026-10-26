@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { resolveCourierReadiness } from './courier-readiness';
-import { classifyStripeConnectIdentity } from './courier-identity';
+import { classifyCourierStripeIdentity } from './courier-identity';
+import { paidIdentityDenial } from './courier-paid-identity';
 import { assertDelivererCanAccept, assertCommercialCourierCanReceivePayout } from './delivery-eligibility';
 
 const adult = {
@@ -118,14 +119,20 @@ describe('courier readiness stages', () => {
     assert.equal(incomplete.ok, false);
     if (!incomplete.ok) assert.equal(incomplete.code, 'DELIVERY_NOT_VERIFIED');
 
-    const identity = classifyStripeConnectIdentity({
+    const identity = classifyCourierStripeIdentity({
       id: 'acct_123',
       payouts_enabled: true,
       individual: { verification: { status: 'verified' } },
     });
-    assert.equal(identity.stripeReportsIdentityVerified, true);
+    assert.equal(identity.state, 'VERIFIED');
     assert.equal(identity.governmentDocumentStoredByHomeCheff, false);
-    assert.equal(identity.assignmentBlockedForMissingDocument, false);
+    assert.equal(identity.explicitDocumentVerified, false);
+    const payoutsOnly = paidIdentityDenial({
+      state: 'NOT_STARTED',
+      checkedAt: new Date('2026-10-26T12:00:00Z'),
+      now: new Date('2026-10-26T12:00:00Z'),
+    });
+    assert.equal(payoutsOnly.ok, false);
     const verifiedWithoutTransfers = resolveCourierReadiness({
       hasProfile: true,
       profileComplete: true,

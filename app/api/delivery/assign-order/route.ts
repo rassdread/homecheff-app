@@ -7,6 +7,7 @@ import {
   assertDelivererCanAccept,
   delivererAcceptDenialResponse,
 } from "@/lib/delivery/delivery-eligibility";
+import { enforcePaidDeliveryIdentity } from "@/lib/delivery/courier-identity-sync";
 
 export const dynamic = "force-dynamic";
 
@@ -34,10 +35,19 @@ export async function POST(req: NextRequest) {
     const acceptCheck = assertDelivererCanAccept(deliveryProfile, {
       dateOfBirth: deliveryProfile?.user?.dateOfBirth,
     });
-    if (!acceptCheck.ok) {
+    if (!acceptCheck.ok || !deliveryProfile) {
       return NextResponse.json(
-        delivererAcceptDenialResponse(acceptCheck),
-        { status: acceptCheck.status }
+        acceptCheck.ok
+          ? { error: 'Geen bezorger profiel gevonden', code: 'DELIVERY_NOT_ACTIVE' }
+          : delivererAcceptDenialResponse(acceptCheck),
+        { status: acceptCheck.ok ? 403 : acceptCheck.status }
+      );
+    }
+    const identity = await enforcePaidDeliveryIdentity(prisma, deliveryProfile.id);
+    if (!identity.ok) {
+      return NextResponse.json(
+        { error: identity.error, errorEn: identity.errorEn, code: identity.code, state: identity.state },
+        { status: identity.status },
       );
     }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getRouteDistance, isVerifiedRoadDistance } from "@/lib/google-maps-distance";
 import { assertDelivererCanAccept } from "@/lib/delivery/delivery-eligibility";
+import { enforcePaidDeliveryIdentity } from "@/lib/delivery/courier-identity-sync";
 import { resolveDelivererPosition } from "@/lib/delivery/delivery-position";
 
 export const dynamic = "force-dynamic";
@@ -64,6 +65,13 @@ export async function GET(req: NextRequest) {
     );
     if (!acceptCheck.ok) {
       return NextResponse.json({ error: acceptCheck.error, code: acceptCheck.code }, { status: 403 });
+    }
+    const identity = await enforcePaidDeliveryIdentity(prisma, deliveryUser.DeliveryProfile.id);
+    if (!identity.ok) {
+      return NextResponse.json(
+        { error: identity.error, errorEn: identity.errorEn, code: identity.code, state: identity.state },
+        { status: identity.status },
+      );
     }
 
     const position = resolveDelivererPosition({

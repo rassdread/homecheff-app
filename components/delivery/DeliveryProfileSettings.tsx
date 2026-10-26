@@ -46,6 +46,8 @@ interface UserData {
   place: string | null;
   stripeConnectAccountId?: string | null;
   stripeConnectOnboardingCompleted?: boolean;
+  stripeIdentityState?: string | null;
+  stripeIdentityMessage?: { nl: string; en: string } | null;
 }
 
 interface EarningsStats {
@@ -549,6 +551,12 @@ export default function DeliveryProfileSettings() {
               <CreditCard className="w-5 h-5" />
               Betalingsinstellingen
             </h3>
+            {user?.stripeIdentityMessage ? (
+              <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-800">
+                <p>{user.stripeIdentityMessage.nl}</p>
+                <p className="mt-1 text-gray-600">{user.stripeIdentityMessage.en}</p>
+              </div>
+            ) : null}
 
             {user?.stripeConnectOnboardingCompleted ||
             (connectUiStatus === 'PAYMENT_READY' && !stripeConfigMismatch) ? (
@@ -558,7 +566,9 @@ export default function DeliveryProfileSettings() {
                   <h4 className="font-semibold text-green-800">Betaalaccount gereed</h4>
                 </div>
                 <p className="text-green-700 text-sm mb-3">
-                  Je kunt nu betalingen ontvangen voor je bezorgingen. Uitbetalingen gebeuren automatisch naar je opgegeven bankrekening.
+                  {user?.stripeIdentityState === 'VERIFIED'
+                    ? 'Stripe meldt dat de identiteitscontrole is afgerond. HomeCheff bewaart geen identiteitsdocument.'
+                    : 'Je Stripe-account is gekoppeld. Betaalde bezorging blijft gesloten tot Stripe de identiteitscontrole als afgerond meldt.'}
                 </p>
                 <div className="text-xs text-green-600 space-y-1">
                   <p>• Uitbetalingstermijn: 7 dagen (nieuwe accounts)</p>

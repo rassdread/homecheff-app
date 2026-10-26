@@ -16,6 +16,7 @@ import {
   recordPaidSubscription,
 } from "@/lib/analytics/record-acquisition-event.server";
 import { delivererMatchingWhere } from "@/lib/delivery/delivery-eligibility";
+import { enforcePaidDeliveryIdentity } from "@/lib/delivery/courier-identity-sync";
 import { expireExpiredTemporaryOnline } from "@/lib/delivery/delivery-online-session";
 import { resolveDeliveryTimeAvailability } from "@/lib/delivery/delivery-time-availability";
 import {
@@ -1604,6 +1605,17 @@ try {
                 const mode = metadata.deliveryAcceptanceMode;
                 if (mode === 'AUTO_CONFIRM') {
                   deliveryOrderData.status = 'ACCEPTED';
+                }
+              }
+
+              if (deliveryOrderData.deliveryProfileId) {
+                const identity = await enforcePaidDeliveryIdentity(
+                  prisma,
+                  deliveryOrderData.deliveryProfileId,
+                );
+                if (!identity.ok) {
+                  deliveryOrderData.deliveryProfileId = null;
+                  deliveryOrderData.status = 'PENDING';
                 }
               }
 

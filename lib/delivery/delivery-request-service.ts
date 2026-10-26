@@ -18,8 +18,27 @@ import type {
   DeliveryRequestDTO,
 } from './delivery-marketplace-types';
 import { assertDelivererCanAccept } from './delivery-eligibility';
+import { enforcePaidDeliveryIdentity } from './courier-identity-sync';
 import { calculateDistance } from '@/lib/geocoding';
 import { distanceSemanticsMode } from '@/lib/delivery/distance-semantics';
+
+async function assertPaidCourierUser(userId: string) {
+  const profile = await prisma.deliveryProfile.findUnique({
+    where: { userId },
+    select: { id: true },
+  });
+  if (!profile) {
+    throw new DeliveryMarketplaceServiceError(
+      'Betaalde bezorging is gesloten tot Stripe de identiteitscontrole als afgerond meldt.',
+      403,
+      'DELIVERY_IDENTITY_REQUIRED',
+    );
+  }
+  const identity = await enforcePaidDeliveryIdentity(prisma, profile.id);
+  if (!identity.ok) {
+    throw new DeliveryMarketplaceServiceError(identity.error, identity.status, identity.code);
+  }
+}
 
 const ACTIVE_REQUEST_STATUSES: DeliveryRequestStatus[] = [
   'OPEN',
@@ -298,6 +317,7 @@ export class DeliveryRequestService {
         'delivery.errors.courierNotActive',
       );
     }
+    await assertPaidCourierUser(courierId);
 
     const existingAssignment = await getActiveAssignment(deliveryRequestId);
     if (existingAssignment) {
@@ -390,6 +410,7 @@ export class DeliveryRequestService {
         'delivery.errors.courierOnly',
       );
     }
+    await assertPaidCourierUser(userId);
 
     const result = await prisma.$transaction(async (tx) => {
       const updatedAssignment = await tx.courierAssignment.update({
@@ -487,6 +508,7 @@ export class DeliveryRequestService {
         'delivery.errors.accessDenied',
       );
     }
+    await assertPaidCourierUser(assignment.courierId);
 
     const result = await prisma.$transaction(async (tx) => {
       const updatedAssignment = await tx.courierAssignment.update({
@@ -793,6 +815,7 @@ export class DeliveryRequestService {
         'delivery.errors.courierNotActive',
       );
     }
+    await assertPaidCourierUser(userId);
 
     const row = await prisma.deliveryRequest.findUnique({
       where: { id: deliveryRequestId },
