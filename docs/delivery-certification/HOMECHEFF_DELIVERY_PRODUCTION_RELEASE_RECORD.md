@@ -18,10 +18,11 @@ The Gate A application is deployed. Customer-facing Delivery stays disabled.
 | Current production deployment | `dpl_BSqY98RdTuvxan2d5QE48gWYkV6p`, project `homecheff-app`, domains `homecheff.eu`, `www.homecheff.eu`, `homecheff.nl`, and `www.homecheff.nl`, commit `e939a4ce9356a483010a3e5535b5935f61c3ac6c` on `main`, state READY. The first build of this commit, `dpl_4VpwGihkircr9BMc9AVQKW9vmk1C`, ran out of memory and was not aliased. |
 | Previous production deployment | `dpl_4RUE5T9gRx8XDPmeAS2LhcZqrg4P`, commit `ca492a89385c064875f63ac4d5ef9a83d4c7293f`, remains READY and is the rollback target. It was not promoted again. |
 | Production database | MIGRATED. Endpoint `ep-summer-darkness-a2l0745u`, database `neondb`, Neon project `snowy-breeze-08059562` (`app homecheff`), branch `br-fragrant-frost-a2sm13lm` named `production`. Vercel production `DATABASE_URL` uses the pooler on that endpoint. `DIRECT_URL` uses the direct host. Preview endpoint `ep-green-wind-a2cspmqw` is a different branch. |
-| Production Stripe | Live account `acct_1S1TFM2KvmKfeN9t`. Marketplace endpoint `we_1SQHOx2KvmKfeN9t0uwLGujx` verified. No endpoint, secret, or subscription was changed. |
+| Production Stripe | Live account `acct_1S1TFM2KvmKfeN9t`. Marketplace endpoint `we_1SQHOx2KvmKfeN9t0uwLGujx` includes `charge.refunded` after Gate E. The signing secret was not rotated. |
 | Production Google Maps | PASS. Dedicated Distance Matrix key `c32f15dd-cbdb-48df-9c6e-21557a1b4218`. Role `production`. |
 | Gate D | PASS. One live `coupon.created` receipt, duplicate skipped, invalid signature rejected. |
 | Gate E | PASS. Owner opened the operations view. Refund routing is subscribed after the handler deploy. Partial and ambiguous refunds stop for manual review. Live recovery stays off. |
+| Gate F | BLOCKED. No live payment was created. The public flag still denies every new delivery, and no buyer, seller listing, and matchable courier are confirmed together. |
 | Production smoke test | NOT_STARTED |
 | Regional pilot | NOT_STARTED |
 
@@ -145,7 +146,7 @@ Required production environment, names only:
 5. Gate C: production Maps key and role. Done. Road distance works. Delivery stays disabled.
 6. Gate D: signed production webhook, one non-financial live event, receipt row with `livemode` true. Done. Invalid signatures stay 400.
 7. Gate E: operations view shows receipt health, Maps readiness, and courier obligations. Live recovery stays off. Done. The owner opened the view. `charge.refunded` is now subscribed. Partial and ambiguous refunds remain manual.
-8. Gate F: one authorized small live delivery. Exactly one obligation and one transfer. Stop on any mismatch.
+8. Gate F: one authorized small live delivery. Exactly one obligation and one transfer. Stop on any mismatch. Blocked on 2026-10-26. The flag stayed false. No live payment was created.
 9. Gate G: enable Delivery for a named regional pilot only.
 
 If the application deploy breaks existing marketplace routes, roll back the Vercel deployment. Do not drop the new tables as that rollback. They are additive. Dropping them deletes receipt and obligation history.
@@ -247,6 +248,28 @@ Gate E passes with those manual-review limits. It does not mean every refund rev
 ## Stripe test evidence already collected
 
 Test mode only. Destination tail `eL3ugc`. One transfer per successful obligation. A timed-out lookup created no transfer. A lost local transfer id reconciled to the original Stripe transfer.
+
+## Gate F preparation on 2026-10-26
+
+No live charge, order, transfer, refund, or payout was created. The public flag stayed false. No code was deployed and no production setting was changed.
+
+The existing delivery path is one system. Checkout for `DELIVERY`, `TEEN_DELIVERY`, and `LOCAL_PROVIDER` is `POST /api/checkout`, with the same gate on `POST /api/checkout/hc-only` and `POST /api/checkout/hc-mixed`. A quote is `POST /api/delivery/standalone/quote`. Booking is `POST /api/delivery/booking-requests`. Acceptance is `POST /api/delivery/orders/[orderId]/accept`. Pickup and completion are `POST /api/delivery/orders/[orderId]/update-status`. Completion calls `ensureDeliveryPayout`, which calls `settleCourierTransferObligation`. The courier share is `splitDeliveryCommission`: 88 percent and 12 percent of the delivery fee only, each rounded with `Math.round`. The product price is not part of that split. Seller settlement stays on the existing marketplace escrow path. Webhooks stay on `POST /api/stripe/webhook`. Monitoring stays on `GET /api/admin/delivery/operations`.
+
+`evaluateDeliveryAccess` already has a restricted allowlist. It denies everyone, including an allowlisted caller, while `HOMECHEFF_DELIVERY_ENABLED` is not exactly true, 1, or yes. Production has none of the pilot variables set. A standalone quote returns 403. There is no second test checkout and no staff bypass. Using the existing pilot requires the owner to turn the flag on and set the allowlist together. That was not authorized, and turning the flag on without the allowlist would open delivery to every caller.
+
+Read-only production data, endpoint `ep-summer-darkness-a2l0745u`:
+
+- 31 delivery profiles. 18 are active and not blocked. The identity, payout, and transfer caches are empty on all 31, so the match query, which requires a fresh `stripeIdentityState` of `VERIFIED`, currently lists nobody.
+- Two profiles have a Stripe Connect account. One is inactive, not an adult in the stored date of birth, and Stripe reports no individual verification, inactive transfers, and payouts disabled. User `c54bbbcf-1323-4539-8e30-c2a6b7f95662`.
+- The other is active, not blocked, adult, profile age 38, `isVerified` true, bike, and a 10 km radius. Live Stripe reports `individual.verification.status` verified, transfers active, and payouts enabled. The delivery agreement is not recorded. User `c2ae8bae-343f-4f59-bc0e-15562b97f87e`, profile `cmtuj15up0001gm0avj2ssuy1`. This courier can be re-read at accept time, but will not appear in the match list until the identity cache is fresh.
+- The earlier certification listing `e3e5322e-fae3-4185-b047-c10205646df3` is not in the product table. The superadmin user `7647bf21-e9ab-4e3a-af83-eeec23e24dcb` has no active product and no Connect account. Active listing counts: pickup 11, both 7, shipping 6, delivery 1. No listing was selected.
+- Delivery orders remain 2 cancelled and 2 delivered. None are in flight.
+
+Existing regression tests passed, 35 of 35, including the flag, the restricted pilot, transfer idempotency, and refund reversal. No new Stripe test delivery, order, or obligation was created. The earlier test-mode charge and transfer remain payment objects only. They are not a delivery lifecycle.
+
+The first Vercel build of `e939a4ce` ran out of memory and was not aliased. The retry `dpl_BSqY98RdTuvxan2d5QE48gWYkV6p` is still the production deployment. This preparation did not change the build.
+
+Gate F is blocked. The smallest next authorization, if the owner wants to continue, is to name the buyer, the existing listing, and the courier above, and to approve the existing restricted pilot as the only way a new delivery can be created. Do not enable the flag by itself.
 
 ## Activation
 
