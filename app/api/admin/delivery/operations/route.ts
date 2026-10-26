@@ -8,6 +8,7 @@ import {
   classifyDeliveryOperations,
   courierObligationNextAction,
   opsCursor,
+  readMonitoredQuery,
 } from '@/lib/delivery/delivery-operations-status';
 
 export const dynamic = 'force-dynamic';
@@ -115,17 +116,15 @@ export async function GET(req: NextRequest) {
     receiptStoreReady = false;
   }
 
-  try {
-    recentRecoveryAttempts = await prisma.stripeWebhookRecoveryAttempt.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-      select: { eventId: true, actorUserId: true, result: true, createdAt: true },
-    });
-  } catch {
-    recentRecoveryAttempts = [];
-  }
+  const recoveryQuery = await readMonitoredQuery(() => prisma.stripeWebhookRecoveryAttempt.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 20,
+    select: { eventId: true, actorUserId: true, result: true, createdAt: true },
+  }));
+  const recoveryAttemptStoreReady = recoveryQuery.ready;
+  recentRecoveryAttempts = recoveryQuery.rows ?? [];
 
-  const payouts = await prisma.payout.findMany({
+  const payoutQuery = await readMonitoredQuery(() => prisma.payout.findMany({
     where: { id: { startsWith: 'payout_delivery_' } },
     orderBy: { createdAt: 'desc' },
     take: 100,
@@ -137,57 +136,48 @@ export async function GET(req: NextRequest) {
       transferFailureCode: true,
       transferFailureAt: true,
     },
-  });
-  const openPayouts = payouts
+  }));
+  const deliveryPayoutStoreReady = payoutQuery.ready;
+  const openPayouts = (payoutQuery.rows ?? [])
     .map(describeDeliveryPayout)
     .filter((row) => !row.transferExists);
 
-  let courierTransferObligations: Array<{
-    deliveryOrderId: string;
-    chargeId: string;
-    state: string;
-    amountCents: number;
-    currency: string;
-    stripeTransferId: string | null;
-    lastErrorCode: string | null;
-    stripeCreateAttemptedAt: Date | null;
-    updatedAt: Date;
-    nextAction: string;
-  }> = [];
-  try {
-    const rows = await prisma.courierTransferObligation.findMany({
-      where: { state: { in: ['UNKNOWN', 'FAILED', 'REQUIRES_REVIEW', 'PROCESSING'] } },
-      orderBy: { updatedAt: 'desc' },
-      take: 50,
-      select: {
-        deliveryOrderId: true,
-        chargeId: true,
-        state: true,
-        amountCents: true,
-        currency: true,
-        stripeTransferId: true,
-        lastErrorCode: true,
-        stripeCreateAttemptedAt: true,
-        updatedAt: true,
-      },
-    });
-    courierTransferObligations = rows.map((row) => ({
-      ...row,
-      nextAction: courierObligationNextAction(row.state),
-    }));
-  } catch {
-    courierTransferObligations = [];
-  }
+  const obligationQuery = await readMonitoredQuery(() => prisma.courierTransferObligation.findMany({
+    where: { state: { in: ['UNKNOWN', 'FAILED', 'REQUIRES_REVIEW', 'PROCESSING'] } },
+    orderBy: { updatedAt: 'desc' },
+    take: 50,
+    select: {
+      deliveryOrderId: true,
+      chargeId: true,
+      state: true,
+      amountCents: true,
+      currency: true,
+      stripeTransferId: true,
+      lastErrorCode: true,
+      stripeCreateAttemptedAt: true,
+      updatedAt: true,
+    },
+  }));
+  const courierObligationStoreReady = obligationQuery.ready;
+  const courierTransferObligations = obligationQuery.ready
+    ? obligationQuery.rows.map((row) => ({
+        ...row,
+        nextAction: courierObligationNextAction(row.state),
+      }))
+    : null;
 
   const alerts = classifyDeliveryOperations({
     failedRepeated: repeatedFailures.length,
     processingStale: staleProcessing.length,
     rejected: statusCounts.REJECTED ?? 0,
     payoutsMissingTransfer: openPayouts.length,
-    courierTransfersNeedingReview: courierTransferObligations.length,
+    courierTransfersNeedingReview: courierTransferObligations?.length ?? 0,
     mapsRuntime: maps.runtime,
     mapsPayable: maps.payable,
     receiptStoreReady,
+    courierObligationStoreReady,
+    recoveryAttemptStoreReady,
+    deliveryPayoutStoreReady,
   });
 
   return NextResponse.json({
@@ -197,9 +187,12 @@ export async function GET(req: NextRequest) {
     nextCursor,
     repeatedFailures,
     staleProcessing,
-    recentRecoveryAttempts,
+    recoveryAttemptStoreReady,
+    recentRecoveryAttempts: recoveryQuery.ready ? recentRecoveryAttempts : null,
     alerts,
-    deliveryPayoutsMissingTransfer: openPayouts,
+    deliveryPayoutStoreReady,
+    deliveryPayoutsMissingTransfer: payoutQuery.ready ? openPayouts : null,
+    courierObligationStoreReady,
     courierTransferObligations,
     livemodeRecoveryEnabled: process.env.HOMECHEFF_WEBHOOK_RECOVERY_LIVEMODE === 'enabled',
     maps: {

@@ -201,4 +201,6 @@ test('disabled delivery blocks new checkout creation and still reconciles refund
   assert.equal(webhook.includes('JSON.stringify(session.metadata'), false);
   assert.equal(webhook.includes('deliveryWebhookClass'), true);
   assert.equal(webhook.includes('listReversals'), true);
+  assert.equal(webhook.includes('refund_order_lookup_failed'), true);
+  assert.equal(webhook.includes('refund_reconciliation_failed'), true);
 });

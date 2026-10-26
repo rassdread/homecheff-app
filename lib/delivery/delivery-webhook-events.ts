@@ -130,19 +130,45 @@ export async function observeStandaloneChargeRefund(
   const payout = typeof db.payout?.findUnique === 'function'
     ? await db.payout.findUnique({ where: { id: `payout_delivery_${row.deliveryOrderId}` } })
     : null;
-  const transferred = Boolean(payout?.providerRef?.startsWith('tr_'));
+  const obligationStore = (db as {
+    courierTransferObligation?: {
+      findFirst?: (args: unknown) => Promise<{ state?: string | null; stripeTransferId?: string | null; amountCents?: number | null } | null>;
+    };
+  }).courierTransferObligation;
+  const obligation = charge.id && typeof obligationStore?.findFirst === 'function'
+    ? await obligationStore.findFirst({
+        where: { deliveryOrderId: row.deliveryOrderId, chargeId: charge.id },
+        select: { state: true, stripeTransferId: true, amountCents: true },
+      })
+    : null;
+  const payoutTransfer = payout?.providerRef?.startsWith('tr_') ? payout.providerRef : null;
+  const obligationTransfer = obligation?.stripeTransferId?.startsWith('tr_') ? obligation.stripeTransferId : null;
+  if (payoutTransfer && obligationTransfer && payoutTransfer !== obligationTransfer) {
+    throw new Error('courier_transfer_identity_conflict');
+  }
+  const transferId = payoutTransfer || obligationTransfer;
+  const ambiguousObligation = Boolean(
+    obligation
+    && !transferId
+    && (obligation.state === 'UNKNOWN' || obligation.state === 'REQUIRES_REVIEW' || obligation.state === 'PROCESSING'),
+  );
+  const transferred = Boolean(transferId);
+  const transferredCents = payout?.amountCents ?? obligation?.amountCents ?? 0;
   const refundedCents = charge.amount_refunded ?? 0;
   const chargeCents = charge.amount ?? row.buyerTotalCents ?? 0;
   let recoveredCents = 0;
-  let outstandingCents = transferred ? payout?.amountCents ?? 0 : 0;
+  let outstandingCents = transferred ? transferredCents : 0;
   let reversalId: string | null = existing && 'stripeReversalId' in existing
     ? (existing.stripeReversalId as string | null)
     : null;
   let uncertain = false;
-  if (transferred && recovery && payout?.providerRef) {
+  if (!ambiguousObligation && transferred && recovery && transferId) {
+    if (transferredCents <= 0) {
+      uncertain = true;
+    } else {
     const recoveryResult = await recoverCourierTransfer({
-      transferId: payout.providerRef,
-      transferredCents: payout.amountCents ?? 0,
+      transferId,
+      transferredCents,
       refundedCents,
       chargeCents,
       stripe: recovery,
@@ -172,10 +198,11 @@ export async function observeStandaloneChargeRefund(
         if (error?.code !== 'P2002') throw error;
       });
     }
+    }
   }
   const decisionData = {
     amountCents: refundedCents,
-    stripeStatus: uncertain || outstandingCents > 0 ? 'MANUAL' : 'succeeded',
+    stripeStatus: ambiguousObligation || uncertain || outstandingCents > 0 ? 'MANUAL' : 'succeeded',
     stripeReversalId: reversalId,
     outstandingCents,
     executedAt: new Date(),
@@ -201,7 +228,7 @@ export async function observeStandaloneChargeRefund(
     });
   }
   await reconcileObservedStandaloneRefund(db, row, charge, {
-    courierStillPaid: transferred && recoveredCents <= 0,
+    courierStillPaid: ambiguousObligation || (transferred && recoveredCents <= 0),
     confirmedCourierCents: transferred ? recoveredCents : null,
   });
   if (uncertain) {
@@ -320,5 +347,6 @@ async function reconcileObservedStandaloneRefund(
     });
   } catch (error) {
     console.error('[delivery-refund-books]', error instanceof Error ? error.name : 'refund_books');
+    throw error;
   }
 }

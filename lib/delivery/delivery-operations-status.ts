@@ -10,6 +10,9 @@ export type DeliveryOpsAlert =
   | 'WEBHOOK_RECEIPT_STORE_UNAVAILABLE'
   | 'PAYOUT_MISSING_TRANSFER'
   | 'COURIER_TRANSFER_NEEDS_REVIEW'
+  | 'COURIER_OBLIGATION_STORE_UNAVAILABLE'
+  | 'RECOVERY_ATTEMPT_STORE_UNAVAILABLE'
+  | 'DELIVERY_PAYOUT_STORE_UNAVAILABLE'
   | 'MAPS_PRODUCTION_NOT_READY';
 
 const EVENT_ID = /^evt_[A-Za-z0-9]+$/;
@@ -29,6 +32,17 @@ export function courierObligationNextAction(state: string): string {
   return 'Reconcile before any payout.';
 }
 
+export async function readMonitoredQuery<T>(load: () => Promise<T[]>): Promise<
+  { ready: true; rows: T[] } | { ready: false; rows: null }
+> {
+  try {
+    return { ready: true, rows: await load() };
+  } catch (error) {
+    console.error('[delivery-operations] query failed', error instanceof Error ? error.name : 'error');
+    return { ready: false, rows: null };
+  }
+}
+
 export function opsCursor(value: string | null): string | null {
   if (!value || !EVENT_ID.test(value)) return null;
   return value;
@@ -43,9 +57,15 @@ export function classifyDeliveryOperations(input: {
   mapsRuntime: 'production' | 'non_production';
   mapsPayable: boolean;
   receiptStoreReady?: boolean;
+  courierObligationStoreReady?: boolean;
+  recoveryAttemptStoreReady?: boolean;
+  deliveryPayoutStoreReady?: boolean;
 }): DeliveryOpsAlert[] {
   const alerts: DeliveryOpsAlert[] = [];
   if (input.receiptStoreReady === false) alerts.push('WEBHOOK_RECEIPT_STORE_UNAVAILABLE');
+  if (input.courierObligationStoreReady === false) alerts.push('COURIER_OBLIGATION_STORE_UNAVAILABLE');
+  if (input.recoveryAttemptStoreReady === false) alerts.push('RECOVERY_ATTEMPT_STORE_UNAVAILABLE');
+  if (input.deliveryPayoutStoreReady === false) alerts.push('DELIVERY_PAYOUT_STORE_UNAVAILABLE');
   if (input.failedRepeated > 0) alerts.push('WEBHOOK_FAILED_REPEATED');
   if (input.processingStale > 0) alerts.push('WEBHOOK_PROCESSING_STALE');
   if (input.rejected > 0) alerts.push('WEBHOOK_REJECTED');

@@ -16,7 +16,7 @@ import {
 } from './affiliate-config';
 import { splitAffiliateLineForHierarchy } from '@/lib/affiliates/main-partner-split';
 import { beneficiaryUserIdBlocked, parentOverrideAllowed } from '@/lib/affiliates/self-referral-guard';
-import { CommissionLedgerEventType, CommissionLedgerStatus, type PrismaClient } from '@prisma/client';
+import { CommissionLedgerEventType, CommissionLedgerStatus, type CommissionLedger, type PrismaClient } from '@prisma/client';
 import { marketplaceCalendarWindowBlocksCommission } from '@/lib/affiliate-revenue-window';
 
 /**
@@ -561,10 +561,141 @@ function proportionalCommissionRefund(
   return originalAmount;
 }
 
+function commissionMeta(meta: unknown): Record<string, unknown> {
+  if (!meta || typeof meta !== 'object' || Array.isArray(meta)) return {};
+  return meta as Record<string, unknown>;
+}
+
+function isReversibleCommission(meta: unknown) {
+  const record = commissionMeta(meta);
+  return typeof record.originalLedgerId !== 'string' && typeof record.adjustment !== 'string';
+}
+
+/**
+ * Cumulative refund target for one original commission.
+ * A later larger refund adds only the missing cents. A smaller or repeated
+ * event adds nothing. A partial refund keeps the unpaid remainder payable.
+ * A commission already paid out is not replaced with a new payable row.
+ */
+export function commissionReversalPlan(input: {
+  originalAmountCents: number;
+  originalStatus: string;
+  targetCents: number;
+  alreadyReversedCents: number;
+}) {
+  const original = Math.max(0, Math.trunc(input.originalAmountCents));
+  const target = Math.min(original, Math.max(0, Math.trunc(input.targetCents)));
+  const already = Math.max(0, Math.trunc(input.alreadyReversedCents));
+  const full = original > 0 && target >= original;
+  const alreadyPaid = input.originalStatus === CommissionLedgerStatus.PAID;
+  return {
+    deltaCents: Math.max(0, target - already),
+    closeOriginal: target > 0 && !alreadyPaid,
+    remainderCents: full || alreadyPaid ? 0 : Math.max(0, original - target),
+    reverseRemainder: full,
+  };
+}
+
+async function reverseCommissionRemainders(db: PrismaClient, ledgerId: string) {
+  const keeps = await db.commissionLedger.findMany({
+    where: { eventId: { startsWith: `commission_keep_${ledgerId}_` } },
+  });
+  for (const keep of keeps) {
+    if (keep.amountCents <= 0 || keep.status === CommissionLedgerStatus.REVERSED) continue;
+    const reversalId = `commission_keep_rev_${keep.id}`;
+    const existing = await db.commissionLedger.findUnique({ where: { eventId: reversalId } });
+    if (!existing) {
+      await db.commissionLedger.create({
+        data: {
+          eventId: reversalId,
+          eventType: CommissionLedgerEventType.REFUND,
+          affiliateId: keep.affiliateId,
+          amountCents: -keep.amountCents,
+          currency: keep.currency,
+          status: CommissionLedgerStatus.REVERSED,
+          availableAt: null,
+          businessSubscriptionId: keep.businessSubscriptionId,
+          meta: {
+            originalLedgerId: keep.id,
+            adjustment: 'REMAINDER_REVERSED',
+          },
+        },
+      });
+    }
+    await db.commissionLedger.update({
+      where: { id: keep.id },
+      data: { status: CommissionLedgerStatus.REVERSED },
+    });
+  }
+}
+
+async function ensureCommissionRemainder(
+  db: PrismaClient,
+  ledger: Pick<
+    CommissionLedger,
+    'id' | 'affiliateId' | 'currency' | 'status' | 'availableAt' | 'businessSubscriptionId'
+  >,
+  remainderCents: number,
+  refundedAmountCents: number,
+) {
+  const keeps = await db.commissionLedger.findMany({
+    where: { eventId: { startsWith: `commission_keep_${ledger.id}_` } },
+  });
+  const eventId = `commission_keep_${ledger.id}_${remainderCents}`;
+  for (const keep of keeps) {
+    if (keep.eventId === eventId || keep.amountCents <= 0 || keep.status === CommissionLedgerStatus.REVERSED) {
+      continue;
+    }
+    const reversalId = `commission_keep_rev_${keep.id}`;
+    const existing = await db.commissionLedger.findUnique({ where: { eventId: reversalId } });
+    if (!existing) {
+      await db.commissionLedger.create({
+        data: {
+          eventId: reversalId,
+          eventType: CommissionLedgerEventType.REFUND,
+          affiliateId: keep.affiliateId,
+          amountCents: -keep.amountCents,
+          currency: keep.currency,
+          status: CommissionLedgerStatus.REVERSED,
+          availableAt: null,
+          businessSubscriptionId: keep.businessSubscriptionId,
+          meta: { originalLedgerId: keep.id, adjustment: 'REMAINDER_REPLACED' },
+        },
+      });
+    }
+    await db.commissionLedger.update({
+      where: { id: keep.id },
+      data: { status: CommissionLedgerStatus.REVERSED },
+    });
+  }
+  if (keeps.some((keep) => keep.eventId === eventId)) return;
+  const payableStatus =
+    ledger.status === CommissionLedgerStatus.AVAILABLE
+      ? CommissionLedgerStatus.AVAILABLE
+      : CommissionLedgerStatus.PENDING;
+  await db.commissionLedger.create({
+    data: {
+      eventId,
+      eventType: CommissionLedgerEventType.ORDER_PAID,
+      affiliateId: ledger.affiliateId,
+      amountCents: remainderCents,
+      currency: ledger.currency,
+      status: payableStatus,
+      availableAt: ledger.availableAt,
+      businessSubscriptionId: ledger.businessSubscriptionId,
+      meta: {
+        originalLedgerId: ledger.id,
+        adjustment: 'COMMISSION_REMAINDER',
+        refundedAmountCents,
+      },
+    },
+  });
+}
+
 /**
  * Process refund/chargeback — create negative ledger entries and mark originals REVERSED.
  * Supports subscription invoices and marketplace orders (ORDER_PAID).
- * Idempotent per (reversalEventId, originalLedgerId).
+ * Idempotent for a repeated charge and for a later, larger cumulative refund.
  */
 export async function processCommissionReversal(
   eventIdOrInput: string | CommissionReversalInput,
@@ -663,69 +794,81 @@ export async function processCommissionReversal(
     const originalLedgers = [...byEventId, ...byMetaOrder].filter((l) => {
       if (seen.has(l.id)) return false;
       seen.add(l.id);
-      return true;
+      return isReversibleCommission(l.meta);
     });
 
     let reversedCount = 0;
 
     for (const ledger of originalLedgers) {
-      const reversalRowEventId = `${reversalEventId}_${ledger.id}`;
-      const existingReversal = await db.commissionLedger.findUnique({
-        where: { eventId: reversalRowEventId },
-      });
-      if (existingReversal) {
-        if (ledger.status !== CommissionLedgerStatus.REVERSED) {
-          await db.commissionLedger.update({
-            where: { id: ledger.id },
-            data: { status: CommissionLedgerStatus.REVERSED },
-          });
-        }
-        reversedCount += 1;
-        continue;
-      }
-
-      // Already reversed by a different event — do not double-reverse
-      if (ledger.status === CommissionLedgerStatus.REVERSED) {
-        continue;
-      }
-
-      const refundAmount = proportionalCommissionRefund(
+      const target = proportionalCommissionRefund(
         ledger.amountCents,
         refundedAmountCents,
         chargeAmountCents
       );
-      if (refundAmount <= 0) continue;
-
-      await db.commissionLedger.create({
-        data: {
-          eventId: reversalRowEventId,
-          eventType:
-            reversalType === 'REFUND'
-              ? CommissionLedgerEventType.REFUND
-              : CommissionLedgerEventType.CHARGEBACK,
-          affiliateId: ledger.affiliateId,
-          amountCents: -refundAmount,
-          currency: ledger.currency,
-          status: CommissionLedgerStatus.REVERSED,
-          availableAt: null,
-          businessSubscriptionId: ledger.businessSubscriptionId,
-          meta: {
-            originalLedgerId: ledger.id,
-            originalEventId: ledger.eventId,
-            originalInvoiceId: invoiceId ?? null,
-            orderId: orderId ?? null,
-            refundAmountCents: refundAmount,
-            refundedAmountCents,
-            chargeAmountCents: chargeAmountCents ?? null,
-            eventType: reversalType,
+      if (target <= 0) continue;
+      const linked = await db.commissionLedger.findMany({
+        where: {
+          eventType: {
+            in: [CommissionLedgerEventType.REFUND, CommissionLedgerEventType.CHARGEBACK],
           },
+          meta: { path: ['originalLedgerId'], equals: ledger.id },
         },
       });
-
-      await db.commissionLedger.update({
-        where: { id: ledger.id },
-        data: { status: CommissionLedgerStatus.REVERSED },
+      const alreadyReversedCents = linked.reduce(
+        (sum, row) => sum + (row.amountCents < 0 ? Math.abs(row.amountCents) : 0),
+        0
+      );
+      const plan = commissionReversalPlan({
+        originalAmountCents: Math.abs(ledger.amountCents),
+        originalStatus: ledger.status,
+        targetCents: target,
+        alreadyReversedCents,
       });
+      if (plan.deltaCents > 0) {
+        const baseId = `${reversalEventId}_${ledger.id}`;
+        const eventId = linked.some((row) => row.eventId === baseId)
+          ? `${baseId}_${target}`
+          : baseId;
+        const existingDelta = await db.commissionLedger.findUnique({ where: { eventId } });
+        if (!existingDelta) {
+          await db.commissionLedger.create({
+            data: {
+              eventId,
+              eventType:
+                reversalType === 'REFUND'
+                  ? CommissionLedgerEventType.REFUND
+                  : CommissionLedgerEventType.CHARGEBACK,
+              affiliateId: ledger.affiliateId,
+              amountCents: -plan.deltaCents,
+              currency: ledger.currency,
+              status: CommissionLedgerStatus.REVERSED,
+              availableAt: null,
+              businessSubscriptionId: ledger.businessSubscriptionId,
+              meta: {
+                originalLedgerId: ledger.id,
+                originalEventId: ledger.eventId,
+                originalInvoiceId: invoiceId ?? null,
+                orderId: orderId ?? null,
+                refundAmountCents: plan.deltaCents,
+                refundedAmountCents,
+                chargeAmountCents: chargeAmountCents ?? null,
+                eventType: reversalType,
+              },
+            },
+          });
+        }
+      }
+      if (plan.reverseRemainder) {
+        await reverseCommissionRemainders(db, ledger.id);
+      } else if (plan.remainderCents > 0) {
+        await ensureCommissionRemainder(db, ledger, plan.remainderCents, refundedAmountCents);
+      }
+      if (plan.closeOriginal && ledger.status !== CommissionLedgerStatus.REVERSED) {
+        await db.commissionLedger.update({
+          where: { id: ledger.id },
+          data: { status: CommissionLedgerStatus.REVERSED },
+        });
+      }
       reversedCount += 1;
     }
 

@@ -382,6 +382,7 @@ try {
     const invoice = (charge as any).invoice as string | Stripe.Invoice | null | undefined;
     const invoiceId = typeof invoice === 'string' ? invoice : invoice?.id || null;
 
+    let affiliateFailed = false;
     if (charge.amount_refunded > 0) {
       try {
         const { processCommissionReversal } = await import('@/lib/affiliate-commission');
@@ -390,6 +391,7 @@ try {
           typeof charge.metadata?.orderId === 'string' && charge.metadata.orderId
             ? charge.metadata.orderId
             : null;
+        let lookupFailed = false;
 
         // Marketplace Checkout: PaymentIntent → Checkout Session → Order
         if (!orderId) {
@@ -412,12 +414,17 @@ try {
                 orderId = order?.id ?? null;
               }
             } catch (lookupErr: any) {
+              lookupFailed = true;
               console.warn(
                 `Could not resolve order for charge ${charge.id}:`,
                 lookupErr?.message || lookupErr
               );
             }
           }
+        }
+
+        if (lookupFailed && !invoiceId && !orderId) {
+          throw new Error('refund_order_lookup_failed');
         }
 
         if (invoiceId || orderId) {
@@ -435,6 +442,7 @@ try {
           );
         }
       } catch (reversalError: any) {
+        affiliateFailed = true;
         console.error(`❌ Failed to process commission reversal for charge ${charge.id}:`, reversalError.message);
       }
     }
@@ -472,6 +480,9 @@ try {
     } catch (deliveryRefundError: any) {
       console.error(`delivery refund observation failed for ${charge.id}:`, deliveryRefundError?.message || deliveryRefundError);
       return NextResponse.json({ error: "delivery_refund_observation_failed" }, { status: 500 });
+    }
+    if (affiliateFailed) {
+      return NextResponse.json({ error: "refund_reconciliation_failed" }, { status: 500 });
     }
   }
   // Handle chargebacks / disputes — durable DisputeSettlement + recipient recovery

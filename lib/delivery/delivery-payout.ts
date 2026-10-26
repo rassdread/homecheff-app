@@ -96,6 +96,9 @@ export function assessDeliverySourceCharge(input: {
   if (charge?.refunded === true || (amount !== null && amount > 0 && refunded >= amount)) {
     return { ok: false, blockCode: 'SOURCE_CHARGE_REFUNDED' };
   }
+  if (refunded > 0) {
+    return { ok: false, blockCode: 'SOURCE_CHARGE_PARTIALLY_REFUNDED' };
+  }
   return {
     ok: true,
     chargeId,
