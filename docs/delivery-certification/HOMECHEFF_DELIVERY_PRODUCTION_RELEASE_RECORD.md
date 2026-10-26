@@ -15,13 +15,13 @@ The Gate A application is deployed. Customer-facing Delivery stays disabled.
 | Gate B | PASS. Five migrations applied on 2026-10-26. |
 | Production Delivery flag | VERIFIED false on `/api/delivery/alignment-flags` after the deploy |
 | Production deployment of the Gate A code | DEPLOYED as `ca492a89385c064875f63ac4d5ef9a83d4c7293f`. That commit contains `490945c3` plus the Gate B record and a build-memory fix. |
-| Current production deployment | `dpl_4RUE5T9gRx8XDPmeAS2LhcZqrg4P`, project `homecheff-app`, domains `homecheff.eu`, `www.homecheff.eu`, `homecheff.nl`, and `www.homecheff.nl`, commit `ca492a89385c064875f63ac4d5ef9a83d4c7293f` on `main`, state READY. Created `2026-10-26T16:13:48Z`. Ready `2026-10-26T16:18:16Z`. Same application commit as the previous production deployment, rebuilt so the Maps environment is active. |
-| Previous production deployment | `dpl_4XmVR5L2r631aVsPS1XQncQ7VJzL`, commit `4ee318ae1fbd01b1e77ccbbec9b5b672553174e2`, remains READY and is the rollback target. It was not promoted again. |
+| Current production deployment | `dpl_BSqY98RdTuvxan2d5QE48gWYkV6p`, project `homecheff-app`, domains `homecheff.eu`, `www.homecheff.eu`, `homecheff.nl`, and `www.homecheff.nl`, commit `e939a4ce9356a483010a3e5535b5935f61c3ac6c` on `main`, state READY. The first build of this commit, `dpl_4VpwGihkircr9BMc9AVQKW9vmk1C`, ran out of memory and was not aliased. |
+| Previous production deployment | `dpl_4RUE5T9gRx8XDPmeAS2LhcZqrg4P`, commit `ca492a89385c064875f63ac4d5ef9a83d4c7293f`, remains READY and is the rollback target. It was not promoted again. |
 | Production database | MIGRATED. Endpoint `ep-summer-darkness-a2l0745u`, database `neondb`, Neon project `snowy-breeze-08059562` (`app homecheff`), branch `br-fragrant-frost-a2sm13lm` named `production`. Vercel production `DATABASE_URL` uses the pooler on that endpoint. `DIRECT_URL` uses the direct host. Preview endpoint `ep-green-wind-a2cspmqw` is a different branch. |
 | Production Stripe | Live account `acct_1S1TFM2KvmKfeN9t`. Marketplace endpoint `we_1SQHOx2KvmKfeN9t0uwLGujx` verified. No endpoint, secret, or subscription was changed. |
 | Production Google Maps | PASS. Dedicated Distance Matrix key `c32f15dd-cbdb-48df-9c6e-21557a1b4218`. Role `production`. |
 | Gate D | PASS. One live `coupon.created` receipt, duplicate skipped, invalid signature rejected. |
-| Gate E | BLOCKED. The operations API and its server-side guards are in place, and live recovery is off. No authorized administrator session was available, so the production view was not opened. |
+| Gate E | PASS. Owner opened the operations view. Refund routing is subscribed after the handler deploy. Partial and ambiguous refunds stop for manual review. Live recovery stays off. |
 | Production smoke test | NOT_STARTED |
 | Regional pilot | NOT_STARTED |
 
@@ -144,7 +144,7 @@ Required production environment, names only:
 4. Confirm marketplace home, authentication, and checkout still load. Done after Gate C.
 5. Gate C: production Maps key and role. Done. Road distance works. Delivery stays disabled.
 6. Gate D: signed production webhook, one non-financial live event, receipt row with `livemode` true. Done. Invalid signatures stay 400.
-7. Gate E: operations view shows receipt health, Maps readiness, and courier obligations. Live recovery stays off. Blocked until an existing superadmin opens the view. The refund subscription gap is a Gate F blocker.
+7. Gate E: operations view shows receipt health, Maps readiness, and courier obligations. Live recovery stays off. Done. The owner opened the view. `charge.refunded` is now subscribed. Partial and ambiguous refunds remain manual.
 8. Gate F: one authorized small live delivery. Exactly one obligation and one transfer. Stop on any mismatch.
 9. Gate G: enable Delivery for a named regional pilot only.
 
@@ -188,7 +188,61 @@ Production deployment remains `dpl_4RUE5T9gRx8XDPmeAS2LhcZqrg4P`, commit `ca492a
 
 Isolated tests for recovery refusal, in-flight duplicate protection, receipt fail-closed behavior, and operations alert classification passed: 10 of 10. Live recovery was not executed.
 
-Gate E is blocked until an existing superadmin opens `https://homecheff.eu/api/admin/delivery/operations` and the response shows one processed receipt, no unresolved receipts, no obligations, `livemodeRecoveryEnabled` false, and Maps payable. Do not POST the recovery route. Gate F also stays closed until the `charge.refunded` gap is fixed or explicitly accepted. Delivery is not operationally ready for a real payment.
+The owner later opened that view. The result, and the refund remediation, are recorded in the Gate E remediation section below.
+
+## Gate E remediation on 2026-10-26
+
+The owner opened `GET /api/admin/delivery/operations` in an existing authenticated production session. The response was:
+
+- `webhookReceiptStoreReady` true
+- `webhookStatusCounts.PROCESSED` 1
+- `unresolvedWebhookReceipts` empty
+- `repeatedFailures` empty
+- `staleProcessing` empty
+- `recentRecoveryAttempts` empty
+- `alerts` empty
+- `deliveryPayoutsMissingTransfer` empty
+- `courierTransferObligations` empty
+- `livemodeRecoveryEnabled` false
+- `maps.runtime` production, `maps.source` server, `maps.serverKeyConfigured` true, `maps.payable` true, `maps.reason` OK
+
+That confirms the operations endpoint for that session. It does not by itself prove every other role. Unauthenticated GET and POST recovery still return 401. No account was created or impersonated. `HOMECHEFF_WEBHOOK_RECOVERY_LIVEMODE` remains unset.
+
+The owner then authorized the refund and monitoring remediation. The handler was deployed before the subscription change.
+
+Production deployment `dpl_4VpwGihkircr9BMc9AVQKW9vmk1C` of `e939a4ce9356a483010a3e5535b5935f61c3ac6c` failed in the Next.js build with a JavaScript heap out of memory at the existing 4096 MB limit. It was not aliased. A rebuild of the same commit, `dpl_BSqY98RdTuvxan2d5QE48gWYkV6p`, is READY and aliased to `homecheff.eu`, `www.homecheff.eu`, `homecheff.nl`, and `www.homecheff.nl`. The previous deployment `dpl_4RUE5T9gRx8XDPmeAS2LhcZqrg4P` remains the rollback target.
+
+After that deployment was healthy, `charge.refunded` was added to marketplace endpoint `we_1SQHOx2KvmKfeN9t0uwLGujx`. The endpoint had 21 events and now has 22. The only added event is `charge.refunded`. The URL, status, and live mode are unchanged. The signing secret was not sent or rotated. The growth endpoint was read before and after and was not modified.
+
+Marketplace refund behavior:
+
+- A failed order lookup, or a failed commission write, returns HTTP 500 so Stripe retries. A charge with no invoice and no order, after a successful lookup, does not change a ledger.
+- The same cumulative refund does not add a second reversal. A later larger refund adds only the missing cents.
+- A partial refund closes the original pending or available commission and leaves a remainder row for the unpaid portion. It does not become a full reversal.
+- A commission already marked paid is not replaced with a new payable row. The reversal is recorded and the Stripe affiliate transfer is not automatically clawed back. That case is manual.
+- The admin refund engine and this webhook share the original ledger as the idempotency anchor, so the two paths do not reverse the same commission twice.
+- The webhook does not create a customer refund. Seller transfer reversal remains in the admin refund engine. A refund created only in the Stripe Dashboard updates affiliate and delivery books and does not by itself reverse a seller transfer.
+
+Delivery refund behavior:
+
+- Full refund before a courier transfer: no reversal is created, and settlement refuses `SOURCE_CHARGE_REFUNDED`.
+- Partial refund before a courier transfer: settlement refuses `SOURCE_CHARGE_PARTIALLY_REFUNDED` and does not create a transfer. Manual review decides the reduced amount.
+- Full or partial refund after a recorded transfer: the courier share is reversed in proportion to the refund. A repeated event adopts the existing reversal. A definite Stripe failure stays outstanding. An uncertain Stripe result fails the webhook instead of being treated as settled.
+- An obligation in `UNKNOWN`, `REQUIRES_REVIEW`, or `PROCESSING` without a transfer id is recorded as manual and is not reversed or paid again.
+- Two different transfer ids for the same delivery fail the webhook rather than reversing one of them.
+- A failed delivery-book write fails the webhook. No obligation row is deleted.
+
+Stripe test mode used account `acct_1S6D3DRpYdPVF6LP`, not the live account. Livemode was false. Charge `ch_3UUtLXRpYdPVF6LP0RlwmCUS` for 200 cents was refunded 50 and then the remaining 150. Replaying the 50-cent refund returned the same refund `re_3UUtLXRpYdPVF6LP0Xd1eY2y`. The final `amount_refunded` was 200. A second test charge, `ch_3UUtLdRpYdPVF6LP1gGMC1ox`, funded transfer `tr_3UUtLdRpYdPVF6LP1QLgMiLA` for 100 cents. Reversal `trr_1UUtLfRpYdPVF6LPzi2XPi5i` for 40 cents replayed as the same reversal. The customer refund after that transfer is `re_3UUtLdRpYdPVF6LP1EJQo8Uy` for 120 cents. No live charge, refund, transfer, or payout was created.
+
+Operations monitoring now returns `courierObligationStoreReady`, `recoveryAttemptStoreReady`, and `deliveryPayoutStoreReady`. A successful empty query is `[]` with ready true. A failed query is `null`, ready false, and an alert: `COURIER_OBLIGATION_STORE_UNAVAILABLE`, `RECOVERY_ATTEMPT_STORE_UNAVAILABLE`, or `DELIVERY_PAYOUT_STORE_UNAVAILABLE`. The response is not healthy in that case. Authorization still runs before the queries. No database error text is returned.
+
+Local typecheck stayed at 2066 diagnostics, with none in the changed files. The deploy typecheck ratchet passed at 699 current, 767 baseline, and 0 new. A local Next build at the script's 4096 MB heap ran out of memory. The same source compiled locally with a 6144 MB heap and completed on the Vercel retry.
+
+There is still no paging service. Vercel logs and this operations response are the manual monitor. That is enough for one watched payment. It is not automated monitoring for a wider pilot. The minimum alerts before broader activation are: webhook receipt store unavailable, repeated webhook failure, courier obligation store unavailable, courier transfer needing review, and a refund left in manual review.
+
+Marketplace health after the deploy: homepage, `/dorpsplein`, `/verkoper`, login, and checkout returned 200. An unsigned webhook POST returned 400. The delivery flag remains false. No production migration ran.
+
+Gate E passes with those manual-review limits. It does not mean every refund reverses every Connect transfer automatically. Gate F can be one controlled live delivery only while an operator watches the operations view. It is not a regional pilot, and Delivery stays disabled until that separate decision.
 
 ## Stripe test evidence already collected
 
