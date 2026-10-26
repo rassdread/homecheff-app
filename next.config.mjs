@@ -91,6 +91,8 @@ const nextConfig = {
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   // Performance optimizations
   experimental: {
+    // One build worker on Vercel so static generation stays inside 8 GB.
+    ...(process.env.VERCEL ? { cpus: 1 } : {}),
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-icons',

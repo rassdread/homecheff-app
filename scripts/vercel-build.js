@@ -23,8 +23,9 @@ try {
   });
 
   console.log("🏗️  Building Next.js application...");
+  // The standard Vercel builder has 8 GB. A 6 GB heap is killed during next build.
   execSync(
-    "cross-env NODE_OPTIONS=--max-old-space-size=6144 NEXT_TELEMETRY_DISABLED=1 next build",
+    "cross-env NODE_OPTIONS=--max-old-space-size=4096 NEXT_TELEMETRY_DISABLED=1 next build",
     { stdio: "inherit", shell: true }
   );
 
