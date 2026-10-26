@@ -24,6 +24,14 @@ function memoryStore() {
       if (!current) throw new Error('missing');
       rows.set(eventId, { ...current, ...patch });
     },
+    async claim(eventId, expectedUpdatedAt, patch) {
+      const current = rows.get(eventId);
+      if (!current) return false;
+      if (current.updatedAt.getTime() !== expectedUpdatedAt.getTime()) return false;
+      if (current.status !== 'PROCESSING' && current.status !== 'FAILED') return false;
+      rows.set(eventId, { ...current, ...patch });
+      return true;
+    },
   };
   return { rows, store };
 }
@@ -75,5 +83,29 @@ describe('stripe webhook receipt', () => {
     assert.equal(receiptStatusForHttp(400), 'REJECTED');
     assert.equal(receiptStatusForHttp(200), 'PROCESSED');
     assert.equal(receiptStatusForHttp(503), 'FAILED');
+  });
+
+  it('allows only one worker to reclaim a stale processing receipt', async () => {
+    const { store } = memoryStore();
+    const start = new Date('2026-10-24T12:00:00Z');
+    await beginStripeWebhookReceipt(store, {
+      eventId: 'evt_stale',
+      eventType: 'checkout.session.completed',
+      livemode: false,
+      now: start,
+    });
+    const stale = new Date(start.getTime() + 10 * 60_000);
+    const input = {
+      eventId: 'evt_stale',
+      eventType: 'checkout.session.completed',
+      livemode: false,
+      now: stale,
+    };
+    const [left, right] = await Promise.all([
+      beginStripeWebhookReceipt(store, input),
+      beginStripeWebhookReceipt(store, input),
+    ]);
+    const actions = [left.action, right.action].sort();
+    assert.deepEqual(actions, ['IN_FLIGHT', 'PROCESS']);
   });
 });

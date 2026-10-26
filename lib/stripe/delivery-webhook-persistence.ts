@@ -1,8 +1,7 @@
 /**
- * Standalone Delivery money events need a webhook receipt before they run.
- * Marketplace checkout does not use this gate, so a missing receipt table
- * does not stop an existing product payment.
- * A missing receipt is not a successful Delivery acknowledgment. Stripe retries a 500.
+ * Every webhook needs a stored receipt before it is acknowledged.
+ * A missing or unfinished receipt returns HTTP 500 so Stripe retries.
+ * Product checkout is included. It is not acknowledged as processed.
  */
 
 export type DeliveryWebhookEventLike = {
@@ -16,20 +15,29 @@ export type DeliveryWebhookEventLike = {
 
 export type ReceiptUnavailableDecision = 'FAIL_CLOSED' | 'CONTINUE_MARKETPLACE';
 
+export function isDeliveryFinancialEvent(event: DeliveryWebhookEventLike): boolean {
+  const metadata = event.data?.object?.metadata ?? {};
+  if (metadata.checkoutKind === 'STANDALONE_DELIVERY') return true;
+  if (metadata.deliveryProfileId || metadata.deliveryOrderId) return true;
+  const purpose = metadata.purpose ?? '';
+  return purpose.startsWith('delivery_');
+}
+
 export function isStandaloneDeliveryFinancialEvent(event: DeliveryWebhookEventLike): boolean {
   return event.data?.object?.metadata?.checkoutKind === 'STANDALONE_DELIVERY';
 }
 
 export function receiptUnavailableDecision(event: DeliveryWebhookEventLike): ReceiptUnavailableDecision {
-  return isStandaloneDeliveryFinancialEvent(event) ? 'FAIL_CLOSED' : 'CONTINUE_MARKETPLACE';
+  void event;
+  return 'FAIL_CLOSED';
 }
 
 export function statusAfterReceiptFinish(input: {
-  standaloneDelivery: boolean;
+  deliveryFinancial: boolean;
   handlerStatus: number;
   receiptFinished: boolean;
 }): number {
-  if (input.standaloneDelivery && !input.receiptFinished) return 500;
+  if (!input.receiptFinished) return 500;
   return input.handlerStatus;
 }
 

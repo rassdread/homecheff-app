@@ -124,13 +124,21 @@ function payoutHarness(options?: {
   const listed = options?.listed ?? [];
   let standaloneReads = 0;
   const stripe = {
+    accounts: {
+      retrieve: async (id: string) => ({
+        id,
+        business_type: 'individual',
+        individual: { verification: { status: 'verified', details_code: null } },
+        requirements: { disabled_reason: null, currently_due: [] },
+      }),
+    },
     checkout: {
       sessions: {
         retrieve: async (id: string) => {
           const defaults = {
-            cs_market: { id: 'ch_market', amount: 1040, amount_refunded: 0, currency: 'eur', status: 'succeeded', refunded: false },
-            cs_standalone: { id: 'ch_standalone', amount: 1040, amount_refunded: 0, currency: 'eur', status: 'succeeded', refunded: false },
-            cs_small: { id: 'ch_small', amount: 100, amount_refunded: 0, currency: 'eur', status: 'succeeded', refunded: false },
+            cs_market: { id: 'ch_market', amount: 1040, amount_refunded: 0, currency: 'eur', status: 'succeeded', refunded: false, livemode: false },
+            cs_standalone: { id: 'ch_standalone', amount: 1040, amount_refunded: 0, currency: 'eur', status: 'succeeded', refunded: false, livemode: false },
+            cs_small: { id: 'ch_small', amount: 100, amount_refunded: 0, currency: 'eur', status: 'succeeded', refunded: false, livemode: false },
           };
           const charges: Record<string, Record<string, unknown> | null> = {
             ...defaults,
@@ -172,6 +180,7 @@ function payoutHarness(options?: {
     deliveryProfile: {
       findUnique: async () => profile,
       updateMany: async () => ({ count: 0 }),
+      update: async () => profile,
     },
     deliveryOrder: {
       findUnique: async () => ({

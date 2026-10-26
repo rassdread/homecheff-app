@@ -26,6 +26,26 @@ export function financialStripeSecret(
 }
 
 /** Browser publishable key. Preview hosts must not load pk_live_. */
+export function stripeSecretMode(secret: string | null | undefined): 'test' | 'live' | 'unknown' {
+  const key = sanitizeEnv(secret);
+  if (!key) return 'unknown';
+  if (key.startsWith('sk_test_')) return 'test';
+  if (key.startsWith('sk_live_')) return 'live';
+  return 'unknown';
+}
+
+/** A missing mode or an unknown key is a mismatch. Test evidence cannot satisfy a live key. */
+export function stripeLivemodeMatches(
+  secret: string | null | undefined,
+  livemode: boolean | null | undefined,
+): boolean {
+  if (typeof livemode !== 'boolean') return false;
+  const mode = stripeSecretMode(secret);
+  if (mode === 'test') return livemode === false;
+  if (mode === 'live') return livemode === true;
+  return false;
+}
+
 export function financialStripePublishableKey(
   raw: string | null | undefined,
   options?: { previewHost?: boolean; env?: RuntimeEnv },

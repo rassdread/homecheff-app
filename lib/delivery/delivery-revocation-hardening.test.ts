@@ -57,6 +57,14 @@ function harness(
   const writes: string[] = [];
   let row = payout;
   const stripe = {
+    accounts: {
+      retrieve: async (id: string) => ({
+        id,
+        business_type: 'individual',
+        individual: { verification: { status: 'verified', details_code: null } },
+        requirements: { disabled_reason: null, currently_due: [] },
+      }),
+    },
     checkout: {
       sessions: {
         retrieve: async () => ({
@@ -70,6 +78,7 @@ function harness(
               currency: 'eur',
               status: 'succeeded',
               refunded: false,
+              livemode: false,
               metadata: { orderId: 'd1' },
             },
           },

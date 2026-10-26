@@ -6,6 +6,7 @@ import { assessMapsProductionConfig } from '@/lib/delivery/maps-key-placement';
 import {
   boundedOpsLimit,
   classifyDeliveryOperations,
+  courierObligationNextAction,
   opsCursor,
 } from '@/lib/delivery/delivery-operations-status';
 
@@ -141,11 +142,49 @@ export async function GET(req: NextRequest) {
     .map(describeDeliveryPayout)
     .filter((row) => !row.transferExists);
 
+  let courierTransferObligations: Array<{
+    deliveryOrderId: string;
+    chargeId: string;
+    state: string;
+    amountCents: number;
+    currency: string;
+    stripeTransferId: string | null;
+    lastErrorCode: string | null;
+    stripeCreateAttemptedAt: Date | null;
+    updatedAt: Date;
+    nextAction: string;
+  }> = [];
+  try {
+    const rows = await prisma.courierTransferObligation.findMany({
+      where: { state: { in: ['UNKNOWN', 'FAILED', 'REQUIRES_REVIEW', 'PROCESSING'] } },
+      orderBy: { updatedAt: 'desc' },
+      take: 50,
+      select: {
+        deliveryOrderId: true,
+        chargeId: true,
+        state: true,
+        amountCents: true,
+        currency: true,
+        stripeTransferId: true,
+        lastErrorCode: true,
+        stripeCreateAttemptedAt: true,
+        updatedAt: true,
+      },
+    });
+    courierTransferObligations = rows.map((row) => ({
+      ...row,
+      nextAction: courierObligationNextAction(row.state),
+    }));
+  } catch {
+    courierTransferObligations = [];
+  }
+
   const alerts = classifyDeliveryOperations({
     failedRepeated: repeatedFailures.length,
     processingStale: staleProcessing.length,
     rejected: statusCounts.REJECTED ?? 0,
     payoutsMissingTransfer: openPayouts.length,
+    courierTransfersNeedingReview: courierTransferObligations.length,
     mapsRuntime: maps.runtime,
     mapsPayable: maps.payable,
     receiptStoreReady,
@@ -161,6 +200,7 @@ export async function GET(req: NextRequest) {
     recentRecoveryAttempts,
     alerts,
     deliveryPayoutsMissingTransfer: openPayouts,
+    courierTransferObligations,
     livemodeRecoveryEnabled: process.env.HOMECHEFF_WEBHOOK_RECOVERY_LIVEMODE === 'enabled',
     maps: {
       runtime: maps.runtime,

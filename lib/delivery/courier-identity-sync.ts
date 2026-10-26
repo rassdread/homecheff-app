@@ -65,13 +65,14 @@ export async function enforcePaidDeliveryIdentity(
   if (!profile) {
     return paidIdentityDenial({ state: 'UNKNOWN', checkedAt: null, now });
   }
-  const fresh = paidIdentityDenial({
-    state: profile.stripeIdentityState,
-    checkedAt: profile.stripeIdentityCheckedAt,
-    now,
-    suspended: profile.isBlocked,
-  });
-  if (fresh.ok) return fresh;
+  if (profile.isBlocked) {
+    return paidIdentityDenial({
+      state: profile.stripeIdentityState,
+      checkedAt: profile.stripeIdentityCheckedAt,
+      now,
+      suspended: true,
+    });
+  }
 
   const accountId = profile.user.stripeConnectAccountId;
   const retrieve = options?.retrieve ?? retrieveCourierStripeAccount;

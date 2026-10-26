@@ -124,7 +124,7 @@ export async function requireAdminPermission(
   if (result.admin.isSuperAdmin) return result;
 
   const perms = result.admin.permissions;
-  const allowed = perms?.[permission] ?? true;
+  const allowed = perms?.[permission] ?? false;
   if (!allowed) {
     return {
       ok: false,

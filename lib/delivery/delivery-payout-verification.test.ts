@@ -62,6 +62,14 @@ function harness(profile: Profile, options?: { payout?: Record<string, unknown> 
   let payout = options?.payout === undefined ? null : options.payout;
   const queue = options?.profiles ? [...options.profiles] : [];
   const stripe = {
+    accounts: {
+      retrieve: async (id: string) => ({
+        id,
+        business_type: 'individual',
+        individual: { verification: { status: 'verified', details_code: null } },
+        requirements: { disabled_reason: null, currently_due: [] },
+      }),
+    },
     checkout: {
       sessions: {
         retrieve: async () => ({
@@ -75,6 +83,7 @@ function harness(profile: Profile, options?: { payout?: Record<string, unknown> 
               currency: 'eur',
               status: 'succeeded',
               refunded: false,
+              livemode: false,
               metadata: { orderId: 'd1' },
             },
           },

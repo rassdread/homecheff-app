@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { financialStripePublishableKey, financialStripeSecret } from "./stripe-runtime-guard";
+import { financialStripePublishableKey, financialStripeSecret, stripeLivemodeMatches } from "./stripe-runtime-guard";
 
 test("preview refuses a live secret and a live publishable key", () => {
   assert.equal(financialStripeSecret("sk_live_blocked", { VERCEL_ENV: "preview" }), null);
@@ -22,6 +22,15 @@ test("preview accepts test keys", () => {
 test("preview without a secret fails closed", () => {
   assert.equal(financialStripeSecret(null, { VERCEL_ENV: "preview" }), null);
   assert.equal(financialStripeSecret("   ", { VERCEL_ENV: "preview" }), null);
+});
+
+test("livemode must match the key, and a missing mode does not match", () => {
+  assert.equal(stripeLivemodeMatches("sk_test_preview", false), true);
+  assert.equal(stripeLivemodeMatches("sk_test_preview", true), false);
+  assert.equal(stripeLivemodeMatches("sk_live_production", true), true);
+  assert.equal(stripeLivemodeMatches("sk_live_production", false), false);
+  assert.equal(stripeLivemodeMatches("sk_test_preview", null), false);
+  assert.equal(stripeLivemodeMatches(null, false), false);
 });
 
 test("production still accepts a live secret", () => {

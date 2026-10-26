@@ -17,6 +17,11 @@ export type WebhookReceiptStore = {
     eventId: string,
     patch: Partial<Pick<WebhookReceiptRow, 'status' | 'httpStatus' | 'attemptCount' | 'updatedAt'>>,
   ): Promise<void>;
+  claim(
+    eventId: string,
+    expectedUpdatedAt: Date,
+    patch: Partial<Pick<WebhookReceiptRow, 'status' | 'httpStatus' | 'attemptCount' | 'updatedAt'>>,
+  ): Promise<boolean>;
 };
 
 export type WebhookReceiptAction = 'PROCESS' | 'SKIP' | 'IN_FLIGHT';
@@ -59,11 +64,12 @@ async function decideExisting(
   if (row.status === 'PROCESSING' && age >= 0 && age < IN_FLIGHT_MS) {
     return { action: 'IN_FLIGHT' };
   }
-  await store.update(row.eventId, {
+  const claimed = await store.claim(row.eventId, row.updatedAt, {
     status: 'PROCESSING',
     attemptCount: row.attemptCount + 1,
     updatedAt: now,
   });
+  if (!claimed) return { action: 'IN_FLIGHT' };
   return { action: 'PROCESS' };
 }
 

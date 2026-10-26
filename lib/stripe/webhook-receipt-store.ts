@@ -49,5 +49,16 @@ export function prismaWebhookReceiptStore(): WebhookReceiptStore {
         data: patch,
       });
     },
+    async claim(eventId, expectedUpdatedAt, patch) {
+      const claimed = await prisma.stripeWebhookReceipt.updateMany({
+        where: {
+          eventId,
+          updatedAt: expectedUpdatedAt,
+          status: { in: ['PROCESSING', 'FAILED'] },
+        },
+        data: patch,
+      });
+      return claimed.count === 1;
+    },
   };
 }

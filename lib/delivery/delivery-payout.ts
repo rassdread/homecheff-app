@@ -13,6 +13,8 @@ import {
 import { readHcDeliveryRefundMarker } from '@/lib/hc/marketplace-hc-delivery-refund-pure';
 import { resolveChargeIdForCheckoutSession } from '@/lib/payments/seller-settlement';
 import { financialStripeSecret } from '@/lib/stripe';
+import { stripeLivemodeMatches } from '@/lib/stripe-runtime-guard';
+import { enforcePaidDeliveryIdentity } from '@/lib/delivery/courier-identity-sync';
 import { settleCourierTransferObligation } from '@/lib/delivery/courier-transfer-obligation';
 
 export type DeliveryPayoutInput = {
@@ -66,6 +68,7 @@ type DeliverySourceCharge = {
   status?: string | null;
   refunded?: boolean | null;
   metadata?: { orderId?: string | null } | null;
+  livemode?: boolean | null;
 };
 
 export function assessDeliverySourceCharge(input: {
@@ -460,6 +463,69 @@ export async function ensureDeliveryPayout(
       amountSource,
       blocked: true,
       blockCode: freshGate.code,
+      transferId: null,
+      transferStatus: 'SKIPPED',
+      connectedAccountId: destination,
+    };
+  }
+
+  const secret = financialStripeSecret();
+  if (secret && !stripeLivemodeMatches(secret, sourceCharge?.livemode)) {
+    return {
+      created,
+      payoutId,
+      amountCents: transferAmount,
+      grossFeeCents: split.grossFeeCents,
+      amountSource,
+      blocked: true,
+      blockCode: 'STRIPE_MODE_MISMATCH',
+      transferId: null,
+      transferStatus: 'FAILED',
+      connectedAccountId: destination,
+    };
+  }
+
+  const identity = await enforcePaidDeliveryIdentity(prisma, freshProfile?.id ?? profile?.id ?? '', {
+    retrieve: async (accountId) => {
+      try {
+        const account = await stripe.accounts.retrieve(accountId);
+        if (account.id !== accountId) return null;
+        return {
+          id: account.id,
+          business_type: account.business_type,
+          charges_enabled: account.charges_enabled,
+          payouts_enabled: account.payouts_enabled,
+          details_submitted: account.details_submitted,
+          requirements: {
+            disabled_reason: account.requirements?.disabled_reason ?? null,
+            currently_due: account.requirements?.currently_due ?? [],
+          },
+          future_requirements: {
+            disabled_reason: account.future_requirements?.disabled_reason ?? null,
+          },
+          individual: account.individual
+            ? {
+                verification: {
+                  status: account.individual.verification?.status ?? null,
+                  details_code: account.individual.verification?.details_code ?? null,
+                },
+              }
+            : null,
+        };
+      } catch {
+        return null;
+      }
+    },
+  });
+  if (!identity.ok) {
+    return {
+      created,
+      payoutId,
+      amountCents: transferAmount,
+      grossFeeCents: split.grossFeeCents,
+      amountSource,
+      blocked: true,
+      blockCode: 'DELIVERY_IDENTITY_REQUIRED',
       transferId: null,
       transferStatus: 'SKIPPED',
       connectedAccountId: destination,

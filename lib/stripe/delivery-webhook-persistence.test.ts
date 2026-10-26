@@ -15,7 +15,7 @@ const standalone = {
 };
 
 describe('delivery webhook persistence', () => {
-  it('fails closed for an unpersisted standalone delivery event and continues marketplace checkout', () => {
+  it('fails closed when a receipt cannot be stored', () => {
     assert.equal(isStandaloneDeliveryFinancialEvent(standalone), true);
     assert.equal(receiptUnavailableDecision(standalone), 'FAIL_CLOSED');
     assert.equal(
@@ -23,18 +23,22 @@ describe('delivery webhook persistence', () => {
         type: 'checkout.session.completed',
         data: { object: { metadata: { orderId: 'ord_1' } } },
       }),
-      'CONTINUE_MARKETPLACE',
+      'FAIL_CLOSED',
     );
     assert.equal(
       receiptUnavailableDecision({ type: 'invoice.paid', data: { object: {} } }),
-      'CONTINUE_MARKETPLACE',
+      'FAIL_CLOSED',
     );
     assert.equal(
-      statusAfterReceiptFinish({ standaloneDelivery: true, handlerStatus: 200, receiptFinished: false }),
+      statusAfterReceiptFinish({ deliveryFinancial: true, handlerStatus: 200, receiptFinished: false }),
       500,
     );
     assert.equal(
-      statusAfterReceiptFinish({ standaloneDelivery: false, handlerStatus: 200, receiptFinished: false }),
+      statusAfterReceiptFinish({ deliveryFinancial: false, handlerStatus: 200, receiptFinished: false }),
+      500,
+    );
+    assert.equal(
+      statusAfterReceiptFinish({ deliveryFinancial: false, handlerStatus: 200, receiptFinished: true }),
       200,
     );
     assert.equal(isMissingDatabaseRelation({ code: 'P2021' }), true);

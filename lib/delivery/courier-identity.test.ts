@@ -151,6 +151,32 @@ describe('stripe connect identity evidence', () => {
     assert.equal(writes.length, 1);
   });
 
+  it('re-reads Stripe before a new paid assignment even when the cache is fresh', async () => {
+    let reads = 0;
+    const now = new Date('2026-10-26T12:00:00Z');
+    const db = {
+      deliveryProfile: {
+        findUnique: async () => ({
+          id: 'p1',
+          isBlocked: false,
+          stripeIdentityState: 'VERIFIED',
+          stripeIdentityCheckedAt: new Date('2026-10-26T11:59:00Z'),
+          user: { stripeConnectAccountId: 'acct_a' },
+        }),
+        update: async () => ({}),
+      },
+    };
+    const revoked = await enforcePaidDeliveryIdentity(db as never, 'p1', {
+      now,
+      retrieve: async () => {
+        reads += 1;
+        return { id: 'acct_a', individual: { verification: { status: 'unverified' } } };
+      },
+    });
+    assert.equal(reads, 1);
+    assert.equal(revoked.ok, false);
+  });
+
   it('does not update a courier when the Stripe account matches more than one user', async () => {
     let updates = 0;
     const db = {

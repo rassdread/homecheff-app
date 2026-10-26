@@ -5,6 +5,7 @@
 import { prisma } from '@/lib/prisma';
 import { assertCompanyDispatcher } from '@/lib/delivery/company-auth';
 import { isDeliveryBusinessProvider } from '@/lib/delivery/provider-identity';
+import { enforcePaidDeliveryIdentity } from '@/lib/delivery/courier-identity-sync';
 
 const TERMINAL = new Set(['DELIVERED', 'CANCELLED', 'FAILED']);
 
@@ -29,6 +30,31 @@ export async function assignDriverToDeliveryOrder(input: {
     throw Object.assign(new Error('DRIVER_NOT_IN_COMPANY'), {
       code: 'DRIVER_NOT_IN_COMPANY',
       status: 400,
+    });
+  }
+
+  const driverProfile = await prisma.deliveryProfile.findUnique({
+    where: { userId: input.driverUserId },
+    select: { id: true },
+  });
+  if (!driverProfile) {
+    throw Object.assign(new Error('DRIVER_IDENTITY_REQUIRED'), {
+      code: 'DRIVER_IDENTITY_REQUIRED',
+      status: 403,
+    });
+  }
+  const companyIdentity = await enforcePaidDeliveryIdentity(prisma, input.companyProfileId);
+  if (!companyIdentity.ok) {
+    throw Object.assign(new Error('COMPANY_IDENTITY_REQUIRED'), {
+      code: 'COMPANY_IDENTITY_REQUIRED',
+      status: 403,
+    });
+  }
+  const driverIdentity = await enforcePaidDeliveryIdentity(prisma, driverProfile.id);
+  if (!driverIdentity.ok) {
+    throw Object.assign(new Error('DRIVER_IDENTITY_REQUIRED'), {
+      code: 'DRIVER_IDENTITY_REQUIRED',
+      status: 403,
     });
   }
 
