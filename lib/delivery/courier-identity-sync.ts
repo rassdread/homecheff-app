@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import type { Prisma, PrismaClient } from '@prisma/client';
+import { COURIER_TRANSFER_FRESH_MS } from '@/lib/delivery/courier-connect-eligibility';
 import { financialStripeSecret } from '@/lib/stripe-runtime-guard';
 import {
   classifyCourierStripeIdentity,
@@ -96,4 +97,51 @@ export async function enforcePaidDeliveryIdentity(
     now,
     suspended: profile.isBlocked,
   });
+}
+
+const MATCH_IDENTITY_REFRESH_LIMIT = 8;
+
+/**
+ * Matching reads a 15-minute cache. A verified Connect account stays invisible
+ * until that cache is written. This reuses the paid identity read for profiles
+ * whose cache is missing or older than the match window. It does not mark a
+ * courier verified unless Stripe says individual.verification.status is verified.
+ */
+export async function refreshStaleCourierIdentityForMatching(
+  db: Db,
+  input: {
+    now?: Date;
+    country?: string | null;
+    includeProfile?: (profile: { id: string; userId: string }) => boolean;
+    retrieve?: (accountId: string) => Promise<CourierStripeAccount | null>;
+    limit?: number;
+  } = {},
+) {
+  const now = input.now ?? new Date();
+  const freshAfter = new Date(now.getTime() - COURIER_TRANSFER_FRESH_MS);
+  const rows = await db.deliveryProfile.findMany({
+    where: {
+      isActive: true,
+      isVerified: true,
+      isBlocked: false,
+      OR: [
+        { stripeIdentityCheckedAt: null },
+        { stripeIdentityCheckedAt: { lt: freshAfter } },
+      ],
+      user: {
+        stripeConnectAccountId: { not: null },
+        ...(input.country ? { country: input.country } : {}),
+      },
+    },
+    select: { id: true, userId: true },
+    orderBy: { stripeIdentityCheckedAt: 'asc' },
+    take: input.limit ?? MATCH_IDENTITY_REFRESH_LIMIT,
+  });
+  let refreshed = 0;
+  for (const row of rows) {
+    if (input.includeProfile && !input.includeProfile(row)) continue;
+    await enforcePaidDeliveryIdentity(db, row.id, { now, retrieve: input.retrieve });
+    refreshed += 1;
+  }
+  return { considered: rows.length, refreshed };
 }

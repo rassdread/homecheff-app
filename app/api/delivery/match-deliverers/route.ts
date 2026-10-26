@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getRouteDistance, isVerifiedRoadDistance } from "@/lib/google-maps-distance";
 import { delivererMatchingWhere, isCommerciallyMatchableDeliverer } from "@/lib/delivery/delivery-eligibility";
+import { refreshStaleCourierIdentityForMatching } from "@/lib/delivery/courier-identity-sync";
+import { deliveryDisabledBody } from "@/lib/delivery/delivery-deployment-gate";
+import {
+  courierListedInPilot,
+  deliveryAccessDeniedBody,
+  evaluateDeliveryAccess,
+  publicDeliveryIsClosed,
+} from "@/lib/delivery/delivery-pilot-access";
 import { resolveDelivererPosition, resolveDeliveryPickupCoords } from "@/lib/delivery/delivery-position";
 import { logCommercialAgeBlock } from "@/lib/delivery/delivery-age";
 import { calculateProviderDeliveryPrice } from "@/lib/delivery/provider-pricing";
@@ -27,6 +35,16 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     const buyerUserId = session?.user?.id ?? null;
+    if (publicDeliveryIsClosed()) {
+      return NextResponse.json(deliveryDisabledBody(), { status: 403 });
+    }
+    const matchAccess = evaluateDeliveryAccess({
+      requesterUserId: buyerUserId,
+      requireCourier: false,
+    });
+    if (!matchAccess.allowed) {
+      return NextResponse.json(deliveryAccessDeniedBody(matchAccess.code), { status: 403 });
+    }
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get('productId');
     const buyerLat = parseFloat(searchParams.get('buyerLat') || '0');
@@ -77,6 +95,11 @@ export async function GET(req: NextRequest) {
     // Get seller's country from product data
     const sellerCountry =
       normalizeCountryCode(product.seller.User?.country) || 'NL';
+
+    await refreshStaleCourierIdentityForMatching(prisma, {
+      country: sellerCountry,
+      includeProfile: (profile) => courierListedInPilot(profile.id, profile.userId),
+    });
 
     // Get all active delivery profiles from the same country/island
     const deliveryProfiles = await prisma.deliveryProfile.findMany({
@@ -145,6 +168,9 @@ export async function GET(req: NextRequest) {
     });
 
     const ageEligibleProfiles = deliveryProfiles.filter((delivery) => {
+      if (!courierListedInPilot(delivery.id, delivery.user?.id)) {
+        return false;
+      }
       if (
         !isProviderVisibleToBuyer({
           providerUserId: delivery.user?.id ?? '',

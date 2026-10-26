@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { acceptDeliveryBookingRequest } from '@/lib/delivery/booking-request-service';
-import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
+import { deliveryDisabledBody } from '@/lib/delivery/delivery-deployment-gate';
+import { publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,7 @@ export async function POST(
   ctx: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    if (!isHomeCheffDeliveryEnabled()) {
+    if (publicDeliveryIsClosed()) {
       return NextResponse.json(deliveryDisabledBody(), { status: 403 });
     }
     const session = await auth();

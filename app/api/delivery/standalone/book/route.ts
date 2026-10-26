@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
+import { deliveryDisabledBody } from '@/lib/delivery/delivery-deployment-gate';
+import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
 import { bookStandaloneCourier } from '@/lib/delivery/standalone-delivery';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
-  if (!isHomeCheffDeliveryEnabled()) {
+  if (publicDeliveryIsClosed()) {
     return NextResponse.json(deliveryDisabledBody(), { status: 403 });
   }
   const session = await auth();
@@ -18,10 +19,18 @@ export async function POST(req: NextRequest) {
   if (!body || typeof body !== 'object') {
     return NextResponse.json({ error: 'Ongeldige aanvraag' }, { status: 400 });
   }
+  const deliveryProfileId = String((body as { deliveryProfileId?: unknown }).deliveryProfileId || '');
+  const access = evaluateDeliveryAccess({
+    requesterUserId: userId,
+    courierProfileId: deliveryProfileId,
+  });
+  if (!access.allowed) {
+    return NextResponse.json(deliveryAccessDeniedBody(access.code), { status: 403 });
+  }
   const requestedRaw = (body as { requestedPickupAt?: unknown }).requestedPickupAt;
   const result = await bookStandaloneCourier({
     requesterUserId: userId,
-    deliveryProfileId: String((body as { deliveryProfileId?: unknown }).deliveryProfileId || ''),
+    deliveryProfileId,
     pickupAddress: String((body as { pickupAddress?: unknown }).pickupAddress || ''),
     deliveryAddress: String((body as { deliveryAddress?: unknown }).deliveryAddress || ''),
     itemDescription: String((body as { itemDescription?: unknown }).itemDescription || ''),

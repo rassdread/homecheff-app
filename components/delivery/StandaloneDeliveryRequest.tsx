@@ -60,7 +60,7 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
     fetch('/api/delivery/alignment-flags')
       .then((response) => response.json())
       .then((data) => {
-        if (!stop) setDeliveryOpen(Boolean(data?.homeCheffDeliveryEnabled));
+        if (!stop) setDeliveryOpen(Boolean(data?.deliveryAvailableToCaller));
       })
       .catch(() => {
         if (!stop) setDeliveryOpen(false);

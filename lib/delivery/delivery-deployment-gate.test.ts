@@ -108,7 +108,7 @@ describe('the delivery flag does not block marketplace settlement', () => {
     const products = source('app/api/products/create/route.ts');
     const checkout = source('app/api/checkout/route.ts');
     assert.equal(products.includes('isHomeCheffDeliveryEnabled'), false);
-    assert.match(checkout, /isLocalProviderMode && !isHomeCheffDeliveryEnabled\(\)/);
+    assert.match(checkout, /isLocalProviderMode && publicDeliveryIsClosed\(\)/);
     assert.doesNotMatch(checkout, /isParcelShippingMode && !isHomeCheffDeliveryEnabled/);
   });
 });

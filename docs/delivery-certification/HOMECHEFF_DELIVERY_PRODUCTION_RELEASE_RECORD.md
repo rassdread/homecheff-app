@@ -22,7 +22,7 @@ The Gate A application is deployed. Customer-facing Delivery stays disabled.
 | Production Google Maps | PASS. Dedicated Distance Matrix key `c32f15dd-cbdb-48df-9c6e-21557a1b4218`. Role `production`. |
 | Gate D | PASS. One live `coupon.created` receipt, duplicate skipped, invalid signature rejected. |
 | Gate E | PASS. Owner opened the operations view. Refund routing is subscribed after the handler deploy. Partial and ambiguous refunds stop for manual review. Live recovery stays off. |
-| Gate F | BLOCKED. No live payment was created. The public flag still denies every new delivery, and no buyer, seller listing, and matchable courier are confirmed together. |
+| Gate F | BLOCKED. No live payment was created. V6J extends the existing allowlist so a restricted pilot can run while the public flag stays off. That code is not deployed and no production allowlist is set. |
 | Production smoke test | NOT_STARTED |
 | Regional pilot | NOT_STARTED |
 
@@ -270,6 +270,20 @@ Existing regression tests passed, 35 of 35, including the flag, the restricted p
 The first Vercel build of `e939a4ce` ran out of memory and was not aliased. The retry `dpl_BSqY98RdTuvxan2d5QE48gWYkV6p` is still the production deployment. This preparation did not change the build.
 
 Gate F is blocked. The smallest next authorization, if the owner wants to continue, is to name the buyer, the existing listing, and the courier above, and to approve the existing restricted pilot as the only way a new delivery can be created. Do not enable the flag by itself.
+
+## V6J restricted pilot and matching on 2026-10-26
+
+No production flag, allowlist, payment, order, transfer, refund, payout, or identity row was changed. This commit was not deployed.
+
+The public flag still means public delivery. `HOMECHEFF_DELIVERY_PILOT=restricted`, together with both allowlists, now admits only those ids while the public flag stays false. An empty list denies. A user id in the request body is ignored. Checkout, quotes, booking, acceptance, and matching use the session. Pickup and completion of an order that already exists stay on `POST /api/delivery/orders/[orderId]/update-status` and are not opened to the public. `assign-order` and `match-orders` now require the signed-in user to be the courier. An administrator is not on the allowlist unless that user id is listed. The 88/12 delivery split and `ensureDeliveryPayout` were not changed.
+
+Matching still requires `stripeIdentityState` `VERIFIED` from the last 15 minutes. That cache was empty because it is written by delivery settings, `account.updated`, or a paid identity check, and none of those had run. `refreshStaleCourierIdentityForMatching` reuses `enforcePaidDeliveryIdentity` for at most eight stale connected profiles during an authorized match or availability check. A revoked Stripe status is written back and then excluded. Production was not refreshed.
+
+The buyer option is the existing checkout choice `local_provider`. It is shown only when `/api/delivery/alignment-flags` says this caller may use delivery. The public flag in that response stays false. The seller keeps the existing order screens. The courier uses `/delivery/driver` and the delivery dashboard for accept, pickup, and completion. Notifications already exist for a new assignment, acceptance, pickup, and completion. The assignment broadcast still uses the match cache from before the paid identity re-read, so a courier who was just refreshed by checkout is included. No new notification channel was added.
+
+These journeys were traced in the existing interface and covered by unit tests. They were not clicked through with a signed-in production user, and no preview delivery order was created. TypeScript diagnostics remain 2066.
+
+Before a live delivery, the owner still has to approve this commit for deploy, name the buyer and an existing listing, put that buyer and courier `c2ae8bae-343f-4f59-bc0e-15562b97f87e` on the allowlists, and approve the real quote. Do not set `HOMECHEFF_DELIVERY_ENABLED`.
 
 ## Activation
 

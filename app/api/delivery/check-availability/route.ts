@@ -2,7 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { refreshStaleCourierIdentityForMatching } from '@/lib/delivery/courier-identity-sync';
+import { deliveryDisabledBody } from '@/lib/delivery/delivery-deployment-gate';
+import {
+  courierListedInPilot,
+  deliveryAccessDeniedBody,
+  evaluateDeliveryAccess,
+  isDeliveryPilotRestricted,
+  publicDeliveryIsClosed,
+} from '@/lib/delivery/delivery-pilot-access';
 import { calculateDistance } from '@/lib/geocoding';
 import { getRouteDistance, isVerifiedRoadDistance } from '@/lib/google-maps-distance';
 import { delivererMatchingWhere } from '@/lib/delivery/delivery-eligibility';
@@ -17,6 +27,17 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
+    if (publicDeliveryIsClosed()) {
+      return NextResponse.json(deliveryDisabledBody(), { status: 403 });
+    }
+    if (isDeliveryPilotRestricted()) {
+      const session = await auth();
+      const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
+      const access = evaluateDeliveryAccess({ requesterUserId: userId, requireCourier: false });
+      if (!access.allowed) {
+        return NextResponse.json(deliveryAccessDeniedBody(access.code), { status: 403 });
+      }
+    }
     const {
       lat,
       lng,
@@ -38,6 +59,10 @@ export async function POST(req: NextRequest) {
       : null;
 
     await expireExpiredTemporaryOnline(prisma);
+    await refreshStaleCourierIdentityForMatching(prisma, {
+      country: countryFilter,
+      includeProfile: (profile) => courierListedInPilot(profile.id, profile.userId),
+    });
 
     // Find active delivery profiles with GPS coordinates
     const availableProfiles = await prisma.deliveryProfile.findMany({
@@ -155,6 +180,7 @@ export async function POST(req: NextRequest) {
     const probeAt = Number.isNaN(requestedDate.getTime()) ? new Date() : requestedDate;
 
     const availableProfilesFiltered = profilesInRange.filter((profile) =>
+      courierListedInPilot(profile.id, profile.user?.id) &&
       resolveDeliveryTimeAvailability(
         {
           availableDays: profile.availableDays,

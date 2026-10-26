@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from "@/lib/delivery/delivery-deployment-gate";
-import { deliveryAccessDeniedBody, evaluateDeliveryAccess } from "@/lib/delivery/delivery-pilot-access";
+import { deliveryDisabledBody } from "@/lib/delivery/delivery-deployment-gate";
+import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from "@/lib/delivery/delivery-pilot-access";
 import {
   assertDelivererCanAccept,
   delivererAcceptDenialResponse,
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    if (!isHomeCheffDeliveryEnabled()) {
+    if (publicDeliveryIsClosed()) {
       return NextResponse.json(deliveryDisabledBody(), { status: 403 });
     }
     const session = await auth();
@@ -42,6 +42,13 @@ export async function POST(req: NextRequest) {
           : delivererAcceptDenialResponse(acceptCheck),
         { status: acceptCheck.ok ? 403 : acceptCheck.status }
       );
+    }
+    const actor = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    });
+    if (!actor || actor.id !== deliveryProfile.user.id) {
+      return NextResponse.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 });
     }
     const identity = await enforcePaidDeliveryIdentity(prisma, deliveryProfile.id);
     if (!identity.ok) {

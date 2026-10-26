@@ -1,19 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getRouteDistance, isVerifiedRoadDistance } from "@/lib/google-maps-distance";
 import { assertDelivererCanAccept } from "@/lib/delivery/delivery-eligibility";
 import { enforcePaidDeliveryIdentity } from "@/lib/delivery/courier-identity-sync";
 import { resolveDelivererPosition } from "@/lib/delivery/delivery-position";
+import { deliveryDisabledBody } from "@/lib/delivery/delivery-deployment-gate";
+import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from "@/lib/delivery/delivery-pilot-access";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
+    if (publicDeliveryIsClosed()) {
+      return NextResponse.json(deliveryDisabledBody(), { status: 403 });
+    }
+    const session = await auth();
+    const sessionUserId = (session?.user as { id?: string } | undefined)?.id;
+    if (!sessionUserId) {
+      return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
+    }
     const { searchParams } = new URL(req.url);
-    const deliveryUserId = searchParams.get('deliveryUserId');
-
-    if (!deliveryUserId) {
-      return NextResponse.json({ error: 'Delivery user ID required' }, { status: 400 });
+    const requestedUserId = searchParams.get('deliveryUserId');
+    if (requestedUserId && requestedUserId !== sessionUserId) {
+      return NextResponse.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 });
+    }
+    const deliveryUserId = sessionUserId;
+    const access = evaluateDeliveryAccess({
+      courierUserId: deliveryUserId,
+      requireRequester: false,
+    });
+    if (!access.allowed) {
+      return NextResponse.json(deliveryAccessDeniedBody(access.code), { status: 403 });
     }
 
     // Get delivery user location and radius

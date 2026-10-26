@@ -33,14 +33,52 @@ const pilotEnv = {
   HOMECHEFF_DELIVERY_PILOT_COURIER_IDS: 'profile_ok,courier_user_ok',
 };
 
-test('global off blocks an allowlisted caller', () => {
-  const denied = evaluateDeliveryAccess({
+test('public off stays closed until the restricted pilot allowlist matches', () => {
+  const closed = evaluateDeliveryAccess({
+    env: { HOMECHEFF_DELIVERY_ENABLED: 'false' },
+    requesterUserId: 'buyer_ok',
+    courierProfileId: 'profile_ok',
+  });
+  assert.equal(closed.allowed, false);
+  if (!closed.allowed) assert.equal(closed.code, 'DELIVERY_DISABLED');
+
+  const approved = evaluateDeliveryAccess({
     env: { ...pilotEnv, HOMECHEFF_DELIVERY_ENABLED: 'false' },
     requesterUserId: 'buyer_ok',
     courierProfileId: 'profile_ok',
   });
-  assert.equal(denied.allowed, false);
-  if (!denied.allowed) assert.equal(denied.code, 'DELIVERY_DISABLED');
+  assert.equal(approved.allowed, true);
+  if (approved.allowed) assert.equal(approved.mode, 'PILOT');
+
+  const stranger = evaluateDeliveryAccess({
+    env: { ...pilotEnv, HOMECHEFF_DELIVERY_ENABLED: 'false' },
+    requesterUserId: 'buyer_no',
+    courierProfileId: 'profile_ok',
+  });
+  assert.equal(stranger.allowed, false);
+  if (!stranger.allowed) assert.equal(stranger.code, 'DELIVERY_PILOT_REQUIRED');
+
+  const buyerAsCourier = evaluateDeliveryAccess({
+    env: { ...pilotEnv, HOMECHEFF_DELIVERY_ENABLED: 'false' },
+    requesterUserId: 'buyer_ok',
+    courierUserId: 'buyer_ok',
+    courierProfileId: 'buyer_ok',
+  });
+  assert.equal(buyerAsCourier.allowed, false);
+
+  const courierAsBuyer = evaluateDeliveryAccess({
+    env: { ...pilotEnv, HOMECHEFF_DELIVERY_ENABLED: 'false' },
+    requesterUserId: 'courier_user_ok',
+    courierUserId: 'courier_user_ok',
+  });
+  assert.equal(courierAsBuyer.allowed, false);
+
+  const admin = evaluateDeliveryAccess({
+    env: { ...pilotEnv, HOMECHEFF_DELIVERY_ENABLED: 'false' },
+    requesterUserId: 'superadmin',
+    courierProfileId: 'profile_ok',
+  });
+  assert.equal(admin.allowed, false);
   assert.equal(DELIVERY_GEOGRAPHIC_PILOT, 'UNSUPPORTED');
 });
 
@@ -75,7 +113,7 @@ test('restricted pilot fails closed for unknown users and couriers', () => {
   }).allowed, true);
 });
 
-test('direct booking route stays disabled when the allowlist is present', async () => {
+test('a request body cannot join the restricted pilot without a session', async () => {
   const previous = {
     enabled: process.env.HOMECHEFF_DELIVERY_ENABLED,
     pilot: process.env.HOMECHEFF_DELIVERY_PILOT,
@@ -86,13 +124,13 @@ test('direct booking route stays disabled when the allowlist is present', async 
   process.env.HOMECHEFF_DELIVERY_PILOT = 'restricted';
   process.env.HOMECHEFF_DELIVERY_PILOT_USER_IDS = 'buyer_ok';
   process.env.HOMECHEFF_DELIVERY_PILOT_COURIER_IDS = 'profile_ok';
-  const response = await bookPost(new NextRequest('http://localhost/api/delivery/standalone/book', {
-    method: 'POST',
-    body: JSON.stringify({ deliveryProfileId: 'profile_ok', requesterUserId: 'buyer_ok' }),
-  }));
-  assert.equal(response.status, 403);
-  const body = await response.json();
-  assert.equal(body.code, 'DELIVERY_DISABLED');
+  await assert.rejects(
+    () => bookPost(new NextRequest('http://localhost/api/delivery/standalone/book', {
+      method: 'POST',
+      body: JSON.stringify({ deliveryProfileId: 'profile_ok', requesterUserId: 'buyer_ok' }),
+    })),
+    /headers/,
+  );
   for (const [key, value] of Object.entries({
     HOMECHEFF_DELIVERY_ENABLED: previous.enabled,
     HOMECHEFF_DELIVERY_PILOT: previous.pilot,

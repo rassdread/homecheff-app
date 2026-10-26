@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { classifyCourierStripeIdentity, courierIdentityMessage } from './courier-identity';
 import { paidIdentityAllowsDelivery } from './courier-paid-identity';
-import { enforcePaidDeliveryIdentity } from './courier-identity-sync';
+import { enforcePaidDeliveryIdentity, refreshStaleCourierIdentityForMatching } from './courier-identity-sync';
 import { syncCourierConnectAccount } from './delivery-webhook-events';
 
 const verified = {
@@ -211,5 +211,48 @@ describe('stripe connect identity evidence', () => {
     const sync = readFileSync(new URL('lib/delivery/courier-identity-sync.ts', root), 'utf8');
     assert.doesNotMatch(sync, /verification\.document/);
     assert.match(courierIdentityMessage('UNKNOWN').nl, /niet als gecontroleerd/);
+  });
+
+  it('refreshes a stale matching cache from Stripe and does not verify a revoked account', async () => {
+    const writes: Array<{ stripeIdentityState?: string }> = [];
+    const db = {
+      deliveryProfile: {
+        findMany: async () => [{ id: 'profile_verified', userId: 'courier_ok' }],
+        findUnique: async () => ({
+          id: 'profile_verified',
+          isBlocked: false,
+          stripeIdentityState: null,
+          stripeIdentityCheckedAt: null,
+          user: { stripeConnectAccountId: 'acct_test' },
+        }),
+        update: async ({ data }: { data: { stripeIdentityState?: string } }) => {
+          writes.push(data);
+          return data;
+        },
+      },
+    };
+    const verifiedRefresh = await refreshStaleCourierIdentityForMatching(db as never, {
+      retrieve: async () => verified,
+      includeProfile: () => true,
+    });
+    assert.equal(verifiedRefresh.refreshed, 1);
+    assert.equal(writes[0]?.stripeIdentityState, 'VERIFIED');
+
+    const skipped = await refreshStaleCourierIdentityForMatching(db as never, {
+      retrieve: async () => verified,
+      includeProfile: () => false,
+    });
+    assert.equal(skipped.refreshed, 0);
+    assert.equal(writes.length, 1);
+
+    const revoked = await refreshStaleCourierIdentityForMatching(db as never, {
+      retrieve: async () => ({
+        ...verified,
+        individual: { verification: { status: 'unverified', details_code: null } },
+      }),
+      includeProfile: () => true,
+    });
+    assert.equal(revoked.refreshed, 1);
+    assert.notEqual(writes[1]?.stripeIdentityState, 'VERIFIED');
   });
 });

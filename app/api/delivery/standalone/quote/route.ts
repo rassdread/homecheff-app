@@ -1,18 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
+import { deliveryDisabledBody } from '@/lib/delivery/delivery-deployment-gate';
+import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
 import { createStandaloneQuote } from '@/lib/delivery/standalone-delivery';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
-  if (!isHomeCheffDeliveryEnabled()) {
+  if (publicDeliveryIsClosed()) {
     return NextResponse.json(deliveryDisabledBody(), { status: 403 });
   }
   const session = await auth();
   const userId = (session?.user as { id?: string } | undefined)?.id;
   if (!userId) {
     return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
+  }
+  const access = evaluateDeliveryAccess({ requesterUserId: userId, requireCourier: false });
+  if (!access.allowed) {
+    return NextResponse.json(deliveryAccessDeniedBody(access.code), { status: 403 });
   }
   const body = await req.json().catch(() => null);
   if (!body || typeof body !== 'object') {

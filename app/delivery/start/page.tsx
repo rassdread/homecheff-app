@@ -23,7 +23,7 @@ export default function DeliveryStartPage() {
     fetch('/api/delivery/alignment-flags')
       .then((response) => response.json())
       .then((data) => {
-        if (!stop) setDeliveryOpen(Boolean(data?.homeCheffDeliveryEnabled));
+        if (!stop) setDeliveryOpen(Boolean(data?.courierToolsAvailableToCaller));
       })
       .catch(() => {
         if (!stop) setDeliveryOpen(false);

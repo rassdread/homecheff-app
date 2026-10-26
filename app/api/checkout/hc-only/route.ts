@@ -13,10 +13,9 @@ import { assertOneSellerIds } from '@/lib/checkout/fulfillment-phase1';
 import { evaluateMarketplaceEligibility } from '@/lib/age/marketplace-eligibility';
 import {
   deliveryDisabledBody,
-  isHomeCheffDeliveryEnabled,
   isNewCourierFulfillmentMode,
 } from '@/lib/delivery/delivery-deployment-gate';
-import { deliveryAccessDeniedBody, evaluateDeliveryAccess } from '@/lib/delivery/delivery-pilot-access';
+import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -100,7 +99,7 @@ export async function POST(req: NextRequest) {
           ? body.deliveryProfileId
           : null;
 
-    if (isNewCourierFulfillmentMode(deliveryMode) && !isHomeCheffDeliveryEnabled()) {
+    if (isNewCourierFulfillmentMode(deliveryMode) && publicDeliveryIsClosed()) {
       return NextResponse.json(deliveryDisabledBody(), { status: 403, headers: NO_STORE });
     }
     if (isNewCourierFulfillmentMode(deliveryMode)) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
+import { deliveryDisabledBody } from '@/lib/delivery/delivery-deployment-gate';
+import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
 import { prisma } from '@/lib/prisma';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 import {
@@ -20,7 +21,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    if (!isHomeCheffDeliveryEnabled()) {
+    if (publicDeliveryIsClosed()) {
       return NextResponse.json(deliveryDisabledBody(), { status: 403 });
     }
     const flags = getDeliveryAlignmentFlags();
@@ -66,6 +67,13 @@ export async function POST(req: NextRequest) {
         { error: 'deliveryProfileId required', code: 'DELIVERY_PROVIDER_REQUIRED' },
         { status: 400 }
       );
+    }
+    const bookingAccess = evaluateDeliveryAccess({
+      requesterUserId: buyer.id,
+      courierProfileId: deliveryProfileId,
+    });
+    if (!bookingAccess.allowed) {
+      return NextResponse.json(deliveryAccessDeniedBody(bookingAccess.code), { status: 403 });
     }
 
     if (productId && typeof productId === 'string') {

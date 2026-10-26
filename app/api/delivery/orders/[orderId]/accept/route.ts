@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { deliveryDisabledBody, isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
-import { deliveryAccessDeniedBody, evaluateDeliveryAccess } from '@/lib/delivery/delivery-pilot-access';
+import { deliveryDisabledBody } from '@/lib/delivery/delivery-deployment-gate';
+import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +26,7 @@ export async function POST(
   { params }: { params: { orderId: string } }
 ) {
   try {
-    if (!isHomeCheffDeliveryEnabled()) {
+    if (publicDeliveryIsClosed()) {
       return NextResponse.json(deliveryDisabledBody(), { status: 403 });
     }
     const session = await auth();
