@@ -15,11 +15,11 @@ The Gate A application is deployed. Customer-facing Delivery stays disabled.
 | Gate B | PASS. Five migrations applied on 2026-10-26. |
 | Production Delivery flag | VERIFIED false on `/api/delivery/alignment-flags` after the deploy |
 | Production deployment of the Gate A code | DEPLOYED as `ca492a89385c064875f63ac4d5ef9a83d4c7293f`. That commit contains `490945c3` plus the Gate B record and a build-memory fix. |
-| Current production deployment | `dpl_Hx4RMgXYA4xDYmEjEfVGhVL7LroH`, project `homecheff-app`, domains `homecheff.eu`, `www.homecheff.eu`, `homecheff.nl`, and `www.homecheff.nl`, commit `ca492a89385c064875f63ac4d5ef9a83d4c7293f` on `main`, state READY. Created `2026-10-26T15:39:40Z`. Ready `2026-10-26T15:46:10Z`. |
+| Current production deployment | `dpl_4RUE5T9gRx8XDPmeAS2LhcZqrg4P`, project `homecheff-app`, domains `homecheff.eu`, `www.homecheff.eu`, `homecheff.nl`, and `www.homecheff.nl`, commit `ca492a89385c064875f63ac4d5ef9a83d4c7293f` on `main`, state READY. Created `2026-10-26T16:13:48Z`. Ready `2026-10-26T16:18:16Z`. Same application commit as the previous production deployment, rebuilt so the Maps environment is active. |
 | Previous production deployment | `dpl_4XmVR5L2r631aVsPS1XQncQ7VJzL`, commit `4ee318ae1fbd01b1e77ccbbec9b5b672553174e2`, remains READY and is the rollback target. It was not promoted again. |
 | Production database | MIGRATED. Endpoint `ep-summer-darkness-a2l0745u`, database `neondb`, Neon project `snowy-breeze-08059562` (`app homecheff`), branch `br-fragrant-frost-a2sm13lm` named `production`. Vercel production `DATABASE_URL` uses the pooler on that endpoint. `DIRECT_URL` uses the direct host. Preview endpoint `ep-green-wind-a2cspmqw` is a different branch. |
 | Production Stripe | Live key prefix confirmed. No Stripe configuration was changed. |
-| Production Google Maps | NOT_STARTED |
+| Production Google Maps | PASS. Dedicated Distance Matrix key `c32f15dd-cbdb-48df-9c6e-21557a1b4218`. Role `production`. |
 | Production smoke test | NOT_STARTED |
 | Regional pilot | NOT_STARTED |
 
@@ -99,6 +99,26 @@ Seller local-delivery pricing stays fail-closed until Gate C. Pickup listings an
 
 Rollback remains the previous READY deployment `dpl_4XmVR5L2r631aVsPS1XQncQ7VJzL`. It was not needed. The additive schema from Gate B stays compatible with that older application.
 
+## Gate C completed on 2026-10-26
+
+The owner authorized a dedicated production Distance Matrix key in Google Cloud project `homecheff-auth` (`615612462371`). Billing is enabled. The application calls the legacy Distance Matrix endpoint `maps.googleapis.com/maps/api/distancematrix/json`. That API is `distance-matrix-backend.googleapis.com`, and it was already enabled. The Routes API was not substituted.
+
+The production key is named `HomeCheff Delivery - Production Distance Matrix`. Its identifier is `c32f15dd-cbdb-48df-9c6e-21557a1b4218`. It allows only `distance-matrix-backend.googleapis.com`. It has no IP, referrer, Android, or iOS restriction. Vercel does not provide a stable outbound address, so an IP allowlist would break the server call. The key is therefore not fully restricted: the API restriction is the control, and usage is visible in the project quota. An earlier key with the same name was deleted before it was stored in Vercel, because the CLI wrote its material into the local command log.
+
+The shared project quota was left unchanged. The daily element quota is the Google default maximum. The per-minute project cap is 60,000 elements. The existing browser key and the general Maps key also list this API, so a lower project quota could affect them. Each successful element is billable to the existing billing account. The controlled test used two successful elements and one unroutable request.
+
+Vercel production `GOOGLE_MAPS_API_KEY` is the new sensitive value, environment id `h0FEs6P19ukBgiEM`, production target only. The previous variable `VEExhg0uwYqkfgAR` now targets preview only, so the preview key was not replaced. `GOOGLE_MAPS_KEY_ROLE` is `production` on production only, environment id `Dudkwzm1HQmcC9io`. `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` was not changed. `HOMECHEFF_DELIVERY_ENABLED` remains absent.
+
+The approved commit was rebuilt as `dpl_4RUE5T9gRx8XDPmeAS2LhcZqrg4P`. It serves the production domains.
+
+Distance evidence, Amsterdam coordinates `52.379189,4.899431` to Rotterdam `51.9225,4.47917`, driving:
+
+- Direct Google response: status `OK`, 84.1 km, 84,113 meters, 1 hour 11 minutes.
+- `POST /api/distance` on `homecheff.eu`: 84.1 km and 71 minutes. A client-supplied distance of 1 km was ignored.
+- Coordinates in the ocean returned `DISTANCE_MATRIX_UNAVAILABLE` and no straight-line price.
+
+The server key was absent from the homepage HTML, the nine initial JavaScript chunks, the checked build-log page, the distance response, and the Git tree. Delivery quote still returns 403 `DELIVERY_DISABLED`. The flag is false. Homepage listings, login, seller page, and checkout still load. No Stripe object and no database row was written.
+
 ## Code deployed with Delivery disabled
 
 The deployed commit contains the V6A obligation table and the V6B identity, webhook, and livemode fixes. `HOMECHEFF_DELIVERY_ENABLED` stays false.
@@ -119,8 +139,8 @@ Required production environment, names only:
 1. Gate A accepted by the owner.
 2. Gate B: backup, then apply the five authorized migrations. Delivery stays disabled. Done.
 3. Deploy this commit to the production Vercel project. Delivery stays disabled. Done.
-4. Confirm marketplace home, authentication, and checkout still load.
-5. Gate C: production Maps key and role. Distance pricing must fail closed until this is true.
+4. Confirm marketplace home, authentication, and checkout still load. Done after Gate C.
+5. Gate C: production Maps key and role. Done. Road distance works. Delivery stays disabled.
 6. Gate D: signed production webhook, one test event, receipt row with `livemode` true. Invalid signatures stay 400.
 7. Gate E: operations view shows receipt health, Maps readiness, and courier obligations. Live recovery stays off.
 8. Gate F: one authorized small live delivery. Exactly one obligation and one transfer. Stop on any mismatch.
