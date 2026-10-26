@@ -11,14 +11,37 @@ Delivery code is remediated locally. It is not deployed. Customer-facing Deliver
 
 | Item | State |
 | --- | --- |
-| Production Delivery flag | VERIFIED false on `/api/delivery/alignment-flags` |
-| Production deployment of this commit | NOT_STARTED |
-| Production deployment id | NOT_AVAILABLE. The public `x-vercel-id` is a request id. |
-| Production database | NOT_STARTED. Migration status was not read and no production credential was used. |
-| Production Stripe | NOT_STARTED |
+| Gate A | APPROVED for `490945c39fc92a7139eac05f981828cab68a930c` |
+| Gate B | BLOCKED. No migration was applied. |
+| Production Delivery flag | VERIFIED false on `/api/delivery/alignment-flags` at 2026-10-26 15:23 UTC+1 |
+| Production deployment of `490945c3` | NOT_STARTED |
+| Current production deployment | `dpl_4XmVR5L2r631aVsPS1XQncQ7VJzL`, project `homecheff-app`, domains `homecheff.eu` and `homecheff.nl`, commit `4ee318ae1fbd01b1e77ccbbec9b5b672553174e2` on `main`, state READY |
+| Production database | IDENTIFIED and read. Not migrated. Endpoint `ep-summer-darkness-a2l0745u`, database `neondb`, Neon project `snowy-breeze-08059562`, branch `br-fragrant-frost-a2sm13lm`. Not `ep-green-wind`. |
+| Production Stripe | Live key prefix confirmed. No Stripe configuration was changed. |
 | Production Google Maps | NOT_STARTED |
 | Production smoke test | NOT_STARTED |
 | Regional pilot | NOT_STARTED |
+
+## Gate B attempt on 2026-10-26
+
+The owner approved Gate A for `490945c39fc92a7139eac05f981828cab68a930c` and authorized only these four migrations:
+
+1. `20261024190000_stripe_webhook_receipt`
+2. `20261024220000_stripe_webhook_recovery_attempt`
+3. `20261026104500_courier_stripe_identity`
+4. `20261026140000_courier_transfer_obligation`
+
+None of the four is recorded in production `_prisma_migrations`. There is no unfinished migration. Three older rows are rolled back and are not pending. `StripeWebhookReceipt`, `StripeWebhookRecoveryAttempt`, and `CourierTransferObligation` do not exist. `DeliveryProfile` does not yet have `stripeIdentityState`, `stripeIdentityReason`, or `stripeIdentityCheckedAt`.
+
+`prisma migrate deploy` was not run. It would also apply `20261023150000_delivery_distance_semantics_version`, which is not one of the four authorized migrations. That migration only adds nullable `DeliveryProfile.distanceSemanticsVersion` with no default and no backfill. The column is absent in production. It is not a prerequisite of the four later migrations. Prisma cannot apply the later four while leaving this earlier folder pending.
+
+The four authorized files were read. They create two empty tables, add three nullable identity columns, and create the empty obligation table with two unique indexes. They contain no `DELETE`, `DROP`, `UPDATE`, or foreign key. Existing order, payout, user, and profile rows would not be rewritten. Counts read before the stop: 36 orders, 7 payouts, 331 users, 31 delivery profiles.
+
+Backup and point-in-time recovery were not confirmed. The production compute reports three safekeepers, which is current WAL durability, not a restore window or a retention period. The Neon project history setting was not returned by the API. The stored Neon CLI session was expired. A token refresh rotated the credential and the replacement was not retained, so that local CLI login now needs `neonctl auth` again. No production data was changed by that authentication attempt.
+
+Marketplace checks after the stop, with no schema change: homepage 200, login 200, checkout 200, delivery flag false, unsigned webhook POST 400.
+
+Gate C through Gate G remain not started. Delivery stays disabled. The application was not deployed.
 
 ## Code ready for a later deploy
 
