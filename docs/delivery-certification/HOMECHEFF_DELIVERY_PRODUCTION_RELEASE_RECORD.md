@@ -15,14 +15,14 @@ The Gate A application is deployed. Customer-facing Delivery stays disabled.
 | Gate B | PASS. Five migrations applied on 2026-10-26. |
 | Production Delivery flag | VERIFIED false on `/api/delivery/alignment-flags` after the deploy |
 | Production deployment of the Gate A code | DEPLOYED as `ca492a89385c064875f63ac4d5ef9a83d4c7293f`. That commit contains `490945c3` plus the Gate B record and a build-memory fix. |
-| Current production deployment | `dpl_BSqY98RdTuvxan2d5QE48gWYkV6p`, project `homecheff-app`, domains `homecheff.eu`, `www.homecheff.eu`, `homecheff.nl`, and `www.homecheff.nl`, commit `e939a4ce9356a483010a3e5535b5935f61c3ac6c` on `main`, state READY. The first build of this commit, `dpl_4VpwGihkircr9BMc9AVQKW9vmk1C`, ran out of memory and was not aliased. |
-| Previous production deployment | `dpl_4RUE5T9gRx8XDPmeAS2LhcZqrg4P`, commit `ca492a89385c064875f63ac4d5ef9a83d4c7293f`, remains READY and is the rollback target. It was not promoted again. |
+| Current production deployment | `dpl_GCvxauoBqD8vDzrbvVmrXNXeBbET`, project `homecheff-app`, domain `homecheff.eu`, commit `27756cd7aea9f2a8e02ae302fe896f39c8e43896`, state READY. The first build of this commit, `dpl_7N7ZRYzxM8StJqfa2KiFHQLq3s8h`, ran out of memory and was not aliased. The retry `dpl_6aRsJShDXHxskQWP5iAUQ2zNAd4U` was ready before the pilot variables existed. The current deployment is the redeploy that loads them. |
+| Previous production deployment | `dpl_BSqY98RdTuvxan2d5QE48gWYkV6p`, commit `e939a4ce9356a483010a3e5535b5935f61c3ac6c`, remains READY and is the rollback target. It was not promoted again. |
 | Production database | MIGRATED. Endpoint `ep-summer-darkness-a2l0745u`, database `neondb`, Neon project `snowy-breeze-08059562` (`app homecheff`), branch `br-fragrant-frost-a2sm13lm` named `production`. Vercel production `DATABASE_URL` uses the pooler on that endpoint. `DIRECT_URL` uses the direct host. Preview endpoint `ep-green-wind-a2cspmqw` is a different branch. |
 | Production Stripe | Live account `acct_1S1TFM2KvmKfeN9t`. Marketplace endpoint `we_1SQHOx2KvmKfeN9t0uwLGujx` includes `charge.refunded` after Gate E. The signing secret was not rotated. |
 | Production Google Maps | PASS. Dedicated Distance Matrix key `c32f15dd-cbdb-48df-9c6e-21557a1b4218`. Role `production`. |
 | Gate D | PASS. One live `coupon.created` receipt, duplicate skipped, invalid signature rejected. |
 | Gate E | PASS. Owner opened the operations view. Refund routing is subscribed after the handler deploy. Partial and ambiguous refunds stop for manual review. Live recovery stays off. |
-| Gate F | BLOCKED. No live payment was created. V6J extends the existing allowlist so a restricted pilot can run while the public flag stays off. That code is not deployed and no production allowlist is set. |
+| Gate F | BLOCKED. V6J is deployed. The restricted pilot is on for one buyer and one courier. No listing is approved and no quote or payment was created. |
 | Production smoke test | NOT_STARTED |
 | Regional pilot | NOT_STARTED |
 
@@ -284,6 +284,20 @@ The buyer option is the existing checkout choice `local_provider`. It is shown o
 These journeys were traced in the existing interface and covered by unit tests. They were not clicked through with a signed-in production user, and no preview delivery order was created. TypeScript diagnostics remain 2066.
 
 Before a live delivery, the owner still has to approve this commit for deploy, name the buyer and an existing listing, put that buyer and courier `c2ae8bae-343f-4f59-bc0e-15562b97f87e` on the allowlists, and approve the real quote. Do not set `HOMECHEFF_DELIVERY_ENABLED`.
+
+## V6K deploy and restricted pilot on 2026-10-26
+
+The reviewed commit `27756cd7aea9f2a8e02ae302fe896f39c8e43896` was fast-forwarded onto `main`. Its diff from the previous production commit is the 22-file V6J set. The first production build, `dpl_7N7ZRYzxM8StJqfa2KiFHQLq3s8h`, failed with the known 4096 MB Next.js heap limit and was not aliased. The retry `dpl_6aRsJShDXHxskQWP5iAUQ2zNAd4U` became ready. After the pilot variables were saved, `dpl_GCvxauoBqD8vDzrbvVmrXNXeBbET` was redeployed from that same commit and is the deployment aliased to `https://homecheff.eu`. Rollback remains `dpl_BSqY98RdTuvxan2d5QE48gWYkV6p`.
+
+`HOMECHEFF_DELIVERY_ENABLED` is still unset. Production-only variables are `HOMECHEFF_DELIVERY_PILOT=restricted`, `HOMECHEFF_DELIVERY_PILOT_USER_IDS` with buyer `7647bf21-e9ab-4e3a-af83-eeec23e24dcb`, and `HOMECHEFF_DELIVERY_PILOT_COURIER_IDS` with that courier's user id and profile id `cmtuj15up0001gm0avj2ssuy1`. The seller is not part of the allowlist. The access check does not admit an administrator by role. No wildcard was used.
+
+The buyer is the one active account whose email matches the repository operator. The role is `SUPERADMIN`. Pilot access is the allowlist entry, not the role. The courier was rechecked: active, adult, bike, 10 km radius, Stripe `individual.verification.status` verified, transfers active, payouts enabled. The agreement timestamp is still empty. The production identity cache was not edited by hand.
+
+Seven active listings allow delivery or both, from €9.00 to €35.00, and all have pickup coordinates. None of their sellers has a completed Stripe Connect account, so none can receive a HomeCheff payout. No listing was selected. No delivery address was confirmed, and the quote route can create a stored quote, so it was not called.
+
+Anonymous checks on the live domain: the public flag is false, a body user id does not open a quote or booking, matching returns `DELIVERY_PILOT_REQUIRED`, acceptance requires a session, operations and recovery return 401, and an unsigned webhook returns 400. Home, login, and checkout return 200. The signed-in buyer and courier screens were not clicked. No order, payment, transfer, refund, or payout was created. Live recovery stays off.
+
+The next owner action is to choose one existing listing whose seller can be paid, confirm a delivery destination, and approve the resulting quote. Do not take a payment before that.
 
 ## Activation
 
