@@ -347,7 +347,8 @@ test('admin recovery and payout failure stay out of the live transfer path', () 
   assert.equal(admin.includes("role !== 'ADMIN'"), true);
   assert.equal(page.includes('Opnieuw proberen vanuit dit scherm: nee'), true);
   assert.equal(payout.includes('transferFailureCode'), true);
-  assert.equal(payout.includes('delivery_xfer_'), true);
+  assert.equal(payout.includes('settleCourierTransferObligation'), true);
+  assert.equal(payout.includes('transferFailureAt.getTime()'), false);
   assert.equal(webhook.includes('isHomeCheffDeliveryEnabled'), true);
   assert.equal(webhook.includes('EXISTING_DELIVERY_RECONCILIATION'), true);
   assert.equal(webhook.includes('checkout.session.async_payment_succeeded'), true);

@@ -12,6 +12,7 @@ import {
 import { allocateMarketplaceAffiliatePool } from '@/lib/marketplace-affiliate-pool';
 import { splitAffiliateLineForHierarchy } from '@/lib/affiliates/main-partner-split';
 import { ensureDeliveryPayout } from '@/lib/delivery/delivery-payout';
+import { createMemoryCourierTransferObligation } from '@/lib/delivery/courier-transfer-obligation';
 import {
   courierClawbackCents,
   proportionalCents,
@@ -207,6 +208,7 @@ function payoutHarness(options?: {
       findUnique: async () => ({ id: 'txn_delivery_d1' }),
       findFirst: async () => null,
     },
+    courierTransferObligation: createMemoryCourierTransferObligation(),
     $transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn(prisma),
   };
   return {
@@ -394,10 +396,10 @@ test('failed, retried, missing, early, and duplicate transfers stay inside the c
   assert.equal(first.blockCode, 'INSUFFICIENT_BALANCE');
   assert.equal(String(failed.payout()?.providerRef ?? '').startsWith('tr_'), false);
   const retried = await ensureDeliveryPayout(failed.prisma as never, payoutInput, { stripe: failed.stripe as never });
-  assert.equal(retried.transferStatus, 'SUCCEEDED');
-  assert.equal(retried.transferId?.startsWith('tr_'), true);
-  assert.notEqual(failed.calls[0].key, failed.calls[1].key);
-  assert.equal(failed.calls[1].source, 'ch_standalone');
+  assert.equal(retried.transferStatus, 'FAILED');
+  assert.notEqual(retried.blockCode, 'INSUFFICIENT_BALANCE');
+  assert.equal(failed.calls.length, 1);
+  assert.equal(failed.calls[0].key, 'homecheff:delivery:courier-transfer:d1:ch_standalone:v1');
 
   const missing = payoutHarness({ standalone: { stripeSessionId: 'cs_missing', paymentStatus: 'PAID' } });
   const blocked = await ensureDeliveryPayout(missing.prisma as never, payoutInput, { stripe: missing.stripe as never });

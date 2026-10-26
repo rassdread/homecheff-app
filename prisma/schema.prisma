@@ -1317,6 +1317,33 @@ model Payout {
   Transaction                 Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
 }
 
+/// One courier transfer for one delivery order and source charge.
+/// A failed lookup is UNKNOWN, not a license to create another transfer.
+model CourierTransferObligation {
+  id                          String    @id @default(cuid())
+  deliveryOrderId             String
+  chargeId                    String
+  purpose                     String
+  idempotencyKey              String    @unique
+  state                       String
+  amountCents                 Int
+  currency                    String    @default("eur")
+  destinationConnectAccountId String
+  recipientUserId             String
+  transferGroup               String
+  stripeTransferId            String?
+  stripeCreateAttemptedAt     DateTime?
+  processingLeaseUntil        DateTime?
+  processingOwner             String?
+  lastErrorCode               String?
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+
+  @@unique([deliveryOrderId, chargeId, purpose])
+  @@index([state, processingLeaseUntil])
+  @@map("CourierTransferObligation")
+}
+
 /// PHASE 8C — a business expense the seller administered themselves.
 ///
 /// Four values are kept apart on purpose and must not be collapsed:

@@ -67,7 +67,8 @@ test('payout and review paths keep the existing transfer and confirmation guards
   const payout = readFileSync(new URL('./delivery-payout.ts', import.meta.url), 'utf8');
   assert.equal(payout.includes('LEDGER_ONLY_NO_CONNECT'), true);
   assert.equal(payout.includes("transferStatus: 'FAILED'"), true);
-  assert.equal(payout.includes('delivery_xfer_'), true);
+  assert.equal(payout.includes('settleCourierTransferObligation'), true);
+  assert.equal(payout.includes('transferFailureAt.getTime()'), false);
   assert.equal(payout.includes('failed_connect_missing'), true);
   const review = readFileSync(new URL('./delivery-refund-review.ts', import.meta.url), 'utf8');
   assert.equal(review.includes('CONFIRMATION_REQUIRED'), true);

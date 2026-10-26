@@ -13,6 +13,7 @@ import {
 import { readHcDeliveryRefundMarker } from '@/lib/hc/marketplace-hc-delivery-refund-pure';
 import { resolveChargeIdForCheckoutSession } from '@/lib/payments/seller-settlement';
 import { financialStripeSecret } from '@/lib/stripe';
+import { settleCourierTransferObligation } from '@/lib/delivery/courier-transfer-obligation';
 
 export type DeliveryPayoutInput = {
   deliveryOrderId: string;
@@ -412,164 +413,11 @@ export async function ensureDeliveryPayout(
     };
   }
 
-  try {
-    const existingTransfer = await findConfirmedDeliveryTransfer(stripe, {
-      orderId,
-      deliveryOrderId,
-      amount: transferAmount,
-    });
-    if (existingTransfer) {
-      await prisma.payout.update({
-        where: { id: payoutId },
-        data: {
-          providerRef: existingTransfer,
-          destinationConnectAccountId: destination,
-          transferFailureCode: null,
-          transferFailureAt: null,
-        },
-      });
-      return {
-        created,
-        payoutId,
-        amountCents: transferAmount,
-        grossFeeCents: split.grossFeeCents,
-        amountSource,
-        transferId: existingTransfer,
-        transferStatus: 'ALREADY_DONE',
-        connectedAccountId: destination,
-      };
-    }
-
-    const freshProfile = await prisma.deliveryProfile.findUnique({
-      where: { userId: delivererUserId },
-      include: {
-        user: {
-          select: {
-            dateOfBirth: true,
-            id: true,
-            stripeConnectAccountId: true,
-            stripeConnectOnboardingCompleted: true,
-          },
-        },
-      },
-    });
-    const freshGate = assertCommercialCourierCanReceivePayout({
-      profile: freshProfile,
-      dateOfBirth: freshProfile?.user?.dateOfBirth,
-    });
-    if (!freshGate.ok) {
-      return {
-        created,
-        payoutId,
-        amountCents: transferAmount,
-        grossFeeCents: split.grossFeeCents,
-        amountSource,
-        blocked: true,
-        blockCode: freshGate.code,
-        transferId: null,
-        transferStatus: 'SKIPPED',
-        connectedAccountId: destination,
-      };
-    }
-
-    if (!assessedCharge.ok || !sourceTransactionChargeId) {
-      await prisma.payout.update({
-        where: { id: payoutId },
-        data: {
-          transferFailureCode: assessedCharge.ok ? 'SOURCE_CHARGE_MISSING' : assessedCharge.blockCode,
-          transferFailureAt: new Date(),
-        },
-      });
-      return {
-        created,
-        payoutId,
-        amountCents: transferAmount,
-        grossFeeCents: split.grossFeeCents,
-        amountSource,
-        blocked: true,
-        blockCode: assessedCharge.ok ? 'SOURCE_CHARGE_MISSING' : assessedCharge.blockCode,
-        transferStatus: 'FAILED',
-        connectedAccountId: destination,
-      };
-    }
-
-    const transferParams: Stripe.TransferCreateParams = {
-      amount: transferAmount,
-      currency: 'eur',
-      destination,
-      transfer_group: `order_${orderId}`,
-      metadata: {
-        orderId,
-        deliveryOrderId,
-        purpose: 'delivery_provider_principal',
-        providerUserId: delivererUserId,
-        sourceTransactionChargeId,
-        paymentMethod,
-      },
-    };
-    transferParams.source_transaction = sourceTransactionChargeId;
-
-    const retryStamp = existingPayout?.transferFailureAt
-      ? `_${existingPayout.transferFailureAt.getTime()}`
-      : existingPayout?.transferFailureCode
-        ? `_${existingPayout.transferFailureCode}`
-        : '';
-    const transfer = await stripe.transfers.create(transferParams, {
-      idempotencyKey: `delivery_xfer_${deliveryOrderId}_${sourceTransactionChargeId}${retryStamp}`,
-    });
-    if (!transfer.id?.startsWith('tr_')) {
-      throw new Error('Stripe did not confirm a transfer id');
-    }
-
+  if (!assessedCharge.ok || !sourceTransactionChargeId) {
     await prisma.payout.update({
       where: { id: payoutId },
       data: {
-        providerRef: transfer.id,
-        destinationConnectAccountId: destination,
-        transferFailureCode: null,
-        transferFailureAt: null,
-      },
-    });
-
-    return {
-      created,
-      payoutId,
-      amountCents: transferAmount,
-      grossFeeCents: split.grossFeeCents,
-      amountSource,
-      transferId: transfer.id,
-      transferStatus: 'SUCCEEDED',
-      connectedAccountId: destination,
-    };
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    const lower = message.toLowerCase();
-    if (
-      (lower.includes('idempoten') || lower.includes('already')) &&
-      !lower.includes('mismatch')
-    ) {
-      return {
-        created,
-        payoutId,
-        amountCents: transferAmount,
-        grossFeeCents: split.grossFeeCents,
-        amountSource,
-        transferId: null,
-        transferStatus: 'ALREADY_DONE',
-        connectedAccountId: destination,
-      };
-    }
-    console.error(
-      `[delivery-payout] Connect transfer failed deliveryOrder=${deliveryOrderId}:`,
-      message,
-    );
-    const failureCode = lower.includes('insufficient')
-      ? 'INSUFFICIENT_BALANCE'
-      : 'CONNECT_TRANSFER_FAILED';
-    await prisma.payout.update({
-      where: { id: payoutId },
-      data: {
-        transferFailureCode: failureCode,
+        transferFailureCode: assessedCharge.ok ? 'SOURCE_CHARGE_MISSING' : assessedCharge.blockCode,
         transferFailureAt: new Date(),
       },
     });
@@ -579,35 +427,101 @@ export async function ensureDeliveryPayout(
       amountCents: transferAmount,
       grossFeeCents: split.grossFeeCents,
       amountSource,
-      transferId: null,
+      blocked: true,
+      blockCode: assessedCharge.ok ? 'SOURCE_CHARGE_MISSING' : assessedCharge.blockCode,
       transferStatus: 'FAILED',
       connectedAccountId: destination,
-      blockCode: failureCode,
     };
   }
-}
 
-async function findConfirmedDeliveryTransfer(
-  stripe: Stripe,
-  input: { orderId: string; deliveryOrderId: string; amount: number },
-): Promise<string | null> {
-  if (typeof stripe.transfers.list !== 'function') return null;
-  try {
-    const listed = await stripe.transfers.list({
-      transfer_group: `order_${input.orderId}`,
-      limit: 20,
-    });
-    const match = listed.data.find(
-      (transfer) =>
-        transfer.id.startsWith('tr_') &&
-        transfer.metadata?.deliveryOrderId === input.deliveryOrderId &&
-        transfer.amount === input.amount &&
-        transfer.reversed !== true,
-    );
-    return match?.id ?? null;
-  } catch {
-    return null;
+  const freshProfile = await prisma.deliveryProfile.findUnique({
+    where: { userId: delivererUserId },
+    include: {
+      user: {
+        select: {
+          dateOfBirth: true,
+          id: true,
+          stripeConnectAccountId: true,
+          stripeConnectOnboardingCompleted: true,
+        },
+      },
+    },
+  });
+  const freshGate = assertCommercialCourierCanReceivePayout({
+    profile: freshProfile,
+    dateOfBirth: freshProfile?.user?.dateOfBirth,
+  });
+  if (!freshGate.ok) {
+    return {
+      created,
+      payoutId,
+      amountCents: transferAmount,
+      grossFeeCents: split.grossFeeCents,
+      amountSource,
+      blocked: true,
+      blockCode: freshGate.code,
+      transferId: null,
+      transferStatus: 'SKIPPED',
+      connectedAccountId: destination,
+    };
   }
+
+  const settled = await settleCourierTransferObligation({
+    db: prisma,
+    stripe,
+    deliveryOrderId,
+    orderId,
+    chargeId: sourceTransactionChargeId,
+    amountCents: transferAmount,
+    currency: 'eur',
+    destinationAccountId: destination,
+    recipientUserId: delivererUserId,
+  });
+  if (settled.transferId?.startsWith('tr_')) {
+    try {
+      await prisma.payout.update({
+        where: { id: payoutId },
+        data: {
+          providerRef: settled.transferId,
+          destinationConnectAccountId: destination,
+          transferFailureCode: null,
+          transferFailureAt: null,
+        },
+      });
+    } catch (error) {
+      console.error('[delivery-payout] transfer recorded at Stripe but the payout row was not updated', error instanceof Error ? error.name : 'error');
+    }
+    return {
+      created: settled.created,
+      payoutId,
+      amountCents: transferAmount,
+      grossFeeCents: split.grossFeeCents,
+      amountSource,
+      transferId: settled.transferId,
+      transferStatus: settled.created ? 'SUCCEEDED' : 'ALREADY_DONE',
+      connectedAccountId: destination,
+      blockCode: settled.blockCode,
+    };
+  }
+  await prisma.payout.update({
+    where: { id: payoutId },
+    data: {
+      transferFailureCode: settled.blockCode || settled.state,
+      transferFailureAt: new Date(),
+    },
+  });
+  return {
+    created: false,
+    payoutId,
+    amountCents: transferAmount,
+    grossFeeCents: split.grossFeeCents,
+    amountSource,
+    blocked: true,
+    blockCode: settled.blockCode || settled.state,
+    transferId: null,
+    transferStatus: 'FAILED',
+    connectedAccountId: destination,
+  };
 }
 
 /** @deprecated Prefer splitDeliveryCommission from quote-snapshot */

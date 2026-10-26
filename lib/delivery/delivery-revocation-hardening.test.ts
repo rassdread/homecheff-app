@@ -20,6 +20,7 @@ import {
   isCommerciallyMatchableDeliverer,
 } from '@/lib/delivery/delivery-eligibility';
 import { ensureDeliveryPayout } from '@/lib/delivery/delivery-payout';
+import { createMemoryCourierTransferObligation } from '@/lib/delivery/courier-transfer-obligation';
 import { splitDeliveryCommission } from '@/lib/delivery/quote-snapshot';
 
 const root = path.resolve(__dirname, '../..');
@@ -127,6 +128,7 @@ function harness(
       findFirst: async () => null,
       create: async () => ({ id: 'txn_delivery_d1' }),
     },
+    courierTransferObligation: createMemoryCourierTransferObligation(),
     $transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn(prisma),
   };
   return { stripe, prisma, calls, writes, payout: () => row };
@@ -419,7 +421,9 @@ describe('administrative courier restriction', () => {
     });
     assert.equal(pool.lines[0]?.commissionCents, 60);
     const payout = read('lib/delivery/delivery-payout.ts');
-    assert.match(payout, /delivery_xfer_/);
+    const obligation = read('lib/delivery/courier-transfer-obligation.ts');
+    assert.match(obligation, /homecheff:delivery:courier-transfer:/);
+    assert.equal(payout.includes('transferFailureAt.getTime()'), false);
     assert.equal(payout.includes('affiliate'), false);
   });
 

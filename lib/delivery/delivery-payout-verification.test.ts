@@ -12,6 +12,7 @@ import { DELIVERY_DELIVERER_PERCENT, DELIVERY_PLATFORM_FEE_PERCENT } from '@/lib
 import { allocateMarketplaceAffiliatePool } from '@/lib/marketplace-affiliate-pool';
 import { assertCommercialCourierCanReceivePayout } from '@/lib/delivery/delivery-eligibility';
 import { ensureDeliveryPayout } from '@/lib/delivery/delivery-payout';
+import { createMemoryCourierTransferObligation } from '@/lib/delivery/courier-transfer-obligation';
 import { splitDeliveryCommission } from '@/lib/delivery/quote-snapshot';
 
 const root = path.resolve(__dirname, '../..');
@@ -141,6 +142,7 @@ function harness(profile: Profile, options?: { payout?: Record<string, unknown> 
         return { id: 'txn_delivery_d1' };
       },
     },
+    courierTransferObligation: createMemoryCourierTransferObligation(),
     $transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn(prisma),
   };
   return {
