@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { sumOpenSellerLiabilityCents } from '@/lib/hc/open-seller-liability';
@@ -42,6 +43,8 @@ async function attachTreasury(action: unknown) {
 
 /** Marketplace admin → the existing Growth campaign service. No second ledger. */
 export async function POST(req: Request) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const admin = await requireCampaignAdmin();
   if (!admin) {
     return NextResponse.json({ ok: false, message: 'Geen toegang.' }, { status: 403, headers: NO_STORE });

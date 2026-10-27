@@ -3,7 +3,7 @@
  * Admin-only structural affiliate role/parent changes (prospective).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminPermission, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { logAdminAction } from '@/lib/admin-audit';
 import {
   applyAdminAffiliateHierarchyChange,
@@ -23,6 +23,8 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const guard = await requireAdminPermission('canViewPaymentInfo');
     if (!guard.ok) return guard.response;

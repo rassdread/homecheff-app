@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -7,6 +8,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const session = await getServerSession(authOptions as any);
 
   if (!session || ((session as any).user.role !== 'ADMIN' && (session as any).user.role !== 'SUPERADMIN')) {

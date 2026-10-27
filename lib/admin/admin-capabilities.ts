@@ -15,6 +15,7 @@ export const ADMIN_CAPABILITIES = [
   'GLOBAL.ADMINISTRATORS.MANAGE',
   'GLOBAL.AUDIT.VIEW',
   'GLOBAL.SYSTEM.VIEW',
+  'GLOBAL.SYSTEM.MANAGE',
   'MARKETPLACE.USERS.VIEW',
   'MARKETPLACE.SELLERS.VIEW',
   'MARKETPLACE.LISTINGS.VIEW',
@@ -31,6 +32,7 @@ export const ADMIN_CAPABILITIES = [
   'GROWTH.CAMPAIGNS.MANAGE',
   'GROWTH.AFFILIATES.VIEW',
   'GROWTH.BILLING.VIEW',
+  'GROWTH.BILLING.MANAGE',
   'STUDIO.PROJECTS.VIEW',
   'STUDIO.JOBS.VIEW',
   'STUDIO.COSTS.VIEW',
@@ -195,6 +197,7 @@ function legacyAllows(capability: AdminCapability, permissions: LegacyPermission
     case 'GLOBAL.AUDIT.VIEW':
       return missingRow || flags.canViewAuditLogs !== false;
     case 'GLOBAL.SYSTEM.VIEW':
+    case 'GLOBAL.SYSTEM.MANAGE':
       return missingRow || flags.canViewAnalytics !== false;
     case 'MARKETPLACE.LISTINGS.VIEW':
       return missingRow || flags.canEditProducts !== false || flags.canModerateContent === true;
@@ -204,6 +207,8 @@ function legacyAllows(capability: AdminCapability, permissions: LegacyPermission
     case 'MARKETPLACE.PAYMENTS.VIEW':
     case 'GROWTH.BILLING.VIEW':
       return missingRow || flags.canViewPaymentInfo !== false || flags.canViewRevenue === true;
+    case 'GROWTH.BILLING.MANAGE':
+      return missingRow || flags.canViewPaymentInfo !== false;
     case 'MARKETPLACE.REFUNDS.EXECUTE':
       return missingRow || flags.canViewPaymentInfo !== false;
     case 'MARKETPLACE.TRANSFERS.RECOVER':

@@ -4,13 +4,15 @@
  */
 
 import { NextResponse } from 'next/server';
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminPermission, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { getContactSecurityMetricsSnapshot } from '@/lib/contact-security/logging';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(_request: Request) {
+  const mappedGuard = await requireMappedAdminCapability(_request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canViewAuditLogs');
   if (!guard.ok) return guard.response;
 

@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 /**
  * Admin: escrow vrijgeven voor bestellingen die al DELIVERED zijn maar nog "held" escrow hebben.
  * Gebruik dit om bestaande bestellingen te repareren (uitbetaling naar verkoper mogelijk).
@@ -10,6 +11,8 @@ import { releaseEscrowForOrder } from '@/lib/releaseEscrowOnDelivered';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const session = await auth();
     if (!session?.user?.email) {

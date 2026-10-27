@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
-import { requireAdminCapability } from '@/lib/admin-guard';
+import { requireAdminCapability, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { logAdminAction } from '@/lib/admin-audit';
 import { financialStripeSecret } from '@/lib/stripe-runtime-guard';
 import { calculatePlatformFeeCents } from '@/lib/fees';
@@ -22,6 +22,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ orderId: string }> },
 ) {
+  const mappedGuard = await requireMappedAdminCapability(request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminCapability('MARKETPLACE.TRANSFERS.RECOVER');
   if (!guard.ok) return guard.response;
 

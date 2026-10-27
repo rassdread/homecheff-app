@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
 import { getBusinessVisibilityProfile } from '@/lib/business/visibility-profile';
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminPermission, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { logAdminAction } from '@/lib/admin-audit';
 import { ATTRIBUTION_WINDOW_DAYS } from '@/lib/affiliate-config';
 
@@ -19,6 +19,8 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ userId: string }> },
 ) {
+  const mappedGuard = await requireMappedAdminCapability(_req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canViewPaymentInfo');
   if (!guard.ok) return guard.response;
 
@@ -101,6 +103,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> },
 ) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canViewPaymentInfo');
   if (!guard.ok) return guard.response;
 

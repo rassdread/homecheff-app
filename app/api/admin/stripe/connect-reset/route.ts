@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminPermission, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { logAdminAction } from '@/lib/admin-audit';
 import {
   executeAdminConnectReset,
@@ -10,6 +10,8 @@ export const dynamic = 'force-dynamic';
 
 /** GET ?userId= — safety preview (read-only). */
 export async function GET(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canViewPaymentInfo');
   if (!guard.ok) return guard.response;
 
@@ -30,6 +32,8 @@ export async function GET(req: NextRequest) {
  * Body: { userId, reason, confirm: true, idempotencyKey? }
  */
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canViewPaymentInfo');
   if (!guard.ok) return guard.response;
 

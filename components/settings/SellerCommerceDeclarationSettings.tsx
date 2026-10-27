@@ -5,6 +5,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import CommerceDeclarationModal, {
   type CommerceDeclarationChoice,
 } from '@/components/legal/CommerceDeclarationModal';
@@ -117,6 +118,11 @@ export default function SellerCommerceDeclarationSettings() {
           ? 'Kies of bevestig status'
           : 'Status aanpassen'}
       </button>
+      <p>
+        <Link href="/sell" className="text-sm text-emerald-700 hover:text-emerald-800">
+          Bekijk zakelijke abonnementen
+        </Link>
+      </p>
 
       <CommerceDeclarationModal
         open={modalOpen}

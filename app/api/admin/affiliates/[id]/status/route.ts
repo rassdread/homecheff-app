@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { AffiliateStatus } from '@prisma/client';
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminPermission, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { logAdminAction } from '@/lib/admin-audit';
 
 export const dynamic = 'force-dynamic';
@@ -14,6 +14,8 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const guard = await requireAdminPermission('canViewPaymentInfo');
     if (!guard.ok) return guard.response;

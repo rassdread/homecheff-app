@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { accessDecision } from '@/lib/admin/admin-capabilities';
 import { capabilityLabels, SUBSCRIPTION_STATUSES_COUNTED_AS_CURRENT } from '@/lib/admin/user-capabilities';
-import { requirePlatformAdmin } from '@/lib/admin-guard';
+import { requirePlatformAdmin, requireMappedAdminCapability } from '@/lib/admin-guard';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +11,8 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const mappedGuard = await requireMappedAdminCapability(_request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requirePlatformAdmin();
   if (!guard.ok) return guard.response;
   const allowed = (capability: Parameters<typeof accessDecision>[0]['capability']) =>

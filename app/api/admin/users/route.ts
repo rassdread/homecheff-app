@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -26,6 +27,8 @@ import {
 
 // GET - Fetch all users
 export async function GET(request: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     // Check if user is admin
     const session = await auth();
@@ -212,6 +215,8 @@ export async function GET(request: NextRequest) {
 
 // POST - Create new user
 export async function POST(request: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     // Check if user is admin
     const session = await auth();

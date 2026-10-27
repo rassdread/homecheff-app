@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -5,7 +6,9 @@ import { AttributionSource, AttributionType } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(_request: Request) {
+  const mappedGuard = await requireMappedAdminCapability(_request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const session = await auth();
     if (!session?.user?.email) {

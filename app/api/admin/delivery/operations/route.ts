@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminPermission, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { describeDeliveryPayout } from '@/lib/delivery/delivery-ops-queue';
 import { assessMapsProductionConfig } from '@/lib/delivery/maps-key-placement';
 import {
@@ -20,6 +20,8 @@ const STALE_MS = 5 * 60_000;
  * Shows webhook receipt status and courier payouts that have no transfer id.
  */
 export async function GET(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canViewDeliveryDetails');
   if (!guard.ok) return guard.response;
 

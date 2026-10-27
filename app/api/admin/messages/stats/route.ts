@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -6,6 +7,8 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     // Check if user is admin
     const session = await auth();

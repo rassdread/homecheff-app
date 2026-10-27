@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { auth } from '@/lib/auth';
@@ -38,6 +39,8 @@ async function staff() {
 }
 
 export async function GET(req: Request) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const actor = await staff();
   if (!actor) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 });
   const affiliateId = new URL(req.url).searchParams.get('affiliateId');
@@ -80,6 +83,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const actor = await staff();
   if (!actor) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 });
   const body = await req.json().catch(() => ({}));

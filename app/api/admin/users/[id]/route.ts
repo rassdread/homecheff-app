@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -12,6 +13,8 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const mappedGuard = await requireMappedAdminCapability(request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const { id } = await params;
     
@@ -150,6 +153,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const mappedGuard = await requireMappedAdminCapability(request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const { id } = await params;
     

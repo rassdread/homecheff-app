@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 /**
  * Admin API for managing user-affiliate attributions
  * 
@@ -18,6 +19,8 @@ export const dynamic = 'force-dynamic';
 
 // Create manual attribution
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const session = await auth();
     if (!session?.user?.email) {
@@ -147,6 +150,8 @@ export async function POST(req: NextRequest) {
 
 // Get all attributions
 export async function GET(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const session = await auth();
     if (!session?.user?.email) {

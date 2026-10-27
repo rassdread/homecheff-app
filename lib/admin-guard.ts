@@ -6,7 +6,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { accessDecision, type AdminCapability } from '@/lib/admin/admin-capabilities';
+import { accessDecision, explicitGrants, hasExplicitCapabilityScope, type AdminCapability } from '@/lib/admin/admin-capabilities';
+import { resolveAdminRouteCapabilities } from '@/lib/admin/admin-route-capabilities';
 import type { AdminPermissions, User } from '@prisma/client';
 
 export type AdminPermissionKey =
@@ -125,6 +126,21 @@ export async function requireAdminPermission(
 
   if (result.admin.isSuperAdmin) return result;
 
+  if (hasExplicitCapabilityScope(result.admin.user.adminRoles)) {
+    const grants = explicitGrants(result.admin.user.adminRoles);
+    const accepted = scopedPermissionCapabilities(permission);
+    if (!accepted.some((capability) => grants.includes(capability))) {
+      return {
+        ok: false,
+        response: NextResponse.json(
+          { error: `Missing capability for ${permission}` },
+          { status: 403 },
+        ),
+      };
+    }
+    return result;
+  }
+
   const perms = result.admin.permissions;
   const allowed = perms?.[permission] ?? false;
   if (!allowed) {
@@ -156,6 +172,61 @@ export async function requireAdminCapability(
       ok: false,
       response: NextResponse.json(
         { error: 'Missing capability', capability },
+        { status: 403 },
+      ),
+    };
+  }
+  return result;
+}
+
+const SCOPED_PERMISSION_CAPABILITIES: Record<AdminPermissionKey, AdminCapability[]> = {
+  canEditUsers: ['GLOBAL.USERS.EDIT'],
+  canViewUserDetails: ['GLOBAL.USERS.VIEW', 'MARKETPLACE.USERS.VIEW'],
+  canDeleteUsers: ['GLOBAL.USERS.EDIT'],
+  canDeleteProducts: ['MARKETPLACE.ORDERS.MANAGE'],
+  canEditProducts: ['MARKETPLACE.ORDERS.MANAGE'],
+  canViewOrderDetails: ['MARKETPLACE.ORDERS.VIEW', 'MARKETPLACE.ORDERS.MANAGE'],
+  canViewPaymentInfo: [
+    'MARKETPLACE.PAYMENTS.VIEW',
+    'MARKETPLACE.REFUNDS.EXECUTE',
+    'MARKETPLACE.TRANSFERS.RECOVER',
+    'MARKETPLACE.PROMOTIONS.EDIT',
+    'GROWTH.BILLING.VIEW',
+    'GROWTH.BILLING.MANAGE',
+  ],
+  canModerateContent: ['MARKETPLACE.ORDERS.MANAGE'],
+  canSendNotifications: ['GROWTH.CAMPAIGNS.MANAGE'],
+  canViewAuditLogs: ['GLOBAL.AUDIT.VIEW'],
+  canViewDeliveryDetails: ['MARKETPLACE.DELIVERY.VIEW', 'MARKETPLACE.DELIVERY.MANAGE'],
+  canManageAdminPermissions: ['GLOBAL.ADMINISTRATORS.MANAGE'],
+};
+
+function scopedPermissionCapabilities(permission: AdminPermissionKey): AdminCapability[] {
+  return SCOPED_PERMISSION_CAPABILITIES[permission];
+}
+
+export async function requireMappedAdminCapability(request: Request): Promise<GuardResult> {
+  const url = new URL(request.url);
+  const requirements = resolveAdminRouteCapabilities(url.pathname, request.method);
+  if (requirements.length === 1 && requirements[0] === 'SUPERADMIN') {
+    return requireSuperAdmin();
+  }
+  const result = await getPlatformAdmin();
+  if (!result.ok) return result;
+  const allowed = requirements.some((requirement) => {
+    if (requirement === 'SUPERADMIN') return result.admin.isSuperAdmin;
+    return accessDecision({
+      role: result.admin.user.role,
+      adminRoles: result.admin.user.adminRoles,
+      permissions: result.admin.permissions,
+      capability: requirement,
+    }).allow;
+  });
+  if (!allowed) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: 'Missing capability', capability: requirements.join(',') },
         { status: 403 },
       ),
     };

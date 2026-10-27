@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -6,6 +7,8 @@ export const dynamic = 'force-dynamic';
 
 // SUPERADMIN can assign admin roles to users
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const session = await auth();
     
@@ -40,27 +43,32 @@ export async function POST(req: NextRequest) {
     if (!targetUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+    if (userId === currentUser.id) {
+      return NextResponse.json({ error: 'CANNOT_CHANGE_OWN_ACCESS' }, { status: 403 });
+    }
+    if (
+      targetUser.role === 'SUPERADMIN' ||
+      role === 'SUPERADMIN' ||
+      (Array.isArray(adminRoles) && adminRoles.includes('SUPERADMIN'))
+    ) {
+      return NextResponse.json({ error: 'CANNOT_CHANGE_SUPERADMIN' }, { status: 403 });
+    }
 
-    // If role is provided (SUPERADMIN), set it directly
-    if (role === 'SUPERADMIN' || role === 'ADMIN') {
+    if (role === 'ADMIN') {
       await prisma.user.update({
         where: { id: userId },
         data: {
-          role: role as any
-        }
+          role: 'ADMIN',
+        },
       });
     } else if (Array.isArray(adminRoles)) {
-      // Otherwise, update adminRoles and set role based on adminRoles
-    // Check if SUPERADMIN is being assigned
-    const isAssigningSuperAdmin = adminRoles.includes('SUPERADMIN');
-    
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        adminRoles: adminRoles.filter(r => r !== 'SUPERADMIN'), // Remove SUPERADMIN from adminRoles array
-        role: isAssigningSuperAdmin ? 'SUPERADMIN' : (adminRoles.length > 0 ? 'ADMIN' : 'USER') // Set role to SUPERADMIN if assigned, otherwise ADMIN or USER
-      }
-    });
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          adminRoles: adminRoles.filter((entry: string) => entry !== 'SUPERADMIN'),
+          role: adminRoles.length > 0 ? 'ADMIN' : 'USER',
+        },
+      });
     } else {
       return NextResponse.json({ error: 'adminRoles array or role required' }, { status: 400 });
     }
@@ -77,6 +85,8 @@ export async function POST(req: NextRequest) {
 
 // Remove admin roles from user
 export async function DELETE(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const session = await auth();
     
@@ -99,8 +109,17 @@ export async function DELETE(req: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: 'userId required' }, { status: 400 });
     }
+    if (userId === currentUser.id) {
+      return NextResponse.json({ error: 'CANNOT_CHANGE_OWN_ACCESS' }, { status: 403 });
+    }
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+    if (targetUser?.role === 'SUPERADMIN') {
+      return NextResponse.json({ error: 'CANNOT_CHANGE_SUPERADMIN' }, { status: 403 });
+    }
 
-    // Remove admin roles and demote to USER
     await prisma.user.update({
       where: { id: userId },
       data: {

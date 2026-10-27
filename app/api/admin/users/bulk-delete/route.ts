@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -7,6 +8,8 @@ import { prisma } from '@/lib/prisma';
 import { deleteVaultObjectsByKey } from '@/lib/finance/evidence/evidence.server';
 
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const session = await auth();
     

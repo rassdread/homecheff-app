@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 /**
  * LEGAL-4A — admin compliance foundation API.
  * GET: DSA state + seller DAC7 readiness report
@@ -33,6 +34,8 @@ async function requireAdmin() {
 }
 
 export async function GET(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const admin = await requireAdmin();
   if (!admin) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -52,6 +55,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const admin = await requireAdmin();
   if (!admin) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

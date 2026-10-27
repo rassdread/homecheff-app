@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminPermission, requireMappedAdminCapability } from '@/lib/admin-guard';
 import {
   buildHcSellerTreasuryReadModel,
   evaluateHcSellerPayoutEligibilityById,
@@ -15,6 +15,8 @@ type RouteParams = { params: Promise<{ exposureId: string }> };
 
 /** GET — eligibility + treasury read model (no transfer). */
 export async function GET(_req: NextRequest, { params }: RouteParams) {
+  const mappedGuard = await requireMappedAdminCapability(_req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canViewPaymentInfo');
   if (!guard.ok) return guard.response;
 
@@ -82,6 +84,8 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
 
 /** POST — explicit admin payout (gated; fails closed when flags OFF). */
 export async function POST(req: NextRequest, { params }: RouteParams) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canViewPaymentInfo');
   if (!guard.ok) return guard.response;
 

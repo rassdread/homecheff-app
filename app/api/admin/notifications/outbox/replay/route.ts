@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -28,6 +29,8 @@ function authorizeCron(req: NextRequest): boolean {
 
 /** Replay failed/expired outbox rows (admin session or CRON_SECRET). */
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const ok = authorizeCron(req) || (await assertAdmin());
   if (!ok) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -66,6 +69,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const ok = authorizeCron(req) || (await assertAdmin());
   if (!ok) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

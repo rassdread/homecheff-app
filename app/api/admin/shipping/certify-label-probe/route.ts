@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminPermission, requireMappedAdminCapability } from '@/lib/admin-guard';
 import {
   ECTAROSHIP_PARTNER_BASE_URL,
   createPartnerLabel,
@@ -24,6 +24,8 @@ type DestIn = {
  * Never returns API key. Does not echo full private street lines on success.
  */
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canViewPaymentInfo');
   if (!guard.ok) return guard.response;
 

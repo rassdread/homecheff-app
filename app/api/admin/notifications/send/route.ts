@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { auth } from '@/lib/auth';
@@ -19,6 +20,8 @@ const EMAIL_BATCH_SIZE = 25;
 const EMAIL_BATCH_PAUSE_MS = 600;
 
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const session = await auth();
     if (!session?.user?.email) {

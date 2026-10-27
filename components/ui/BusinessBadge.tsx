@@ -75,11 +75,9 @@ export default function BusinessBadge({
           {companyName && (
             <span className="opacity-90 font-medium truncate">• {companyName}</span>
           )}
-          {dna.verifiedBusiness ? (
-            <span className="opacity-80 text-xs bg-white/25 px-2 py-0.5 rounded-full font-semibold tracking-wide uppercase">
-              Verified
-            </span>
-          ) : null}
+          <span className="opacity-80 text-xs bg-white/25 px-2 py-0.5 rounded-full font-semibold tracking-wide uppercase">
+            Abonnement
+          </span>
         </div>
       </div>
     );
@@ -92,7 +90,7 @@ export default function BusinessBadge({
           <Building2 className={`${iconSizes[size]} drop-shadow-sm`} />
           <Sparkles className="absolute -top-1 -right-1 w-3 h-3 text-yellow-300 animate-pulse" fill="currentColor" />
         </div>
-        <span className="font-bold">KVK Bedrijf</span>
+        <span className="font-bold">Bedrijf</span>
       </div>
       {companyName && (
         <span className="opacity-90 font-medium">• {companyName}</span>

@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -29,6 +30,8 @@ async function requireAdmin() {
  * Read-only financial impact preview. Never mutates Stripe.
  */
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const authz = await requireAdmin();
     if ('error' in authz && authz.error) return authz.error;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { prisma } from '@/lib/prisma';
-import { requireSuperAdmin } from '@/lib/admin-guard';
+import { requireSuperAdmin, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { logAdminAction } from '@/lib/admin-audit';
 import { LEDGER_PENDING_DAYS } from '@/lib/affiliate-config';
 
@@ -14,6 +14,8 @@ const LARGE_ADJUSTMENT_CENTS = 5000;
  * body: { affiliateId, amountCents, direction: 'credit'|'debit', reason, orderId?, subscriptionId? }
  */
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireSuperAdmin();
   if (!guard.ok) return guard.response;
 

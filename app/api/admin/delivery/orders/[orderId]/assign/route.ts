@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminPermission, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { logAdminAction } from '@/lib/admin-audit';
 import {
   assertDelivererCanAccept,
@@ -16,6 +16,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ orderId: string }> },
 ) {
+  const mappedGuard = await requireMappedAdminCapability(request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canViewDeliveryDetails');
   if (!guard.ok) return guard.response;
 

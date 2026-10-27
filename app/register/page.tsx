@@ -1645,6 +1645,11 @@ function RegisterPageContent() {
                 </form>
 
                 <div className="mt-6 text-sm text-gray-500 text-center">
+                  <p className="mb-2">
+                    <Link href="/sell" className="text-emerald-700 hover:text-emerald-800 font-medium">
+                      Wil je HomeCheff zakelijk gebruiken?
+                    </Link>
+                  </p>
                   <p>{t('register.alreadyHaveAccount')}{' '}
                     <Link
                       href={(() => {

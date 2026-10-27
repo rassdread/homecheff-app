@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 import { financialStripeSecret } from '@/lib/stripe';
-import { requireAdminCapability } from '@/lib/admin-guard';
+import { requireAdminCapability, requireMappedAdminCapability } from '@/lib/admin-guard';
 import {
   dryRunRefundSettlement,
   executeRefundSettlement,
@@ -25,6 +25,8 @@ const stripe: Stripe | null = refundStripeKey
  * Persists plan first, then reversals, then buyer refund.
  */
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const guard = await requireAdminCapability('MARKETPLACE.REFUNDS.EXECUTE');
     if (!guard.ok) return guard.response;

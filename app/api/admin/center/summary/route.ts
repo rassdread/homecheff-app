@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { accessDecision } from '@/lib/admin/admin-capabilities';
-import { requirePlatformAdmin } from '@/lib/admin-guard';
+import { requirePlatformAdmin, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { paidMarketplaceOrderWhere, sumCurrentModeGrossCents } from '@/lib/admin/paid-marketplace-orders';
 import { financialStripeSecret } from '@/lib/stripe';
 import { isSuccessfulTransferRef } from '@/lib/payments/seller-settlement';
@@ -13,7 +13,9 @@ export const dynamic = 'force-dynamic';
  * Gross merchandise value is captured order value in the current Stripe mode.
  * It is not platform profit. Test mode is labeled and is not live revenue.
  */
-export async function GET() {
+export async function GET(_request: Request) {
+  const mappedGuard = await requireMappedAdminCapability(_request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requirePlatformAdmin();
   if (!guard.ok) return guard.response;
   const allowed = (capability: Parameters<typeof accessDecision>[0]['capability']) =>

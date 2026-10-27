@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -19,6 +20,8 @@ async function requireAdmin() {
 }
 
 export async function GET(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const admin = await requireAdmin();
   if (!admin) {
     return NextResponse.json({ ok: false, code: 'UNAUTHORIZED' }, { status: 401 });

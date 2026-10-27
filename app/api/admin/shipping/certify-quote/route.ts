@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminPermission, requireMappedAdminCapability } from '@/lib/admin-guard';
 import {
   getShippingProducts,
   pingPartnerApi,
@@ -13,6 +13,8 @@ export const dynamic = 'force-dynamic';
  * Admin only. Never returns API key.
  */
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canViewPaymentInfo');
   if (!guard.ok) return guard.response;
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminPermission, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { logAdminAction } from '@/lib/admin-audit';
 
 export const dynamic = 'force-dynamic';
@@ -10,6 +10,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const mappedGuard = await requireMappedAdminCapability(request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canEditUsers');
   if (!guard.ok) return guard.response;
 
@@ -66,6 +68,8 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const mappedGuard = await requireMappedAdminCapability(_request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canEditUsers');
   if (!guard.ok) return guard.response;
 

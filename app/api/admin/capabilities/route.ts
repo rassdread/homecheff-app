@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logAdminAction } from '@/lib/admin-audit';
-import { requireSuperAdmin } from '@/lib/admin-guard';
+import { requireSuperAdmin, requireMappedAdminCapability } from '@/lib/admin-guard';
 import {
   ADMIN_CAPABILITIES,
   CAPABILITY_TEMPLATES,
@@ -14,6 +14,8 @@ import {
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireSuperAdmin();
   if (!guard.ok) return guard.response;
   const query = new URL(request.url).searchParams.get('q')?.trim() ?? '';
@@ -50,6 +52,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireSuperAdmin();
   if (!guard.ok) return guard.response;
   const body = await request.json().catch(() => ({}));

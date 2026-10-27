@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
-import { requireSuperAdmin } from '@/lib/admin-guard';
+import { requireSuperAdmin, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { financialStripeSecret } from '@/lib/stripe';
 import { dispatchVerifiedStripeWebhook } from '@/app/api/stripe/webhook/route';
 import { prismaWebhookReceiptStore } from '@/lib/stripe/webhook-receipt-store';
@@ -19,6 +19,8 @@ const HOUR_MS = 60 * 60_000;
  * The request body is only an event id. The payload is not stored.
  */
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireSuperAdmin();
   if (!guard.ok) return guard.response;
 

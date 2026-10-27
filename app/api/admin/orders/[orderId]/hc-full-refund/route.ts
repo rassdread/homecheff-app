@@ -5,7 +5,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminPermission, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
 import { growthRefundMarketplaceHc } from '@/lib/hc/growth-marketplace-mutation-client';
@@ -16,6 +16,8 @@ export const dynamic = 'force-dynamic';
 type RouteParams = { params: Promise<{ orderId: string }> };
 
 export async function POST(req: NextRequest, { params }: RouteParams) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canViewPaymentInfo');
   if (!guard.ok) return guard.response;
 

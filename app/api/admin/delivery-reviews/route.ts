@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -21,7 +22,9 @@ async function requireAdmin() {
   return { user };
 }
 
-export async function GET() {
+export async function GET(_request: Request) {
+  const mappedGuard = await requireMappedAdminCapability(_request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const gate = await requireAdmin();
   if (gate.error) return gate.error;
   const cases = await prisma.deliveryOrder.findMany({
@@ -127,6 +130,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const gate = await requireAdmin();
   if (gate.error) return gate.error;
   const body = await req.json().catch(() => null);

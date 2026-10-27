@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 /**
  * TRUST-1 — admin integrity queue + restore/remove.
  */
@@ -31,7 +32,9 @@ async function requireAdmin() {
   return user;
 }
 
-export async function GET() {
+export async function GET(_request: Request) {
+  const mappedGuard = await requireMappedAdminCapability(_request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const admin = await requireAdmin();
   if (!admin) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -148,6 +151,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const admin = await requireAdmin();
   if (!admin) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

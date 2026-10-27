@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminPermission, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { ensurePaidOrderShipment } from '@/lib/shipping/ensure-order-shipment';
 import { prisma } from '@/lib/prisma';
 
@@ -13,6 +13,8 @@ export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ orderId: string }> },
 ) {
+  const mappedGuard = await requireMappedAdminCapability(_req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const guard = await requireAdminPermission('canViewPaymentInfo');
   if (!guard.ok) return guard.response;
 

@@ -1,3 +1,4 @@
+import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -29,7 +30,9 @@ const SLIDE_TYPES: HcpCarouselSlideType[] = ['RANKING', 'PROMO', 'SPOTLIGHT', 'S
 const PLACEMENTS: HcpCarouselPlacement[] = ['HOME', 'RANKINGS', 'BOTH'];
 const TARGET_TYPES: HcpCarouselTargetType[] = ['GLOBAL', 'COUNTRY', 'RADIUS'];
 
-export async function GET() {
+export async function GET(_request: Request) {
+  const mappedGuard = await requireMappedAdminCapability(_request);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const gate = await requireAdmin();
   if ('error' in gate) return gate.error;
 
@@ -40,6 +43,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   const gate = await requireAdmin();
   if ('error' in gate) return gate.error;
 

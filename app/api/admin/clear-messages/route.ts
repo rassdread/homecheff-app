@@ -3,10 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 import { prisma } from '@/lib/prisma';
-import { requireSuperAdmin } from '@/lib/admin-guard';
+import { requireSuperAdmin, requireMappedAdminCapability } from '@/lib/admin-guard';
 import { logAdminAction } from '@/lib/admin-audit';
 
 export async function DELETE(req: NextRequest) {
+  const mappedGuard = await requireMappedAdminCapability(req);
+  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const guard = await requireSuperAdmin();
     if (!guard.ok) return guard.response;
