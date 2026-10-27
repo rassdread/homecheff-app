@@ -322,3 +322,27 @@ test('platform and courier percentages stay 12 and 88', () => {
   assert.equal(DELIVERY_PLATFORM_FEE_PERCENT, 12);
   assert.equal(DELIVERY_DELIVERER_PERCENT, 88);
 });
+
+test('card checkout keeps identity and consent queries on the transaction client', () => {
+  const transactionAt = routeSource.indexOf('prisma.$transaction(async (tx) => {');
+  const lockAt = routeSource.indexOf('lockCheckoutListings(tx, productIds)');
+  const centralAt = routeSource.indexOf('resolveCentralUserId(buyerId, tx)');
+  const gateAt = routeSource.indexOf('evaluateCardCheckoutGate(');
+  const consentAt = routeSource.indexOf('hasActiveParentalConsent(tx, sellerUser.id)');
+  const stockAt = routeSource.indexOf('holdCheckoutStock(');
+  assert.ok(transactionAt > 0);
+  assert.ok(lockAt > transactionAt);
+  assert.ok(centralAt > lockAt && centralAt < gateAt);
+  assert.ok(consentAt > gateAt && consentAt < stockAt);
+  assert.match(routeSource, /resolveCentralUserId\(buyerId, tx\)/);
+  const withoutTransactionCall = routeSource.replaceAll('resolveCentralUserId(buyerId, tx)', '');
+  assert.equal(withoutTransactionCall.includes('resolveCentralUserId('), false);
+  assert.equal(routeSource.includes('hasActiveParentalConsent(prisma,'), false);
+  assert.equal(routeSource.includes('timeout:'), false);
+});
+
+test('a failed Stripe session still expires the stock hold', () => {
+  const createAt = routeSource.indexOf('checkout.sessions.create');
+  const expireAt = routeSource.indexOf('expireHoldReservations(');
+  assert.ok(createAt > 0 && expireAt > createAt);
+});

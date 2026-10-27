@@ -30,6 +30,7 @@ import {
   evaluateCardCheckoutGate,
   productSupportsRequestedDelivery,
 } from '@/lib/checkout/card-checkout-guard';
+import { lockCheckoutListings } from '@/lib/checkout/checkout-transaction';
 import { resolveCentralUserId } from '@/lib/hc/marketplace-hc-order-service';
 import { resolveCheckoutBlockReason } from '@/lib/marketplace/settlement/settlement-router';
 import { assertProductsAllergenConfirmationOr400 } from '@/lib/legal/assert-food-allergens-for-transaction';
@@ -224,6 +225,7 @@ export async function POST(req: NextRequest) {
     let stockHoldId: string = randomUUID();
     let adoptedExistingHold = false;
     const stockCheckResult = await prisma.$transaction(async (tx) => {
+      await lockCheckoutListings(tx, productIds);
       const products = await tx.product.findMany({
         where: { id: { in: productIds } },
         include: { 
@@ -258,7 +260,7 @@ export async function POST(req: NextRequest) {
         return { error: 'Some products not found', products: null };
       }
 
-      const buyerCentralUserId = await resolveCentralUserId(buyerId);
+      const buyerCentralUserId = await resolveCentralUserId(buyerId, tx);
       const cardGate = evaluateCardCheckoutGate({
         buyerUserId: buyerId,
         buyerCentralUserId,
@@ -307,7 +309,7 @@ export async function POST(req: NextRequest) {
           }
           continue;
         }
-        const consent = await hasActiveParentalConsent(prisma, sellerUser.id);
+        const consent = await hasActiveParentalConsent(tx, sellerUser.id);
         const decision = evaluateMarketplaceEligibility({
           subject: sellerSubject,
           activity: 'RECEIVE_ORDERS',

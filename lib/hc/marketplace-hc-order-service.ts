@@ -1,3 +1,4 @@
+import type { Prisma, PrismaClient } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { OrderNumberGenerator } from '@/lib/orderNumberGenerator';
 import {
@@ -42,8 +43,11 @@ export function geographyKey(input: {
   return (input.country ?? 'NL').toUpperCase();
 }
 
-export async function resolveCentralUserId(localUserId: string): Promise<string | null> {
-  const link = await prisma.authIdentityLink.findFirst({
+export async function resolveCentralUserId(
+  localUserId: string,
+  db: PrismaClient | Prisma.TransactionClient = prisma,
+): Promise<string | null> {
+  const link = await db.authIdentityLink.findFirst({
     where: { sourceSystem: 'homecheff', sourceUserId: localUserId, status: 'linked' },
     select: { centralUserId: true },
   });
