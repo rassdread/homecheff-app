@@ -57,7 +57,12 @@ import { normalizeCountryCode } from '@/lib/gamification/country-code';
 import { randomUUID } from 'crypto';
 import { revalidateTag } from 'next/cache';
 import { expireHoldReservations } from '@/lib/products/stock-reservation';
-import { bindCheckoutSession, holdCheckoutStock } from '@/lib/products/courier-stock-hold';
+import {
+  claimCheckoutSession,
+  clearCheckoutSessionBinding,
+  holdCheckoutStock,
+} from '@/lib/products/courier-stock-hold';
+import { planCheckoutSessionExpiration } from '@/lib/products/checkout-reservation-policy';
 import { listingProductCacheTag } from '@/lib/marketplace/detail/listing-product-core';
 import {
   buildAuthoritativeLineItems,
@@ -449,12 +454,17 @@ export async function POST(req: NextRequest) {
         insufficientStock: held.insufficientStock,
         effectiveHoldId: held.effectiveHoldId,
         adoptedExistingHold: held.adoptedExistingHold,
+        activeCheckoutSessionId: held.activeCheckoutSessionId,
       };
     });
     if (stockCheckResult.effectiveHoldId) {
       stockHoldId = stockCheckResult.effectiveHoldId;
     }
     adoptedExistingHold = Boolean(stockCheckResult.adoptedExistingHold);
+    const activeCheckoutSessionId =
+      'activeCheckoutSessionId' in stockCheckResult
+        ? stockCheckResult.activeCheckoutSessionId
+        : null;
 
     if (stockCheckResult.error) {
       const reservationCodes = new Set([
@@ -1289,6 +1299,31 @@ export async function POST(req: NextRequest) {
         ? (configuredPaymentMethodTypes as Stripe.Checkout.SessionCreateParams.PaymentMethodType[])
         : defaultPaymentMethodTypes;
 
+    if (activeCheckoutSessionId && stripe) {
+      const existing = await stripe.checkout.sessions.retrieve(activeCheckoutSessionId);
+      const reuse = planCheckoutSessionExpiration(existing);
+      if (reuse === 'EXPIRE') {
+        return NextResponse.json({
+          sessionId: existing.id,
+          url: existing.url,
+        });
+      }
+      if (reuse === 'SKIP_PAID' || reuse === 'SKIP_COMPLETE') {
+        return NextResponse.json(
+          {
+            error: 'PAYMENT_ALREADY_SUBMITTED',
+            code: 'PAYMENT_ALREADY_SUBMITTED',
+            sessionId: existing.id,
+          },
+          { status: 409 },
+        );
+      }
+      await clearCheckoutSessionBinding(prisma, {
+        holdId: stockHoldId,
+        sessionId: existing.id,
+      });
+    }
+
     let checkoutSession: Stripe.Checkout.Session;
     try {
       checkoutSession = await stripe.checkout.sessions.create(sessionParams);
@@ -1309,11 +1344,25 @@ export async function POST(req: NextRequest) {
       revalidateTag(listingProductCacheTag(item.productId));
     }
     try {
-      await bindCheckoutSession(prisma, {
+      const claim = await claimCheckoutSession(prisma, {
         holdId: stockHoldId,
         sessionId: checkoutSession.id,
-        productIds: (items as Array<{ productId: string }>).map((item) => item.productId),
       });
+      if (!claim.claimed && stripe) {
+        if (checkoutSession.status === 'open') {
+          await stripe.checkout.sessions.expire(checkoutSession.id).catch(() => undefined);
+        }
+        if (claim.activeSessionId && claim.activeSessionId !== checkoutSession.id) {
+          const winner = await stripe.checkout.sessions.retrieve(claim.activeSessionId);
+          if (planCheckoutSessionExpiration(winner) === 'EXPIRE') {
+            return NextResponse.json({ sessionId: winner.id, url: winner.url });
+          }
+        }
+        return NextResponse.json(
+          { error: 'CHECKOUT_SESSION_SUPERSEDED', code: 'CHECKOUT_SESSION_SUPERSEDED' },
+          { status: 409 },
+        );
+      }
     } catch (bindError) {
       console.error('[checkout] could not bind session to stock hold', bindError);
     }

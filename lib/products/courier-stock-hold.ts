@@ -170,6 +170,7 @@ export async function holdCheckoutStock(
   insufficientStock: InsufficientStockItem[];
   effectiveHoldId: string;
   adoptedExistingHold: boolean;
+  activeCheckoutSessionId: string | null;
 }> {
   const now = input.now ?? new Date();
   const mode = (input.deliveryMode || '').toUpperCase();
@@ -179,6 +180,7 @@ export async function holdCheckoutStock(
     insufficientStock: [] as InsufficientStockItem[],
     effectiveHoldId: input.preliminaryHoldId,
     adoptedExistingHold: false,
+    activeCheckoutSessionId: null as string | null,
   };
 
   if (!isShipping && input.bookingRequestId) {
@@ -246,6 +248,7 @@ export async function holdCheckoutStock(
         insufficientStock: [],
         effectiveHoldId: pending[0].purchaseKey || input.preliminaryHoldId,
         adoptedExistingHold: true,
+        activeCheckoutSessionId: payableCheckoutSessionId(pending),
       };
     }
   }
@@ -295,6 +298,7 @@ export async function holdCheckoutStock(
         insufficientStock: [],
         effectiveHoldId: holds[0].purchaseKey || input.preliminaryHoldId,
         adoptedExistingHold: true,
+        activeCheckoutSessionId: payableCheckoutSessionId(holds),
       };
     }
   }
@@ -306,6 +310,54 @@ export async function holdCheckoutStock(
     { buyerId: input.buyerId },
   );
   return { ...none, insufficientStock: locked.insufficientStock };
+}
+
+function payableCheckoutSessionId(
+  holds: Array<{ checkoutSessionId?: string | null }>,
+): string | null {
+  for (const hold of holds) {
+    if (hold.checkoutSessionId?.startsWith('cs_')) return hold.checkoutSessionId;
+  }
+  return null;
+}
+
+/**
+ * Bind a Checkout Session only while the hold is still unbound.
+ * A concurrent request that already stored another session keeps that session.
+ */
+export async function claimCheckoutSession(
+  prisma: PrismaClient,
+  input: { holdId: string; sessionId: string },
+): Promise<{ claimed: boolean; activeSessionId: string | null }> {
+  const claimed = await prisma.stockReservation.updateMany({
+    where: {
+      status: 'PENDING',
+      purchaseKey: input.holdId,
+      OR: [{ checkoutSessionId: null }, { checkoutSessionId: input.sessionId }],
+    },
+    data: { checkoutSessionId: input.sessionId, phase: 'CHECKOUT' },
+  });
+  if (claimed.count > 0) return { claimed: true, activeSessionId: input.sessionId };
+  const current = await prisma.stockReservation.findFirst({
+    where: { purchaseKey: input.holdId, status: 'PENDING' },
+    select: { checkoutSessionId: true },
+  });
+  return { claimed: false, activeSessionId: current?.checkoutSessionId ?? null };
+}
+
+export async function clearCheckoutSessionBinding(
+  prisma: PrismaClient,
+  input: { holdId: string; sessionId: string },
+): Promise<number> {
+  const cleared = await prisma.stockReservation.updateMany({
+    where: {
+      status: 'PENDING',
+      purchaseKey: input.holdId,
+      checkoutSessionId: input.sessionId,
+    },
+    data: { checkoutSessionId: null },
+  });
+  return cleared.count;
 }
 
 export async function bindCheckoutSession(

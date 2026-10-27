@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { notifyReservationBuyer } from '@/lib/delivery/reservation-notifications';
 import { releaseExpiredUnpaidHolds } from '@/lib/products/courier-stock-hold';
-import {
-  loadIncidentFactsFromStripe,
-  reviewCheckoutPaymentIncident,
-} from '@/lib/payments/checkout-payment-incident';
+import { recoverDuplicateCheckoutPayment } from '@/lib/payments/duplicate-payment-recovery';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,10 +28,12 @@ export async function GET(req: NextRequest) {
     });
     let incidentsReviewed = 0;
     for (const incident of openIncidents) {
-      const review = await reviewCheckoutPaymentIncident(prisma, incident.id, {
-        loadFacts: loadIncidentFactsFromStripe,
-      });
-      if (review.claimed) incidentsReviewed += 1;
+      try {
+        await recoverDuplicateCheckoutPayment(prisma, incident.id);
+        incidentsReviewed += 1;
+      } catch (recoverErr) {
+        console.error('[checkout-recovery] incident retry failed', recoverErr);
+      }
     }
 
     console.log(`✅ Cleaned up ${result.cleaned} expired stock reservations`);

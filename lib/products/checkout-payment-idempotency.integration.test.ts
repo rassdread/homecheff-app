@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { PrismaClient } from '@prisma/client';
-import { holdCheckoutStock } from '@/lib/products/courier-stock-hold';
+import { claimCheckoutSession, holdCheckoutStock } from '@/lib/products/courier-stock-hold';
 import { confirmReservationAndDecrementStock } from '@/lib/products/stock-reservation';
 import { recordCheckoutPaymentIncident } from '@/lib/payments/checkout-payment-incident';
 
@@ -130,5 +130,41 @@ run('a second paid session cannot create another order for the same hold', async
       data: { stock: original?.stock ?? 4 },
     });
     await prisma.$disconnect();
+  }
+});
+
+run('two concurrent session claims keep one payable session', async () => {
+  const first = new PrismaClient({ datasources: { db: { url: pooled(databaseUrl!) } } });
+  const second = new PrismaClient({ datasources: { db: { url: pooled(databaseUrl!) } } });
+  const stamp = Date.now().toString(36);
+  const holdId = `v18-claim-${stamp}`;
+  const productIdLocal = productId;
+  const original = await first.product.findUnique({ where: { id: productIdLocal }, select: { stock: true } });
+  await first.product.update({ where: { id: productIdLocal }, data: { stock: 4 } });
+  try {
+    await first.$transaction((tx) =>
+      holdCheckoutStock(tx, {
+        items: [{ productId: productIdLocal, quantity: 1 }],
+        buyerId,
+        preliminaryHoldId: holdId,
+      }),
+    );
+    const [left, right] = await Promise.all([
+      claimCheckoutSession(first, { holdId, sessionId: `cs_left_${stamp}` }),
+      claimCheckoutSession(second, { holdId, sessionId: `cs_right_${stamp}` }),
+    ]);
+    const winners = [left, right].filter((row) => row.claimed);
+    assert.equal(winners.length, 1);
+    const stored = await first.stockReservation.findFirst({
+      where: { purchaseKey: holdId },
+      select: { checkoutSessionId: true },
+    });
+    assert.equal(stored?.checkoutSessionId, winners[0].activeSessionId);
+    assert.ok(stored?.checkoutSessionId?.startsWith('cs_'));
+  } finally {
+    await first.stockReservation.deleteMany({ where: { purchaseKey: holdId } });
+    await first.product.update({ where: { id: productIdLocal }, data: { stock: original?.stock ?? 4 } });
+    await first.$disconnect();
+    await second.$disconnect();
   }
 });

@@ -51,6 +51,10 @@ import {
   syncCourierConnectAccount,
 } from "@/lib/delivery/delivery-webhook-events";
 import { recordCheckoutPaymentIncident } from "@/lib/payments/checkout-payment-incident";
+import {
+  reconcileRefundedCharge,
+  recoverDuplicateCheckoutPayment,
+} from "@/lib/payments/duplicate-payment-recovery";
 import { revalidateTag } from "next/cache";
 import { listingProductCacheTag } from "@/lib/marketplace/detail/listing-product-core";
 import { revalidatePublicFeedCache } from "@/lib/feed/revalidate-public-feed";
@@ -378,6 +382,16 @@ try {
   // Handle refunds (commission reversal — subscription invoices + marketplace orders)
   else if (event.type === "charge.refunded") {
     const charge = event.data.object as Stripe.Charge;
+    const refundedIntentId =
+      typeof charge.payment_intent === 'string'
+        ? charge.payment_intent
+        : charge.payment_intent?.id || null;
+    await reconcileRefundedCharge(prisma, {
+      paymentIntentId: refundedIntentId,
+      refundId: charge.refunds?.data?.[0]?.id || null,
+    }).catch((reconcileErr) => {
+      console.error('[webhook] duplicate refund reconcile failed', reconcileErr);
+    });
     // invoice is an expandable field in Stripe
     const invoice = (charge as any).invoice as string | Stripe.Invoice | null | undefined;
     const invoiceId = typeof invoice === 'string' ? invoice : invoice?.id || null;
@@ -2168,13 +2182,21 @@ try {
             typeof session.payment_intent === 'string'
               ? session.payment_intent
               : session.payment_intent?.id || null;
-          await recordCheckoutPaymentIncident(prisma, {
+          const incident = await recordCheckoutPaymentIncident(prisma, {
             stripeSessionId: session.id,
             paymentIntentId,
             reason: orderError.message || 'Stock hold could not be confirmed',
             code: orderError.code || 'HOLD_EXPIRED',
             buyerId: session.metadata?.buyerId || null,
           });
+          if (incident) {
+            try {
+              await recoverDuplicateCheckoutPayment(prisma, incident.id);
+            } catch (recoverErr) {
+              console.error('[webhook] duplicate payment recovery incomplete', recoverErr);
+              return new NextResponse('Duplicate payment recovery incomplete', { status: 500 });
+            }
+          }
           return new NextResponse('ok', { status: 200 });
         } catch (recordErr) {
           console.error('[webhook] payment incident was not recorded', recordErr);
