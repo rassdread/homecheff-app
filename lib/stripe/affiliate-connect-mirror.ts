@@ -45,15 +45,45 @@ export async function syncAffiliateConnectMirrorFromUser(
       affiliate: { select: { id: true } },
     },
   });
-  if (!user?.affiliate?.id) return;
+  if (!user?.affiliate?.id || !user.stripeConnectAccountId) return;
+
+  const affiliate = await prisma.affiliate.findUnique({
+    where: { id: user.affiliate.id },
+    select: {
+      stripeConnectAccountId: true,
+      stripeConnectOnboardingCompleted: true,
+    },
+  });
+  const onboarding = Boolean(user.stripeConnectOnboardingCompleted);
+  if (
+    affiliate?.stripeConnectAccountId === user.stripeConnectAccountId &&
+    affiliate.stripeConnectOnboardingCompleted === onboarding
+  ) {
+    return;
+  }
 
   await prisma.affiliate.update({
     where: { id: user.affiliate.id },
     data: {
       stripeConnectAccountId: user.stripeConnectAccountId,
-      stripeConnectOnboardingCompleted: Boolean(
-        user.stripeConnectOnboardingCompleted,
-      ),
+      stripeConnectOnboardingCompleted: onboarding,
+    },
+  });
+}
+
+/** Intentional canonical clears may erase the mirror. Status reads must not. */
+export async function clearAffiliateConnectMirror(userId: string): Promise<void> {
+  const { prisma } = await import('@/lib/prisma');
+  const affiliate = await prisma.affiliate.findUnique({
+    where: { userId },
+    select: { id: true, stripeConnectAccountId: true },
+  });
+  if (!affiliate?.stripeConnectAccountId) return;
+  await prisma.affiliate.update({
+    where: { id: affiliate.id },
+    data: {
+      stripeConnectAccountId: null,
+      stripeConnectOnboardingCompleted: false,
     },
   });
 }

@@ -281,6 +281,11 @@ export async function executeAdminConnectReset(params: {
   });
 
   // Also mirror migrate-style audit so webhook resolver treats old id as LEGACY_OLD
+  const { clearAffiliateConnectMirror } = await import(
+    '@/lib/stripe/affiliate-connect-mirror'
+  );
+  await clearAffiliateConnectMirror(params.userId);
+
   await prisma.auditLog.create({
     data: {
       id: randomUUID(),

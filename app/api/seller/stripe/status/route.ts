@@ -51,25 +51,17 @@ export async function GET(_req: NextRequest) {
     }
 
     if (!matchesCurrentMode(user.stripeConnectAccountId)) {
-      await prisma.user.update({
-        where: { email: userEmail },
-        data: {
-          stripeConnectAccountId: null,
-          stripeConnectOnboardingCompleted: false,
-          stripeConnectTrack: null,
-        },
-      });
       const cta = connectCtaModelForStatus('NOT_STARTED');
       return NextResponse.json({
         connected: false,
-        accountId: null,
+        accountId: user.stripeConnectAccountId,
         details: null,
         payoutsEnabled: false,
         uiStatus: 'NOT_STARTED',
         paymentReady: false,
-        canCreateOnboardingLink: true,
+        canCreateOnboardingLink: false,
         cta,
-        error: 'Account from different Stripe mode. Please reconnect.',
+        error: 'Account from different Stripe mode. The saved link was kept.',
       });
     }
 

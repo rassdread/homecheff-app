@@ -59,34 +59,25 @@ export async function GET() {
     }
 
     if (user.stripeConnectAccountId && !matchesCurrentMode(user.stripeConnectAccountId)) {
-      await prisma.user.update({
-        where: { email: session.user.email },
-        data: {
-          stripeConnectAccountId: null,
-          stripeConnectOnboardingCompleted: false,
-          stripeConnectTrack: null,
-        },
-      });
       const cta = connectCtaModelForStatus('NOT_STARTED');
       return NextResponse.json({
-        hasAccount: false,
-        isCompleted: false,
-        accountId: null,
-        uiStatus: 'NOT_STARTED',
+        hasAccount: true,
+        isCompleted: user.stripeConnectOnboardingCompleted,
+        accountId: user.stripeConnectAccountId,
+        uiStatus: 'ACTION_REQUIRED',
         paymentReady: false,
         detailsSubmitted: false,
         chargesEnabled: false,
         payoutsEnabled: false,
-        connectTrack: null,
+        connectTrack: user.stripeConnectTrack,
         dualTrackEnabled: isDualTrackConnectEnabled(),
-        needsTrackSelection: isDualTrackConnectEnabled(),
+        needsTrackSelection: false,
         recoveryEligible: false,
-        configurationMismatch: false,
-        entryState: 'CHOOSE_TRACK',
-        classification: 'NOT_STARTED',
-        migrationClass: isDualTrackConnectEnabled()
-          ? 'NEW_ACCOUNT_CHOICE'
-          : 'KEEP_BUSINESS',
+        configurationMismatch: true,
+        entryState: 'MANUAL_REVIEW',
+        classification: 'MANUAL_REVIEW',
+        migrationClass: 'MANUAL_REVIEW',
+        linkPreserved: true,
         cta,
       });
     }
@@ -420,16 +411,37 @@ export async function POST(req: NextRequest) {
     let replaceOldAccountId: string | null = null;
     const isFakeTestAccount = accountId && accountId.startsWith('acct_test_');
 
-    if (isFakeTestAccount) {
-      await prisma.user.update({
-        where: { id: user.id },
+    if (isFakeTestAccount && accountId) {
+      const cleared = await prisma.user.updateMany({
+        where: { id: user.id, stripeConnectAccountId: accountId },
         data: {
           stripeConnectAccountId: null,
           stripeConnectOnboardingCompleted: false,
           stripeConnectTrack: null,
         },
       });
-      accountId = null;
+      if (cleared.count > 0) {
+        await prisma.auditLog.create({
+          data: {
+            id: crypto.randomUUID(),
+            userId: user.id,
+            action: 'STRIPE_CONNECT_LINK_CHANGE',
+            meta: {
+              previousAccountId: accountId,
+              nextAccountId: null,
+              reason: 'FAKE_LOCAL_PREFIX',
+              operation: 'EXPLICIT_CLEAR',
+              actor: user.id,
+              verification: 'local_acct_test_prefix',
+            },
+          },
+        });
+        const { clearAffiliateConnectMirror } = await import(
+          '@/lib/stripe/affiliate-connect-mirror'
+        );
+        await clearAffiliateConnectMirror(user.id);
+        accountId = null;
+      }
     }
 
     // PARTICULAR already linked → reuse ONLY when Stripe shape matches.

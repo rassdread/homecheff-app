@@ -1,6 +1,8 @@
 import type Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
-import { isTestMode, matchesCurrentMode, stripe } from '@/lib/stripe';
+import { matchesCurrentMode, stripe } from '@/lib/stripe';
+import { financialStripeSecret, stripeSecretMode } from '@/lib/stripe-runtime-guard';
+import { classifyConnectAccountRetrieve } from '@/lib/stripe/connect-link-guard';
 import {
   deriveConnectAccountStatusFromDb,
   deriveConnectAccountStatusFromStripe,
@@ -11,8 +13,9 @@ import type { SellerStripeSnapshot } from '@/lib/stripe/seller-payment-status';
 export type { ConnectAccountStatusSnapshot };
 
 /**
- * Live-retrieve the user's Connect account, sync DB onboardingCompleted, return
- * normalized HomeCheff Connect status. Defensive — never throws to callers.
+ * Live-retrieve the user's Connect account and refresh the onboarding flag.
+ * A status read never removes User.stripeConnectAccountId. Account objects do
+ * not expose livemode; a missing mode is not evidence of the wrong environment.
  */
 export async function loadConnectAccountStatusForUser(params: {
   userId: string;
@@ -40,21 +43,17 @@ export async function loadConnectAccountStatusForUser(params: {
 
   try {
     const account = await stripe.accounts.retrieve(accountId);
-    const livemode = Boolean(
-      (account as unknown as { livemode?: boolean }).livemode,
-    );
-    if (livemode === isTestMode) {
-      await prisma.user.update({
-        where: { id: params.userId },
-        data: {
-          stripeConnectAccountId: null,
-          stripeConnectOnboardingCompleted: false,
-          stripeConnectTrack: null,
-        },
-      });
+    const classification = classifyConnectAccountRetrieve({
+      secretMode: stripeSecretMode(financialStripeSecret()),
+      account: {
+        id: account.id,
+        livemode: (account as unknown as { livemode?: boolean | null }).livemode,
+      },
+    });
+    if (classification.kind !== 'CURRENT') {
       return deriveConnectAccountStatusFromDb({
-        stripeConnectAccountId: null,
-        stripeConnectOnboardingCompleted: false,
+        stripeConnectAccountId: accountId,
+        stripeConnectOnboardingCompleted: params.stripeConnectOnboardingCompleted,
       });
     }
     const track =
@@ -70,11 +69,14 @@ export async function loadConnectAccountStatusForUser(params: {
       snapshot.onboardingCompleted !==
       Boolean(params.stripeConnectOnboardingCompleted)
     ) {
-      await prisma.user.update({
-        where: { id: params.userId },
+      const updated = await prisma.user.updateMany({
+        where: {
+          id: params.userId,
+          stripeConnectAccountId: accountId,
+        },
         data: { stripeConnectOnboardingCompleted: snapshot.onboardingCompleted },
       });
-      if (snapshot.paymentReady && snapshot.onboardingCompleted) {
+      if (updated.count > 0 && snapshot.paymentReady && snapshot.onboardingCompleted) {
         const { resumePendingListingCampaign } = await import('@/lib/hc/qualify-first-listing');
         void resumePendingListingCampaign(params.userId).catch((e) =>
           console.warn('[hc-campaign] resume after stripe', e),
@@ -94,10 +96,21 @@ export async function loadConnectAccountStatusForUser(params: {
 
     return snapshot;
   } catch (error) {
+    const stripeError = error as {
+      code?: string;
+      type?: string;
+      statusCode?: number;
+    };
+    const classification = classifyConnectAccountRetrieve({
+      secretMode: stripeSecretMode(financialStripeSecret()),
+      errorCode: stripeError.code,
+      errorType: stripeError.type,
+      errorStatus: stripeError.statusCode,
+    });
     console.warn('[stripe] loadConnectAccountStatusForUser failed', {
       userId: params.userId,
       accountId: accountId.slice(0, 12),
-      error,
+      outcome: classification.kind,
     });
     return deriveConnectAccountStatusFromDb({
       stripeConnectAccountId: accountId,

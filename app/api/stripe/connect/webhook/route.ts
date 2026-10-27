@@ -221,14 +221,38 @@ async function handleAccountDeauthorized(deauth: any) {
       return;
     }
 
-    await prisma.user.update({
-      where: { id: target.userId },
+    const cleared = await prisma.user.updateMany({
+      where: {
+        id: target.userId,
+        stripeConnectAccountId: accountId,
+      },
       data: {
         stripeConnectOnboardingCompleted: false,
         stripeConnectAccountId: null,
         stripeConnectTrack: null,
       },
     });
+    if (cleared.count === 0) return;
+
+    await prisma.auditLog.create({
+      data: {
+        id: crypto.randomUUID(),
+        userId: target.userId,
+        action: 'STRIPE_CONNECT_LINK_CHANGE',
+        meta: {
+          previousAccountId: accountId,
+          nextAccountId: null,
+          reason: 'ACCOUNT_DEAUTHORIZED',
+          operation: 'EXPLICIT_CLEAR',
+          actor: 'stripe_connect_webhook',
+          verification: 'account.application.deauthorized',
+        },
+      },
+    });
+    const { clearAffiliateConnectMirror } = await import(
+      '@/lib/stripe/affiliate-connect-mirror'
+    );
+    await clearAffiliateConnectMirror(target.userId);
 
     console.log(
       `✅ Stripe Connect deauthorized for user ${target.userId}, onboarding reset`,
