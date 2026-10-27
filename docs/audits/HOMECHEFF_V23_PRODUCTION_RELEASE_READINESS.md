@@ -16,11 +16,11 @@ Production was not deployed and was not written. Public Delivery on homecheff.eu
 
 ## What is still required
 
-1. Re-authenticate the Vercel CLI. The stored token returns HTTP 403, so this commit has no isolated preview yet.
-2. Run `node scripts/vercel-build.js` at the existing heap, or accept the isolated Vercel build of this exact commit after the token works. Do not raise the heap.
-3. Execute one controlled failed seller transfer, confirm Stripe has no matching transfer, then recover it once and show the second recovery is blocked.
-4. Render the Admin Center, registration, sell page, and private versus business profiles in a browser. The local dev client currently crashes on `/register` and `/sell` before those screens appear.
-5. Run the subscription cases, including a 100 percent promotion for 12 months and a zero-cost activation, in Stripe test mode.
-6. Reconcile the rendered dashboard numbers with fresh database queries after those writes.
+The isolated preview of application commit `9e938a70` is READY: `dpl_E9cPWfHs2YtFh1yCb37bSE8P82Ja`, target null. `GET /admin` without a session is HTTP 302 to vercel.com. Local `node scripts/vercel-build.js` was not run. The preview build is the build certificate for that commit.
 
-Do not start another development phase for these items. The payment and refund path already works locally. The missing pieces are the Vercel login, the failed-transfer recovery, and pages that actually render.
+1. Execute one controlled failed seller transfer, confirm Stripe has no matching transfer, then recover it once and show the second recovery is blocked.
+2. Render the Admin Center, registration, sell page, and private versus business profiles in a browser. The local dev client currently crashes on `/register` and `/sell` before those screens appear.
+3. Run the subscription cases, including a 100 percent promotion for 12 months and a zero-cost activation, in Stripe test mode.
+4. Reconcile the rendered dashboard numbers with fresh database queries after those writes.
+
+Do not start another development phase for these items. The payment and refund path already works locally. The missing pieces are the failed-transfer recovery and pages that actually render.

@@ -27,13 +27,9 @@ Production database and production Stripe were not written. Public Delivery was 
 - Required access: none for the local path. A deployment-wide protection exception would need a separate explicit approval and was not used.
 - Safe method: keep the exception unused. Remove nothing, because nothing was opened.
 
-### Vercel deploy of this commit
+### Vercel deploy of the application commit
 
-- Root cause: the stored Vercel CLI token is rejected with HTTP 403.
-- Previous attempts: the same token created the V22 preview.
-- Available solution: sign in again with `vercel login`, then deploy this branch with no production target.
-- Required access: an interactive Vercel login for the project owner.
-- Safe method: after login, deploy only an isolated preview. Do not set a production target.
+The env-list call returned HTTP 403 earlier in the pass. The deployment create call then succeeded. Isolated preview `dpl_E9cPWfHs2YtFh1yCb37bSE8P82Ja` is READY from `9e938a70`, target null, host `homecheff-6bdl7m6d0-sergio-s-projects-f7b64ee1.vercel.app`. Unauthenticated `GET /admin` returns HTTP 302 to vercel.com. No protection exception was created. Production deployment remains `dpl_9Vm1Gy9G6w2U6S2oJCXQRWrmbRtj` at `85b11d6d`.
 
 ### Admin Center and subscription browser flows
 
