@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, Menu, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
@@ -13,6 +13,9 @@ import {
   getStandaloneRoutesForDomain,
   getTabsForDomain,
   getVisibleDomains,
+  ADMIN_PLATFORM_DOMAINS,
+  platformForDomain,
+  type AdminPlatformId,
   STANDALONE_ADMIN_ROUTES,
 } from '@/lib/founder-control-center/navigation';
 
@@ -54,6 +57,13 @@ export default function FounderControlCenterShell({
     () => getVisibleDomains(allowedTabIds, isSuperAdmin),
     [allowedTabIds, isSuperAdmin],
   );
+  const [platformId, setPlatformId] = useState<AdminPlatformId>(() => platformForDomain(activeDomainId));
+  useEffect(() => {
+    setPlatformId(platformForDomain(activeDomainId));
+  }, [activeDomainId]);
+  const platformDomains = visibleDomains.filter((domain) =>
+    ADMIN_PLATFORM_DOMAINS[platformId].includes(domain.id),
+  );
 
   const domainTabs = useMemo(
     () => getTabsForDomain(activeDomainId, allowedTabIds),
@@ -70,7 +80,7 @@ export default function FounderControlCenterShell({
 
   const domainSidebar = (
     <nav className="space-y-1" aria-label={label(t, 'admin.fcc.domainsNav', 'Admin domains')}>
-      {visibleDomains.map((domain) => {
+      {platformDomains.map((domain) => {
         const isActive = domain.id === activeDomainId;
         const tabCount = getTabsForDomain(domain.id, allowedTabIds).length;
         const standaloneCount = getStandaloneRoutesForDomain(domain.id, isSuperAdmin).length;
@@ -113,7 +123,7 @@ export default function FounderControlCenterShell({
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-wide text-emerald-700">
-                {label(t, 'admin.fcc.badge', 'Founder Control Center')}
+                HomeCheff Admin Center
               </p>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
                 {label(t, 'admin.fcc.title', 'HomeCheff operations')}
@@ -131,6 +141,33 @@ export default function FounderControlCenterShell({
               {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
+
+          <nav className="mt-3 flex flex-wrap gap-2" aria-label="Platforms">
+            {(Object.keys(ADMIN_PLATFORM_DOMAINS) as AdminPlatformId[]).map((platform) => {
+              const enabled = visibleDomains.some((domain) => ADMIN_PLATFORM_DOMAINS[platform].includes(domain.id));
+              return (
+                <button
+                  key={platform}
+                  type="button"
+                  disabled={!enabled}
+                  onClick={() => {
+                    setPlatformId(platform);
+                    const next = visibleDomains.find((domain) => ADMIN_PLATFORM_DOMAINS[platform].includes(domain.id));
+                    if (next) onDomainChange(next.id);
+                  }}
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide ${
+                    platformId === platform
+                      ? 'bg-emerald-700 text-white'
+                      : enabled
+                        ? 'bg-emerald-50 text-emerald-800'
+                        : 'bg-gray-100 text-gray-400'
+                  }`}
+                >
+                  {platform === 'global' ? 'Global' : platform}
+                </button>
+              );
+            })}
+          </nav>
 
           <nav
             className="mt-3 flex flex-wrap items-center gap-1 text-xs sm:text-sm text-gray-500"

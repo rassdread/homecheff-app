@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 import { financialStripeSecret } from '@/lib/stripe';
+import { requireAdminCapability } from '@/lib/admin-guard';
 import {
   dryRunRefundSettlement,
   executeRefundSettlement,
@@ -26,19 +26,9 @@ const stripe: Stripe | null = refundStripeKey
  */
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email! },
-      select: { id: true, role: true },
-    });
-
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
+    const guard = await requireAdminCapability('MARKETPLACE.REFUNDS.EXECUTE');
+    if (!guard.ok) return guard.response;
+    const user = guard.admin.user;
     if (!stripe) {
       return NextResponse.json({ error: 'Stripe is not configured' }, { status: 503 });
     }

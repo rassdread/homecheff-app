@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import type { AdminUserPopulationSnapshot } from '@/lib/admin/user-population';
 import { getDisplayName } from '@/lib/displayName';
+import { explicitGrants, hasExplicitCapabilityScope, tabsAllowedByCapabilities } from '@/lib/admin/admin-capabilities';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Users, Package, ShoppingCart, MessageSquare, TrendingUp, Truck } from 'lucide-react';
 import FounderControlCenterShell, { FounderQuickLinks } from './FounderControlCenterShell';
@@ -25,6 +26,8 @@ import ContentModerationDashboard from './ContentModerationDashboard';
 import AdminChatManagement from './AdminChatManagement';
 import AdminFilters from './AdminFilters';
 import AdminManagement from './AdminManagement';
+import AdminCapabilityPanel from './AdminCapabilityPanel';
+import AdminCenterSummary from './AdminCenterSummary';
 import OrderManagement from './OrderManagement';
 import FinancialManagement from './FinancialManagement';
 import DisputeResolution from './DisputeResolution';
@@ -248,10 +251,13 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
   const isAdmin = user?.role === 'ADMIN';
   
   const allowedTabs = useMemo(() => {
+    const legacyRoles = adminRoles.filter((role) => !role.startsWith('cap:'));
     let tabs = isSuperAdmin
-      ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates', 'opportunity-funnel', 'promotions', 'hc-campaigns']
-      : isAdmin && adminRoles.length > 0
-        ? getUserAllowedTabs(adminRoles)
+      ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'settings', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'admin-management', 'affiliates', 'opportunity-funnel', 'promotions', 'hc-campaigns', 'studio-desk']
+      : hasExplicitCapabilityScope(adminRoles)
+        ? tabsAllowedByCapabilities(explicitGrants(adminRoles))
+      : isAdmin && legacyRoles.length > 0
+        ? getUserAllowedTabs(legacyRoles)
         : isAdmin
           ? ['command-center', 'overview', 'orders', 'financial', 'disputes', 'audit', 'users', 'messages', 'sellers', 'products', 'delivery', 'live-locations', 'analytics', 'promo-analytics', 'login-analytics', 'variabelen', 'geographic', 'moderation', 'notifications', 'affiliates', 'opportunity-funnel', 'promotions', 'hc-campaigns']
           : [];
@@ -356,6 +362,8 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
         )}
 
         {activeTab === 'overview' && (
+          <div className="space-y-4">
+            <AdminCenterSummary />
           <div className="space-y-8">
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
@@ -602,6 +610,7 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
               </div>
             )}
           </div>
+          </div>
         )}
 
         {activeTab === 'orders' && <OrderManagement />}
@@ -622,7 +631,13 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
         {activeTab === 'moderation' && <ContentModerationDashboard />}
         {activeTab === 'messages' && <AdminChatManagement />}
         {activeTab === 'notifications' && <NotificationCenter />}
-        {activeTab === 'admin-management' && <AdminManagement />}
+        {activeTab === 'admin-management' && (
+          <div className="space-y-4">
+            <AdminCapabilityPanel />
+            <AdminManagement />
+          </div>
+        )}
+        {activeTab === 'studio-desk' && <AdminCenterSummary />}
         {activeTab === 'affiliates' && <AffiliateManagement />}
         {activeTab === 'opportunity-funnel' && <OpportunityFunnelAdmin />}
         {activeTab === 'promotions' && <AdminPromotionsPanel />}

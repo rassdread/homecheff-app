@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { accessDecision } from '@/lib/admin/admin-capabilities';
 import { capabilityLabels, SUBSCRIPTION_STATUSES_COUNTED_AS_CURRENT } from '@/lib/admin/user-capabilities';
+import { requirePlatformAdmin } from '@/lib/admin-guard';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,25 +11,17 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  const adminUser = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, role: true },
-  });
-  if (!adminUser || (adminUser.role !== 'ADMIN' && adminUser.role !== 'SUPERADMIN')) {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-  }
-  if (adminUser.role !== 'SUPERADMIN') {
-    const permissions = await prisma.adminPermissions.findUnique({
-      where: { userId: adminUser.id },
-      select: { canViewUserDetails: true },
-    });
-    if (permissions && permissions.canViewUserDetails === false) {
-      return NextResponse.json({ error: 'Missing permission: canViewUserDetails' }, { status: 403 });
-    }
+  const guard = await requirePlatformAdmin();
+  if (!guard.ok) return guard.response;
+  const allowed = (capability: Parameters<typeof accessDecision>[0]['capability']) =>
+    accessDecision({
+      role: guard.admin.user.role,
+      adminRoles: guard.admin.user.adminRoles,
+      permissions: guard.admin.permissions,
+      capability,
+    }).allow;
+  if (!allowed('GLOBAL.USERS.VIEW') && !allowed('MARKETPLACE.USERS.VIEW')) {
+    return NextResponse.json({ error: 'Missing capability' }, { status: 403 });
   }
 
   const { id } = await params;
@@ -90,6 +83,20 @@ export async function GET(
   );
   const connectReady = Boolean(user.stripeConnectAccountId && user.stripeConnectOnboardingCompleted);
   const listings = user.SellerProfile?.products ?? [];
+  const canMarketplace = allowed('MARKETPLACE.SELLERS.VIEW') || allowed('MARKETPLACE.ORDERS.VIEW');
+  const canDelivery = allowed('MARKETPLACE.DELIVERY.VIEW');
+  const canGrowth = allowed('GROWTH.AFFILIATES.VIEW') || allowed('GROWTH.BILLING.VIEW');
+  const canPayments = allowed('MARKETPLACE.PAYMENTS.VIEW');
+  const canStudio = allowed('STUDIO.PROJECTS.VIEW') || allowed('STUDIO.JOBS.VIEW');
+  const studio = canStudio
+    ? {
+        projectCount: user.SellerProfile
+          ? await prisma.workspaceContent.count({ where: { sellerProfileId: user.SellerProfile.id } })
+          : 0,
+        generationJobCount: await prisma.marketplaceVideoJob.count({ where: { ownerUserId: user.id } }),
+        mediaIncluded: false,
+      }
+    : { restricted: true as const };
 
   return NextResponse.json({
     account: {
@@ -113,8 +120,8 @@ export async function GET(
       role: user.role,
       connectReady,
     }),
-    buyer: { orderCount: user._count.orders },
-    seller: user.SellerProfile
+    buyer: canMarketplace ? { orderCount: user._count.orders } : { restricted: true },
+    seller: !canMarketplace ? { restricted: true } : user.SellerProfile
       ? {
           commerceDeclaration: user.SellerProfile.commerceDeclaration,
           businessSeller,
@@ -127,7 +134,7 @@ export async function GET(
           integrityBlocked: listings.filter((listing) => listing.integrityStatus !== 'ACTIVE').length,
         }
       : null,
-    delivery: user.DeliveryProfile
+    delivery: !canDelivery ? { restricted: true } : user.DeliveryProfile
       ? {
           profileId: user.DeliveryProfile.id,
           verified: user.DeliveryProfile.isVerified,
@@ -141,19 +148,22 @@ export async function GET(
           connectIsNotApproval: true,
         }
       : null,
-    affiliate: user.affiliate
+    growth: !canGrowth ? { restricted: true } : user.affiliate
       ? {
           status: user.affiliate.status,
           populationClass: user.affiliate.populationClass,
           commercialParticipant: user.affiliate.populationClass === 'COMMERCIAL',
         }
       : null,
-    connect: {
-      ready: connectReady,
-      onboardingCompleted: user.stripeConnectOnboardingCompleted,
-      hasAccount: Boolean(user.stripeConnectAccountId),
-    },
-    subscription: subscription
+    connect: canPayments
+      ? {
+          ready: connectReady,
+          onboardingCompleted: user.stripeConnectOnboardingCompleted,
+          hasAccount: Boolean(user.stripeConnectAccountId),
+        }
+      : { restricted: true },
+    studio,
+    subscription: canPayments && subscription
       ? {
           status: subscription.status,
           planId: subscription.planId,

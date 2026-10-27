@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PromoCodeStatus } from '@prisma/client';
-import { requireAdminPermission } from '@/lib/admin-guard';
+import { requireAdminCapability } from '@/lib/admin-guard';
 import { logAdminAction } from '@/lib/admin-audit';
 import { updatePromoRedemptionLimit } from '@/lib/promo-codes/promo-limit-update';
 
@@ -12,7 +12,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const guard = await requireAdminPermission('canViewPaymentInfo');
+  const guard = await requireAdminCapability('MARKETPLACE.PROMOTIONS.EDIT');
   if (!guard.ok) return guard.response;
 
   const { id } = await params;

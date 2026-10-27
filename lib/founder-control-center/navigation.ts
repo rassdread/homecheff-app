@@ -34,7 +34,8 @@ export type AdminDomainId =
   | 'growth'
   | 'trust'
   | 'insights'
-  | 'platform';
+  | 'platform'
+  | 'studio';
 
 export type AdminTabId =
   | 'command-center'
@@ -61,7 +62,8 @@ export type AdminTabId =
   | 'geographic'
   | 'settings'
   | 'audit'
-  | 'admin-management';
+  | 'admin-management'
+  | 'studio-desk';
 
 export interface AdminTabDef {
   id: AdminTabId;
@@ -117,6 +119,7 @@ export const ADMIN_TAB_DEFINITIONS: AdminTabDef[] = [
   { id: 'settings', domain: 'platform', labelKey: 'admin.settings', fallbackLabel: 'Settings', icon: Settings },
   { id: 'audit', domain: 'platform', labelKey: 'admin.auditLog', fallbackLabel: 'Audit log', icon: FileText },
   { id: 'admin-management', domain: 'platform', labelKey: 'admin.adminManagement', fallbackLabel: 'Admin access', icon: Shield, superAdminOnly: true },
+  { id: 'studio-desk', domain: 'studio', labelKey: 'admin.studioDesk', fallbackLabel: 'Studio desk', icon: Eye },
 ];
 
 export const ADMIN_DOMAIN_DEFINITIONS: AdminDomainDef[] = [
@@ -192,7 +195,31 @@ export const ADMIN_DOMAIN_DEFINITIONS: AdminDomainDef[] = [
     descriptionKey: 'admin.fcc.domain.platformDesc',
     fallbackDescription: 'Settings, audit trail, and admin access',
   },
+  {
+    id: 'studio',
+    labelKey: 'admin.fcc.domain.studio',
+    fallbackLabel: 'Studio',
+    emoji: '🎛',
+    descriptionKey: 'admin.fcc.domain.studioDesc',
+    fallbackDescription: 'Workspace projects and generation jobs',
+  },
 ];
+
+export type AdminPlatformId = 'global' | 'marketplace' | 'growth' | 'studio';
+
+export const ADMIN_PLATFORM_DOMAINS: Record<AdminPlatformId, AdminDomainId[]> = {
+  global: ['command-center', 'platform'],
+  marketplace: ['community', 'marketplace', 'finance', 'logistics', 'trust'],
+  growth: ['growth', 'insights'],
+  studio: ['studio'],
+};
+
+export function platformForDomain(domainId: AdminDomainId): AdminPlatformId {
+  const match = (Object.keys(ADMIN_PLATFORM_DOMAINS) as AdminPlatformId[]).find((platform) =>
+    ADMIN_PLATFORM_DOMAINS[platform].includes(domainId),
+  );
+  return match ?? 'global';
+}
 
 /** Routes outside `/admin?tab=` — linked from domain sidebars. */
 export const STANDALONE_ADMIN_ROUTES: StandaloneAdminRoute[] = [

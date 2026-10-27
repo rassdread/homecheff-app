@@ -6,6 +6,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { accessDecision, type AdminCapability } from '@/lib/admin/admin-capabilities';
 import type { AdminPermissions, User } from '@prisma/client';
 
 export type AdminPermissionKey =
@@ -136,6 +137,29 @@ export async function requireAdminPermission(
     };
   }
 
+  return result;
+}
+
+export async function requireAdminCapability(
+  capability: AdminCapability,
+): Promise<GuardResult> {
+  const result = await getPlatformAdmin();
+  if (!result.ok) return result;
+  const decision = accessDecision({
+    role: result.admin.user.role,
+    adminRoles: result.admin.user.adminRoles,
+    permissions: result.admin.permissions,
+    capability,
+  });
+  if (!decision.allow) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: 'Missing capability', capability },
+        { status: 403 },
+      ),
+    };
+  }
   return result;
 }
 
