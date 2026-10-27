@@ -24,6 +24,13 @@ import {
   courierBookingBlockedByCommunityDelivery,
   isCourierCheckoutMode,
 } from '@/lib/checkout/fulfillment-phase1';
+import {
+  allRequestedProductsFound,
+  cardCheckoutGateErrorKey,
+  evaluateCardCheckoutGate,
+  productSupportsRequestedDelivery,
+} from '@/lib/checkout/card-checkout-guard';
+import { resolveCentralUserId } from '@/lib/hc/marketplace-hc-order-service';
 import { resolveCheckoutBlockReason } from '@/lib/marketplace/settlement/settlement-router';
 import { assertProductsAllergenConfirmationOr400 } from '@/lib/legal/assert-food-allergens-for-transaction';
 import {
@@ -247,8 +254,30 @@ export async function POST(req: NextRequest) {
         }
       });
 
-      if (products.length !== items.length) {
+      if (!allRequestedProductsFound(items.length, products.length)) {
         return { error: 'Some products not found', products: null };
+      }
+
+      const buyerCentralUserId = await resolveCentralUserId(buyerId);
+      const cardGate = evaluateCardCheckoutGate({
+        buyerUserId: buyerId,
+        buyerCentralUserId,
+        buyerStripeConnectAccountId: buyer.stripeConnectAccountId,
+        products: products.map((product) => ({
+          id: product.id,
+          isActive: product.isActive,
+          integrityStatus: product.integrityStatus,
+          sellerUserId: product.seller?.userId ?? product.seller?.User?.id ?? null,
+          sellerStripeConnectAccountId: product.seller?.User?.stripeConnectAccountId ?? null,
+        })),
+      });
+      if (!cardGate.proceed) {
+        return {
+          error: cardGate.code,
+          code: cardGate.code,
+          errorKey: cardCheckoutGateErrorKey(cardGate.code),
+          products: null,
+        };
       }
 
       for (const productRow of products) {
@@ -373,30 +402,9 @@ export async function POST(req: NextRequest) {
 
       // Validate delivery mode compatibility with products
       if (deliveryMode) {
-        const deliveryModeUpper = deliveryMode.toUpperCase();
-        const isPickup = deliveryModeUpper === 'PICKUP';
-        const isDelivery =
-          deliveryModeUpper === 'DELIVERY' ||
-          deliveryModeUpper === 'LOCAL_DELIVERY' ||
-          deliveryModeUpper === 'TEEN_DELIVERY' ||
-          deliveryModeUpper === 'LOCAL_PROVIDER';
-        const isShipping = deliveryModeUpper === 'SHIPPING';
-        
-        // Check if all products support the selected delivery mode
-        const incompatibleProducts: string[] = [];
-        for (const product of products) {
-          const productDelivery = product.delivery;
-          if (isPickup && productDelivery !== 'PICKUP' && productDelivery !== 'BOTH') {
-            incompatibleProducts.push(product.title);
-          } else if (isDelivery && productDelivery !== 'DELIVERY' && productDelivery !== 'BOTH') {
-            incompatibleProducts.push(product.title);
-          } else if (isShipping) {
-            // TypeScript workaround: check if productDelivery is not SHIPPING or BOTH
-            if (productDelivery !== 'BOTH' && productDelivery !== ('SHIPPING' as typeof productDelivery)) {
-              incompatibleProducts.push(product.title);
-            }
-          }
-        }
+        const incompatibleProducts = products
+          .filter((product) => !productSupportsRequestedDelivery(product.delivery, deliveryMode))
+          .map((product) => product.title);
         
         if (incompatibleProducts.length > 0) {
           return { 
@@ -476,10 +484,17 @@ export async function POST(req: NextRequest) {
       if ('errorKey' in stockCheckResult && stockCheckResult.errorKey) {
         payload.errorKey = stockCheckResult.errorKey;
       }
+      if ('code' in stockCheckResult && stockCheckResult.code) {
+        payload.code = stockCheckResult.code;
+      }
       const clientErrors = new Set([
         'CONTACT_ONLY_NOT_CHECKOUT',
         'BARTER_ONLY_NOT_CHECKOUT',
         'PAYMENTS_NOT_READY',
+        'LISTING_INACTIVE',
+        'LISTING_INTEGRITY',
+        'SELF_PURCHASE',
+        'SHARED_CONNECT_DESTINATION',
       ]);
       const status = clientErrors.has(stockCheckResult.error) ? 400 : 404;
       return NextResponse.json(payload, { status });

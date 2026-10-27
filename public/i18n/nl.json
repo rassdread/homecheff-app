@@ -5958,6 +5958,10 @@
   "checkout": {
     "errors": {
       "contactOnly": "Dit aanbod bestel je via direct contact met de maker, niet via de winkelwagen.",
+      "selfPurchase": "Je kunt je eigen aanbod niet via HomeCheff betalen.",
+      "sharedConnectDestination": "Deze betaling komt op dezelfde Stripe-rekening uit als de koper en kan niet doorgaan.",
+      "listingInactive": "Dit aanbod is niet actief en kan niet worden afgerekend.",
+      "listingIntegrity": "Dit aanbod is niet beschikbaar voor een betaling.",
       "paymentsNotReady": "De maker moet betalingen nog instellen voordat je via HomeCheff kunt afrekenen.",
       "barterOnly": "Dit aanbod is alleen te ruil. Gebruik chat en stuur een voorstel in plaats van afrekenen.",
       "minimumNotMet": "Online betalen via HomeCheff is beschikbaar vanaf €10. Spreek voor kleinere bedragen rechtstreeks een betaalwijze af met de aanbieder.",

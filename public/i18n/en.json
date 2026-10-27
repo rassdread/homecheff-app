@@ -4661,6 +4661,10 @@
   "checkout": {
     "errors": {
       "contactOnly": "This listing is ordered by contacting the maker directly, not through the cart.",
+      "selfPurchase": "You cannot pay for your own listing through HomeCheff.",
+      "sharedConnectDestination": "This payment would settle to the same Stripe account as the buyer and cannot continue.",
+      "listingInactive": "This listing is inactive and cannot be checked out.",
+      "listingIntegrity": "This listing is not available for payment.",
       "paymentsNotReady": "The maker still needs to set up payments before you can checkout via HomeCheff.",
       "barterOnly": "This listing is barter only. Use chat and send a proposal instead of checkout.",
       "minimumNotMet": "Online payment via HomeCheff is available from €10. For smaller amounts, arrange payment directly with the provider.",
