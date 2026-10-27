@@ -111,9 +111,11 @@ export function evaluateStockConfirm(input: {
     holdUntil?: Date | null;
     paymentDeadline?: Date | null;
     buyerId?: string | null;
+    checkoutSessionId?: string | null;
   } | null;
   requestedQuantity: number;
   buyerId?: string | null;
+  payingSessionId?: string | null;
   stock: number;
   otherPendingQuantity: number;
 }):
@@ -131,7 +133,16 @@ export function evaluateStockConfirm(input: {
   ) {
     return { action: 'conflict', code: 'NOT_OWNED' };
   }
-  if (reservation.status === 'CONFIRMED') return { action: 'noop' };
+  if (reservation.status === 'CONFIRMED') {
+    if (
+      input.payingSessionId &&
+      reservation.checkoutSessionId &&
+      reservation.checkoutSessionId === input.payingSessionId
+    ) {
+      return { action: 'noop' };
+    }
+    return { action: 'conflict', code: 'ALREADY_CONFIRMED' };
+  }
   if (reservation.status !== 'PENDING') {
     return { action: 'conflict', code: 'HOLD_EXPIRED' };
   }

@@ -292,6 +292,42 @@ describe('checkout reservation safety', () => {
     assert.equal(engine.courierSettlementCalls, 1);
   });
 
+  it('a second Checkout Session for the same hold does not create another order', () => {
+    const engine = cabinet();
+    engine.startCheckout({
+      buyerId: 'buyer-a',
+      items: [{ productId: 'cabinet', quantity: 1 }],
+      deliveryMode: 'PICKUP',
+      sessionId: 'cs_first',
+    });
+    engine.startCheckout({
+      buyerId: 'buyer-a',
+      items: [{ productId: 'cabinet', quantity: 1 }],
+      deliveryMode: 'PICKUP',
+      sessionId: 'cs_second',
+    });
+    const first = engine.pay({
+      sessionId: 'cs_first',
+      buyerId: 'buyer-a',
+      items: [{ productId: 'cabinet', quantity: 1 }],
+    });
+    const second = engine.pay({
+      sessionId: 'cs_second',
+      buyerId: 'buyer-a',
+      items: [{ productId: 'cabinet', quantity: 1 }],
+    });
+    assert.equal(first.ok, true);
+    assert.equal(second.ok, false);
+    if (second.ok) return;
+    assert.equal(second.code, 'ALREADY_CONFIRMED');
+    assert.equal(second.incident, true);
+    assert.equal(engine.orders.length, 1);
+    assert.equal(engine.orders[0].stripeSessionId, 'cs_first');
+    assert.equal(engine.products.get('cabinet')!.stock, 0);
+    assert.equal(engine.settlementCalls, 1);
+    assert.equal(engine.incidents.length, 1);
+  });
+
   it('TEST_11 payment after an expired hold cannot take another buyer’s stock', () => {
     const engine = cabinet();
     const created = engine.requestCourier({
@@ -921,6 +957,21 @@ describe('checkout reservation safety', () => {
       now,
     });
     assert.equal(state.stock, 0);
+    await assert.rejects(
+      () =>
+        confirmReservationAndDecrementStock(tx as never, {
+          productId: 'cabinet',
+          quantity: 1,
+          stripeSessionId: 'cs_other',
+          holdId: 'key',
+          inventoryRequired: true,
+          buyerId: 'buyer-a',
+          now,
+        }),
+      (err: unknown) =>
+        err instanceof CheckoutStockConflictError && err.code === 'ALREADY_CONFIRMED',
+    );
+    assert.equal(state.stock, 0);
   });
 
   it('notification failure does not roll back an acceptance', () => {
@@ -969,6 +1020,40 @@ describe('checkout reservation safety', () => {
       otherPendingQuantity: 0,
     });
     assert.equal(decision.action, 'conflict');
+  });
+
+  it('a confirmed hold rejects a different Checkout Session and accepts its own retry', () => {
+    const now = new Date();
+    const reservation = {
+      status: 'CONFIRMED',
+      quantity: 1,
+      expiresAt: new Date(now.getTime() + 60_000),
+      buyerId: 'buyer-a',
+      checkoutSessionId: 'cs_owner',
+    };
+    const other = evaluateStockConfirm({
+      inventoryRequired: true,
+      now,
+      reservation,
+      requestedQuantity: 1,
+      buyerId: 'buyer-a',
+      payingSessionId: 'cs_other',
+      stock: 0,
+      otherPendingQuantity: 0,
+    });
+    const same = evaluateStockConfirm({
+      inventoryRequired: true,
+      now,
+      reservation,
+      requestedQuantity: 1,
+      buyerId: 'buyer-a',
+      payingSessionId: 'cs_owner',
+      stock: 0,
+      otherPendingQuantity: 0,
+    });
+    assert.equal(other.action, 'conflict');
+    if (other.action === 'conflict') assert.equal(other.code, 'ALREADY_CONFIRMED');
+    assert.equal(same.action, 'noop');
   });
 
   it('expires an open unpaid Checkout Session once and leaves a paid session open', async () => {
@@ -1054,10 +1139,14 @@ function fakeTx(state: { stock: number; reservations: FakeReservation[] }) {
         );
       },
       update: async () => ({}),
-      updateMany: async (args: { where: { id?: string; status?: string }; data: { status?: string } }) => {
+      updateMany: async (args: {
+        where: { id?: string; status?: string };
+        data: { status?: string; checkoutSessionId?: string };
+      }) => {
         const row = state.reservations.find((r) => r.id === args.where.id);
         if (!row || row.status !== 'PENDING') return { count: 0 };
         if (args.data.status) row.status = args.data.status;
+        if (args.data.checkoutSessionId) row.checkoutSessionId = args.data.checkoutSessionId;
         return { count: 1 };
       },
       create: async () => ({}),

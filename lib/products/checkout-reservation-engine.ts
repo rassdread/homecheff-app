@@ -488,6 +488,7 @@ export class CheckoutReservationEngine {
         otherPendingQuantity: reservation
           ? this.otherPending(item.productId, reservation.id)
           : this.otherPending(item.productId, ''),
+        payingSessionId: input.sessionId,
       });
       if (decision.action === 'conflict') {
         this.recordIncident(input.sessionId, decision.code);
@@ -500,6 +501,7 @@ export class CheckoutReservationEngine {
           return { ok: false, code: 'HOLD_EXPIRED', incident: true };
         }
         reservation!.status = 'CONFIRMED';
+        reservation!.checkoutSessionId = input.sessionId;
         product.stock -= decision.quantity;
         if (product.stock < 0) {
           product.stock += decision.quantity;

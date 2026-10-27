@@ -258,6 +258,7 @@ export async function confirmReservationAndDecrementStock(
       holdUntil: true,
       paymentDeadline: true,
       buyerId: true,
+      checkoutSessionId: true,
     },
   });
 
@@ -298,10 +299,12 @@ export async function confirmReservationAndDecrementStock(
           holdUntil: reservation.holdUntil,
           paymentDeadline: reservation.paymentDeadline,
           buyerId: reservation.buyerId,
+          checkoutSessionId: reservation.checkoutSessionId,
         }
       : null,
     requestedQuantity: input.quantity,
     buyerId: input.buyerId,
+    payingSessionId: input.stripeSessionId,
     stock: product?.stock ?? 0,
     otherPendingQuantity: others._sum.quantity ?? 0,
   });
@@ -317,7 +320,7 @@ export async function confirmReservationAndDecrementStock(
       status: 'PENDING',
       expiresAt: { gt: now },
     },
-    data: { status: 'CONFIRMED' },
+    data: { status: 'CONFIRMED', checkoutSessionId: input.stripeSessionId },
   });
   if (claimed.count !== 1) {
     throw new CheckoutStockConflictError('HOLD_EXPIRED');
