@@ -42,7 +42,6 @@ export function evaluatePromoRedemptionLimits(
 
   if (
     maxRedemptionsPerUser != null &&
-    maxRedemptionsPerUser > 0 &&
     userActiveCount >= maxRedemptionsPerUser
   ) {
     return {
@@ -53,11 +52,7 @@ export function evaluatePromoRedemptionLimits(
     };
   }
 
-  if (
-    maxRedemptions != null &&
-    maxRedemptions > 0 &&
-    globalActiveCount >= maxRedemptions
-  ) {
+  if (maxRedemptions != null && globalActiveCount >= maxRedemptions) {
     return {
       ok: false,
       reason: 'max_redemptions',

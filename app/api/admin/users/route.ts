@@ -16,6 +16,12 @@ import {
   userPopulationWhere,
   type AdminUserListView,
 } from '@/lib/admin/user-population';
+import {
+  capabilityLabels,
+  capabilityWhere,
+  parseUserCapabilityFilters,
+  SUBSCRIPTION_STATUSES_COUNTED_AS_CURRENT,
+} from '@/lib/admin/user-capabilities';
 // import { UserRole } from '@prisma/client';
 
 // GET - Fetch all users
@@ -46,9 +52,53 @@ export async function GET(request: NextRequest) {
         ? viewParam
         : DEFAULT_ADMIN_USER_LIST_VIEW;
 
-    const [users, realCount, testCount, deletedCount] = await Promise.all([
+    const parsedCapabilities = parseUserCapabilityFilters(
+      (request.nextUrl.searchParams.get('capability') || '')
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean),
+    );
+    if (!parsedCapabilities.ok) {
+      return NextResponse.json({ error: parsedCapabilities.error }, { status: 400 });
+    }
+    const search = (request.nextUrl.searchParams.get('q') || '').trim();
+    const page = Math.max(1, Number(request.nextUrl.searchParams.get('page') || '1') || 1);
+    const pageSize = Math.min(
+      100,
+      Math.max(1, Number(request.nextUrl.searchParams.get('pageSize') || '50') || 50),
+    );
+    const needsSubscriptions = parsedCapabilities.filters.some((filter) =>
+      ['subscribed_businesses', 'unsubscribed_businesses', 'business_accounts'].includes(filter),
+    );
+    const subscribedUserIds = needsSubscriptions
+      ? (
+          await prisma.businessSubscription.findMany({
+            where: { status: { in: [...SUBSCRIPTION_STATUSES_COUNTED_AS_CURRENT] } },
+            select: { businessUserId: true },
+          })
+        ).map((row) => row.businessUserId)
+      : [];
+    const where = {
+      AND: [
+        userPopulationWhere(view),
+        capabilityWhere(parsedCapabilities.filters, { now: new Date(), subscribedUserIds }),
+        search
+          ? {
+              OR: [
+                { email: { contains: search, mode: 'insensitive' as const } },
+                { username: { contains: search, mode: 'insensitive' as const } },
+                { name: { contains: search, mode: 'insensitive' as const } },
+              ],
+            }
+          : {},
+      ],
+    };
+
+    const [users, total, realCount, testCount, deletedCount] = await Promise.all([
       prisma.user.findMany({
-      where: userPopulationWhere(view),
+      where,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
       select: {
         id: true,
         email: true,
@@ -73,42 +123,72 @@ export async function GET(request: NextRequest) {
         lng: true,
         suspendedAt: true,
         suspendReason: true,
+        stripeConnectAccountId: true,
+        stripeConnectOnboardingCompleted: true,
         SellerProfile: {
           select: {
             companyName: true,
             kvk: true,
             btw: true,
+            commerceDeclaration: true,
           }
         },
         DeliveryProfile: {
           select: {
-            homeLat: true,
-            homeLng: true,
-            currentLat: true,
-            currentLng: true,
+            isVerified: true,
+            isActive: true,
+            isBlocked: true,
             isOnline: true,
+            maxDistance: true,
+            transportation: true,
+            deliveryAgreementAcceptedAt: true,
           }
         },
+        affiliate: {
+          select: { status: true, populationClass: true },
+        },
+        _count: { select: { orders: true } },
       },
       orderBy: { createdAt: 'desc' }
     }),
+      prisma.user.count({ where }),
       prisma.user.count({ where: realUserWhere() }),
       prisma.user.count({ where: demonstrableTestUserWhere() }),
       prisma.user.count({ where: anonymizedUserWhere() }),
     ]);
 
     return NextResponse.json({
-      users: users.map(({ bio, accountDeletedAt, emailVerified, ...user }) => ({
-        ...user,
-        accountDeletedAt,
-        emailVerified: Boolean(emailVerified),
-        populationClass: classifyUserPopulation({
-          email: user.email,
-          username: user.username,
-          bio,
+      users: users.map(({ bio, accountDeletedAt, emailVerified, stripeConnectAccountId, ...user }) => {
+        const businessSeller = Boolean(
+          user.SellerProfile &&
+            (user.SellerProfile.commerceDeclaration === 'SELF_DECLARED_PROFESSIONAL' ||
+              (user.SellerProfile.kvk && user.SellerProfile.kvk.trim())),
+        );
+        const connectReady = Boolean(
+          stripeConnectAccountId && user.stripeConnectOnboardingCompleted,
+        );
+        return {
+          ...user,
           accountDeletedAt,
-        }),
-      })),
+          emailVerified: Boolean(emailVerified),
+          connectReady,
+          populationClass: classifyUserPopulation({
+            email: user.email,
+            username: user.username,
+            bio,
+            accountDeletedAt,
+          }),
+          capabilities: capabilityLabels({
+            orderCount: user._count.orders,
+            hasSellerProfile: Boolean(user.SellerProfile),
+            businessSeller,
+            hasDeliveryProfile: Boolean(user.DeliveryProfile),
+            commercialAffiliate: user.affiliate?.populationClass === 'COMMERCIAL',
+            role: user.role,
+            connectReady,
+          }),
+        };
+      }),
       populationCounts: {
         real: realCount,
         test: testCount,
@@ -116,6 +196,10 @@ export async function GET(request: NextRequest) {
         all: realCount + testCount + deletedCount,
       },
       view,
+      page,
+      pageSize,
+      total,
+      capability: parsedCapabilities.filters,
     });
 
   } catch (error) {

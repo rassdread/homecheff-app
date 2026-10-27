@@ -4,9 +4,13 @@ import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import { clearUserCache } from '@/lib/api-auth';
-import { matchesCurrentMode } from '@/lib/stripe';
 import { loadAdminUserPopulation } from '@/lib/admin/load-user-population';
 import { realUserWhere } from '@/lib/admin/user-population';
+import {
+  currentModeOrders,
+  paidMarketplaceOrderWhere,
+  sumCurrentModeGrossCents,
+} from '@/lib/admin/paid-marketplace-orders';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -67,37 +71,15 @@ export default async function AdminPage() {
     ] = await Promise.all([
     loadAdminUserPopulation(),
     prisma.product.count(),
-    prisma.order.count({
-      where: {
-        stripeSessionId: { not: null }, // Only paid orders (Stripe Connect orders)
-        NOT: {
-          orderNumber: {
-            startsWith: 'SUB-'
-          }
-        }
-      }
-    }),
-    prisma.deliveryProfile.count(),
-    // Total revenue (sum of all Stripe Connect order amounts, excluding subscriptions)
-    // This matches the calculation in app/api/admin/financial/route.ts
-    // Filter by current Stripe mode (test/live) to match other admin endpoints
     prisma.order.findMany({
-      where: {
-        stripeSessionId: { not: null }, // Only Stripe Connect orders
-        NOT: {
-          orderNumber: {
-            startsWith: 'SUB-'
-          }
-        }
-      },
-      select: { totalAmount: true, stripeSessionId: true }
-    }).then(orders => {
-      // Filter orders to only include those matching current Stripe mode
-      const filteredOrders = orders.filter(order => 
-        order.stripeSessionId && matchesCurrentMode(order.stripeSessionId)
-      );
-      return filteredOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
-    }),
+      where: paidMarketplaceOrderWhere(),
+      select: { stripeSessionId: true },
+    }).then((orders) => currentModeOrders(orders).length),
+    prisma.deliveryProfile.count({ where: { isBlocked: false } }),
+    prisma.order.findMany({
+      where: paidMarketplaceOrderWhere(),
+      select: { totalAmount: true, stripeSessionId: true },
+    }).then((orders) => sumCurrentModeGrossCents(orders)),
     prisma.user.findMany({
       where: realUserWhere(),
       take: 5,

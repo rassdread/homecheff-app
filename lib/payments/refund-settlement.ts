@@ -545,7 +545,7 @@ export async function planRefundSettlement(
     'PLATFORM_FEE_ON_SELLER: retained by platform unless buyer refund exceeds recovered reversals',
     'AFFILIATE: funded from platform fee share; ledger proportional reversal via processCommissionReversal',
     'COURIER: POLICY_REQUIRED for performed vs not-performed delivery; engine supports allocation when includeCourierCents set',
-    'INVENTORY: not auto-restored by refund engine',
+    'INVENTORY: a full refund restores stock once only when the order was not shipped, picked up, or delivered. Duplicate-payment refunds and partial refunds do not restore stock.',
     'DISPUTES: chargeback after transfer remains open P0 — same economic exposure; not solved by this engine alone',
   ];
   const warnings: string[] = [];
@@ -1084,6 +1084,14 @@ export async function executeRefundSettlement(
         plan.priorBuyerRefundedCents + plan.buyerRefundCents >=
         plan.originalBuyerGrossCents;
       if (fullyRefunded) {
+        const { restoreStockForFullRefund } = await import(
+          '@/lib/payments/restore-refund-stock'
+        );
+        await restoreStockForFullRefund({
+          orderId: plan.orderId,
+          fullRefund: true,
+          kind: 'ORDER_REFUND',
+        });
         await prisma.order.update({
           where: { id: plan.orderId },
           data: { status: 'REFUNDED', updatedAt: new Date() },

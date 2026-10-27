@@ -398,7 +398,7 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
                     <div className="ml-2 sm:ml-4">
                       <p className="text-xs sm:text-sm font-medium text-gray-600">{t('admin.totalOrders')}</p>
                       <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalOrders}</p>
-                      <p className="text-xs text-gray-500">Alle transacties</p>
+                      <p className="text-xs text-gray-500">Betaalde marketplace-orders</p>
                     </div>
                   </div>
                 </div>
@@ -413,7 +413,7 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
                     <div className="ml-2 sm:ml-4">
                       <p className="text-xs sm:text-sm font-medium text-gray-600">Actieve Bezorgers</p>
                       <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalDeliveryProfiles}</p>
-                      <p className="text-xs text-gray-500">Online beschikbaar</p>
+                      <p className="text-xs text-gray-500">Geregistreerd, niet geblokkeerd</p>
                     </div>
                   </div>
                 </div>
@@ -477,11 +477,11 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
                   <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Totale Omzet</p>
+                        <p className="text-sm font-medium text-gray-600">Bruto marketplace</p>
                         <p className="text-2xl font-bold text-gray-900">
                           €{(stats.totalRevenue / 100).toFixed(2)}
                         </p>
-                        <p className="text-xs text-gray-500">Alle transacties</p>
+                        <p className="text-xs text-gray-500">Betaalde orders, huidige Stripe-modus. Geen platformwinst.</p>
                       </div>
                       <div className="p-3 bg-emerald-100 rounded-lg">
                         <TrendingUp className="w-6 h-6 text-emerald-600" />

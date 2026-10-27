@@ -45,6 +45,8 @@ export default function AdminPromotionsPanel() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [limitDraft, setLimitDraft] = useState('');
 
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
@@ -135,6 +137,35 @@ export default function AdminPromotionsPanel() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const saveLimit = async (row: PromoRow) => {
+    const unlimited = limitDraft.trim() === '' || limitDraft.trim().toLowerCase() === 'unlimited';
+    const nextMax = unlimited ? null : Number(limitDraft);
+    if (!unlimited && !Number.isInteger(nextMax)) {
+      setError('Maximum gebruik moet een geheel getal zijn, of leeg voor onbeperkt');
+      return;
+    }
+    const reason = window.prompt('Reden voor deze limietwijziging?') || '';
+    if (!reason.trim()) return;
+    if (!window.confirm('De korting en looptijd blijven gelijk. Alleen het maximum gebruik wijzigt. Doorgaan?')) {
+      return;
+    }
+    setError(null);
+    const res = await fetch(`/api/admin/promo-codes/${row.id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ maxRedemptions: nextMax, reason }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || 'Limiet wijzigen mislukt');
+      return;
+    }
+    setSuccess(`Limiet bijgewerkt. Korting blijft ${row.discountSharePct}%.`);
+    setEditingId(null);
+    await load();
   };
 
   const setStatus = async (id: string, status: 'ACTIVE' | 'DISABLED') => {
@@ -476,7 +507,11 @@ export default function AdminPromotionsPanel() {
                   <td className="px-3 py-2">
                     {row.redemptionCount}
                     {row.maxRedemptions != null ? ` / ${row.maxRedemptions}` : ' / ∞'}
-                    <div className="text-xs text-gray-500">all users</div>
+                    <div className="text-xs text-gray-500">
+                      {row.maxRedemptions == null
+                        ? 'onbeperkt'
+                        : `${Math.max(0, row.maxRedemptions - row.redemptionCount)} resterend`}
+                    </div>
                   </td>
                   <td className="px-3 py-2">
                     {row.maxRedemptionsPerUser != null
@@ -496,6 +531,34 @@ export default function AdminPromotionsPanel() {
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingId(row.id);
+                          setLimitDraft(row.maxRedemptions == null ? '' : String(row.maxRedemptions));
+                        }}
+                        className="rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50"
+                      >
+                        Limiet
+                      </button>
+                      {editingId === row.id ? (
+                        <span className="flex items-center gap-1">
+                          <input
+                            value={limitDraft}
+                            onChange={(event) => setLimitDraft(event.target.value)}
+                            placeholder="leeg = onbeperkt"
+                            className="w-28 rounded border border-gray-300 px-2 py-1 text-xs"
+                            aria-label="Maximum gebruik"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => void saveLimit(row)}
+                            className="rounded bg-gray-900 px-2 py-1 text-xs text-white"
+                          >
+                            Opslaan
+                          </button>
+                        </span>
+                      ) : null}
                       <button
                         type="button"
                         onClick={() => void copyCode(row.code)}

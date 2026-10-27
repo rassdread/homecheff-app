@@ -8,6 +8,11 @@ import { prisma } from '@/lib/prisma';
 import { getBusinessVisibilityProfile } from '@/lib/business/visibility-profile';
 import { calculatePlatformFeeCents } from '@/lib/fees';
 import { assertSourceChargeAllocationCapacity } from '@/lib/payments/payment-waterfall';
+import {
+  classifySellerTransferList,
+  stripeTransferWasAttempted,
+  type ListedSellerTransfer,
+} from '@/lib/payments/seller-transfer-recovery';
 
 export const PAYOUT_PROVIDER_REF_PENDING = 'pending_transfer';
 export const PAYOUT_PROVIDER_REF_FAILED_PREFIX = 'failed_';
@@ -124,6 +129,8 @@ export type SellerSettlementInput = {
    * Required for immediate marketplace transfers while funds may be pending.
    */
   sourceTransactionChargeId?: string | null;
+  /** Charge is refunded, partly refunded, or disputed. Do not create a transfer. */
+  sourceChargeBlocked?: boolean;
 };
 
 export type SellerSettlementResult = {
@@ -176,6 +183,7 @@ export async function settleSellerOrderItem(
     chargeProviderRef,
     holdInEscrow,
     sourceTransactionChargeId,
+    sourceChargeBlocked,
   } = input;
 
   const orderPayment = await prisma.order.findUnique({
@@ -331,22 +339,34 @@ export async function settleSellerOrderItem(
         providerRef: PAYOUT_PROVIDER_REF_PENDING,
       },
     });
-  } else if (
-    payout.amountCents !== sellerNetCents ||
-    !payout.providerRef ||
-    isFailedTransferRef(payout.providerRef)
-  ) {
-    // Keep amount aligned; leave failed/pending for retry.
+  } else if (payout.amountCents !== sellerNetCents && !stripeTransferWasAttempted(payout.providerRef)) {
+    await prisma.payout.update({
+      where: { id: payout.id },
+      data: { amountCents: sellerNetCents },
+    });
+    payout = await prisma.payout.findUniqueOrThrow({ where: { id: payout.id } });
+  }
+
+  if (sourceChargeBlocked) {
     await prisma.payout.update({
       where: { id: payout.id },
       data: {
-        amountCents: sellerNetCents,
-        providerRef: isSuccessfulTransferRef(payout.providerRef)
-          ? payout.providerRef
-          : PAYOUT_PROVIDER_REF_PENDING,
+        providerRef: `${PAYOUT_PROVIDER_REF_FAILED_PREFIX}charge_not_payable_${Date.now()}`,
       },
     });
-    payout = await prisma.payout.findUniqueOrThrow({ where: { id: payout.id } });
+    return {
+      productId,
+      sellerUserId,
+      sellerGrossCents,
+      platformFeeBps,
+      platformFeeCents,
+      sellerNetCents,
+      transactionId,
+      payoutId: payout.id,
+      status: 'TRANSFER_FAILED',
+      transferId: null,
+      error: 'Source charge is refunded or disputed',
+    };
   }
 
   if (!connectReady || !destination) {
@@ -424,6 +444,116 @@ export async function settleSellerOrderItem(
       status: 'TRANSFER_FAILED',
       transferId: null,
       error: 'Missing source_transaction Charge id',
+    };
+  }
+
+  const attempted = stripeTransferWasAttempted(payout.providerRef);
+  let listed: ListedSellerTransfer[] | null = null;
+  try {
+    const page = await stripe.transfers.list({
+      transfer_group: `order_${orderId}`,
+      limit: 100,
+    });
+    listed = page.data.map((transfer) => ({
+      id: transfer.id,
+      amount: transfer.amount,
+      destination:
+        typeof transfer.destination === 'string'
+          ? transfer.destination
+          : transfer.destination?.id ?? null,
+      sourceTransaction:
+        typeof transfer.source_transaction === 'string'
+          ? transfer.source_transaction
+          : transfer.source_transaction?.id ?? null,
+      orderId: transfer.metadata?.orderId ?? null,
+      productId: transfer.metadata?.productId ?? null,
+    }));
+  } catch (lookupError) {
+    console.error(
+      `[seller-settlement] transfer lookup failed order=${orderId} product=${productId}:`,
+      lookupError instanceof Error ? lookupError.message : lookupError,
+    );
+    if (attempted) {
+      return {
+        productId,
+        sellerUserId,
+        sellerGrossCents,
+        platformFeeBps,
+        platformFeeCents,
+        sellerNetCents,
+        transactionId,
+        payoutId: payout.id,
+        status: 'TRANSFER_FAILED',
+        transferId: null,
+        error: 'LOOKUP_FAILED',
+      };
+    }
+  }
+
+  if (listed) {
+    const classified = classifySellerTransferList({
+      transfers: listed,
+      orderId,
+      productId,
+      amountCents: sellerNetCents,
+      chargeId: sourceTransactionChargeId ?? null,
+      destination,
+    });
+    if (classified.ok && classified.match === 'one') {
+      await prisma.payout.update({
+        where: { id: payout.id },
+        data: {
+          providerRef: classified.transferId,
+          destinationConnectAccountId: destination,
+        },
+      });
+      await prisma.transaction.update({
+        where: { id: transactionId },
+        data: { status: 'CAPTURED', updatedAt: new Date() },
+      });
+      return {
+        productId,
+        sellerUserId,
+        sellerGrossCents,
+        platformFeeBps,
+        platformFeeCents,
+        sellerNetCents,
+        transactionId,
+        payoutId: payout.id,
+        status: 'TRANSFER_SUCCEEDED',
+        transferId: classified.transferId,
+      };
+    }
+    if (classified.ok && classified.match === 'ambiguous') {
+      return {
+        productId,
+        sellerUserId,
+        sellerGrossCents,
+        platformFeeBps,
+        platformFeeCents,
+        sellerNetCents,
+        transactionId,
+        payoutId: payout.id,
+        status: 'TRANSFER_FAILED',
+        transferId: null,
+        error: 'AMBIGUOUS_TRANSFERS',
+      };
+    }
+  }
+
+  if (attempted) {
+    return {
+      productId,
+      sellerUserId,
+      sellerGrossCents,
+      platformFeeBps,
+      platformFeeCents,
+      sellerNetCents,
+      transactionId,
+      payoutId: payout.id,
+      status: 'TRANSFER_FAILED',
+      transferId: null,
+      error: 'CACHED_FAILURE_NEEDS_ADMIN_RECOVERY',
     };
   }
 
@@ -570,16 +700,19 @@ export async function settleAllSellerLegsForOrder(
   }
 
   let sourceTransactionChargeId = opts?.sourceTransactionChargeId ?? null;
+  let sourceChargeBlocked = false;
   if (!sourceTransactionChargeId && order.stripeSessionId) {
     const resolved = await resolveChargeIdForCheckoutSession(
       stripe,
       order.stripeSessionId,
     );
-    if (resolved.charge && isEligibleSourceCharge(resolved.charge)) {
-      sourceTransactionChargeId = resolved.chargeId;
-    } else if (resolved.chargeId) {
-      // Charge id present but not expanded — still usable as source_transaction
-      sourceTransactionChargeId = resolved.chargeId;
+    sourceTransactionChargeId = resolved.chargeId;
+    if (resolved.charge) {
+      sourceChargeBlocked =
+        resolved.charge.refunded === true ||
+        resolved.charge.disputed === true ||
+        (resolved.charge.amount_refunded ?? 0) > 0 ||
+        !isEligibleSourceCharge(resolved.charge);
     }
   }
 
@@ -652,6 +785,7 @@ export async function settleAllSellerLegsForOrder(
       sourceTransactionChargeId: isShipping
         ? null
         : sourceTransactionChargeId,
+      sourceChargeBlocked: isShipping ? false : sourceChargeBlocked,
     });
     results.push(result);
   }

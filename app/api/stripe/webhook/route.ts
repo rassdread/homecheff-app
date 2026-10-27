@@ -397,6 +397,7 @@ try {
     const invoiceId = typeof invoice === 'string' ? invoice : invoice?.id || null;
 
     let affiliateFailed = false;
+    let marketplaceOrderId: string | null = null;
     if (charge.amount_refunded > 0) {
       try {
         const { processCommissionReversal } = await import('@/lib/affiliate-commission');
@@ -440,6 +441,7 @@ try {
         if (lookupFailed && !invoiceId && !orderId) {
           throw new Error('refund_order_lookup_failed');
         }
+        marketplaceOrderId = orderId;
 
         if (invoiceId || orderId) {
           await processCommissionReversal({
@@ -458,6 +460,25 @@ try {
       } catch (reversalError: any) {
         affiliateFailed = true;
         console.error(`❌ Failed to process commission reversal for charge ${charge.id}:`, reversalError.message);
+      }
+    }
+    if (
+      marketplaceOrderId &&
+      charge.amount > 0 &&
+      charge.amount_refunded >= charge.amount
+    ) {
+      try {
+        const { restoreStockForFullRefund } = await import('@/lib/payments/restore-refund-stock');
+        await restoreStockForFullRefund({
+          orderId: marketplaceOrderId,
+          fullRefund: true,
+          kind: 'ORDER_REFUND',
+        });
+      } catch (stockError) {
+        console.error(
+          `[webhook] stock restoration failed for ${charge.id}:`,
+          stockError instanceof Error ? stockError.message : stockError,
+        );
       }
     }
     try {

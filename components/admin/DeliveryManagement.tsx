@@ -35,6 +35,9 @@ interface DeliveryProfile {
   availableDays: string[];
   availableTimeSlots: string[];
   isActive: boolean;
+  isVerified?: boolean;
+  isBlocked?: boolean;
+  deliveryAgreementAcceptedAt?: string | null;
   totalDeliveries: number;
   averageRating: number | null;
   totalEarnings: number;
@@ -501,6 +504,10 @@ export default function DeliveryManagement({ deliveryProfiles }: DeliveryManagem
                     <div><span className="font-medium">Beoordeling:</span> {selectedProfile.averageRating?.toFixed(1) || 'N/A'}</div>
                     <div><span className="font-medium">Verdiensten:</span> {formatEarnings(selectedProfile.totalEarnings)}</div>
                     <div><span className="font-medium">Status:</span> {selectedProfile.isActive ? 'Actief' : 'Inactief'}</div>
+                    <div><span className="font-medium">Profiel geverifieerd:</span> {selectedProfile.isVerified ? 'Ja' : 'Nee'}</div>
+                    <div><span className="font-medium">Geblokkeerd:</span> {selectedProfile.isBlocked ? 'Ja' : 'Nee'}</div>
+                    <div><span className="font-medium">Overeenkomst:</span> {selectedProfile.deliveryAgreementAcceptedAt ? 'Geaccepteerd' : 'Niet geaccepteerd'}</div>
+                    <p className="text-xs text-gray-500">Stripe Connect-onboarding is geen identiteitscontrole en geen goedkeuring om te bezorgen.</p>
                   </div>
                 </div>
 

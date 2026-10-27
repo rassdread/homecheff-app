@@ -37,6 +37,8 @@ interface User {
   suspendReason?: string | null;
   populationClass?: 'real' | 'test' | 'deleted';
   emailVerified?: boolean;
+  capabilities?: string[];
+  connectReady?: boolean;
   SellerProfile?: {
     companyName: string | null;
     kvk: string | null;
@@ -59,7 +61,11 @@ export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [populationView, setPopulationView] = useState<AdminUserListView>(DEFAULT_ADMIN_USER_LIST_VIEW);
   const [verificationFilter, setVerificationFilter] = useState<'all' | 'verified' | 'unverified'>('all');
+  const [capability, setCapability] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [populationCounts, setPopulationCounts] = useState({ real: 0, test: 0, deleted: 0, all: 0 });
+  const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showBulkMessageModal, setShowBulkMessageModal] = useState(false);
@@ -72,16 +78,25 @@ export default function UserManagement() {
   });
   const [isSendingBulkMessage, setIsSendingBulkMessage] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [populationView]);
-
   const fetchUsers = async () => {
     try {
-      const response = await safeFetch(`/api/admin/users?view=${populationView}`);
+      const params = new URLSearchParams({
+        view: populationView,
+        page: String(page),
+        pageSize: '50',
+      });
+      const caps = [
+        capability,
+        verificationFilter === 'verified' ? 'verified' : '',
+        verificationFilter === 'unverified' ? 'unverified' : '',
+      ].filter(Boolean);
+      if (caps.length > 0) params.set('capability', caps.join(','));
+      if (searchQuery.trim()) params.set('q', searchQuery.trim());
+      const response = await safeFetch(`/api/admin/users?${params.toString()}`);
       const data = await response.json();
       setUsers(data.users || []);
       setSelectedUsers([]);
+      setTotal(typeof data.total === 'number' ? data.total : (data.users || []).length);
       if (data.populationCounts) setPopulationCounts(data.populationCounts);
     } catch (error) {
       if (error instanceof Error && error.message === 'Request was aborted') {
@@ -93,6 +108,13 @@ export default function UserManagement() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      void fetchUsers();
+    }, 200);
+    return () => clearTimeout(handle);
+  }, [populationView, capability, verificationFilter, searchQuery, page]);
 
   const handleDeleteUser = async (userId: string) => {
     if (!confirm(t('errors.confirmDeleteUser'))) return;
@@ -245,40 +267,7 @@ export default function UserManagement() {
     setShowBulkMessageModal(true);
   };
 
-  const verificationCounts = {
-    all: users.length,
-    verified: users.filter((user) => user.emailVerified).length,
-    unverified: users.filter((user) => !user.emailVerified).length,
-  };
-
-  const filteredUsers = users.filter(user => {
-    if (verificationFilter === 'verified' && !user.emailVerified) return false;
-    if (verificationFilter === 'unverified' && user.emailVerified) return false;
-    const query = searchQuery.toLowerCase().trim();
-    if (!query) return true;
-    
-    // Check username
-    if (user.username?.toLowerCase().includes(query)) return true;
-    
-    // Check email
-    if (user.email.toLowerCase().includes(query)) return true;
-    
-    // Check full name
-    if (user.name?.toLowerCase().includes(query)) return true;
-    
-    // Check first name and last name separately
-    if (user.name) {
-      const nameParts = user.name.toLowerCase().split(' ').filter(part => part.length > 0);
-      
-      // Check if query matches any part of the name (first name, middle name, last name)
-      if (nameParts.some(part => part.includes(query))) return true;
-      
-      // Check if query matches the start of any name part (for partial matches)
-      if (nameParts.some(part => part.startsWith(query))) return true;
-    }
-    
-    return false;
-  });
+  const filteredUsers = users;
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -334,7 +323,10 @@ export default function UserManagement() {
               type="button"
               role="tab"
               aria-selected={selected}
-              onClick={() => setPopulationView(id)}
+              onClick={() => {
+                setPage(1);
+                setPopulationView(id);
+              }}
               className={`min-h-11 rounded-lg border px-3 py-2 text-left text-sm font-medium ${
                 selected
                   ? 'bg-blue-600 text-white border-blue-600'
@@ -353,18 +345,21 @@ export default function UserManagement() {
       <div role="group" aria-label="Verificatiestatus" className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         {(
           [
-            ['all', 'Alle verificaties', verificationCounts.all],
-            ['verified', 'Geverifieerd', verificationCounts.verified],
-            ['unverified', 'Niet geverifieerd', verificationCounts.unverified],
+            ['all', 'Alle verificaties'],
+            ['verified', 'Geverifieerd'],
+            ['unverified', 'Niet geverifieerd'],
           ] as const
-        ).map(([id, label, count]) => {
+        ).map(([id, label]) => {
           const selected = verificationFilter === id;
           return (
             <button
               key={id}
               type="button"
               aria-pressed={selected}
-              onClick={() => setVerificationFilter(id)}
+              onClick={() => {
+                setPage(1);
+                setVerificationFilter(id);
+              }}
               className={`min-h-11 rounded-lg border px-3 py-2 text-left text-sm font-medium ${
                 selected
                   ? 'bg-emerald-700 text-white border-emerald-700'
@@ -373,12 +368,40 @@ export default function UserManagement() {
             >
               <span className="block">{label}</span>
               <span className={`block text-xs ${selected ? 'text-emerald-100' : 'text-gray-500'}`}>
-                {count} in dit accounttype
+                Geldt voor de hele lijst
               </span>
             </button>
           );
         })}
       </div>
+
+      <label className="block text-sm text-gray-700">
+        Rol en activiteit
+        <select
+          value={capability}
+          onChange={(event) => {
+            setPage(1);
+            setCapability(event.target.value);
+          }}
+          className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+        >
+          <option value="">Alle rollen</option>
+          <option value="buyers">Kopers met een bestelling</option>
+          <option value="private_sellers">Particuliere verkopers</option>
+          <option value="business_sellers">Zakelijke verkopers</option>
+          <option value="business_accounts">Zakelijke accounts</option>
+          <option value="delivery_partners">Bezorgpartners</option>
+          <option value="affiliates">Affiliates</option>
+          <option value="administrators">Beheerders</option>
+          <option value="active">Actief, 7 dagen</option>
+          <option value="inactive">Inactief</option>
+          <option value="suspended">Geschorst</option>
+          <option value="connect_ready">Stripe Connect gereed</option>
+          <option value="connect_incomplete">Stripe Connect onvolledig</option>
+          <option value="subscribed_businesses">Abonnement actief</option>
+          <option value="unsubscribed_businesses">Zakelijk zonder abonnement</option>
+        </select>
+      </label>
 
       {/* Search and Actions */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -388,7 +411,10 @@ export default function UserManagement() {
             type="text"
             placeholder={t('common.searchByNameUsernameEmail')}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setPage(1);
+              setSearchQuery(e.target.value);
+            }}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -419,7 +445,7 @@ export default function UserManagement() {
       ) : null}
 
       <p className="text-sm text-gray-500">
-        {filteredUsers.length} getoond
+        {total} gevonden, {filteredUsers.length} op deze pagina
         {searchQuery.trim() ? ' voor deze zoekopdracht' : ''}
         {verificationFilter === 'verified' ? ' · alleen geverifieerd' : ''}
         {verificationFilter === 'unverified' ? ' · alleen niet geverifieerd' : ''}
@@ -522,8 +548,9 @@ export default function UserManagement() {
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
                       {getRoleIcon(user.role)}
                       <span className="ml-1">
-                        {user.role === 'ADMIN' ? 'Admin' : 
-                         user.role === 'SELLER' ? 'Verkoper' : 'Koper'}
+                        {(user.capabilities && user.capabilities.length > 0
+                          ? user.capabilities.join(' · ')
+                          : user.role)}
                       </span>
                       {user.emailVerified ? (
                         <span className="ml-2 text-xs text-emerald-700 font-semibold">Geverifieerd</span>
@@ -546,6 +573,18 @@ export default function UserManagement() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-1 sm:space-x-2">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const response = await safeFetch(`/api/admin/users/${user.id}/overview`);
+                          const data = await response.json();
+                          setDetail(response.ok ? data : { error: data.error || 'Kon het overzicht niet laden' });
+                        }}
+                        className="p-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+                        title="Relaties"
+                      >
+                        Relaties
+                      </button>
                       <Link
                         href={user.username ? `/user/${encodeURIComponent(user.username)}` : `/user/${user.id}`}
                         target="_blank"
@@ -600,6 +639,32 @@ export default function UserManagement() {
           </table>
         </div>
       </div>
+
+      <div className="flex items-center justify-between gap-3">
+        <button
+          type="button"
+          disabled={page <= 1}
+          onClick={() => setPage((current) => Math.max(1, current - 1))}
+          className="rounded border border-gray-300 px-3 py-2 text-sm disabled:opacity-40"
+        >
+          Vorige
+        </button>
+        <span className="text-sm text-gray-600">Pagina {page}</span>
+        <button
+          type="button"
+          disabled={page * 50 >= total}
+          onClick={() => setPage((current) => current + 1)}
+          className="rounded border border-gray-300 px-3 py-2 text-sm disabled:opacity-40"
+        >
+          Volgende
+        </button>
+      </div>
+
+      {detail ? (
+        <pre className="overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-xs text-gray-800">
+          {JSON.stringify(detail, null, 2)}
+        </pre>
+      ) : null}
 
       {/* Modals */}
       <CreateUserModal

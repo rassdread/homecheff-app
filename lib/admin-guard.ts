@@ -10,6 +10,7 @@ import type { AdminPermissions, User } from '@prisma/client';
 
 export type AdminPermissionKey =
   | 'canEditUsers'
+  | 'canViewUserDetails'
   | 'canDeleteUsers'
   | 'canDeleteProducts'
   | 'canEditProducts'

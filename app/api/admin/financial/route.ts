@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { matchesCurrentMode } from '@/lib/stripe';
+import { isSuccessfulTransferRef } from '@/lib/payments/seller-settlement';
+import {
+  currentModeOrders,
+  paidMarketplaceOrderWhere,
+  sumCurrentModeGrossCents,
+} from '@/lib/admin/paid-marketplace-orders';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,29 +51,17 @@ export async function GET(req: NextRequest) {
       monthlyStats
     ] = await Promise.allSettled([
       // Total orders (only Stripe Connect orders, excluding subscription orders)
-      prisma.order.count({
-        where: {
-          stripeSessionId: { not: null }, // Only Stripe Connect orders
-          NOT: {
-            orderNumber: {
-              startsWith: 'SUB-'
-            }
-          }
-        }
-      }),
+      prisma.order.findMany({
+        where: paidMarketplaceOrderWhere(),
+        select: { stripeSessionId: true },
+      }).then((orders) => currentModeOrders(orders).length),
       
-      // Total revenue (sum of all Stripe Connect order amounts, excluding subscriptions)
-      prisma.order.aggregate({
-        where: {
-          stripeSessionId: { not: null }, // Only Stripe Connect orders
-          NOT: {
-            orderNumber: {
-              startsWith: 'SUB-'
-            }
-          }
-        },
-        _sum: { totalAmount: true }
-      }),
+      // Gross paid marketplace volume in cents for the current Stripe mode.
+      // Refunded, cancelled, and unconfirmed orders are excluded. Not platform profit.
+      prisma.order.findMany({
+        where: paidMarketplaceOrderWhere(),
+        select: { totalAmount: true, stripeSessionId: true },
+      }).then((orders) => ({ _sum: { totalAmount: sumCurrentModeGrossCents(orders) } })),
       
       // Subscription revenue breakdown by type
       getSubscriptionRevenueByType(),
@@ -102,7 +96,11 @@ export async function GET(req: NextRequest) {
         
         const filtered = payouts.filter(payout => {
           const providerRef = payout.Transaction?.providerRef;
-          return providerRef && validSessionIds.has(providerRef);
+          return (
+            providerRef &&
+            validSessionIds.has(providerRef) &&
+            isSuccessfulTransferRef(payout.providerRef)
+          );
         });
         
         return { _sum: { amountCents: filtered.reduce((sum, p) => sum + p.amountCents, 0) } };
