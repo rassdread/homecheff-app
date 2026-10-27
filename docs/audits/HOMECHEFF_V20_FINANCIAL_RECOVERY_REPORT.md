@@ -10,9 +10,7 @@ The rule now is:
 - A duplicate-payment refund does not restore stock. That stock belongs to the fulfilled order.
 - A partial refund does not restore stock.
 - A shipped, picked-up, or delivered order does not get stock back because a refund exists.
-- `Order.inventoryRestoredAt` is set in the same transaction as the increment. A second webhook or a concurrent refund sees the marker and does not increment again.
-
-The marker is a nullable column. Existing rows stay null until a qualifying refund. Production was not migrated.
+- The claim is a `RefundSettlement` row with idempotency key `hc_inventory_restore_{orderId}`. It stores no Stripe refund id and adds nothing to the buyer refund total. A second webhook hits that unique key and does not increment again.
 
 ## Seller transfer
 
@@ -31,4 +29,4 @@ Policy tests cover the stock cases and the transfer decision. They are not live 
 
 ## Migration
 
-`20261027170000_order_inventory_restored_at` adds `Order.inventoryRestoredAt`. It is backward compatible. It has not been applied to production. Applying it is required before this branch serves production refunds, otherwise the restore write fails.
+No schema migration. The restore claim uses the existing `RefundSettlement.idempotencyKey` unique constraint.

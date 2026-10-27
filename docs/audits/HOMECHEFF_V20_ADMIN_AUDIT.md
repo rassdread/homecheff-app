@@ -16,7 +16,7 @@ Admin navigation is the Founder Control Center in `lib/founder-control-center/na
 | Products | `/admin?tab=products` | Product rows, `isActive`, `integrityStatus`, payment flags | Audited. Contact-only is not treated as a failed payment |
 | Orders | `/admin?tab=orders` | Order rows | Audited, unchanged |
 | Finance | `/admin?tab=financial` | `GET /api/admin/financial` | Repaired paid gross and successful transfers |
-| Refunds | `/api/admin/refunds` | Refund settlement engine | Stock rule added for full unfulfilled refunds |
+| Refunds | `/api/admin/refunds` | Refund settlement engine | Stock rule added for full unfulfilled refunds. The one-time claim is an existing RefundSettlement idempotency key |
 | Seller transfer recovery | `POST /api/admin/orders/[orderId]/recover-seller-transfer` | Payout plus Stripe test transfer list | Added. Test mode only |
 | Delivery | `/admin?tab=delivery` | DeliveryProfile | Repaired label. Verification is not Stripe Connect |
 | Live map | `/admin?tab=live-locations` | Courier location | Audited, unchanged. Public Delivery stays off |
