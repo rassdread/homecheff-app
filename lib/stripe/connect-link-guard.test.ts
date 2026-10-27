@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { isHomecheffPaymentReady } from './connect-account-status';
 import {
@@ -200,6 +201,46 @@ test('seller readiness follows verified capabilities when livemode is absent', (
     { type: 'STATUS_READ', observedAccountId: LIVE_ACCOUNT, classification },
   );
   assert.equal(kept.accountId, LIVE_ACCOUNT);
+});
+
+test('an explicit livemode mismatch does not delete the canonical reference', () => {
+  const classification = classifyConnectAccountRetrieve({
+    secretMode: 'live',
+    account: { id: LIVE_ACCOUNT, livemode: false },
+  });
+  assert.equal(classification.kind, 'WRONG_ENVIRONMENT');
+  assert.equal(classification.clearCanonical, false);
+  assert.equal(
+    applyConnectLinkEvent(
+      { accountId: LIVE_ACCOUNT },
+      { type: 'STATUS_READ', observedAccountId: LIVE_ACCOUNT, classification },
+    ).accountId,
+    LIVE_ACCOUNT,
+  );
+});
+
+test('account_invalid is a wrong-environment result and does not delete the reference', () => {
+  const classification = classifyConnectAccountRetrieve({
+    secretMode: 'test',
+    errorCode: 'account_invalid',
+    errorStatus: 403,
+  });
+  assert.equal(classification.kind, 'WRONG_ENVIRONMENT');
+  assert.equal(
+    applyConnectLinkEvent(
+      { accountId: LIVE_ACCOUNT },
+      { type: 'STATUS_READ', observedAccountId: LIVE_ACCOUNT, classification },
+    ).accountId,
+    LIVE_ACCOUNT,
+  );
+});
+
+test('the status loader source does not clear the canonical account id', () => {
+  const source = readFileSync(new URL('./sync-seller-payment-status.ts', import.meta.url), 'utf8');
+  assert.equal(source.includes('livemode === isTestMode'), false);
+  assert.equal(source.includes('stripeConnectAccountId: null,\n          stripeConnectOnboardingCompleted: false,\n          stripeConnectTrack: null'), false);
+  assert.equal(source.includes('classifyConnectAccountRetrieve'), true);
+  assert.equal(source.includes('stripeConnectAccountId: accountId'), true);
 });
 
 test('Gate F seller readiness is not rejected only because Account.livemode is absent', () => {
