@@ -1,11 +1,23 @@
 import type { AdminCapability } from '@/lib/admin/admin-capabilities';
 
-export type AdminRouteRequirement = AdminCapability | 'SUPERADMIN';
+export type AdminRouteRequirement = AdminCapability | 'SUPERADMIN' | 'DENY';
+
+/** An unknown admin route is denied unless the caller is a superadmin. */
+export function unknownAdminRouteDecision(role: string): 'allow' | 'deny' {
+  return role === 'SUPERADMIN' ? 'allow' : 'deny';
+}
+
+export function isAdminCapabilityRequirement(
+  requirement: AdminRouteRequirement,
+): requirement is AdminCapability {
+  return requirement !== 'SUPERADMIN' && requirement !== 'DENY';
+}
 
 /**
  * Explicit route policy. A scoped administrator must match one of these
  * capabilities. SUPERADMIN means only a superadmin may call the route.
- * Legacy administrators still pass through accessDecision, not this list alone.
+ * An unmapped path returns DENY. A superadmin may still pass that path
+ * through unknownAdminRouteDecision. No other role inherits system access.
  */
 export function resolveAdminRouteCapabilities(
   pathname: string,
@@ -65,7 +77,7 @@ export function resolveAdminRouteCapabilities(
   if (path.startsWith('/api/admin/delivery')) {
     return [write ? 'MARKETPLACE.DELIVERY.MANAGE' : 'MARKETPLACE.DELIVERY.VIEW'];
   }
-  if (path.startsWith('/api/admin/users')) {
+  if (path.startsWith('/api/admin/all-users') || path.startsWith('/api/admin/users')) {
     return write
       ? ['GLOBAL.USERS.EDIT']
       : ['GLOBAL.USERS.VIEW', 'MARKETPLACE.USERS.VIEW'];
@@ -105,5 +117,5 @@ export function resolveAdminRouteCapabilities(
   }
   if (path.startsWith('/api/admin/trust-queue')) return ['MARKETPLACE.LISTINGS.VIEW'];
 
-  return write ? ['GLOBAL.SYSTEM.MANAGE'] : ['GLOBAL.SYSTEM.VIEW'];
+  return ['DENY'];
 }

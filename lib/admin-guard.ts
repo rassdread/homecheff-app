@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { accessDecision, explicitGrants, hasExplicitCapabilityScope, type AdminCapability } from '@/lib/admin/admin-capabilities';
-import { resolveAdminRouteCapabilities } from '@/lib/admin/admin-route-capabilities';
+import { isAdminCapabilityRequirement, resolveAdminRouteCapabilities, unknownAdminRouteDecision } from '@/lib/admin/admin-route-capabilities';
 import type { AdminPermissions, User } from '@prisma/client';
 
 export type AdminPermissionKey =
@@ -208,6 +208,15 @@ function scopedPermissionCapabilities(permission: AdminPermissionKey): AdminCapa
 export async function requireMappedAdminCapability(request: Request): Promise<GuardResult> {
   const url = new URL(request.url);
   const requirements = resolveAdminRouteCapabilities(url.pathname, request.method);
+  if (requirements.includes('DENY')) {
+    const result = await getPlatformAdmin();
+    if (!result.ok) return result;
+    if (unknownAdminRouteDecision(result.admin.user.role) === 'allow') return result;
+    return {
+      ok: false,
+      response: NextResponse.json({ error: 'UNKNOWN_ADMIN_ROUTE' }, { status: 403 }),
+    };
+  }
   if (requirements.length === 1 && requirements[0] === 'SUPERADMIN') {
     return requireSuperAdmin();
   }
@@ -215,6 +224,7 @@ export async function requireMappedAdminCapability(request: Request): Promise<Gu
   if (!result.ok) return result;
   const allowed = requirements.some((requirement) => {
     if (requirement === 'SUPERADMIN') return result.admin.isSuperAdmin;
+    if (!isAdminCapabilityRequirement(requirement)) return false;
     return accessDecision({
       role: result.admin.user.role,
       adminRoles: result.admin.user.adminRoles,

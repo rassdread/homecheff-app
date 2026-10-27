@@ -65,7 +65,7 @@ describe('SEO 1 ecosystem entity + landings', () => {
   it('homepage exposes ecosystem participation signal', () => {
     const hero = read('components/home/HomeHeroSection.tsx');
     assert.match(hero, /data-hc-ecosystem-participation-signal/);
-    assert.match(hero, /HomepageEcosystemNavLinks/);
+    assert.match(read('components/home/HomePageClient.tsx'), /HomepageEcosystemNavLinks/);
     assert.match(read('components/seo/HomepageEcosystemSignal.tsx'), /Everybody Eats/);
   });
 

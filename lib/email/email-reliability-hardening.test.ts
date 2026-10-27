@@ -229,7 +229,7 @@ async function main() {
 
     const verify = read("lib/complete-email-verification.ts");
     assert.match(verify, /updateMany/);
-    assert.match(verify, /claimed\.count\s*>\s*0/);
+    assert.match(verify, /claimed\s*>\s*0/);
     assert.match(verify, /sendWelcomeEmail/);
     ok("verify welcome only on atomic claim");
 

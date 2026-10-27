@@ -58,7 +58,10 @@ describe('my-homecheff-hub-copy', () => {
 
   it('i18n CACHE_VERSION bumped past stale hub-less caches', () => {
     const src = readFileSync(join(root, 'hooks/useTranslation.ts'), 'utf8');
-    assert.match(src, /CACHE_VERSION = '2\.62'/);
+    const version = src.match(/CACHE_VERSION = '(\d+)\.(\d+)'/);
+    assert.ok(version);
+    const [major, minor] = [Number(version[1]), Number(version[2])];
+    assert.ok(major > 2 || (major === 2 && minor >= 62));
     assert.match(src, /myHomeCheffHub\?\.cards\?\.orders\?\.title/);
     assert.match(src, /myHomeCheffHub\?\.cards\?\.hc\?\.title/);
   });
@@ -78,6 +81,10 @@ describe('my-homecheff-hub-copy', () => {
       join(root, 'app/api/seller/dashboard/stats/route.ts'),
       'utf8',
     );
-    assert.match(stats, /status:\s*\{\s*notIn:\s*\['CANCELLED',\s*'REFUNDED'\]/);
+    assert.match(stats, /sellerCommercialOrderWhere/);
+    const helper = readFileSync(join(root, 'lib/orders/seller-commercial-metrics.ts'), 'utf8');
+    assert.match(helper, /'CANCELLED'/);
+    assert.match(helper, /'REFUNDED'/);
+    assert.match(helper, /notIn/);
   });
 });
