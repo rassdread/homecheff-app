@@ -235,32 +235,36 @@ try {
             }
           }
 
-          // 💰 CREATE ORDER FOR SUBSCRIPTION PAYMENT (for revenue tracking)
-          const subscriptionAmountCents = session.amount_total || subscription.priceCents || 0;
-          if (subscriptionAmountCents > 0 && session.payment_status === 'paid' && (session.amount_total ?? 0) > 0) {
+          // Record only what Stripe collected now. A trial or 100% period has
+          // amount_total 0. Do not substitute the later catalog price.
+          const chargedCents =
+            typeof session.amount_total === 'number' && session.amount_total > 0
+              ? session.amount_total
+              : 0;
+          if (chargedCents > 0 && session.payment_status === 'paid') {
             await recordPaidSubscription({
               userId,
               stripeSessionId: session.id,
-              valueCents: session.amount_total ?? 0,
+              valueCents: chargedCents,
               currency: session.currency || 'eur',
               plan: planName,
             }).catch((e) => console.warn('[acquisition] paid_subscription', e));
           }
 
-          if (subscriptionAmountCents > 0) {
+          if (chargedCents > 0) {
             try {
               await prisma.order.create({
                 data: {
                   userId: userId,
                   orderNumber: (await import('@/lib/orderNumberGenerator')).OrderNumberGenerator.generateSubscriptionNumber(),
                   status: 'CONFIRMED',
-                  totalAmount: subscriptionAmountCents,
+                  totalAmount: chargedCents,
                   stripeSessionId: session.id,
                   notes: `Abonnement betaling: ${subscription.name}${isRegistration ? ' (Registratie)' : ''}`,
                   deliveryMode: 'PICKUP', // Not applicable for subscriptions
                 }
               });
-              console.log(`✅ Subscription order created for user ${userId}: ${subscriptionAmountCents} cents`);
+              console.log(`✅ Subscription order created for user ${userId}: ${chargedCents} cents`);
             } catch (orderError: any) {
               console.error(`❌ Failed to create subscription order:`, orderError.message);
               // Don't fail the whole process if order creation fails
