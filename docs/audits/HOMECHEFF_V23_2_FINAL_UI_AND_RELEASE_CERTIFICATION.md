@@ -13,9 +13,13 @@ Application commits on that branch:
 - 31916b1371693c48df54aac116e22a074cbf65d1 customer Dutch and admin navigation
 - 882c6eed4eb7b3bf683ae64a481980bf5361e810 buyer-refund labels
 
-REMOTE_HEAD of this branch is the docs commit that adds this report, if that commit has been pushed. The deployed application commit is 882c6eed4eb7b3bf683ae64a481980bf5361e810.
+FINAL_HEAD: the commit that contains this file on fix/v23-2-final-ui-repair-certification. It is later than the deployed application commit.
 
-WORKTREE_CLEAN: yes after the docs commit, aside from this report until it is committed.
+REMOTE_HEAD: the same commit, pushed to origin/fix/v23-2-final-ui-repair-certification.
+
+DEPLOYED_COMMIT remains 882c6eed4eb7b3bf683ae64a481980bf5361e810. This report is not part of that preview.
+
+WORKTREE_CLEAN: yes once this file is committed.
 
 UNCOMMITTED_CHANGES_RESOLVED: the V23.1 source repairs were reviewed and committed. They were not discarded.
 
