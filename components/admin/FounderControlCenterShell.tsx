@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronRight, Menu, X } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   type AdminDomainId,
@@ -52,6 +52,7 @@ export default function FounderControlCenterShell({
   children,
 }: FounderControlCenterShellProps) {
   const { t } = useTranslation();
+  void mobileNavOpen;
 
   const visibleDomains = useMemo(
     () => getVisibleDomains(allowedTabIds, isSuperAdmin),
@@ -79,7 +80,10 @@ export default function FounderControlCenterShell({
   const activeDomainDef = getDomainDefinition(activeDomainId);
 
   const domainSidebar = (
-    <nav className="space-y-1" aria-label={label(t, 'admin.fcc.domainsNav', 'Admin domains')}>
+    <nav
+      className="flex gap-2 overflow-x-auto lg:block lg:space-y-1"
+      aria-label={label(t, 'admin.fcc.domainsNav', 'Admin domains')}
+    >
       {platformDomains.map((domain) => {
         const isActive = domain.id === activeDomainId;
         const tabCount = getTabsForDomain(domain.id, allowedTabIds).length;
@@ -92,7 +96,7 @@ export default function FounderControlCenterShell({
               onDomainChange(domain.id);
               onMobileNavToggle(false);
             }}
-            className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors ${
+            className={`shrink-0 text-left rounded-lg px-3 py-2.5 transition-colors lg:w-full ${
               isActive
                 ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                 : 'text-gray-700 hover:bg-gray-50 border border-transparent'
@@ -102,13 +106,13 @@ export default function FounderControlCenterShell({
               <span className="text-base" aria-hidden>
                 {domain.emoji}
               </span>
-              <span className="text-sm font-medium">
+              <span className="whitespace-nowrap text-sm font-medium lg:whitespace-normal">
                 {label(t, domain.labelKey, domain.fallbackLabel)}
               </span>
             </div>
-            <p className="mt-0.5 text-xs text-gray-500 pl-7">
+            <p className="mt-0.5 hidden text-xs text-gray-500 pl-7 lg:block">
               {tabCount + standaloneCount}{' '}
-              {label(t, 'admin.fcc.toolsCount', 'tools')}
+              {label(t, 'admin.fcc.toolsCount', 'onderdelen')}
             </p>
           </button>
         );
@@ -132,19 +136,19 @@ export default function FounderControlCenterShell({
                 {label(t, 'admin.fcc.subtitle', 'Operate the platform from one place')}
               </p>
             </div>
-            <button
-              type="button"
-              className="lg:hidden p-2 rounded-lg border border-gray-200 text-gray-600"
-              onClick={() => onMobileNavToggle(!mobileNavOpen)}
-              aria-label={label(t, 'admin.fcc.toggleNav', 'Toggle navigation')}
-            >
-              {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
           </div>
 
           <nav className="mt-3 flex flex-wrap gap-2" aria-label="Platforms">
             {(Object.keys(ADMIN_PLATFORM_DOMAINS) as AdminPlatformId[]).map((platform) => {
               const enabled = visibleDomains.some((domain) => ADMIN_PLATFORM_DOMAINS[platform].includes(domain.id));
+              const platformLabel =
+                platform === 'global'
+                  ? 'Algemeen'
+                  : platform === 'marketplace'
+                    ? 'Marktplaats'
+                    : platform === 'growth'
+                      ? 'Groei'
+                      : 'Studio';
               return (
                 <button
                   key={platform}
@@ -155,7 +159,7 @@ export default function FounderControlCenterShell({
                     const next = visibleDomains.find((domain) => ADMIN_PLATFORM_DOMAINS[platform].includes(domain.id));
                     if (next) onDomainChange(next.id);
                   }}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide ${
+                  className={`rounded-full px-3 py-1.5 text-sm font-semibold ${
                     platformId === platform
                       ? 'bg-emerald-700 text-white'
                       : enabled
@@ -163,7 +167,7 @@ export default function FounderControlCenterShell({
                         : 'bg-gray-100 text-gray-400'
                   }`}
                 >
-                  {platform === 'global' ? 'Global' : platform}
+                  {platformLabel}
                 </button>
               );
             })}
@@ -198,14 +202,10 @@ export default function FounderControlCenterShell({
       </header>
 
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex gap-6 lg:gap-8">
-          <aside
-            className={`${
-              mobileNavOpen ? 'block' : 'hidden'
-            } lg:block w-full lg:w-56 flex-shrink-0`}
-          >
+        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+          <aside className="w-full lg:w-56 flex-shrink-0">
             <div className="bg-white rounded-xl border shadow-sm p-3 lg:sticky lg:top-28">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 px-2 mb-2">
+              <p className="hidden lg:block text-xs font-semibold uppercase tracking-wide text-gray-500 px-2 mb-2">
                 {label(t, 'admin.fcc.domainsNav', 'Domains')}
               </p>
               {domainSidebar}

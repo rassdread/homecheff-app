@@ -363,7 +363,6 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
 
         {activeTab === 'overview' && (
           <div className="space-y-4">
-            <AdminCenterSummary />
           <div className="space-y-8">
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
@@ -610,6 +609,7 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
               </div>
             )}
           </div>
+            <AdminCenterSummary />
           </div>
         )}
 
@@ -637,7 +637,7 @@ export default function AdminDashboard({ user, stats, permissions }: AdminDashbo
             <AdminManagement />
           </div>
         )}
-        {activeTab === 'studio-desk' && <AdminCenterSummary />}
+        {activeTab === 'studio-desk' && <AdminCenterSummary only="studio" />}
         {activeTab === 'affiliates' && <AffiliateManagement />}
         {activeTab === 'opportunity-funnel' && <OpportunityFunnelAdmin />}
         {activeTab === 'promotions' && <AdminPromotionsPanel />}

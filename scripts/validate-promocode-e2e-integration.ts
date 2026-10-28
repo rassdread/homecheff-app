@@ -45,8 +45,9 @@ function fileContains(rel: string, needles: string[]): void {
 }
 
 section('1. Promo entry inventory (subscription surfaces)');
-fileContains('app/sell/page.tsx', [
-  'Heb je een promocode',
+fileContains('app/sell/page.tsx', ['SellPageClient']);
+fileContains('components/sell/SellPageClient.tsx', [
+  'Heb je een actiecode',
   '/api/affiliate/validate-promo-code',
   '/api/subscribe',
   'promoCode: finalPromoCode',
@@ -240,7 +241,7 @@ assert.equal(ADMIN_MAX_DISCOUNT_PCT, 100);
 console.log('OK admin guard + affiliate server caps');
 
 section('12. Mobile / Android');
-fileContains('app/sell/page.tsx', ['min-h-[44px]', 'inputMode', 'Enter']);
+fileContains('components/sell/SellPageClient.tsx', ['min-h-[44px]', 'inputMode', 'Enter']);
 console.log('OK touch targets + keyboard Enter on /sell (WebView shares web UI)');
 
 console.log('\nHOMECHEFF_PROMOCODE_END_TO_END_PASS');

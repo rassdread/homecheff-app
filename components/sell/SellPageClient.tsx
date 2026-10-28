@@ -20,6 +20,25 @@ import { getBusinessVisibilityProfile, type BusinessPlanId } from '@/lib/busines
 
 type Plan = 'BASIC' | 'PRO' | 'PREMIUM';
 
+function promoReasonMessage(reason: unknown): string {
+  switch (reason) {
+    case 'not_found':
+      return 'Deze actiecode bestaat niet.';
+    case 'max_redemptions_per_user':
+      return 'Deze promotie is al gebruikt door dit account.';
+    case 'max_redemptions':
+      return 'Deze actiecode is volledig gebruikt.';
+    case 'expired':
+      return 'Deze actiecode is verlopen.';
+    case 'disabled':
+      return 'Deze actiecode is uitgeschakeld.';
+    case 'not_started':
+      return 'Deze actiecode is nog niet actief.';
+    default:
+      return 'Deze actiecode is niet geldig.';
+  }
+}
+
 export default function SellPage() {
   const { t } = useTranslation();
   const [loading, setLoading] = useState<Plan | null>(null);
@@ -90,19 +109,7 @@ export default function SellPage() {
         setPromoQuotes(data.quotes);
       } else {
         setPromoCodeValid(false);
-        const reasonMsg =
-          data.reason === 'max_redemptions_per_user'
-            ? 'Deze promotie is al gebruikt door dit account.'
-            : data.reason === 'max_redemptions'
-              ? 'Deze promocode is volledig gebruikt.'
-              : data.reason === 'expired'
-                ? 'Deze promocode is verlopen.'
-                : data.reason === 'disabled'
-                  ? 'Deze promocode is uitgeschakeld.'
-                  : data.reason === 'not_started'
-                    ? 'Deze promocode is nog niet actief.'
-                    : null;
-        setPromoCodeError(data.error || reasonMsg || 'Ongeldige promo code');
+        setPromoCodeError(promoReasonMessage(data.reason));
         setPromoQuotes(null);
       }
     } catch {
@@ -154,7 +161,7 @@ export default function SellPage() {
         });
         const validatePromoData = await validatePromoRes.json();
         if (!validatePromoData.valid) {
-          setError(validatePromoData.error || 'Ongeldige promo code');
+          setError(promoReasonMessage(validatePromoData.reason));
           setPromoCodeValid(false);
           setPromoQuotes(null);
           setLoading(null);
@@ -396,7 +403,7 @@ function SellPageContent({
       {/* Promo Code Input — server validates; quotes drive plan card prices */}
       <div className="mb-8 max-w-md mx-auto">
         <label htmlFor="promo-code" className="block text-sm font-medium text-gray-700 mb-2">
-          Heb je een promocode?
+          Heb je een actiecode?
         </label>
         <div className="flex flex-wrap gap-2">
           <input

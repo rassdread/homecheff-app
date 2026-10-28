@@ -52,17 +52,17 @@ function sponsoredSentence(plan: BusinessPlanId, lang: PublicLang): string {
   }
   if (plan === 'basic') {
     return lang === 'en'
-      ? 'Eligible for a relevant sponsored recommendation. It is shown only when the offer fits what someone is browsing.'
-      : 'Je komt in aanmerking voor een relevante gesponsorde aanbeveling. Die verschijnt alleen als het aanbod past bij wat iemand bekijkt.';
+      ? 'Your offer can be shown extra when someone is browsing something that fits it.'
+      : 'Je aanbod kan extra worden getoond als iemand iets bekijkt dat daarbij past.';
   }
   if (plan === 'pro') {
     return lang === 'en'
-      ? 'More distribution opportunities than Basic for a relevant sponsored recommendation. Still only when the offer fits.'
-      : 'Meer distributiekansen dan Basic voor een relevante gesponsorde aanbeveling. Nog steeds alleen als het aanbod past.';
+      ? 'More chance than Basic of that extra recommendation, only when the offer fits.'
+      : 'Meer kans dan Basic op die extra aanbeveling, alleen als het aanbod past.';
   }
   return lang === 'en'
-    ? 'Highest distribution priority for a relevant sponsored recommendation. Still only when the offer fits.'
-    : 'De hoogste distributieprioriteit voor een relevante gesponsorde aanbeveling. Nog steeds alleen als het aanbod past.';
+    ? 'Highest priority for that extra recommendation, only when the offer fits.'
+    : 'De hoogste prioriteit voor die extra aanbeveling, alleen als het aanbod past.';
 }
 
 /** Sales on which the lower fee can offset the monthly price. Not a revenue promise. */
@@ -88,15 +88,15 @@ export function publicPlanFacts(lang: PublicLang): PublicPlanFact[] {
   const who: Record<PublicLang, Record<BusinessPlanId, string>> = {
     nl: {
       individual: 'Voor wie af en toe zelf iets aanbiedt, zonder bedrijfsabonnement.',
-      basic: 'Voor een lokaal bedrijf dat naast een lagere fee ook relevant extra zichtbaar mag zijn.',
-      pro: 'Voor een bedrijf dat vaker in aanmerking wil komen voor die relevante aanbeveling.',
-      premium: 'Voor een bedrijf dat, als het aanbod past, de hoogste plek in die verdeling wil.',
+      basic: 'Voor een lokaal bedrijf dat vaker verkoopt en minder commissie wil betalen.',
+      pro: 'Voor een bedrijf dat, naast een lagere commissie, vaker kans wil maken op een relevante aanbeveling.',
+      premium: 'Voor een bedrijf dat de laagste commissie wil, en de hoogste prioriteit als het aanbod past.',
     },
     en: {
       individual: 'For someone who lists occasionally, without a business subscription.',
-      basic: 'For a local business that wants a lower fee and relevant extra visibility.',
-      pro: 'For a business that wants more chances at that relevant recommendation.',
-      premium: 'For a business that wants the highest place in that distribution when the offer fits.',
+      basic: 'For a local business that sells more often and wants to pay less commission.',
+      pro: 'For a business that wants a lower commission and more chances at a relevant recommendation.',
+      premium: 'For a business that wants the lowest commission, and the highest priority when the offer fits.',
     },
   };
   return listBusinessPlanIds().map((id) => {

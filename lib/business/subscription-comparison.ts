@@ -85,10 +85,23 @@ const SPONSORED_BENEFIT_KEY: Partial<Record<BusinessPlanId, string>> = {
   premium: 'business.dna.benefit.sponsoredPremium',
 };
 
-/** Customer-facing benefit lines. Sponsored entitlement only; fee is a separate row. */
+const COMMISSION_BENEFIT_KEY: Partial<Record<BusinessPlanId, string>> = {
+  basic: 'business.dna.benefit.lowerThanPrivate',
+  pro: 'business.dna.benefit.lowerThanBasic',
+  premium: 'business.dna.benefit.lowerThanPro',
+};
+
+/**
+ * Customer-facing benefit lines.
+ * Commission percent is rendered separately from the plan profile.
+ * These lines only describe the live fee difference, the sponsored placement,
+ * and the fact that ordinary Marketplace order is not for sale.
+ */
 export function growthBenefitKeysForPlan(plan: BusinessPlanId): string[] {
-  const key = SPONSORED_BENEFIT_KEY[plan];
-  return key ? [key] : [];
+  const sponsored = SPONSORED_BENEFIT_KEY[plan];
+  const commission = COMMISSION_BENEFIT_KEY[plan];
+  if (!sponsored || !commission) return [];
+  return [sponsored, commission, 'business.dna.benefit.keepPlace'];
 }
 
 export function formatMonthlyPrice(plan: BusinessPlanId, locale = 'nl-NL'): string {

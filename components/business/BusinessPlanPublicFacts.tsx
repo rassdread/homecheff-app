@@ -76,8 +76,10 @@ export default function BusinessPlanPublicFacts({
             <article key={fact.id} className="hc-plan-card">
               <h2 style={{ fontSize: '1.05rem', margin: '0 0 0.35rem' }}>{fact.name}</h2>
               <p style={{ margin: 0, fontWeight: 700 }}>{fact.priceLabel}</p>
-              <p style={{ margin: '0.35rem 0 0' }}>
-                {en ? 'Platform fee' : 'Platformfee'}: {fact.commissionPercent}%
+              <p style={{ margin: '0.35rem 0 0', fontWeight: 650 }}>
+                {en
+                  ? `Pay only ${fact.commissionPercent}% commission on each sale.`
+                  : `Betaal slechts ${fact.commissionPercent}% commissie per verkoop.`}
               </p>
               <p style={{ margin: '0.5rem 0 0', lineHeight: 1.45 }}>{fact.sponsored}</p>
               <p style={{ margin: '0.5rem 0 0', lineHeight: 1.45 }}>{fact.who}</p>
@@ -97,8 +99,8 @@ export default function BusinessPlanPublicFacts({
         </h2>
         <p>
           {en
-            ? 'Basic can be chosen for a relevant sponsored recommendation. Pro has more distribution opportunities than Basic. Premium has the highest distribution priority. None of this is a promised number of views. If nobody is looking for that offer, nothing is inserted.'
-            : 'Basic kan worden gekozen voor een relevante gesponsorde aanbeveling. Pro heeft meer distributiekansen dan Basic. Premium heeft de hoogste distributieprioriteit. Geen van deze plannen belooft een aantal vertoningen. Zoekt niemand naar dat aanbod, dan wordt er niets tussengevoegd.'}
+            ? 'Basic can be shown extra when someone is browsing something that fits. Pro has more chance of that than Basic, only when the offer fits. Premium has the highest priority there, only when the offer fits. None of this is a promised number of views. If nobody is looking for that offer, nothing is inserted.'
+            : 'Basic kan extra worden getoond als iemand iets bekijkt dat daarbij past. Pro maakt daar vaker kans op dan Basic, alleen als het aanbod past. Premium heeft daar de hoogste prioriteit, alleen als het aanbod past. Geen van deze plannen belooft een aantal vertoningen. Zoekt niemand naar dat aanbod, dan wordt er niets tussengevoegd.'}
         </p>
         {basicOffset ? (
           <p>

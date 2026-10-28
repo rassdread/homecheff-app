@@ -70,7 +70,6 @@ export default function SubscriptionPlanCards({
         const isAvailable = planAvailability[key];
         const isLoading = loading === key;
         const isDisabled = isLoading || isAvailable === false;
-        const isHighlight = planId === 'pro';
         const isPreviewing = previewPlan === planId;
         const benefits = growthBenefitKeysForPlan(planId);
 
@@ -84,21 +83,18 @@ export default function SubscriptionPlanCards({
             key={key}
             onMouseEnter={() => onPreviewPlan(planId)}
             onFocus={() => onPreviewPlan(planId)}
-            className={`flex flex-col rounded-2xl border p-6 text-center shadow-sm transition-all ${
-              isHighlight
-                ? 'border-primary-brand bg-primary-50/40 shadow-lg'
-                : 'bg-white'
-            } ${isPreviewing ? 'ring-2 ring-emerald-500 border-emerald-400' : 'border-gray-200'} ${
-              isAvailable === false ? 'opacity-60' : ''
-            }`}
+            className={`flex flex-col rounded-2xl border bg-white p-6 text-center shadow-sm transition-all ${
+              isPreviewing ? 'ring-2 ring-emerald-500 border-emerald-400' : 'border-gray-200'
+            } ${isAvailable === false ? 'opacity-60' : ''}`}
           >
             <div className="mb-2 flex justify-center">
               <BusinessPlanBadge plan={planId} t={t} size="md" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">
-              {t(`business.dna.plan.${planId}`)}
+            <p className="text-sm font-medium text-gray-500">{t(`business.dna.plan.${planId}`)}</p>
+            <h2 className="mt-1 text-lg font-semibold leading-snug text-gray-900">
+              {t(dna.purposeKey)}
             </h2>
-            <p className="mt-1 text-xs text-gray-600">{t(dna.purposeKey)}</p>
+            <p className="mt-2 text-sm text-gray-600">{t(`business.dna.who.${planId}`)}</p>
 
             <div className="my-4">
               {hasDiscount ? (
@@ -119,28 +115,17 @@ export default function SubscriptionPlanCards({
                     <p className="mt-2 text-xs text-gray-700">
                       Eerste {quote!.discountDurationCycles}{' '}
                       {quote!.discountDurationCycles === 1 ? 'maand' : 'maanden'}:{' '}
-                      <strong>{isFree ? 'FREE / €0' : formatEuroFromCents(quote!.finalPriceCents)}</strong>
+                      <strong>{isFree ? '€0' : formatEuroFromCents(quote!.finalPriceCents)}</strong>
                       {quote!.endsAutomatically || quote!.postPromotionAction === 'END' ? (
                         <>
                           <br />
-                          Daarna eindigt het abonnement automatisch na de
-                          promotieperiode.
-                          <br />
-                          <span className="text-gray-500">
-                            Subscription ends automatically after the promotional
-                            period. No further charges.
-                          </span>
+                          Daarna stopt het abonnement. Er volgt geen nieuwe betaling.
                         </>
                       ) : quote!.resumesAtListPrice !== false ? (
                         <>
                           <br />
-                          Daarna: {formatEuroFromCents(quote!.basePriceCents)} / maand
+                          Daarna betaal je {formatEuroFromCents(quote!.basePriceCents)} per maand
                           tot je opzegt.
-                          <br />
-                          <span className="text-gray-500">
-                            After that: {formatEuroFromCents(quote!.basePriceCents)}
-                            /month until cancelled.
-                          </span>
                         </>
                       ) : null}
                     </p>
@@ -156,7 +141,7 @@ export default function SubscriptionPlanCards({
               )}
             </div>
 
-            <p className="mb-4 text-xs text-gray-500">
+            <p className="mb-4 text-sm font-semibold text-gray-900">
               {t('business.dna.commissionNote', { percent: dna.commissionPercent })}
             </p>
 
@@ -192,9 +177,7 @@ export default function SubscriptionPlanCards({
                   ? t('business.dna.unavailable')
                   : isFree
                     ? `Activeer ${t(`business.dna.plan.${planId}`)} gratis`
-                    : t('business.dna.choosePlan', {
-                        plan: t(`business.dna.plan.${planId}`),
-                      })}
+                    : t(`business.dna.cta.${planId}`)}
             </Button>
           </div>
         );

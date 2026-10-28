@@ -898,7 +898,9 @@
         "insights": "Insights",
         "insightsDesc": "Analytics, geography, and variabelen",
         "platform": "Platform",
-        "platformDesc": "Settings, audit trail, and admin access"
+        "platformDesc": "Settings, audit trail, and admin access",
+        "studio": "Studio",
+        "studioDesc": "Projects, generation jobs and provider costs"
       },
       "standalone": {
         "profile": "My admin profile",
@@ -8356,9 +8358,14 @@
         "automation": "Automatic activation after payment"
       },
       "perMonth": "per month",
-      "commissionNote": "Platform fee on sales: {{percent}}%.",
+      "commissionNote": "Pay only {{percent}}% commission on each sale.",
       "unavailable": "Unavailable",
       "choosePlan": "Choose {{plan}}",
+      "cta": {
+        "basic": "Start with Basic",
+        "pro": "Choose Pro",
+        "premium": "Choose Premium"
+      },
       "plan": {
         "individual": "Individual",
         "basic": "Basic",
@@ -8367,9 +8374,15 @@
       },
       "purpose": {
         "individual": "No business subscription. Offers stay in the ordinary Marketplace.",
-        "basic": "A lower fee, and a sponsored recommendation when the offer fits.",
-        "pro": "More distribution opportunities than Basic, only when the offer fits.",
-        "premium": "Highest distribution priority, only when the offer fits."
+        "basic": "A lower commission from your first sale.",
+        "pro": "A lower commission than Basic, and more often a fitting recommendation.",
+        "premium": "The lowest commission, and the highest priority when the offer fits."
+      },
+      "who": {
+        "individual": "For someone who lists occasionally.",
+        "basic": "For a local business that sells more often.",
+        "pro": "For a business that wants more chances than Basic.",
+        "premium": "For a business that wants the lowest commission."
       },
       "analytics": {
         "basic": "Basic",
@@ -8395,9 +8408,13 @@
         "badge": "Business badge on profile and listings",
         "discoveryBoost": "Business badge and profile strength (no ranking boost)",
         "premiumAnalytics": "Extended seller overview (no premium analytics module)",
-        "sponsoredBasic": "Eligible for extra relevant visibility, only when your offer matches what someone is browsing.",
-        "sponsoredPro": "More distribution opportunities for relevant sponsored recommendations, only when the offer fits.",
-        "sponsoredPremium": "Highest distribution priority within relevant sponsored recommendations, only when the offer fits."
+        "sponsoredBasic": "Your offer can be shown extra when someone is browsing something that fits it.",
+        "sponsoredPro": "More chance than Basic of that extra recommendation, only when the offer fits.",
+        "sponsoredPremium": "Highest priority for that extra recommendation, only when the offer fits.",
+        "lowerThanPrivate": "More left from each sale than without a subscription.",
+        "lowerThanBasic": "More left from each sale than with Basic.",
+        "lowerThanPro": "More left from each sale than with Pro.",
+        "keepPlace": "Your ordinary place in the Marketplace stays as it is."
       },
       "preview": {
         "liveTitle": "Live preview: how you'll appear",

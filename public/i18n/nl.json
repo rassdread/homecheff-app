@@ -1812,7 +1812,7 @@
       "domainsNav": "Domeinen",
       "sectionNav": "Sectienavigatie",
       "toggleNav": "Navigatie tonen/verbergen",
-      "toolsCount": "tools",
+      "toolsCount": "onderdelen",
       "quickLinks": "Diepere tools",
       "domain": {
         "commandCenter": "Command Center",
@@ -1832,7 +1832,9 @@
         "insights": "Inzichten",
         "insightsDesc": "Analytics, geografie en variabelen",
         "platform": "Platform",
-        "platformDesc": "Instellingen, auditlog en admin-toegang"
+        "platformDesc": "Instellingen, auditlog en admin-toegang",
+        "studio": "Studio",
+        "studioDesc": "Projecten, generatie-opdrachten en providerkosten"
       },
       "standalone": {
         "profile": "Mijn adminprofiel",
@@ -8350,15 +8352,22 @@
       "growthSubtitle": "Een lagere platformfee, en een gesponsorde aanbeveling alleen als je aanbod past. De gewone Marketplace-volgorde is niet te koop.",
       "growthPitch": "Basic, Pro en Premium verlagen de platformfee op verkopen via HomeCheff. Een betaald plan kan meedoen aan een aparte gesponsorde aanbeveling. Dat is geen hogere plek in de gewone resultaten, en geen beloofd aantal views.",
       "pillar": {
-        "visibility": "Gesponsorde aanbeveling als het aanbod past",
-        "trust": "Gewone Marketplace-volgorde is niet te koop",
-        "customers": "Lagere platformfee dan zonder abonnement",
-        "automation": "Automatische activatie na betaling"
+        "visibility": "Extra aanbeveling als je aanbod past",
+        "trust": "Je gewone plek in de Marketplace blijft zoals die is",
+        "customers": "Lagere commissie dan zonder abonnement",
+        "automation": "Het abonnement gaat in na betaling"
       },
       "perMonth": "per maand",
-      "commissionNote": "Platformfee op verkopen: {{percent}}%.",
+      "commissionNote": "Betaal slechts {{percent}}% commissie per verkoop.",
+      "commissionLead": "Betaal {{percent}}% commissie per verkoop.",
+      "commissionCompared": "Zonder abonnement is dat {{percent}}%.",
       "unavailable": "Niet beschikbaar",
       "choosePlan": "Kies {{plan}}",
+      "cta": {
+        "basic": "Start met Basic",
+        "pro": "Kies Pro",
+        "premium": "Kies Premium"
+      },
       "plan": {
         "individual": "Particulier",
         "basic": "Basic",
@@ -8367,9 +8376,15 @@
       },
       "purpose": {
         "individual": "Zonder bedrijfsabonnement. Aanbod blijft in de gewone Marketplace.",
-        "basic": "Lagere fee, en een gesponsorde aanbeveling als het aanbod past.",
-        "pro": "Meer distributiekansen dan Basic, alleen als het aanbod past.",
-        "premium": "Hoogste distributieprioriteit, alleen als het aanbod past."
+        "basic": "Minder commissie vanaf je eerste verkoop.",
+        "pro": "Nog lagere commissie dan Basic, en vaker een passende aanbeveling.",
+        "premium": "De laagste commissie, en de hoogste prioriteit als het aanbod past."
+      },
+      "who": {
+        "individual": "Voor wie af en toe zelf iets aanbiedt.",
+        "basic": "Voor een lokaal bedrijf dat vaker verkoopt.",
+        "pro": "Voor een bedrijf dat naast Basic ook vaker kans wil maken.",
+        "premium": "Voor een bedrijf dat de laagste commissie wil."
       },
       "analytics": {
         "basic": "Basis",
@@ -8395,9 +8410,13 @@
         "badge": "Business badge op profiel en listings",
         "discoveryBoost": "Business badge en profielversterking (geen ranking-boost)",
         "premiumAnalytics": "Uitgebreid verkopersoverzicht (geen premium analytics-module)",
-        "sponsoredBasic": "Kom in aanmerking voor extra relevante zichtbaarheid, alleen als je aanbod past bij wat iemand bekijkt.",
-        "sponsoredPro": "Meer distributiekansen voor relevante gesponsorde aanbevelingen, alleen als het aanbod past.",
-        "sponsoredPremium": "De hoogste distributieprioriteit binnen relevante gesponsorde aanbevelingen, alleen als het aanbod past."
+        "sponsoredBasic": "Je aanbod kan extra worden getoond als iemand iets bekijkt dat daarbij past.",
+        "sponsoredPro": "Meer kans dan Basic op die extra aanbeveling, alleen als het aanbod past.",
+        "sponsoredPremium": "De hoogste prioriteit voor die extra aanbeveling, alleen als het aanbod past.",
+        "lowerThanPrivate": "Meer ruimte om over te houden aan je verkopen dan zonder abonnement.",
+        "lowerThanBasic": "Meer ruimte om over te houden aan je verkopen dan met Basic.",
+        "lowerThanPro": "Meer ruimte om over te houden aan je verkopen dan met Pro.",
+        "keepPlace": "Je gewone plek in de Marketplace blijft zoals die is."
       },
       "preview": {
         "liveTitle": "Live preview: zo zie je eruit",
