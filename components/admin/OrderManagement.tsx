@@ -75,6 +75,8 @@ interface Order {
   transactions: Transaction[];
   totalPayouts: number;
   totalRefunds: number;
+  /** Buyer refund from RefundSettlement. Null when that record is absent. */
+  buyerRefundCents?: number | null;
   timeline?: Array<{
     type: string;
     date: string;
@@ -472,7 +474,7 @@ export default function OrderManagement() {
                       </div>
                       {order.totalRefunds > 0 && (
                         <div className="text-xs text-red-600">
-                          -{formatCurrency(order.totalRefunds)} refund
+                          -{formatCurrency(order.totalRefunds)} verkopersbedrag terug
                         </div>
                       )}
                     </td>
@@ -648,6 +650,12 @@ function OrderDetailModal({
                 <div>
                   <label className="text-sm font-medium text-gray-700">{t('common.totalAmount')}</label>
                   <p className="mt-1 text-lg font-bold">{formatCurrency(displayOrder.totalAmount)}</p>
+                  <p className="mt-1 text-xs text-gray-500">Bedrag dat de koper heeft betaald.</p>
+                  {typeof displayOrder.buyerRefundCents === 'number' && displayOrder.buyerRefundCents > 0 ? (
+                    <p className="mt-1 text-sm text-red-700">
+                      Koper terugbetaald: {formatCurrency(displayOrder.buyerRefundCents)}
+                    </p>
+                  ) : null}
                 </div>
               </div>
 
@@ -821,17 +829,17 @@ function OrderDetailModal({
                     <div className="flex justify-between">
                       <div>
                         <p className="text-sm font-medium">{formatCurrency(tx.amountCents)}</p>
-                        <p className="text-xs text-gray-500">Status: {tx.status}</p>
+                        <p className="text-xs text-gray-500">Verkopersbedrag · status {tx.status}</p>
                       </div>
                       <div className="text-right">
                         {tx.Payout.length > 0 && (
                           <p className="text-xs text-green-600">
-                            Uitbetaald: {formatCurrency(tx.Payout.reduce((sum, p) => sum + p.amountCents, 0))}
+                            Uitbetaald aan verkoper: {formatCurrency(tx.Payout.reduce((sum, p) => sum + p.amountCents, 0))}
                           </p>
                         )}
                         {tx.Refund.length > 0 && (
                           <p className="text-xs text-red-600">
-                            Refund: {formatCurrency(tx.Refund.reduce((sum, r) => sum + r.amountCents, 0))}
+                            Verkopersbedrag terug: {formatCurrency(tx.Refund.reduce((sum, r) => sum + r.amountCents, 0))}
                           </p>
                         )}
                       </div>

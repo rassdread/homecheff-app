@@ -169,9 +169,16 @@ export async function GET(
       }
     });
 
+    const buyerSettlement = await prisma.refundSettlement.findFirst({
+      where: { orderId: order.id, buyerRefundCents: { gt: 0 } },
+      orderBy: { createdAt: 'desc' },
+      select: { buyerRefundCents: true },
+    });
+
     return NextResponse.json({
       order: {
         ...order,
+        buyerRefundCents: buyerSettlement?.buyerRefundCents ?? null,
         transactions,
         timeline: [
           ...adminActions.map(action => ({
