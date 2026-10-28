@@ -3,6 +3,17 @@
 import { useRef, useState } from 'react';
 import { Send, Users, Mail, Bell, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { COURIER_EMAIL_TEMPLATES } from '@/lib/admin/courier-notification-templates';
+
+type CourierPreview = {
+  recipientSnapshot: string;
+  targetCount: number;
+  excludedCount: number;
+  excluded: { reason: string; count: number }[];
+  recipients: { name: string | null; email: string | null; readiness: string; missing: string[] }[];
+  page: number;
+  pageCount: number;
+};
 
 export default function NotificationCenter() {
   const { t } = useTranslation();
@@ -15,14 +26,75 @@ export default function NotificationCenter() {
   const [sendEmail, setSendEmail] = useState(false);
   const [confirmEmailBlast, setConfirmEmailBlast] = useState(false);
   const [emailPreviewCount, setEmailPreviewCount] = useState<number | null>(null);
+  const [courierSegment, setCourierSegment] = useState('ALL_EXISTING_COURIERS');
+  const [courierVehicle, setCourierVehicle] = useState('');
+  const [courierArea, setCourierArea] = useState('');
+  const [courierActivity, setCourierActivity] = useState('');
+  const [courierTemplate, setCourierTemplate] = useState('');
+  const [courierPreview, setCourierPreview] = useState<CourierPreview | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const submitLockRef = useRef(false);
   const idempotencyKeyRef = useRef<string | null>(null);
+
+  const courierFilters = {
+    segment: courierSegment,
+    vehicle: courierVehicle || null,
+    area: courierArea,
+    activeWithinDays: courierActivity || null,
+    templateId: courierTemplate || null,
+  };
+
+  const clearCourierPreview = () => setCourierPreview(null);
+
+  const loadCourierPreview = async (page = 1) => {
+    setPreviewLoading(true);
+    try {
+      const response = await fetch('/api/admin/notifications/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetType: 'delivery',
+          dryRun: true,
+          sendNotification: false,
+          sendEmail: false,
+          courierFilters,
+          page,
+          pageSize: 20,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        alert(data.error || t('errors.sendMessageError2'));
+        return;
+      }
+      setCourierPreview({
+        recipientSnapshot: data.recipientSnapshot,
+        targetCount: data.targetCount ?? 0,
+        excludedCount: data.excludedCount ?? 0,
+        excluded: Array.isArray(data.excluded) ? data.excluded : [],
+        recipients: Array.isArray(data.recipients) ? data.recipients : [],
+        page: data.page ?? page,
+        pageCount: data.pageCount ?? 1,
+      });
+      setEmailPreviewCount(typeof data.emailRecipientCount === 'number' ? data.emailRecipientCount : null);
+    } catch (error) {
+      console.error('Error previewing courier recipients:', error);
+      alert(t('errors.sendMessageError2'));
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (submitLockRef.current || isLoading) return;
+
+    if (targetType === 'delivery' && !courierPreview?.recipientSnapshot) {
+      alert('Bekijk eerst de ontvangers. Er wordt niets verstuurd voordat je die lijst bevestigt.');
+      return;
+    }
 
     if (!message.trim()) {
       alert(t('errors.enterMessage'));
@@ -57,6 +129,7 @@ export default function NotificationCenter() {
             sendNotification: false,
             sendEmail: true,
             dryRun: true,
+            courierFilters: targetType === 'delivery' ? courierFilters : undefined,
           }),
         });
         const preview = await previewRes.json().catch(() => ({}));
@@ -108,6 +181,8 @@ export default function NotificationCenter() {
           sendEmail,
           confirmEmailBlast: sendEmail ? confirmedBlast : false,
           idempotencyKey: idempotencyKeyRef.current,
+          courierFilters: targetType === 'delivery' ? courierFilters : undefined,
+          recipientSnapshot: targetType === 'delivery' ? courierPreview?.recipientSnapshot : undefined,
         }),
       });
 
@@ -143,6 +218,8 @@ export default function NotificationCenter() {
               sendEmail,
               confirmEmailBlast: true,
               idempotencyKey: idempotencyKeyRef.current,
+              courierFilters: targetType === 'delivery' ? courierFilters : undefined,
+              recipientSnapshot: targetType === 'delivery' ? courierPreview?.recipientSnapshot : undefined,
             }),
           });
           const retryData = await retry.json().catch(() => ({}));
@@ -188,15 +265,172 @@ export default function NotificationCenter() {
                 setTargetType(e.target.value);
                 setConfirmEmailBlast(false);
                 setEmailPreviewCount(null);
+                clearCourierPreview();
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
               <option value="all">{t('admin.notificationCenter.allUsers')}</option>
               <option value="sellers">{t('admin.notificationCenter.sellersOnly')}</option>
               <option value="buyers">{t('admin.notificationCenter.buyersOnly')}</option>
+              {/* value "delivery" selects every user with a DeliveryProfile. */}
               <option value="delivery">{t('admin.notificationCenter.activeOnly')}</option>
             </select>
           </div>
+
+          {targetType === 'delivery' && (
+            <div className="space-y-4 rounded-lg border border-gray-200 p-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('admin.notificationCenter.courierStatus')}
+                </label>
+                <select
+                  value={courierSegment}
+                  onChange={(e) => {
+                    setCourierSegment(e.target.value);
+                    clearCourierPreview();
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="ALL_EXISTING_COURIERS">{t('admin.notificationCenter.courierAll')}</option>
+                  <option value="ACTIVE_COURIERS">{t('admin.notificationCenter.courierActive')}</option>
+                  <option value="READY_COURIERS">{t('admin.notificationCenter.courierReady')}</option>
+                  <option value="AGREEMENT_MISSING">{t('admin.notificationCenter.courierAgreement')}</option>
+                  <option value="STRIPE_CONNECT_MISSING">{t('admin.notificationCenter.courierConnectMissing')}</option>
+                  <option value="STRIPE_ONBOARDING_INCOMPLETE">{t('admin.notificationCenter.courierOnboarding')}</option>
+                  <option value="STRIPE_IDENTITY_UNVERIFIED">{t('admin.notificationCenter.courierIdentity')}</option>
+                  <option value="PROFILE_INCOMPLETE">{t('admin.notificationCenter.courierProfile')}</option>
+                  <option value="INACTIVE_COURIERS">{t('admin.notificationCenter.courierInactive')}</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <label className="block text-sm text-gray-700">
+                  {t('admin.notificationCenter.vehicle')}
+                  <select
+                    value={courierVehicle}
+                    onChange={(e) => {
+                      setCourierVehicle(e.target.value);
+                      clearCourierPreview();
+                    }}
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  >
+                    <option value="">{t('admin.notificationCenter.vehicleAny')}</option>
+                    <option value="BIKE">{t('admin.notificationCenter.vehicleBike')}</option>
+                    <option value="EBIKE">{t('admin.notificationCenter.vehicleEbike')}</option>
+                    <option value="SCOOTER">{t('admin.notificationCenter.vehicleScooter')}</option>
+                    <option value="CAR">{t('admin.notificationCenter.vehicleCar')}</option>
+                  </select>
+                </label>
+                <label className="block text-sm text-gray-700">
+                  {t('admin.notificationCenter.area')}
+                  <input
+                    type="text"
+                    value={courierArea}
+                    onChange={(e) => {
+                      setCourierArea(e.target.value);
+                      clearCourierPreview();
+                    }}
+                    placeholder={t('admin.notificationCenter.areaPlaceholder')}
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    maxLength={80}
+                  />
+                </label>
+                <label className="block text-sm text-gray-700">
+                  {t('admin.notificationCenter.lastActivity')}
+                  <select
+                    value={courierActivity}
+                    onChange={(e) => {
+                      setCourierActivity(e.target.value);
+                      clearCourierPreview();
+                    }}
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  >
+                    <option value="">{t('admin.notificationCenter.lastActivityAny')}</option>
+                    <option value="7">{t('admin.notificationCenter.lastActivity7')}</option>
+                    <option value="30">{t('admin.notificationCenter.lastActivity30')}</option>
+                    <option value="90">{t('admin.notificationCenter.lastActivity90')}</option>
+                  </select>
+                </label>
+              </div>
+              <label className="block text-sm text-gray-700">
+                {t('admin.notificationCenter.template')}
+                <select
+                  value={courierTemplate}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setCourierTemplate(next);
+                    clearCourierPreview();
+                    const template = COURIER_EMAIL_TEMPLATES.find((item) => item.id === next);
+                    if (template) {
+                      setSubject(template.subject);
+                      setMessage(template.message);
+                    }
+                  }}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">{t('admin.notificationCenter.templateNone')}</option>
+                  <option value="COURIER_AGREEMENT_REMINDER">{t('admin.notificationCenter.templateAgreement')}</option>
+                  <option value="COURIER_STRIPE_ONBOARDING">{t('admin.notificationCenter.templateStripe')}</option>
+                  <option value="COURIER_PROFILE_COMPLETION">{t('admin.notificationCenter.templateProfile')}</option>
+                  <option value="COURIER_PILOT_INVITATION">{t('admin.notificationCenter.templatePilot')}</option>
+                  <option value="COURIER_REACTIVATION">{t('admin.notificationCenter.templateReactivation')}</option>
+                </select>
+              </label>
+              <button
+                type="button"
+                onClick={() => void loadCourierPreview(1)}
+                disabled={previewLoading}
+                className="inline-flex items-center px-4 py-2 rounded-lg border border-emerald-700 text-emerald-800 text-sm font-medium"
+              >
+                {previewLoading ? t('admin.notificationCenter.sending') : t('admin.notificationCenter.previewRecipients')}
+              </button>
+              {courierPreview && (
+                <div className="space-y-3 text-sm text-gray-800">
+                  <p>
+                    {courierPreview.targetCount} ontvangers. Uitgesloten: {courierPreview.excludedCount}.
+                  </p>
+                  {courierPreview.excluded.length > 0 && (
+                    <ul className="list-disc pl-5 text-gray-600">
+                      {courierPreview.excluded.map((row) => (
+                        <li key={row.reason}>{row.reason}: {row.count}</li>
+                      ))}
+                    </ul>
+                  )}
+                  <ul className="divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                    {courierPreview.recipients.map((recipient) => (
+                      <li key={`${recipient.email}-${recipient.name}`} className="px-3 py-2">
+                        <p className="font-medium">{recipient.name || 'Bezorger'}</p>
+                        <p>{recipient.email}</p>
+                        <p>{recipient.readiness}</p>
+                        {recipient.missing.length > 0 && (
+                          <p className="text-gray-600">{recipient.missing.join(' ')}</p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                  {courierPreview.pageCount > 1 && (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        disabled={courierPreview.page <= 1}
+                        onClick={() => void loadCourierPreview(courierPreview.page - 1)}
+                        className="px-3 py-1 border rounded"
+                      >
+                        Vorige
+                      </button>
+                      <button
+                        type="button"
+                        disabled={courierPreview.page >= courierPreview.pageCount}
+                        onClick={() => void loadCourierPreview(courierPreview.page + 1)}
+                        className="px-3 py-1 border rounded"
+                      >
+                        Volgende
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -319,12 +553,20 @@ export default function NotificationCenter() {
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               placeholder={t('common.typeMessageHere')}
-              maxLength={500}
-            />
+maxLength={2000}
+              />
             <div className="mt-1 text-sm text-gray-500">
-              {message.length}/500 {t('common.characters')}
+              {message.length}/2000 {t('common.characters')}
             </div>
           </div>
+
+          {sendEmail && subject.trim() && message.trim() && (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <h3 className="text-sm font-medium text-gray-900">{t('admin.notificationCenter.emailPreview')}</h3>
+              <p className="mt-2 text-sm font-medium text-gray-800">{subject}</p>
+              <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">{message}</p>
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 text-sm text-gray-500">

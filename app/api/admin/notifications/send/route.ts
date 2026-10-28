@@ -12,6 +12,18 @@ import {
 import { sendTransactionalEmail } from '@/lib/email/idempotent-send';
 import { EMAIL_PRIORITY } from '@/lib/email/priority';
 import { getTransactionalFrom } from '@/lib/email-from';
+import { loadCourierNotificationAudience } from '@/lib/admin/courier-notification-audience';
+import {
+  courierQueryKey,
+  parseCourierNotificationQuery,
+} from '@/lib/admin/courier-notification-segments';
+import { courierTemplateIsPromotional } from '@/lib/admin/courier-notification-templates';
+import {
+  intersectCourierSnapshot,
+  readCourierRecipientSnapshot,
+  signCourierRecipientSnapshot,
+} from '@/lib/admin/courier-recipient-snapshot';
+import { SAFETY_SUPPORT_EMAIL } from '@/lib/legal/policy-urls';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,27 +58,37 @@ export async function POST(req: NextRequest) {
     const dryRun = Boolean(body?.dryRun);
     const subject =
       typeof body?.subject === 'string' ? body.subject.trim() : '';
+    const courierRequest = targetType === 'delivery';
+    const parsedCourier = courierRequest ? parseCourierNotificationQuery(body?.courierFilters ?? {}) : null;
+    if (parsedCourier && !parsedCourier.ok) {
+      return NextResponse.json({ error: parsedCourier.error }, { status: 400 });
+    }
+    const page = Math.max(1, Number(body?.page) || 1);
+    const pageSize = Math.min(50, Math.max(1, Number(body?.pageSize) || 20));
     const titleRaw = typeof body?.title === 'string' ? body.title.trim() : '';
     const routeRaw = body?.route;
     const idempotencyKey =
       req.headers.get('idempotency-key')?.trim() ||
       (typeof body?.idempotencyKey === 'string' ? body.idempotencyKey.trim() : '');
 
-    if (!message || !targetType) {
+    if (!targetType || (!dryRun && !message)) {
       return NextResponse.json(
         { error: 'Message and targetType are required' },
         { status: 400 }
       );
     }
+    if (message.length > 4000) {
+      return NextResponse.json({ error: 'Bericht is te lang.' }, { status: 400 });
+    }
 
-    if (!sendNotification && !sendEmail) {
+    if (!dryRun && !sendNotification && !sendEmail) {
       return NextResponse.json(
         { error: 'Select at least one delivery method (notification or email)' },
         { status: 400 }
       );
     }
 
-    if (sendEmail && !subject) {
+    if (!dryRun && sendEmail && !subject) {
       return NextResponse.json(
         { error: 'Email subject is required when sending email' },
         { status: 400 }
@@ -90,11 +112,69 @@ export async function POST(req: NextRequest) {
         select: { id: true, email: true, name: true },
         where: { role: 'BUYER' },
       });
-    } else if (targetType === 'delivery') {
-      targetUsers = await prisma.user.findMany({
-        select: { id: true, email: true, name: true },
-        where: { DeliveryProfile: { isNot: null } },
-      });
+    } else if (courierRequest && parsedCourier?.ok) {
+      const audience = await loadCourierNotificationAudience(prisma, parsedCourier.query);
+      const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || '';
+      if (!secret.trim()) {
+        return NextResponse.json({ error: 'Ontvangerslijst kan niet worden vastgezet.' }, { status: 500 });
+      }
+      const snapshotToken = signCourierRecipientSnapshot(
+        { ids: audience.eligible.map((courier) => courier.userId), key: courierQueryKey(parsedCourier.query) },
+        secret.trim(),
+      );
+      if (dryRun) {
+        const start = (page - 1) * pageSize;
+        const slice = audience.eligible.slice(start, start + pageSize);
+        const withEmail = audience.eligible.filter((courier) => courier.email);
+        const blastGate = evaluateAdminEmailBlast({
+          sendEmail: true,
+          emailRecipientCount: withEmail.length,
+          targetType,
+          confirmEmailBlast,
+          idempotencyKey,
+        });
+        return NextResponse.json({
+          dryRun: true,
+          targetCount: audience.eligible.length,
+          emailRecipientCount: withEmail.length,
+          excludedCount: audience.excluded.reduce((sum, row) => sum + row.count, 0),
+          excluded: audience.excluded,
+          recipients: slice.map((courier) => ({
+            name: courier.name,
+            email: courier.email,
+            readiness: courier.primaryLabel,
+            missing: courier.missing,
+          })),
+          page,
+          pageSize,
+          pageCount: Math.max(1, Math.ceil(audience.eligible.length / pageSize)),
+          recipientSnapshot: snapshotToken,
+          segment: parsedCourier.query.segment,
+          requiresConfirm: blastGate.ok ? blastGate.requiresConfirm : true,
+          softMax: 'softMax' in blastGate ? blastGate.softMax : 50,
+          hardMax: 'hardMax' in blastGate ? blastGate.hardMax : 500,
+          gate: blastGate.ok ? 'ok' : blastGate.code,
+          message: blastGate.ok
+            ? `Preview: ${withEmail.length} e-mails zouden worden verstuurd.`
+            : blastGate.error,
+        });
+      }
+      const presented = typeof body?.recipientSnapshot === 'string' ? body.recipientSnapshot : '';
+      const read = readCourierRecipientSnapshot(presented, secret.trim());
+      if (!read.ok) return NextResponse.json({ error: read.error }, { status: 400 });
+      if (read.snapshot.key !== courierQueryKey(parsedCourier.query)) {
+        return NextResponse.json(
+          { error: 'De filters zijn gewijzigd. Bekijk de ontvangers opnieuw.' },
+          { status: 400 },
+        );
+      }
+      const allowed = new Set(intersectCourierSnapshot(
+        audience.eligible.map((courier) => courier.userId),
+        read.snapshot.ids,
+      ));
+      targetUsers = audience.eligible
+        .filter((courier) => allowed.has(courier.userId) && courier.email)
+        .map((courier) => ({ id: courier.userId, email: courier.email, name: courier.name }));
     } else {
       return NextResponse.json({ error: 'Invalid targetType' }, { status: 400 });
     }
@@ -209,6 +289,8 @@ export async function POST(req: NextRequest) {
     }
 
     let emailsSent = 0;
+    let emailsFailed = 0;
+    const promotional = Boolean(parsedCourier?.ok && courierTemplateIsPromotional(parsedCourier.query.templateId));
     if (sendEmail) {
       const withEmail = targetUsers.filter((u) => u.email);
 
@@ -220,8 +302,8 @@ export async function POST(req: NextRequest) {
               from: getTransactionalFrom(),
               to: [user.email!],
               subject: emailSubject,
-              html: emailHtml(emailSubject, user.name, message),
-              eventType: 'admin_broadcast',
+              html: emailHtml(emailSubject, user.name, message, promotional),
+              eventType: promotional ? 'admin_broadcast_promotional' : 'admin_broadcast',
               priority: EMAIL_PRIORITY.P2,
               route: 'admin/notifications/send',
               idempotencyKey: `admin-broadcast:${broadcastId}:${user.id}`,
@@ -231,6 +313,7 @@ export async function POST(req: NextRequest) {
           })
         );
         emailsSent += outcomes.filter(Boolean).length;
+        emailsFailed += outcomes.filter((accepted) => !accepted).length;
         if (i + EMAIL_BATCH_SIZE < withEmail.length) {
           await new Promise((r) => setTimeout(r, EMAIL_BATCH_PAUSE_MS));
         }
@@ -241,10 +324,15 @@ export async function POST(req: NextRequest) {
         JSON.stringify({
           broadcastId,
           targetType,
-          emailRecipientCount: withEmail.length,
-          emailsSent,
+          segment: parsedCourier?.ok ? parsedCourier.query.segment : null,
+          filters: parsedCourier?.ok ? courierQueryKey(parsedCourier.query) : null,
+          recipientCount: withEmail.length,
+          attempted: withEmail.length,
+          providerAccepted: emailsSent,
+          failed: emailsFailed,
+          inboxDeliveryConfirmed: false,
           adminEmail: session.user.email,
-          ts: Date.now(),
+          ts: new Date().toISOString(),
         })
       );
     }
@@ -256,14 +344,19 @@ export async function POST(req: NextRequest) {
     if (pushTokensAttempted > 0) {
       parts.push(`${pushSuccess} push(s) afgeleverd (${pushFailures} mislukt)`);
     }
-    if (emailsSent > 0) {
-      parts.push(`${emailsSent} e-mail(s)`);
+    if (sendEmail) {
+      parts.push(
+        `De e-mailprovider heeft ${emailsSent} bericht(en) aangenomen. Dat bevestigt niet dat ze in de inbox staan. Mislukt: ${emailsFailed}.`
+      );
     }
 
     return NextResponse.json({
       success: true,
       notificationsCreated,
       emailsSent,
+      emailsFailed,
+      providerAccepted: emailsSent,
+      inboxDeliveryConfirmed: false,
       push: {
         tokensAttempted: pushTokensAttempted,
         success: pushSuccess,
@@ -298,7 +391,7 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
-function emailHtml(subject: string, name: string | null, message: string): string {
+function emailHtml(subject: string, name: string | null, message: string, promotional = false): string {
   const safeName = escapeHtml(name || 'Gebruiker');
   const safeSubject = escapeHtml(subject);
   const safeBody = escapeHtml(message);
@@ -337,6 +430,11 @@ function emailHtml(subject: string, name: string | null, message: string): strin
                   </div>
                   <div class="footer">
                     <p>Met vriendelijke groet,<br>Het HomeCheff-team</p>
+                    ${
+                      promotional
+                        ? `<p style="margin-top:12px;">Je ontvangt dit omdat je marketingberichten hebt geaccepteerd. Uitschrijven: mail ${escapeHtml(SAFETY_SUPPORT_EMAIL)} met het onderwerp Uitschrijven.</p>`
+                        : ''
+                    }
                   </div>
                 </div>
               </body>
