@@ -205,6 +205,10 @@ export const ADMIN_DOMAIN_DEFINITIONS: AdminDomainDef[] = [
   },
 ];
 
+/**
+ * Classification only. The cockpit sidebar lists every allowed domain together.
+ * Do not filter that sidebar by platform; Growth and Studio stay inside the same list.
+ */
 export type AdminPlatformId = 'global' | 'marketplace' | 'growth' | 'studio';
 
 export const ADMIN_PLATFORM_DOMAINS: Record<AdminPlatformId, AdminDomainId[]> = {

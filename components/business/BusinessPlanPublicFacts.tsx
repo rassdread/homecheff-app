@@ -83,7 +83,7 @@ export default function BusinessPlanPublicFacts({
               </p>
               <p style={{ margin: '0.5rem 0 0', lineHeight: 1.45 }}>{fact.sponsored}</p>
               <p style={{ margin: '0.5rem 0 0', lineHeight: 1.45 }}>{fact.who}</p>
-              {reward ? (
+              {variant === 'affiliate' && reward ? (
                 <p style={{ margin: '0.5rem 0 0', lineHeight: 1.45 }}>
                   {en ? 'Direct affiliate, per paid invoice' : 'Directe affiliate, per betaalde factuur'}:{' '}
                   {formatPlanEuros(reward.directCents)}.
@@ -109,13 +109,7 @@ export default function BusinessPlanPublicFacts({
               : `Basic kost ${formatPlanEuros(basic.monthlyPriceCents)} per maand bij ${basic.feePercent}% in plaats van ${individual.feePercent}%. Dat maandbedrag is even groot als het feeverschil op ongeveer ${formatPlanEuros(basicOffset)} afrekenomzet via HomeCheff. Dit is geen voorspelling van winst of klanten. Deze pagina zet er geen apart btw-bedrag bij. Het overzicht bewaart de planprijs.`}
           </p>
         ) : null}
-        {variant === 'plans' ? (
-          <p>
-            <Link href="/affiliate" className="hc-plan-cta">
-              {en ? 'Explain this as an affiliate' : 'Leg dit uit als affiliate'}
-            </Link>
-          </p>
-        ) : (
+        {variant === 'plans' ? null : (
           <p>
             <Link href="/sell" className="hc-plan-cta">
               {en ? 'View the business plans' : 'Bekijk de bedrijfsabonnementen'}

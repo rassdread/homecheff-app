@@ -10,9 +10,6 @@ import {
 } from '@/lib/business/visibility-profile';
 import { SPONSORED_DISTRIBUTION_WEIGHT } from '@/lib/sponsored/recommendation';
 import {
-  AFFILIATE_BUSINESS_COMMISSION_PCT,
-  PARENT_AFFILIATE_BUSINESS_COMMISSION_PCT,
-  SUB_AFFILIATE_BUSINESS_COMMISSION_PCT,
   calculateBusinessSubscriptionCommission,
   calculateParentAffiliateBusinessCommission,
 } from '@/lib/affiliate-config';
@@ -150,8 +147,6 @@ export function businessPlanFaq(lang: PublicLang): { question: string; answer: s
     PublicPlanFact
   >;
   const basicOffset = commissionOffsetSalesCents('basic');
-  const rewards = affiliateRewardsForPlans();
-  const basicReward = rewards.find((row) => row.plan === 'basic');
   if (lang === 'en') {
     return [
       {
@@ -185,14 +180,8 @@ export function businessPlanFaq(lang: PublicLang): { question: string; answer: s
           : 'The fee difference is calculated from the current plan catalog.',
       },
       {
-        question: 'What does an affiliate earn for a business subscription?',
-        answer: basicReward
-          ? `A direct affiliate receives ${Math.round(AFFILIATE_BUSINESS_COMMISSION_PCT * 100)}% of the monthly fee on each paid invoice. For Basic that is ${formatPlanEuros(basicReward.directCents)} of ${formatPlanEuros(basicReward.priceCents)}. A partner in a MAIN network receives ${Math.round(SUB_AFFILIATE_BUSINESS_COMMISSION_PCT * 100)}% (${formatPlanEuros(basicReward.partnerCents)} on Basic) and the MAIN receives ${Math.round(PARENT_AFFILIATE_BUSINESS_COMMISSION_PCT * 100)}% (${formatPlanEuros(basicReward.mainCents)} on Basic). HomeCheff keeps the other half of the fee. This continues on later paid invoices while the subscription and the referral stay in place. It is not a guaranteed income.`
-          : 'The affiliate share follows the paid subscription invoice.',
-      },
-      {
         question: 'What does the referred business receive?',
-        answer: 'The same plan a business would buy itself: the listed monthly price, the listed platform fee, and the sponsored entitlement for that plan. The affiliate reward is not taken out of the business’s sales.',
+        answer: 'The same plan a business would buy itself: the listed monthly price, the listed commission, and the sponsored entitlement for that plan.',
       },
     ];
   }
@@ -228,14 +217,8 @@ export function businessPlanFaq(lang: PublicLang): { question: string; answer: s
         : 'Het feeverschil wordt uit het huidige plancatalogus gerekend.',
     },
     {
-      question: 'Wat krijgt een affiliate als die een bedrijf aanbrengt?',
-      answer: basicReward
-        ? `Een directe affiliate ontvangt ${Math.round(AFFILIATE_BUSINESS_COMMISSION_PCT * 100)}% van de maandfee bij elke betaalde factuur. Bij Basic is dat ${formatPlanEuros(basicReward.directCents)} van ${formatPlanEuros(basicReward.priceCents)}. Een partner in een MAIN-netwerk ontvangt ${Math.round(SUB_AFFILIATE_BUSINESS_COMMISSION_PCT * 100)}% (${formatPlanEuros(basicReward.partnerCents)} bij Basic) en de MAIN ontvangt ${Math.round(PARENT_AFFILIATE_BUSINESS_COMMISSION_PCT * 100)}% (${formatPlanEuros(basicReward.mainCents)} bij Basic). HomeCheff houdt de andere helft van de fee. Dit loopt door op latere betaalde facturen zolang het abonnement en de aanbreng blijven staan. Het is geen gegarandeerd inkomen.`
-        : 'Het affiliate-aandeel volgt de betaalde abonnementsfactuur.',
-    },
-    {
       question: 'Wat krijgt het aangebrachte bedrijf?',
-      answer: 'Hetzelfde plan als wanneer het bedrijf zelf kiest: de genoemde maandprijs, de genoemde platformfee, en de gesponsorde mogelijkheid van dat plan. De affiliatebeloning gaat niet van de verkopen van het bedrijf af.',
+      answer: 'Hetzelfde plan als wanneer het bedrijf zelf kiest: de genoemde maandprijs, de genoemde commissie, en de gesponsorde mogelijkheid van dat plan.',
     },
   ];
 }
@@ -294,18 +277,10 @@ export function businessPlanMachineBrief(): string {
     (fact) =>
       `- ${fact.name}: ${fact.priceLabel}, ${fact.commissionPercent}% platform fee. ${fact.sponsored}`,
   );
-  const rewards = affiliateRewardsForPlans();
-  const rewardLines = rewards.map(
-    (row) =>
-      `- ${row.plan}: business pays ${formatPlanEuros(row.priceCents)}; direct affiliate ${formatPlanEuros(row.directCents)} per paid invoice (${Math.round(AFFILIATE_BUSINESS_COMMISSION_PCT * 100)}%).`,
-  );
   return [
     '## Business subscriptions',
     'Canonical public page: https://homecheff.eu/sell',
     'Ordinary Marketplace ranking is not paid. Sponsored recommendations are a separate labelled placement and appear only when relevant. No impression count is guaranteed.',
     ...lines,
-    'Affiliate reward on a business subscription (not taken from the business sales):',
-    ...rewardLines,
-    `Partner in a MAIN network: ${Math.round(SUB_AFFILIATE_BUSINESS_COMMISSION_PCT * 100)}% to the partner and ${Math.round(PARENT_AFFILIATE_BUSINESS_COMMISSION_PCT * 100)}% to the MAIN, of the same monthly fee, on each paid invoice while the subscription and referral remain.`,
   ].join('\n');
 }

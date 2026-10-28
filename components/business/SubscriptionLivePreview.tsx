@@ -18,7 +18,10 @@ export default function SubscriptionLivePreview({ plan, onPlanChange, className 
   const facts = publicPlanFacts(language === 'en' ? 'en' : 'nl');
   const fact = facts.find((row) => row.id === plan) ?? facts[0];
   const plans = listBusinessPlanIds();
-  const feeLabel = language === 'en' ? 'Platform fee' : 'Platformfee';
+  const feeLabel =
+    language === 'en'
+      ? `Pay only ${fact.commissionPercent}% commission on each sale`
+      : `Betaal slechts ${fact.commissionPercent}% commissie per verkoop`;
 
   return (
     <section
@@ -49,9 +52,7 @@ export default function SubscriptionLivePreview({ plan, onPlanChange, className 
       <div className="mt-4 rounded-xl bg-gray-50 p-4 text-sm text-gray-800">
         <p className="font-semibold text-gray-900">{fact.name}</p>
         <p className="mt-1">{fact.priceLabel}</p>
-        <p className="mt-1">
-          {feeLabel}: {fact.commissionPercent}%
-        </p>
+        <p className="mt-1">{feeLabel}.</p>
         <p className="mt-2">{fact.sponsored}</p>
       </div>
     </section>

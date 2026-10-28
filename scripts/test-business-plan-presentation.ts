@@ -54,7 +54,7 @@ assert.match(faq, /€199/);
 assert.match(faq, /5%/);
 assert.match(faq, /niet te koop/);
 assert.match(faq, /geen beloofd aantal/);
-assert.match(faq, /€19,50/);
+assert.equal(/19,50|49,50|99,50|affiliate/i.test(faq), false);
 assert.equal(/2×|3×|gegarandeerde vertoning/i.test(faq), false);
 
 const json = JSON.stringify(businessPlanJsonLd('nl'));
