@@ -1,6 +1,7 @@
 // Vercel build: Prisma Client generate + Next.js build.
 // Database migrations are NOT run during Vercel builds (Preview or Production).
 const { execSync } = require("child_process");
+const fs = require("fs");
 
 console.log("🚀 Starting Vercel build (prisma generate → next build)\n");
 console.log(
@@ -23,7 +24,11 @@ try {
   });
 
   console.log("🏗️  Building Next.js application...");
-  // The standard Vercel builder has 8 GB. A 6 GB heap is killed during next build.
+  // Restoring .next/cache makes this compile exceed the 4096 MB heap.
+  // The same commit completes when that cache is absent. A 6 GB heap is
+  // killed on the 8 GB builder, so the heap stays at 4096 MB.
+  fs.rmSync(".next/cache", { recursive: true, force: true });
+  console.log("🧹 Removed restored Next.js build cache before compilation\n");
   execSync(
     "cross-env NODE_OPTIONS=--max-old-space-size=4096 NEXT_TELEMETRY_DISABLED=1 next build",
     { stdio: "inherit", shell: true }
