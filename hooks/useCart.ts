@@ -134,6 +134,10 @@ export function useCart() {
         addedQuantity = Math.min(normalizedQuantity, maxAddable);
         if (existingItem) {
           existingItem.quantity += addedQuantity;
+          existingItem.pickupLocationId = item.pickupLocationId ?? existingItem.pickupLocationId;
+          existingItem.pickupLocationName = item.pickupLocationName ?? existingItem.pickupLocationName;
+          existingItem.pickupLocationAddress =
+            item.pickupLocationAddress ?? existingItem.pickupLocationAddress;
           didMutate = true;
         } else {
           cart.items.push({
@@ -147,6 +151,9 @@ export function useCart() {
             sellerId: (item as any).sellerId || '',
             deliveryMode: (item as any).deliveryMode || 'PICKUP',
             maxQuantity: effectiveLimit,
+            pickupLocationId: item.pickupLocationId ?? null,
+            pickupLocationName: item.pickupLocationName ?? null,
+            pickupLocationAddress: item.pickupLocationAddress ?? null,
           });
           didMutate = true;
         }
@@ -171,6 +178,10 @@ export function useCart() {
       if (existingItem) {
         existingItem.quantity += normalizedQuantity;
         existingItem.maxQuantity = null;
+        existingItem.pickupLocationId = item.pickupLocationId ?? existingItem.pickupLocationId;
+        existingItem.pickupLocationName = item.pickupLocationName ?? existingItem.pickupLocationName;
+        existingItem.pickupLocationAddress =
+          item.pickupLocationAddress ?? existingItem.pickupLocationAddress;
         didMutate = true;
       } else {
         cart.items.push({
@@ -184,6 +195,9 @@ export function useCart() {
           sellerId: (item as any).sellerId || '',
           deliveryMode: (item as any).deliveryMode || 'PICKUP',
           maxQuantity: null,
+          pickupLocationId: item.pickupLocationId ?? null,
+          pickupLocationName: item.pickupLocationName ?? null,
+          pickupLocationAddress: item.pickupLocationAddress ?? null,
         });
         addedQuantity = normalizedQuantity;
         newQuantity = normalizedQuantity;

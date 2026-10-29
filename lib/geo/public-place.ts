@@ -73,6 +73,7 @@ export function stripPreciseLocationFromPublicItem<T extends Record<string, unkn
     next.place = toPublicPlaceLabel(next.place);
   }
   for (const key of PRECISE_KEYS) delete next[key];
+  delete next.salesLocationPoints;
 
   const location = next.location;
   if (location && typeof location === 'object') {

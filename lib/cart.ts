@@ -13,6 +13,10 @@ export interface CartItem {
   deliveryMode: string; // Can be 'PICKUP', 'DELIVERY', 'SHIPPING', 'BOTH', or comma-separated like 'PICKUP,SHIPPING'
   maxQuantity?: number | null;
   barterOpenness?: string | null;
+  /** Snapshot of the buyer's chosen stall. Later location edits do not change this cart copy. */
+  pickupLocationId?: string | null;
+  pickupLocationName?: string | null;
+  pickupLocationAddress?: string | null;
 }
 
 export interface Cart {

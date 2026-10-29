@@ -18,6 +18,7 @@ import {
 import AppBackBar from '@/components/navigation/AppBackBar';
 import { getCurrentLocation } from '@/lib/geolocation';
 import HelpSettings from '@/components/onboarding/HelpSettings';
+import SellerSalesLocationsCard from '@/components/seller/SellerSalesLocationsCard';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface SellerProfile {
@@ -251,6 +252,8 @@ export default function VerkoperInstellingenPageClient() {
               />
             </div>
           </div>
+
+          <SellerSalesLocationsCard />
 
           {/* Locatie Instellingen */}
           <div className="bg-white rounded-2xl shadow-sm p-6">

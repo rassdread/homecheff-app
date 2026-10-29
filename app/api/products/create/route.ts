@@ -23,6 +23,10 @@ import {
 } from '@/lib/geo/ensure-place-coords';
 import { syncSellerProfileCoordsIfEmpty } from '@/lib/seller/sync-seller-profile-coords';
 import {
+  assertOwnedActiveSalesLocations,
+  replaceProductSalesLocationLinks,
+} from '@/lib/seller/sales-locations-server';
+import {
   parseMarketplaceV2FromBody,
   validateMarketplacePrice,
 } from '@/lib/marketplace/parse-v2-payload';
@@ -128,6 +132,7 @@ export async function POST(req: Request) {
       pickupAddress,
       pickupLat,
       pickupLng,
+      salesLocationIds,
       sellerCanDeliver = false,
       deliveryRadiusKm,
       stock,
@@ -527,6 +532,18 @@ export async function POST(req: Request) {
       }
     }
 
+    let assignedSalesLocationIds: string[] = [];
+    if (Array.isArray(salesLocationIds)) {
+      const gate = await assertOwnedActiveSalesLocations(user.id, salesLocationIds);
+      if (!gate.ok) {
+        return NextResponse.json(
+          { error: gate.error, code: gate.code },
+          { status: gate.status },
+        );
+      }
+      assignedSalesLocationIds = gate.ids;
+    }
+
     // Create Product (not Listing)
     const productId = randomUUID();
     console.log('[Products Create API] Creating product with:', {
@@ -898,6 +915,10 @@ export async function POST(req: Request) {
           notes: typeof notes === 'string' ? notes : null,
         },
       });
+    }
+
+    if (assignedSalesLocationIds.length > 0) {
+      await replaceProductSalesLocationLinks(result.id, assignedSalesLocationIds);
     }
 
     // Verify product was created correctly

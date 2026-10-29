@@ -4,6 +4,8 @@ import FavoriteButton from '@/components/favorite/FavoriteButton';
 import ShareButton from '@/components/ui/ShareButton';
 import ProductDetailTags from '@/components/product/detail/ProductDetailTags';
 import ProductSalePrimaryActions from '@/components/product/detail/ProductSalePrimaryActions';
+import PickupLocationChooser from '@/components/product/detail/PickupLocationChooser';
+import type { PublicPickupLocation } from '@/lib/seller/sales-locations';
 import ProductSaleSecondaryContact from '@/components/product/detail/ProductSaleSecondaryContact';
 import ProductValueExchangeSection from '@/components/product/detail/ProductValueExchangeSection';
 import ProductDetailTrustBlock from '@/components/product/detail/ProductDetailTrustBlock';
@@ -104,6 +106,9 @@ type Props = {
   isFavorited?: boolean;
   onQuantityChange: (n: number) => void;
   onAddedToCart?: () => void;
+  pickupLocations?: PublicPickupLocation[];
+  selectedPickupLocationId?: string | null;
+  onPickupLocationChange?: (id: string) => void;
   className?: string;
 };
 
@@ -130,6 +135,9 @@ export default function ProductSaleCommerceZone({
   isFavorited,
   onQuantityChange,
   onAddedToCart,
+  pickupLocations = [],
+  selectedPickupLocationId = null,
+  onPickupLocationChange,
   className,
 }: Props) {
   const { t } = useTranslation();
@@ -296,6 +304,14 @@ export default function ProductSaleCommerceZone({
         className="hidden lg:block !border-0 !bg-transparent !p-0 !shadow-none"
       />
 
+      {onPickupLocationChange ? (
+        <PickupLocationChooser
+          locations={pickupLocations}
+          selectedId={selectedPickupLocationId}
+          onChange={onPickupLocationChange}
+        />
+      ) : null}
+
       <div className="hidden lg:block" data-detail-section="action_block">
         <ProductSalePrimaryActions
           product={product}
@@ -309,6 +325,10 @@ export default function ProductSaleCommerceZone({
           paymentStatus={paymentStatus}
           publicContactChannels={publicContactChannels}
           onAdded={onAddedToCart}
+          pickupLocation={
+            pickupLocations.find((location) => location.id === selectedPickupLocationId) ??
+            null
+          }
         />
       </div>
 

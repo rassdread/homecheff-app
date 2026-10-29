@@ -39,6 +39,7 @@ import type { MarketplaceCategory } from '@prisma/client';
 import ProductSaleDomainStory from '@/components/product/detail/ProductSaleDomainStory';
 import type { ProductInspirationLink } from '@/components/product/detail/ProductInspirationLinkCard';
 import ProductSaleCommerceZone from '@/components/product/detail/ProductSaleCommerceZone';
+import { defaultPickupLocationId, type PublicPickupLocation } from '@/lib/seller/sales-locations';
 import { OwnerListingQuality } from '@/components/products/OwnerListingQuality';
 import ProductDetailMainSections from '@/components/product/detail/ProductDetailMainSections';
 import ProductSaleStickyCta from '@/components/product/detail/ProductSaleStickyCta';
@@ -114,6 +115,7 @@ type Product = {
   pickupAddress?: string | null;
   pickupLat?: number | null;
   pickupLng?: number | null;
+  pickupLocations?: PublicPickupLocation[];
   sellerCanDeliver?: boolean;
   deliveryRadiusKm?: number | null;
   Image?: { id: string; fileUrl: string }[];
@@ -268,6 +270,7 @@ export default function ListingDetailPage({
   );
   const [isLoading, setIsLoading] = useState(() => !mappedInitial);
   const [quantity, setQuantity] = useState(1);
+  const [selectedPickupLocationId, setSelectedPickupLocationId] = useState<string | null>(null);
   const [baseUrl, setBaseUrl] = useState('');
   const [isOwner, setIsOwner] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -331,6 +334,22 @@ export default function ListingDetailPage({
   const handoffCheckedRef = useRef(false);
   const hasStaleSnapshotRef = useRef(Boolean(mappedInitial));
   const hasServerInitialRef = useRef(Boolean(mappedInitial));
+
+  useEffect(() => {
+    const locations = (product?.pickupLocations ?? []).filter(
+      (location) => location.isActive !== false,
+    );
+    setSelectedPickupLocationId((current) => {
+      if (current && locations.some((location) => location.id === current)) return current;
+      return defaultPickupLocationId(locations);
+    });
+  }, [product?.id, product?.pickupLocations]);
+
+  const selectedPickupLocation =
+    product?.pickupLocations?.find((location) => location.id === selectedPickupLocationId && location.isActive !== false) ??
+    product?.pickupLocations?.find((location) => location.isPrimary && location.isActive !== false) ??
+    product?.pickupLocations?.find((location) => location.isActive !== false) ??
+    null;
 
   useEffect(() => {
     const uid = product?.seller?.User?.id;
@@ -1240,6 +1259,9 @@ export default function ListingDetailPage({
                       isFavorited={initialData?.isFavorited}
                       onQuantityChange={setQuantity}
                       onAddedToCart={() => setQuantity(1)}
+                      pickupLocations={product.pickupLocations ?? []}
+                      selectedPickupLocationId={selectedPickupLocation?.id ?? null}
+                      onPickupLocationChange={setSelectedPickupLocationId}
                     />
                   ) : null}
                   {currentUser && !isOwner ? (
@@ -1351,6 +1373,7 @@ export default function ListingDetailPage({
         checkoutAvailable={checkoutAvailable}
         publicContactChannels={publicContactChannels}
         hidden={showDeleteConfirm || showReviewForm || isEditing}
+        pickupLocation={selectedPickupLocation}
       />
 
 

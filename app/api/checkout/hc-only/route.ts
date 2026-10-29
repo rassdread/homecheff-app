@@ -16,6 +16,7 @@ import {
   isNewCourierFulfillmentMode,
 } from '@/lib/delivery/delivery-deployment-gate';
 import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
+import { resolveCheckoutPickupAddress } from '@/lib/seller/sales-locations-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,7 +71,11 @@ export async function POST(req: NextRequest) {
     }
 
     const body = stripSpoofedFeeFields((await req.json()) as Record<string, unknown>);
-    const items = body?.items as Array<{ productId: string; quantity: number }> | undefined;
+    const items = body?.items as Array<{
+      productId: string;
+      quantity: number;
+      pickupLocationId?: string | null;
+    }> | undefined;
     if (!items?.length) {
       return NextResponse.json({ ok: false, code: 'NO_ITEMS' }, { status: 400, headers: NO_STORE });
     }
@@ -90,8 +95,20 @@ export async function POST(req: NextRequest) {
     const deliveryFeeCents = Math.max(0, Math.round(Number(body?.deliveryFeeCents ?? 0)));
     const smsNotificationCostCents = Math.max(0, Math.round(Number(body?.smsNotificationCostCents ?? 0)));
     const deliveryMode = String(body?.deliveryMode ?? 'PICKUP');
-    const deliveryAddress =
+    let deliveryAddress =
       typeof body?.address === 'string' ? body.address : typeof body?.deliveryAddress === 'string' ? body.deliveryAddress : null;
+    const resolvedPickup = await resolveCheckoutPickupAddress({
+      deliveryMode,
+      buyerAddress: deliveryAddress ?? '',
+      items: items ?? [],
+    });
+    if (!resolvedPickup.ok) {
+      return NextResponse.json(
+        { ok: false, code: resolvedPickup.code, error: resolvedPickup.error },
+        { status: resolvedPickup.status, headers: NO_STORE },
+      );
+    }
+    deliveryAddress = resolvedPickup.address;
     const deliveryProfileId =
       typeof body?.selectedDeliveryProfileId === 'string'
         ? body.selectedDeliveryProfileId

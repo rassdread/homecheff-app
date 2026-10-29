@@ -13,6 +13,7 @@ import { resolveProductIdFromParam } from '@/lib/seo/productSlug';
 import { buildPublicPaymentStatus } from '@/lib/stripe/seller-payment-status';
 import type { InspirationCategory } from '@/lib/inspiratie/instruction-content';
 import { consumerContextFromProductPayload } from '@/lib/legal/consumer-context-from-product';
+import { loadPublicPickupLocations } from '@/lib/seller/sales-locations-server';
 import { toPublicSellerCommerceView } from '@/lib/legal/seller-commerce-context';
 import { buildSellerCommerceContext } from '@/lib/legal/seller-commerce-context';
 
@@ -162,10 +163,18 @@ export async function loadListingDetail(
     isFavorited = false;
   }
 
+  let pickupLocations: Awaited<ReturnType<typeof loadPublicPickupLocations>> = [];
+  try {
+    pickupLocations = await loadPublicPickupLocations(product.id);
+  } catch (error) {
+    console.warn('[listing-detail] sales locations unavailable', error);
+  }
+
   return {
     product: {
       ...product,
       Video: sortedVideo,
+      pickupLocations,
     },
     // B-class: filled by client detail-extras after first paint
     publicContactChannels: [{ id: 'chat', href: '' }],

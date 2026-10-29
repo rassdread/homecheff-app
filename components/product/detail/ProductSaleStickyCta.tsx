@@ -18,6 +18,7 @@ import {
 } from '@/lib/marketplace/exchange/exchange-funnel-analytics';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';
+import type { PublicPickupLocation } from '@/lib/seller/sales-locations';
 
 type ProductShape = {
   id: string;
@@ -46,6 +47,7 @@ type Props = {
   checkoutAvailable: boolean;
   publicContactChannels: PublicContactChannel[];
   hidden?: boolean;
+  pickupLocation?: PublicPickupLocation | null;
 };
 
 export default function ProductSaleStickyCta({
@@ -58,6 +60,7 @@ export default function ProductSaleStickyCta({
   checkoutAvailable,
   publicContactChannels,
   hidden = false,
+  pickupLocation = null,
 }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -105,6 +108,9 @@ export default function ProductSaleStickyCta({
         sellerName,
         sellerId: product.seller?.User?.id || '',
         deliveryMode: (product.delivery as string) || 'PICKUP',
+        pickupLocationId: pickupLocation?.id ?? null,
+        pickupLocationName: pickupLocation?.name ?? null,
+        pickupLocationAddress: pickupLocation?.addressLabel ?? null,
         stock: availableStock,
         barterOpenness: product.barterOpenness ?? null,
         maxQuantity:
@@ -217,7 +223,11 @@ export default function ProductSaleStickyCta({
         'max-lg:bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))]',
       )}
     >
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-1 px-4 py-2.5">
+        {pickupLocation ? (
+          <p className="truncate text-xs text-gray-600">Afhalen: {pickupLocation.name}</p>
+        ) : null}
+        <div className="flex items-center gap-3">
         <div className="min-w-0 shrink-0">
           <div className="text-lg font-bold leading-none text-gray-900">{priceLabel}</div>
         </div>
@@ -238,6 +248,7 @@ export default function ProductSaleStickyCta({
           )}
           {actionLabel}
         </button>
+        </div>
       </div>
     </div>
   );

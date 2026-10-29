@@ -22,6 +22,10 @@ import {
 } from '@/lib/geo/ensure-place-coords';
 import { placeTextMateriallyChanged } from '@/lib/geo/resolve-place-input';
 import { syncSellerProfileCoordsIfEmpty } from '@/lib/seller/sync-seller-profile-coords';
+import {
+  assertOwnedActiveSalesLocations,
+  replaceProductSalesLocationLinks,
+} from '@/lib/seller/sales-locations-server';
 import { buildMarketplaceV2PatchFields } from '@/lib/marketplace/patch-v2-fields';
 import { auth } from '@/lib/auth';
 import { marketplaceAgeResponse, subjectFromUser } from '@/lib/age/listing-age-guard';
@@ -830,6 +834,20 @@ export async function PATCH(
 
         // Update product in appropriate model
         if (isNewModel) {
+          let nextSalesLocationIds: string[] | null = null;
+          if (Array.isArray(body.salesLocationIds)) {
+            const gate = await assertOwnedActiveSalesLocations(
+              user.id,
+              body.salesLocationIds,
+            );
+            if (!gate.ok) {
+              return NextResponse.json(
+                { error: gate.error, code: gate.code },
+                { status: gate.status },
+              );
+            }
+            nextSalesLocationIds = gate.ids;
+          }
           // Handle image updates if provided
           const updateData: any = {
             title: body.title,
@@ -1127,6 +1145,13 @@ export async function PATCH(
             body,
             (product as { seller?: { User?: { id?: string } } }).seller?.User?.id ?? user.id,
           ).catch((e) => console.warn('[product PATCH] linked dish sync', e));
+
+          if (nextSalesLocationIds !== null) {
+            await replaceProductSalesLocationLinks(
+              updatedProduct.id,
+              nextSalesLocationIds,
+            );
+          }
 
           if (shouldRevalidateAfterProductMutation(product, updatedProduct)) {
             revalidatePublicFeedCache('product:patch');

@@ -77,6 +77,7 @@ import {
   getAuthoritativeCarrierShippingQuote,
 } from '@/lib/shipping/quote-service';
 import { validateShippingAddressSnapshot } from '@/lib/shipping/address-snapshot';
+import { resolveCheckoutPickupAddress } from '@/lib/seller/sales-locations-server';
 import { evaluateMarketplaceEligibility } from '@/lib/age/marketplace-eligibility';
 import { hasActiveParentalConsent } from '@/lib/age/parental-consent';
 
@@ -133,6 +134,22 @@ export async function POST(req: NextRequest) {
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    let orderAddress = typeof address === 'string' ? address : '';
+    if (typeof deliveryMode === 'string' && deliveryMode.toLowerCase() === 'pickup') {
+      const resolvedPickup = await resolveCheckoutPickupAddress({
+        deliveryMode,
+        buyerAddress: orderAddress,
+        items: Array.isArray(items) ? items : [],
+      });
+      if (!resolvedPickup.ok) {
+        return NextResponse.json(
+          { error: resolvedPickup.error, code: resolvedPickup.code },
+          { status: resolvedPickup.status },
+        );
+      }
+      orderAddress = resolvedPickup.address;
     }
 
     // Get buyer with fields for account requirements (email verification, username, terms)
@@ -1212,7 +1229,7 @@ export async function POST(req: NextRequest) {
     const metadataBase: Record<string, string> = {
       buyerId,
       deliveryMode,
-      address: address || '',
+      address: orderAddress || '',
       notes: notes || '',
       pickupDate: pickupDate || '',
       deliveryDate: deliveryDate || '',

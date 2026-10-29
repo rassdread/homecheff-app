@@ -104,6 +104,7 @@ type HomeItem = {
     lat?: number;
     lng?: number;
     distanceKm?: number;
+    salesPoints?: Array<{ lat?: number; lng?: number; city?: string | null }>;
   };
   seller?: { 
     id?: string | null; 
@@ -812,9 +813,30 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
     let list = items.map((it) => {
       // Bereken afstand op basis van gekozen locatie mode
       let distanceKm: number | null = null;
+      let nearestCity: string | null = null;
       const searchLocation = startLocationCoords || (locationMode === 'current' ? userLocation : postcodeLocation);
       
-      if (searchLocation && it.location?.lat && it.location?.lng) {
+      const salesPoints = it.location?.salesPoints ?? [];
+      if (searchLocation && salesPoints.length > 0) {
+        let best: number | null = null;
+        let bestCity: string | null = null;
+        for (const point of salesPoints) {
+          if (point.lat == null || point.lng == null) continue;
+          const d = safeDistanceKm(
+            searchLocation.lat,
+            searchLocation.lng,
+            point.lat,
+            point.lng,
+          );
+          if (d == null) continue;
+          if (best == null || d < best) {
+            best = d;
+            bestCity = point.city ?? null;
+          }
+        }
+        if (best != null) distanceKm = Math.round(best * 10) / 10;
+        nearestCity = bestCity;
+      } else if (searchLocation && it.location?.lat && it.location?.lng) {
         const d = safeDistanceKm(
           searchLocation.lat,
           searchLocation.lng,
@@ -828,6 +850,7 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
         ...it,
         location: {
           ...it.location,
+          ...(nearestCity ? { place: nearestCity } : {}),
           distanceKm
         }
       };

@@ -24,6 +24,7 @@ import {
   shouldShowStudioCreateCta,
 } from '@/lib/studio/px4-source-context';
 import { cn } from '@/lib/utils';
+import type { PublicPickupLocation } from '@/lib/seller/sales-locations';
 
 type ProductShape = {
   id: string;
@@ -59,6 +60,7 @@ type Props = {
   paymentStatus?: PublicPaymentStatus | null;
   publicContactChannels: PublicContactChannel[];
   onAdded?: () => void;
+  pickupLocation?: PublicPickupLocation | null;
   compact?: boolean;
   className?: string;
 };
@@ -74,6 +76,7 @@ export default function ProductSalePrimaryActions({
   paymentStatus,
   publicContactChannels,
   onAdded,
+  pickupLocation = null,
   compact = false,
   className,
 }: Props) {
@@ -249,6 +252,9 @@ export default function ProductSalePrimaryActions({
               deliveryMode: (product.delivery as string) || 'PICKUP',
               stock: availableStock,
               barterOpenness: product.barterOpenness ?? null,
+              pickupLocationId: pickupLocation?.id ?? null,
+              pickupLocationName: pickupLocation?.name ?? null,
+              pickupLocationAddress: pickupLocation?.addressLabel ?? null,
             }}
             className={cn(
               compact

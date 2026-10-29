@@ -61,6 +61,8 @@ export type Px4aItemFormDraft = {
   widthCm?: string;
   heightCm?: string;
   domesticShippingEnabled?: boolean;
+  /** Selected seller sales locations. Optional so older drafts still restore. */
+  salesLocationIds?: string[];
 };
 
 export type Px4aItemFormDraftInput = Omit<Px4aItemFormDraft, 'v' | 'savedAt'>;

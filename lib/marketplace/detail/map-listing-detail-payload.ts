@@ -170,6 +170,9 @@ export function mapListingDetailPayload(data: {
     pickupAddress: null,
     pickupLat: null,
     pickupLng: null,
+    pickupLocations: Array.isArray(data.product.pickupLocations)
+      ? data.product.pickupLocations
+      : [],
     publicPlace: toPublicPlaceLabel(
       data.product.pickupAddress ||
         data.product.seller?.User?.city ||

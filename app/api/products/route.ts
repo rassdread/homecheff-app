@@ -23,6 +23,8 @@ import {
   fetchSellerTrustBundles,
 } from "@/lib/discovery/trust/batch-enrichment";
 import { publicListingEligibilityWhere } from "@/lib/marketplace/public-listing-eligibility";
+import { selectFeedDisplayAnchor, type FeedSalesPoint } from "@/lib/seller/sales-locations";
+import { loadActiveSalesLocationsByProductId } from "@/lib/seller/sales-locations-server";
 import { redactMinorPublicListing } from "@/lib/age/minor-privacy";
 
 // BALANCED CACHING - snel maar compleet
@@ -435,6 +437,22 @@ export async function GET(req: Request) {
         ? await fetchSellerTrustBundles(sellerUserIds, sellerBadgeMap)
         : new Map();
 
+    let salesLocationsByProduct = new Map<string, FeedSalesPoint[]>();
+    try {
+      salesLocationsByProduct = await loadActiveSalesLocationsByProductId(
+        prisma,
+        products.map((product: { id: string }) => product.id),
+      );
+    } catch (error) {
+      console.warn("[products] sales locations unavailable", error);
+    }
+    const viewerLat = Number(searchParams.get("lat"));
+    const viewerLng = Number(searchParams.get("lng"));
+    const productsViewer =
+      Number.isFinite(viewerLat) && Number.isFinite(viewerLng)
+        ? { lat: viewerLat, lng: viewerLng }
+        : null;
+
     // COMPLETE RESPONSE - alle data terug
     const items = products.map((p: any) => {
       // Get all images, filter out null/undefined/empty
@@ -445,8 +463,18 @@ export async function GET(req: Request) {
       // Get video if available - Video is a one-to-one relation, not an array
       const video = p.Video || null;
       
-      const coords = resolveProductCoords(p);
-      const placeLabel = resolveProductPlaceLabel(p);
+      const salesPoints = salesLocationsByProduct.get(p.id) ?? [];
+      const anchor = selectFeedDisplayAnchor({
+        points: salesPoints,
+        viewer: productsViewer,
+        legacyCoords: resolveProductCoords(p),
+        legacyPlace: resolveProductPlaceLabel(p),
+      });
+      const coords =
+        anchor.lat != null && anchor.lng != null
+          ? { lat: anchor.lat, lng: anchor.lng }
+          : null;
+      const placeLabel = anchor.place ?? resolveProductPlaceLabel(p);
 
       const base = {
         id: p.id,
@@ -479,6 +507,11 @@ export async function GET(req: Request) {
           // The street/address string is not included.
           lat: coords?.lat ?? null,
           lng: coords?.lng ?? null,
+          salesPoints: salesPoints.map((point) => ({
+            lat: point.lat,
+            lng: point.lng,
+            city: point.city,
+          })),
         },
         seller: {
           id: p.seller?.User?.id ?? null,

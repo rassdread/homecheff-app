@@ -6,6 +6,10 @@ import {
   roundedDistanceKm,
   type Coords,
 } from '@/lib/geo/local-discovery';
+import {
+  nearestFeedSalesPoint,
+  readFeedSalesPoints,
+} from '@/lib/seller/sales-locations';
 
 export function extractFeedItemCoordsForLabels(
   item: Record<string, unknown>,
@@ -43,7 +47,8 @@ export function applyFeedViewerDistanceLabels<T extends Record<string, unknown>>
     });
   }
   return items.map((item) => {
-    const coords = extractFeedItemCoordsForLabels(item);
+    const nearest = nearestFeedSalesPoint(readFeedSalesPoints(item), viewerGeo);
+    const coords = nearest ?? extractFeedItemCoordsForLabels(item);
     if (!coords) {
       const copy = { ...item };
       delete copy.distanceKm;
@@ -60,7 +65,11 @@ export function applyFeedViewerDistanceLabels<T extends Record<string, unknown>>
       delete copy.distanceKm;
       return copy;
     }
-    return { ...item, distanceKm: km };
+    return {
+      ...item,
+      distanceKm: km,
+      ...(nearest?.city ? { place: nearest.city } : {}),
+    };
   });
 }
 

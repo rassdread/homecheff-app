@@ -182,8 +182,20 @@ export function productGeoBboxWhere(
     },
   };
 
+  const salesLocationInBbox = {
+    salesLocations: {
+      some: {
+        location: {
+          isActive: true,
+          lat: { gte: bbox.latMin, lte: bbox.latMax },
+          lng: { gte: bbox.lngMin, lte: bbox.lngMax },
+        },
+      },
+    },
+  };
+
   return {
-    OR: [pickupInBbox, sellerProfileInBbox, userFallbackInBbox],
+    OR: [pickupInBbox, sellerProfileInBbox, userFallbackInBbox, salesLocationInBbox],
   };
 }
 

@@ -22,6 +22,9 @@ interface AddToCartButtonProps {
     deliveryMode: string;
     stock?: number | null;
     barterOpenness?: string | null;
+    pickupLocationId?: string | null;
+    pickupLocationName?: string | null;
+    pickupLocationAddress?: string | null;
   };
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';

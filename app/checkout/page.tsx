@@ -33,6 +33,7 @@ import {
   type ConsumerCommerceContext,
 } from '@/lib/legal/consumer-commerce-context';
 import { consumerContextFromProductPayload } from '@/lib/legal/consumer-context-from-product';
+import { checkoutAddressForFulfillment } from '@/lib/seller/sales-locations';
 import { RESERVATION_COPY } from '@/lib/products/checkout-reservation-policy';
 import { selectOrdinaryCheckoutItems } from '@/lib/checkout/fulfillment-phase1';
 
@@ -944,7 +945,12 @@ export default function CheckoutPage() {
       if (checkoutDraft.houseNumber) addressParts.push(checkoutDraft.houseNumber);
       if (checkoutDraft.postalCode) addressParts.push(checkoutDraft.postalCode);
       if (checkoutDraft.city) addressParts.push(checkoutDraft.city);
-      const fullAddress = addressParts.join(', ');
+      const buyerAddress = addressParts.join(', ');
+      const fullAddress = checkoutAddressForFulfillment({
+        deliveryMode: checkoutDraft.selectedDelivery || '',
+        buyerAddress,
+        items: checkoutItems,
+      });
 
       const deliveryModeOutbound = isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)
         ? outboundLocalProviderMode()
@@ -958,7 +964,11 @@ export default function CheckoutPage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              items: checkoutItems.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+              items: checkoutItems.map((i) => ({
+                productId: i.productId,
+                quantity: i.quantity,
+                pickupLocationId: i.pickupLocationId ?? null,
+              })),
               deliveryFeeCents,
               smsNotificationCostCents,
               deliveryMode: deliveryModeOutbound,
@@ -984,7 +994,12 @@ export default function CheckoutPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            items: checkoutItems.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+            items: checkoutItems.map((i) => ({
+              productId: i.productId,
+              quantity: i.quantity,
+              pickupLocationId: i.pickupLocationId ?? null,
+            })),
+            address: fullAddress,
             requestedHc: selectedHc,
             deliveryFeeCents,
             smsNotificationCostCents,
@@ -1284,6 +1299,23 @@ export default function CheckoutPage() {
                 </div>
               )}
             </div>
+
+            {checkoutItems.some((item) => item.pickupLocationAddress) ? (
+              <div
+                className="mb-6 flex w-full flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4"
+                data-testid="checkout-pickup-locations"
+              >
+                <p className="text-sm font-semibold text-emerald-950">Afhaallocatie</p>
+                {checkoutItems
+                  .filter((item) => item.pickupLocationAddress)
+                  .map((item) => (
+                    <p key={item.id} className="text-sm text-emerald-900">
+                      {item.pickupLocationName ? `${item.pickupLocationName}: ` : ''}
+                      {item.pickupLocationAddress}
+                    </p>
+                  ))}
+              </div>
+            ) : null}
 
             {/* Step 2: Delivery Options (only show after address is validated) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -176,6 +176,7 @@ model User {
   Reservation_Reservation_sellerIdToUser Reservation[]             @relation("Reservation_sellerIdToUser")
   reviewResponsesAsSeller                ReviewResponse[]          @relation("ReviewResponseSeller")
   SellerProfile                          SellerProfile?
+  salesLocations                         SellerSalesLocation[]
   Session                                Session[]
   Transaction                            Transaction[]
   workspaceContentComments               WorkspaceContentComment[]
@@ -721,6 +722,7 @@ model Product {
   stockReservations       StockReservation[]   @relation("ProductStockReservations")
   integrityReports        ProductIntegrityReport[]
   integrityActions        ProductIntegrityAction[]
+  salesLocations          ProductSalesLocation[]
 
   @@index([category])
   @@index([sellerId])
@@ -739,6 +741,42 @@ model Product {
   @@index([acceptedSpecializations], type: Gin)
   @@index([allergensConfirmedAt])
   @@index([integrityStatus])
+}
+
+/// Named pickup stall for one seller account. Not a copy of User or Business address.
+/// Deactivating or editing a row does not update Order.
+model SellerSalesLocation {
+  id          String                 @id @default(uuid())
+  userId      String
+  name        String
+  street      String
+  houseNumber String
+  postalCode  String
+  city        String
+  country     String                 @default("NL")
+  lat         Float?
+  lng         Float?
+  isPrimary   Boolean                @default(false)
+  isActive    Boolean                @default(true)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products    ProductSalesLocation[]
+
+  @@index([userId, isActive])
+  @@index([userId, isPrimary])
+}
+
+/// Product ↔ stall. Empty means the listing keeps its legacy pickup coordinates.
+model ProductSalesLocation {
+  productId  String
+  locationId String
+  createdAt  DateTime            @default(now())
+  product    Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  location   SellerSalesLocation @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@id([productId, locationId])
+  @@index([locationId])
 }
 
 enum PendingAcceptedValueStatus {

@@ -15,6 +15,7 @@ import SimpleImageUploader from '@/components/products/SimpleImageUploader';
 import VideoUploader from '@/components/ui/VideoUploader';
 import { ListingPhotoVideoBlock } from '@/components/products/marketplace/ListingPhotoVideoBlock';
 import DynamicAddressFields, { type AddressData } from '@/components/ui/DynamicAddressFields';
+import SalesLocationField from '@/components/products/marketplace/SalesLocationField';
 import { PlaceResolveFeedback } from '@/components/geo/PlaceResolveFeedback';
 import { usePlaceAutoResolve } from '@/hooks/usePlaceAutoResolve';
 import PaymentMethodCheckboxes from '@/components/products/marketplace/PaymentMethodCheckboxes';
@@ -191,6 +192,7 @@ export default function MarketplaceOfferForm({
   const [pickupAddress, setPickupAddress] = useState('');
   const [pickupLat, setPickupLat] = useState<number | null>(null);
   const [pickupLng, setPickupLng] = useState<number | null>(null);
+  const [salesLocationIds, setSalesLocationIds] = useState<string[]>([]);
   const [coordsSource, setCoordsSource] = useState<
     'none' | 'place' | 'address' | 'profile'
   >('none');
@@ -334,6 +336,9 @@ export default function MarketplaceOfferForm({
       setSellerContributionNote(snap.sellerContributionNote);
       setMadeToConsumerSpecifications(snap.madeToConsumerSpecifications);
       setRapidlyPerishable(snap.rapidlyPerishable);
+      if (Array.isArray(snap.salesLocationIds)) {
+        setSalesLocationIds(snap.salesLocationIds.map(String));
+      }
       if (snap.parcelPreset) {
         setParcelPreset(snap.parcelPreset as ParcelPresetId);
       }
@@ -418,6 +423,7 @@ export default function MarketplaceOfferForm({
       widthCm,
       heightCm,
       domesticShippingEnabled,
+      salesLocationIds,
     });
   };
 
@@ -556,6 +562,9 @@ export default function MarketplaceOfferForm({
     }
     if (existingProduct.pickupLng != null) {
       setPickupLng(Number(existingProduct.pickupLng));
+    }
+    if (Array.isArray(existingProduct.salesLocationIds)) {
+      setSalesLocationIds(existingProduct.salesLocationIds.map(String));
     }
     if (existingProduct.fulfillmentOptions) {
       setFulfillment(
@@ -854,6 +863,7 @@ export default function MarketplaceOfferForm({
       pickupAddress: loc.pickupAddress,
       pickupLat: loc.pickupLat,
       pickupLng: loc.pickupLng,
+      salesLocationIds,
       ...stockFields,
       isActive,
       images: imageUrls,
@@ -1525,6 +1535,13 @@ export default function MarketplaceOfferForm({
                 : t('marketplace.form.profileAddressLoading')}
             </p>
           )}
+          <SalesLocationField
+            productId={
+              editMode && existingProduct?.id ? String(existingProduct.id) : undefined
+            }
+            selectedIds={salesLocationIds}
+            onChange={setSalesLocationIds}
+          />
         </div>
       ) : (
         <p className="text-xs text-gray-500">

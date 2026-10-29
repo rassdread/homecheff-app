@@ -35,6 +35,12 @@ import {
   resolveProductCoords,
   resolveProductPlaceLabel,
 } from "@/lib/geo/item-location";
+import {
+  nearestFeedSalesPoint,
+  readFeedSalesPoints,
+  selectFeedDisplayAnchor,
+} from "@/lib/seller/sales-locations";
+import { loadActiveSalesLocationsByProductId } from "@/lib/seller/sales-locations-server";
 import { deriveFeedTaxonomy } from "@/lib/feed/feed-taxonomy";
 import { attachListingKindToRecord } from "@/lib/marketplace/listing-kind/feed-attach";
 import {
@@ -750,6 +756,15 @@ async function handleFeedGet(
   ).length;
 
   const allNewProducts = rawProductsFromDb.filter(passesFeedProductStripeFilter);
+  let salesLocationsByProduct = new Map<string, ReturnType<typeof readFeedSalesPoints>>();
+  try {
+    salesLocationsByProduct = await loadActiveSalesLocationsByProductId(
+      prisma,
+      allNewProducts.map((product) => product.id),
+    );
+  } catch (error) {
+    console.warn("[feed] sales locations unavailable", error);
+  }
 
   // Transform dishes to match new product format
   const transformedDishes = publishedDishes.map((dish) => {
@@ -910,8 +925,20 @@ async function handleFeedGet(
 
   // Transform new products to match listing format
   const transformedProducts = allNewProducts.map((product) => {
-    const productCoords = resolveProductCoords(product);
-    const productPlace = resolveProductPlaceLabel(product);
+    const legacyCoords = resolveProductCoords(product);
+    const legacyPlace = resolveProductPlaceLabel(product);
+    const salesPoints = salesLocationsByProduct.get(product.id) ?? [];
+    const productAnchor = selectFeedDisplayAnchor({
+      points: salesPoints,
+      viewer: viewerGeo,
+      legacyCoords,
+      legacyPlace,
+    });
+    const productCoords =
+      productAnchor.lat != null && productAnchor.lng != null
+        ? { lat: productAnchor.lat, lng: productAnchor.lng }
+        : null;
+    const productPlace = productAnchor.place ?? legacyPlace;
     const productMedia = resolveFeedUrlsFromMetadata(
       'product',
       product.id,
@@ -946,8 +973,9 @@ async function handleFeedGet(
     place: productPlace,
     lat: productCoords?.lat ?? null,
     lng: productCoords?.lng ?? null,
-    pickupLat: product.pickupLat ?? null,
-    pickupLng: product.pickupLng ?? null,
+    pickupLat: productCoords?.lat ?? product.pickupLat ?? null,
+    pickupLng: productCoords?.lng ?? product.pickupLng ?? null,
+    salesLocationPoints: salesPoints,
     isPublic: true,
     viewCount: 0,
     createdAt: product.createdAt,
@@ -1060,7 +1088,11 @@ async function handleFeedGet(
     rankUnlimitedByDistance,
     followedSellerUserIds,
     extractSellerUserId: (item) => extractFeedItemSellerUserId(item),
-    extractCoords: (item) => extractItemLatLng(item),
+    extractCoords: (item) => {
+      const nearest = nearestFeedSalesPoint(readFeedSalesPoints(item), viewerGeo);
+      if (nearest) return { lat: nearest.lat, lng: nearest.lng };
+      return extractItemLatLng(item);
+    },
   });
 
   // Never empty the marketplace for missing GPS — national mainland when needed.
