@@ -24,8 +24,11 @@ try {
 
   console.log("🏗️  Building Next.js application...");
   // The standard Vercel builder has 8 GB. A 6 GB heap is killed during next build.
+  // Webpack's default parallelism (100) retains about 4.1 GB during compilation on
+  // this tree and crosses the 4096 MB heap. Parallelism 1 keeps that peak near 3.2 GB.
+  // Build scheduling only; it does not change the emitted bundles' runtime behavior.
   execSync(
-    "cross-env NODE_OPTIONS=--max-old-space-size=4096 NEXT_TELEMETRY_DISABLED=1 next build",
+    "cross-env NODE_OPTIONS=--max-old-space-size=4096 NEXT_TELEMETRY_DISABLED=1 NEXT_WEBPACK_PARALLELISM=1 next build",
     { stdio: "inherit", shell: true }
   );
 
