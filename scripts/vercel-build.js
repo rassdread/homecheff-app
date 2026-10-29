@@ -23,9 +23,12 @@ try {
   });
 
   console.log("🏗️  Building Next.js application...");
-  // The standard Vercel builder has 8 GB. A 6 GB heap is killed during next build.
+  // The standard Vercel builder has 8 GB. A 6 GB heap is killed during next build
+  // because native memory then exceeds the container. Node 24 retains about 3.7 GB
+  // during compilation and crosses a 4096 MB heap. 5120 MB and webpack parallelism 1
+  // apply only to this next build process, not to runtime or the typecheck above.
   execSync(
-    "cross-env NODE_OPTIONS=--max-old-space-size=4096 NEXT_TELEMETRY_DISABLED=1 next build",
+    "cross-env NODE_OPTIONS=--max-old-space-size=5120 NEXT_TELEMETRY_DISABLED=1 NEXT_WEBPACK_PARALLELISM=1 next build",
     { stdio: "inherit", shell: true }
   );
 
