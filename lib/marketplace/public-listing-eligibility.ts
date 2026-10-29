@@ -9,6 +9,7 @@
  * - integrity ACTIVE | REVIEW_REQUIRED
  * - seller user not suspended/deleted
  * - seller is not a certification/E2E/fixture account
+ * - a missing or empty seller bio stays public; only the fixture marker is excluded
  *
  * Inactive products (even with paid Stripe orders) are NEVER public-discoverable.
  * Detail pages for participants remain separate from discovery.
@@ -121,12 +122,25 @@ export function publicListingEligibilityWhere(): Prisma.ProductWhereInput {
                     { email: { contains: 'homecheff-validation.test' } },
                     { email: { startsWith: 'deleted+' } },
                     { email: { startsWith: 'cleaned-' } },
-                    { bio: { contains: 'certificationFixture=true' } },
                     ...INTERNAL_TEST_KEEP_EMAILS.map((email) => ({
                       email: { equals: email },
                     })),
                   ],
                 },
+              },
+              // Separate from the email NOT/OR. `NOT (bio ILIKE …)` is UNKNOWN
+              // when bio IS NULL, and PostgreSQL then drops the seller.
+              // NULL and "" stay public. Only the fixture marker is excluded.
+              {
+                OR: [
+                  { bio: null },
+                  { bio: '' },
+                  {
+                    NOT: {
+                      bio: { contains: 'certificationFixture=true' },
+                    },
+                  },
+                ],
               },
             ],
           },
