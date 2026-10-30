@@ -104,7 +104,6 @@ type HomeItem = {
     lat?: number;
     lng?: number;
     distanceKm?: number;
-    salesPoints?: Array<{ lat?: number; lng?: number; city?: string | null }>;
   };
   seller?: { 
     id?: string | null; 
@@ -816,7 +815,12 @@ export function DorpspleinPageContent({ layout = 'page' }: { layout?: 'page' | '
       let nearestCity: string | null = null;
       const searchLocation = startLocationCoords || (locationMode === 'current' ? userLocation : postcodeLocation);
       
-      const salesPoints = it.location?.salesPoints ?? [];
+      const salesPoints =
+        (
+          it.location as
+            | { salesPoints?: Array<{ lat?: number; lng?: number; city?: string | null }> }
+            | undefined
+        )?.salesPoints ?? [];
       if (searchLocation && salesPoints.length > 0) {
         let best: number | null = null;
         let bestCity: string | null = null;
