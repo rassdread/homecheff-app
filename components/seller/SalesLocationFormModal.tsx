@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export type SalesLocationFormValues = {
   name: string;
@@ -56,8 +57,8 @@ export default function SalesLocationFormModal({
     setValues((prev) => ({ ...prev, [key]: value }));
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
+  const modal = (
+    <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
       <form
         className="flex max-h-[92vh] w-full max-w-lg flex-col overflow-y-auto rounded-t-2xl bg-white p-4 shadow-xl sm:rounded-2xl sm:p-6"
         onSubmit={(event) => {
@@ -157,4 +158,7 @@ export default function SalesLocationFormModal({
       </form>
     </div>
   );
+
+  if (typeof document === 'undefined') return modal;
+  return createPortal(modal, document.body);
 }

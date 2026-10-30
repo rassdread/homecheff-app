@@ -7,6 +7,7 @@ export type SettingsTabId =
   | 'contact'
   | 'privacy'
   | 'notifications'
+  | 'locations'
   | 'payments'
   | 'delivery'
   | 'affiliate'
@@ -19,6 +20,8 @@ export type SettingsHubContext = {
   hasAffiliate?: boolean;
   stripeConnectAccountId?: string | null;
   subscriptionId?: string | null;
+  /** User already has a seller profile, including the individual plan. */
+  hasSellerProfile?: boolean;
   /** Active commercial offers whose marketplace category is a service. */
   hasActiveServiceOffer?: boolean;
   /** Active commercial offers that are food, garden, or a design product. */
@@ -30,6 +33,7 @@ export const SETTINGS_TAB_ORDER: SettingsTabId[] = [
   'contact',
   'privacy',
   'notifications',
+  'locations',
   'payments',
   'delivery',
   'affiliate',
@@ -87,6 +91,10 @@ export function getVisibleSettingsTabs(ctx: SettingsHubContext): SettingsTabId[]
     'notifications',
   ];
 
+  if (isSeller || ctx.hasSellerProfile || ctx.subscriptionId) {
+    tabs.splice(1, 0, 'locations');
+  }
+
   if (ctx.hasDeliveryProfile || role === 'DELIVERY') {
     tabs.push('delivery');
   }
@@ -117,5 +125,6 @@ export function settingsHubContextFromUser(user: {
     hasAffiliate: user.hasAffiliate,
     stripeConnectAccountId: user.stripeConnectAccountId,
     subscriptionId: user.SellerProfile?.subscriptionId ?? null,
+    hasSellerProfile: Boolean(user.SellerProfile),
   };
 }

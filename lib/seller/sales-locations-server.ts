@@ -17,6 +17,7 @@ import {
   parseSalesLocationDraft,
   parseSalesLocationIdList,
   primaryIdAfterDeactivate,
+  salesLocationActivePatch,
   toPublicPickupLocation,
   type FeedSalesPoint,
   type PublicPickupLocation,
@@ -310,8 +311,12 @@ export async function updateSalesLocation(
               lng: coords?.lng ?? current.lng,
             }
           : {}),
-        ...(wantsActive !== undefined ? { isActive: wantsActive } : {}),
-        ...(wantsPrimary && nextActive ? { isPrimary: true, isActive: true } : {}),
+        ...salesLocationActivePatch({
+          wantsActive,
+          wantsPrimary,
+          currentIsPrimary: current.isPrimary,
+          nextActive,
+        }),
       },
     });
     if (wantsActive === false && current.isPrimary) {

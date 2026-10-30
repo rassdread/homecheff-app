@@ -26,6 +26,7 @@ import {
   nearestFeedSalesPoint,
   parseSalesLocationDraft,
   primaryIdAfterDeactivate,
+  salesLocationActivePatch,
   salesLocationAssignmentChangesStock,
   salesLocationLimitForPlan,
   selectFeedDisplayAnchor,
@@ -116,6 +117,15 @@ describe('location management rules', () => {
       'a',
     );
     assert.equal(nextPrimary, 'b');
+    assert.deepEqual(
+      salesLocationActivePatch({
+        wantsActive: false,
+        wantsPrimary: false,
+        currentIsPrimary: true,
+        nextActive: false,
+      }),
+      { isActive: false, isPrimary: false },
+    );
     assert.equal(
       defaultPickupLocationId([
         { id: 'a', isPrimary: false, isActive: true },
@@ -336,6 +346,8 @@ describe('mobile location UI', () => {
     assert.match(field, /Nieuwe locatie toevoegen/);
     assert.match(field, /Opslaan en selecteren/);
     assert.match(modal, /overflow-y-auto/);
+    assert.match(modal, /z-\[90\]/);
+    assert.match(modal, /createPortal/);
     assert.match(chooser, /Beschikbaar op locatie|Afhaallocatie/);
   });
 });

@@ -168,6 +168,26 @@ export function toPublicPickupLocation(input: {
   };
 }
 
+/** Fields written when a seller activates, deactivates, or promotes a stall. */
+export function salesLocationActivePatch(input: {
+  wantsActive: boolean | undefined;
+  wantsPrimary: boolean;
+  currentIsPrimary: boolean;
+  nextActive: boolean;
+}): { isActive?: boolean; isPrimary?: boolean } {
+  const data: { isActive?: boolean; isPrimary?: boolean } = {};
+  if (input.wantsActive !== undefined) data.isActive = input.wantsActive;
+  if (input.wantsPrimary && input.nextActive) {
+    data.isPrimary = true;
+    data.isActive = true;
+  }
+  if (input.wantsActive === false && input.currentIsPrimary) {
+    data.isActive = false;
+    data.isPrimary = false;
+  }
+  return data;
+}
+
 export function primaryIdAfterDeactivate(
   locations: Array<{ id: string; isPrimary: boolean; isActive: boolean }>,
   deactivatedId: string,

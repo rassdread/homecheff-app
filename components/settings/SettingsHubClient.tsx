@@ -14,7 +14,9 @@ import {
   Crown,
   ArrowLeft,
   ExternalLink,
+  MapPin,
 } from 'lucide-react';
+import SellerSalesLocationsCard from '@/components/seller/SellerSalesLocationsCard';
 import ProfileSettings from '@/components/profile/ProfileSettings';
 import MakerContactSettings from '@/components/profile/MakerContactSettings';
 import PrivacySettings from '@/components/profile/PrivacySettings';
@@ -72,6 +74,7 @@ type TabDef = {
 
 const TAB_DEFS: TabDef[] = [
   { id: 'profile', labelKey: 'navbar.myProfile', fallback: 'Profiel', icon: User },
+  { id: 'locations', labelKey: 'settingsHub.salesLocations', fallback: 'Verkooplocaties', icon: MapPin },
   { id: 'contact', labelKey: 'makerContact.settingsTitle', fallback: 'Bereikbaarheid', icon: Phone },
   { id: 'privacy', labelKey: 'navbar.privacy', fallback: 'Privacy', icon: Shield },
   { id: 'notifications', labelKey: 'notificationSettings.title', fallback: 'Meldingen', icon: Bell },
@@ -257,6 +260,8 @@ export default function SettingsHubClient({ user, hubContext }: Props) {
                   </p>
                 </div>
               )}
+
+              {activeTab === 'locations' && <SellerSalesLocationsCard />}
 
               {activeTab === 'payments' && (
                 <div className="space-y-6">
