@@ -69,10 +69,17 @@ export function useCart() {
     const userId = (session?.user as any)?.id ?? null;
     const previousUserId = previousUserIdRef.current;
 
-    // Detect explicit logout (previously logged-in user -> no user)
+    // Detect explicit logout (previously logged-in user -> no user).
+    // Wait briefly so a NextAuth unauthenticated flicker on reload does not wipe the cart.
     if (previousUserId && !userId) {
-      clearAllCartData();
-      setCartUserId(null);
+      const timer = window.setTimeout(() => {
+        if (previousUserIdRef.current !== previousUserId) return;
+        clearAllCartData();
+        setCartUserId(null);
+        setItems([]);
+        previousUserIdRef.current = null;
+      }, 800);
+      return () => window.clearTimeout(timer);
     }
 
     // Set the user ID for cart isolation

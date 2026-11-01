@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
       shippingMethodId,
     } = body;
 
-    const selectedProviderId =
+    let selectedProviderId =
       (typeof selectedDeliveryProfileId === 'string' && selectedDeliveryProfileId.trim()) ||
       (typeof deliveryProfileId === 'string' && deliveryProfileId.trim()) ||
       null;
@@ -599,17 +599,8 @@ export async function POST(req: NextRequest) {
       lng: number;
     } | null = null;
 
-    // Phase 3: named provider selection requires targeted provider + confirmed booking
+    // Phase 3: named provider selection requires confirmed booking (+ provider from client or booking)
     if (flags.namedProviderSelectionEnabled && isLocalProviderMode) {
-      if (!selectedProviderId) {
-        return NextResponse.json(
-          {
-            error: 'Kies een bezorgaanbieder (selectedDeliveryProfileId).',
-            code: 'DELIVERY_PROVIDER_REQUIRED',
-          },
-          { status: 400 }
-        );
-      }
       if (!bookingRequestId || typeof bookingRequestId !== 'string') {
         return NextResponse.json(
           {
@@ -627,6 +618,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           { error: 'Boekingsaanvraag niet gevonden.', code: 'DELIVERY_BOOKING_REQUIRED' },
           { status: 404 }
+        );
+      }
+      // Prefer client selection; fall back to the accepted booking's provider after remount.
+      selectedProviderId = selectedProviderId || booking.deliveryProfileId;
+      if (!selectedProviderId) {
+        return NextResponse.json(
+          {
+            error: 'Kies een bezorgaanbieder (selectedDeliveryProfileId).',
+            code: 'DELIVERY_PROVIDER_REQUIRED',
+          },
+          { status: 400 }
         );
       }
       if (booking.deliveryProfileId !== selectedProviderId) {

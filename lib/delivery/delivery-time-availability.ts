@@ -264,6 +264,33 @@ export function scheduledUntilDate(
   );
 }
 
+/**
+ * Real windows only. A courier with no days and no hours does not get a
+ * made-up 09:00 slot. "Now" is included only when the courier is actually
+ * inside a schedule or a temporary online override.
+ */
+export function realCourierSlotStarts(
+  profile: DeliveryScheduleProfile,
+  now: Date = new Date(),
+  timeZone: string = DELIVERY_MARKET_TIMEZONE,
+  limit = 4,
+): Date[] {
+  const hasSchedule =
+    (profile.availableDays?.length ?? 0) > 0 || scheduledWindowsMinutes(profile).length > 0;
+  const starts: Date[] = [];
+  const current = resolveDeliveryTimeAvailability(profile, now, timeZone);
+  if (current.available) starts.push(now);
+  if (!hasSchedule) return starts.slice(0, limit);
+  let cursor = now;
+  for (let i = 0; i < limit; i++) {
+    const next = nextScheduledAt(profile, cursor, timeZone);
+    if (!next) break;
+    starts.push(next);
+    cursor = new Date(next.getTime() + 60_000);
+  }
+  return starts.slice(0, limit);
+}
+
 export function nextScheduledAt(
   profile: DeliveryScheduleProfile,
   now: Date,

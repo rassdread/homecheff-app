@@ -23,7 +23,7 @@ import { normalizeCountryCode } from "@/lib/gamification/country-code";
 import { auth } from "@/lib/auth";
 import { isProviderVisibleToBuyer } from "@/lib/delivery/delivery-cert-scope";
 import { expireExpiredTemporaryOnline } from "@/lib/delivery/delivery-online-session";
-import { resolveDeliveryTimeAvailability } from "@/lib/delivery/delivery-time-availability";
+import { realCourierSlotStarts } from "@/lib/delivery/delivery-time-availability";
 import {
   isCaribbeanCountry,
   marketplaceDistanceEligible,
@@ -257,8 +257,9 @@ export async function GET(req: NextRequest) {
     // Filter and sort the matched deliverers
     const filteredAndSortedDeliverers = matchedDeliverers
       .filter((delivery): delivery is NonNullable<typeof delivery> => delivery != null)
-      .filter((delivery) =>
-        resolveDeliveryTimeAvailability({
+      .filter((delivery) => {
+        const now = new Date();
+        const slots = realCourierSlotStarts({
           availableDays: delivery.availableDays,
           availableTimeSlots: delivery.availableTimeSlots,
           workStartTime: delivery.workStartTime,
@@ -266,8 +267,24 @@ export async function GET(req: NextRequest) {
           temporaryOffline: delivery.temporaryOffline,
           isOnline: delivery.isOnline,
           onlineUntil: delivery.onlineUntil,
-        }).available,
-      )
+        }, now);
+        if (slots.length === 0) return false;
+        (delivery as { offeredSlots?: Array<{ at: string; label: string }> }).offeredSlots = slots.map((at) => ({
+          at: at.toISOString(),
+          label:
+            Math.abs(at.getTime() - now.getTime()) < 90_000
+              ? 'Nu beschikbaar'
+              : new Intl.DateTimeFormat('nl-NL', {
+                  timeZone: 'Europe/Amsterdam',
+                  weekday: 'short',
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }).format(at),
+        }));
+        return true;
+      })
       .filter(delivery => {
         const hasBuyer = Boolean(buyerLat && buyerLng);
         return marketplaceDistanceEligible({
@@ -449,6 +466,7 @@ export async function GET(req: NextRequest) {
           availabilityBadge,
           estimatedArrivalMinutes: etaMinutes,
           isAutoConfirmEligible: autoCheck.ok && delivery.acceptanceMode === ACCEPTANCE_MODE_AUTO,
+          offeredSlots: (delivery as { offeredSlots?: Array<{ at: string; label: string }> }).offeredSlots ?? [],
         };
       }),
       totalMatches: filteredAndSortedDeliverers.length

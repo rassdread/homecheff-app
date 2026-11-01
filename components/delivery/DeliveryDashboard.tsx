@@ -145,6 +145,8 @@ export default function DeliveryDashboard() {
       quotedFeeCents?: number | null;
       buyerName?: string;
       itemDescription?: string | null;
+      requestedPickupAt?: string | null;
+      paymentDeadline?: string | null;
       href?: string;
     }>
   >([]);
@@ -626,6 +628,10 @@ export default function DeliveryDashboard() {
     switch (status) {
       case 'PENDING':
         return t('delivery.pending');
+      case 'AWAITING_PAYMENT':
+        return t('delivery.awaitingBuyerPayment', {
+          defaultValue: 'Wachten op betaling door de koper',
+        });
       case 'ACCEPTED':
         return t('delivery.accepted');
       case 'PICKED_UP':
@@ -1104,10 +1110,10 @@ export default function DeliveryDashboard() {
           {/* Pending booking requests */}
           {!isSeller && pendingBookingRequests.length > 0 && (
             <div className="lg:col-span-3 mb-2">
-              <div className="rounded-xl border-2 border-violet-200 bg-violet-50 p-4 sm:p-5">
+              <div id="booking-requests" className="rounded-xl border-2 border-violet-200 bg-violet-50 p-4 sm:p-5">
                 <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3">
-                  {t('delivery.pendingBookingRequests', {
-                    defaultValue: 'Openstaande boekingsaanvragen',
+                  {t('delivery.myDeliveryJobs', {
+                    defaultValue: 'Mijn opdrachten',
                   })}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1122,6 +1128,14 @@ export default function DeliveryDashboard() {
                       </p>
                       {booking.itemDescription ? (
                         <p className="text-xs text-gray-800 mt-1">{booking.itemDescription}</p>
+                      ) : null}
+                      {booking.requestedPickupAt ? (
+                        <p className="text-xs text-gray-800 mt-1">
+                          {new Date(booking.requestedPickupAt).toLocaleString(
+                            language === 'en' ? 'en-GB' : 'nl-NL',
+                            { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' },
+                          )}
+                        </p>
                       ) : null}
                       <p className="text-xs text-gray-600 mt-1">
                         {booking.quotedFeeCents != null

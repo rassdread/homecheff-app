@@ -964,12 +964,14 @@ try {
             meta.deliveryPricingSource === PRICING_SOURCE_PROVIDER ||
             (flagsRepair.providerPricingEnabled &&
               !!meta.deliveryQuotedFeeCents);
+          // Named selection already locked a courier (MANUAL_CONFIRM or AUTO_CONFIRM).
+          const repairAccepted =
+            meta.deliveryAcceptanceMode === 'AUTO_CONFIRM' ||
+            (meta.namedProviderSelection === 'true' &&
+              meta.deliveryAcceptanceMode === 'MANUAL_CONFIRM');
           let repairData: Record<string, unknown> = {
             orderId: existingOrder.id,
-            status:
-              meta.deliveryAcceptanceMode === 'AUTO_CONFIRM'
-                ? 'ACCEPTED'
-                : 'PENDING',
+            status: repairAccepted ? 'ACCEPTED' : 'PENDING',
             deliveryAddress: meta.address || '',
             deliveryFee: feeCents || 200,
             deliveryProfileId: meta.deliveryProfileId || null,
@@ -1647,13 +1649,14 @@ try {
                 deliveryOrderData.pricingSource = PRICING_SOURCE_PLATFORM_LEGACY;
               }
 
-              // Phase 3 named selection: targeted provider (no first-accept broadcast)
+              // Phase 3 named selection: targeted provider (no first-accept broadcast).
+              // MANUAL_CONFIRM means the courier already accepted the booking before pay.
               const namedSelection = metadata.namedProviderSelection === 'true';
               const metaProfileId = metadata.deliveryProfileId?.trim();
               if (namedSelection && metaProfileId) {
                 deliveryOrderData.deliveryProfileId = metaProfileId;
                 const mode = metadata.deliveryAcceptanceMode;
-                if (mode === 'AUTO_CONFIRM') {
+                if (mode === 'AUTO_CONFIRM' || mode === 'MANUAL_CONFIRM') {
                   deliveryOrderData.status = 'ACCEPTED';
                 }
               }

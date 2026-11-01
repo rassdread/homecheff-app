@@ -42,11 +42,16 @@ export default function SessionGuard() {
   const knownUserIdRef = useRef<string | null>(null);
   const baselineSetRef = useRef(false);
   const reloadingRef = useRef(false);
+  const statusRef = useRef(status);
+  statusRef.current = status;
   const [banner, setBanner] = useState<string | null>(null);
 
   const applyIdentityChange = (nextUserId: string | null, reason: string) => {
     if (reloadingRef.current) return;
     if (!baselineSetRef.current) {
+      // A focus/pageshow getSession() can return null before NextAuth resolves.
+      // Locking that as the baseline makes the real user look like a switch and wipes the cart.
+      if (nextUserId == null && reason !== 'useSession_unauthenticated') return;
       knownUserIdRef.current = nextUserId;
       baselineSetRef.current = true;
       rememberMarketplaceAuthUserId(nextUserId);
@@ -55,11 +60,23 @@ export default function SessionGuard() {
     const prev = knownUserIdRef.current;
     if (prev === nextUserId) return;
 
-    // Guest → user on a page that will navigate itself (delivery registration).
-    // A reload here aborts window.location.assign and returns the courier to the wizard.
-    if (prev == null && nextUserId && consumeSameTabCredentialNavigation()) {
+    // Session resolved after an empty first read (includes delivery registration credential nav).
+    if (prev == null && nextUserId) {
       knownUserIdRef.current = nextUserId;
       rememberMarketplaceAuthUserId(nextUserId);
+      // Still consume the credential-nav flag so later readers see a clean state.
+      consumeSameTabCredentialNavigation();
+      return;
+    }
+
+    // Confirmed logout only. A transient getSession() miss must not clear the cart.
+    if (
+      prev &&
+      nextUserId == null &&
+      reason !== 'useSession_unauthenticated' &&
+      reason !== 'broadcast_logout' &&
+      statusRef.current !== 'unauthenticated'
+    ) {
       return;
     }
 

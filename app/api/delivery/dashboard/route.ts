@@ -13,6 +13,8 @@ import { resolveDelivererPosition, resolveDeliveryPickupCoords, resolveSellerCoo
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 import { resolveDeliveryTimeAvailability } from '@/lib/delivery/delivery-time-availability';
 import { readStandaloneBookingMeta } from '@/lib/delivery/standalone-booking-meta';
+import { courierDashboardKeepsBooking, readMarketplaceSlot } from '@/lib/delivery/checkout-courier-consistency';
+import { PAYMENT_WINDOW_MS } from '@/lib/products/checkout-reservation-policy';
 import {
   customerAddressForPhase,
   customerPhoneForPhase,
@@ -1157,8 +1159,10 @@ export async function GET(req: NextRequest) {
         prisma.deliveryBookingRequest.findMany({
           where: {
             deliveryProfileId: deliveryProfile.id,
-            status: 'PENDING',
-            expiresAt: { gt: now },
+            OR: [
+              { status: 'PENDING', expiresAt: { gt: now } },
+              { status: { in: ['ACCEPTED', 'AUTO_CONFIRMED'] } },
+            ],
           },
           include: {
             buyer: {
@@ -1227,7 +1231,9 @@ export async function GET(req: NextRequest) {
             orderReference: row.orderReference,
             href: row.deliveryOrderId
               ? `/delivery/dashboard#order-${row.deliveryOrderId}`
-              : '/delivery/dashboard',
+              : row.bookingRequestId
+                ? `/delivery/dashboard#booking-${row.bookingRequestId}`
+                : '/delivery/dashboard',
           })),
         ...communityUpcoming.map((assignment) => {
           const dr = assignment.DeliveryRequest;
@@ -1258,14 +1264,52 @@ export async function GET(req: NextRequest) {
         return ta - tb;
       });
 
-      pendingBookingRequests = pendingBookings.map((b) => ({
+      const acceptedIds = pendingBookings
+        .filter((b) => b.status === 'ACCEPTED' || b.status === 'AUTO_CONFIRMED')
+        .map((b) => b.id);
+      const acceptedHolds = acceptedIds.length
+        ? await prisma.stockReservation.findMany({
+            where: {
+              bookingRequestId: { in: acceptedIds },
+              status: 'PENDING',
+            },
+            select: {
+              bookingRequestId: true,
+              status: true,
+              paymentDeadline: true,
+              expiresAt: true,
+            },
+          })
+        : [];
+      const holdByBooking = new Map(
+        acceptedHolds
+          .filter((hold) => hold.bookingRequestId)
+          .map((hold) => [hold.bookingRequestId as string, hold]),
+      );
+      const visibleBookings = pendingBookings.filter((b) =>
+        courierDashboardKeepsBooking({
+          status: b.status,
+          expiresAt: b.expiresAt,
+          respondedAt: b.respondedAt,
+          now,
+          paymentWindowMs: PAYMENT_WINDOW_MS,
+          hold: holdByBooking.get(b.id) ?? null,
+        }),
+      );
+
+      pendingBookingRequests = visibleBookings.map((b) => ({
         id: b.id,
-        status: b.status,
+        status:
+          b.status === 'ACCEPTED' || b.status === 'AUTO_CONFIRMED'
+            ? 'AWAITING_PAYMENT'
+            : b.status,
         expiresAt: b.expiresAt,
         quotedFeeCents: b.quotedFeeCents,
         routeDistanceKm: b.routeDistanceKm,
         buyerName: b.buyer?.name || b.buyer?.username || 'Klant',
         itemDescription: readStandaloneBookingMeta(b.notes)?.itemDescription || null,
+        requestedPickupAt: readMarketplaceSlot(b.notes),
+        paymentDeadline: holdByBooking.get(b.id)?.paymentDeadline ?? null,
         href: `/delivery/dashboard#booking-${b.id}`,
       }));
     }

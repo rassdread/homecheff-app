@@ -15,6 +15,13 @@ import { useDeliveryAvailability } from '@/hooks/useDeliveryAvailability';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { getActiveCartIdentifier } from '@/lib/cart';
 import { calculateStripeFeeForBuyer } from '@/lib/fees';
+import {
+  checkoutCanPayAcceptedBooking,
+  deliveryFeeForCheckout,
+  marketplaceSlotNotes,
+  namedCheckoutAvailable,
+  namedCheckoutCourierHeadline,
+} from '@/lib/delivery/checkout-courier-consistency';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import {
@@ -274,12 +281,17 @@ export default function CheckoutPage() {
   const [namedProviderSelectionEnabled, setNamedProviderSelectionEnabled] = useState(false);
   const [parcelCarrierConfigured, setParcelCarrierConfigured] = useState(false);
   const [selectedDeliverer, setSelectedDeliverer] = useState<Deliverer | null>(null);
+  const [courierMatch, setCourierMatch] = useState<
+    { kind: 'pending' } | { kind: 'list'; count: number } | { kind: 'error' }
+  >({ kind: 'pending' });
+  const restoredBookingProductRef = useRef<string | null>(null);
   const [bookingRequestId, setBookingRequestId] = useState<string | null>(null);
   const [bookingStatus, setBookingStatus] = useState<string | null>(null);
   const [bookingBusy, setBookingBusy] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [reservationRemainingMs, setReservationRemainingMs] = useState<number | null>(null);
   const [paymentRemainingMs, setPaymentRemainingMs] = useState<number | null>(null);
+  const [acceptedSlotAt, setAcceptedSlotAt] = useState<string | null>(null);
   const [reservationPhase, setReservationPhase] = useState<string | null>(null);
   const reservationCopy = language === 'en' ? RESERVATION_COPY.en : RESERVATION_COPY.nl;
 
@@ -483,7 +495,17 @@ export default function CheckoutPage() {
     loading: availabilityLoading 
   } = useDeliveryAvailability(checkoutDraft.coordinates, sellerLocations);
   
-  const isDeliveryAvailable = availability.isAvailable;
+  const acceptedBookingPayable = checkoutCanPayAcceptedBooking({
+    status: bookingStatus || '',
+    paymentRemainingMs,
+  });
+  const isDeliveryAvailable = namedCheckoutAvailable({
+    namedSelection: namedProviderSelectionEnabled,
+    regionalAvailable: availability.isAvailable,
+    match: courierMatch,
+    acceptedPayable: acceptedBookingPayable,
+    selectionOpen: isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery),
+  });
   const availableDeliverersCount = 0; // Will be updated when deliverers are available
   const estimatedDeliveryTime = availability.estimatedTime;
 
@@ -686,6 +708,109 @@ export default function CheckoutPage() {
     return () => clearTimeout(timer);
   }, [checkoutDraft.coordinates, checkoutDraft.selectedDelivery, checkoutDraft.addressValidated, checkoutDraft.postalCode, checkoutDraft.country, calculateDeliveryFee, selectedDeliverer?.id]);
 
+  const checkoutProductId = checkoutItems[0]?.productId ?? '';
+
+  useEffect(() => {
+    setCourierMatch({ kind: 'pending' });
+  }, [checkoutDraft.coordinates?.lat, checkoutDraft.coordinates?.lng, checkoutProductId]);
+
+  useEffect(() => {
+    if (!namedProviderSelectionEnabled || !checkoutProductId) return;
+    if (restoredBookingProductRef.current === checkoutProductId) return;
+    let cancelled = false;
+    (async () => {
+      const response = await fetch(
+        `/api/delivery/booking-requests?productId=${encodeURIComponent(checkoutProductId)}`,
+      );
+      const data = await response.json().catch(() => null);
+      if (cancelled || !response.ok || !data?.booking) return;
+      const payable = checkoutCanPayAcceptedBooking({
+        status: String(data.booking.status || ''),
+        paymentRemainingMs: data.reservation?.paymentRemainingMs ?? null,
+      });
+      if (data.booking.status === 'EXPIRED' || !payable) {
+        // Expired / no longer payable: clear latch so the buyer can request again.
+        if (data.booking.status === 'EXPIRED') {
+          setBookingRequestId(null);
+          setBookingStatus(null);
+          setSelectedDeliverer(null);
+          setReservationRemainingMs(null);
+          setPaymentRemainingMs(null);
+          setReservationPhase(null);
+        } else if (
+          data.booking.status === 'ACCEPTED' ||
+          data.booking.status === 'AUTO_CONFIRMED'
+        ) {
+          setBookingRequestId(data.booking.id);
+          setBookingStatus('EXPIRED');
+        }
+        return;
+      }
+      restoredBookingProductRef.current = checkoutProductId;
+      const quote = deliveryFeeForCheckout(data.booking.quotedFeeCents);
+      setBookingRequestId(data.booking.id);
+      setBookingStatus(data.booking.status);
+      setSelectedDeliverer({
+        id: data.booking.deliveryProfileId,
+        userId: '',
+        name: data.booking.providerName || 'Bezorger',
+        place: '',
+        vehicleType: data.booking.vehicleType || 'BIKE',
+        deliveryRadius: 0,
+        distanceToSeller: 0,
+        distanceToBuyer: data.booking.routeDistanceKm || 0,
+        totalDeliveryDistance: data.booking.routeDistanceKm || 0,
+        rating: 0,
+        completedDeliveries: 0,
+        quotedFeeCents: data.booking.quotedFeeCents,
+        acceptanceMode: data.booking.acceptanceMode,
+      });
+      setReservationRemainingMs(data.reservation?.remainingMs ?? null);
+      setPaymentRemainingMs(data.reservation?.paymentRemainingMs ?? null);
+      setReservationPhase(data.reservation?.phase ?? null);
+      setAcceptedSlotAt(data.booking.requestedPickupAt ?? null);
+      if (quote > 0) {
+        setActualDeliveryFee({
+          deliveryFeeCents: quote,
+          distance: data.booking.routeDistanceKm || 0,
+          isInternational: false,
+          breakdown: {
+            baseFee: quote,
+            distanceFee: 0,
+            totalDeliveryFee: quote,
+            distance: data.booking.routeDistanceKm || 0,
+          },
+        });
+      }
+      updateDraft({
+        selectedDelivery: 'local_provider',
+        // Restore geo so local_provider stays available after hard reload.
+        ...(typeof data.booking.buyerLat === 'number' &&
+        typeof data.booking.buyerLng === 'number'
+          ? {
+              coordinates: {
+                lat: data.booking.buyerLat,
+                lng: data.booking.buyerLng,
+              },
+              addressValidated: true,
+            }
+          : {}),
+      });
+    })().catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [namedProviderSelectionEnabled, checkoutProductId, updateDraft]);
+
+  useEffect(() => {
+    if (!checkoutDraft.selectedDelivery) return;
+    const node = document.getElementById(`delivery-choice-${checkoutDraft.selectedDelivery}`);
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
+    const visible = rect.top >= 72 && rect.bottom <= window.innerHeight - 72;
+    if (!visible) node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [checkoutDraft.selectedDelivery]);
+
   // Handle address change from DynamicAddressFields
   const handleAddressChange = useCallback((addressData: AddressData) => {
     // Google Places Autocomplete provides full address for all countries
@@ -800,12 +925,28 @@ export default function CheckoutPage() {
   const availableOptions = deliveryOptions.filter(option => option.available);
   const selectedOption = deliveryOptions.find(option => option.id === checkoutDraft.selectedDelivery);
   
-  // Reset selected delivery if it's no longer available
+  // Reset selected delivery if it's no longer available — but never drop a
+  // payable accepted/auto-confirmed named booking (reload race with match).
   useEffect(() => {
-    if (checkoutDraft.selectedDelivery && selectedOption && !selectedOption.available) {
-      updateDraft({ selectedDelivery: '' });
+    if (!checkoutDraft.selectedDelivery || !selectedOption || selectedOption.available) {
+      return;
     }
-  }, [availableDeliveryModes, checkoutDraft.selectedDelivery, selectedOption, updateDraft]);
+    if (
+      isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) &&
+      (bookingStatus === 'ACCEPTED' || bookingStatus === 'AUTO_CONFIRMED') &&
+      acceptedBookingPayable
+    ) {
+      return;
+    }
+    updateDraft({ selectedDelivery: '' });
+  }, [
+    availableDeliveryModes,
+    checkoutDraft.selectedDelivery,
+    selectedOption,
+    updateDraft,
+    bookingStatus,
+    acceptedBookingPayable,
+  ]);
 
   const productsTotalCents = useMemo(
     () => checkoutItems.reduce((sum, item) => sum + item.priceCents * item.quantity, 0),
@@ -886,7 +1027,9 @@ export default function CheckoutPage() {
       namedProviderSelectionEnabled &&
       isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)
     ) {
-      if (!selectedDeliverer) {
+      // Accepted/payable bookings may briefly lose selectedDeliverer after a
+      // DelivererSelector remount; bookingRequestId is enough to settle checkout.
+      if (!selectedDeliverer && !bookingRequestId) {
         setCheckoutError('Kies een bezorgaanbieder om door te gaan.');
         return;
       }
@@ -1042,13 +1185,13 @@ export default function CheckoutPage() {
             : {}),
           ...(namedProviderSelectionEnabled &&
           isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) &&
-          selectedDeliverer
+          (selectedDeliverer || bookingRequestId)
             ? {
-                selectedDeliveryProfileId: selectedDeliverer.id,
+                selectedDeliveryProfileId: selectedDeliverer?.id,
                 bookingRequestId: bookingRequestId || undefined,
                 clientQuotedFeeCents:
                   actualDeliveryFee?.deliveryFeeCents ??
-                  selectedDeliverer.quotedFeeCents ??
+                  selectedDeliverer?.quotedFeeCents ??
                   undefined,
               }
             : {}),
@@ -1208,7 +1351,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-8 pb-28">
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-primary-brand to-primary-700 px-6 py-8">
@@ -1367,8 +1510,8 @@ export default function CheckoutPage() {
                     }
                     
                     return (
+                      <div key={option.id} className="space-y-3">
                       <div
-                        key={option.id}
                         className={`border-2 rounded-xl p-4 transition-all ${
                           cardDisabled
                             ? 'border-red-200 bg-red-50 cursor-not-allowed opacity-60'
@@ -1499,7 +1642,13 @@ export default function CheckoutPage() {
                             {isTeenDelivery && (
                               <div
                                 className={`mt-3 text-sm ${
-                                  isLoading
+                                  namedCheckoutCourierHeadline({
+                                    namedSelection: namedProviderSelectionEnabled && isTeenDelivery,
+                                    selectionOpen: checkoutDraft.selectedDelivery === option.id,
+                                    match: courierMatch,
+                                  })
+                                    ? 'text-gray-800'
+                                    : isLoading
                                     ? 'text-blue-600'
                                     : teenNeedsLocation
                                     ? 'text-gray-600'
@@ -1512,328 +1661,349 @@ export default function CheckoutPage() {
                                   ? t('checkout.checkingAvailability')
                                   : teenNeedsLocation
                                   ? t('checkout.teenAvailabilityValidate')
-                                  : availability.message || t('checkout.teenAvailabilityUnknown')}
+                                  : namedCheckoutCourierHeadline({
+                                      namedSelection: namedProviderSelectionEnabled && isTeenDelivery,
+                                      selectionOpen: checkoutDraft.selectedDelivery === option.id,
+                                      match: courierMatch,
+                                    }) ||
+                                    availability.message ||
+                                    t('checkout.teenAvailabilityUnknown')}
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
+                      {checkoutDraft.selectedDelivery === option.id ? (
+                        <div id={`delivery-choice-${option.id}`} className="scroll-mt-28 scroll-mb-28 space-y-3">
+                  {/* Local provider: named selection (Phase 3) or legacy first-accept copy */}
+                  {isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) && (
+                    <div className="mt-3 space-y-4">
+                      <TeenDeliveryInfo />
+
+                      {namedProviderSelectionEnabled ? (
+                        <>
+                          {checkoutDraft.coordinates && checkoutItems[0]?.productId ? (
+                            <DelivererSelector
+                              productId={checkoutItems[0].productId}
+                              buyerLat={Number(checkoutDraft.coordinates.lat)}
+                              buyerLng={Number(checkoutDraft.coordinates.lng)}
+                              selectedDelivererId={selectedDeliverer?.id}
+                              onMatchResolved={setCourierMatch}
+                              onSelectDeliverer={async (d) => {
+                                const previousBookingId = bookingRequestId;
+                                setSelectedDeliverer(d);
+                                setBookingError(null);
+                                setBookingBusy(true);
+                                try {
+                                  const res = await fetch('/api/delivery/booking-requests', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      deliveryProfileId: d.id,
+                                      productId: checkoutItems[0]?.productId,
+                                      quantity: checkoutItems[0]?.quantity ?? 1,
+                                      buyerLat: checkoutDraft.coordinates?.lat,
+                                      buyerLng: checkoutDraft.coordinates?.lng,
+                                      routeDistanceKm: d.totalDeliveryDistance,
+                                      quotedFeeCents:
+                                        d.quotedFeeCents ?? d.calculatedDeliveryPrice ?? null,
+                                      notes: d.requestedPickupAt
+                                        ? marketplaceSlotNotes(d.requestedPickupAt)
+                                        : undefined,
+                                      replacesBookingRequestId:
+                                        previousBookingId &&
+                                        selectedDeliverer?.id &&
+                                        selectedDeliverer.id !== d.id
+                                          ? previousBookingId
+                                          : undefined,
+                                    }),
+                                  });
+                                  const data = await res.json();
+                                  if (!res.ok) {
+                                    if (data.code === 'COURIER_ALREADY_ACCEPTED' && data.bookingRequestId) {
+                                      setBookingRequestId(data.bookingRequestId);
+                                      setBookingStatus('ACCEPTED');
+                                    }
+                                    setBookingError(
+                                      data.error ||
+                                        tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'),
+                                    );
+                                    return;
+                                  }
+                                  setAcceptedSlotAt(d.requestedPickupAt ?? null);
+                                  setBookingRequestId(data.bookingRequestId);
+                                  setBookingStatus(data.status);
+                                  setReservationRemainingMs(data.reservation?.remainingMs ?? null);
+                                  setPaymentRemainingMs(data.reservation?.paymentRemainingMs ?? null);
+                                  setReservationPhase(data.reservation?.phase ?? null);
+                                } catch (e) {
+                                  setBookingError(tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'));
+                                } finally {
+                                  setBookingBusy(false);
+                                }
+                              }}
+                            />
+                          ) : (
+                            <p className="text-sm text-gray-600">
+                              {tOr('surfaceLang.bookingValidate', 'Validate your delivery address first to see available couriers.', 'Valideer eerst je bezorgadres om beschikbare bezorgers te zien.')}
+                            </p>
+                          )}
+
+                          {bookingBusy && (
+                            <p className="text-sm text-blue-700 flex items-center gap-2">
+                              <Loader2 className="w-4 h-4 animate-spin" /> {tOr('surfaceLang.bookingPreparing', 'Preparing confirmation…', 'Bevestiging voorbereiden…')}
+                            </p>
+                          )}
+                          {bookingError && (
+                            <p className="text-sm text-red-700">{bookingError}</p>
+                          )}
+                          {reservationRemainingMs === 0 && (
+                            <p className="text-sm text-amber-900 font-medium">{reservationCopy.expired}</p>
+                          )}
+                          {reservationPhase === 'AWAITING_COURIER' && reservationRemainingMs !== 0 && (
+                            <p className="text-sm text-blue-800">
+                              {reservationCopy.reserved}
+                              {formatServerRemaining(reservationRemainingMs)
+                                ? ` ${formatServerRemaining(reservationRemainingMs)}`
+                                : ''}
+                            </p>
+                          )}
+                          {bookingStatus === 'AUTO_CONFIRMED' && (
+                            <p className="text-sm text-green-700 font-medium">
+                              {reservationCopy.accepted}
+                              {formatServerRemaining(paymentRemainingMs)
+                                ? ` ${formatServerRemaining(paymentRemainingMs)}`
+                                : ''}
+                            </p>
+                          )}
+                          {bookingStatus === 'PENDING' && bookingRequestId && reservationRemainingMs !== 0 && (
+                            <ManualBookingPoller
+                              bookingRequestId={bookingRequestId}
+                              onStatus={(snapshot) => {
+                                setBookingStatus(snapshot.status);
+                                setReservationRemainingMs(snapshot.remainingMs);
+                                setPaymentRemainingMs(snapshot.paymentRemainingMs);
+                                setReservationPhase(snapshot.phase);
+                              }}
+                            />
+                          )}
+                          {bookingStatus === 'ACCEPTED' && (
+                            <p className="text-sm text-green-700 font-medium">
+                              {reservationCopy.accepted}
+                              {formatServerRemaining(paymentRemainingMs)
+                                ? ` ${formatServerRemaining(paymentRemainingMs)}`
+                                : ''}
+                              {acceptedSlotAt
+                                ? ` · ${new Date(acceptedSlotAt).toLocaleString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
+                                : ''}
+                            </p>
+                          )}
+                          {bookingStatus === 'REJECTED' && reservationRemainingMs !== 0 && (
+                            <p className="text-sm text-amber-800">{reservationCopy.rejected}</p>
+                          )}
+                          {bookingStatus === 'EXPIRED' && (
+                            <p className="text-sm text-amber-900">{reservationCopy.expired}</p>
+                          )}
+                          {bookingRequestId && bookingStatus !== 'CONSUMED' && reservationRemainingMs !== 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                className="text-sm px-3 py-2 rounded-lg border border-gray-300"
+                                onClick={async () => {
+                                  const res = await fetch(`/api/delivery/booking-requests/${bookingRequestId}/pickup`, {
+                                    method: 'POST',
+                                  });
+                                  if (!res.ok) return;
+                                  updateDraft({ selectedDelivery: 'pickup' });
+                                  setSelectedDeliverer(null);
+                                  setBookingStatus('CANCELLED');
+                                }}
+                              >
+                                {tOr('checkout.reservation.pickup', 'Pick up instead', 'Zelf afhalen')}
+                              </button>
+                              <button
+                                type="button"
+                                className="text-sm px-3 py-2 rounded-lg border border-red-200 text-red-800"
+                                onClick={async () => {
+                                  const res = await fetch(`/api/delivery/booking-requests/${bookingRequestId}/cancel`, {
+                                    method: 'POST',
+                                  });
+                                  if (!res.ok) return;
+                                  setBookingRequestId(null);
+                                  setBookingStatus(null);
+                                  setSelectedDeliverer(null);
+                                  setReservationRemainingMs(null);
+                                  setReservationPhase(null);
+                                }}
+                              >
+                                {tOr('checkout.reservation.cancel', 'Cancel reservation', 'Reservering annuleren')}
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <div
+                            className={`p-4 rounded-xl border-2 ${
+                              availabilityLoading
+                                ? 'border-blue-200 bg-blue-50 text-blue-700'
+                                : !checkoutDraft.coordinates
+                                ? 'border-gray-200 bg-gray-50 text-gray-700'
+                                : isDeliveryAvailable
+                                ? 'border-green-200 bg-gradient-to-r from-green-50 to-blue-50 text-green-800'
+                                : 'border-red-200 bg-red-50 text-red-700'
+                            }`}
+                          >
+                            <p className="font-semibold">
+                              {availabilityLoading
+                                ? t('checkout.checkingAvailability')
+                                : !checkoutDraft.coordinates
+                                ? t('checkout.validateAddressToSeeTeenDeliverers')
+                                : availability.message ||
+                                  (isDeliveryAvailable
+                                    ? t('checkout.deliverersAvailable')
+                                    : t('checkout.noDeliverersAvailable'))}
+                            </p>
+                            {checkoutDraft.coordinates && availability.availableCount !== undefined && (
+                              <p className="text-sm mt-1">
+                                {isDeliveryAvailable
+                                  ? `${availability.availableCount} bezorger${availability.availableCount === 1 ? '' : 's'} staan klaar.`
+                                  : 'Probeer het later opnieuw of kies voor afhalen.'}
+                              </p>
+                            )}
+                          </div>
+
+                          {checkoutDraft.coordinates && isDeliveryAvailable && (
+                            <div className="p-4 bg-white rounded-xl border border-green-200 shadow-sm">
+                              <div className="flex items-start gap-3">
+                                <div className="p-2 bg-green-500 rounded-lg">
+                                  <Users className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="flex-1 text-sm text-green-800 space-y-2">
+                                  <p>
+                                    {t('checkout.allAvailableDeliverers')}
+                                    <strong> {t('checkout.firstAcceptsDelivers')}</strong>
+                                  </p>
+                                  <ul className="space-y-1">
+                                    <li>✓ {t('checkout.withinRadius')}</li>
+                                    <li>✓ {t('checkout.availableInTimeSlot')}</li>
+                                    <li>✓ {t('checkout.notificationOnAcceptance')}</li>
+                                    <li>✓ {t('checkout.directMessagesWithDeliverer')}</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Delivery Details — only under the method the buyer just chose */}
+                  {checkoutDraft.selectedDelivery === option.id && (
+                    <div className="mt-3 p-4 bg-gray-50 rounded-xl">
+                      <h3 className="font-semibold text-gray-900 mb-4">{t('checkout.deliveryDetails')}</h3>
+
+                      {!isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) ? (
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <Clock className="w-4 h-4 inline mr-1" />
+                            {checkoutDraft.selectedDelivery === 'pickup' ? t('checkout.pickupDate') : t('checkout.deliveryDate')}
+                          </label>
+                          <input
+                            type="date"
+                            value={checkoutDraft.deliveryDate}
+                            onChange={(e) => updateDraft({ deliveryDate: e.target.value })}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {t('checkout.timeLabel')}
+                          </label>
+                          <select
+                            value={checkoutDraft.deliveryTime}
+                            onChange={(e) => updateDraft({ deliveryTime: e.target.value })}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
+                          >
+                            <option value="">{t('checkout.chooseTime')}</option>
+                            <option value="09:00-12:00">09:00-12:00</option>
+                            <option value="12:00-15:00">12:00-15:00</option>
+                            <option value="15:00-18:00">15:00-18:00</option>
+                            <option value="18:00-21:00">18:00-21:00</option>
+                          </select>
+                        </div>
+                      </div>
+                      ) : null}
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('checkout.notesOptional')}
+                        </label>
+                        <textarea
+                          value={checkoutDraft.notes}
+                          onChange={(e) => updateDraft({ notes: e.target.value })}
+                          placeholder={t('checkout.notesPlaceholder')}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
+                          rows={2}
+                        />
+                      </div>
+
+                      {/* LEGAL-3 consumer information before payment */}
+                      {mergedConsumerCommerce?.showConsumerDisclosure ? (
+                        <div className="mt-4">
+                          <ConsumerCommerceDisclosure
+                            context={
+                              mergedConsumerCommerce.serviceStartAckRequired
+                                ? {
+                                    ...mergedConsumerCommerce,
+                                    serviceStartAckRequired: true,
+                                  }
+                                : mergedConsumerCommerce
+                            }
+                            variant="checkout"
+                            serviceStartAckChecked={serviceStartAck}
+                            onServiceStartAckChange={setServiceStartAck}
+                          />
+                        </div>
+                      ) : null}
+
+                      {/* SMS Notification Option */}
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={checkoutDraft.enableSmsNotification}
+                            onChange={(e) => updateDraft({ enableSmsNotification: e.target.checked })}
+                            className="mt-1 w-4 h-4 text-primary-brand border-gray-300 rounded focus:ring-primary-brand"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <MessageSquare className="w-4 h-4 text-blue-600" />
+                              <span className="font-medium text-gray-900">{t('checkout.smsNotificationForSellers')}</span>
+                              <span className="text-sm text-blue-600 font-semibold">
+                                (+€{(smsCostPerSellerCents / 100).toFixed(2)} per verkoper)
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {t('checkout.smsNotificationDescription')} 
+                              {uniqueSellerCount > 1 && ` ${t('checkout.smsCostForSellers', { cost: (smsNotificationCostCents / 100).toFixed(2), count: uniqueSellerCount })}`}
+                              {uniqueSellerCount === 1 && ` ${t('checkout.smsCostPerSeller', { cost: (smsCostPerSellerCents / 100).toFixed(2) })}`}
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                        </div>
+                      ) : null}
+                    </div>
                     );
                   })}
                 </div>
 
-                {/* Local provider: named selection (Phase 3) or legacy first-accept copy */}
-                {isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) && (
-                  <div className="mt-6 space-y-4">
-                    <TeenDeliveryInfo />
-
-                    {namedProviderSelectionEnabled ? (
-                      <>
-                        {checkoutDraft.coordinates && checkoutItems[0]?.productId ? (
-                          <DelivererSelector
-                            productId={checkoutItems[0].productId}
-                            buyerLat={checkoutDraft.coordinates.lat}
-                            buyerLng={checkoutDraft.coordinates.lng}
-                            selectedDelivererId={selectedDeliverer?.id}
-                            onSelectDeliverer={async (d) => {
-                              const previousBookingId = bookingRequestId;
-                              setSelectedDeliverer(d);
-                              setBookingError(null);
-                              setBookingBusy(true);
-                              try {
-                                const res = await fetch('/api/delivery/booking-requests', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({
-                                    deliveryProfileId: d.id,
-                                    productId: checkoutItems[0]?.productId,
-                                    quantity: checkoutItems[0]?.quantity ?? 1,
-                                    buyerLat: checkoutDraft.coordinates?.lat,
-                                    buyerLng: checkoutDraft.coordinates?.lng,
-                                    routeDistanceKm: d.totalDeliveryDistance,
-                                    quotedFeeCents:
-                                      d.quotedFeeCents ?? d.calculatedDeliveryPrice ?? null,
-                                    replacesBookingRequestId:
-                                      previousBookingId &&
-                                      selectedDeliverer?.id &&
-                                      selectedDeliverer.id !== d.id
-                                        ? previousBookingId
-                                        : undefined,
-                                  }),
-                                });
-                                const data = await res.json();
-                                if (!res.ok) {
-                                  if (data.code === 'COURIER_ALREADY_ACCEPTED' && data.bookingRequestId) {
-                                    setBookingRequestId(data.bookingRequestId);
-                                    setBookingStatus('ACCEPTED');
-                                  }
-                                  setBookingError(
-                                    data.error ||
-                                      tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'),
-                                  );
-                                  return;
-                                }
-                                setBookingRequestId(data.bookingRequestId);
-                                setBookingStatus(data.status);
-                                setReservationRemainingMs(data.reservation?.remainingMs ?? null);
-                                setPaymentRemainingMs(data.reservation?.paymentRemainingMs ?? null);
-                                setReservationPhase(data.reservation?.phase ?? null);
-                              } catch (e) {
-                                setBookingError(tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'));
-                              } finally {
-                                setBookingBusy(false);
-                              }
-                            }}
-                          />
-                        ) : (
-                          <p className="text-sm text-gray-600">
-                            {tOr('surfaceLang.bookingValidate', 'Validate your delivery address first to see available couriers.', 'Valideer eerst je bezorgadres om beschikbare bezorgers te zien.')}
-                          </p>
-                        )}
-
-                        {bookingBusy && (
-                          <p className="text-sm text-blue-700 flex items-center gap-2">
-                            <Loader2 className="w-4 h-4 animate-spin" /> {tOr('surfaceLang.bookingPreparing', 'Preparing confirmation…', 'Bevestiging voorbereiden…')}
-                          </p>
-                        )}
-                        {bookingError && (
-                          <p className="text-sm text-red-700">{bookingError}</p>
-                        )}
-                        {reservationRemainingMs === 0 && (
-                          <p className="text-sm text-amber-900 font-medium">{reservationCopy.expired}</p>
-                        )}
-                        {reservationPhase === 'AWAITING_COURIER' && reservationRemainingMs !== 0 && (
-                          <p className="text-sm text-blue-800">
-                            {reservationCopy.reserved}
-                            {formatServerRemaining(reservationRemainingMs)
-                              ? ` ${formatServerRemaining(reservationRemainingMs)}`
-                              : ''}
-                          </p>
-                        )}
-                        {bookingStatus === 'AUTO_CONFIRMED' && (
-                          <p className="text-sm text-green-700 font-medium">
-                            {reservationCopy.accepted}
-                            {formatServerRemaining(paymentRemainingMs)
-                              ? ` ${formatServerRemaining(paymentRemainingMs)}`
-                              : ''}
-                          </p>
-                        )}
-                        {bookingStatus === 'PENDING' && bookingRequestId && reservationRemainingMs !== 0 && (
-                          <ManualBookingPoller
-                            bookingRequestId={bookingRequestId}
-                            onStatus={(snapshot) => {
-                              setBookingStatus(snapshot.status);
-                              setReservationRemainingMs(snapshot.remainingMs);
-                              setPaymentRemainingMs(snapshot.paymentRemainingMs);
-                              setReservationPhase(snapshot.phase);
-                            }}
-                          />
-                        )}
-                        {bookingStatus === 'ACCEPTED' && (
-                          <p className="text-sm text-green-700 font-medium">
-                            {reservationCopy.accepted}
-                            {formatServerRemaining(paymentRemainingMs)
-                              ? ` ${formatServerRemaining(paymentRemainingMs)}`
-                              : ''}
-                          </p>
-                        )}
-                        {bookingStatus === 'REJECTED' && reservationRemainingMs !== 0 && (
-                          <p className="text-sm text-amber-800">{reservationCopy.rejected}</p>
-                        )}
-                        {bookingStatus === 'EXPIRED' && (
-                          <p className="text-sm text-amber-900">{reservationCopy.expired}</p>
-                        )}
-                        {bookingRequestId && bookingStatus !== 'CONSUMED' && reservationRemainingMs !== 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              className="text-sm px-3 py-2 rounded-lg border border-gray-300"
-                              onClick={async () => {
-                                const res = await fetch(`/api/delivery/booking-requests/${bookingRequestId}/pickup`, {
-                                  method: 'POST',
-                                });
-                                if (!res.ok) return;
-                                updateDraft({ selectedDelivery: 'pickup' });
-                                setSelectedDeliverer(null);
-                                setBookingStatus('CANCELLED');
-                              }}
-                            >
-                              {tOr('checkout.reservation.pickup', 'Pick up instead', 'Zelf afhalen')}
-                            </button>
-                            <button
-                              type="button"
-                              className="text-sm px-3 py-2 rounded-lg border border-red-200 text-red-800"
-                              onClick={async () => {
-                                const res = await fetch(`/api/delivery/booking-requests/${bookingRequestId}/cancel`, {
-                                  method: 'POST',
-                                });
-                                if (!res.ok) return;
-                                setBookingRequestId(null);
-                                setBookingStatus(null);
-                                setSelectedDeliverer(null);
-                                setReservationRemainingMs(null);
-                                setReservationPhase(null);
-                              }}
-                            >
-                              {tOr('checkout.reservation.cancel', 'Cancel reservation', 'Reservering annuleren')}
-                            </button>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <div
-                          className={`p-4 rounded-xl border-2 ${
-                            availabilityLoading
-                              ? 'border-blue-200 bg-blue-50 text-blue-700'
-                              : !checkoutDraft.coordinates
-                              ? 'border-gray-200 bg-gray-50 text-gray-700'
-                              : isDeliveryAvailable
-                              ? 'border-green-200 bg-gradient-to-r from-green-50 to-blue-50 text-green-800'
-                              : 'border-red-200 bg-red-50 text-red-700'
-                          }`}
-                        >
-                          <p className="font-semibold">
-                            {availabilityLoading
-                              ? t('checkout.checkingAvailability')
-                              : !checkoutDraft.coordinates
-                              ? t('checkout.validateAddressToSeeTeenDeliverers')
-                              : availability.message ||
-                                (isDeliveryAvailable
-                                  ? t('checkout.deliverersAvailable')
-                                  : t('checkout.noDeliverersAvailable'))}
-                          </p>
-                          {checkoutDraft.coordinates && availability.availableCount !== undefined && (
-                            <p className="text-sm mt-1">
-                              {isDeliveryAvailable
-                                ? `${availability.availableCount} bezorger${availability.availableCount === 1 ? '' : 's'} staan klaar.`
-                                : 'Probeer het later opnieuw of kies voor afhalen.'}
-                            </p>
-                          )}
-                        </div>
-
-                        {checkoutDraft.coordinates && isDeliveryAvailable && (
-                          <div className="p-4 bg-white rounded-xl border border-green-200 shadow-sm">
-                            <div className="flex items-start gap-3">
-                              <div className="p-2 bg-green-500 rounded-lg">
-                                <Users className="w-5 h-5 text-white" />
-                              </div>
-                              <div className="flex-1 text-sm text-green-800 space-y-2">
-                                <p>
-                                  {t('checkout.allAvailableDeliverers')}
-                                  <strong> {t('checkout.firstAcceptsDelivers')}</strong>
-                                </p>
-                                <ul className="space-y-1">
-                                  <li>✓ {t('checkout.withinRadius')}</li>
-                                  <li>✓ {t('checkout.availableInTimeSlot')}</li>
-                                  <li>✓ {t('checkout.notificationOnAcceptance')}</li>
-                                  <li>✓ {t('checkout.directMessagesWithDeliverer')}</li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {/* Delivery Details */}
-                {checkoutDraft.selectedDelivery && checkoutDraft.selectedDelivery !== 'pickup' && (
-                  <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-                    <h3 className="font-semibold text-gray-900 mb-4">{t('checkout.deliveryDetails')}</h3>
-
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          <Clock className="w-4 h-4 inline mr-1" />
-                          {checkoutDraft.selectedDelivery === 'pickup' ? t('checkout.pickupDate') : t('checkout.deliveryDate')}
-                        </label>
-                        <input
-                          type="date"
-                          value={checkoutDraft.deliveryDate}
-                          onChange={(e) => updateDraft({ deliveryDate: e.target.value })}
-                          min={new Date().toISOString().split('T')[0]}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {t('checkout.timeLabel')}
-                        </label>
-                        <select
-                          value={checkoutDraft.deliveryTime}
-                          onChange={(e) => updateDraft({ deliveryTime: e.target.value })}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
-                        >
-                          <option value="">{t('checkout.chooseTime')}</option>
-                          <option value="09:00-12:00">09:00-12:00</option>
-                          <option value="12:00-15:00">12:00-15:00</option>
-                          <option value="15:00-18:00">15:00-18:00</option>
-                          <option value="18:00-21:00">18:00-21:00</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('checkout.notesOptional')}
-                      </label>
-                      <textarea
-                        value={checkoutDraft.notes}
-                        onChange={(e) => updateDraft({ notes: e.target.value })}
-                        placeholder={t('checkout.notesPlaceholder')}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brand focus:border-primary-brand"
-                        rows={2}
-                      />
-                    </div>
-
-                    {/* LEGAL-3 consumer information before payment */}
-                    {mergedConsumerCommerce?.showConsumerDisclosure ? (
-                      <div className="mt-4">
-                        <ConsumerCommerceDisclosure
-                          context={
-                            mergedConsumerCommerce.serviceStartAckRequired
-                              ? {
-                                  ...mergedConsumerCommerce,
-                                  serviceStartAckRequired: true,
-                                }
-                              : mergedConsumerCommerce
-                          }
-                          variant="checkout"
-                          serviceStartAckChecked={serviceStartAck}
-                          onServiceStartAckChange={setServiceStartAck}
-                        />
-                      </div>
-                    ) : null}
-
-                    {/* SMS Notification Option */}
-                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={checkoutDraft.enableSmsNotification}
-                          onChange={(e) => updateDraft({ enableSmsNotification: e.target.checked })}
-                          className="mt-1 w-4 h-4 text-primary-brand border-gray-300 rounded focus:ring-primary-brand"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <MessageSquare className="w-4 h-4 text-blue-600" />
-                            <span className="font-medium text-gray-900">{t('checkout.smsNotificationForSellers')}</span>
-                            <span className="text-sm text-blue-600 font-semibold">
-                              (+€{(smsCostPerSellerCents / 100).toFixed(2)} per verkoper)
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {t('checkout.smsNotificationDescription')} 
-                            {uniqueSellerCount > 1 && ` ${t('checkout.smsCostForSellers', { cost: (smsNotificationCostCents / 100).toFixed(2), count: uniqueSellerCount })}`}
-                            {uniqueSellerCount === 1 && ` ${t('checkout.smsCostPerSeller', { cost: (smsCostPerSellerCents / 100).toFixed(2) })}`}
-                          </p>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Order Summary */}
