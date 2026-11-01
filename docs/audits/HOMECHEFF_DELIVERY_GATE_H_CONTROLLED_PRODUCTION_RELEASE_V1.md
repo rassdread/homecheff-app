@@ -30,7 +30,7 @@ Gate H re-based the certified Delivery port onto the verified production SHA.
 | RELEASE_BRANCH | `gate-h-delivery-release` |
 | WORKTREE | `/tmp/gate-h-delivery-release` |
 | GATE_G_INTEGRATION_COMMIT | `0196662f4d49a7f95e40ad44280e660388eb8694` |
-| FINAL_RELEASE_COMMIT | `e4762212b15d1cb60421d09e10d0e90ea4bd52b5` |
+| FINAL_RELEASE_COMMIT | `09cda905a80f63d5392bd62a5a3c8db185fadd2a` |
 | WORKTREE_CLEAN | YES (after evidence commit) |
 | DIRTY_FEATURES_EXCLUDED | YES (primary workspace `hc-campaign-cert-v3` left dirty, 289 files) |
 | Files vs production | 17 (16 Gate G + mobile harness) |
@@ -96,7 +96,7 @@ Evidence: `/tmp/gate-h-mobile-e2e.json`
 |---|---|
 | ROLLBACK_DEPLOYMENT | Redeploy/promote `dpl_2KbkFaNaAfMg26tbNWnc3whjKNdj` (or original `dpl_E6EytdRkBrXtyiSMhfHXMpS6iapC`) |
 | ROLLBACK_COMMIT | `f7baf9414ffbfca3cd9d1cf47fd1f06600ec5c28` |
-| PROPOSED_RELEASE_COMMIT | `e4762212b15d1cb60421d09e10d0e90ea4bd52b5` |
+| PROPOSED_RELEASE_COMMIT | `09cda905a80f63d5392bd62a5a3c8db185fadd2a` |
 | Env vars needed | No new required vars; keep `HOMECHEFF_DELIVERY_ENABLED` unset/false; keep pilot restricted allowlists |
 | DB | No migration in this release → app rollback does not require DB rollback |
 | Stop criteria | Connect wipe regression, public Delivery ON, payment/transfer failures, marketplace checkout break, build failure |
@@ -111,7 +111,7 @@ Evidence: `/tmp/gate-h-mobile-e2e.json`
 
 ### Phase A — Release (requires approval)
 1. Explicit approval received.
-2. Verify FINAL_RELEASE_COMMIT `e4762212b15d1cb60421d09e10d0e90ea4bd52b5`.
+2. Verify FINAL_RELEASE_COMMIT `09cda905a80f63d5392bd62a5a3c8db185fadd2a`.
 3. Re-check live production commit/aliases.
 4. Deploy only this commit (no dirty workspace merge).
 5. Keep public Delivery OFF.
