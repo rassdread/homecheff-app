@@ -208,7 +208,8 @@ const PLAN_CONFIG: Record<BusinessPlanId, BusinessPlanConfig> = {
     socialPromotionStatus: 'none',
     campaignEligible: true,
     regionalCampaignEligible: false,
-    maxLocations: 2,
+    // Press-launch multi-location cap (Basic=1, Pro=3, Premium=25).
+    maxLocations: 3,
     prioritySupport: 'priority',
     boostEligible: true,
     verifiedBusiness: true,
@@ -248,7 +249,8 @@ const PLAN_CONFIG: Record<BusinessPlanId, BusinessPlanConfig> = {
     socialPromotionStatus: 'ready',
     campaignEligible: true,
     regionalCampaignEligible: true,
-    maxLocations: 99,
+    // Press-launch multi-location cap (Basic=1, Pro=3, Premium=25).
+    maxLocations: 25,
     prioritySupport: 'premium',
     boostEligible: true,
     verifiedBusiness: true,
