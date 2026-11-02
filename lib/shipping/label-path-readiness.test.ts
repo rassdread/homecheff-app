@@ -10,17 +10,23 @@ function env(partial: Record<string, string | undefined>): NodeJS.ProcessEnv {
 }
 
 describe('shipping label path readiness', () => {
-  it('defaults to not certified and not hard-blocking', () => {
+  it('defaults to not certified and hard-blocks public parcel checkout', () => {
     assert.equal(shippingLabelsCertified(env({})), false);
-    assert.equal(shippingCheckoutShouldHardBlock(env({})), false);
+    assert.equal(shippingCheckoutShouldHardBlock(env({})), true);
   });
 
-  it('hard-blocks only when explicitly required and not certified', () => {
+  it('stays blocked until labels are certified, unless the owner explicitly opens checkout', () => {
     assert.equal(
       shippingCheckoutShouldHardBlock(
         env({ SHIPPING_CHECKOUT_REQUIRES_LABEL_PATH: 'true' }),
       ),
       true,
+    );
+    assert.equal(
+      shippingCheckoutShouldHardBlock(
+        env({ SHIPPING_CHECKOUT_REQUIRES_LABEL_PATH: 'false' }),
+      ),
+      false,
     );
     assert.equal(
       shippingCheckoutShouldHardBlock(

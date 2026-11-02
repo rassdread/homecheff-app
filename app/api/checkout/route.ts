@@ -591,7 +591,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Opt-in hard block only (SHIPPING_CHECKOUT_REQUIRES_LABEL_PATH). Default: allow quotes.
+    // Parcel checkout stays closed until a printable carrier label is certified. Quotes are unaffected.
     if (
       (fulfillmentForAddress.canonical === 'PARCEL_SHIPPING' ||
         deliveryMode === 'SHIPPING') &&

@@ -15,14 +15,18 @@ export function shippingLabelsCertified(
 }
 
 /**
- * Smallest safe default: allow quote checkout, surface risk, do not auto-disable.
- * Flip to hard-block only when SHIPPING_CHECKOUT_REQUIRES_LABEL_PATH=true (explicit).
+ * Public parcel checkout stays closed until a printable carrier label is certified.
+ * Quotes are unaffected. An explicit SHIPPING_CHECKOUT_REQUIRES_LABEL_PATH=false
+ * is the only owner override that opens checkout without certification.
  */
 export function shippingCheckoutShouldHardBlock(
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
+  if (shippingLabelsCertified(env)) return false;
   const requirePath = env.SHIPPING_CHECKOUT_REQUIRES_LABEL_PATH;
-  if (typeof requirePath !== 'string') return false;
-  const on = ['1', 'true', 'yes'].includes(requirePath.trim().toLowerCase());
-  return on && !shippingLabelsCertified(env);
+  if (typeof requirePath === 'string') {
+    const value = requirePath.trim().toLowerCase();
+    if (['0', 'false', 'no', 'off'].includes(value)) return false;
+  }
+  return true;
 }

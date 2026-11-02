@@ -315,7 +315,9 @@ export default function CheckoutPage() {
       .catch(() => setNamedProviderSelectionEnabled(false));
     fetch('/api/shipping/calculate-price')
       .then((r) => r.json())
-      .then((d) => setParcelCarrierConfigured(Boolean(d.configured)))
+      .then((d) =>
+        setParcelCarrierConfigured(Boolean(d.configured) && d.checkoutEnabled === true),
+      )
       .catch(() => setParcelCarrierConfigured(false));
   }, []);
 

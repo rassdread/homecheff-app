@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { isParcelCarrierConfigured } from '@/lib/ectaroship/partner-client';
 import { getAuthoritativeCarrierShippingQuote } from '@/lib/shipping/quote-service';
 import { toPublicShippingQuoteResponse } from '@/lib/shipping/public-shipping-quote';
+import { shippingCheckoutShouldHardBlock } from '@/lib/shipping/label-path-readiness';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,11 @@ export const dynamic = 'force-dynamic';
  * UI display only — checkout re-quotes server-authoritatively.
  */
 export async function GET() {
-  return NextResponse.json({ configured: isParcelCarrierConfigured() });
+  const configured = isParcelCarrierConfigured();
+  return NextResponse.json({
+    configured,
+    checkoutEnabled: configured && !shippingCheckoutShouldHardBlock(),
+  });
 }
 
 export async function POST(req: NextRequest) {
