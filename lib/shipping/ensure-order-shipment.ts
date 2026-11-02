@@ -49,19 +49,32 @@ function parseQuoteSnapshot(raw: unknown): ShippingQuoteSnapshot | null {
   return o as unknown as ShippingQuoteSnapshot;
 }
 
-function splitStreet(addressLine: string): { street: string; houseNumber: string } {
+function splitStreet(
+  addressLine: string,
+): { street: string; houseNumber: string } | null {
   const m = addressLine.trim().match(/^(.+?)\s+(\d+[a-zA-Z0-9\-\/]*)$/);
-  if (m) return { street: m[1]!.trim(), houseNumber: m[2]! };
-  return { street: addressLine.trim(), houseNumber: '1' };
+  if (!m) return null;
+  return { street: m[1]!.trim(), houseNumber: m[2]! };
 }
 
 function toPartnerAddress(
   snap: ShippingAddressSnapshot,
   opts?: { companyName?: string | null },
-): PartnerAddress {
-  const street = snap.street || splitStreet(snap.addressLine).street;
-  const houseNumber =
-    snap.houseNumber || splitStreet(snap.addressLine).houseNumber;
+): PartnerAddress | { error: string } {
+  const parsed = !snap.street || !snap.houseNumber
+    ? splitStreet(snap.addressLine)
+    : null;
+  const street = (snap.street || parsed?.street || '').trim();
+  const houseNumber = (snap.houseNumber || parsed?.houseNumber || '').trim();
+  if (!street || !houseNumber) {
+    return {
+      error:
+        'Incomplete shipping address for Partner label (street + house number required)',
+    };
+  }
+  if (!/^\d+[A-Za-z0-9\-\/\s]*$/.test(houseNumber)) {
+    return { error: 'Invalid house number for Partner label' };
+  }
   return {
     fullname: snap.name,
     companyName: opts?.companyName?.trim() || undefined,
@@ -237,16 +250,32 @@ export async function ensurePaidOrderShipment(
         ?.company ||
       undefined;
 
-    const destAddress = toPartnerAddress(destSnap);
+    const destAddressOrErr = toPartnerAddress(destSnap);
+    if ('error' in destAddressOrErr) {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { shippingStatus: 'SHIPMENT_FAILED_RETRYABLE' },
+      });
+      return { status: 'address_incomplete', error: destAddressOrErr.error };
+    }
+    const destAddress = destAddressOrErr;
     // Prefer live order buyer contact when snapshot omitted them
     if (!destAddress.email && order.User?.email) destAddress.email = order.User.email;
     if (!destAddress.phone && order.User?.phoneNumber) {
       destAddress.phone = order.User.phoneNumber;
     }
 
-    const fromAddress = toPartnerAddress(originSnap, {
+    const fromAddressOrErr = toPartnerAddress(originSnap, {
       companyName: sellerCompany,
     });
+    if ('error' in fromAddressOrErr) {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { shippingStatus: 'SHIPMENT_FAILED_RETRYABLE' },
+      });
+      return { status: 'address_incomplete', error: fromAddressOrErr.error };
+    }
+    const fromAddress = fromAddressOrErr;
     if (!fromAddress.email && sellerProfile?.User?.email) {
       fromAddress.email = sellerProfile.User.email;
     }

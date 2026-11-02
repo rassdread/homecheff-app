@@ -7,11 +7,39 @@
  * Label create: X-Api-Behavior: STRICT (mandatory)
  */
 
-export const ECTAROSHIP_PARTNER_BASE_URL =
-  (process.env.ECTAROSHIP_API_BASE_URL || 'https://partnerapi.ectaro.com').replace(
-    /\/$/,
-    '',
-  );
+/** Canonical Partner API host (STRICT label create). */
+export const ECTAROSHIP_CANONICAL_PARTNER_BASE_URL =
+  'https://partnerapi.ectaro.com';
+
+/**
+ * Resolve Partner API base URL.
+ * Misconfigured local/prod envs still point at legacy api.ectaroship.nl (HTTP 526).
+ * Map that host to the Partner API — never invent other hosts.
+ */
+export function resolveEctaroShipPartnerBaseUrl(
+  raw: string | undefined = process.env.ECTAROSHIP_API_BASE_URL,
+): string {
+  const fallback = ECTAROSHIP_CANONICAL_PARTNER_BASE_URL;
+  const trimmed = String(raw || fallback).trim().replace(/\/$/, '');
+  try {
+    const withScheme = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+    const u = new URL(withScheme);
+    const host = u.hostname.toLowerCase();
+    if (
+      host === 'api.ectaroship.nl' ||
+      host === 'www.api.ectaroship.nl' ||
+      host.endsWith('.api.ectaroship.nl')
+    ) {
+      return ECTAROSHIP_CANONICAL_PARTNER_BASE_URL;
+    }
+    return `${u.protocol}//${u.host}`.replace(/\/$/, '');
+  } catch {
+    return fallback;
+  }
+}
+
+/** @deprecated Prefer resolveEctaroShipPartnerBaseUrl() — kept for existing imports/tests. */
+export const ECTAROSHIP_PARTNER_BASE_URL = ECTAROSHIP_CANONICAL_PARTNER_BASE_URL;
 
 export const HOMECHEFF_SHIPPING_MARKUP_PERCENT = 0;
 
@@ -234,7 +262,7 @@ export async function getShippingProducts(
 
   try {
     const res = await fetch(
-      `${ECTAROSHIP_PARTNER_BASE_URL}/api/v1/shipping/products?${qs}`,
+      `${resolveEctaroShipPartnerBaseUrl()}/api/v1/shipping/products?${qs}`,
       { method: 'GET', headers: partnerHeaders(), cache: 'no-store' },
     );
     const body = await parseJson(res);
@@ -458,7 +486,7 @@ export async function createPartnerLabel(
 
   try {
     const res = await fetch(
-      `${ECTAROSHIP_PARTNER_BASE_URL}/api/v1/shipping/label`,
+      `${resolveEctaroShipPartnerBaseUrl()}/api/v1/shipping/label`,
       {
         method: 'POST',
         headers: partnerHeaders({ strict: true }),
@@ -507,7 +535,7 @@ export async function cancelPartnerLabel(input: {
   }
   try {
     const res = await fetch(
-      `${ECTAROSHIP_PARTNER_BASE_URL}/api/v1/shipping/label/cancel`,
+      `${resolveEctaroShipPartnerBaseUrl()}/api/v1/shipping/label/cancel`,
       {
         method: 'PUT',
         headers: partnerHeaders({ strict: true }),
@@ -545,7 +573,7 @@ export async function checkRemoteArea(input: {
   }
   try {
     const res = await fetch(
-      `${ECTAROSHIP_PARTNER_BASE_URL}/api/v1/shipping/check-remote-area`,
+      `${resolveEctaroShipPartnerBaseUrl()}/api/v1/shipping/check-remote-area`,
       {
         method: 'POST',
         headers: partnerHeaders({ strict: true }),
@@ -606,7 +634,7 @@ export async function listShippingLabels(params?: {
 
   try {
     const res = await fetch(
-      `${ECTAROSHIP_PARTNER_BASE_URL}/api/v1/shipping/labels?${qs}`,
+      `${resolveEctaroShipPartnerBaseUrl()}/api/v1/shipping/labels?${qs}`,
       { method: 'GET', headers: partnerHeaders(), cache: 'no-store' },
     );
     const body = await parseJson(res);
@@ -691,7 +719,7 @@ export async function pingPartnerApi(): Promise<
     };
   }
   try {
-    const res = await fetch(`${ECTAROSHIP_PARTNER_BASE_URL}/api/v1/ping/`, {
+    const res = await fetch(`${resolveEctaroShipPartnerBaseUrl()}/api/v1/ping/`, {
       method: 'GET',
       headers: partnerHeaders(),
       cache: 'no-store',

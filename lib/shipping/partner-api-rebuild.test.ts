@@ -23,6 +23,8 @@ function read(rel: string) {
 {
   const client = read('lib/ectaroship/partner-client.ts');
   assert.match(client, /partnerapi\.ectaro\.com/);
+  assert.match(client, /resolveEctaroShipPartnerBaseUrl/);
+  assert.match(client, /api\.ectaroship\.nl/);
   assert.match(client, /Api-Key/);
   assert.match(client, /X-Api-Behavior/);
   assert.match(client, /STRICT/);

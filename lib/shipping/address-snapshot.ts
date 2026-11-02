@@ -63,13 +63,44 @@ export function validateShippingAddressSnapshot(
     };
   }
 
+  // Prefer explicit house number; otherwise parse trailing number from addressLine.
+  let resolvedHouse = houseNumber;
+  let resolvedStreet = street;
+  if (!resolvedHouse) {
+    const m = addressLine.match(/^(.+?)\s+(\d+[A-Za-z0-9\-\/]*)$/);
+    if (m) {
+      resolvedStreet = resolvedStreet || m[1]!.trim();
+      resolvedHouse = m[2]!;
+    }
+  }
+  if (!resolvedHouse) {
+    return {
+      ok: false,
+      code: 'SHIPPING_HOUSE_NUMBER_REQUIRED',
+      error: 'Huisnummer is verplicht voor verzending.',
+    };
+  }
+  if (!resolvedStreet) {
+    // addressLine was "Street 12" → street extracted above; else strip house from line.
+    resolvedStreet = addressLine
+      .replace(new RegExp(`\\s*${resolvedHouse.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`), '')
+      .trim();
+  }
+  if (!resolvedStreet) {
+    return {
+      ok: false,
+      code: 'SHIPPING_ADDRESS_INCOMPLETE',
+      error: 'Straat is verplicht voor verzending.',
+    };
+  }
+
   return {
     ok: true,
     address: {
       name,
-      addressLine,
-      street: street || undefined,
-      houseNumber: houseNumber || undefined,
+      addressLine: [resolvedStreet, resolvedHouse].join(' ').trim(),
+      street: resolvedStreet,
+      houseNumber: resolvedHouse,
       postalCode: normalizePostalCode(postalCode, country),
       city,
       country,
