@@ -25,6 +25,12 @@ import {
   isCourierCheckoutMode,
 } from '@/lib/checkout/fulfillment-phase1';
 import {
+  formatPhysicalDeliveryAddress,
+  isCompletePhysicalDeliveryAddress,
+  validatePhysicalDeliveryAddress,
+} from '@/lib/checkout/physical-delivery-address';
+import { shippingCheckoutShouldHardBlock } from '@/lib/shipping/label-path-readiness';
+import {
   allRequestedProductsFound,
   cardCheckoutGateErrorKey,
   evaluateCardCheckoutGate,
@@ -546,6 +552,59 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
+    }
+
+    // Physical delivery / parcel shipping: geocode alone is not enough — house number required.
+    const fulfillmentForAddress = normalizeFulfillmentInput(deliveryMode);
+    const requiresCompleteDeliveryAddress =
+      fulfillmentForAddress.canonical === 'LOCAL_PROVIDER' ||
+      fulfillmentForAddress.canonical === 'SELLER_DELIVERY' ||
+      fulfillmentForAddress.canonical === 'PARCEL_SHIPPING' ||
+      deliveryMode === 'LOCAL_DELIVERY' ||
+      deliveryMode === 'SHIPPING';
+    if (requiresCompleteDeliveryAddress) {
+      const addressCheck = {
+        street: typeof street === 'string' ? street : '',
+        houseNumber: typeof houseNumber === 'string' ? houseNumber : '',
+        postalCode: typeof postalCode === 'string' ? postalCode : '',
+        city: typeof city === 'string' ? city : '',
+        country: typeof country === 'string' ? country : 'NL',
+        lat: coordinates?.lat ?? null,
+        lng: coordinates?.lng ?? null,
+      };
+      if (!isCompletePhysicalDeliveryAddress(addressCheck)) {
+        const fields = validatePhysicalDeliveryAddress(addressCheck);
+        return NextResponse.json(
+          {
+            error: fields.includes('houseNumber')
+              ? 'Vul een huisnummer in voor bezorging of verzending.'
+              : 'Vul een volledig bezorgadres in (straat, huisnummer, postcode, plaats).',
+            code: 'DELIVERY_ADDRESS_INCOMPLETE',
+            fields,
+          },
+          { status: 400 },
+        );
+      }
+      const composed = formatPhysicalDeliveryAddress(addressCheck);
+      if (composed && !orderAddress.trim()) {
+        orderAddress = composed;
+      }
+    }
+
+    // Opt-in hard block only (SHIPPING_CHECKOUT_REQUIRES_LABEL_PATH). Default: allow quotes.
+    if (
+      (fulfillmentForAddress.canonical === 'PARCEL_SHIPPING' ||
+        deliveryMode === 'SHIPPING') &&
+      shippingCheckoutShouldHardBlock()
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            'Pakketverzending is tijdelijk niet beschikbaar: labelaanmaak is nog niet gecertificeerd.',
+          code: 'SHIPPING_LABEL_PATH_UNAVAILABLE',
+        },
+        { status: 503 },
+      );
     }
 
     const communityOrderValidated = Boolean(

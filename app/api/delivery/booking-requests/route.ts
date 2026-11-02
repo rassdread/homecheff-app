@@ -16,6 +16,11 @@ import {
   reservationTiming,
   reserveOrReuseCourierHold,
 } from '@/lib/products/courier-stock-hold';
+import {
+  formatPhysicalDeliveryAddress,
+  isCompletePhysicalDeliveryAddress,
+  validatePhysicalDeliveryAddress,
+} from '@/lib/checkout/physical-delivery-address';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,6 +61,11 @@ export async function POST(req: NextRequest) {
       notes,
       replacesBookingRequestId,
       quantity,
+      street,
+      houseNumber,
+      postalCode,
+      city,
+      country,
     } = body;
     const requestedQuantity =
       typeof quantity === 'number' && Number.isInteger(quantity) && quantity > 0
@@ -68,6 +78,30 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    const deliveryAddressInput = {
+      street: typeof street === 'string' ? street : '',
+      houseNumber: typeof houseNumber === 'string' ? houseNumber : '',
+      postalCode: typeof postalCode === 'string' ? postalCode : '',
+      city: typeof city === 'string' ? city : '',
+      country: typeof country === 'string' ? country : 'NL',
+      lat: typeof buyerLat === 'number' ? buyerLat : null,
+      lng: typeof buyerLng === 'number' ? buyerLng : null,
+    };
+    if (!isCompletePhysicalDeliveryAddress(deliveryAddressInput)) {
+      const codes = validatePhysicalDeliveryAddress(deliveryAddressInput);
+      return NextResponse.json(
+        {
+          error: codes.includes('houseNumber')
+            ? 'Vul een huisnummer in voor bezorging.'
+            : 'Vul een volledig bezorgadres in (straat, huisnummer, postcode, plaats).',
+          code: 'DELIVERY_ADDRESS_INCOMPLETE',
+          fields: codes,
+        },
+        { status: 400 },
+      );
+    }
+    const formattedDeliveryAddress = formatPhysicalDeliveryAddress(deliveryAddressInput);
     const bookingAccess = evaluateDeliveryAccess({
       requesterUserId: buyer.id,
       courierProfileId: deliveryProfileId,
@@ -188,6 +222,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const notesWithAddress = [
+      typeof notes === 'string' ? notes.trim() : '',
+      formattedDeliveryAddress ? `Bezorgadres: ${formattedDeliveryAddress}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
+
     let result: Awaited<ReturnType<typeof createDeliveryBookingRequest>>;
     try {
       result = await createDeliveryBookingRequest(prisma, {
@@ -198,7 +239,7 @@ export async function POST(req: NextRequest) {
         buyerLng,
         routeDistanceKm,
         quotedFeeCents,
-        notes,
+        notes: notesWithAddress || undefined,
         holdUntil: hold?.holdUntil ?? hold?.expiresAt ?? null,
       });
     } catch (error) {

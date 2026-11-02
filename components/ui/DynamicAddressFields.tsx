@@ -61,12 +61,12 @@ export default function DynamicAddressFields({
   const isPostcodeHouseFormat = addressFormat === 'postcode_house';
   
   const handleFieldChange = (field: keyof AddressData, newValue: any) => {
+    // House-number (and optional suffix) edits must not wipe a provisional geocode.
+    const clearsGeocode = field !== 'houseNumber';
     onChange({
       ...value,
       [field]: newValue,
-      // Reset coordinates when address changes
-      lat: null,
-      lng: null,
+      ...(clearsGeocode ? { lat: null, lng: null } : {}),
     });
     setGeocodingError(null);
   };

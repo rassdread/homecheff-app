@@ -47,6 +47,13 @@ import {
   resolveDynamicDeliveryVisibility,
   type CartLineDeliveryInput,
 } from '@/lib/checkout/dynamic-delivery-options';
+import {
+  formatPhysicalDeliveryAddress,
+  fulfillmentRequiresPhysicalDeliveryAddress,
+  hasGeocodedLocation,
+  isCompletePhysicalDeliveryAddress,
+  validatePhysicalDeliveryAddress,
+} from '@/lib/checkout/physical-delivery-address';
 
 function formatServerRemaining(remainingMs: number | null) {
   if (remainingMs == null) return null;
@@ -513,14 +520,22 @@ export default function CheckoutPage() {
   const availableDeliverersCount = 0; // Will be updated when deliverers are available
   const estimatedDeliveryTime = availability.estimatedTime;
 
-  // Get current location for delivery
+  // Get current location for delivery (provisional geocode only — house number still required)
   const getLocation = async () => {
     try {
       setLocationError(null);
       const coords = await getCurrentLocation();
       updateDraft({
         coordinates: coords,
-        addressValidated: true,
+        addressValidated: isCompletePhysicalDeliveryAddress({
+          street: checkoutDraft.street,
+          houseNumber: checkoutDraft.houseNumber,
+          postalCode: checkoutDraft.postalCode,
+          city: checkoutDraft.city,
+          country: checkoutDraft.country,
+          lat: coords.lat,
+          lng: coords.lng,
+        }),
       });
     } catch (error) {
       console.error('Location error:', error);
@@ -697,9 +712,10 @@ export default function CheckoutPage() {
     const isDelivery = isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) || 
                        isSellerDeliveryCheckoutSelection(checkoutDraft.selectedDelivery);
 
+    // Provisional distance/price may use geocode before the house number is complete.
     const shouldCalc =
       (isShipping && !!checkoutDraft.postalCode && !!checkoutDraft.country) ||
-      (isDelivery && !!checkoutDraft.coordinates && !!checkoutDraft.addressValidated);
+      (isDelivery && !!checkoutDraft.coordinates);
 
     if (!shouldCalc) {
       setActualDeliveryFee(null);
@@ -824,34 +840,72 @@ export default function CheckoutPage() {
     
     // Try to extract house number from address if not provided separately (for NL)
     if (addressData.country === 'NL' && !houseNumber && addressData.address) {
-      const match = addressData.address.match(/^(.+?)\s+(\d+[a-zA-Z0-9\-]*)$/);
+      const match = addressData.address.match(/^(.+?)\s+(\d+[a-zA-Z0-9\-\/]*(?:\s+[A-Za-z]{1,10})?)$/);
       if (match) {
         street = match[1];
         houseNumber = match[2];
       }
     }
-    
-    updateDraft({
+
+    const next = {
       street,
       houseNumber,
       postalCode: addressData.postalCode || '',
       city: addressData.city || '',
       country: addressData.country || 'NL',
-      coordinates: addressData.lat && addressData.lng ? { lat: addressData.lat, lng: addressData.lng } : null,
-      addressValidated: !!(addressData.lat && addressData.lng),
+      coordinates:
+        addressData.lat && addressData.lng
+          ? { lat: addressData.lat, lng: addressData.lng }
+          : null,
+    };
+    
+    updateDraft({
+      ...next,
+      // Geocode ≠ complete delivery address — house number still required.
+      addressValidated: isCompletePhysicalDeliveryAddress({
+        street: next.street,
+        houseNumber: next.houseNumber,
+        postalCode: next.postalCode,
+        city: next.city,
+        country: next.country,
+        lat: next.coordinates?.lat,
+        lng: next.coordinates?.lng,
+      }),
     });
     setLocationError(null);
   }, [updateDraft]);
   
   const handleAddressGeocode = useCallback((addressData: AddressData) => {
     if (addressData.lat && addressData.lng) {
-      updateDraft({
-        coordinates: { lat: addressData.lat, lng: addressData.lng },
-        addressValidated: true,
+      setCheckoutDraft((prev) => {
+        const street = addressData.address || prev.street;
+        const houseNumber = addressData.houseNumber || prev.houseNumber;
+        const postalCode = addressData.postalCode || prev.postalCode;
+        const city = addressData.city || prev.city;
+        const country = addressData.country || prev.country || 'NL';
+        const complete = isCompletePhysicalDeliveryAddress({
+          street,
+          houseNumber,
+          postalCode,
+          city,
+          country,
+          lat: addressData.lat,
+          lng: addressData.lng,
+        });
+        return {
+          ...prev,
+          street,
+          houseNumber,
+          postalCode,
+          city,
+          country,
+          coordinates: { lat: addressData.lat!, lng: addressData.lng! },
+          addressValidated: complete,
+        };
       });
       setLocationError(null);
     }
-  }, [updateDraft]);
+  }, [setCheckoutDraft]);
 
   const preserveLocalProviderSelection = useMemo(
     () =>
@@ -967,14 +1021,24 @@ export default function CheckoutPage() {
 
   // Use actual calculated fee if available, otherwise use estimated fee
   const deliveryFeeCents = useMemo(() => {
-    if (actualDeliveryFee && checkoutDraft.addressValidated) {
+    // Show provisional fee once a geocode exists; payment still requires a complete address.
+    if (
+      actualDeliveryFee &&
+      (checkoutDraft.addressValidated ||
+        hasGeocodedLocation({ coordinates: checkoutDraft.coordinates }))
+    ) {
       return actualDeliveryFee.deliveryFeeCents;
     }
     if (checkoutDraft.selectedDelivery && checkoutDraft.selectedDelivery !== 'pickup') {
       return 0;
     }
     return Math.round((selectedOption?.price ?? 0) * 100);
-  }, [actualDeliveryFee, selectedOption?.price, checkoutDraft.addressValidated]);
+  }, [
+    actualDeliveryFee,
+    selectedOption?.price,
+    checkoutDraft.addressValidated,
+    checkoutDraft.coordinates,
+  ]);
 
   // Calculate SMS notification cost (per seller, with platform fee)
   // SMS provider cost: ~€0.05 per SMS, platform fee: 20% = €0.01, total: €0.06 per seller
@@ -1013,13 +1077,23 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Validate address before checkout
-    if (
-      (isSellerDeliveryCheckoutSelection(checkoutDraft.selectedDelivery) || isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)) &&
-      (!checkoutDraft.coordinates || !checkoutDraft.addressValidated)
-    ) {
-      setCheckoutError(t('checkout.validateAddressFirst'));
-      return;
+    // Physical delivery / shipping require a complete street address (house number included).
+    if (fulfillmentRequiresPhysicalDeliveryAddress(checkoutDraft.selectedDelivery)) {
+      const addressErrors = validatePhysicalDeliveryAddress({
+        street: checkoutDraft.street,
+        houseNumber: checkoutDraft.houseNumber,
+        postalCode: checkoutDraft.postalCode,
+        city: checkoutDraft.city,
+        country: checkoutDraft.country,
+      });
+      if (addressErrors.length > 0 || !checkoutDraft.coordinates) {
+        setCheckoutError(
+          addressErrors.includes('houseNumber')
+            ? t('checkout.houseNumberRequired')
+            : t('checkout.validateAddressFirst'),
+        );
+        return;
+      }
     }
 
     if (isLocalProviderUnavailable) {
@@ -1389,11 +1463,7 @@ export default function CheckoutPage() {
               {/* Dynamic Address Fields - Compact Google Places Autocomplete for international, NL format for Netherlands */}
               <DynamicAddressFields
                 value={{
-                  address: checkoutDraft.street 
-                    ? (checkoutDraft.houseNumber 
-                        ? `${checkoutDraft.street} ${checkoutDraft.houseNumber}`.trim()
-                        : checkoutDraft.street)
-                    : '',
+                  address: checkoutDraft.street || '',
                   postalCode: checkoutDraft.postalCode,
                   houseNumber: checkoutDraft.houseNumber,
                   city: checkoutDraft.city,
@@ -1407,7 +1477,27 @@ export default function CheckoutPage() {
                 showValidation={true}
                 geocodingEnabled={true}
                 showCountrySelector={true}
+                showStructuredFields={true}
                 error={locationError || undefined}
+                fieldErrors={
+                  hasGeocodedLocation({ coordinates: checkoutDraft.coordinates }) &&
+                  !checkoutDraft.addressValidated
+                    ? Object.fromEntries(
+                        validatePhysicalDeliveryAddress({
+                          street: checkoutDraft.street,
+                          houseNumber: checkoutDraft.houseNumber,
+                          postalCode: checkoutDraft.postalCode,
+                          city: checkoutDraft.city,
+                          country: checkoutDraft.country,
+                        }).map((code) => [
+                          code === 'street' ? 'address' : code,
+                          code === 'houseNumber'
+                            ? t('checkout.houseNumberRequired')
+                            : t('checkout.validateAddressFirst'),
+                        ]),
+                      )
+                    : undefined
+                }
               />
               
               {/* GPS Location Button */}
@@ -1431,6 +1521,21 @@ export default function CheckoutPage() {
                 </div>
               )}
 
+              {hasGeocodedLocation({ coordinates: checkoutDraft.coordinates }) &&
+                !checkoutDraft.addressValidated && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-amber-900 font-medium">
+                      {t('checkout.locationFoundEnterHouseNumber')}
+                    </p>
+                    <p className="text-xs text-amber-800 mt-1">
+                      {t('checkout.provisionalLocationHint')}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {checkoutDraft.addressValidated && (
                 <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
                   <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -1439,16 +1544,14 @@ export default function CheckoutPage() {
                       {t('checkout.addressValidatedCalculating')}
                     </p>
                     <p className="text-xs text-green-600 mt-1">
-                      {t('checkout.locationPrefix')}: {[
-                        checkoutDraft.street,
-                        checkoutDraft.houseNumber,
-                        checkoutDraft.postalCode,
-                        checkoutDraft.city,
-                      ]
-                        .filter(Boolean)
-                        .join(', ') || (checkoutDraft.coordinates
-                          ? `${checkoutDraft.coordinates.lat.toFixed(4)}, ${checkoutDraft.coordinates.lng.toFixed(4)}`
-                          : t('checkout.unknownAddress'))}
+                      {t('checkout.locationPrefix')}:{' '}
+                      {formatPhysicalDeliveryAddress({
+                        street: checkoutDraft.street,
+                        houseNumber: checkoutDraft.houseNumber,
+                        postalCode: checkoutDraft.postalCode,
+                        city: checkoutDraft.city,
+                        country: checkoutDraft.country,
+                      }) || t('checkout.unknownAddress')}
                     </p>
                   </div>
                 </div>
@@ -1594,6 +1697,11 @@ export default function CheckoutPage() {
                                 {actualDeliveryFee.isInternational ? t('checkout.international') : t('checkout.national')}
                               </p>
                             )}
+                            {isShipping && checkoutDraft.selectedDelivery === 'shipping' && (
+                              <p className="mt-3 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                                {t('checkout.shippingLabelPathRisk')}
+                              </p>
+                            )}
                             {isShipping &&
                               actualDeliveryFee?.products &&
                               actualDeliveryFee.products.length > 0 &&
@@ -1704,6 +1812,18 @@ export default function CheckoutPage() {
                               selectedDelivererId={selectedDeliverer?.id}
                               onMatchResolved={setCourierMatch}
                               onSelectDeliverer={async (d) => {
+                                if (
+                                  !isCompletePhysicalDeliveryAddress({
+                                    street: checkoutDraft.street,
+                                    houseNumber: checkoutDraft.houseNumber,
+                                    postalCode: checkoutDraft.postalCode,
+                                    city: checkoutDraft.city,
+                                    country: checkoutDraft.country,
+                                  })
+                                ) {
+                                  setBookingError(t('checkout.houseNumberRequired'));
+                                  return;
+                                }
                                 const previousBookingId = bookingRequestId;
                                 setSelectedDeliverer(d);
                                 setBookingError(null);
@@ -1718,6 +1838,11 @@ export default function CheckoutPage() {
                                       quantity: checkoutItems[0]?.quantity ?? 1,
                                       buyerLat: checkoutDraft.coordinates?.lat,
                                       buyerLng: checkoutDraft.coordinates?.lng,
+                                      street: checkoutDraft.street,
+                                      houseNumber: checkoutDraft.houseNumber,
+                                      postalCode: checkoutDraft.postalCode,
+                                      city: checkoutDraft.city,
+                                      country: checkoutDraft.country || 'NL',
                                       routeDistanceKm: d.totalDeliveryDistance,
                                       quotedFeeCents:
                                         d.quotedFeeCents ?? d.calculatedDeliveryPrice ?? null,
