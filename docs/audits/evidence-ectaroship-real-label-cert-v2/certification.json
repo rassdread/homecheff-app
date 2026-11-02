@@ -1,0 +1,141 @@
+{
+  "TASK_NAME": "HOMECHEFF_ECTAROSHIP_FINAL_REAL_LABEL_CERTIFICATION_V2",
+  "SOURCE_COMMIT": "5a36b8994f5edb26549e029e4600782b926cf43d",
+  "buyer": "Steve (username steve)",
+  "seller": "r.sergioarrias@gmail.com",
+  "baseResolved": "https://partnerapi.ectaro.com",
+  "REAL_LABEL_PURCHASED": true,
+  "labelPurchaseCount": 1,
+  "SENDER_ADDRESS_VALID": true,
+  "RECIPIENT_ADDRESS_VALID": true,
+  "CARRIER": "DPD",
+  "SERVICE": "Home Small Parcel",
+  "QUOTED_LABEL_COST_CENTS": 598,
+  "PROVIDER_SHIPMENT_ID": "2179330",
+  "TRACKING_NUMBER_PRESENT": true,
+  "LABEL_CREATED": true,
+  "LABEL_DOWNLOAD": "NO_URL",
+  "steps": {
+    "quotes": {
+      "total": 27,
+      "eligible": 24,
+      "selected": {
+        "shippingMethodId": "222",
+        "productId": "B2C_SMALL",
+        "carrier": "DPD",
+        "name": "Home Small Parcel",
+        "priceCents": 598,
+        "currency": "EUR"
+      },
+      "parcel": {
+        "grams": 250,
+        "l": 30,
+        "w": 20,
+        "h": 10
+      }
+    },
+    "create": {
+      "ok": true,
+      "providerShipmentId": "2179330",
+      "trackingCodeSet": true,
+      "trackingLen": 14,
+      "trackingPrefix": "0516",
+      "carrier": "DPD",
+      "totalPrice": null,
+      "currency": "EUR",
+      "trackingUrlSet": true,
+      "trackingUrlAllowed": false,
+      "pdfUrlSet": false,
+      "pdfUrlAllowed": null
+    },
+    "download": {
+      "skipped": true,
+      "reason": "no_allowed_pdf_url"
+    },
+    "labelsBefore": {
+      "count": 3,
+      "withTracking": 3
+    },
+    "labelsAfter": {
+      "count": 4,
+      "withTracking": 4,
+      "delta": 1,
+      "matchTracking": true
+    },
+    "idempotency": {
+      "secondCreateAttempted": false,
+      "reason": "AUTHORIZED_ADDITIONAL_LABELS=0",
+      "listSeesTracking": true,
+      "priorOrderLabelUnchanged": "3SHOHR821775561"
+    },
+    "payloadShape": {
+      "destKeys": [
+        "address",
+        "city",
+        "countryCode",
+        "email",
+        "fullname",
+        "houseNo",
+        "phone",
+        "postalCode"
+      ],
+      "fromKeys": [
+        "address",
+        "city",
+        "countryCode",
+        "email",
+        "fullname",
+        "houseNo",
+        "phone",
+        "postalCode"
+      ],
+      "hasLegacyAliases": false
+    },
+    "recipient": {
+      "source": "order_shipping_snapshot_HC-2026-0029",
+      "profileComplete": false,
+      "snapshotValid": true,
+      "postalMasked": "31***",
+      "city": "Vlaardingen",
+      "country": "NL",
+      "phone": true,
+      "email": true
+    },
+    "sender": {
+      "source": "seller_profile",
+      "valid": true,
+      "postalMasked": "31***",
+      "city": "Vlaardingen",
+      "country": "NL",
+      "phone": true,
+      "email": true,
+      "company": false
+    },
+    "accounts": {
+      "sellerConnect": {
+        "account": true,
+        "onboarded": true
+      },
+      "product": {
+        "id": "0c59cdcc-4f7d-474e-afb5-c2b77714b1e7",
+        "title": "HomeCheff Delivery Testproduct",
+        "sellerMatch": true,
+        "shippingEnabled": true,
+        "dims": {
+          "l": 30,
+          "w": 20,
+          "h": 10,
+          "grams": 250
+        },
+        "stock": 6,
+        "priceCents": 450
+      },
+      "buyerUsername": "steve"
+    }
+  },
+  "notes": [
+    "Steve profile address lacks house number; used saved shipping snapshot from HC-2026-0029",
+    "No production DB writes; label exists on Partner account only for this cert id",
+    "AUTHORIZED_ADDITIONAL_LABELS=0 \u2014 no second create attempted"
+  ]
+}

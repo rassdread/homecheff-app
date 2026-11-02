@@ -390,9 +390,11 @@ function pickLabelSuccess(body: unknown): CreatedLabel | null {
 
   const trackingCode = String(
     firstLabel.trackingCode ??
+      firstLabel.trackCode ??
       firstLabel.tracking_code ??
       firstLabel.trackingNumber ??
       result.trackingCode ??
+      result.trackCode ??
       result.trackingNumber ??
       '',
   ).trim();
@@ -417,9 +419,23 @@ function pickLabelSuccess(body: unknown): CreatedLabel | null {
   const trackingUrl = String(
     firstLabel.trackingUrl ??
       firstLabel.tracking_url ??
+      firstLabel.trackUrl ??
       result.trackingUrl ??
+      result.tracking_url ??
+      result.trackUrl ??
       '',
   ).trim();
+
+  const labelsExport =
+    firstLabel.labelsExport ??
+    firstLabel.labelExport ??
+    firstLabel.labelUrl ??
+    firstLabel.pdfUrl ??
+    firstLabel.documentUrl ??
+    result.labelsExport ??
+    result.labelUrl ??
+    result.pdfUrl ??
+    root.labelsExport;
 
   const totalPriceRaw =
     firstLabel.totalPrice ?? result.totalPrice ?? root.totalPrice;
@@ -442,7 +458,7 @@ function pickLabelSuccess(body: unknown): CreatedLabel | null {
     shippingMethodId: firstLabel.shippingMethodId
       ? String(firstLabel.shippingMethodId)
       : undefined,
-    labelsExport: firstLabel.labelsExport ?? result.labelsExport,
+    labelsExport,
     totalPrice: Number.isFinite(totalPrice) ? totalPrice : undefined,
     currency: String(firstLabel.currency ?? result.currency ?? 'EUR'),
     raw: root,
@@ -749,7 +765,12 @@ export function isAllowedEctaroDocumentUrl(url: string): boolean {
       'ectaroship.nl',
       'postnl.nl',
       'dpd.com',
+      'dpd.nl',
+      'dpd.be',
+      'dpd.de',
+      'mydpd.nl',
       'dhl.com',
+      'dhl.nl',
       'fedex.com',
       'homecheff.eu',
     ];
