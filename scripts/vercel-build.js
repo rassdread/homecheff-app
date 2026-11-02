@@ -8,6 +8,12 @@ console.log(
 );
 
 try {
+  console.log("🔧 Asserting Prisma Linux binaryTargets...");
+  execSync("node scripts/assert-prisma-binary-targets.mjs", {
+    stdio: "inherit",
+    shell: true,
+  });
+
   console.log("🔧 Generating Prisma client...");
   execSync("npx prisma generate", { stdio: "inherit", shell: true });
   console.log("✅ Prisma client generated\n");

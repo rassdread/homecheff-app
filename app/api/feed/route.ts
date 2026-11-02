@@ -240,11 +240,29 @@ function resolveListingCategory(verticalRaw: string): ListingCategory | null {
 }
 
 export async function GET(req: NextRequest) {
-  const searchParams = new URL(req.url).searchParams;
-  if (shouldRunFeedApiTiming(searchParams)) {
-    return runWithPrismaPerfContext(() => handleFeedGet(req, {}));
+  try {
+    const searchParams = new URL(req.url).searchParams;
+    if (shouldRunFeedApiTiming(searchParams)) {
+      return await runWithPrismaPerfContext(() => handleFeedGet(req, {}));
+    }
+    return await handleFeedGet(req, {});
+  } catch (error) {
+    // Unhandled Prisma init / query failures previously exited the Node process
+    // with an empty HTTP 500 body, which the homepage treated as "0 resultaten".
+    console.error('[api/feed] unhandled failure', error);
+    const message =
+      error instanceof Error ? error.message.slice(0, 280) : 'Feed unavailable';
+    return NextResponse.json(
+      {
+        error: 'FEED_UNAVAILABLE',
+        message,
+        items: [],
+        count: 0,
+        filters: null,
+      },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } },
+    );
   }
-  return handleFeedGet(req, {});
 }
 
 type HandleFeedGetOptions = {

@@ -49,7 +49,17 @@ try {
   fail("unbound hook check");
 }
 
-// 1) Prisma schema
+// 1) Prisma schema + Linux binaryTargets (blocks Mac-only prebuilt outages)
+try {
+  execSync("node scripts/assert-prisma-binary-targets.mjs", {
+    stdio: "inherit",
+    cwd: root,
+  });
+  ok("prisma binaryTargets include Linux engines");
+} catch {
+  fail("prisma binaryTargets include Linux engines");
+}
+
 try {
   execSync("npx prisma validate", { stdio: "inherit", cwd: root });
   ok("prisma validate");

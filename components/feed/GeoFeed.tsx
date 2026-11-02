@@ -1312,6 +1312,8 @@ export default function GeoFeed({
   const discoveryMemoryRef = useRef<DiscoveryMemory>(EMPTY_DISCOVERY_MEMORY);
   const discoveryServerKeyRef = useRef<string | null>(null);
   const [discoveryEpoch, setDiscoveryEpoch] = useState(0);
+  /** Bumped by the feed load-error retry CTA to re-run the primary /api/feed effect. */
+  const [feedRetryNonce, setFeedRetryNonce] = useState(0);
   const discoveryEpochNowRef = useRef(0);
   const discoveryEpochAtIntentRef = useRef(0);
   const discoveryKeyAtIntentRef = useRef<string | null>(null);
@@ -3241,7 +3243,8 @@ export default function GeoFeed({
     appliedCategory,
     browseCountryCode,
     browseLocationMode,
-    commitCompositionState
+    commitCompositionState,
+    feedRetryNonce,
   ]);
 
   useEffect(() => {
@@ -6098,7 +6101,35 @@ export default function GeoFeed({
     (loading && !feedHydrated) ||
     feedRefreshing ||
     requestInFlight ||
-    isFilterSearchingPhase(filterResultPhase) ? null : (
+    isFilterSearchingPhase(filterResultPhase) ? null : filterResultPhase ===
+      FEED_RESULT_PHASE.ERROR ? (
+    <div
+      className="mt-1 space-y-2 text-xs text-[var(--hc-text-secondary)]"
+      data-wx-result-scope={appliedScope}
+      data-wx-feed-load-error=""
+      role="alert"
+    >
+      <p className="font-medium text-[var(--hc-text)]">
+        {t("feed.loadErrorTitle")}
+      </p>
+      <p>{t("feed.loadErrorBody")}</p>
+      <button
+        type="button"
+        className="rounded-md bg-[var(--hc-brand)] px-3 py-1.5 text-[13px] font-medium text-white"
+        onClick={() => {
+          setDiscoveryFeed(null);
+          setApiRawItems([]);
+          setFeedHasMore(false);
+          feedHasMoreRef.current = false;
+          setFeedHydrated(false);
+          setFilterResultPhase(FEED_RESULT_PHASE.SEARCHING);
+          setFeedRetryNonce((n) => n + 1);
+        }}
+      >
+        {t("feed.loadErrorRetry")}
+      </button>
+    </div>
+  ) : (
     <div
       className="mt-1 flex items-baseline gap-2 text-xs text-[var(--hc-text-secondary)]"
       data-wx-result-scope={appliedScope}
