@@ -1474,7 +1474,7 @@ export default function CheckoutPage() {
                 onChange={handleAddressChange}
                 onGeocode={handleAddressGeocode}
                 required={true}
-                showValidation={true}
+                showValidation={Boolean(checkoutDraft.addressValidated)}
                 geocodingEnabled={true}
                 showCountrySelector={true}
                 showStructuredFields={true}
@@ -1606,6 +1606,9 @@ export default function CheckoutPage() {
                     const isShipping = option.id === 'shipping';
                     // Keep HomeCheff card selectable before address; match runs after geocode.
                     const isLoading = isTeenDelivery && Boolean(checkoutDraft.coordinates) && availabilityLoading;
+                    const teenNeedsLocation = isTeenDelivery && !checkoutDraft.coordinates;
+                    const teenUnavailableByRange =
+                      isTeenDelivery && Boolean(checkoutDraft.coordinates) && !isDeliveryAvailable;
 
                     // Show calculated fee for delivery/shipping options
                     const showCalculatedFee = (isTeenDelivery || isLocalDelivery || isShipping) && 

@@ -394,8 +394,9 @@ export default function DynamicAddressFields({
         </div>
       )}
       
-      {/* Geocoding button - Only show if Google Places Autocomplete is not available OR if address was manually entered without autocomplete */}
-      {geocodingEnabled && !process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
+      {/* Geocode manual structured entry even when Places key exists (Places may be unavailable). */}
+      {geocodingEnabled &&
+        (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || showStructuredFields) && (
         <button
           type="button"
           onClick={handleGeocode}
@@ -413,7 +414,7 @@ export default function DynamicAddressFields({
         </button>
       )}
       
-      {/* Success indicator */}
+      {/* Success indicator — parent should pass showValidation only when address is complete. */}
       {showValidation && isGeocoded && (
         <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
           <div className="flex items-start gap-2">

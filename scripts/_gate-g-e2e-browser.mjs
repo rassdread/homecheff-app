@@ -396,14 +396,18 @@ async function main() {
     // Local-provider card mounts only after named-selection flag + delivery modes are ready.
     // Native div.click() is flaky here; use Playwright pointer click and confirm selection.
     const lpCard = buyer.locator('div.border-2').filter({
-      hasText: /Local delivery provider|Lokale bezorgpartner/i,
+      hasText:
+        /HomeCheff[- ]bezorger|HomeCheff courier|Local delivery provider|Lokale bezorgpartner|Lokale bezorgaanbieder/i,
     }).first();
     await lpCard.waitFor({ state: 'visible', timeout: 45000 });
     await buyer
       .waitForFunction(
         () => {
           const card = [...document.querySelectorAll('div.border-2')].find((el) =>
-            /Local delivery provider|Lokale bezorgpartner/i.test(el.innerText || ''),
+            /HomeCheff[- ]bezorger|HomeCheff courier|Local delivery provider|Lokale bezorgpartner|Lokale bezorgaanbieder/i.test(
+              el.innerText || '',
+            ),
+
           );
           return !!card && !/opacity-60|cursor-not-allowed/.test(card.className);
         },

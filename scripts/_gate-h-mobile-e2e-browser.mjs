@@ -359,53 +359,78 @@ async function main() {
     report.steps.checkoutEmpty = /cart is empty|winkelwagen is leeg/i.test(body1);
     if (report.steps.checkoutEmpty) throw new Error('cart wiped on checkout');
 
-    // Address: prefer GPS (Places is referrer-blocked on localhost). Fallback to manual fields.
+    // Address: fill structured fields, then geocode via Validate (not GPS-first).
+    // GPS-only can show provisional coords without a complete street+house address.
+    const addressCompleteRe = /Adres gevalideerd|address validated/i;
     await buyer.context().grantPermissions(['geolocation'], { origin: BASE });
-    let validated = /52\.\d+|Adres gevalideerd|address validated|Location:|Locatie:/i.test(
-      await buyer.locator('body').innerText(),
-    );
+    await buyer
+      .waitForSelector('#delivery-street, #places-fallback-street', { timeout: 20000 })
+      .catch(() => null);
+
+    async function fillStructuredAddress() {
+      if (await buyer.locator('#delivery-street').count()) {
+        await buyer.locator('#delivery-street').fill('Buikslotermeerplein');
+        await buyer.locator('#delivery-house-number').fill('200');
+        await buyer.locator('#delivery-postal-code').fill('1025XL');
+        await buyer.locator('#delivery-city').fill('Amsterdam');
+        return 'structured';
+      }
+      if (await buyer.locator('#places-fallback-street').count()) {
+        await buyer.locator('#places-fallback-street').fill('Buikslotermeerplein');
+        await buyer.locator('#places-fallback-house').fill('200');
+        await buyer.locator('#places-fallback-postal').fill('1025XL');
+        await buyer.locator('#places-fallback-city').fill('Amsterdam');
+        return 'fallback';
+      }
+      return null;
+    }
+
+    report.steps.addressFillMode = await fillStructuredAddress();
+    await buyer.waitForTimeout(400);
+    const streetVal = (await buyer.locator('#delivery-street').inputValue().catch(() => '')).trim();
+    const houseVal = (await buyer.locator('#delivery-house-number').inputValue().catch(() => '')).trim();
+    report.steps.addressFieldValues = { street: streetVal, house: houseVal };
+    if (!streetVal || !houseVal) {
+      report.steps.addressSnippet = (await buyer.locator('body').innerText()).slice(0, 1200);
+      throw new Error('structured address fields did not accept input');
+    }
+
+    await buyer.evaluate(() => {
+      [...document.querySelectorAll('button')]
+        .find((x) => /Adres valideren|Validate address/i.test(x.innerText || ''))
+        ?.click();
+    });
+    report.steps.addressValidateClicked = true;
+    await buyer
+      .waitForFunction(
+        (re) => new RegExp(re, 'i').test(document.body.innerText),
+        'Adres gevalideerd|address validated',
+        { timeout: 25000 },
+      )
+      .catch(() => null);
+
+    let validated = addressCompleteRe.test(await buyer.locator('body').innerText());
+    // Fallback: GPS for coords only after fields are filled; house-number edits preserve geocode.
     if (!validated) {
       await buyer.evaluate(() => {
         [...document.querySelectorAll('button')]
           .find((x) => /Use current GPS|huidige GPS|GPS location|GPS-locatie/i.test(x.innerText || ''))
           ?.click();
       });
-      await buyer
-        .waitForFunction(
-          () => /52\.\d+|Adres gevalideerd|address validated|Location:|Locatie:/i.test(document.body.innerText),
-          { timeout: 20000 },
-        )
-        .catch(() => null);
-      validated = /52\.\d+|Adres gevalideerd|address validated|Location:|Locatie:/i.test(
-        await buyer.locator('body').innerText(),
-      );
       report.steps.addressViaGps = true;
-    }
-    if (!validated) {
-      await buyer
-        .waitForSelector('#places-fallback-street, #delivery-street', { timeout: 15000 })
-        .catch(() => null);
-      if (await buyer.locator('#places-fallback-street').count()) {
-        await buyer.locator('#places-fallback-street').fill('Buikslotermeerplein');
-        await buyer.locator('#places-fallback-house').fill('200');
-        await buyer.locator('#places-fallback-postal').fill('1025XL');
-        await buyer.locator('#places-fallback-city').fill('Amsterdam');
-      } else if (await buyer.locator('#delivery-street').count()) {
-        await buyer.locator('#delivery-street').fill('Buikslotermeerplein');
+      await buyer.waitForTimeout(2000);
+      // Re-assert house number (does not clear geocode) then re-validate.
+      if (await buyer.locator('#delivery-house-number').count()) {
         await buyer.locator('#delivery-house-number').fill('200');
-        await buyer.locator('#delivery-postal-code').fill('1025XL');
-        await buyer.locator('#delivery-city').fill('Amsterdam');
       }
       await buyer.evaluate(() => {
         [...document.querySelectorAll('button')]
           .find((x) => /Adres valideren|Validate address/i.test(x.innerText || ''))
           ?.click();
       });
-      await buyer.waitForTimeout(3500);
-      validated = /52\.\d+|Adres gevalideerd|address validated|Location:|Locatie:/i.test(
-        await buyer.locator('body').innerText(),
-      );
-      report.steps.addressValidatedClick = true;
+      await buyer.waitForTimeout(1500);
+      validated = addressCompleteRe.test(await buyer.locator('body').innerText());
+      report.steps.addressHouseNumberRefill = true;
     }
     report.steps.addressValidated = validated;
     if (!validated) {
@@ -414,16 +439,19 @@ async function main() {
     }
 
     // Local-provider card mounts only after named-selection flag + delivery modes are ready.
-    // Native div.click() is flaky here; use Playwright pointer click and confirm selection.
+    // Labels were renamed to HomeCheff courier / HomeCheff-bezorger (ids unchanged).
     const lpCard = buyer.locator('div.border-2').filter({
-      hasText: /Local delivery provider|Lokale bezorgpartner/i,
+      hasText:
+        /HomeCheff[- ]bezorger|HomeCheff courier|Local delivery provider|Lokale bezorgpartner|Lokale bezorgaanbieder/i,
     }).first();
     await lpCard.waitFor({ state: 'visible', timeout: 45000 });
     await buyer
       .waitForFunction(
         () => {
           const card = [...document.querySelectorAll('div.border-2')].find((el) =>
-            /Local delivery provider|Lokale bezorgpartner/i.test(el.innerText || ''),
+            /HomeCheff[- ]bezorger|HomeCheff courier|Local delivery provider|Lokale bezorgpartner|Lokale bezorgaanbieder/i.test(
+              el.innerText || '',
+            ),
           );
           return !!card && !/opacity-60|cursor-not-allowed/.test(card.className);
         },
