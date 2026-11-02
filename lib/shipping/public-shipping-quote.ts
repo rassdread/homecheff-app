@@ -3,7 +3,7 @@
  * seller's origin postcode or street.
  */
 
-export function toPublicShippingQuoteResponse<T extends { origin?: unknown }>(
+export function toPublicShippingQuoteResponse<T extends Record<string, unknown>>(
   body: T,
 ): Omit<T, 'origin'> {
   const rest = { ...body };
