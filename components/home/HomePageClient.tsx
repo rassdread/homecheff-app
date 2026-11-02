@@ -260,6 +260,8 @@ export default function HomePageClient({
             </aside>
             <div
               id="homecheff-feed-desktop"
+              data-hc-feed-scroll-root=""
+              data-desktop-feed-column=""
               className={`${desktopColScrollClass} min-w-0 space-y-4 hc-home-feed-grid`}
             >
               <FeedContent />

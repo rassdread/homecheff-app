@@ -260,17 +260,21 @@ export default function FeedWorkspaceVisibleLayout({
     posturePlan: landscapePosture,
   });
 
+  // Depend on the stable setter — the bridge context value identity changes when
+  // startRailActive updates; depending on `presentationBridge` caused
+  // cleanup(false)→set(true)→re-render→effect loops that starved feed loadMore.
+  const setStartRailActive = presentationBridge?.setStartRailActive;
   useEffect(() => {
-    if (!presentationBridge) return;
+    if (!setStartRailActive) return;
     // Marketplace and Workspace keep search, location, and categories in the feed.
     // The width-only path still lets the start rail own filters.
     const railOwnsFilters =
       presentationMode == null ? visiblePlan.railOwnsFilters : false;
-    presentationBridge.setStartRailActive(railOwnsFilters);
+    setStartRailActive(railOwnsFilters);
     return () => {
-      presentationBridge.setStartRailActive(false);
+      setStartRailActive(false);
     };
-  }, [presentationBridge, presentationMode, visiblePlan.railOwnsFilters]);
+  }, [setStartRailActive, presentationMode, visiblePlan.railOwnsFilters]);
 
   /**
    * When scrollOwner=feed (desktop / multiCol AW), lock document scroll so the
@@ -710,6 +714,8 @@ export default function FeedWorkspaceVisibleLayout({
                 >
                   <div
                     id="homecheff-feed-desktop"
+                    data-hc-feed-scroll-root=""
+                    data-desktop-feed-column=""
                     data-aw-primary-feed=""
                     data-aw-stable-feed-slot="1"
                     data-wx-scroll-owner={visiblePlan.scrollOwner}

@@ -367,6 +367,8 @@ check(
 check(
   'GeoFeed pages discovery instead of a hard 12-card end',
   geo.includes('discoveryWindowCanContinue') &&
+    geo.includes('resolveDiscoveryScrollAction') &&
+    geo.includes('feed-discovery-sentinel') &&
     geo.includes('feed-discovery-load-more') &&
     geo.includes('feed-discovery-end'),
 );

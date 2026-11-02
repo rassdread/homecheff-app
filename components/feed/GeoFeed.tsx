@@ -293,6 +293,11 @@ import {
   discoveryWindowCanContinue,
   resolveDiscoveryFetch,
 } from "@/lib/feed/discovery-continuity";
+import {
+  appendUniqueById,
+  discoveryPaginationResetKey,
+  resolveDiscoveryScrollAction,
+} from "@/lib/feed/discovery-scroll";
 import { isLocalFeedItem } from "@/lib/geo/feed-radius-filter";
 import {
   composedFeedCanContinue,
@@ -1112,11 +1117,16 @@ function resolveFeedIntersectionRoot(
     return overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay";
   };
 
-  if (preferDesktopFeedColumn) {
-    const desktop = document.getElementById("homecheff-feed-desktop");
-    // Composed home always scrolls this column (lg fixed-height shell).
-    // Prefer it even if WebKit reports a quirky computed overflow value.
-    if (desktop instanceof HTMLElement) return desktop;
+  const desktop = document.getElementById("homecheff-feed-desktop");
+  // Composed home scrolls inside #homecheff-feed-desktop, not the window.
+  // Prefer that column whenever the sentinel lives inside it — even if the
+  // desktop-split flag briefly lags behind layout — so IO cannot attach to the
+  // viewport and permanently miss nested scroll.
+  if (
+    desktop instanceof HTMLElement &&
+    (preferDesktopFeedColumn || desktop.contains(sentinel))
+  ) {
+    return desktop;
   }
 
   let node: Element | null = sentinel.parentElement;
@@ -1150,16 +1160,19 @@ function isFeedSentinelNearEnd(
   return sRect.top <= vh + slackPx;
 }
 
+const EMPTY_INSPIRATIE_ITEMS: InspirationItem[] = [];
+const EMPTY_HOME_PROMOTION_IDS: HomePromotionId[] = [];
+
 export default function GeoFeed({
   ssrAuthHint,
-  initialInspiratieItems = [],
+  initialInspiratieItems = EMPTY_INSPIRATIE_ITEMS,
   initialFeedChip,
   initialFeedCategory,
   initialFeedPlace,
   initialIpApprox = null,
   enableMobileFeedInserts = false,
   renderMobileFeedInsert,
-  visibleHomePromotionIds = [],
+  visibleHomePromotionIds = EMPTY_HOME_PROMOTION_IDS,
   feedColumnLayout = 'default',
   homeComposedLayout = false,
   children,
@@ -1172,6 +1185,7 @@ export default function GeoFeed({
   /** WX Phase 1C — optional presentation bridge (rails consume; GeoFeed still owns state). */
   const workspaceBridge = useWorkspaceFeedPresentationBridge();
   const workspaceRailOwnsFilters = Boolean(workspaceBridge?.startRailActive);
+
   const landscapeWork = useLandscapeWorkPosture();
   const workCompactChrome = landscapeWork.workPostureActive;
 
@@ -1288,7 +1302,10 @@ export default function GeoFeed({
   const [suggestionHasMore, setSuggestionHasMore] = useState(false);
   const [suggestionLoadingMore, setSuggestionLoadingMore] = useState(false);
   const [suggestionApiDone, setSuggestionApiDone] = useState(false);
+  const [suggestionLoadFailed, setSuggestionLoadFailed] = useState(false);
   const [discoveryShown, setDiscoveryShown] = useState(DISCOVERY_BATCH_SIZE);
+  const discoveryContinueRef = useRef<HTMLDivElement | null>(null);
+  const discoveryScrollCooldownUntilRef = useRef(0);
   const suggestionKeyRef = useRef("");
   const suggestionSkipRef = useRef(0);
   const suggestionInFlightRef = useRef(false);
@@ -1816,8 +1833,11 @@ export default function GeoFeed({
 
   useEffect(() => {
     if (feedRestoredFromCacheRef.current) return;
-    startTransition(() => {
-      setInspiratiePool(initialInspiratieItems);
+    setInspiratiePool((prev) => {
+      if (prev === initialInspiratieItems) return prev;
+      // A fresh empty array from a parent render must not retrigger this effect.
+      if (prev.length === 0 && initialInspiratieItems.length === 0) return prev;
+      return initialInspiratieItems;
     });
   }, [initialInspiratieItems]);
 
@@ -6240,6 +6260,7 @@ export default function GeoFeed({
       if (suggestionInFlightRef.current && !reset) return;
       suggestionInFlightRef.current = true;
       setSuggestionLoadingMore(true);
+      setSuggestionLoadFailed(false);
       const generation = reset
         ? ++suggestionGenRef.current
         : suggestionGenRef.current;
@@ -6275,7 +6296,11 @@ export default function GeoFeed({
         const res = await fetch(`/api/feed?${params.toString()}`, {
           cache: "no-store",
         });
-        if (!res.ok || generation !== suggestionGenRef.current) return;
+        if (generation !== suggestionGenRef.current) return;
+        if (!res.ok) {
+          setSuggestionLoadFailed(true);
+          return;
+        }
         const data = (await res.json()) as {
           items?: unknown;
           pagination?: { hasMore?: boolean; nextSkip?: number };
@@ -6285,17 +6310,9 @@ export default function GeoFeed({
           : [];
         const valid = mapRawFeedApiItems(raw, effectiveViewerForDistance);
         if (generation !== suggestionGenRef.current) return;
-        setSuggestionItems((prev) => {
-          const base = reset ? [] : prev;
-          const seen = new Set(base.map((row) => row.id));
-          const next = [...base];
-          for (const row of valid) {
-            if (!row.id || seen.has(row.id)) continue;
-            seen.add(row.id);
-            next.push(row);
-          }
-          return next;
-        });
+        setSuggestionItems((prev) =>
+          appendUniqueById(reset ? [] : prev, valid),
+        );
         if (reset) setDiscoveryShown(DISCOVERY_BATCH_SIZE);
         const more = Boolean(data.pagination?.hasMore);
         const step = advanceDiscoveryStage({
@@ -6319,6 +6336,9 @@ export default function GeoFeed({
         }
       } catch (error) {
         if ((error as Error)?.name === "AbortError") return;
+        if (generation === suggestionGenRef.current) {
+          setSuggestionLoadFailed(true);
+        }
       } finally {
         if (generation === suggestionGenRef.current) {
           suggestionInFlightRef.current = false;
@@ -6331,20 +6351,21 @@ export default function GeoFeed({
 
   useEffect(() => {
     if (!showExhaustionContinuation) return;
-    const key = [
-      appliedCategory,
-      feedChip,
-      appliedScope,
-      String(appliedRadius),
-      appliedSearchQuery,
-      appliedPlace,
-    ].join("|");
+    const key = discoveryPaginationResetKey({
+      category: appliedCategory,
+      chip: feedChip,
+      scope: appliedScope,
+      radius: appliedRadius,
+      query: appliedSearchQuery,
+      place: appliedPlace,
+    });
     if (suggestionKeyRef.current === key) return;
     suggestionKeyRef.current = key;
     suggestionSkipRef.current = 0;
     setSuggestionItems([]);
     setSuggestionHasMore(false);
     setSuggestionApiDone(false);
+    setSuggestionLoadFailed(false);
     setDiscoveryShown(DISCOVERY_BATCH_SIZE);
     void loadDiscoveryPage(true);
   }, [
@@ -6398,7 +6419,135 @@ export default function GeoFeed({
     showExhaustionContinuation &&
     suggestionApiDone &&
     !suggestionLoadingMore &&
+    !suggestionLoadFailed &&
     !discoveryCanContinue;
+
+  const discoveryScrollStateRef = useRef({
+    shown: discoveryShown,
+    available: suggestionRowsAvailable.length,
+    apiHasMore: suggestionHasMore,
+    loading: suggestionLoadingMore,
+    failed: suggestionLoadFailed,
+  });
+  discoveryScrollStateRef.current = {
+    shown: discoveryShown,
+    available: suggestionRowsAvailable.length,
+    apiHasMore: suggestionHasMore,
+    loading: suggestionLoadingMore,
+    failed: suggestionLoadFailed,
+  };
+  const advanceDiscoveryWindowRef = useRef<(userRetry?: boolean) => void>(
+    () => {},
+  );
+
+  const discoverySentinelIsNear = useCallback(() => {
+    const el = discoveryContinueRef.current;
+    if (!el || typeof window === "undefined") return false;
+    const scrollRoot = resolveFeedIntersectionRoot(el, isDesktopSplit);
+    const viewportH =
+      scrollRoot instanceof HTMLElement && scrollRoot.clientHeight > 0
+        ? scrollRoot.clientHeight
+        : window.innerHeight || 800;
+    const nearMarginPx = computeNearEndLoadMoreThresholdPx({
+      viewportHeight: viewportH,
+    });
+    const limit =
+      scrollRoot instanceof HTMLElement
+        ? scrollRoot.getBoundingClientRect().bottom
+        : window.innerHeight;
+    return el.getBoundingClientRect().top - limit <= nearMarginPx;
+  }, [isDesktopSplit]);
+
+  const advanceDiscoveryWindow = useCallback(
+    (userRetry = false) => {
+      const state = discoveryScrollStateRef.current;
+      const action = resolveDiscoveryScrollAction({
+        shown: state.shown,
+        available: state.available,
+        apiHasMore: state.apiHasMore,
+        loading: state.loading || suggestionInFlightRef.current,
+        failed: state.failed,
+        userRetry,
+      });
+      if (action === "idle") return;
+      if (!userRetry) {
+        const now = Date.now();
+        if (now < discoveryScrollCooldownUntilRef.current) return;
+        discoveryScrollCooldownUntilRef.current = now + 450;
+      }
+      const followIfStillNear = () => {
+        window.setTimeout(() => {
+          if (!discoverySentinelIsNear()) return;
+          advanceDiscoveryWindowRef.current(false);
+        }, 480);
+      };
+      if (action === "reveal") {
+        setDiscoveryShown((shown) => shown + DISCOVERY_BATCH_SIZE);
+        followIfStillNear();
+        return;
+      }
+      void loadDiscoveryPage(false).finally(followIfStillNear);
+    },
+    [discoverySentinelIsNear, loadDiscoveryPage],
+  );
+  advanceDiscoveryWindowRef.current = advanceDiscoveryWindow;
+
+  useEffect(() => {
+    const el = discoveryContinueRef.current;
+    if (
+      !el ||
+      !discoveryCanContinue ||
+      suggestionLoadingMore ||
+      suggestionLoadFailed
+    ) {
+      return;
+    }
+    const scrollRoot = resolveFeedIntersectionRoot(el, isDesktopSplit);
+    const viewportH =
+      scrollRoot instanceof HTMLElement && scrollRoot.clientHeight > 0
+        ? scrollRoot.clientHeight
+        : typeof window !== "undefined"
+          ? window.innerHeight || 800
+          : 800;
+    const nearMarginPx = computeNearEndLoadMoreThresholdPx({
+      viewportHeight: viewportH,
+    });
+    const invite = () => advanceDiscoveryWindow(false);
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        invite();
+      },
+      {
+        root: scrollRoot,
+        rootMargin: buildPrefetchObserverRootMargin(nearMarginPx),
+        threshold: 0,
+      },
+    );
+    obs.observe(el);
+    const onScroll = () => {
+      const rect = el.getBoundingClientRect();
+      const limit =
+        scrollRoot instanceof HTMLElement
+          ? scrollRoot.getBoundingClientRect().bottom
+          : window.innerHeight;
+      if (rect.top - limit > nearMarginPx) return;
+      invite();
+    };
+    const attach = scrollRoot instanceof HTMLElement ? scrollRoot : window;
+    attach.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => {
+      obs.disconnect();
+      attach.removeEventListener("scroll", onScroll);
+    };
+  }, [
+    discoveryCanContinue,
+    suggestionLoadingMore,
+    suggestionLoadFailed,
+    isDesktopSplit,
+    advanceDiscoveryWindow,
+  ]);
 
   const showDiscoveryContinuityFeed = shouldRenderDiscoveryContinuityFeed({
     showBand: showRadiusStageLayout,
@@ -7364,26 +7513,24 @@ export default function GeoFeed({
                     )}
                   </div>
                 ) : null}
-                {discoveryCanContinue ? (
-                  <div className="flex justify-center">
+                {discoveryCanContinue || suggestionLoadFailed ? (
+                  <div
+                    ref={discoveryContinueRef}
+                    className="flex min-h-[2.75rem] justify-center"
+                    data-testid="feed-discovery-sentinel"
+                  >
                     <button
                       type="button"
                       className="hc-btn-secondary min-h-[44px] px-3 py-2 text-sm"
                       data-testid="feed-discovery-load-more"
                       disabled={suggestionLoadingMore}
-                      onClick={() => {
-                        if (discoveryShown < suggestionRowsAvailable.length) {
-                          setDiscoveryShown(
-                            (shown) => shown + DISCOVERY_BATCH_SIZE,
-                          );
-                          return;
-                        }
-                        void loadDiscoveryPage(false);
-                      }}
+                      onClick={() => advanceDiscoveryWindow(true)}
                     >
-                      {suggestionLoadingMore
-                        ? t("feed.updating")
-                        : t("feed.discoveryLoadMore")}
+                      {suggestionLoadFailed
+                        ? t("feed.discoveryLoadRetry")
+                        : suggestionLoadingMore
+                          ? t("feed.updating")
+                          : t("feed.discoveryLoadMore")}
                     </button>
                   </div>
                 ) : null}
@@ -7799,19 +7946,21 @@ export default function GeoFeed({
             </div>
           ) : null}
               {buildFeedGridNodes(
-                (locationFilterActive && radiusPresentation.exactRows
-                  ? radiusPresentation.exactRows
-                  : feedRowsToRender) as typeof feedRowsToRender,
+                // Progressive local-first pool while marketplace pages remain.
+                // Exact-only paint is reserved for the exhaustion/continuity
+                // layout below — otherwise load-more pages that mix far/dup
+                // rows never grow the visible card list (scroll looks stuck).
+                feedRowsToRender as typeof feedRowsToRender,
               )}
         </div>
         {feedHasMore ? (
-          <div
-            ref={feedLoadMoreRef}
-            data-feed-sentinel=""
-            data-testid="feed-sentinel"
-            className="flex min-h-[2rem] justify-center py-3"
-            aria-hidden={!feedLoadingMore}
-          >
+            <div
+              ref={feedLoadMoreRef}
+              data-feed-sentinel=""
+              data-testid="feed-sentinel"
+              className="flex min-h-[2rem] justify-center py-3"
+              aria-hidden={!feedLoadingMore}
+            >
             {feedLoadingMore ? (
               <Loader2
                 className="h-5 w-5 animate-spin text-gray-400"
@@ -7839,13 +7988,17 @@ export default function GeoFeed({
     </>
   );
 
+  // Depend on the stable setter only — the bridge context value identity changes
+  // whenever surfacePlan is published, and depending on `workspaceBridge` here
+  // caused cleanup(null)→set(plan)→re-render→effect loops that starved loadMore.
+  const setBridgeSurfacePlan = workspaceBridge?.setSurfacePlan;
   useLayoutEffect(() => {
-    if (!workspaceBridge) return;
-    workspaceBridge.setSurfacePlan(surfacePlan);
+    if (!setBridgeSurfacePlan) return;
+    setBridgeSurfacePlan(surfacePlan);
     return () => {
-      workspaceBridge.setSurfacePlan(null);
+      setBridgeSurfacePlan(null);
     };
-  }, [workspaceBridge, surfacePlan]);
+  }, [setBridgeSurfacePlan, surfacePlan]);
 
   const workspaceRailFiltersPortal =
     workspaceBridge &&
@@ -7948,6 +8101,8 @@ export default function GeoFeed({
         </aside>
         <div
           id="homecheff-feed-desktop"
+          data-hc-feed-scroll-root=""
+          data-desktop-feed-column=""
           className="hidden lg:block min-w-0 space-y-4 self-start hc-home-feed-grid"
         >
           {feedContent}
