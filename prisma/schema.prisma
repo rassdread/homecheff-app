@@ -1,5 +1,9 @@
 generator client {
   provider = "prisma-client-js"
+  // Prevent Mac/local `prisma generate` + `vercel --prebuilt` from shipping a
+  // darwin-only Query Engine to Vercel (linux-arm64 / openssl 3). That outage
+  // emptied the marketplace feed on dpl_HzqVV6eCxoTzsVEDwmXagmTYkH2F.
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x", "debian-openssl-3.0.x", "rhel-openssl-3.0.x"]
 }
 
 // Growth + HomeCheff: dezelfde DATABASE_URL en hetzelfde User-model voor één account (geen tweede DB zonder afgesproken migraties).
