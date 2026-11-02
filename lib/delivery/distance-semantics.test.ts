@@ -16,6 +16,7 @@ import {
   legacyMarketplaceDistanceEligible,
   marketplaceDistanceEligible,
   planDistanceSettingsWrite,
+  regionalAvailabilityInRange,
   validateConfigurableDistanceKm,
   version1DistanceEligible,
 } from '@/lib/delivery/distance-semantics';
@@ -448,5 +449,72 @@ describe('versioned delivery distance semantics', () => {
     const match = fs.readFileSync(path.join(root, 'app/api/delivery/match-deliverers/route.ts'), 'utf8');
     assert.equal(match.includes('deliveryRegions'), false);
     assert.match(match, /country: sellerCountry/);
+  });
+});
+
+describe('regional availability precheck vs hidden public pickup coords', () => {
+  // Production-faithful incident numbers (Tes / Sergio test product / Steve Vlaardingen).
+  const tesToBuyerKm = 5.3;
+  const tesToPickupKm = 1.5;
+  const pickupToBuyerKm = 5.1;
+
+  it('does not hard-fail a v1 courier when checkout lacks seller coords', () => {
+    assert.equal(
+      regionalAvailabilityInRange({
+        version: 1,
+        nationalCoverage: false,
+        isCaribbean: false,
+        distanceToBuyerKm: tesToBuyerKm,
+        distanceToSellerKm: null,
+        pickupToDestinationKm: null,
+        preferredRadiusKm: 25,
+        maxDistanceKm: 25,
+        hasSellerCoords: false,
+      }),
+      true,
+    );
+  });
+
+  it('still accepts the same courier when seller coords are present', () => {
+    assert.equal(
+      regionalAvailabilityInRange({
+        version: 1,
+        nationalCoverage: false,
+        isCaribbean: false,
+        distanceToBuyerKm: tesToBuyerKm,
+        distanceToSellerKm: tesToPickupKm,
+        pickupToDestinationKm: pickupToBuyerKm,
+        preferredRadiusKm: 25,
+        maxDistanceKm: 25,
+        hasSellerCoords: true,
+      }),
+      true,
+    );
+  });
+
+  it('keeps a far v1 courier out without inventing a match', () => {
+    assert.equal(
+      regionalAvailabilityInRange({
+        version: 1,
+        nationalCoverage: false,
+        isCaribbean: false,
+        distanceToBuyerKm: 80,
+        distanceToSellerKm: null,
+        pickupToDestinationKm: null,
+        preferredRadiusKm: 25,
+        maxDistanceKm: 25,
+        hasSellerCoords: false,
+      }),
+      false,
+    );
+  });
+
+  it('check-availability uses the regional precheck helper', () => {
+    const src = fs.readFileSync(
+      path.join(root, 'app/api/delivery/check-availability/route.ts'),
+      'utf8',
+    );
+    assert.match(src, /regionalAvailabilityInRange/);
+    assert.equal(src.includes('if (sellerLat == null || sellerLng == null) return false'), false);
   });
 });

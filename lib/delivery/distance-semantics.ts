@@ -243,3 +243,55 @@ export function marketplaceDistanceEligible(input: {
     maxDistanceKm: input.maxDistanceKm,
   }).ok;
 }
+
+/**
+ * Checkout regional precheck only.
+ *
+ * Public product payloads may hide exact seller/pickup coordinates. Version-1
+ * matching still needs those for a payable quote (match-deliverers reads them
+ * server-side). The regional badge must not hard-fail every v1 courier when
+ * the client omits seller coords — otherwise a valid named match is blocked
+ * before the order-specific list loads.
+ */
+export function regionalAvailabilityInRange(input: {
+  version: number | null | undefined;
+  nationalCoverage: boolean;
+  isCaribbean: boolean;
+  distanceToBuyerKm: number;
+  distanceToSellerKm: number | null;
+  pickupToDestinationKm: number | null;
+  preferredRadiusKm: number | null;
+  maxDistanceKm: number;
+  hasSellerCoords: boolean;
+}): boolean {
+  const mode = distanceSemanticsMode(input.version);
+  if (mode === 'unsupported') return false;
+  if (mode === 'legacy') {
+    if (input.nationalCoverage) return true;
+    if (input.hasSellerCoords && input.distanceToSellerKm != null) {
+      return (
+        input.distanceToSellerKm <= input.maxDistanceKm &&
+        input.distanceToBuyerKm <= input.maxDistanceKm
+      );
+    }
+    return input.distanceToBuyerKm <= input.maxDistanceKm;
+  }
+  if (!input.hasSellerCoords || input.distanceToSellerKm == null) {
+    // Conservative area precheck: courier can reach the buyer side within the
+    // configured transport ceiling. Full pickup+transport gates stay on match.
+    const ceiling =
+      input.preferredRadiusKm != null && Number.isFinite(input.preferredRadiusKm)
+        ? Math.max(input.preferredRadiusKm, input.maxDistanceKm)
+        : input.maxDistanceKm;
+    return input.distanceToBuyerKm <= ceiling;
+  }
+  return version1DistanceEligible({
+    nationalCoverage: input.nationalCoverage,
+    isCaribbean: input.isCaribbean,
+    sameCountry: true,
+    distanceToPickupKm: input.distanceToSellerKm,
+    pickupToDestinationKm: input.pickupToDestinationKm,
+    preferredRadiusKm: input.preferredRadiusKm,
+    maxDistanceKm: input.maxDistanceKm,
+  }).ok;
+}

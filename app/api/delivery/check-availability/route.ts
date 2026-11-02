@@ -20,9 +20,8 @@ import { resolveDelivererPosition } from '@/lib/delivery/delivery-position';
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 import { resolveDeliveryTimeAvailability } from '@/lib/delivery/delivery-time-availability';
 import {
-  distanceSemanticsMode,
   isCaribbeanCountry,
-  version1DistanceEligible,
+  regionalAvailabilityInRange,
 } from '@/lib/delivery/distance-semantics';
 
 export async function POST(req: NextRequest) {
@@ -143,35 +142,25 @@ export async function POST(req: NextRequest) {
       })
     );
 
+    const hasSellerCoords = sellerLat != null && sellerLng != null;
+    const pickupToDestinationKm = hasSellerCoords
+      ? calculateDistance(sellerLat, sellerLng, lat, lng)
+      : null;
+
     const profilesInRange = profilesWithDistances.filter(
       (profile): profile is NonNullable<typeof profile> => {
         if (!profile) return false;
-        const mode = distanceSemanticsMode(profile.distanceSemanticsVersion);
-        if (mode === 'unsupported') return false;
-        if (mode === 'legacy') {
-          if (profile.nationalCoverage) {
-            // National = same-country only (already filtered by sellerCountry when provided).
-            return true;
-          }
-          if (sellerLat && sellerLng) {
-            return (
-              profile.distanceToSeller <= profile.maxDistance &&
-              profile.distanceToBuyer <= profile.maxDistance
-            );
-          }
-          return profile.distanceToBuyer <= profile.maxDistance;
-        }
-        if (sellerLat == null || sellerLng == null) return false;
-        const transportKm = calculateDistance(sellerLat, sellerLng, lat, lng);
-        return version1DistanceEligible({
+        return regionalAvailabilityInRange({
+          version: profile.distanceSemanticsVersion,
           nationalCoverage: Boolean(profile.nationalCoverage),
           isCaribbean: isCaribbeanCountry(profile.user.country),
-          sameCountry: true,
-          distanceToPickupKm: profile.distanceToSeller,
-          pickupToDestinationKm: transportKm,
+          distanceToBuyerKm: profile.distanceToBuyer,
+          distanceToSellerKm: hasSellerCoords ? profile.distanceToSeller : null,
+          pickupToDestinationKm,
           preferredRadiusKm: profile.preferredRadius,
           maxDistanceKm: profile.maxDistance,
-        }).ok;
+          hasSellerCoords,
+        });
       }
     );
 
