@@ -1,0 +1,779 @@
+{
+  "base": "https://homecheff.eu",
+  "generatedAt": "2026-11-02T08:10:21.463Z",
+  "TOTAL_ROUTES_INVENTORY": 193,
+  "ROUTES_PROBED": 128,
+  "PASSED": 128,
+  "FAILED": 0,
+  "BLOCKED": 0,
+  "results": [
+    {
+      "path": "/account/ouderlijke-toestemming",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/affiliate/company",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/affiliate",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/affiliate/partners",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/affiliate/passive-income-calculator",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/affiliate/promo-codes",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/affiliate/promotiemateriaal",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/affiliate/sub-affiliate-signup",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/agreements",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/ai",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/alternatief-voor-dropshipping",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/app",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/arriassisme",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/auth",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/aviliate",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/aviliate/passive-income-calculator",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/aviliate/promo-codes",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/bezorger",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/bezorger-worden",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/bezorging/aanvragen",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/bijverdienen-vanuit-huis",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/buurt-economie",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/buurthulp",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/careers/how-it-works",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/careers/jobs",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/careers",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/changelog",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/checkout",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/community-guidelines",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/constitution",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/contact",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/delete-account",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/delivery/company/dashboard",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/delivery/company/signup",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/delivery/dashboard",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/delivery/driver",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/delivery/instellingen",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/delivery/invite",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/delivery",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/delivery/profiel",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/delivery/settings",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/delivery/signup",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/delivery/start",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/docs",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/dorpsplein",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/ecosystem",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/eten-verkopen-amsterdam",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/eten-verkopen-den-haag",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/eten-verkopen-rotterdam",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/eten-verkopen-utrecht",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/eten-verkopen-vanuit-huis",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/evidence",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/faq",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/favorites",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/forgot-password",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/glossary",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/growth",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/hcp-ranglijsten",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/hoe-homecheff-werkt",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/how-homecheff-grows",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/inspiratie",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/invite",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/login",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/lokaal-eten-verkopen",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/lokaal-verdienen",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/lokale-producten-verkopen",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/manifest",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/messages",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/mijn-hcp",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/mijn-homecheff/hc",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/mijn-homecheff",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/my-homecheff",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/notifications",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/onboarding/buyer",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/onboarding/complete-profile",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/onboarding/contact",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/onboarding/interests",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/onboarding/payments",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/onboarding/seller",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/ontmoet-de-maker",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/oorsprong-homecheff",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/operations/vandaag",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/orders",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/over-ons",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/persoonlijk-vakmanschap",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/pitch",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/place",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/pricing",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/principles",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/privacy",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/profile",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/register",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/reports",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/reservations",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/reset-password",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/roadmap",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/safety",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/sell/new",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/sell",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/sell/select-photos",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/seo-hub",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/sergio-arrias",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/settings/app",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/settings",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/social-login-success",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/statistics",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/stories",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/studio",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/terms",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/thuisgekookt-eten-verkopen",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/timeline",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/trust",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/unieke-producten-verkopen",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/verdien",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/verdiencheck",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/verdienen-zonder-dropshipping",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/verdiensten",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/vergelijken",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/verify-email",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/verkoper",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/waarom-homecheff",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/wat-is-homecheff",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/wat-we-niet-zijn",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/werken-bij/hoe-werkt-het",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/werken-bij",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/werken-bij/vacatures",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    },
+    {
+      "path": "/zelfgemaakt-eten-verkopen",
+      "status": 200,
+      "result": "PASS",
+      "note": ""
+    }
+  ]
+}
