@@ -18,6 +18,12 @@ try {
   execSync("npx prisma generate", { stdio: "inherit", shell: true });
   console.log("✅ Prisma client generated\n");
 
+  console.log("🔧 Asserting Linux Prisma Query Engines were generated...");
+  execSync("node scripts/assert-prisma-runtime-engines.mjs", {
+    stdio: "inherit",
+    shell: true,
+  });
+
   console.log("🔎 Blocking unbound hook calls (missing imports)...");
   execSync("node scripts/check-unbound-hooks.mjs", { stdio: "inherit", shell: true });
 
@@ -29,9 +35,13 @@ try {
   });
 
   console.log("🏗️  Building Next.js application...");
-  // The standard Vercel builder has 8 GB. A 6 GB heap is killed during next build.
+  // Standard Vercel builder = 8 GB RAM. Cold builds can OOM at 4096; 7168 leaves
+  // headroom for the OS while staying under the machine limit. Do not use 8192.
+  // Historical note: a 6 GB heap was killed on some builders — prefer 7168 with
+  // a warm cache retry if the first cold build still fails.
+  const nextHeap = process.env.HC_NEXT_HEAP_MB || "7168";
   execSync(
-    "cross-env NODE_OPTIONS=--max-old-space-size=4096 NEXT_TELEMETRY_DISABLED=1 next build",
+    `cross-env NODE_OPTIONS=--max-old-space-size=${nextHeap} NEXT_TELEMETRY_DISABLED=1 next build`,
     { stdio: "inherit", shell: true }
   );
 
