@@ -466,6 +466,54 @@ function pickLabelSuccess(body: unknown): CreatedLabel | null {
 }
 
 /**
+ * Controlled mock of Partner label-create for isolated E2E.
+ * Mirrors verified real V2 DPD response (providerOrderId 2179330):
+ * tracking present, no allowlisted carrier PDF document URL.
+ * Never calls the real label-create endpoint.
+ */
+function mockCreatePartnerLabel(
+  params: CreateLabelParams,
+): { ok: true; label: CreatedLabel } | PartnerApiError {
+  const mode = (process.env.ECTAROSHIP_LABEL_CREATE_MOCK_MODE || 'success').trim();
+  if (mode === 'http400') {
+    return {
+      ok: false,
+      status: 400,
+      code: 'ECTAROSHIP_INVALID_ADDRESS',
+      error: 'Invalid address!!!',
+    };
+  }
+  if (mode === 'timeout') {
+    return {
+      ok: false,
+      status: 502,
+      code: 'ECTAROSHIP_NETWORK_ERROR',
+      error: 'Provider timeout (mock)',
+    };
+  }
+  const tracking =
+    mode === 'no_tracking'
+      ? ''
+      : `0516${String(Date.now()).slice(-10)}`.slice(0, 14);
+  return {
+    ok: true,
+    label: {
+      providerOrderId: `MOCK-V3-${params.marketplaceOrderId.replace(/[^A-Z0-9]/gi, '').slice(0, 12)}`,
+      trackingCode: tracking,
+      carrier: params.carrier || 'DPD',
+      totalPrice: 5.98,
+      currency: 'EUR',
+      trackingUrl:
+        mode === 'no_pdf'
+          ? undefined
+          : 'https://tracking.dpd.nl/status/en/parcel/MOCK',
+      labelsExport: undefined,
+      raw: { mock: true, mode, mirroredFrom: '2179330' },
+    },
+  };
+}
+
+/**
  * POST /api/v1/shipping/label
  * Always sends X-Api-Behavior: STRICT
  */
@@ -479,6 +527,12 @@ export async function createPartnerLabel(
       code: 'SHIPPING_PROVIDER_NOT_CONFIGURED',
       error: 'Verzending is tijdelijk niet beschikbaar.',
     };
+  }
+
+  if (process.env.ECTAROSHIP_LABEL_CREATE_MOCK === '1') {
+    const g = globalThis as { __ECTARO_MOCK_LABEL_CREATES?: number };
+    g.__ECTARO_MOCK_LABEL_CREATES = (g.__ECTARO_MOCK_LABEL_CREATES || 0) + 1;
+    return mockCreatePartnerLabel(params);
   }
 
   const payload: Record<string, unknown> = {

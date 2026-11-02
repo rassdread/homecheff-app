@@ -314,6 +314,21 @@ export async function ensurePaidOrderShipment(
     }
 
     const label = labelResult.label;
+    if (!label.trackingCode?.trim()) {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { shippingStatus: 'SHIPMENT_FAILED_RETRYABLE' },
+      });
+      logShippingEvent('SHIPMENT_CREATE_FAILED', {
+        orderId,
+        code: 'ECTAROSHIP_MISSING_TRACKING',
+      });
+      return {
+        status: 'failed_retryable',
+        error: 'Provider returned no tracking number',
+      };
+    }
+
     const pdfUrl =
       typeof label.labelsExport === 'string' &&
       isAllowedEctaroDocumentUrl(label.labelsExport)
@@ -324,6 +339,8 @@ export async function ensurePaidOrderShipment(
             isAllowedEctaroDocumentUrl((label.labelsExport as { url: string }).url)
           ? (label.labelsExport as { url: string }).url
           : '';
+    /** Partner API list/document probes return no printable carrier PDF (cert V3). */
+    const LABEL_PDF_UNSUPPORTED = 'unsupported:partner-api-no-label-document';
 
     const actualCents =
       label.totalPrice != null && Number.isFinite(label.totalPrice)
@@ -335,10 +352,10 @@ export async function ensurePaidOrderShipment(
         data: {
           orderId,
           ectaroShipLabelId: label.providerOrderId,
-          pdfUrl: pdfUrl || 'pending',
+          pdfUrl: pdfUrl || LABEL_PDF_UNSUPPORTED,
           trackingNumber: label.trackingCode,
           carrier: label.carrier || quote?.carrier || 'Carrier',
-          status: 'generated',
+          status: pdfUrl ? 'generated' : 'generated_no_pdf',
           priceCents: actualCents,
         },
       });
@@ -387,14 +404,15 @@ export async function ensurePaidOrderShipment(
         shippingCurrency: label.currency || quote?.currency || 'EUR',
         shippingMethodId: methodId,
         shippingProductId: quote?.productId || undefined,
-        shippingProviderStatus: 'created',
-        shippingProviderStatusRaw: 'created',
+        shippingProviderStatus: pdfUrl ? 'created' : 'LABEL_PDF_UNSUPPORTED',
+        shippingProviderStatusRaw: pdfUrl ? 'created' : 'LABEL_PDF_UNSUPPORTED',
       },
     });
 
     logShippingEvent('SHIPMENT_CREATE_SUCCEEDED', {
       orderId,
       tracking: label.trackingCode ? 'yes' : 'no',
+      labelPdf: pdfUrl ? 'yes' : 'unsupported',
     });
 
     const sellerId = order.items[0]?.Product?.seller?.User?.id;

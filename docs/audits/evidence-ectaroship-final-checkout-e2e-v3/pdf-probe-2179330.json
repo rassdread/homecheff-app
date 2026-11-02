@@ -1,0 +1,208 @@
+{
+  "base": "https://partnerapi.ectaro.com",
+  "listOk": true,
+  "match": {
+    "providerOrderId": "B2C0516300517268920261102",
+    "trackingSet": true,
+    "trackingLen": 14,
+    "status": "printed",
+    "carrier": "DPD",
+    "cost": 5.98,
+    "rawKeys": [
+      "trackCode",
+      "carrier",
+      "methodName",
+      "reference",
+      "shipmentStatus",
+      "printedDate",
+      "updatedAt",
+      "channelOrderId",
+      "totalPrice",
+      "currency",
+      "pricingBreakdown"
+    ],
+    "hosts": []
+  },
+  "probes": [
+    {
+      "path": "/api/v1/shipping/label/2179330",
+      "method": "GET",
+      "status": 404,
+      "contentType": "application/json",
+      "keys": [
+        "timestamp",
+        "status",
+        "error",
+        "path"
+      ],
+      "hosts": [],
+      "isPdfBody": false,
+      "len": 118
+    },
+    {
+      "path": "/api/v1/shipping/labels/2179330",
+      "method": "GET",
+      "status": 404,
+      "contentType": "application/json",
+      "keys": [
+        "timestamp",
+        "status",
+        "error",
+        "path"
+      ],
+      "hosts": [],
+      "isPdfBody": false,
+      "len": 119
+    },
+    {
+      "path": "/api/v1/shipping/label?orderId=2179330",
+      "method": "GET",
+      "status": 405,
+      "contentType": "application/json",
+      "keys": [
+        "timestamp",
+        "status",
+        "error",
+        "path"
+      ],
+      "hosts": [],
+      "isPdfBody": false,
+      "len": 119
+    },
+    {
+      "path": "/api/v1/shipping/label?id=2179330",
+      "method": "GET",
+      "status": 405,
+      "contentType": "application/json",
+      "keys": [
+        "timestamp",
+        "status",
+        "error",
+        "path"
+      ],
+      "hosts": [],
+      "isPdfBody": false,
+      "len": 119
+    },
+    {
+      "path": "/api/v1/shipping/shipment/2179330",
+      "method": "GET",
+      "status": 404,
+      "contentType": "application/json",
+      "keys": [
+        "timestamp",
+        "status",
+        "error",
+        "path"
+      ],
+      "hosts": [],
+      "isPdfBody": false,
+      "len": 121
+    },
+    {
+      "path": "/api/v1/shipping/label/2179330/pdf",
+      "method": "GET",
+      "status": 404,
+      "contentType": "application/json",
+      "keys": [
+        "timestamp",
+        "status",
+        "error",
+        "path"
+      ],
+      "hosts": [],
+      "isPdfBody": false,
+      "len": 122
+    },
+    {
+      "path": "/api/v1/shipping/label/2179330/document",
+      "method": "GET",
+      "status": 404,
+      "contentType": "application/json",
+      "keys": [
+        "timestamp",
+        "status",
+        "error",
+        "path"
+      ],
+      "hosts": [],
+      "isPdfBody": false,
+      "len": 127
+    },
+    {
+      "path": "/api/v1/shipping/label/pdf?orderId=2179330",
+      "method": "GET",
+      "status": 404,
+      "contentType": "application/json",
+      "keys": [
+        "timestamp",
+        "status",
+        "error",
+        "path"
+      ],
+      "hosts": [],
+      "isPdfBody": false,
+      "len": 114
+    },
+    {
+      "path": "/api/v1/shipping/label/download?orderId=2179330",
+      "method": "GET",
+      "status": 404,
+      "contentType": "application/json",
+      "keys": [
+        "timestamp",
+        "status",
+        "error",
+        "path"
+      ],
+      "hosts": [],
+      "isPdfBody": false,
+      "len": 119
+    },
+    {
+      "path": "/api/v1/shipping/documents/2179330",
+      "method": "GET",
+      "status": 404,
+      "contentType": "application/json",
+      "keys": [
+        "timestamp",
+        "status",
+        "error",
+        "path"
+      ],
+      "hosts": [],
+      "isPdfBody": false,
+      "len": 122
+    },
+    {
+      "path": "/api/v1/shipping/label/export",
+      "method": "POST",
+      "status": 404,
+      "contentType": "application/json",
+      "keys": [
+        "timestamp",
+        "status",
+        "error",
+        "path"
+      ],
+      "hosts": [],
+      "isPdfBody": false,
+      "len": 117
+    },
+    {
+      "path": "/api/v1/shipping/label/pdf",
+      "method": "POST",
+      "status": 404,
+      "contentType": "application/json",
+      "keys": [
+        "timestamp",
+        "status",
+        "error",
+        "path"
+      ],
+      "hosts": [],
+      "isPdfBody": false,
+      "len": 114
+    }
+  ]
+}

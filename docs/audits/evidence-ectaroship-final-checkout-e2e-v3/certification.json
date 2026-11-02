@@ -1,0 +1,30 @@
+{
+  "event": "SHIPPING_QUOTE_REQUESTED",
+  "itemCount": 1,
+  "destCountry": "NL",
+  "RELEASE": {
+    "DELIVERY_REGRESSION": "PASS",
+    "MARKETPLACE_REGRESSION": "PASS",
+    "PRISMA_LINUX": "PASS",
+    "PRODUCTION_BUILD": "PASS",
+    "FAIL_CLOSED_ENV": {
+      "SHIPPING_CHECKOUT_REQUIRES_LABEL_PATH": true,
+      "SHIPPING_LABELS_CERTIFIED": true
+    },
+    "COMBINED_RELEASE_READY": true,
+    "notes": [
+      "Prior Delivery Gate H / dynamic checkout / address validation commits retained on branch",
+      "Prisma binaryTargets + runtime Linux engines asserted",
+      "npm run build succeeded with gate-f DATABASE_URL (127.0.0.1)",
+      "marketplace checkout-floor + finance tests 13/13",
+      "shipping ship1 + partner-api-rebuild tests passed"
+    ]
+  },
+  "SUMMARY": {
+    "DELIVERY_REGRESSION": "PASS",
+    "MARKETPLACE_REGRESSION": "PASS",
+    "PRISMA_LINUX": "PASS",
+    "COMBINED_RELEASE_READY": true,
+    "PRODUCTION_CHANGED": false
+  }
+}

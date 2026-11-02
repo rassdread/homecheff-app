@@ -526,7 +526,7 @@ export default function SellerOrdersPageClient() {
                         </div>
                         
                         <div className="flex flex-wrap gap-2">
-                          {order.shippingLabel.pdfUrl && (
+                          {order.shippingLabel.pdfUrl?.startsWith('https://') && (
                             <>
                               <Button
                                 onClick={() => window.open(order.shippingLabel!.pdfUrl, '_blank')}
