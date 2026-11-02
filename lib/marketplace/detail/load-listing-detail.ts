@@ -16,6 +16,7 @@ import { consumerContextFromProductPayload } from '@/lib/legal/consumer-context-
 import { loadPublicPickupLocations } from '@/lib/seller/sales-locations-server';
 import { toPublicSellerCommerceView } from '@/lib/legal/seller-commerce-context';
 import { buildSellerCommerceContext } from '@/lib/legal/seller-commerce-context';
+import { stripPreciseLocationFromPublicItem } from '@/lib/geo/public-place';
 
 export type ListingDetailPayload = {
   product: Record<string, unknown>;
@@ -170,12 +171,18 @@ export async function loadListingDetail(
     console.warn('[listing-detail] sales locations unavailable', error);
   }
 
+  // Redact before RSC serialization — client mappers must not be the only gate.
+  const publicProduct = stripPreciseLocationFromPublicItem({
+    ...(product as Record<string, unknown>),
+    Video: sortedVideo,
+    pickupLocations,
+    pickupAddress: null,
+    pickupLat: null,
+    pickupLng: null,
+  } as Record<string, unknown>);
+
   return {
-    product: {
-      ...product,
-      Video: sortedVideo,
-      pickupLocations,
-    },
+    product: publicProduct,
     // B-class: filled by client detail-extras after first paint
     publicContactChannels: [{ id: 'chat', href: '' }],
     checkoutAvailable,

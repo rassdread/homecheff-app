@@ -21,6 +21,11 @@ import { assertDelivererCanAccept } from './delivery-eligibility';
 import { enforcePaidDeliveryIdentity } from './courier-identity-sync';
 import { calculateDistance } from '@/lib/geocoding';
 import { distanceSemanticsMode } from '@/lib/delivery/distance-semantics';
+import {
+  addressForCourierPhase,
+  courierMaySeeExactAddress,
+  notesForPreAccept,
+} from '@/lib/delivery/delivery-privacy';
 
 async function assertPaidCourierUser(userId: string) {
   const profile = await prisma.deliveryProfile.findUnique({
@@ -258,7 +263,18 @@ export class DeliveryRequestService {
       );
     }
 
-    return serializeDeliveryRequest(row, active, active?.Courier ?? null);
+    const dto = serializeDeliveryRequest(row, active, active?.Courier ?? null);
+    const isParty = userId === buyerId || userId === sellerId;
+    const reveal =
+      isParty ||
+      (isCourier && courierMaySeeExactAddress(active?.status));
+    if (reveal) return dto;
+    return {
+      ...dto,
+      pickupAddress: addressForCourierPhase(dto.pickupAddress, active?.status),
+      deliveryAddress: addressForCourierPhase(dto.deliveryAddress, active?.status),
+      notes: notesForPreAccept(dto.notes, [dto.pickupAddress, dto.deliveryAddress]) || null,
+    };
   }
 
   static async assignCourier(
@@ -750,14 +766,25 @@ export class DeliveryRequestService {
           ) / 10;
       }
 
+      const canComplete =
+        active?.status === 'ACCEPTED' && active.courierId === userId;
+      const reveal = canComplete && courierMaySeeExactAddress(active?.status);
       const item: CommunityDeliveryRequestListItem = {
         ...dto,
+        pickupAddress: reveal
+          ? dto.pickupAddress
+          : addressForCourierPhase(dto.pickupAddress, null),
+        deliveryAddress: reveal
+          ? dto.deliveryAddress
+          : addressForCourierPhase(dto.deliveryAddress, null),
+        notes: reveal
+          ? dto.notes
+          : notesForPreAccept(dto.notes, [dto.pickupAddress, dto.deliveryAddress]) || null,
         title: row.CommunityOrder.Proposal.title,
         distanceKm,
         canClaim: row.status === 'OPEN' && !active,
         needsAccept: active?.status === 'PENDING' && active.courierId === userId,
-        canComplete:
-          active?.status === 'ACCEPTED' && active.courierId === userId,
+        canComplete,
       };
 
       if (active?.courierId === userId) {

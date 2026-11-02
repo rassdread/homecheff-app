@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getDisplayName } from '@/lib/displayName';
+import { toPublicPlaceLabel } from '@/lib/geo/public-place';
 import { 
   MapPin, 
   Clock, 
@@ -520,12 +521,16 @@ export default function PublicSellerProfile({
                 <h3 className="font-semibold text-gray-900 mb-4">{t('publicProfile.sections.about')}</h3>
                 
                 {/* Location */}
-                {sellerProfile.User.place && (
-                  <div className="flex items-center gap-3 mb-4">
-                    <MapPin className="w-5 h-5 text-gray-400" />
-                    <span className="text-gray-700">{sellerProfile.User.place}</span>
-                  </div>
-                )}
+                {(() => {
+                  const publicPlace = toPublicPlaceLabel(sellerProfile.User.place);
+                  if (!publicPlace) return null;
+                  return (
+                    <div className="flex items-center gap-3 mb-4">
+                      <MapPin className="w-5 h-5 text-gray-400" />
+                      <span className="text-gray-700">{publicPlace}</span>
+                    </div>
+                  );
+                })()}
 
                 {/* Member Since */}
                 <div className="flex items-center gap-3 mb-4">

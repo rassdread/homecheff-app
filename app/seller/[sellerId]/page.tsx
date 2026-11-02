@@ -5,6 +5,7 @@ import PublicSellerProfile from '@/components/seller/PublicSellerProfileNew';
 import { loadPublicContactChannelsForUser } from '@/lib/profile/load-public-contact-channels';
 import { getPublicProfileHref, profileFallbackHref } from '@/lib/user/public-profile';
 import { publicListingEligibilityWhere, isCertificationFixtureUser } from '@/lib/marketplace/public-listing-eligibility';
+import { toPublicPlaceLabel } from '@/lib/geo/public-place';
 
 interface PublicSellerProfilePageProps {
   params: Promise<{ sellerId: string }> | { sellerId: string };
@@ -164,6 +165,11 @@ export default async function PublicSellerProfilePage({
 
   const sellerProfileWithRecipes = {
     ...sellerProfile,
+    User: {
+      ...sellerProfile.User,
+      // Exact residential place stays private on the legacy public seller URL.
+      place: toPublicPlaceLabel(sellerProfile.User.place),
+    },
     recipes,
     reviews: allReviews,
   };

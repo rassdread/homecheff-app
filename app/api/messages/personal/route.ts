@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getDisplayName } from '@/lib/displayName';
 import { andPublicListingWhere } from '@/lib/marketplace/public-listing-eligibility';
+import { deliveryInboxLine } from '@/lib/delivery/delivery-privacy';
 
 export async function GET(req: NextRequest) {
   try {
@@ -86,7 +87,13 @@ export async function GET(req: NextRequest) {
       }),
 
       // Role-specific messages
-      getRoleSpecificMessages(user.role, (session as any).user.id, isSeller, isDelivery),
+      getRoleSpecificMessages(
+        user.role,
+        (session as any).user.id,
+        isSeller,
+        isDelivery,
+        user.DeliveryProfile?.id ?? null,
+      ),
 
       // Category-specific messages (based on user interests/preferences)
       getCategorySpecificMessages((session as any).user.id, user.role),
@@ -261,7 +268,13 @@ export async function POST(req: NextRequest) {
 }
 
 // Helper function to get role-specific messages
-async function getRoleSpecificMessages(role: string | null, userId: string, isSeller: boolean, isDelivery: boolean) {
+async function getRoleSpecificMessages(
+  role: string | null,
+  userId: string,
+  isSeller: boolean,
+  isDelivery: boolean,
+  deliveryProfileId: string | null,
+) {
   const messages: any[] = [];
 
   // Admin messages
@@ -492,10 +505,10 @@ async function getRoleSpecificMessages(role: string | null, userId: string, isSe
   }
 
   // Delivery-specific messages
-  if (isDelivery) {
+  if (isDelivery && deliveryProfileId) {
     const deliveryOrders = await prisma.deliveryOrder.findMany({
       where: {
-        deliveryProfileId: userId
+        deliveryProfileId,
       },
       include: {
         order: {
@@ -524,7 +537,10 @@ async function getRoleSpecificMessages(role: string | null, userId: string, isSe
       category: 'role',
       senderId: linkedOrder.userId,
       receiverId: userId,
-      content: `Nieuwe bezorgopdracht: ${linkedOrder.deliveryAddress}`,
+      content: deliveryInboxLine(
+        delivery.status,
+        delivery.deliveryAddress || linkedOrder.deliveryAddress,
+      ),
       timestamp: delivery.createdAt,
       isRead: false,
       priority: 'high' as const,

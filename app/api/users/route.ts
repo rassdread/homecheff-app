@@ -10,7 +10,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { safeDistanceKm } from '@/lib/geocoding';
 import { FEED_RADIUS_DEFAULT_KM } from '@/lib/geo/local-discovery';
-import { toPublicPlaceLabel } from '@/lib/geo/public-place';
+import { toPublicListLocation } from '@/lib/geo/public-place';
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
@@ -155,9 +155,10 @@ export async function GET(request: NextRequest) {
         displayNameOption: user.displayNameOption,
         followerCount: followerCountMap.get(user.id) || 0,
         productCount: user.SellerProfile?._count?.products || 0,
-        location: {
-          place: toPublicPlaceLabel(user.place),
-          city: toPublicPlaceLabel(user.city),
+        location: toPublicListLocation({
+          place: user.place,
+          city: user.city,
+          // Exact coords used only to compute distanceKm server-side.
           lat: user.lat ?? null,
           lng: user.lng ?? null,
           distanceKm:
@@ -167,7 +168,7 @@ export async function GET(request: NextRequest) {
                   return d != null ? Math.round(d * 10) / 10 : null;
                 })()
               : null,
-        }
+        })
       }));
 
     return NextResponse.json({ users: transformedUsers });

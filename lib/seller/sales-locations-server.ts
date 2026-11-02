@@ -23,6 +23,7 @@ import {
   type PublicPickupLocation,
   type SalesLocationDraft,
 } from '@/lib/seller/sales-locations';
+import { toMarketplacePublicPickupLocation } from '@/lib/geo/public-place';
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -420,6 +421,11 @@ export async function replaceProductSalesLocationLinks(
   });
 }
 
+/**
+ * Product-page / anonymous marketplace pickup stalls.
+ * Exact street, house number, postcode and doorstep coordinates stay private
+ * until an authorized order/fulfillment path needs them.
+ */
 export async function loadPublicPickupLocations(
   productId: string,
 ): Promise<PublicPickupLocation[]> {
@@ -431,7 +437,7 @@ export async function loadPublicPickupLocations(
   const entitled = await entitledIdSetForUsers(userIds);
   return links
     .filter((link) => entitled.get(link.location.userId)?.has(link.location.id))
-    .map((link) => present(link.location))
+    .map((link) => toMarketplacePublicPickupLocation(link.location))
     .sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
 }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
+import { toPublicCheckoutSession } from '@/lib/checkout/public-checkout-session';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
 
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-    return NextResponse.json(session);
+    return NextResponse.json(toPublicCheckoutSession(session));
   } catch (error) {
     console.error('Error retrieving session:', error);
     return NextResponse.json(

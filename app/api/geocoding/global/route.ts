@@ -6,11 +6,17 @@ import {
   getAddressFormat,
 } from '@/lib/global-geocoding';
 import { getCorsHeaders } from '@/lib/apiCors';
+import { storedRecordLookupRejection } from '@/lib/geo/geocode-request-guard';
 
 export async function POST(request: NextRequest) {
   const cors = getCorsHeaders(request);
   try {
-    const { address, city, countryCode, googleMapsApiKey } = await request.json();
+    const body = await request.json();
+    const blocked = storedRecordLookupRejection(body);
+    if (blocked) {
+      return NextResponse.json({ error: blocked }, { status: 400, headers: cors });
+    }
+    const { address, city, countryCode } = body;
 
     if (!address?.trim() || !countryCode) {
       return NextResponse.json(
@@ -25,13 +31,10 @@ export async function POST(request: NextRequest) {
     // Get address format for this country (defaults to 'street_city' if not configured)
     const addressFormat = getAddressFormat(countryCode);
     
-    // Use Google Maps API key from environment if not provided
-    const apiKey = googleMapsApiKey || process.env.GOOGLE_MAPS_API_KEY;
-    
     const cityVal = city?.trim() || '';
     const result = cityVal
-      ? await geocodeAddress(address, cityVal, countryCode, apiKey)
-      : await geocodePlaceQuery(address.trim(), countryCode, apiKey);
+      ? await geocodeAddress(address, cityVal, countryCode)
+      : await geocodePlaceQuery(address.trim(), countryCode);
     
     // Log errors only
     if (result.error) {
@@ -61,7 +64,10 @@ export async function GET(request: NextRequest) {
     const address = searchParams.get('address');
     const city = searchParams.get('city');
     const countryCode = searchParams.get('countryCode');
-    const googleMapsApiKey = searchParams.get('googleMapsApiKey');
+    const blocked = storedRecordLookupRejection(Object.fromEntries(searchParams.entries()));
+    if (blocked) {
+      return NextResponse.json({ error: blocked }, { status: 400, headers: cors });
+    }
 
     if (!address?.trim() || !countryCode) {
       return NextResponse.json(
@@ -76,13 +82,10 @@ export async function GET(request: NextRequest) {
     // Get address format for this country (defaults to 'street_city' if not configured)
     const addressFormat = getAddressFormat(countryCode);
     
-    // Use Google Maps API key from environment if not provided
-    const apiKey = googleMapsApiKey || process.env.GOOGLE_MAPS_API_KEY;
-    
     const cityVal = city?.trim() || '';
     const result = cityVal
-      ? await geocodeAddress(address, cityVal, countryCode, apiKey)
-      : await geocodePlaceQuery(address.trim(), countryCode, apiKey);
+      ? await geocodeAddress(address, cityVal, countryCode)
+      : await geocodePlaceQuery(address.trim(), countryCode);
 
     return NextResponse.json({
       ...result,

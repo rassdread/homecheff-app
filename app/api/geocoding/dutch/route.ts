@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { geocodeDutchAddressWithFallback } from '@/lib/dutch-geocoding';
+import { storedRecordLookupRejection } from '@/lib/geo/geocode-request-guard';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,6 +9,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const postcode = searchParams.get('postcode');
     const huisnummer = searchParams.get('huisnummer');
+    const blocked = storedRecordLookupRejection(Object.fromEntries(searchParams.entries()));
+    if (blocked) {
+      return NextResponse.json({ error: blocked }, { status: 400 });
+    }
 
     if (!postcode || !huisnummer) {
       return NextResponse.json({ 

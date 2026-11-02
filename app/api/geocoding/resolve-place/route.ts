@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolvePlaceInput } from '@/lib/geo/resolve-place-input';
 import { getCorsHeaders } from '@/lib/apiCors';
+import { storedRecordLookupRejection } from '@/lib/geo/geocode-request-guard';
 
 /**
  * Write-time place resolution for create/edit/profile.
@@ -10,6 +11,10 @@ export async function POST(request: NextRequest) {
   const cors = getCorsHeaders(request);
   try {
     const body = await request.json();
+    const blocked = storedRecordLookupRejection(body);
+    if (blocked) {
+      return NextResponse.json({ status: 'none', message: blocked }, { status: 400, headers: cors });
+    }
     const query = typeof body.query === 'string' ? body.query : body.address;
     const countryCode =
       typeof body.countryCode === 'string' && body.countryCode.trim()

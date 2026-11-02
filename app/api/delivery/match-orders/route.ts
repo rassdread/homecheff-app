@@ -7,6 +7,7 @@ import { enforcePaidDeliveryIdentity } from "@/lib/delivery/courier-identity-syn
 import { resolveDelivererPosition } from "@/lib/delivery/delivery-position";
 import { deliveryDisabledBody } from "@/lib/delivery/delivery-deployment-gate";
 import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from "@/lib/delivery/delivery-pilot-access";
+import { toPublicPlaceLabel } from "@/lib/geo/public-place";
 
 export const dynamic = "force-dynamic";
 
@@ -171,9 +172,10 @@ export async function GET(req: NextRequest) {
             title: product.title,
             seller: {
               name: product.seller.User?.name,
-              place: product.seller.User?.place,
-              lat: product.seller.lat,
-              lng: product.seller.lng
+              // Pre-accept pool: city/area only — distance already computed server-side.
+              place: toPublicPlaceLabel(product.seller.User?.place),
+              lat: null,
+              lng: null,
             }
           }
         };
@@ -189,7 +191,8 @@ export async function GET(req: NextRequest) {
       success: true,
       deliveryUser: {
         id: deliveryUser.id,
-        place: deliveryUser.place,
+        place: toPublicPlaceLabel(deliveryUser.place),
+        // Own session coords stay available for the courier's map UX.
         lat: delivererLat,
         lng: delivererLng,
         maxDistance: deliveryUser.DeliveryProfile?.maxDistance,

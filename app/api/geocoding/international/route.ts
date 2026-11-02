@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { geocodeAddress, isValidPostcode } from "@/lib/global-geocoding";
+import { storedRecordLookupRejection } from "@/lib/geo/geocode-request-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,10 @@ export async function GET(req: NextRequest) {
     const city = searchParams.get('city');
     const postalCode = searchParams.get('postalCode');
     const country = searchParams.get('country') || 'NL';
+    const blocked = storedRecordLookupRejection(Object.fromEntries(searchParams.entries()));
+    if (blocked) {
+      return NextResponse.json({ error: blocked }, { status: 400 });
+    }
 
     if (!address || !city || !postalCode) {
       return NextResponse.json({ 

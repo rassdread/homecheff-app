@@ -3,7 +3,10 @@
  * Public pages receive a city label, not the stored pickup address.
  */
 
-import { toPublicPlaceLabel } from '@/lib/geo/public-place';
+import {
+  toMarketplacePublicPickupLocation,
+  toPublicPlaceLabel,
+} from '@/lib/geo/public-place';
 
 export type MappedListingDetail = {
   product: any;
@@ -171,7 +174,27 @@ export function mapListingDetailPayload(data: {
     pickupLat: null,
     pickupLng: null,
     pickupLocations: Array.isArray(data.product.pickupLocations)
-      ? data.product.pickupLocations
+      ? data.product.pickupLocations.map((row) =>
+          toMarketplacePublicPickupLocation({
+            id: String((row as { id?: string }).id ?? ''),
+            name: String((row as { name?: string }).name ?? ''),
+            street: String((row as { street?: string }).street ?? ''),
+            houseNumber: String((row as { houseNumber?: string }).houseNumber ?? ''),
+            postalCode: String((row as { postalCode?: string }).postalCode ?? ''),
+            city: String((row as { city?: string }).city ?? ''),
+            country: String((row as { country?: string }).country ?? 'NL'),
+            lat:
+              typeof (row as { lat?: unknown }).lat === 'number'
+                ? (row as { lat: number }).lat
+                : null,
+            lng:
+              typeof (row as { lng?: unknown }).lng === 'number'
+                ? (row as { lng: number }).lng
+                : null,
+            isPrimary: Boolean((row as { isPrimary?: boolean }).isPrimary),
+            isActive: (row as { isActive?: boolean }).isActive !== false,
+          }),
+        )
       : [],
     publicPlace: toPublicPlaceLabel(
       data.product.pickupAddress ||

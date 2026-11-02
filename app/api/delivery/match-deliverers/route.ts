@@ -13,6 +13,7 @@ import {
 import { resolveDelivererPosition, resolveDeliveryPickupCoords } from "@/lib/delivery/delivery-position";
 import { logCommercialAgeBlock } from "@/lib/delivery/delivery-age";
 import { calculateProviderDeliveryPrice } from "@/lib/delivery/provider-pricing";
+import { toPublicPlaceLabel } from "@/lib/geo/public-place";
 import {
   resolvePublicAvailabilityBadge,
   validateProviderAutoConfirm,
@@ -326,7 +327,7 @@ export async function GET(req: NextRequest) {
         title: product.title,
         seller: {
           name: product.seller.User?.name,
-          place: product.seller.User?.place,
+          place: toPublicPlaceLabel(product.seller.User?.place),
           // Phase 5.7 — exact pickup coords are not public; distances remain.
           country: sellerCountry
         }
@@ -419,7 +420,7 @@ export async function GET(req: NextRequest) {
           id: delivery.id,
           userId: delivery.user.id,
           name: delivery.user.name,
-          place: delivery.user.place,
+          place: toPublicPlaceLabel(delivery.user.place),
           profileImage: delivery.user.profileImage,
           vehicleType: delivery.transportation[0] || 'BIKE',
           vehicle: delivery.transportation[0] || 'BIKE',

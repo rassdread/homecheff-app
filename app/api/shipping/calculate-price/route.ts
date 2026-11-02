@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { isParcelCarrierConfigured } from '@/lib/ectaroship/partner-client';
 import { getAuthoritativeCarrierShippingQuote } from '@/lib/shipping/quote-service';
+import { toPublicShippingQuoteResponse } from '@/lib/shipping/public-shipping-quote';
 
 export const dynamic = 'force-dynamic';
 
@@ -121,41 +122,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      price: result.priceCents / 100,
-      priceCents: result.priceCents,
-      carrier: result.quote.carrier,
-      method: result.quote.method,
-      shippingMethodId: result.quote.shippingMethodId,
-      productId: result.quote.productId,
-      currency: result.quote.currency,
-      isInternational: false,
-      lane: result.quote.lane,
-      quotedAt: result.quote.quotedAt,
-      markupPercent: result.quote.markupPercent,
-      selectionRequired: false,
-      products: result.products.map((p) => ({
-        shippingMethodId: p.shippingMethodId,
-        carrier: p.carrier,
-        name: p.name,
-        priceCents: p.priceCents,
-        currency: p.currency,
-        productId: p.productId,
-        hasReturn: p.hasReturn,
-        labelType: p.labelType,
-      })),
-      origin: {
-        postalCode: result.quote.originPostalCode,
-        country: result.quote.originCountry,
-      },
-      destination: {
-        postalCode: result.quote.destinationPostalCode,
-        country: result.quote.destinationCountry,
-      },
-      message: 'Verzendkosten worden berekend voor jouw adres.',
-      authoritative: false,
-      displayOnly: true,
-    });
+    return NextResponse.json(
+      toPublicShippingQuoteResponse({
+        price: result.priceCents / 100,
+        priceCents: result.priceCents,
+        carrier: result.quote.carrier,
+        method: result.quote.method,
+        shippingMethodId: result.quote.shippingMethodId,
+        productId: result.quote.productId,
+        currency: result.quote.currency,
+        isInternational: false,
+        lane: result.quote.lane,
+        quotedAt: result.quote.quotedAt,
+        markupPercent: result.quote.markupPercent,
+        selectionRequired: false,
+        products: result.products.map((p) => ({
+          shippingMethodId: p.shippingMethodId,
+          carrier: p.carrier,
+          name: p.name,
+          priceCents: p.priceCents,
+          currency: p.currency,
+          productId: p.productId,
+          hasReturn: p.hasReturn,
+          labelType: p.labelType,
+        })),
+        destination: {
+          postalCode: result.quote.destinationPostalCode,
+          country: result.quote.destinationCountry,
+        },
+        message: 'Verzendkosten worden berekend voor jouw adres.',
+        authoritative: false,
+        displayOnly: true,
+      }),
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'unknown';
     console.error('Error calculating shipping price:', error);

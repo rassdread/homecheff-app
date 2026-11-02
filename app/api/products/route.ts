@@ -11,6 +11,7 @@ import {
   resolveDisplayPlace,
 } from "@/lib/geo/item-location";
 import { DISTANCE_UNKNOWN_LABEL } from "@/lib/geo/local-discovery";
+import { toPublicListLocation } from "@/lib/geo/public-place";
 import {
   attachSearchClassificationToRecord,
   buildProductTextSearchWhere,
@@ -501,10 +502,9 @@ export async function GET(req: Request) {
         subcategory: p.subcategory ?? null,
         delivery: p.delivery,
         tags: (p as any).tags || [],
-        location: {
+        location: toPublicListLocation({
           place: resolveDisplayPlace(placeLabel, DISTANCE_UNKNOWN_LABEL),
-          // Dorpsplein still computes distance in the browser from these coords.
-          // The street/address string is not included.
+          // Exact coords never leave the server; public clients get an approx grid.
           lat: coords?.lat ?? null,
           lng: coords?.lng ?? null,
           salesPoints: salesPoints.map((point) => ({
@@ -512,7 +512,7 @@ export async function GET(req: Request) {
             lng: point.lng,
             city: point.city,
           })),
-        },
+        }),
         seller: {
           id: p.seller?.User?.id ?? null,
           name: p.seller?.User?.name ?? null,

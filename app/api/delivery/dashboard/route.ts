@@ -16,8 +16,11 @@ import { readStandaloneBookingMeta } from '@/lib/delivery/standalone-booking-met
 import { courierDashboardKeepsBooking, readMarketplaceSlot } from '@/lib/delivery/checkout-courier-consistency';
 import { PAYMENT_WINDOW_MS } from '@/lib/products/checkout-reservation-policy';
 import {
+  addressForCourierPhase,
+  coordsForPhase,
   customerAddressForPhase,
   customerPhoneForPhase,
+  notesForPreAccept,
   sellerAddressForPhase,
   sellerPhoneForPhase,
 } from '@/lib/delivery/delivery-privacy';
@@ -1112,7 +1115,10 @@ export async function GET(req: NextRequest) {
             'available'
           ),
           customerPhone: customerPhoneForPhase(buyerUser, 'available'),
-          notes: deliveryOrder.notes || deliveryOrder.itemDescription || '',
+          notes: notesForPreAccept(
+            deliveryOrder.notes || deliveryOrder.itemDescription || '',
+            [deliveryOrder.deliveryAddress, deliveryOrder.order?.deliveryAddress],
+          ),
           createdAt: deliveryOrder.createdAt,
           product: {
             title: product?.title || deliveryOrder.itemDescription || 'Product',
@@ -1121,8 +1127,15 @@ export async function GET(req: NextRequest) {
               name: sellerUser?.name || 'Verkoper',
               address: sellerAddressForPhase(sellerUser, 'available'),
               phone: sellerPhoneForPhase(sellerUser, 'available'),
-              lat: resolveDeliveryPickupCoords(product)?.lat ?? resolveSellerCoords(product?.seller)?.lat ?? null,
-              lng: resolveDeliveryPickupCoords(product)?.lng ?? resolveSellerCoords(product?.seller)?.lng ?? null
+              ...coordsForPhase(
+                resolveDeliveryPickupCoords(product)?.lat ??
+                  resolveSellerCoords(product?.seller)?.lat ??
+                  null,
+                resolveDeliveryPickupCoords(product)?.lng ??
+                  resolveSellerCoords(product?.seller)?.lng ??
+                  null,
+                'available',
+              ),
             }
           }
         };
@@ -1251,8 +1264,8 @@ export async function GET(req: NextRequest) {
             deliverAt: dr.deliveryDate,
             pickupTimeWindow: dr.pickupTimeWindow,
             deliveryTimeWindow: dr.deliveryTimeWindow,
-            pickupAddress: dr.pickupAddress,
-            deliveryAddress: dr.deliveryAddress,
+            pickupAddress: addressForCourierPhase(dr.pickupAddress, assignment.status),
+            deliveryAddress: addressForCourierPhase(dr.deliveryAddress, assignment.status),
             href: dr.CommunityOrder?.conversationId
               ? `/messages?conversation=${dr.CommunityOrder.conversationId}`
               : '/delivery/dashboard?tab=community',
