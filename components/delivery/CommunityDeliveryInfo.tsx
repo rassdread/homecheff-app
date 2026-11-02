@@ -12,11 +12,11 @@ export default function CommunityDeliveryInfo() {
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-primary-brand mb-2">
-            Lokale bezorgers via HomeCheff
+            HomeCheff-bezorgers
           </h3>
           <p className="text-gray-700 mb-4">
             HomeCheff faciliteert het contact en de boeking. Transport wordt
-            uitgevoerd door een bezorger, niet door HomeCheff
+            uitgevoerd door een zelfstandige HomeCheff-bezorger, niet door HomeCheff
             als vervoerder of werkgever.
           </p>
 
@@ -27,7 +27,7 @@ export default function CommunityDeliveryInfo() {
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Heart className="w-4 h-4 text-red-600" />
-              <span>Lokale bezorgers</span>
+              <span>HomeCheff-bezorgers</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Clock className="w-4 h-4 text-blue-600" />
@@ -44,7 +44,7 @@ export default function CommunityDeliveryInfo() {
             <div className="text-sm text-gray-600 space-y-1">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-3 h-3 text-green-600" />
-                <span>Je kiest of gebruikt een lokale bezorger via HomeCheff</span>
+                <span>Je kiest een HomeCheff-bezorger</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-3 h-3 text-green-600" />

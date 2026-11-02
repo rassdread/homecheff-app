@@ -186,25 +186,25 @@ export function outboundLocalProviderMode(): 'LOCAL_PROVIDER' {
 
 export const DELIVERY_COPY = {
   nl: {
-    localProvider: 'Lokale bezorgaanbieder',
+    localProvider: 'HomeCheff-bezorger',
     independentCourier: 'Zelfstandige bezorger',
     deliveryBusiness: 'Bezorgbedrijf',
     providerViaPlatform: 'Bezorger via HomeCheff',
-    selectedProvider: 'Gekozen bezorgaanbieder',
-    localProvidersViaPlatform: 'Lokale bezorgaanbieders via HomeCheff',
-    sellerDelivers: 'Verkoper bezorgt zelf',
+    selectedProvider: 'Gekozen HomeCheff-bezorger',
+    localProvidersViaPlatform: 'HomeCheff-bezorgers',
+    sellerDelivers: 'Bezorging door verkoper',
     marketplaceFacilitates: 'HomeCheff faciliteert het contact en de boeking',
     marketplaceLabel: 'HomeCheff bezorgmarktplaats',
     profileVerified: 'Profiel geverifieerd',
     identityVerified: 'Identiteit geverifieerd',
   },
   en: {
-    localProvider: 'Local delivery provider',
+    localProvider: 'HomeCheff courier',
     independentCourier: 'Independent courier',
     deliveryBusiness: 'Delivery business',
-    providerViaPlatform: 'Delivery provider via HomeCheff',
-    selectedProvider: 'Selected delivery provider',
-    localProvidersViaPlatform: 'Local delivery providers via HomeCheff',
+    providerViaPlatform: 'Courier via HomeCheff',
+    selectedProvider: 'Selected HomeCheff courier',
+    localProvidersViaPlatform: 'HomeCheff couriers',
     sellerDelivers: 'Seller delivery',
     marketplaceFacilitates:
       'HomeCheff facilitates contact and booking',

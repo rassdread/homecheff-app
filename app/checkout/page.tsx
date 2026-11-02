@@ -43,6 +43,10 @@ import { consumerContextFromProductPayload } from '@/lib/legal/consumer-context-
 import { checkoutAddressForFulfillment } from '@/lib/seller/sales-locations';
 import { RESERVATION_COPY } from '@/lib/products/checkout-reservation-policy';
 import { selectOrdinaryCheckoutItems } from '@/lib/checkout/fulfillment-phase1';
+import {
+  resolveDynamicDeliveryVisibility,
+  type CartLineDeliveryInput,
+} from '@/lib/checkout/dynamic-delivery-options';
 
 function formatServerRemaining(remainingMs: number | null) {
   if (remainingMs == null) return null;
@@ -849,103 +853,111 @@ export default function CheckoutPage() {
     }
   }, [updateDraft]);
 
-  // Helper function to parse deliveryMode (can be comma-separated or single value)
-  const parseDeliveryMode = (deliveryMode: string | undefined): string[] => {
-    if (!deliveryMode) return ['PICKUP'];
-    if (deliveryMode === 'BOTH') return ['PICKUP', 'DELIVERY'];
-    if (deliveryMode.includes(',')) {
-      return deliveryMode.split(',').map(m => m.trim().toUpperCase());
-    }
-    return [deliveryMode.toUpperCase()];
-  };
-
-  // Determine available delivery modes based on cart items
-  const availableDeliveryModes = useMemo(() => {
-    const allModes = new Set<string>();
-    
-    checkoutItems.forEach(item => {
-      const deliveryMode = item.deliveryMode || 'PICKUP';
-      const parsedModes = parseDeliveryMode(deliveryMode);
-      parsedModes.forEach(mode => allModes.add(mode));
-    });
-    
-    // Determine which options should be available
-    const hasPickup = Array.from(allModes).some(mode => mode === 'PICKUP');
-    const hasDelivery = Array.from(allModes).some(mode => mode === 'DELIVERY');
-    const hasShipping = Array.from(allModes).some(mode => mode === 'SHIPPING');
-    
-    // For delivery: check if products support delivery AND if at least one product has sellerCanDeliver === true
-    const hasSellerDelivery = checkoutItems.some(item => {
-      const productData = productDataMap.get(item.productId);
-      return productData?.sellerCanDeliver === true;
-    });
-    
-    return { hasPickup, hasDelivery, hasSellerDelivery, hasShipping };
-  }, [checkoutItems, productDataMap]);
-
-  const deliveryOptions: DeliveryOption[] = [
-    {
-      id: 'pickup',
-      name: t('checkout.pickup'),
-      description: t('checkout.pickupDescription'),
-      icon: <Package className="w-6 h-6" />,
-      price: 0,
-      estimatedTime: t('checkout.pickupEstimatedTime'),
-      available: availableDeliveryModes.hasPickup
-    },
-    {
-      id: 'local_delivery',
-      name: t('checkout.localDelivery'),
-      description: t('checkout.localDeliveryDescription'),
-      icon: <Truck className="w-6 h-6" />,
-      price: 0,
-      estimatedTime: t('checkout.localDeliveryEstimatedTime'),
-      available: availableDeliveryModes.hasDelivery && availableDeliveryModes.hasSellerDelivery
-    },
-    {
-      id: 'local_provider',
-      name: t('checkout.teenDelivery'),
-      description: t('checkout.teenDeliveryDescription'),
-      icon: <Users className="w-6 h-6" />,
-      price: 0,
-      estimatedTime: estimatedDeliveryTime ? `${estimatedDeliveryTime} min` : t('checkout.teenDeliveryEstimatedTime'),
-      available: availableDeliveryModes.hasDelivery && namedProviderSelectionEnabled && !(isDealCheckout && activeCommunityDelivery)
-    },
-    {
-      id: 'shipping',
-      name: t('checkout.shipping'),
-      description: t('checkout.shippingDescription') || t('checkout.dhlPostnl'),
-      icon: <Truck className="w-6 h-6" />,
-      price: 0,
-      estimatedTime: t('checkout.shippingEstimatedTime'),
-      available: availableDeliveryModes.hasShipping && parcelCarrierConfigured
-    }
-  ];
-
-  const availableOptions = deliveryOptions.filter(option => option.available);
-  const selectedOption = deliveryOptions.find(option => option.id === checkoutDraft.selectedDelivery);
-  
-  // Reset selected delivery if it's no longer available — but never drop a
-  // payable accepted/auto-confirmed named booking (reload race with match).
-  useEffect(() => {
-    if (!checkoutDraft.selectedDelivery || !selectedOption || selectedOption.available) {
-      return;
-    }
-    if (
+  const preserveLocalProviderSelection = useMemo(
+    () =>
       isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) &&
       (bookingStatus === 'ACCEPTED' || bookingStatus === 'AUTO_CONFIRMED') &&
-      acceptedBookingPayable
-    ) {
+      Boolean(acceptedBookingPayable),
+    [checkoutDraft.selectedDelivery, bookingStatus, acceptedBookingPayable],
+  );
+
+  const deliveryVisibility = useMemo(() => {
+    const lines: CartLineDeliveryInput[] = checkoutItems.map((item) => ({
+      deliveryMode: item.deliveryMode,
+      sellerCanDeliver: productDataMap.get(item.productId)?.sellerCanDeliver === true,
+    }));
+    return resolveDynamicDeliveryVisibility({
+      lines,
+      namedProviderSelectionEnabled,
+      parcelCarrierConfigured,
+      hasCoordinates: Boolean(checkoutDraft.coordinates),
+      courierMatch,
+      preserveLocalProviderSelection,
+      blockLocalProviderForCommunityDelivery: Boolean(
+        isDealCheckout && activeCommunityDelivery,
+      ),
+    });
+  }, [
+    checkoutItems,
+    productDataMap,
+    namedProviderSelectionEnabled,
+    parcelCarrierConfigured,
+    checkoutDraft.coordinates,
+    courierMatch,
+    preserveLocalProviderSelection,
+    isDealCheckout,
+    activeCommunityDelivery,
+  ]);
+
+  const deliveryOptions: DeliveryOption[] = useMemo(
+    () => [
+      {
+        id: 'pickup',
+        name: t('checkout.pickup'),
+        description: t('checkout.pickupDescription'),
+        icon: <Package className="w-6 h-6" />,
+        price: 0,
+        estimatedTime: t('checkout.pickupEstimatedTime'),
+        available: deliveryVisibility.visibleOptionIds.includes('pickup'),
+      },
+      {
+        id: 'local_delivery',
+        name: t('checkout.localDelivery'),
+        description: t('checkout.localDeliveryDescription'),
+        icon: <Truck className="w-6 h-6" />,
+        price: 0,
+        estimatedTime: t('checkout.localDeliveryEstimatedTime'),
+        available: deliveryVisibility.visibleOptionIds.includes('local_delivery'),
+      },
+      {
+        id: 'local_provider',
+        name: t('checkout.teenDelivery'),
+        description: t('checkout.teenDeliveryDescription'),
+        icon: <Users className="w-6 h-6" />,
+        price: 0,
+        estimatedTime: estimatedDeliveryTime
+          ? `${estimatedDeliveryTime} min`
+          : t('checkout.teenDeliveryEstimatedTime'),
+        available: deliveryVisibility.visibleOptionIds.includes('local_provider'),
+      },
+      {
+        id: 'shipping',
+        name: t('checkout.shipping'),
+        description: t('checkout.shippingDescription') || t('checkout.dhlPostnl'),
+        icon: <Truck className="w-6 h-6" />,
+        price: 0,
+        estimatedTime: t('checkout.shippingEstimatedTime'),
+        available: deliveryVisibility.visibleOptionIds.includes('shipping'),
+      },
+    ],
+    [t, deliveryVisibility.visibleOptionIds, estimatedDeliveryTime],
+  );
+
+  /** Only methods that are actually available — never render red/grey dead cards. */
+  const visibleDeliveryOptions = useMemo(
+    () => deliveryOptions.filter((option) => option.available),
+    [deliveryOptions],
+  );
+  const selectedOption = deliveryOptions.find(
+    (option) => option.id === checkoutDraft.selectedDelivery,
+  );
+
+  // Reset selected delivery if it's no longer visible — but never drop a
+  // payable accepted/auto-confirmed named booking (reload race with match).
+  useEffect(() => {
+    if (!checkoutDraft.selectedDelivery) return;
+    if (preserveLocalProviderSelection) return;
+    if (deliveryVisibility.visibleOptionIds.includes(
+      checkoutDraft.selectedDelivery as 'pickup' | 'local_delivery' | 'local_provider' | 'shipping',
+    )) {
       return;
     }
     updateDraft({ selectedDelivery: '' });
   }, [
-    availableDeliveryModes,
+    deliveryVisibility.visibleOptionIds,
     checkoutDraft.selectedDelivery,
-    selectedOption,
     updateDraft,
-    bookingStatus,
-    acceptedBookingPayable,
+    preserveLocalProviderSelection,
   ]);
 
   const productsTotalCents = useMemo(
@@ -1475,16 +1487,23 @@ export default function CheckoutPage() {
                       {t('checkout.errors.activeCommunityDelivery')}
                     </p>
                   ) : null}
-                  {deliveryOptions.filter((option) => option.id !== 'local_provider' || namedProviderSelectionEnabled).map((option) => {
+                  {deliveryVisibility.mixedCapabilityNote ? (
+                    <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                      {t('checkout.mixedFulfillmentUnsupported')}
+                    </p>
+                  ) : null}
+                  {deliveryVisibility.showNoCourierInfo ? (
+                    <p className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                      {t('checkout.noCourierTemporarily')}
+                    </p>
+                  ) : null}
+                  {visibleDeliveryOptions.map((option) => {
                     const isTeenDelivery = option.id === 'local_provider' || option.id === 'teen_delivery';
                     const isLocalDelivery = option.id === 'local_delivery';
                     const isShipping = option.id === 'shipping';
-                    const teenNeedsLocation = isTeenDelivery && !checkoutDraft.coordinates;
-                    const teenUnavailableByRange =
-                      isTeenDelivery && checkoutDraft.coordinates && !isDeliveryAvailable;
-                    const isLoading = isTeenDelivery && availabilityLoading;
-                    const cardDisabled = !option.available || (isTeenDelivery && (teenNeedsLocation || teenUnavailableByRange));
-                    
+                    // Keep HomeCheff card selectable before address; match runs after geocode.
+                    const isLoading = isTeenDelivery && Boolean(checkoutDraft.coordinates) && availabilityLoading;
+
                     // Show calculated fee for delivery/shipping options
                     const showCalculatedFee = (isTeenDelivery || isLocalDelivery || isShipping) && 
                                               actualDeliveryFee && 
@@ -1513,13 +1532,11 @@ export default function CheckoutPage() {
                       <div key={option.id} className="space-y-3">
                       <div
                         className={`border-2 rounded-xl p-4 transition-all ${
-                          cardDisabled
-                            ? 'border-red-200 bg-red-50 cursor-not-allowed opacity-60'
-                            : checkoutDraft.selectedDelivery === option.id
+                          checkoutDraft.selectedDelivery === option.id
                             ? 'border-primary-brand bg-primary-50 cursor-pointer'
                             : 'border-gray-200 hover:border-gray-300 cursor-pointer'
                         }`}
-                        onClick={() => !cardDisabled && updateDraft({ selectedDelivery: option.id })}
+                        onClick={() => updateDraft({ selectedDelivery: option.id })}
                       >
                         <div className="flex items-start gap-4">
                           <div className={`p-2 rounded-lg ${
@@ -1532,9 +1549,6 @@ export default function CheckoutPage() {
                               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                                 {option.name}
                                 {(isLoading || showLoadingFee) && <Loader2 className="w-4 h-4 animate-spin" />}
-                                {cardDisabled && !isLoading && !showLoadingFee && (
-                                  <AlertCircle className="w-4 h-4 text-red-500" />
-                                )}
                               </h3>
                               {showCalculatedFee && (
                                 <span className="text-lg font-bold text-primary-brand">
@@ -1558,11 +1572,11 @@ export default function CheckoutPage() {
                               )}
                             </div>
                             <p className="text-sm text-gray-600 mt-1">{option.description}</p>
-                            {!option.available && (
-                              <p className="text-sm text-red-600 mt-2 font-medium">
-                                {t('checkout.optionUnavailableAllProducts')}
+                            {isTeenDelivery && !checkoutDraft.coordinates ? (
+                              <p className="text-sm text-gray-500 mt-2">
+                                {t('checkout.validateAddressToSeeTeenDeliverers')}
                               </p>
-                            )}
+                            ) : null}
                             <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
                               <Clock className="w-3 h-3" />
                               {option.estimatedTime}
