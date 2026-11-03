@@ -4,13 +4,14 @@ import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-fla
 import { isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
 import {
   callerMaySeeDeliveryUi,
+  courierOnboardingUiOpen,
   evaluateDeliveryAccess,
   isDeliveryPilotRestricted,
 } from '@/lib/delivery/delivery-pilot-access';
 
 export const dynamic = 'force-dynamic';
 
-/** Client-safe delivery flags. The public flag stays separate from one caller's pilot access. */
+/** Client-safe delivery flags. Onboarding stays separate from paid pilot access. */
 export async function GET() {
   const flags = getDeliveryAlignmentFlags();
   const homeCheffDeliveryEnabled = isHomeCheffDeliveryEnabled();
@@ -25,11 +26,13 @@ export async function GET() {
     ? evaluateDeliveryAccess({ requesterUserId: userId, requireCourier: false }).allowed
     : homeCheffDeliveryEnabled && !isDeliveryPilotRestricted();
   const courierToolsAvailableToCaller = callerMaySeeDeliveryUi(userId);
+  const courierOnboardingAvailableToCaller = courierOnboardingUiOpen();
   return NextResponse.json({
     homeCheffDeliveryEnabled,
     deliveryAvailableToCaller,
     courierToolsAvailableToCaller,
-    deliveryPilotRestricted: homeCheffDeliveryEnabled && isDeliveryPilotRestricted(),
+    courierOnboardingAvailableToCaller,
+    deliveryPilotRestricted: isDeliveryPilotRestricted(),
     namedProviderSelectionEnabled:
       deliveryAvailableToCaller && flags.namedProviderSelectionEnabled,
     providerPricingEnabled: deliveryAvailableToCaller && flags.providerPricingEnabled,

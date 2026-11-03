@@ -5,6 +5,8 @@ import { NextRequest } from 'next/server';
 import { courierPayoutReady, courierTransferReady } from '@/lib/delivery/courier-connect-eligibility';
 import {
   DELIVERY_GEOGRAPHIC_PILOT,
+  callerMaySeeDeliveryUi,
+  courierOnboardingUiOpen,
   evaluateDeliveryAccess,
 } from '@/lib/delivery/delivery-pilot-access';
 import { describeDeliveryPayout, marketplaceDeliveryRefundPlan } from '@/lib/delivery/delivery-ops-queue';
@@ -32,6 +34,20 @@ const pilotEnv = {
   HOMECHEFF_DELIVERY_PILOT_USER_IDS: 'buyer_ok',
   HOMECHEFF_DELIVERY_PILOT_COURIER_IDS: 'profile_ok,courier_user_ok',
 };
+
+test('courier onboarding UI stays open while paid Delivery stays restricted', () => {
+  const env = {
+    HOMECHEFF_DELIVERY_ENABLED: 'false',
+    HOMECHEFF_DELIVERY_PILOT: 'restricted',
+    HOMECHEFF_DELIVERY_PILOT_USER_IDS: 'buyer_ok',
+    HOMECHEFF_DELIVERY_PILOT_COURIER_IDS: 'profile_ok',
+  };
+  assert.equal(courierOnboardingUiOpen(env), true);
+  assert.equal(callerMaySeeDeliveryUi('stranger', env), false);
+  assert.equal(callerMaySeeDeliveryUi('buyer_ok', env), true);
+  assert.equal(callerMaySeeDeliveryUi('profile_ok', env), true);
+  assert.equal(callerMaySeeDeliveryUi(null, env), false);
+});
 
 test('public off stays closed until the restricted pilot allowlist matches', () => {
   const closed = evaluateDeliveryAccess({

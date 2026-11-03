@@ -75,6 +75,21 @@ export function servicePilotDenial(input: DeliveryAccessInput) {
   return null;
 }
 
+/**
+ * Courier registration, settings, and dashboard stay open for eligible users
+ * even while paid Delivery remains restricted or globally off.
+ * Do not reuse this for booking, matching, or checkout.
+ */
+export function courierOnboardingUiOpen(
+  _env: EnvSource = process.env,
+): boolean {
+  return true;
+}
+
+/**
+ * Paid Delivery request / matching UI for the signed-in caller.
+ * Restricted pilot allowlists apply. Separate from courier onboarding.
+ */
 export function callerMaySeeDeliveryUi(
   userId: string | null | undefined,
   env: EnvSource = process.env,

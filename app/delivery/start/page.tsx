@@ -46,6 +46,12 @@ export default function DeliveryStartPage() {
           <p className="text-sm text-gray-600 sm:text-base">{t('deliveryStart.subtitle')}</p>
           <p className="text-xs text-gray-500 sm:text-sm">{t('deliveryStart.ageNote')}</p>
           <DeliveryRegistrationNotice />
+          <p className="text-xs text-gray-500 sm:text-sm">
+            {t('deliveryStart.onboardingOpenNote', {
+              defaultValue:
+                'Aanmelden en je bezorgprofiel afronden kan altijd. Betaalde bezorgopdrachten blijven beperkt tot de goedgekeurde pilot totdat publieke Delivery open gaat.',
+            })}
+          </p>
           {deliveryOpen ? (
             <Link href="/bezorging/aanvragen" className="inline-block text-sm font-semibold text-emerald-800 underline">
               {t('deliveryStart.requestLink')}
