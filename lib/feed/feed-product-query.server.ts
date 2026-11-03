@@ -9,6 +9,7 @@ import {
   type FeedSellerHydrated,
 } from '@/lib/feed/feed-seller-hydration.server';
 import { publicListingEligibilityWhere } from '@/lib/marketplace/public-listing-eligibility';
+import { isUnpublishedInspirationProductMirror } from '@/lib/inspiratie/unpublished-inspiration-mirror';
 
 
 export type FeedProductQueryStrategy =
@@ -214,10 +215,29 @@ async function fetchProductIdRows(
     ...idArgs,
   });
 
-  return mergeIdRowsByCreatedAtDesc(
-    [...(activeRows as ProductIdRow[])],
-    take,
+  const candidateIds = (activeRows as ProductIdRow[]).map((row) => row.id);
+  const privateDishes =
+    candidateIds.length === 0
+      ? []
+      : await prisma.dish.findMany({
+          where: {
+            id: { in: candidateIds },
+            status: { not: 'PUBLISHED' },
+          },
+          select: { id: true, status: true },
+        });
+  const dishStatusById = new Map(
+    privateDishes.map((dish) => [dish.id, dish.status] as const),
   );
+  const visibleRows = (activeRows as Array<ProductIdRow & { priceCents?: number | null }>).filter(
+    (row) =>
+      !isUnpublishedInspirationProductMirror({
+        priceCents: row.priceCents,
+        linkedDishStatus: dishStatusById.get(row.id) ?? null,
+      }),
+  );
+
+  return mergeIdRowsByCreatedAtDesc([...visibleRows], take);
 }
 
 function readFulfillmentOptions(

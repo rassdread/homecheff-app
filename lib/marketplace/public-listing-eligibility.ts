@@ -25,6 +25,7 @@ import {
   isInternalTestKeepEmail,
   INTERNAL_TEST_KEEP_EMAILS,
 } from '@/lib/certification/internal-test-identities';
+import { isUnpublishedInspirationProductMirror } from '@/lib/inspiratie/unpublished-inspiration-mirror';
 
 /** Email domains / patterns used exclusively by certification & E2E fixtures. */
 export const CERTIFICATION_FIXTURE_EMAIL_SUFFIXES = [
@@ -76,6 +77,8 @@ export type ListingPublicDiscoverabilityInput = {
   sellerBio?: string | null;
   sellerSuspendedAt?: Date | string | null;
   sellerAccountDeletedAt?: Date | string | null;
+  priceCents?: number | null;
+  linkedDishStatus?: string | null;
 };
 
 /**
@@ -90,6 +93,14 @@ export function isListingPubliclyDiscoverable(
   if (product.sellerAccountDeletedAt) return false;
   if (isCertificationFixtureEmail(product.sellerEmail)) return false;
   if (isCertificationFixtureBio(product.sellerBio)) return false;
+  if (
+    isUnpublishedInspirationProductMirror({
+      priceCents: product.priceCents,
+      linkedDishStatus: product.linkedDishStatus,
+    })
+  ) {
+    return false;
+  }
   return true;
 }
 
