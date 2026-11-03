@@ -80,6 +80,96 @@ export function checkoutCanPayAcceptedBooking(input: {
 }
 
 /**
+ * Single buyer-facing reservation banner for Marketplace checkout.
+ * Expired and accepted must never render together.
+ */
+export type CheckoutBuyerReservationUi =
+  | { kind: 'none' }
+  | { kind: 'expired' }
+  | { kind: 'awaiting_courier'; remainingMs: number | null }
+  | { kind: 'accepted'; paymentRemainingMs: number | null; slotAt?: string | null }
+  | { kind: 'rejected' }
+  | { kind: 'reserved'; remainingMs: number | null };
+
+export function checkoutBuyerReservationUi(input: {
+  bookingStatus: string | null;
+  reservationPhase: string | null;
+  reservationRemainingMs: number | null;
+  paymentRemainingMs: number | null;
+  acceptedSlotAt?: string | null;
+}): CheckoutBuyerReservationUi {
+  const status = String(input.bookingStatus || '').toUpperCase();
+  const payable = checkoutCanPayAcceptedBooking({
+    status,
+    paymentRemainingMs: input.paymentRemainingMs,
+  });
+
+  if (status === 'EXPIRED') return { kind: 'expired' };
+  if (
+    (status === 'ACCEPTED' || status === 'AUTO_CONFIRMED') &&
+    !payable
+  ) {
+    return { kind: 'expired' };
+  }
+  if (input.reservationRemainingMs === 0 && !payable) {
+    return { kind: 'expired' };
+  }
+  if (payable) {
+    return {
+      kind: 'accepted',
+      paymentRemainingMs: input.paymentRemainingMs,
+      slotAt: input.acceptedSlotAt ?? null,
+    };
+  }
+  if (status === 'REJECTED') return { kind: 'rejected' };
+  if (status === 'PENDING') {
+    return {
+      kind: 'awaiting_courier',
+      remainingMs: input.reservationRemainingMs,
+    };
+  }
+  if (
+    input.reservationPhase === 'AWAITING_COURIER' &&
+    input.reservationRemainingMs !== 0
+  ) {
+    return {
+      kind: 'reserved',
+      remainingMs: input.reservationRemainingMs,
+    };
+  }
+  return { kind: 'none' };
+}
+
+/** Named local-provider pay button stays off when the booking/hold is not payable. */
+export function checkoutLocalProviderPayAllowed(input: {
+  selectedDelivery: string | null | undefined;
+  isLocalProvider: boolean;
+  bookingStatus: string | null;
+  paymentRemainingMs: number | null;
+  bookingRequestId: string | null;
+}) {
+  if (!input.isLocalProvider) return true;
+  const status = String(input.bookingStatus || '').toUpperCase();
+  if (!input.bookingRequestId) return false;
+  if (status === 'EXPIRED' || status === 'CANCELLED' || status === 'REJECTED') {
+    return false;
+  }
+  if (status === 'PENDING') return false;
+  return checkoutCanPayAcceptedBooking({
+    status,
+    paymentRemainingMs: input.paymentRemainingMs,
+  });
+}
+
+/** Keep polling while a courier decision or payment window can still change. */
+export function checkoutShouldPollBooking(status: string | null | undefined) {
+  const value = String(status || '').toUpperCase();
+  return (
+    value === 'PENDING' || value === 'ACCEPTED' || value === 'AUTO_CONFIRMED'
+  );
+}
+
+/**
  * Named checkout follows the order match, not the regional count.
  * While that match is still loading, the option stays open.
  * An empty order match closes it only while the option is open.

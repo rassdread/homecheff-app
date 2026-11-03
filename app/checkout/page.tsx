@@ -17,6 +17,9 @@ import { getActiveCartIdentifier } from '@/lib/cart';
 import { calculateStripeFeeForBuyer } from '@/lib/fees';
 import {
   checkoutCanPayAcceptedBooking,
+  checkoutBuyerReservationUi,
+  checkoutLocalProviderPayAllowed,
+  checkoutShouldPollBooking,
   deliveryFeeForCheckout,
   marketplaceSlotNotes,
   namedCheckoutAvailable,
@@ -65,9 +68,11 @@ function formatServerRemaining(remainingMs: number | null) {
 
 function ManualBookingPoller({
   bookingRequestId,
+  bookingStatus,
   onStatus,
 }: {
   bookingRequestId: string;
+  bookingStatus: string | null;
   onStatus: (snapshot: {
     status: string;
     remainingMs: number | null;
@@ -76,7 +81,9 @@ function ManualBookingPoller({
   }) => void;
 }) {
   const { tOr } = useTranslation();
+  const waitingForCourier = String(bookingStatus || '').toUpperCase() === 'PENDING';
   useEffect(() => {
+    if (!checkoutShouldPollBooking(bookingStatus)) return;
     let cancelled = false;
     const tick = async () => {
       try {
@@ -100,7 +107,9 @@ function ManualBookingPoller({
       cancelled = true;
       clearInterval(id);
     };
-  }, [bookingRequestId, onStatus]);
+  }, [bookingRequestId, bookingStatus, onStatus]);
+
+  if (!waitingForCourier) return null;
 
   return (
     <p className="text-sm text-amber-800 flex items-center gap-2">
@@ -511,6 +520,20 @@ export default function CheckoutPage() {
   const acceptedBookingPayable = checkoutCanPayAcceptedBooking({
     status: bookingStatus || '',
     paymentRemainingMs,
+  });
+  const reservationUi = checkoutBuyerReservationUi({
+    bookingStatus,
+    reservationPhase,
+    reservationRemainingMs,
+    paymentRemainingMs,
+    acceptedSlotAt,
+  });
+  const localProviderPayAllowed = checkoutLocalProviderPayAllowed({
+    selectedDelivery: checkoutDraft.selectedDelivery,
+    isLocalProvider: isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery),
+    bookingStatus,
+    paymentRemainingMs,
+    bookingRequestId,
   });
   const isDeliveryAvailable = namedCheckoutAvailable({
     namedSelection: namedProviderSelectionEnabled,
@@ -1809,7 +1832,10 @@ export default function CheckoutPage() {
 
                       {namedProviderSelectionEnabled ? (
                         <>
-                          {checkoutDraft.coordinates && checkoutItems[0]?.productId ? (
+                          {checkoutDraft.coordinates &&
+                          checkoutItems[0]?.productId &&
+                          reservationUi.kind !== 'accepted' &&
+                          reservationUi.kind !== 'awaiting_courier' ? (
                             <DelivererSelector
                               productId={checkoutItems[0].productId}
                               buyerLat={Number(checkoutDraft.coordinates.lat)}
@@ -1866,7 +1892,27 @@ export default function CheckoutPage() {
                                   if (!res.ok) {
                                     if (data.code === 'COURIER_ALREADY_ACCEPTED' && data.bookingRequestId) {
                                       setBookingRequestId(data.bookingRequestId);
-                                      setBookingStatus('ACCEPTED');
+                                      // Refresh authoritative timing — never keep a stale expired banner.
+                                      try {
+                                        const snap = await fetch(
+                                          `/api/delivery/booking-requests/${data.bookingRequestId}`,
+                                        );
+                                        const body = await snap.json();
+                                        const nextStatus = String(body.status || 'ACCEPTED');
+                                        const payMs = body.reservation?.paymentRemainingMs ?? null;
+                                        const payable = checkoutCanPayAcceptedBooking({
+                                          status: nextStatus,
+                                          paymentRemainingMs: payMs,
+                                        });
+                                        setBookingStatus(payable ? nextStatus : 'EXPIRED');
+                                        setReservationRemainingMs(
+                                          body.reservation?.remainingMs ?? null,
+                                        );
+                                        setPaymentRemainingMs(payMs);
+                                        setReservationPhase(body.reservation?.phase ?? null);
+                                      } catch {
+                                        setBookingStatus('ACCEPTED');
+                                      }
                                     }
                                     setBookingError(
                                       data.error ||
@@ -1898,57 +1944,77 @@ export default function CheckoutPage() {
                               <Loader2 className="w-4 h-4 animate-spin" /> {tOr('surfaceLang.bookingPreparing', 'Preparing confirmation…', 'Bevestiging voorbereiden…')}
                             </p>
                           )}
-                          {bookingError && (
+                          {bookingError && reservationUi.kind !== 'expired' && reservationUi.kind !== 'accepted' && (
                             <p className="text-sm text-red-700">{bookingError}</p>
                           )}
-                          {reservationRemainingMs === 0 && (
-                            <p className="text-sm text-amber-900 font-medium">{reservationCopy.expired}</p>
-                          )}
-                          {reservationPhase === 'AWAITING_COURIER' && reservationRemainingMs !== 0 && (
-                            <p className="text-sm text-blue-800">
-                              {reservationCopy.reserved}
-                              {formatServerRemaining(reservationRemainingMs)
-                                ? ` ${formatServerRemaining(reservationRemainingMs)}`
-                                : ''}
-                            </p>
-                          )}
-                          {bookingStatus === 'AUTO_CONFIRMED' && (
-                            <p className="text-sm text-green-700 font-medium">
-                              {reservationCopy.accepted}
-                              {formatServerRemaining(paymentRemainingMs)
-                                ? ` ${formatServerRemaining(paymentRemainingMs)}`
-                                : ''}
-                            </p>
-                          )}
-                          {bookingStatus === 'PENDING' && bookingRequestId && reservationRemainingMs !== 0 && (
+                          {bookingRequestId && checkoutShouldPollBooking(bookingStatus) && (
                             <ManualBookingPoller
                               bookingRequestId={bookingRequestId}
+                              bookingStatus={bookingStatus}
                               onStatus={(snapshot) => {
+                                const payable = checkoutCanPayAcceptedBooking({
+                                  status: snapshot.status,
+                                  paymentRemainingMs: snapshot.paymentRemainingMs,
+                                });
+                                const upper = String(snapshot.status || '').toUpperCase();
+                                if (
+                                  (upper === 'ACCEPTED' || upper === 'AUTO_CONFIRMED') &&
+                                  !payable
+                                ) {
+                                  setBookingStatus('EXPIRED');
+                                  setBookingRequestId(null);
+                                  setSelectedDeliverer(null);
+                                  setReservationRemainingMs(0);
+                                  setPaymentRemainingMs(0);
+                                  setReservationPhase(snapshot.phase);
+                                  setBookingError(null);
+                                  return;
+                                }
                                 setBookingStatus(snapshot.status);
                                 setReservationRemainingMs(snapshot.remainingMs);
                                 setPaymentRemainingMs(snapshot.paymentRemainingMs);
                                 setReservationPhase(snapshot.phase);
+                                if (payable) setBookingError(null);
                               }}
                             />
                           )}
-                          {bookingStatus === 'ACCEPTED' && (
-                            <p className="text-sm text-green-700 font-medium">
-                              {reservationCopy.accepted}
-                              {formatServerRemaining(paymentRemainingMs)
-                                ? ` ${formatServerRemaining(paymentRemainingMs)}`
-                                : ''}
-                              {acceptedSlotAt
-                                ? ` · ${new Date(acceptedSlotAt).toLocaleString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
+                          {reservationUi.kind === 'expired' && (
+                            <p className="text-sm text-amber-900 font-medium">{reservationCopy.expired}</p>
+                          )}
+                          {reservationUi.kind === 'reserved' && (
+                            <p className="text-sm text-blue-800">
+                              {reservationCopy.reserved}
+                              {formatServerRemaining(reservationUi.remainingMs)
+                                ? ` ${formatServerRemaining(reservationUi.remainingMs)}`
                                 : ''}
                             </p>
                           )}
-                          {bookingStatus === 'REJECTED' && reservationRemainingMs !== 0 && (
+                          {reservationUi.kind === 'awaiting_courier' && (
+                            <p className="text-sm text-blue-800">
+                              {reservationCopy.reserved}
+                              {formatServerRemaining(reservationUi.remainingMs)
+                                ? ` ${formatServerRemaining(reservationUi.remainingMs)}`
+                                : ''}
+                            </p>
+                          )}
+                          {reservationUi.kind === 'accepted' && (
+                            <p className="text-sm text-green-700 font-medium">
+                              {reservationCopy.accepted}
+                              {formatServerRemaining(reservationUi.paymentRemainingMs)
+                                ? ` ${formatServerRemaining(reservationUi.paymentRemainingMs)}`
+                                : ''}
+                              {reservationUi.slotAt
+                                ? ` · ${new Date(reservationUi.slotAt).toLocaleString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
+                                : ''}
+                            </p>
+                          )}
+                          {reservationUi.kind === 'rejected' && (
                             <p className="text-sm text-amber-800">{reservationCopy.rejected}</p>
                           )}
-                          {bookingStatus === 'EXPIRED' && (
-                            <p className="text-sm text-amber-900">{reservationCopy.expired}</p>
-                          )}
-                          {bookingRequestId && bookingStatus !== 'CONSUMED' && reservationRemainingMs !== 0 && (
+                          {bookingRequestId &&
+                            bookingStatus !== 'CONSUMED' &&
+                            reservationUi.kind !== 'expired' &&
+                            reservationUi.kind !== 'none' && (
                             <div className="flex flex-wrap gap-2">
                               <button
                                 type="button"
@@ -2267,7 +2333,9 @@ export default function CheckoutPage() {
                       isProcessing ||
                       !checkoutDraft.selectedDelivery ||
                       isLocalProviderUnavailable ||
-                      (buyerTotalCents <= 0 && selectedHc <= 0)
+                      (buyerTotalCents <= 0 && selectedHc <= 0) ||
+                      (isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) &&
+                        !localProviderPayAllowed)
                     }
                     className="w-full mt-6 py-4 text-lg"
                   >

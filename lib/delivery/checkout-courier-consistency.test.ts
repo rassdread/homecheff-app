@@ -9,6 +9,9 @@ import {
 } from '@/lib/fees';
 import {
   checkoutCanPayAcceptedBooking,
+  checkoutBuyerReservationUi,
+  checkoutLocalProviderPayAllowed,
+  checkoutShouldPollBooking,
   courierBookingExpiredAt,
   courierBookingIsActionableRequest,
   courierDashboardKeepsBooking,
@@ -244,6 +247,71 @@ describe('accepted booking payment window', () => {
       checkoutCanPayAcceptedBooking({ status: 'PENDING', paymentRemainingMs: 60_000 }),
       false,
     );
+  });
+});
+
+describe('checkout buyer reservation UI is exclusive', () => {
+  it('never shows accepted and expired together when the hold lapsed', () => {
+    const ui = checkoutBuyerReservationUi({
+      bookingStatus: 'ACCEPTED',
+      reservationPhase: 'AWAITING_PAYMENT',
+      reservationRemainingMs: 0,
+      paymentRemainingMs: 0,
+    });
+    assert.equal(ui.kind, 'expired');
+  });
+
+  it('shows only the payment message for a payable acceptance', () => {
+    const ui = checkoutBuyerReservationUi({
+      bookingStatus: 'ACCEPTED',
+      reservationPhase: 'AWAITING_PAYMENT',
+      reservationRemainingMs: 0,
+      paymentRemainingMs: 120_000,
+      acceptedSlotAt: '2026-11-04T18:00:00.000Z',
+    });
+    assert.equal(ui.kind, 'accepted');
+    if (ui.kind === 'accepted') {
+      assert.equal(ui.paymentRemainingMs, 120_000);
+    }
+  });
+
+  it('blocks local-provider pay when the booking expired', () => {
+    assert.equal(
+      checkoutLocalProviderPayAllowed({
+        selectedDelivery: 'local_provider',
+        isLocalProvider: true,
+        bookingStatus: 'EXPIRED',
+        paymentRemainingMs: 0,
+        bookingRequestId: 'book_1',
+      }),
+      false,
+    );
+    assert.equal(
+      checkoutLocalProviderPayAllowed({
+        selectedDelivery: 'local_provider',
+        isLocalProvider: true,
+        bookingStatus: 'ACCEPTED',
+        paymentRemainingMs: 60_000,
+        bookingRequestId: 'book_1',
+      }),
+      true,
+    );
+    assert.equal(
+      checkoutLocalProviderPayAllowed({
+        selectedDelivery: 'pickup',
+        isLocalProvider: false,
+        bookingStatus: null,
+        paymentRemainingMs: null,
+        bookingRequestId: null,
+      }),
+      true,
+    );
+  });
+
+  it('keeps polling through the payment window', () => {
+    assert.equal(checkoutShouldPollBooking('PENDING'), true);
+    assert.equal(checkoutShouldPollBooking('ACCEPTED'), true);
+    assert.equal(checkoutShouldPollBooking('EXPIRED'), false);
   });
 });
 
