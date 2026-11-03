@@ -99,6 +99,15 @@ export async function POST(
     }
 
     if (status === 'PICKED_UP' || status === 'DELIVERED') {
+      if (!existingOrder.orderId || !existingOrder.order?.id) {
+        return NextResponse.json(
+          {
+            error: 'Ophalen is pas mogelijk na bevestigde betaling.',
+            code: 'PAYMENT_REQUIRED',
+          },
+          { status: 409 },
+        );
+      }
       const identity = await enforcePaidDeliveryIdentity(prisma, profile.id);
       if (!identity.ok) {
         return NextResponse.json(

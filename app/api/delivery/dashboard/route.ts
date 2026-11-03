@@ -14,6 +14,7 @@ import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-ses
 import { resolveDeliveryTimeAvailability } from '@/lib/delivery/delivery-time-availability';
 import { readStandaloneBookingMeta } from '@/lib/delivery/standalone-booking-meta';
 import { courierDashboardKeepsBooking, readMarketplaceSlot } from '@/lib/delivery/checkout-courier-consistency';
+import { remapCalendarJobForCourierDisplay } from '@/lib/delivery/courier-payment-display';
 import { PAYMENT_WINDOW_MS } from '@/lib/products/checkout-reservation-policy';
 import {
   addressForCourierPhase,
@@ -1223,6 +1224,35 @@ export async function GET(req: NextRequest) {
         }),
       ]);
 
+      const calendarBookingIds = calendarRows
+        .map((row) => row.bookingRequestId)
+        .filter((id): id is string => Boolean(id));
+      const bookingStatusById = new Map(
+        (
+          calendarBookingIds.length
+            ? await prisma.deliveryBookingRequest.findMany({
+                where: { id: { in: calendarBookingIds } },
+                select: { id: true, status: true },
+              })
+            : []
+        ).map((row) => [row.id, row.status]),
+      );
+      const holdDeadlineByBooking = new Map(
+        (
+          calendarBookingIds.length
+            ? await prisma.stockReservation.findMany({
+                where: {
+                  bookingRequestId: { in: calendarBookingIds },
+                  status: 'PENDING',
+                },
+                select: { bookingRequestId: true, paymentDeadline: true },
+              })
+            : []
+        )
+          .filter((row) => row.bookingRequestId)
+          .map((row) => [row.bookingRequestId as string, row.paymentDeadline]),
+      );
+
       upcomingJobs = [
         ...calendarRows
           .filter((row) => {
@@ -1231,13 +1261,34 @@ export async function GET(req: NextRequest) {
             if (availableIds.has(row.deliveryOrderId)) return false;
             return true;
           })
-          .map((row) => ({
+          .map((row) => {
+            const remapped = remapCalendarJobForCourierDisplay({
+              status: row.status,
+              bookingRequestId: row.bookingRequestId,
+              deliveryOrderId: row.deliveryOrderId,
+              bookingStatus: row.bookingRequestId
+                ? bookingStatusById.get(row.bookingRequestId) ?? null
+                : null,
+              paymentDeadline: row.bookingRequestId
+                ? holdDeadlineByBooking.get(row.bookingRequestId) ?? null
+                : null,
+              now,
+            });
+            return {
             id: row.id,
             source: 'calendar' as const,
             deliveryOrderId: row.deliveryOrderId,
             bookingRequestId: row.bookingRequestId,
-            title: row.title,
-            status: row.status,
+            title:
+              remapped.kind === 'ACCEPTED_AWAITING_PAYMENT'
+                ? 'Geaccepteerd — wacht op betaling'
+                : remapped.kind === 'PAYMENT_CONFIRMED'
+                  ? row.title
+                  : row.title,
+            status: remapped.status,
+            paymentDeadline: row.bookingRequestId
+              ? holdDeadlineByBooking.get(row.bookingRequestId) ?? null
+              : null,
             pickupAt: row.pickupAt,
             deliverAt: row.deliverAt,
             earningsCents: row.earningsCents,
@@ -1247,7 +1298,8 @@ export async function GET(req: NextRequest) {
               : row.bookingRequestId
                 ? `/delivery/dashboard#booking-${row.bookingRequestId}`
                 : '/delivery/dashboard',
-          })),
+          };
+          }),
         ...communityUpcoming.map((assignment) => {
           const dr = assignment.DeliveryRequest;
           const title =

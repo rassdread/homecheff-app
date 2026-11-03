@@ -5966,7 +5966,7 @@
       "listingIntegrity": "Dit aanbod is niet beschikbaar voor een betaling.",
       "paymentsNotReady": "De maker moet betalingen nog instellen voordat je via HomeCheff kunt afrekenen.",
       "barterOnly": "Dit aanbod is alleen te ruil. Gebruik chat en stuur een voorstel in plaats van afrekenen.",
-      "minimumNotMet": "Online betalen via HomeCheff is beschikbaar vanaf €10. Spreek voor kleinere bedragen rechtstreeks een betaalwijze af met de aanbieder.",
+      "minimumNotMet": "Online betalen via HomeCheff is beschikbaar vanaf €0,50. Lagere bedragen kunnen niet online worden afgerekend.",
       "multipleSellers": "Een betaling kan maar één verkoper bevatten. Kies één verkoper. De andere producten blijven in je winkelwagen.",
       "activeCommunityDelivery": "Voor deze afspraak is al een bezorging aangevraagd. Er wordt geen tweede koeriersboeking gemaakt. Afhalen blijft mogelijk."
     },

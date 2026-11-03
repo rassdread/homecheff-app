@@ -4669,7 +4669,7 @@
       "listingIntegrity": "This listing is not available for payment.",
       "paymentsNotReady": "The maker still needs to set up payments before you can checkout via HomeCheff.",
       "barterOnly": "This listing is barter only. Use chat and send a proposal instead of checkout.",
-      "minimumNotMet": "Online payment via HomeCheff is available from €10. For smaller amounts, arrange payment directly with the provider.",
+      "minimumNotMet": "Online payment via HomeCheff is available from €0.50. Lower amounts cannot be paid online.",
       "multipleSellers": "One payment can contain only one seller. Choose one seller. The other products stay in your cart.",
       "activeCommunityDelivery": "A delivery has already been requested for this agreement. A second courier booking is not created. Pickup remains available."
     },

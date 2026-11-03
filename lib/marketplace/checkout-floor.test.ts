@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   MINIMUM_CHECKOUT_CENTS,
+  STRIPE_EUR_CARD_MINIMUM_CENTS,
   CHECKOUT_MINIMUM_NOT_MET,
   evaluateCheckoutFloor,
   computeCheckoutEligibleBaseCents,
@@ -16,8 +17,13 @@ describe('marketplace checkout floor', () => {
     { productId: 'p1', quantity: qty, unitPriceCents: cents },
   ];
 
-  it('blocks sub-€10 product-only orders', () => {
-    for (const cents of [250, 500, 750, 999]) {
+  it('aligns the online floor to Stripe EUR card minimum (€0.50)', () => {
+    assert.equal(MINIMUM_CHECKOUT_CENTS, 50);
+    assert.equal(STRIPE_EUR_CARD_MINIMUM_CENTS, 50);
+  });
+
+  it('blocks amounts below the Stripe EUR card minimum', () => {
+    for (const cents of [0, 1, 25, 49]) {
       const result = evaluateCheckoutFloor({ lineItems: line(cents), deliveryFeeCents: 0 });
       assert.equal(result.eligible, false, `expected block at ${cents}`);
       assert.equal(result.code, CHECKOUT_MINIMUM_NOT_MET);
@@ -26,60 +32,81 @@ describe('marketplace checkout floor', () => {
     }
   });
 
-  it('allows €10.00 and above', () => {
-    for (const cents of [1000, 1001, 1500]) {
+  it('allows Stripe minimum and above', () => {
+    for (const cents of [50, 51, 744, 1000, 1500]) {
       const result = evaluateCheckoutFloor({ lineItems: line(cents), deliveryFeeCents: 0 });
       assert.equal(result.eligible, true, `expected allow at ${cents}`);
       assert.equal(result.code, undefined);
     }
   });
 
-  it('counts delivery toward floor (€7 + €3 = eligible)', () => {
+  it('allows the observed Tes pilot total (€4.50 + €2.58 = €7.08 base)', () => {
     const result = evaluateCheckoutFloor({
-      lineItems: line(700),
-      deliveryFeeCents: 300,
+      lineItems: line(450),
+      deliveryFeeCents: 258,
     });
     assert.equal(result.eligible, true);
-    assert.equal(result.eligibleBaseCents, 1000);
+    assert.equal(result.eligibleBaseCents, 708);
   });
 
-  it('€9 product + €4 delivery passes; €9 + €0.99 delivery fails', () => {
+  it('allows full observed checkout math before Stripe surcharge (€7.08)', () => {
+    // Buyer-facing €7.44 includes Stripe surcharge; floor uses products+delivery only.
+    const base = computeCheckoutEligibleBaseCents({
+      productsTotalCents: 450,
+      deliveryFeeCents: 258,
+    });
+    assert.equal(base, 708);
+    const { buyerTotalCents } = calculateStripeFeeForBuyer(base);
+    assert.equal(buyerTotalCents, 744);
+    assert.equal(evaluateCheckoutFloor({ lineItems: line(450), deliveryFeeCents: 258 }).eligible, true);
+  });
+
+  it('counts delivery toward floor', () => {
+    const result = evaluateCheckoutFloor({
+      lineItems: line(25),
+      deliveryFeeCents: 25,
+    });
+    assert.equal(result.eligible, true);
+    assert.equal(result.eligibleBaseCents, 50);
+  });
+
+  it('€0.49 product + €0 delivery fails at Stripe boundary', () => {
     assert.equal(
-      evaluateCheckoutFloor({ lineItems: line(900), deliveryFeeCents: 400 }).eligible,
-      true,
+      evaluateCheckoutFloor({ lineItems: line(49), deliveryFeeCents: 0 }).eligible,
+      false,
     );
     assert.equal(
-      evaluateCheckoutFloor({ lineItems: line(900), deliveryFeeCents: 99 }).eligible,
-      false,
+      evaluateCheckoutFloor({ lineItems: line(50), deliveryFeeCents: 0 }).eligible,
+      true,
     );
   });
 
   it('SMS add-on does not satisfy floor', () => {
     const result = evaluateCheckoutFloor({
-      lineItems: line(750),
+      lineItems: line(25),
       deliveryFeeCents: 0,
       smsNotificationCostCents: 300,
     });
     assert.equal(result.eligible, false);
-    assert.equal(result.eligibleBaseCents, 750);
+    assert.equal(result.eligibleBaseCents, 25);
   });
 
-  it('multi-item cart sums correctly (2 × €5)', () => {
+  it('multi-item cart sums correctly', () => {
     const result = evaluateCheckoutFloor({
-      lineItems: [{ productId: 'a', quantity: 2, unitPriceCents: 500 }],
+      lineItems: [{ productId: 'a', quantity: 2, unitPriceCents: 25 }],
       deliveryFeeCents: 0,
     });
     assert.equal(result.eligible, true);
-    assert.equal(result.eligibleBaseCents, 1000);
+    assert.equal(result.eligibleBaseCents, 50);
   });
 
-  it('stripe surcharge must not make sub-€10 base eligible', () => {
-    const base = computeCheckoutEligibleBaseCents({ productsTotalCents: 980, deliveryFeeCents: 0 });
-    assert.equal(base, 980);
-    const { buyerTotalCents } = calculateStripeFeeForBuyer(base + 6); // simulate SMS not in base
-    assert.ok(buyerTotalCents > 1000);
+  it('stripe surcharge must not make sub-minimum base eligible', () => {
+    const base = computeCheckoutEligibleBaseCents({ productsTotalCents: 40, deliveryFeeCents: 0 });
+    assert.equal(base, 40);
+    const { buyerTotalCents } = calculateStripeFeeForBuyer(base + 6);
+    assert.ok(buyerTotalCents > MINIMUM_CHECKOUT_CENTS);
     const floor = evaluateCheckoutFloor({
-      lineItems: line(980),
+      lineItems: line(40),
       deliveryFeeCents: 0,
       smsNotificationCostCents: 6,
     });

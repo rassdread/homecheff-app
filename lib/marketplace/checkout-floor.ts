@@ -1,11 +1,22 @@
 'use strict';
 
 /**
- * HomeCheff-collected EUR checkout minimum (owner-approved micro-order floor).
- * Applies to new Stripe checkout session creation only — not listings or direct/cash.
+ * Online EUR checkout floor for new Stripe Checkout sessions.
+ *
+ * HomeCheff previously used an owner-approved €10 micro-order floor.
+ * Restricted delivery pilots (and normal small Marketplace carts) need
+ * amounts below that. The enforceable floor is therefore Stripe’s EUR
+ * card minimum (€0.50). iDEAL can go lower, but card support must remain.
+ *
+ * Applies to new Stripe checkout session creation only — not listings or
+ * direct/cash.
  */
 
-export const MINIMUM_CHECKOUT_CENTS = 1000;
+/** Stripe EUR card charge minimum (cents). */
+export const STRIPE_EUR_CARD_MINIMUM_CENTS = 50;
+
+/** Active HomeCheff online-checkout floor (aligned to Stripe EUR card min). */
+export const MINIMUM_CHECKOUT_CENTS = STRIPE_EUR_CARD_MINIMUM_CENTS;
 
 export const CHECKOUT_MINIMUM_NOT_MET = 'CHECKOUT_MINIMUM_NOT_MET' as const;
 

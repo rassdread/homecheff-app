@@ -65,6 +65,7 @@ type UpcomingDeliveryJob = {
   source: 'calendar' | 'community';
   title: string;
   status: string;
+  paymentDeadline?: string | Date | null;
   pickupAt?: string | Date | null;
   deliverAt?: string | Date | null;
   pickupTimeWindow?: string | null;
@@ -632,6 +633,19 @@ export default function DeliveryDashboard() {
         return t('delivery.awaitingBuyerPayment', {
           defaultValue: 'Wachten op betaling door de koper',
         });
+      case 'PAYMENT_CONFIRMED':
+        return t('delivery.paymentReceived', {
+          defaultValue: 'Betaling ontvangen',
+        });
+      case 'PAYMENT_EXPIRED':
+        return t('delivery.paymentExpired', {
+          defaultValue: 'Betaling verlopen',
+        });
+      case 'CONFIRMED':
+        // Calendar CONFIRMED before payment is not financial confirmation.
+        return t('delivery.awaitingBuyerPayment', {
+          defaultValue: 'Wachten op betaling door de koper',
+        });
       case 'ACCEPTED':
         return t('delivery.accepted');
       case 'PICKED_UP':
@@ -1141,13 +1155,53 @@ export default function DeliveryDashboard() {
                         {booking.quotedFeeCents != null
                           ? formatCurrencyFromCents(booking.quotedFeeCents)
                           : t('delivery.pending')}
-                        {booking.expiresAt
-                          ? ` · exp. ${new Date(booking.expiresAt).toLocaleString(
-                              language === 'en' ? 'en-GB' : 'nl-NL',
-                              { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' },
-                            )}`
-                          : ''}
                       </p>
+                      {booking.status === 'AWAITING_PAYMENT' && booking.paymentDeadline ? (
+                        <p className="mt-1 text-xs font-medium text-amber-800">
+                          {t('delivery.payByDeadline', { defaultValue: 'Betaal vóór' })}
+                          {': '}
+                          {new Date(booking.paymentDeadline).toLocaleString(
+                            language === 'en' ? 'en-GB' : 'nl-NL',
+                            { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' },
+                          )}
+                        </p>
+                      ) : booking.expiresAt ? (
+                        <p className="text-xs text-gray-600 mt-1">
+                          {`exp. ${new Date(booking.expiresAt).toLocaleString(
+                            language === 'en' ? 'en-GB' : 'nl-NL',
+                            { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' },
+                          )}`}
+                        </p>
+                      ) : null}
+                      <p className="mt-2 text-xs font-semibold text-amber-950">
+                        {getStatusLabel(booking.status)}
+                      </p>
+                      {booking.status === 'AWAITING_PAYMENT' ? (
+                        <p className="mt-1 text-xs text-amber-800">
+                          {t('delivery.awaitingBuyerPaymentBody', {
+                            defaultValue:
+                              'Bezorgverzoek geaccepteerd. Wachten op betaling door de koper.',
+                          })}
+                        </p>
+                      ) : null}
+                      {booking.status === 'PAYMENT_CONFIRMED' ? (
+                        <p className="mt-1 text-xs text-emerald-800">
+                          {t('delivery.paymentReceivedBody', {
+                            defaultValue:
+                              'Betaling ontvangen. Je bezorgopdracht is definitief bevestigd.',
+                          })}
+                        </p>
+                      ) : null}
+                      {booking.status === 'AWAITING_PAYMENT' ||
+                      booking.status === 'PAYMENT_CONFIRMED' ||
+                      booking.status === 'PAYMENT_EXPIRED' ? (
+                        <a
+                          href={booking.href || `#booking-${booking.id}`}
+                          className="mt-3 inline-flex min-h-[44px] w-full items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-3 text-sm font-semibold text-amber-950 hover:bg-amber-100"
+                        >
+                          {t('delivery.viewJob', { defaultValue: 'Bekijken' })}
+                        </a>
+                      ) : (
                       <div className="mt-3 flex gap-2">
                         <button
                           type="button"
@@ -1201,6 +1255,7 @@ export default function DeliveryDashboard() {
                           {t('common.cancel', { defaultValue: 'Afwijzen' })}
                         </button>
                       </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1284,13 +1339,63 @@ export default function DeliveryDashboard() {
                               </span>
                             </p>
                           ) : null}
-                          <p className="mt-1 text-xs text-gray-500">{getStatusLabel(job.status)}</p>
+                          <p
+                            className={`mt-1 text-xs font-semibold ${
+                              job.status === 'AWAITING_PAYMENT' || job.status === 'CONFIRMED'
+                                ? 'text-amber-900'
+                                : job.status === 'PAYMENT_CONFIRMED'
+                                  ? 'text-emerald-800'
+                                  : 'text-gray-500'
+                            }`}
+                          >
+                            {getStatusLabel(job.status)}
+                          </p>
+                          {(job.status === 'AWAITING_PAYMENT' || job.status === 'CONFIRMED') &&
+                          job.paymentDeadline ? (
+                            <p className="mt-1 text-xs text-amber-800">
+                              {t('delivery.payByDeadline', { defaultValue: 'Betaal vóór' })}
+                              {': '}
+                              {new Date(job.paymentDeadline).toLocaleString(
+                                language === 'en' ? 'en-GB' : 'nl-NL',
+                                {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                },
+                              )}
+                            </p>
+                          ) : null}
+                          {job.status === 'AWAITING_PAYMENT' || job.status === 'CONFIRMED' ? (
+                            <p className="mt-1 text-xs text-amber-800">
+                              {t('delivery.awaitingBuyerPaymentBody', {
+                                defaultValue:
+                                  'Bezorgverzoek geaccepteerd. Wachten op betaling door de koper.',
+                              })}
+                            </p>
+                          ) : null}
+                          {job.status === 'PAYMENT_CONFIRMED' ? (
+                            <p className="mt-1 text-xs text-emerald-800">
+                              {t('delivery.paymentReceivedBody', {
+                                defaultValue:
+                                  'Betaling ontvangen. Je bezorgopdracht is definitief bevestigd.',
+                              })}
+                            </p>
+                          ) : null}
                           {job.href ? (
                             <Link
                               href={job.href}
-                              className="mt-3 inline-flex min-h-[44px] w-full items-center justify-center rounded-lg bg-indigo-600 px-3 text-sm font-semibold text-white hover:bg-indigo-700"
+                              className={`mt-3 inline-flex min-h-[44px] w-full items-center justify-center rounded-lg px-3 text-sm font-semibold ${
+                                job.status === 'AWAITING_PAYMENT' || job.status === 'CONFIRMED'
+                                  ? 'border border-amber-300 bg-amber-50 text-amber-950 hover:bg-amber-100'
+                                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                              }`}
                             >
-                              {t('delivery.openJob', { defaultValue: 'Open opdracht' })}
+                              {String(job.href).includes('#booking-') ||
+                              job.status === 'AWAITING_PAYMENT' ||
+                              job.status === 'CONFIRMED'
+                                ? t('delivery.viewJob', { defaultValue: 'Bekijken' })
+                                : t('delivery.openJob', { defaultValue: 'Open opdracht' })}
                             </Link>
                           ) : null}
                         </div>
