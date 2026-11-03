@@ -32,6 +32,13 @@ export const FEED_RECIRC_BATCH_SIZE = 8;
 export const FEED_RECIRC_HISTORY_CAP = 120;
 
 /**
+ * Soft cap on painted recirculation rows in the DOM.
+ * Seed history may still grow up to FEED_RECIRC_HISTORY_CAP; only the visible
+ * recirculated tail is trimmed so cyclic scroll stays responsive.
+ */
+export const FEED_RECIRC_PAINT_CAP = 40;
+
+/**
  * Inventory-size continuation contract.
  *
  * 0  → empty state; never recirculate or request-loop

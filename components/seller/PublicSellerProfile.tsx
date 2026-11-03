@@ -927,9 +927,13 @@ export default function PublicSellerProfile({ sellerProfile, isOwner = false }: 
                                     ))}
                                   </div>
                                   <span className="text-sm font-medium text-gray-700">{review.rating}/5</span>
-                                  {review.isVerified && (
+                                  {review.isVerified ? (
                                     <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
                                       ✓ Geverifieerd
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs bg-amber-50 text-amber-900 px-2 py-0.5 rounded-full">
+                                      Ervaring
                                     </span>
                                   )}
                                 </div>

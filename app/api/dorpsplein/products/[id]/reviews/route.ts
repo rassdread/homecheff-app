@@ -3,6 +3,11 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { tryAwardReviewReceivedHcp } from '@/lib/gamification/review-hcp';
 import { tryAwardInteractionCommentHcp } from '@/lib/gamification/interaction-hcp';
+import {
+  EXPERIENCE_REVIEW_DAILY_LIMIT,
+  experienceReviewContentAllowed,
+  resolveProductReviewVerification,
+} from '@/lib/reviews/product-review-eligibility';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -144,33 +149,68 @@ export async function POST(
       return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
     }
 
-    // Check if product exists
     const product = await prisma.product.findUnique({
       where: { id },
-      select: { id: true }
+      select: {
+        id: true,
+        seller: { select: { userId: true } },
+      },
     });
 
     if (!product) {
       return NextResponse.json({ error: 'Product niet gevonden' }, { status: 404 });
     }
 
-    // IMPORTANT: Check if user has purchased this product
+    if (product.seller?.userId && product.seller.userId === user.id) {
+      return NextResponse.json(
+        { error: 'Je kunt je eigen aanbod niet beoordelen' },
+        { status: 403 },
+      );
+    }
+
     const hasPurchased = await prisma.order.findFirst({
       where: {
         userId: user.id,
-        stripeSessionId: { not: null }, // Alleen betaalde orders
+        stripeSessionId: { not: null },
         items: {
           some: {
-            productId: id
-          }
-        }
-      }
+            productId: id,
+          },
+        },
+      },
     });
 
-    if (!hasPurchased) {
-      return NextResponse.json({ 
-        error: 'Je moet dit product eerst kopen voordat je een review kunt plaatsen' 
-      }, { status: 403 });
+    const commentText =
+      typeof comment === 'string' ? comment.trim() : '';
+    const verificationKind = resolveProductReviewVerification({
+      hasPurchasedOrder: Boolean(hasPurchased),
+    });
+    const contentGate = experienceReviewContentAllowed({
+      kind: verificationKind,
+      comment: commentText,
+    });
+    if (!contentGate.ok) {
+      return NextResponse.json({ error: contentGate.error }, { status: 400 });
+    }
+
+    if (verificationKind === 'UNVERIFIED_EXPERIENCE') {
+      const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const recentExperienceCount = await prisma.productReview.count({
+        where: {
+          buyerId: user.id,
+          isVerified: false,
+          reviewSubmittedAt: { gte: dayAgo },
+        },
+      });
+      if (recentExperienceCount >= EXPERIENCE_REVIEW_DAILY_LIMIT) {
+        return NextResponse.json(
+          {
+            error:
+              'Je hebt vandaag het maximum aantal ervaring-reviews bereikt. Probeer het morgen opnieuw.',
+          },
+          { status: 429 },
+        );
+      }
     }
 
     // Check if user already reviewed this product
@@ -209,9 +249,11 @@ export async function POST(
       isVerified = !!order;
       orderIdToUse = orderId;
     } else if (hasPurchased) {
-      // If no orderId but user has purchased, mark as verified
       isVerified = true;
       orderIdToUse = hasPurchased.id || null;
+    } else {
+      isVerified = false;
+      orderIdToUse = null;
     }
 
     // Validate and filter images
@@ -255,7 +297,8 @@ export async function POST(
           title: title?.trim() || null,
           comment: comment.trim(),
           reviewSubmittedAt: new Date(),
-          isVerified: true, // Verified because user purchased the product
+          isVerified,
+          orderId: orderIdToUse,
           reviewToken: null, // Invalidate token after submission
           images: validImages.length > 0 ? {
             create: validImages.map((url: string, index: number) => ({
@@ -371,12 +414,14 @@ export async function POST(
       }
     }
 
-    void tryAwardReviewReceivedHcp(review.product?.seller?.User?.id, review.id).catch((e) =>
-      console.warn('[gamification] REVIEW_RECEIVED', e),
-    );
-    void tryAwardInteractionCommentHcp(user.id, review.id, 'REVIEW').catch((e) =>
-      console.warn('[gamification] INTERACTION_COMMENT', e),
-    );
+    if (isVerified) {
+      void tryAwardReviewReceivedHcp(review.product?.seller?.User?.id, review.id).catch((e) =>
+        console.warn('[gamification] REVIEW_RECEIVED', e),
+      );
+      void tryAwardInteractionCommentHcp(user.id, review.id, 'REVIEW').catch((e) =>
+        console.warn('[gamification] INTERACTION_COMMENT', e),
+      );
+    }
 
     return NextResponse.json({ review }, { status: 201 });
   } catch (error: any) {

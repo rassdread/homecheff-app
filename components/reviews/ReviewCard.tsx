@@ -84,7 +84,11 @@ export default function ReviewCard({
               <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-800">
                 Via HomeCheff
               </span>
-            ) : null}
+            ) : (
+              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-900">
+                Ervaring
+              </span>
+            )}
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-gray-500">
             <StarRating rating={review.rating} size="sm" />

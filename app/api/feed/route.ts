@@ -189,7 +189,7 @@ function toNumber(v: string | null, fallback: number) {
   return Number.isFinite(n) ? n : fallback;
 }
 
-/** Zelfde seller-user-id als GeoFeed `normalizeFeedItem` (owner → User → seller). */
+/** Zelfde seller-user-id als GeoFeed `normalizeFeedItem` (owner → User → seller.userId). */
 function extractFeedItemSellerUserId(item: Record<string, unknown>): string | null {
   const ownerRaw = item.ownerId;
   if (ownerRaw != null && String(ownerRaw).trim() !== "") {
@@ -197,8 +197,12 @@ function extractFeedItemSellerUserId(item: Record<string, unknown>): string | nu
   }
   const user = item.User as { id?: string } | undefined;
   if (user?.id) return String(user.id);
-  const seller = item.seller as { id?: string } | undefined;
-  if (seller?.id) return String(seller.id);
+  const seller = item.seller as
+    | { userId?: string; User?: { id?: string }; id?: string }
+    | undefined;
+  if (seller?.User?.id) return String(seller.User.id);
+  if (seller?.userId) return String(seller.userId);
+  // Do not fall back to SellerProfile.id — that breaks /user/[id] navigation.
   return null;
 }
 

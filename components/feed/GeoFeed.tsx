@@ -270,6 +270,7 @@ import {
   FEED_SALE_INSPIRATION_STRIDE,
   FEED_RECIRC_BATCH_SIZE,
   FEED_RECIRC_MIN_SEED,
+  FEED_RECIRC_PAINT_CAP,
   buildRecirculationBatch,
   composeProgressiveNearbySalePool,
   inspirationEligibleForFeedScope,
@@ -555,10 +556,20 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
       }
     | undefined;
 
+  // Prefer User.id / ownerId. Never use SellerProfile.id as a public profile id.
+  const sellerProfileUserId =
+    seller && typeof (seller as { userId?: unknown }).userId === "string"
+      ? String((seller as { userId: string }).userId).trim()
+      : seller &&
+          (seller as { User?: { id?: string } }).User?.id
+        ? String((seller as { User: { id: string } }).User.id).trim()
+        : null;
   const sellerUserId =
     ownerId ||
     (user?.id ? String(user.id) : null) ||
-    (seller?.id ? String(seller.id) : null) ||
+    (sellerProfileUserId && sellerProfileUserId.length > 0
+      ? sellerProfileUserId
+      : null) ||
     null;
   const sellerName = user?.name ?? seller?.name ?? null;
   const sellerUsername = user?.username ?? seller?.username ?? null;
@@ -4017,7 +4028,11 @@ export default function GeoFeed({
           if (more) queueNearEndContinuation(80);
           return;
         }
-        setRecirculatedRows((prev) => [...prev, ...nextRows]);
+        setRecirculatedRows((prev) => {
+          const merged = [...prev, ...nextRows];
+          if (merged.length <= FEED_RECIRC_PAINT_CAP) return merged;
+          return merged.slice(merged.length - FEED_RECIRC_PAINT_CAP);
+        });
         setCompositionState((prev) => {
           const next = bumpRecirculatedCount(
             recordDisplayedSeeds(
@@ -4036,7 +4051,8 @@ export default function GeoFeed({
         feedPrefetchCacheRef.current.diag.batchAppendLatencyMsTotal += latency;
         feedPrefetchCacheRef.current.diag.batchAppendCount += 1;
         // Sentinel often remains intersecting after append — re-arm drain.
-        queueNearEndContinuation(100);
+        // Slightly longer delay reduces main-thread thrash while IO stays hot.
+        queueNearEndContinuation(160);
       } finally {
         recirculationInFlightRef.current = false;
         if (spinnerShownAtRef.current != null) {

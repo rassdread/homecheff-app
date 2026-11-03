@@ -608,40 +608,37 @@ export function FeedCardPrimaryMedia({
         )}
       </div>
 
-      {lightboxEligible ? (
+      {/* Primary hit target always opens the canonical listing detail.
+          Recirculated occurrences reuse the same href (product id, not occurrence key). */}
+      <Link
+        href={href}
+        className="absolute inset-0 z-10"
+        aria-label={label}
+        onClick={() => navDebug("feed-tile:media-link", { href })}
+        onMouseEnter={
+          useHoverPlayback && showVideo ? onDesktopMouseEnter : undefined
+        }
+        onMouseLeave={
+          useHoverPlayback && showVideo ? onDesktopMouseLeave : undefined
+        }
+      >
+        <span className="sr-only">{label}</span>
+      </Link>
+      {lightboxEligible && hasOpenableLightboxMedia ? (
         <button
           type="button"
-          className={`absolute inset-0 z-10 border-0 bg-transparent p-0 ${
-            hasOpenableLightboxMedia
-              ? "cursor-pointer"
-              : "cursor-default pointer-events-none"
-          }`}
+          className="absolute right-2 top-2 z-20 inline-flex h-9 w-9 items-center justify-center rounded-full border-0 bg-black/55 text-xs font-semibold text-white shadow-md backdrop-blur-sm"
           aria-label={t("feed.openMediaFullscreen")}
-          disabled={!hasOpenableLightboxMedia}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             openLightbox();
           }}
         >
+          <span aria-hidden>⛶</span>
           <span className="sr-only">{t("feed.openMediaFullscreen")}</span>
         </button>
-      ) : (
-        <Link
-          href={href}
-          className="absolute inset-0 z-10"
-          aria-label={label}
-          onClick={() => navDebug('feed-tile:media-link', { href })}
-          onMouseEnter={
-            useHoverPlayback && showVideo ? onDesktopMouseEnter : undefined
-          }
-          onMouseLeave={
-            useHoverPlayback && showVideo ? onDesktopMouseLeave : undefined
-          }
-        >
-          <span className="sr-only">{label}</span>
-        </Link>
-      )}
+      ) : null}
 
       {renderVideoElement ? (
         <button

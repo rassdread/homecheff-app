@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Star, MessageSquare, Lock } from 'lucide-react';
+import { Star, MessageSquare } from 'lucide-react';
 import ReviewList from '@/components/reviews/ReviewList';
 import ReviewForm from '@/components/reviews/ReviewForm';
 import { useSession } from 'next-auth/react';
@@ -244,7 +244,7 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
             </div>
           )}
         </div>
-        {session?.user && !hasReviewed && hasPurchased && (
+        {session?.user && !hasReviewed && (
           <button
             onClick={() => setShowReviewForm(true)}
             className="px-4 py-2 bg-primary-brand text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -252,16 +252,15 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
             Review plaatsen
           </button>
         )}
-        {session?.user && !hasPurchased && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 rounded-lg">
-            <Lock className="w-4 h-4" />
-            <span className="text-sm">Koop eerst dit product</span>
-          </div>
-        )}
+        {session?.user && !hasPurchased && !hasReviewed ? (
+          <p className="text-xs text-amber-800">
+            Zonder HomeCheff-bestelling wordt je review als ervaring gemarkeerd.
+          </p>
+        ) : null}
       </div>
 
       {/* Review Form */}
-      {showReviewForm && hasPurchased && (
+      {showReviewForm && (
         <div className="mb-6 pb-6 border-b border-gray-200">
           <ReviewForm
             productId={productId}
@@ -283,18 +282,13 @@ export default function ProductReviewSection({ productId }: ProductReviewSection
         <div className="text-center py-8">
           <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500">Nog geen beoordelingen voor dit product.</p>
-          {session?.user && !hasReviewed && hasPurchased && (
+          {session?.user && !hasReviewed && (
             <button
               onClick={() => setShowReviewForm(true)}
               className="mt-4 px-4 py-2 bg-primary-brand text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               Wees de eerste om te beoordelen
             </button>
-          )}
-          {session?.user && !hasPurchased && (
-            <p className="mt-4 text-sm text-gray-500">
-              Je moet dit product eerst kopen voordat je een review kunt plaatsen.
-            </p>
           )}
         </div>
       )}

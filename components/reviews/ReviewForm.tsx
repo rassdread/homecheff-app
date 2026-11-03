@@ -100,6 +100,11 @@ export default function ReviewForm({
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
       <h3 className="mb-4 text-lg font-semibold text-gray-900">Schrijf een beoordeling</h3>
+      <p className="mb-4 text-sm text-gray-600">
+        Je kunt een review plaatsen na een HomeCheff-bestelling, contante aankoop,
+        ruil, gratis ophalen of een afspraak via direct contact. Reviews zonder
+        HomeCheff-bestelling worden als ervaring gemarkeerd.
+      </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
