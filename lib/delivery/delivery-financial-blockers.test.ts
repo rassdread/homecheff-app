@@ -188,7 +188,9 @@ function payoutHarness(options?: {
         deliveryFee: 1000,
         status: options?.status ?? 'DELIVERED',
         notes: null,
+        deliveryFeeCollected: false,
       }),
+      updateMany: async () => ({ count: 1 }),
     },
     order: {
       findUnique: async () => (options?.order === undefined ? null : options.order),
@@ -404,10 +406,11 @@ test('failed, retried, missing, early, and duplicate transfers stay inside the c
   assert.equal(first.transferStatus, 'FAILED');
   assert.equal(first.blockCode, 'INSUFFICIENT_BALANCE');
   assert.equal(String(failed.payout()?.providerRef ?? '').startsWith('tr_'), false);
+  // Temporary insufficient balance stays retryable; the next attempt may succeed.
   const retried = await ensureDeliveryPayout(failed.prisma as never, payoutInput, { stripe: failed.stripe as never });
-  assert.equal(retried.transferStatus, 'FAILED');
-  assert.notEqual(retried.blockCode, 'INSUFFICIENT_BALANCE');
-  assert.equal(failed.calls.length, 1);
+  assert.equal(retried.transferStatus, 'SUCCEEDED');
+  assert.equal(retried.transferId?.startsWith('tr_'), true);
+  assert.equal(failed.calls.length, 2);
   assert.equal(failed.calls[0].key, 'homecheff:delivery:courier-transfer:d1:ch_standalone:v1');
 
   const missing = payoutHarness({ standalone: { stripeSessionId: 'cs_missing', paymentStatus: 'PAID' } });

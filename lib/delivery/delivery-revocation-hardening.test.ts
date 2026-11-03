@@ -108,7 +108,9 @@ function harness(
         deliveryFee: 1000,
         status: 'DELIVERED',
         notes: null,
+        deliveryFeeCollected: false,
       }),
+      updateMany: async () => ({ count: 1 }),
     },
     order: {
       findUnique: async () => ({ stripeSessionId: 'cs_order', paymentMethod: 'IDEAL' }),

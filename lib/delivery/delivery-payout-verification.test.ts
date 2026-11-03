@@ -119,7 +119,12 @@ function harness(profile: Profile, options?: { payout?: Record<string, unknown> 
         deliveryFee: 1000,
         status: 'DELIVERED',
         notes: null,
+        deliveryFeeCollected: false,
       }),
+      updateMany: async ({ data }: { data: Record<string, unknown> }) => {
+        if (data.deliveryFeeCollected === true) writes.push('delivery-fee-collected');
+        return { count: 1 };
+      },
     },
     order: {
       findUnique: async () => ({ stripeSessionId: 'cs_order', paymentMethod: 'IDEAL' }),
@@ -179,6 +184,7 @@ describe('courier payout verification', () => {
     assert.equal(result.transferId, 'tr_test_new');
     assert.equal(result.amountCents, 880);
     assert.equal(box.calls.length, 1);
+    assert.equal(box.writes.includes('delivery-fee-collected'), true);
   });
 
   it('B: unverified adult is blocked before a transfer', async () => {

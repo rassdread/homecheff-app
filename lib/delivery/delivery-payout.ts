@@ -51,6 +51,25 @@ function getStripe(): Stripe | null {
 }
 
 /**
+ * deliveryFeeCollected = courier delivery-fee settlement completed.
+ * Authoritative true event: a confirmed Stripe Connect transfer (tr_) for the
+ * delivery payout. Buyer payment / DELIVERED status alone must not set it.
+ * Idempotent: updateMany only when currently false.
+ */
+export async function markDeliveryFeeCollectedOnConfirmedTransfer(
+  prisma: PrismaClient,
+  deliveryOrderId: string,
+  transferId: string | null | undefined,
+): Promise<boolean> {
+  if (!transferId?.startsWith('tr_')) return false;
+  const updated = await prisma.deliveryOrder.updateMany({
+    where: { id: deliveryOrderId, deliveryFeeCollected: false },
+    data: { deliveryFeeCollected: true },
+  });
+  return updated.count > 0;
+}
+
+/**
  * Idempotent delivery payout: Transaction → Payout → earnings → Stripe Connect transfer.
  * Phase 2.2: gross locked fee from quotedFeeCents (preferred) or legacy deliveryFee.
  * Never re-reads current DeliveryProfile pricing rates.
@@ -222,6 +241,11 @@ export async function ensureDeliveryPayout(
   let created = false;
 
   if (existingPayout?.providerRef?.startsWith('tr_')) {
+    await markDeliveryFeeCollectedOnConfirmedTransfer(
+      prisma,
+      deliveryOrderId,
+      existingPayout.providerRef,
+    );
     return {
       created: false,
       payoutId: existingPayout.id,
@@ -314,6 +338,11 @@ export async function ensureDeliveryPayout(
       const again = await prisma.payout.findUnique({ where: { id: stablePayoutId } });
       if (!again) throw error;
       if (again.providerRef?.startsWith('tr_')) {
+        await markDeliveryFeeCollectedOnConfirmedTransfer(
+          prisma,
+          deliveryOrderId,
+          again.providerRef,
+        );
         return {
           created: false,
           payoutId: again.id,
@@ -560,6 +589,12 @@ export async function ensureDeliveryPayout(
     } catch (error) {
       console.error('[delivery-payout] transfer recorded at Stripe but the payout row was not updated', error instanceof Error ? error.name : 'error');
     }
+    // Flag follows confirmed Connect transfer, even if payout-row update raced.
+    await markDeliveryFeeCollectedOnConfirmedTransfer(
+      prisma,
+      deliveryOrderId,
+      settled.transferId,
+    );
     return {
       created: settled.created,
       payoutId,
