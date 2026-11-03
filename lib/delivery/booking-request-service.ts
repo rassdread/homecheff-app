@@ -32,6 +32,7 @@ import { notifyReservationBuyer } from '@/lib/delivery/reservation-notifications
 import { openPaymentWindowForBooking } from '@/lib/products/courier-stock-hold';
 import { readStandaloneBookingMeta } from '@/lib/delivery/standalone-booking-meta';
 import { assertCourierBookableAt } from '@/lib/delivery/standalone-availability';
+import { readMarketplaceSlot } from '@/lib/delivery/checkout-courier-consistency';
 
 export async function expireStaleBookingRequests(
   prisma: PrismaClient,
@@ -315,6 +316,57 @@ export async function createDeliveryBookingRequest(
       code: 'DELIVERY_ROUTE_UNAVAILABLE',
       error: 'Bezorgprijs kon niet worden berekend.',
     };
+  }
+
+  const requestedPickupAt = readMarketplaceSlot(input.notes);
+  if (requestedPickupAt) {
+    const at = new Date(requestedPickupAt);
+    if (Number.isNaN(at.getTime())) {
+      return {
+        ok: false as const,
+        status: 422,
+        code: 'DELIVERY_SLOT_INVALID',
+        error: 'Het gekozen tijdstip is ongeldig.',
+      };
+    }
+    const bookable = assertCourierBookableAt(
+      {
+        id: profile.id,
+        isActive: profile.isActive,
+        isVerified: profile.isVerified,
+        isBlocked: profile.isBlocked,
+        isOnline: profile.isOnline,
+        onlineUntil: profile.onlineUntil,
+        pricingEnabled: profile.pricingEnabled,
+        baseFeeCents: profile.baseFeeCents,
+        pricePerKmCents: profile.pricePerKmCents,
+        minimumFeeCents: profile.minimumFeeCents,
+        age: profile.age,
+        maxDistance: profile.maxDistance,
+        nationalCoverage: profile.nationalCoverage,
+        temporaryOffline: profile.temporaryOffline,
+        vacationStart: profile.vacationStart,
+        vacationEnd: profile.vacationEnd,
+        workStartTime: profile.workStartTime,
+        workEndTime: profile.workEndTime,
+        breakWindows: profile.breakWindows,
+        availableDays: profile.availableDays,
+        availableTimeSlots: profile.availableTimeSlots,
+        transportation: profile.transportation,
+        acceptanceMode: profile.acceptanceMode,
+        dateOfBirth: profile.user?.dateOfBirth,
+      },
+      at,
+      routeDistanceKm,
+    );
+    if (!bookable.ok) {
+      return {
+        ok: false as const,
+        status: 422,
+        code: bookable.code,
+        error: bookable.error,
+      };
+    }
   }
 
   const activeCount = await prisma.deliveryOrder.count({

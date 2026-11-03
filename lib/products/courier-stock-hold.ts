@@ -437,9 +437,17 @@ export async function releaseUnpaidCheckoutHold(
   return { released: true, reason: 'RELEASED' as const };
 }
 
+/** Pending holds past the hard expiry or the payment deadline. */
+export function unpaidHoldExpiredWhere(now: Date) {
+  return {
+    status: 'PENDING' as const,
+    OR: [{ expiresAt: { lt: now } }, { paymentDeadline: { lt: now } }],
+  };
+}
+
 export async function releaseExpiredUnpaidHolds(prisma: PrismaClient, now = new Date()) {
   const expiring = await prisma.stockReservation.findMany({
-    where: { status: 'PENDING', expiresAt: { lt: now } },
+    where: unpaidHoldExpiredWhere(now),
     select: { id: true, buyerId: true, bookingRequestId: true, checkoutSessionId: true },
   });
   if (expiring.length === 0) return { cleaned: 0, buyers: [] as string[] };
@@ -447,7 +455,7 @@ export async function releaseExpiredUnpaidHolds(prisma: PrismaClient, now = new 
   const released: typeof expiring = [];
   for (const row of expiring) {
     const claimed = await prisma.stockReservation.updateMany({
-      where: { id: row.id, status: 'PENDING', expiresAt: { lt: now } },
+      where: { id: row.id, ...unpaidHoldExpiredWhere(now) },
       data: { status: 'EXPIRED' },
     });
     if (claimed.count === 1) released.push(row);

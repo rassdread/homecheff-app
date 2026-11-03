@@ -15,6 +15,14 @@ import { useDeliveryAvailability } from '@/hooks/useDeliveryAvailability';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { getActiveCartIdentifier } from '@/lib/cart';
 import { calculateStripeFeeForBuyer } from '@/lib/fees';
+import {
+  checkoutCanPayAcceptedBooking,
+  deliveryFeeForCheckout,
+  marketplaceSlotNotes,
+  namedCheckoutAvailable,
+  namedCheckoutCourierHeadline,
+  type CourierMatchView,
+} from '@/lib/delivery/checkout-courier-consistency';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import {
@@ -280,6 +288,8 @@ export default function CheckoutPage() {
   const [reservationRemainingMs, setReservationRemainingMs] = useState<number | null>(null);
   const [paymentRemainingMs, setPaymentRemainingMs] = useState<number | null>(null);
   const [reservationPhase, setReservationPhase] = useState<string | null>(null);
+  const [courierMatch, setCourierMatch] = useState<CourierMatchView>({ kind: 'pending' });
+  const restoredBookingProductRef = useRef<string | null>(null);
   const reservationCopy = language === 'en' ? RESERVATION_COPY.en : RESERVATION_COPY.nl;
 
   useEffect(() => {
@@ -482,8 +492,19 @@ export default function CheckoutPage() {
     loading: availabilityLoading 
   } = useDeliveryAvailability(checkoutDraft.coordinates, sellerLocations);
   
-  const isDeliveryAvailable = availability.isAvailable;
-  const availableDeliverersCount = 0; // Will be updated when deliverers are available
+  const acceptedBookingPayable = checkoutCanPayAcceptedBooking({
+    status: bookingStatus || '',
+    paymentRemainingMs,
+  });
+  const isDeliveryAvailable = namedCheckoutAvailable({
+    namedSelection: namedProviderSelectionEnabled,
+    regionalAvailable: availability.isAvailable,
+    match: courierMatch,
+    acceptedPayable: acceptedBookingPayable,
+    selectionOpen: isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery),
+  });
+  const availableDeliverersCount =
+    courierMatch.kind === 'list' ? courierMatch.count : 0;
   const estimatedDeliveryTime = availability.estimatedTime;
 
   // Get current location for delivery
@@ -685,6 +706,82 @@ export default function CheckoutPage() {
     return () => clearTimeout(timer);
   }, [checkoutDraft.coordinates, checkoutDraft.selectedDelivery, checkoutDraft.addressValidated, checkoutDraft.postalCode, checkoutDraft.country, calculateDeliveryFee, selectedDeliverer?.id]);
 
+  const checkoutProductId = checkoutItems[0]?.productId ?? '';
+
+  useEffect(() => {
+    setCourierMatch({ kind: 'pending' });
+  }, [checkoutDraft.coordinates?.lat, checkoutDraft.coordinates?.lng, checkoutProductId]);
+
+  // Restore an accepted booking through remounts while the payment window is open.
+  useEffect(() => {
+    if (!namedProviderSelectionEnabled || !checkoutProductId) return;
+    if (restoredBookingProductRef.current === checkoutProductId) return;
+    let cancelled = false;
+    (async () => {
+      const response = await fetch(
+        `/api/delivery/booking-requests?productId=${encodeURIComponent(checkoutProductId)}`,
+      );
+      const data = await response.json().catch(() => null);
+      if (cancelled || !response.ok || !data?.booking) return;
+      const payable = checkoutCanPayAcceptedBooking({
+        status: String(data.booking.status || ''),
+        paymentRemainingMs: data.reservation?.paymentRemainingMs ?? null,
+      });
+      if (data.booking.status === 'EXPIRED' || !payable) {
+        if (data.booking.status === 'EXPIRED') {
+          setBookingRequestId(null);
+          setBookingStatus(null);
+          setSelectedDeliverer(null);
+          setReservationRemainingMs(null);
+          setPaymentRemainingMs(null);
+          setReservationPhase(null);
+        } else if (
+          data.booking.status === 'ACCEPTED' ||
+          data.booking.status === 'AUTO_CONFIRMED'
+        ) {
+          setBookingRequestId(data.booking.id);
+          setBookingStatus('EXPIRED');
+        }
+        return;
+      }
+      restoredBookingProductRef.current = checkoutProductId;
+      const quote = deliveryFeeForCheckout(data.booking.quotedFeeCents);
+      setBookingRequestId(data.booking.id);
+      setBookingStatus(data.booking.status);
+      setSelectedDeliverer({
+        id: data.booking.deliveryProfileId,
+        userId: '',
+        name: data.booking.providerName || 'Bezorger',
+        place: '',
+        vehicleType: data.booking.vehicleType || 'BIKE',
+        deliveryRadius: 0,
+        distanceToSeller: 0,
+        distanceToBuyer: data.booking.routeDistanceKm || 0,
+        totalDeliveryDistance: data.booking.routeDistanceKm || 0,
+        rating: 0,
+        completedDeliveries: 0,
+        quotedFeeCents: quote,
+        calculatedDeliveryPrice: quote,
+      });
+      setReservationRemainingMs(data.reservation?.remainingMs ?? null);
+      setPaymentRemainingMs(data.reservation?.paymentRemainingMs ?? null);
+      setReservationPhase(data.reservation?.phase ?? null);
+      if (quote > 0) {
+        setActualDeliveryFee({
+          deliveryFeeCents: quote,
+          distance: data.booking.routeDistanceKm || 0,
+          isInternational: false,
+          breakdown: null,
+        });
+      }
+    })().catch(() => {
+      /* ignore restore errors */
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [namedProviderSelectionEnabled, checkoutProductId]);
+
   // Handle address change from DynamicAddressFields
   const handleAddressChange = useCallback((addressData: AddressData) => {
     // Google Places Autocomplete provides full address for all countries
@@ -811,16 +908,28 @@ export default function CheckoutPage() {
     [checkoutItems]
   );
 
-  // Use actual calculated fee if available, otherwise use estimated fee
+  // Use actual calculated fee if available, otherwise use estimated fee.
+  // Named courier quotes never invent a fee — only the selected quote counts.
   const deliveryFeeCents = useMemo(() => {
     if (actualDeliveryFee && checkoutDraft.addressValidated) {
-      return actualDeliveryFee.deliveryFeeCents;
+      return deliveryFeeForCheckout(actualDeliveryFee.deliveryFeeCents);
+    }
+    if (selectedDeliverer) {
+      return deliveryFeeForCheckout(
+        selectedDeliverer.quotedFeeCents ?? selectedDeliverer.calculatedDeliveryPrice,
+      );
     }
     if (checkoutDraft.selectedDelivery && checkoutDraft.selectedDelivery !== 'pickup') {
       return 0;
     }
     return Math.round((selectedOption?.price ?? 0) * 100);
-  }, [actualDeliveryFee, selectedOption?.price, checkoutDraft.addressValidated]);
+  }, [
+    actualDeliveryFee,
+    selectedOption?.price,
+    checkoutDraft.addressValidated,
+    selectedDeliverer,
+    checkoutDraft.selectedDelivery,
+  ]);
 
   // Calculate SMS notification cost (per seller, with platform fee)
   // SMS provider cost: ~€0.05 per SMS, platform fee: 20% = €0.01, total: €0.06 per seller
@@ -895,6 +1004,18 @@ export default function CheckoutPage() {
       ) {
         setCheckoutError(
           'Wacht op bevestiging van de bezorger, of kies een aanbieder met directe bevestiging.'
+        );
+        return;
+      }
+      if (
+        !checkoutCanPayAcceptedBooking({
+          status: bookingStatus || '',
+          paymentRemainingMs,
+        })
+      ) {
+        setCheckoutError(
+          reservationCopy.expired ||
+            'De betaalperiode voor deze bezorgerreservering is verlopen. Kies opnieuw een bezorger.'
         );
         return;
       }
@@ -1467,7 +1588,13 @@ export default function CheckoutPage() {
                             {isTeenDelivery && (
                               <div
                                 className={`mt-3 text-sm ${
-                                  isLoading
+                                  namedCheckoutCourierHeadline({
+                                    namedSelection: namedProviderSelectionEnabled && isTeenDelivery,
+                                    selectionOpen: checkoutDraft.selectedDelivery === option.id,
+                                    match: courierMatch,
+                                  })
+                                    ? 'text-gray-800'
+                                    : isLoading
                                     ? 'text-blue-600'
                                     : teenNeedsLocation
                                     ? 'text-gray-600'
@@ -1480,7 +1607,13 @@ export default function CheckoutPage() {
                                   ? t('checkout.checkingAvailability')
                                   : teenNeedsLocation
                                   ? t('checkout.teenAvailabilityValidate')
-                                  : availability.message || t('checkout.teenAvailabilityUnknown')}
+                                  : namedCheckoutCourierHeadline({
+                                      namedSelection: namedProviderSelectionEnabled && isTeenDelivery,
+                                      selectionOpen: checkoutDraft.selectedDelivery === option.id,
+                                      match: courierMatch,
+                                    }) ||
+                                    availability.message ||
+                                    t('checkout.teenAvailabilityUnknown')}
                               </div>
                             )}
                           </div>
@@ -1503,6 +1636,7 @@ export default function CheckoutPage() {
                             buyerLat={checkoutDraft.coordinates.lat}
                             buyerLng={checkoutDraft.coordinates.lng}
                             selectedDelivererId={selectedDeliverer?.id}
+                            onMatchResolved={setCourierMatch}
                             onSelectDeliverer={async (d) => {
                               const previousBookingId = bookingRequestId;
                               setSelectedDeliverer(d);
@@ -1521,6 +1655,9 @@ export default function CheckoutPage() {
                                     routeDistanceKm: d.totalDeliveryDistance,
                                     quotedFeeCents:
                                       d.quotedFeeCents ?? d.calculatedDeliveryPrice ?? null,
+                                    notes: d.requestedPickupAt
+                                      ? marketplaceSlotNotes(d.requestedPickupAt)
+                                      : undefined,
                                     replacesBookingRequestId:
                                       previousBookingId &&
                                       selectedDeliverer?.id &&

@@ -5,7 +5,11 @@
  * Buyer chooses a specific provider; HomeCheff validates provider-defined rules.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import {
+  interpretMatchResponse,
+  shouldApplyMatchGeneration,
+} from '@/lib/delivery/checkout-courier-consistency';
 import { MapPin, Clock, Star, Truck, Bike, Car, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -38,6 +42,8 @@ export interface Deliverer {
   acceptanceMode?: string;
   confirmationMode?: string;
   estimatedArrivalMinutes?: number;
+  offeredSlots?: Array<{ at: string; label: string }>;
+  requestedPickupAt?: string;
   availabilityBadge?: {
     code: string;
     labelNl: string;
@@ -58,6 +64,7 @@ interface DelivererSelectorProps {
   buyerLat?: number;
   buyerLng?: number;
   onSelectDeliverer: (deliverer: Deliverer) => void;
+  onMatchResolved?: (match: { kind: 'list'; count: number } | { kind: 'error' }) => void;
   selectedDelivererId?: string;
   /** Product-less standalone list. Marketplace checkout does not pass this. */
   externalDeliverers?: Deliverer[] | null;
@@ -68,56 +75,105 @@ export default function DelivererSelector({
   buyerLat,
   buyerLng,
   onSelectDeliverer,
+  onMatchResolved,
   selectedDelivererId,
   externalDeliverers,
 }: DelivererSelectorProps) {
   const { t, language } = useTranslation();
   const [deliverers, setDeliverers] = useState<Deliverer[]>([]);
   const [regionInfo, setRegionInfo] = useState<RegionInfo | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(Boolean(productId) && !externalDeliverers);
   const [error, setError] = useState<string | null>(null);
+  const [pickedId, setPickedId] = useState<string | null>(selectedDelivererId ?? null);
+  const [pickedSlot, setPickedSlot] = useState<string | null>(null);
+  const matchGeneration = useRef(0);
+  const onMatchResolvedRef = useRef(onMatchResolved);
+  onMatchResolvedRef.current = onMatchResolved;
+  const tRef = useRef(t);
+  tRef.current = t;
+
+  // Round so GPS/Places float jitter does not remount-match forever.
+  const stableBuyerLat =
+    typeof buyerLat === 'number' && Number.isFinite(buyerLat) ? Math.round(buyerLat * 1e5) / 1e5 : buyerLat;
+  const stableBuyerLng =
+    typeof buyerLng === 'number' && Number.isFinite(buyerLng) ? Math.round(buyerLng * 1e5) / 1e5 : buyerLng;
 
   useEffect(() => {
     if (externalDeliverers) {
       setDeliverers(externalDeliverers);
       setLoading(false);
+      onMatchResolvedRef.current?.({ kind: 'list', count: externalDeliverers.length });
       return;
     }
-    if (productId) {
-      fetchDeliverers();
-    }
-  }, [productId, buyerLat, buyerLng, externalDeliverers]);
-
-  const fetchDeliverers = async () => {
     if (!productId) return;
+
+    // GPS / Places / PDOK often emit several coordinate updates in a short window.
+    // Debounce and do NOT abort in-flight fetches on cleanup — aborted retries were
+    // leaving the UI stuck on "Searching" under coordinate thrash.
     setLoading(true);
     setError(null);
 
-    try {
-      const params = new URLSearchParams({
-        productId,
-        ...(buyerLat && buyerLng && {
-          buyerLat: buyerLat.toString(),
-          buyerLng: buyerLng.toString(),
-        }),
-      });
+    const hasCoords =
+      typeof stableBuyerLat === 'number' &&
+      typeof stableBuyerLng === 'number' &&
+      Number.isFinite(stableBuyerLat) &&
+      Number.isFinite(stableBuyerLng) &&
+      stableBuyerLat !== 0 &&
+      stableBuyerLng !== 0;
 
-      const response = await fetch(`/api/delivery/match-deliverers?${params}`);
-      const data = await response.json();
-
-      if (data.success) {
-        setDeliverers(data.matchedDeliverers);
-        setRegionInfo(data.region);
-      } else {
-        setError(data.error || t('delivererSelector.noDeliverersFound'));
+    const timer = window.setTimeout(() => {
+      const generation = ++matchGeneration.current;
+      const params = new URLSearchParams({ productId });
+      if (hasCoords) {
+        params.set('buyerLat', String(stableBuyerLat));
+        params.set('buyerLng', String(stableBuyerLng));
       }
-    } catch (err) {
-      setError(t('delivererSelector.errorFetchingDeliverers'));
-      console.error('Error fetching deliverers:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      fetch(`/api/delivery/match-deliverers?${params}`)
+        .then(async (response) => {
+          const data = await response.json().catch(() => null);
+          if (!shouldApplyMatchGeneration(generation, matchGeneration.current)) return;
+          const interpreted = interpretMatchResponse(data);
+          console.info('[delivery-match-client]', {
+            httpStatus: response.status,
+            hasProduct: true,
+            hasCoords,
+            matchCount: interpreted.kind === 'list' ? interpreted.count : null,
+            code: interpreted.code,
+          });
+          if (interpreted.kind === 'list') {
+            setDeliverers(data.matchedDeliverers);
+            setRegionInfo(data.region ?? null);
+            setError(null);
+            onMatchResolvedRef.current?.({ kind: 'list', count: interpreted.count });
+          } else {
+            setDeliverers([]);
+            setError(data?.error || tRef.current('delivererSelector.noDeliverersFound'));
+            onMatchResolvedRef.current?.({ kind: 'error' });
+          }
+        })
+        .catch((err) => {
+          if (!shouldApplyMatchGeneration(generation, matchGeneration.current)) return;
+          setError(tRef.current('delivererSelector.errorFetchingDeliverers'));
+          onMatchResolvedRef.current?.({ kind: 'error' });
+          console.info('[delivery-match-client]', {
+            httpStatus: 0,
+            hasProduct: true,
+            hasCoords,
+            matchCount: null,
+            code: 'REQUEST_FAILED',
+          });
+          void err;
+        })
+        .finally(() => {
+          if (shouldApplyMatchGeneration(generation, matchGeneration.current)) setLoading(false);
+        });
+    }, 500);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [productId, stableBuyerLat, stableBuyerLng, externalDeliverers]);
 
   const getVehicleIcon = (vehicleType: string) => {
     switch (vehicleType) {
@@ -263,15 +319,26 @@ export default function DelivererSelector({
               key={deliverer.id}
               role="button"
               tabIndex={0}
-              onClick={() => onSelectDeliverer(deliverer)}
+              onClick={() => {
+                if (!deliverer.offeredSlots) {
+                  onSelectDeliverer(deliverer);
+                  return;
+                }
+                setPickedId(deliverer.id);
+                setPickedSlot(deliverer.offeredSlots[0]?.at ?? null);
+              }}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault();
-                  onSelectDeliverer(deliverer);
+                  if (!deliverer.offeredSlots) onSelectDeliverer(deliverer);
+                  else {
+                    setPickedId(deliverer.id);
+                    setPickedSlot(deliverer.offeredSlots[0]?.at ?? null);
+                  }
                 }
               }}
               className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                selectedDelivererId === deliverer.id
+                (pickedId ?? selectedDelivererId) === deliverer.id
                   ? 'border-green-500 bg-green-50'
                   : 'border-gray-200 hover:border-green-300 hover:bg-gray-50'
               }`}
@@ -374,6 +441,40 @@ export default function DelivererSelector({
                   )}
                 </div>
               </div>
+              {deliverer.offeredSlots && (pickedId ?? selectedDelivererId) === deliverer.id ? (
+                <div className="mt-3 space-y-2" onClick={(event) => event.stopPropagation()}>
+                  <p className="text-xs font-medium text-gray-700">Beschikbare tijden</p>
+                  <div className="flex flex-wrap gap-2">
+                    {deliverer.offeredSlots.map((slot) => (
+                      <button
+                        key={slot.at}
+                        type="button"
+                        className={`min-h-[44px] rounded-lg border px-3 text-sm ${
+                          pickedSlot === slot.at
+                            ? 'border-emerald-600 bg-emerald-600 text-white'
+                            : 'border-gray-300 bg-white text-gray-800'
+                        }`}
+                        onClick={() => setPickedSlot(slot.at)}
+                      >
+                        {slot.label}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className="min-h-[44px] w-full rounded-lg bg-emerald-700 px-3 text-sm font-semibold text-white disabled:opacity-50"
+                    disabled={!pickedSlot}
+                    onClick={() =>
+                      onSelectDeliverer({
+                        ...deliverer,
+                        requestedPickupAt: pickedSlot ?? undefined,
+                      })
+                    }
+                  >
+                    Verstuur bezorgverzoek
+                  </button>
+                </div>
+              ) : null}
             </div>
           );
         })}
