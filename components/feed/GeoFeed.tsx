@@ -1297,7 +1297,6 @@ export default function GeoFeed({
   );
   const recirculationInFlightRef = useRef(false);
   /** When a discovery constraint is active, do not re-show exhausted exact ids. */
-  const discoveryConstraintActiveRef = useRef(false);
   const [suggestionItems, setSuggestionItems] = useState<FeedItem[]>([]);
   const [suggestionHasMore, setSuggestionHasMore] = useState(false);
   const [suggestionLoadingMore, setSuggestionLoadingMore] = useState(false);
@@ -3887,11 +3886,9 @@ export default function GeoFeed({
 
     const shouldRecirculate = shouldActivateRecirculation(comp);
 
-    if (shouldRecirculate && discoveryConstraintActiveRef.current) {
-      feedHasMoreRef.current = false;
-      setFeedHasMore(false);
-      return;
-    }
+    // Recirculation is the historical endless-feed stage after unique exhaust.
+    // Discovery constraints (Nearby / search / category) must not terminate
+    // the feed while eligible seeds remain — see feed-composition-contract.
 
     if (shouldRecirculate) {
       if (recirculationInFlightRef.current) return;
@@ -5298,8 +5295,6 @@ export default function GeoFeed({
       Boolean(userLocation) ||
       Boolean(profileCoords),
   });
-  discoveryConstraintActiveRef.current = discoveryConstraintActive;
-
   /**
    * Unconstrained mixed discovery under an active filter/search — local-first
    * progressive sales + Inspiration, without search/category/price/accepted.
@@ -6389,13 +6384,14 @@ export default function GeoFeed({
     const suggestionSales = suggestionItems
       .filter((item) => isMarketplaceSaleItem(item))
       .map((item) => ({ row: "sale" as const, item }));
+    // New discovery is exact-deduped; recirculation appends after (never exact-deduped).
     return composeWidenedStageRowsForPaint({
       widenedRows: radiusPresentation.widenedRows as typeof displayRows,
       continuityRows: [
         ...continuityDisplayRows,
         ...suggestionSales,
       ] as typeof displayRows,
-      recirculatedRows: [],
+      recirculatedRows: recirculatedRows as typeof displayRows,
       exactIds,
     });
   }, [
@@ -6406,32 +6402,45 @@ export default function GeoFeed({
     displayRows,
     suggestionItems,
     continuityDisplayRows,
+    recirculatedRows,
   ]);
 
-  const suggestionRowsAvailable = suggestionRowsForPaint;
-  const suggestionRowsVisible = suggestionRowsAvailable.slice(0, discoveryShown);
+  const labelledDiscoveryCount = Math.max(
+    0,
+    suggestionRowsForPaint.length - recirculatedRows.length,
+  );
+  const labelledDiscoveryVisible = suggestionRowsForPaint
+    .slice(0, labelledDiscoveryCount)
+    .slice(0, discoveryShown);
+  // Recirculation stays fully visible after labelled batches (historical endless feed).
+  const suggestionRowsVisible = [
+    ...labelledDiscoveryVisible,
+    ...suggestionRowsForPaint.slice(labelledDiscoveryCount),
+  ];
   const discoveryCanContinue = discoveryWindowCanContinue({
     shown: discoveryShown,
-    available: suggestionRowsAvailable.length,
+    available: labelledDiscoveryCount,
     apiHasMore: suggestionHasMore,
   });
+  // Permanent "caught up" only when recirculation also cannot continue.
   const discoveryTrulyEnded =
     showExhaustionContinuation &&
     suggestionApiDone &&
     !suggestionLoadingMore &&
     !suggestionLoadFailed &&
-    !discoveryCanContinue;
+    !discoveryCanContinue &&
+    compositionState.emptyTerminal;
 
   const discoveryScrollStateRef = useRef({
     shown: discoveryShown,
-    available: suggestionRowsAvailable.length,
+    available: labelledDiscoveryCount,
     apiHasMore: suggestionHasMore,
     loading: suggestionLoadingMore,
     failed: suggestionLoadFailed,
   });
   discoveryScrollStateRef.current = {
     shown: discoveryShown,
-    available: suggestionRowsAvailable.length,
+    available: labelledDiscoveryCount,
     apiHasMore: suggestionHasMore,
     loading: suggestionLoadingMore,
     failed: suggestionLoadFailed,

@@ -163,11 +163,15 @@ const painted = composeWidenedStageRowsForPaint({
 });
 const kept = painted[0];
 ok(
-  'suggestion stage drops exact ids and keeps one new suggestion',
-  painted.length === 1 &&
+  'suggestion stage drops exact ids from discovery but keeps recirculation after',
+  painted.length === 3 &&
     kept != null &&
     kept.row === 'sale' &&
-    kept.item.id === 'c',
+    kept.item.id === 'c' &&
+    painted[1]?.row === 'sale' &&
+    painted[1]?.item.id === 'a' &&
+    painted[2]?.row === 'sale' &&
+    painted[2]?.item.id === 'b',
 );
 const paintedDup = composeWidenedStageRowsForPaint({
   widenedRows: [{ row: 'sale', item: { id: 'c' } }],
@@ -190,6 +194,26 @@ ok(
 ok(
   'GeoFeed marks load-more sentinel for probes',
   geo.includes('data-feed-sentinel') && geo.includes('data-testid="feed-sentinel"'),
+);
+
+ok(
+  'GeoFeed does not terminate recirculation under discovery constraints',
+  !geo.includes('shouldRecirculate && discoveryConstraintActiveRef.current'),
+);
+ok(
+  'GeoFeed passes recirculatedRows into widened-stage paint',
+  /composeWidenedStageRowsForPaint\([\s\S]*recirculatedRows:\s*recirculatedRows/.test(
+    geo,
+  ) && !/recirculatedRows:\s*\[\],/.test(
+    geo.slice(
+      geo.indexOf('composeWidenedStageRowsForPaint'),
+      geo.indexOf('composeWidenedStageRowsForPaint') + 500,
+    ),
+  ),
+);
+ok(
+  'caught-up end requires emptyTerminal (not labelled-discovery alone)',
+  /discoveryTrulyEnded\s*=[\s\S]*emptyTerminal/.test(geo),
 );
 
 console.log(`\n✅ feed radius presentation: ${passed} checks passed`);
