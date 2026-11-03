@@ -75,6 +75,7 @@ import {
   pickPrimaryImageUrl,
   pickPrimaryVideoUrl,
 } from "@/components/feed/feedMedia";
+import { normalizeFeedGalleryUrls } from "@/lib/feed/normalize-feed-gallery-urls";
 import {
   getEffectiveFeedLayoutMode,
   useFeedLayoutMode,
@@ -683,6 +684,8 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     lat: resolvedCoords?.lat ?? null,
     lng: resolvedCoords?.lng ?? null,
     photo,
+    // HOTFIX_V2: API galleryUrls must survive normalizeFeedItem for carousel/lightbox.
+    galleryUrls: normalizeFeedGalleryUrls(raw.galleryUrls, photo),
     videoUrl,
     videoThumbnail,
     createdAt,
