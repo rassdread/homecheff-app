@@ -12,6 +12,7 @@ export const TILE_BADGE_PRIORITY: TileBadgeKind[] = [
   'listing_kind',
   'offer_category',
   'specialization',
+  'business_plan',
   'trust_badge',
 ];
 

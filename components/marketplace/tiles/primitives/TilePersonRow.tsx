@@ -10,6 +10,7 @@ import { useMakerFollowState } from '@/hooks/useMakerFollowState';
 import type { MarketplaceTileModel, TranslateFn } from '@/lib/marketplace/tiles';
 import { getPublicProfileHref } from '@/lib/user/public-profile';
 import TileFollowAction from '@/components/marketplace/tiles/primitives/TileFollowAction';
+import BusinessPlanBadge from '@/components/business/BusinessPlanBadge';
 
 export default function TilePersonRow({
   model,
@@ -75,14 +76,19 @@ export default function TilePersonRow({
             {t('marketplace.tile.person.requestedBy')}
           </span>
         ) : null}
-        <Link
-          href={profileHref}
-          prefetch
-          className="block truncate font-semibold text-gray-800 hover:text-primary-brand"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {displayName ?? fallbackName}
-        </Link>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <Link
+            href={profileHref}
+            prefetch
+            className="block min-w-0 truncate font-semibold text-gray-800 hover:text-primary-brand"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {displayName ?? fallbackName}
+          </Link>
+          {model.trust.businessPlan && model.trust.businessPlan !== 'individual' ? (
+            <BusinessPlanBadge plan={model.trust.businessPlan} t={t} size="sm" />
+          ) : null}
+        </div>
         <p className="truncate text-[11px] text-gray-500">
           {formatFansCountLabel(fansCount, t)}
           {locationLine ? ` · ${locationLine}` : ''}

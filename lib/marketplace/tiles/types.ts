@@ -125,7 +125,8 @@ export type TileBadgeKind =
   | 'offer_category'
   | 'specialization'
   | 'accepted_value'
-  | 'trust_badge';
+  | 'trust_badge'
+  | 'business_plan';
 
 export type TileBadgeTone = 'request' | 'default' | 'date' | 'trust' | 'kind';
 
@@ -140,6 +141,8 @@ export type TileBadge = {
   icon?: string;
   iconKind?: TileBadgeIconKind;
   taxonomyTone?: TaxonomyTone | null;
+  /** Paid plan id for business_plan badges (Basic / Pro / Premium styling). */
+  businessPlan?: BusinessPlanId;
 };
 
 /** Reserved for Phase 5B+ barter badge row — not rendered in 5B-B */
