@@ -1,6 +1,8 @@
 /**
  * CHEFF recipe editor save rules.
- * PRIVATE drafts may be partial. PUBLISHED requires structured ingredients + instructions.
+ * PRIVATE drafts may be partial.
+ * PUBLISHED cooking inspiration needs ingredients (steps optional).
+ * PUBLISHED complete recipes keep ingredients + instructions when steps are present.
  */
 
 export type RecipeFormValidationInput = {
@@ -39,11 +41,10 @@ export function validateRecipeFormSave(
     return { ok: true };
   }
 
+  // Publish: cooking inspiration = ingredients without forced steps.
+  // If the author added steps, keep complete-recipe integrity (ingredients required).
   if (ingredients.length === 0) {
     return { ok: false, errorKey: 'recipe.ingredientRequired' };
-  }
-  if (instructions.length === 0) {
-    return { ok: false, errorKey: 'recipe.instructionRequired' };
   }
   return { ok: true };
 }

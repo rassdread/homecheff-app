@@ -326,7 +326,11 @@ export default function InstructionDetailSection({
             {t(INSTRUCTION_TYPE_LABEL_KEY[category])}
           </p>
           <h2 id="instruction-section-title" className="mt-1 text-2xl font-bold text-gray-900">
-            {t('inspiratie.instructions.sectionTitle')}
+            {category === 'CHEFF' && steps.length === 0
+              ? t('inspiratie.instructions.cookingInspirationTitle', {
+                  defaultValue: 'Kookinspiratie',
+                })
+              : t('inspiratie.instructions.sectionTitle')}
           </h2>
         </div>
         <div className="flex shrink-0 flex-col gap-2 sm:items-end">

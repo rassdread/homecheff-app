@@ -189,6 +189,7 @@ export async function PATCH(
       instructions: instructions !== undefined ? instructions : dish.instructions,
       materials: materials !== undefined ? materials : dish.materials,
       notes: notes !== undefined ? notes : dish.notes,
+      description: description !== undefined ? description : dish.description,
     });
     if ((status || '').toUpperCase() === 'PUBLISHED') {
       const accBlock = assertAccountRequirementsOr403(user, "postItem");

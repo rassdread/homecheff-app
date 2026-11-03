@@ -13,7 +13,7 @@ describe('isUnpublishedInspirationProductMirror', () => {
     );
   });
 
-  it('keeps published inspiration mirrors discoverable as products when priced', () => {
+  it('keeps priced product mirrors discoverable as sale products', () => {
     assert.equal(
       isUnpublishedInspirationProductMirror({
         priceCents: 1500,
@@ -33,13 +33,13 @@ describe('isUnpublishedInspirationProductMirror', () => {
     );
   });
 
-  it('allows PUBLISHED dish mirrors even at zero price', () => {
+  it('hides PUBLISHED zero-price dish mirrors from Marketplace sale feed', () => {
     assert.equal(
       isUnpublishedInspirationProductMirror({
         priceCents: 0,
         linkedDishStatus: 'PUBLISHED',
       }),
-      false,
+      true,
     );
   });
 });

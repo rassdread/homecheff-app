@@ -192,6 +192,7 @@ export async function POST(req: NextRequest) {
       instructions,
       materials,
       notes,
+      description,
     });
 
     let dishLat =

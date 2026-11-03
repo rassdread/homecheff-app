@@ -216,18 +216,15 @@ async function fetchProductIdRows(
   });
 
   const candidateIds = (activeRows as ProductIdRow[]).map((row) => row.id);
-  const privateDishes =
+  const linkedDishes =
     candidateIds.length === 0
       ? []
       : await prisma.dish.findMany({
-          where: {
-            id: { in: candidateIds },
-            status: { not: 'PUBLISHED' },
-          },
+          where: { id: { in: candidateIds } },
           select: { id: true, status: true },
         });
   const dishStatusById = new Map(
-    privateDishes.map((dish) => [dish.id, dish.status] as const),
+    linkedDishes.map((dish) => [dish.id, dish.status] as const),
   );
   const visibleRows = (activeRows as Array<ProductIdRow & { priceCents?: number | null }>).filter(
     (row) =>

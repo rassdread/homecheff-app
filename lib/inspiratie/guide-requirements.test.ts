@@ -16,10 +16,20 @@ describe('inspiration guide publish gate', () => {
     assert.equal(result.heldAsDraft, true);
   });
 
-  it('publishes CHEFF when recipe guide is present', () => {
+  it('publishes CHEFF complete recipe when ingredients and steps are present', () => {
     const result = resolveInspirationPublishStatus('PUBLISHED', 'CHEFF', {
       ingredients: ['bloem'],
       instructions: ['bakken'],
+    });
+    assert.equal(result.status, 'PUBLISHED');
+    assert.equal(result.heldAsDraft, false);
+  });
+
+  it('publishes CHEFF cooking inspiration with ingredients and no steps', () => {
+    const result = resolveInspirationPublishStatus('PUBLISHED', 'CHEFF', {
+      ingredients: ['200 gr. boter', '200 gr. chocola'],
+      instructions: [],
+      description: 'Recept Brownie : - 200 gr. boter',
     });
     assert.equal(result.status, 'PUBLISHED');
     assert.equal(result.heldAsDraft, false);

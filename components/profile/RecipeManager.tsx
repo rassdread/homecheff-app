@@ -686,7 +686,11 @@ export default function RecipeManager({
             if (dish.category !== 'CHEFF') return false;
             
             if (isPublic) {
-              return dish.status === 'PUBLISHED' && dish.ingredients && dish.instructions;
+              // Cooking inspiration may publish with ingredients and no steps.
+              const hasIngredients = Array.isArray(dish.ingredients)
+                ? dish.ingredients.some((line: string) => String(line || '').trim())
+                : false;
+              return dish.status === 'PUBLISHED' && hasIngredients;
             }
             
             // In private mode (Mijn Recepten tab), toon ALLE recepten

@@ -8,6 +8,7 @@ export type InspirationGuideInput = {
   instructions?: unknown;
   materials?: unknown;
   notes?: unknown;
+  description?: unknown;
   plantType?: unknown;
   soilType?: unknown;
   plantDate?: unknown;
@@ -16,6 +17,9 @@ export type InspirationGuideInput = {
   plantDistance?: unknown;
   growthPhotos?: unknown;
 };
+
+/** CHEFF presentation: complete step-by-step recipe vs cooking inspiration. */
+export type CheffInspirationKind = 'complete_recipe' | 'cooking_inspiration' | 'incomplete';
 
 function textList(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -30,9 +34,39 @@ function hasGrowthPhotos(value: unknown): boolean {
   return Array.isArray(value) && value.length > 0;
 }
 
-/** Ingredients and preparation steps. Prep time alone is not a recipe. */
+/** Complete recipe: structured ingredients and preparation steps. */
+export function isCompleteRecipeGuide(input: InspirationGuideInput): boolean {
+  return (
+    textList(input.ingredients).length > 0 &&
+    textList(input.instructions).length > 0
+  );
+}
+
+/**
+ * Cooking inspiration: meaningful CHEFF content without requiring steps.
+ * Ingredients alone count; description or photos reinforce but are not required
+ * when ingredients are present. Empty listings stay incomplete.
+ */
+export function isCookingInspirationGuide(input: InspirationGuideInput): boolean {
+  if (isCompleteRecipeGuide(input)) return false;
+  if (textList(input.ingredients).length > 0) return true;
+  if (text(input.description).length > 0 && hasGrowthPhotos(input.growthPhotos)) {
+    return true;
+  }
+  return false;
+}
+
+export function resolveCheffInspirationKind(
+  input: InspirationGuideInput,
+): CheffInspirationKind {
+  if (isCompleteRecipeGuide(input)) return 'complete_recipe';
+  if (isCookingInspirationGuide(input)) return 'cooking_inspiration';
+  return 'incomplete';
+}
+
+/** CHEFF may publish as a complete recipe or as cooking inspiration. */
 export function hasMeaningfulRecipeGuide(input: InspirationGuideInput): boolean {
-  return textList(input.ingredients).length > 0 && textList(input.instructions).length > 0;
+  return resolveCheffInspirationKind(input) !== 'incomplete';
 }
 
 /** Materials, making steps, or notes that the design guide can show. */

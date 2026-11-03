@@ -17,7 +17,7 @@ describe('validateRecipeFormSave', () => {
     assert.equal(result.ok, true);
   });
 
-  it('blocks PUBLISHED without instructions', () => {
+  it('allows PUBLISHED cooking inspiration without instructions', () => {
     const result = validateRecipeFormSave({
       title: 'Brownie',
       description: 'x',
@@ -25,8 +25,19 @@ describe('validateRecipeFormSave', () => {
       instructions: [''],
       isPrivate: false,
     });
+    assert.equal(result.ok, true);
+  });
+
+  it('still requires ingredients for PUBLISHED', () => {
+    const result = validateRecipeFormSave({
+      title: 'Brownie',
+      description: 'x',
+      ingredients: [''],
+      instructions: ['bakken'],
+      isPrivate: false,
+    });
     assert.equal(result.ok, false);
-    if (!result.ok) assert.equal(result.errorKey, 'recipe.instructionRequired');
+    if (!result.ok) assert.equal(result.errorKey, 'recipe.ingredientRequired');
   });
 
   it('blocks empty PRIVATE draft without description', () => {
