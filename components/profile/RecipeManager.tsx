@@ -21,6 +21,11 @@ import {
 } from "@/lib/create-flow-drafts";
 import { createFlowDebug } from "@/lib/create-flow-debug";
 import {
+  descriptionLooksLikeUnmappedIngredients,
+  filterNonEmptyLines,
+  validateRecipeFormSave,
+} from '@/lib/inspiratie/recipe-form-validation';
+import {
   isInsideCreateFlowDialog,
   resetCreateFlowUiState,
 } from "@/lib/reset-create-flow-ui";
@@ -735,24 +740,49 @@ export default function RecipeManager({
 
   const handleSaveRecipe = async () => {
     try {
-      // Validation
-      if (!formData.title || formData.title.trim() === '') {
-        setMessage({ type: 'error', text: t('recipe.titleRequired') });
+      const validation = validateRecipeFormSave({
+        title: formData.title,
+        description: formData.description,
+        ingredients: formData.ingredients,
+        instructions: formData.instructions,
+        isPrivate,
+      });
+      if (!validation.ok) {
+        setMessage({
+          type: 'error',
+          text: t(validation.errorKey, {
+            defaultValue:
+              validation.errorKey === 'recipe.draftContentRequired'
+                ? 'Voeg minstens ingrediënten, bereidingsstappen of een beschrijving toe om het concept te bewaren.'
+                : validation.errorKey === 'recipe.instructionRequired'
+                  ? 'Voor publicatie zijn bereidingsstappen verplicht. Bewaar als concept als je die nog niet hebt.'
+                  : validation.errorKey === 'recipe.ingredientRequired'
+                    ? 'Voor publicatie is minstens één ingrediënt verplicht.'
+                    : 'Titel is verplicht',
+          }),
+        });
         return;
       }
 
-      const filteredIngredients = formData.ingredients.filter(ing => ing.trim() !== '');
-      const filteredInstructions = formData.instructions.filter(inst => inst.trim() !== '');
-
-      if (filteredIngredients.length === 0) {
-        setMessage({ type: 'error', text: t('recipe.ingredientRequired') });
+      if (
+        isPrivate &&
+        descriptionLooksLikeUnmappedIngredients(
+          formData.description,
+          formData.ingredients,
+        )
+      ) {
+        setMessage({
+          type: 'error',
+          text: t('recipe.unmappedDescriptionIngredients', {
+            defaultValue:
+              'Je beschrijving lijkt ingrediënten te bevatten. Zet ze in de ingrediëntenvelden zodat het recept zichtbaar blijft als inspiratie.',
+          }),
+        });
         return;
       }
 
-      if (filteredInstructions.length === 0) {
-        setMessage({ type: 'error', text: t('recipe.instructionRequired') });
-        return;
-      }
+      const filteredIngredients = filterNonEmptyLines(formData.ingredients);
+      const filteredInstructions = filterNonEmptyLines(formData.instructions);
 
       const recipeData = {
         ...formData,
