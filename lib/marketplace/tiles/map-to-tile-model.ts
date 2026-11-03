@@ -134,6 +134,15 @@ export function mapGeoFeedCardToTileModel(
     coverImage:
       (d?.coverImage && hasUsableMediaUrl(d.coverImage) ? d.coverImage : null) ??
       (item.photo && hasUsableMediaUrl(item.photo) ? item.photo : null),
+    galleryUrls: (() => {
+      const raw = Array.isArray(item.galleryUrls) ? item.galleryUrls : [];
+      const urls = raw.filter((u): u is string => hasUsableMediaUrl(u));
+      const cover =
+        (d?.coverImage && hasUsableMediaUrl(d.coverImage) ? d.coverImage : null) ??
+        (item.photo && hasUsableMediaUrl(item.photo) ? item.photo : null);
+      if (cover && !urls.includes(cover)) return [cover, ...urls];
+      return urls;
+    })(),
     videoUrl: item.videoUrl ?? null,
     videoPoster: item.videoThumbnail ?? null,
     imageAlt: item.title ?? '',

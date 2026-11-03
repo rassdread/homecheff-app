@@ -65,6 +65,8 @@ export type MarketplaceTileModel = {
   description: string | null;
 
   coverImage: string | null;
+  /** Ordered product photos for inline feed carousel (cover first when present). */
+  galleryUrls?: string[];
   videoUrl: string | null;
   videoPoster: string | null;
   imageAlt: string;

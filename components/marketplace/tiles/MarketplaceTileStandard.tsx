@@ -53,6 +53,7 @@ export default function MarketplaceTileStandard({
         href={model.href}
         alt={model.imageAlt}
         imageUrl={model.coverImage}
+        galleryUrls={model.galleryUrls}
         videoUrl={model.videoUrl}
         videoPoster={model.videoPoster}
         mediaRatio="4:3"

@@ -98,10 +98,27 @@ async function main() {
     seller: { avatar: sampleBase64 },
     discovery: { coverImage: sampleBase64 },
   });
-  assert(sanitized.image === null, 'cover null when only base64');
+  assert(
+    sanitized.image === 'https://cdn.example.com/b.jpg',
+    'cover falls back to first safe gallery URL',
+  );
   assert(!('images' in sanitized), 'removes images array');
   assert(!('ListingMedia' in sanitized), 'removes ListingMedia array');
+  assert(
+    Array.isArray(sanitized.galleryUrls) &&
+      sanitized.galleryUrls.length === 1 &&
+      sanitized.galleryUrls[0] === 'https://cdn.example.com/b.jpg',
+    'keeps slim galleryUrls without base64',
+  );
   assert(countInlineDataMediaUrls(sanitized) === 0, 'no inline data after sanitize');
+
+  const onlyBase64 = sanitizeFeedItemForResponse({
+    id: 'test-2',
+    image: sampleBase64,
+    images: [sampleBase64],
+  });
+  assert(onlyBase64.image === null, 'cover null when only base64');
+  assert(!('galleryUrls' in onlyBase64), 'no galleryUrls when nothing safe');
 
   console.log('\n13L.3 Pagination defaults');
   const parsed = parseFeedPaginationParams(null, null);

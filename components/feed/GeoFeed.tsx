@@ -416,6 +416,8 @@ type FeedItem = {
   lat: number | null;
   lng: number | null;
   photo: string | null;
+  /** Slim gallery from sanitize (carousel + lightbox). */
+  galleryUrls?: string[] | null;
   videoUrl: string | null;
   videoThumbnail: string | null;
   createdAt: string;
@@ -992,6 +994,7 @@ function toCardItem(
     deliveryMode: it.deliveryMode,
     place: it.place,
     photo: it.photo,
+    galleryUrls: Array.isArray(it.galleryUrls) ? it.galleryUrls : undefined,
     videoUrl: it.videoUrl,
     videoThumbnail: it.videoThumbnail,
     distanceKm,

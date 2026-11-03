@@ -53,14 +53,15 @@ ok(
 
 const media = read('components/feed/feedMedia.tsx');
 ok(
-  'feed media primary hit target is listing Link',
-  media.includes('Primary hit target always opens the canonical listing detail') &&
-    media.includes('navDebug("feed-tile:media-link"'),
+  'feed media photo opens fullscreen gallery (V2)',
+  media.includes('feed-tile:media-lightbox-image') &&
+    media.includes('gallery: { sources, index: safePhotoIndex }'),
 );
 ok(
-  'mobile lightbox is secondary control, not full-card overlay',
-  media.includes('lightboxEligible && hasOpenableLightboxMedia') &&
-    media.indexOf('<Link') < media.indexOf('lightboxEligible && hasOpenableLightboxMedia'),
+  'product title remains the listing navigation (outside media)',
+  read('components/marketplace/tiles/MarketplaceTileStandard.tsx').includes(
+    '<Link href={model.href}',
+  ),
 );
 
 ok(

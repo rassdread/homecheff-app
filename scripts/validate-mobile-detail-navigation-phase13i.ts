@@ -279,10 +279,17 @@ assert(
   'dish never routes to /product/',
 );
 
-console.log('\nP0.6 Native tap / safe routes');
+console.log('\nP0.6 Media fullscreen + safe routes');
 assert(
-  feedMedia.includes('lightboxEligible = coarsePointer && !nativeMounted'),
-  'native media navigates to detail',
+  feedMedia.includes('feed-tile:media-lightbox-image') &&
+    feedMedia.includes('gallery: { sources, index: safePhotoIndex }'),
+  'media tap opens fullscreen gallery at selected index (V2)',
+);
+assert(
+  read('components/marketplace/tiles/MarketplaceTileStandard.tsx').includes(
+    '<Link href={model.href}',
+  ),
+  'title Link remains the listing detail navigation',
 );
 assert(safeRoute.includes('normalized.startsWith("/product/")'), 'product safe route');
 assert(safeRoute.includes('normalized.startsWith("/request/")'), 'request safe route');

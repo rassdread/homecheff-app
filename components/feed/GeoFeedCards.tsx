@@ -22,6 +22,8 @@ export type GeoFeedCardItem = {
   deliveryMode: "PICKUP" | "DELIVERY" | "BOTH" | string | null;
   place: string | null;
   photo: string | null;
+  /** Slim sanitized gallery for inline carousel (HTTP URLs only). */
+  galleryUrls?: string[] | null;
   videoUrl?: string | null;
   videoThumbnail?: string | null;
   distanceKm?: number;

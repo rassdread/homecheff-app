@@ -21,6 +21,7 @@ export type TileMediaProps = {
   href: string;
   alt: string;
   imageUrl: string | null;
+  galleryUrls?: string[] | null;
   videoUrl?: string | null;
   videoPoster?: string | null;
   mediaRatio: MarketplaceTileMediaRatio;
@@ -46,6 +47,7 @@ export default function TileMedia({
   href,
   alt,
   imageUrl,
+  galleryUrls = null,
   videoUrl = null,
   videoPoster = null,
   mediaRatio,
@@ -81,6 +83,7 @@ export default function TileMedia({
         videoUrl={videoUrl}
         videoPoster={videoPoster}
         imageUrl={imageUrl}
+        galleryUrls={galleryUrls}
         className="absolute inset-0 h-full w-full feed-card-primary-media"
         imageLoading={imageLoading}
       />
