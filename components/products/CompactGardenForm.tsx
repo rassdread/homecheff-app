@@ -21,6 +21,7 @@ import { useHcpRewardUi } from '@/components/gamification/HcpRewardProvider';
 import { tryShowAccountRequirementsFromApiBody, parseAccountRequirementsFromApiBody, humanAccountRequirementsMessage } from '@/lib/client/consume-account-requirements-response';
 import { sanitizeApiErrorForDisplay } from '@/lib/client/map-api-error-for-user';
 import { parseStockInput, parseStockInputOrZero } from '@/lib/products/parse-stock-input';
+import { listingUsesPhysicalInventory } from '@/lib/products/listing-inventory';
 import { PackageSelector } from '@/components/shipping/PackageSelector';
 import type { ParcelPresetId } from '@/lib/shipping/package-presets';
 import {
@@ -655,6 +656,15 @@ export default function CompactGardenForm({
     }
   };
 
+  const showStockFields = listingUsesPhysicalInventory({
+    listingIntent: existingProduct?.listingIntent ?? null,
+    priceModel: existingProduct?.priceModel ?? 'FIXED',
+    marketplaceCategory: existingProduct?.marketplaceCategory ?? null,
+    productCategory: existingProduct?.category ?? 'GROWN',
+    specializations: existingProduct?.specializations ?? null,
+    fulfillmentOptions: existingProduct?.fulfillmentOptions ?? null,
+  });
+
   return (
     <div className="max-w-2xl mx-auto p-4 bg-white rounded-lg shadow-sm" data-compact-garden-form>
       {/* Compact Header */}
@@ -1012,7 +1022,8 @@ export default function CompactGardenForm({
           </div>
         </div>
 
-        {/* Voorraad - Altijd beschikbaar */}
+        {/* Voorraad — only for physical inventory listings (not REQUEST) */}
+        {showStockFields ? (
         <div className="bg-gray-50 rounded-lg p-3">
           <label className="block text-sm font-medium text-gray-700 mb-2">📦 {t('productForm.stock')}</label>
           <div className="grid gap-2 grid-cols-2">
@@ -1038,6 +1049,7 @@ export default function CompactGardenForm({
             </div>
           </div>
         </div>
+        ) : null}
 
         {/* Tags */}
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">

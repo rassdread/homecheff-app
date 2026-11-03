@@ -10,8 +10,26 @@ import { ProfileV2AanbodActions } from '@/components/profile/v2/ProfileV2AanbodA
 import type { ProfileV2AanbodFilter, ProfileV2User } from '@/lib/profile/profile-v2/types';
 import type { DiscoveryReadModel } from '@/lib/discovery/contracts/discovery-read-model';
 import { getDiscoveryLegacyVerticalCategory } from '@/lib/discovery/consumer-accessors';
+import { listingShowsStockUi } from '@/lib/products/listing-inventory';
 import { buildProductEditPath } from '@/lib/seo/productSlug';
 import { cardActionBoundaryProps, stopCardNavigation } from '@/lib/ui/card-action-boundary';
+
+function productShowsStockUi(product: {
+  listingIntent?: string | null;
+  priceModel?: string | null;
+  marketplaceCategory?: string | null;
+  category?: string | null;
+  specializations?: string[];
+  discovery?: DiscoveryReadModel | null;
+}): boolean {
+  return listingShowsStockUi({
+    listingIntent: product.discovery?.listingIntent ?? product.listingIntent ?? null,
+    priceModel: product.priceModel,
+    marketplaceCategory: product.marketplaceCategory,
+    productCategory: product.category,
+    specializations: product.specializations,
+  });
+}
 
 type Product = {
   id: string;
@@ -281,8 +299,8 @@ export default function ProductManagement({
                         : t('profileV2.forms.statusInactive')}
                     </span>
                   </div>
-                  {/* Stock Warning */}
-                  {product.stock <= 5 && product.stock > 0 && (
+                  {/* Stock Warning — physical inventory only (not REQUEST jobs) */}
+                  {productShowsStockUi(product) && product.stock <= 5 && product.stock > 0 && (
                     <div className="absolute top-3 left-3">
                       <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 flex items-center">
                         <AlertCircle className="w-3 h-3 mr-1" />
@@ -290,8 +308,8 @@ export default function ProductManagement({
                       </span>
                     </div>
                   )}
-                  {/* Out of Stock */}
-                  {product.stock === 0 && (
+                  {/* Out of Stock — physical inventory only */}
+                  {productShowsStockUi(product) && product.stock === 0 && (
                     <div className="absolute top-3 left-3">
                       <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                         {t('profileV2.forms.outOfStock')}
@@ -322,6 +340,7 @@ export default function ProductManagement({
                       </span>
                     </div>
                     
+                    {productShowsStockUi(product) ? (
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Voorraad:</span>
                       <span className={`font-medium ${
@@ -333,6 +352,7 @@ export default function ProductManagement({
                         {product.maxStock && ` / ${product.maxStock}`}
                       </span>
                     </div>
+                    ) : null}
                     
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Levering:</span>

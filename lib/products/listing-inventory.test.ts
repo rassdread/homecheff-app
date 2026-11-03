@@ -4,12 +4,14 @@ import {
   parseStockPatchInput,
   availableToBuy,
   listingUsesPhysicalInventory,
+  listingShowsStockUi,
   remainingStock,
 } from './listing-inventory';
 import { formFieldsForCategory } from '../marketplace/form-config';
 import {
   requiresInventoryForCheckout,
   proposalNegotiationIgnoresStockAvailability,
+  validateProposalQuantityAgainstStock,
 } from '../proposals/proposal-stock-policy';
 
 describe('parseStockPatchInput', () => {
@@ -170,6 +172,37 @@ describe('formFieldsForCategory stock visibility', () => {
     });
     assert.equal(cfg.showStock, false);
   });
+
+  it('hides stock UI for REQUEST jobs even when category is CREATE and stock is 0', () => {
+    const cfg = formFieldsForCategory('CREATE', ['practical.assembly'], null, {
+      priceModel: 'FIXED',
+      listingIntent: 'REQUEST',
+      productCategory: 'CHEFF',
+    });
+    assert.equal(cfg.showStock, false);
+    assert.equal(
+      listingShowsStockUi({
+        listingIntent: 'REQUEST',
+        priceModel: 'FIXED',
+        marketplaceCategory: 'CREATE',
+        productCategory: 'CHEFF',
+        specializations: ['practical.assembly'],
+      }),
+      false,
+    );
+  });
+
+  it('keeps stock UI for ordinary FIXED physical OFFER goods', () => {
+    assert.equal(
+      listingShowsStockUi({
+        listingIntent: 'OFFER',
+        priceModel: 'FIXED',
+        marketplaceCategory: 'DESIGN',
+        productCategory: 'DESIGNER',
+      }),
+      true,
+    );
+  });
 });
 
 describe('checkout inventory policy', () => {
@@ -199,5 +232,34 @@ describe('checkout inventory policy', () => {
       }),
       false,
     );
+  });
+
+  it('does not block REQUEST proposals when stock is 0', () => {
+    assert.equal(
+      proposalNegotiationIgnoresStockAvailability({
+        listingIntent: 'REQUEST',
+        priceModel: 'FIXED',
+        marketplaceCategory: 'CREATE',
+        productCategory: 'CHEFF',
+      }),
+      true,
+    );
+    const ok = validateProposalQuantityAgainstStock(0, 1, {
+      listingIntent: 'REQUEST',
+      priceModel: 'FIXED',
+      marketplaceCategory: 'CREATE',
+      productCategory: 'CHEFF',
+    });
+    assert.equal(ok.ok, true);
+  });
+
+  it('still blocks FIXED physical OFFER proposals when stock is 0', () => {
+    const blocked = validateProposalQuantityAgainstStock(0, 1, {
+      listingIntent: 'OFFER',
+      priceModel: 'FIXED',
+      marketplaceCategory: 'DESIGN',
+      productCategory: 'DESIGNER',
+    });
+    assert.equal(blocked.ok, false);
   });
 });

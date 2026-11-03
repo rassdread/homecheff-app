@@ -154,6 +154,14 @@ export function listingUsesPhysicalInventory(input: ListingInventoryInput): bool
   );
 }
 
+/**
+ * Seller dashboard / edit forms: show stock quantity UI only when the listing
+ * uses physical inventory. REQUEST jobs must never show "Voorraad: 0".
+ */
+export function listingShowsStockUi(input: ListingInventoryInput): boolean {
+  return listingUsesPhysicalInventory(input);
+}
+
 export function stockErrorMessage(code: 'STOCK_NEGATIVE' | 'STOCK_INVALID'): string {
   if (code === 'STOCK_NEGATIVE') return 'Voorraad mag niet negatief zijn.';
   return 'Voorraad moet een heel getal van 0 of hoger zijn.';
