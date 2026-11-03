@@ -9,6 +9,8 @@ import {
 } from '@/lib/fees';
 import {
   checkoutCanPayAcceptedBooking,
+  courierBookingExpiredAt,
+  courierBookingIsActionableRequest,
   courierDashboardKeepsBooking,
   deliveryFeeForCheckout,
   interpretMatchResponse,
@@ -147,6 +149,44 @@ describe('checkout uses the order match', () => {
       }),
       false,
     );
+    assert.equal(
+      courierBookingIsActionableRequest({
+        status: 'ACCEPTED',
+        expiresAt: new Date('2026-11-01T13:00:00.000Z'),
+        respondedAt: now,
+        now,
+        paymentWindowMs: 30 * 60 * 1000,
+        hold: {
+          status: 'PENDING',
+          paymentDeadline: new Date('2026-11-01T11:00:00.000Z'),
+          expiresAt: new Date('2026-11-01T13:00:00.000Z'),
+        },
+      }),
+      false,
+    );
+    assert.equal(
+      courierBookingIsActionableRequest({
+        status: 'CONSUMED',
+        expiresAt: new Date('2026-11-01T13:00:00.000Z'),
+        respondedAt: now,
+        now,
+        paymentWindowMs: 30 * 60 * 1000,
+        hold: null,
+      }),
+      false,
+    );
+    const expiredAt = courierBookingExpiredAt({
+      status: 'ACCEPTED',
+      expiresAt: new Date('2026-11-01T13:00:00.000Z'),
+      respondedAt: now,
+      paymentWindowMs: 30 * 60 * 1000,
+      hold: {
+        status: 'PENDING',
+        paymentDeadline: new Date('2026-11-01T11:00:00.000Z'),
+        expiresAt: new Date('2026-11-01T13:00:00.000Z'),
+      },
+    });
+    assert.equal(expiredAt?.toISOString(), '2026-11-01T11:00:00.000Z');
   });
 
   it('expires a hold when only the payment deadline has passed', () => {

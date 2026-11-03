@@ -148,6 +148,55 @@ export function courierDashboardKeepsBooking(input: {
   return start.getTime() + input.paymentWindowMs > input.now.getTime();
 }
 
+/** Expiration instant used for history copy (hold deadline wins when present). */
+export function courierBookingExpiredAt(input: {
+  status: string;
+  expiresAt: Date;
+  respondedAt: Date | null;
+  paymentWindowMs: number;
+  hold: { status: string; paymentDeadline: Date | null; expiresAt: Date } | null;
+}): Date | null {
+  if (input.status === 'PENDING') return input.expiresAt;
+  if (input.status === 'EXPIRED') {
+    return input.respondedAt
+      ? new Date(input.respondedAt.getTime() + input.paymentWindowMs)
+      : input.expiresAt;
+  }
+  if (input.status !== 'ACCEPTED' && input.status !== 'AUTO_CONFIRMED') return null;
+  if (input.hold?.status === 'PENDING') {
+    return input.hold.paymentDeadline ?? input.hold.expiresAt;
+  }
+  if (input.hold) return input.hold.paymentDeadline ?? input.hold.expiresAt;
+  const start = input.respondedAt ?? input.expiresAt;
+  return new Date(start.getTime() + input.paymentWindowMs);
+}
+
+/**
+ * True when a booking is still an actionable open request for courier task counts.
+ * Aligns with active dashboard eligibility (pending not expired; unpaid accepted
+ * still inside payment window). Paid/consumed/cancelled are excluded.
+ */
+export function courierBookingIsActionableRequest(input: {
+  status: string;
+  expiresAt: Date;
+  respondedAt: Date | null;
+  now: Date;
+  paymentWindowMs: number;
+  hold: { status: string; paymentDeadline: Date | null; expiresAt: Date } | null;
+}): boolean {
+  const status = String(input.status || '').toUpperCase();
+  if (
+    status === 'CANCELLED' ||
+    status === 'REJECTED' ||
+    status === 'EXPIRED' ||
+    status === 'CONSUMED' ||
+    status === 'SUPERSEDED'
+  ) {
+    return false;
+  }
+  return courierDashboardKeepsBooking(input);
+}
+
 /** No selected quote means the delivery line stays zero. Never invent a fee. */
 export function deliveryFeeForCheckout(selectedQuoteCents: number | null | undefined) {
   if (selectedQuoteCents == null || !Number.isFinite(selectedQuoteCents) || selectedQuoteCents < 0) {

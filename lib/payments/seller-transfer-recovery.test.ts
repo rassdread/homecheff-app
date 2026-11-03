@@ -124,5 +124,7 @@ test('transfer list matching refuses two product transfers', () => {
 
 test('a local connect refusal is not treated as a cached Stripe transfer', () => {
   assert.equal(stripeTransferWasAttempted('failed_connect_not_ready_1'), false);
+  assert.equal(stripeTransferWasAttempted('failed_insufficient_balance_1'), false);
+  assert.equal(stripeTransferWasAttempted('failed_transfer_group_conflict_1'), false);
   assert.equal(stripeTransferWasAttempted('failed_1793112996194'), true);
 });

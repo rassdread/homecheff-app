@@ -22,8 +22,27 @@ import {
   resolveNotificationTargetUrl,
 } from '@/lib/notifications/notificationRouting';
 import { fetchActionCenterEntityHints } from '@/lib/action-center/fetch-action-center-entities';
+import { courierBookingIsActionableRequest } from '@/lib/delivery/checkout-courier-consistency';
+import { PAYMENT_WINDOW_MS } from '@/lib/products/checkout-reservation-policy';
 
 export const dynamic = 'force-dynamic';
+
+function bookingIdFromDeliveryAvailabilityPayload(
+  payload: Record<string, unknown>,
+): string | null {
+  const data = (payload.data as Record<string, unknown> | undefined) || payload;
+  const candidates = [
+    data.bookingRequestId,
+    data.bookingId,
+    data.requestId,
+    payload.bookingRequestId,
+    payload.bookingId,
+  ];
+  for (const value of candidates) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return null;
+}
 
 function normalizePendingRewards(raw: unknown): PendingClientReward[] {
   if (!Array.isArray(raw)) return [];
@@ -282,12 +301,84 @@ export async function GET() {
           }
         : null;
 
-    const unreadNotifications = unreadNotificationRows.map((row) => ({
+    let unreadNotifications = unreadNotificationRows.map((row) => ({
       id: row.id,
       prismaType: String(row.type),
       payload: (row.payload as Record<string, unknown>) || {},
       orderId: row.orderId,
     }));
+
+    // Drop stale DELIVERY_ORDER_AVAILABLE notifications that are no longer
+    // actionable under the same rules as the courier dashboard.
+    if (user.DeliveryProfile) {
+      const availabilityRows = unreadNotifications.filter((row) => {
+        const data = (row.payload.data as Record<string, unknown> | undefined) || {};
+        const dataType = String(data.type || row.payload.type || '').toUpperCase();
+        return dataType === 'DELIVERY_ORDER_AVAILABLE';
+      });
+      const bookingIds = availabilityRows
+        .map((row) => bookingIdFromDeliveryAvailabilityPayload(row.payload))
+        .filter((id): id is string => Boolean(id));
+      if (bookingIds.length > 0) {
+        const now = new Date();
+        const bookings = await prisma.deliveryBookingRequest.findMany({
+          where: {
+            id: { in: bookingIds },
+            deliveryProfileId: user.DeliveryProfile.id,
+          },
+          select: {
+            id: true,
+            status: true,
+            expiresAt: true,
+            respondedAt: true,
+          },
+        });
+        const holds = await prisma.stockReservation.findMany({
+          where: { bookingRequestId: { in: bookingIds } },
+          select: {
+            bookingRequestId: true,
+            status: true,
+            paymentDeadline: true,
+            expiresAt: true,
+          },
+        });
+        const bookingById = new Map(bookings.map((b) => [b.id, b]));
+        const holdByBooking = new Map(
+          holds
+            .filter((h) => h.bookingRequestId)
+            .map((h) => [h.bookingRequestId as string, h]),
+        );
+        const actionableIds = new Set(
+          bookingIds.filter((id) => {
+            const booking = bookingById.get(id);
+            if (!booking) return false;
+            return courierBookingIsActionableRequest({
+              status: booking.status,
+              expiresAt: booking.expiresAt,
+              respondedAt: booking.respondedAt,
+              now,
+              paymentWindowMs: PAYMENT_WINDOW_MS,
+              hold: holdByBooking.get(id) ?? null,
+            });
+          }),
+        );
+        unreadNotifications = unreadNotifications.filter((row) => {
+          const data = (row.payload.data as Record<string, unknown> | undefined) || {};
+          const dataType = String(data.type || row.payload.type || '').toUpperCase();
+          if (dataType !== 'DELIVERY_ORDER_AVAILABLE') return true;
+          const bookingId = bookingIdFromDeliveryAvailabilityPayload(row.payload);
+          if (!bookingId) return false;
+          return actionableIds.has(bookingId);
+        });
+      } else if (availabilityRows.length > 0) {
+        // Notifications without a booking id cannot be verified — exclude.
+        unreadNotifications = unreadNotifications.filter((row) => {
+          const data = (row.payload.data as Record<string, unknown> | undefined) || {};
+          const dataType = String(data.type || row.payload.type || '').toUpperCase();
+          return dataType !== 'DELIVERY_ORDER_AVAILABLE';
+        });
+      }
+    }
 
     const sellerUnreadOrderCount = unreadNotifications.filter((row) =>
       isSellerDashboardOrderBadgeNotification(row.prismaType, row.payload),

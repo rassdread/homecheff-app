@@ -89,7 +89,7 @@ export function courierPaymentStatusCopyNl(kind: CourierPaymentDisplayKind): {
     case 'PAYMENT_EXPIRED':
       return {
         label: 'Betaling verlopen',
-        body: 'De koper heeft niet op tijd betaald. Deze reservering is vrijgegeven.',
+        body: 'Betaaltermijn verstreken. Deze opdracht is vervallen.',
       };
     case 'CANCELLED':
       return {

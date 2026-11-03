@@ -151,6 +151,20 @@ export default function DeliveryDashboard() {
       href?: string;
     }>
   >([]);
+  const [bookingHistory, setBookingHistory] = useState<
+    Array<{
+      id: string;
+      status: string;
+      expiredAt?: string | Date | null;
+      paymentDeadline?: string | null;
+      buyerName?: string;
+      itemDescription?: string | null;
+      label?: string;
+      body?: string;
+      href?: string;
+      readOnly?: boolean;
+    }>
+  >([]);
   const [loading, setLoading] = useState(true);
   // Diff guard (UX-FIN-4C.9): skip all setState on a background poll when the
   // payload is byte-identical, so the dashboard/order cards don't re-render every
@@ -359,6 +373,7 @@ export default function DeliveryDashboard() {
           availableOrders: data.availableOrders || [],
           upcomingJobs: data.upcomingJobs || [],
           pendingBookingRequests: data.pendingBookingRequests || [],
+          bookingHistory: data.bookingHistory || [],
           deliveryAgreement: data.deliveryAgreement || null,
           isOnline: data.isOnline || false,
           isTemporarilyOnline: data.isTemporarilyOnline || false,
@@ -377,6 +392,7 @@ export default function DeliveryDashboard() {
         setAvailableOrders(data.availableOrders || []);
         setUpcomingJobs(data.upcomingJobs || []);
         setPendingBookingRequests(data.pendingBookingRequests || []);
+        setBookingHistory(data.bookingHistory || []);
         setAgreementCurrentAccepted(data.deliveryAgreement?.currentVersionAccepted === true);
         setIsOnline(Boolean(data.availability?.available ?? data.isOnline));
         setIsTemporarilyOnline(Boolean(data.isTemporarilyOnline || data.availability?.overrideActive));
@@ -1256,6 +1272,64 @@ export default function DeliveryDashboard() {
                         </button>
                       </div>
                       )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Expired booking history (read-only) */}
+          {!isSeller && bookingHistory.length > 0 && (
+            <div className="lg:col-span-3 mb-2">
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 sm:p-5">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3">
+                  {t('delivery.bookingHistory', {
+                    defaultValue: 'Verlopen opdrachten',
+                  })}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {bookingHistory.map((booking) => (
+                    <div
+                      key={booking.id}
+                      id={`booking-history-${booking.id}`}
+                      className="rounded-lg border border-gray-200 bg-white p-3"
+                    >
+                      <p className="font-medium text-sm text-gray-900 truncate">
+                        {booking.buyerName || 'Klant'}
+                      </p>
+                      {booking.itemDescription ? (
+                        <p className="text-xs text-gray-800 mt-1">{booking.itemDescription}</p>
+                      ) : null}
+                      <p className="mt-2 text-xs font-semibold text-gray-800">
+                        {booking.label ||
+                          t('delivery.paymentExpired', {
+                            defaultValue: 'Betaling verlopen',
+                          })}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-700">
+                        {booking.body ||
+                          t('delivery.paymentExpiredBody', {
+                            defaultValue:
+                              'Betaaltermijn verstreken. Deze opdracht is vervallen.',
+                          })}
+                      </p>
+                      {booking.expiredAt ? (
+                        <p className="mt-1 text-xs text-gray-600">
+                          {t('delivery.expiredAt', { defaultValue: 'Vervallen op' })}
+                          {': '}
+                          {new Date(booking.expiredAt).toLocaleString(
+                            language === 'en' ? 'en-GB' : 'nl-NL',
+                            {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            },
+                          )}
+                        </p>
+                      ) : null}
                     </div>
                   ))}
                 </div>

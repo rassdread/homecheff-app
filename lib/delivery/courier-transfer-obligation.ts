@@ -255,13 +255,27 @@ export async function settleCourierTransferObligation(input: {
 
   await mark(input.db, row.id, { stripeCreateAttemptedAt: now });
   try {
+    const { buildSeparateChargesTransferParams } = await import(
+      '@/lib/payments/connect-transfer-params'
+    );
+    let chargeTransferGroup: string | null = null;
+    try {
+      const charge = await input.stripe.charges.retrieve(input.chargeId);
+      chargeTransferGroup =
+        typeof charge.transfer_group === 'string' && charge.transfer_group
+          ? charge.transfer_group
+          : null;
+    } catch {
+      chargeTransferGroup = null;
+    }
     const transfer = await input.stripe.transfers.create(
-      {
+      buildSeparateChargesTransferParams({
         amount: input.amountCents,
         currency: input.currency.toLowerCase(),
         destination: input.destinationAccountId,
-        transfer_group: transferGroup,
-        source_transaction: input.chargeId,
+        orderId: input.orderId,
+        sourceTransactionChargeId: input.chargeId,
+        chargeTransferGroup,
         metadata: {
           orderId: input.orderId,
           deliveryOrderId: input.deliveryOrderId,
@@ -269,7 +283,7 @@ export async function settleCourierTransferObligation(input: {
           providerUserId: input.recipientUserId,
           sourceTransactionChargeId: input.chargeId,
         },
-      },
+      }),
       { idempotencyKey },
     );
     if (!transfer.id?.startsWith('tr_')) {
@@ -289,8 +303,16 @@ export async function settleCourierTransferObligation(input: {
     return { created: true, transferId: transfer.id, state: 'CONFIRMED' };
   } catch (error) {
     const code = classifyCreateFailure(error);
-    const state: CourierObligationState = code === 'INSUFFICIENT_BALANCE' ? 'FAILED' : 'UNKNOWN';
-    await mark(input.db, row.id, { state, lastErrorCode: code, processingLeaseUntil: null });
+    const retryable =
+      code === 'INSUFFICIENT_BALANCE' || code === 'TRANSFER_GROUP_SOURCE_CONFLICT';
+    const state: CourierObligationState = retryable ? 'FAILED' : 'UNKNOWN';
+    await mark(input.db, row.id, {
+      state,
+      lastErrorCode: code,
+      processingLeaseUntil: null,
+      // Clear attempt stamp so a later webhook retry can reclaim safely.
+      ...(retryable ? { stripeCreateAttemptedAt: null } : {}),
+    });
     return { created: false, transferId: null, state, blockCode: code };
   }
 }
@@ -314,8 +336,17 @@ async function reconcileAttempt(
 
 async function lookupTransfers(input: Parameters<typeof settleCourierTransferObligation>[0]): Promise<TransferLookup> {
   try {
+    let transferGroup = `order_${input.orderId}`;
+    try {
+      const charge = await input.stripe.charges.retrieve(input.chargeId);
+      if (typeof charge.transfer_group === 'string' && charge.transfer_group) {
+        transferGroup = charge.transfer_group;
+      }
+    } catch {
+      /* keep order_ group */
+    }
     const listed = await input.stripe.transfers.list({
-      transfer_group: `order_${input.orderId}`,
+      transfer_group: transferGroup,
       limit: LIST_LIMIT,
     });
     return classifyTransferList({
@@ -335,6 +366,9 @@ function classifyCreateFailure(error: unknown): string {
   const record = error && typeof error === 'object' ? error as { statusCode?: number; message?: string } : {};
   const message = `${record.message || ''} ${error instanceof Error ? error.message : ''}`.toLowerCase();
   if (message.includes('insufficient')) return 'INSUFFICIENT_BALANCE';
+  if (message.includes('transfer_group') && message.includes('source_transaction')) {
+    return 'TRANSFER_GROUP_SOURCE_CONFLICT';
+  }
   const status = record.statusCode;
   if (status != null && status >= 400 && status < 500 && !message.includes('idempoten')) return 'TRANSFER_REJECTED';
   return 'TRANSFER_OUTCOME_UNKNOWN';

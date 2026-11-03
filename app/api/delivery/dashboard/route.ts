@@ -13,8 +13,15 @@ import { resolveDelivererPosition, resolveDeliveryPickupCoords, resolveSellerCoo
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 import { resolveDeliveryTimeAvailability } from '@/lib/delivery/delivery-time-availability';
 import { readStandaloneBookingMeta } from '@/lib/delivery/standalone-booking-meta';
-import { courierDashboardKeepsBooking, readMarketplaceSlot } from '@/lib/delivery/checkout-courier-consistency';
-import { remapCalendarJobForCourierDisplay } from '@/lib/delivery/courier-payment-display';
+import {
+  courierBookingExpiredAt,
+  courierDashboardKeepsBooking,
+  readMarketplaceSlot,
+} from '@/lib/delivery/checkout-courier-consistency';
+import {
+  courierPaymentStatusCopyNl,
+  remapCalendarJobForCourierDisplay,
+} from '@/lib/delivery/courier-payment-display';
 import { PAYMENT_WINDOW_MS } from '@/lib/products/checkout-reservation-policy';
 import {
   addressForCourierPhase,
@@ -1149,6 +1156,7 @@ export async function GET(req: NextRequest) {
     // and pending booking requests — same SoT, no duplicate dataset.
     let upcomingJobs: Array<Record<string, unknown>> = [];
     let pendingBookingRequests: Array<Record<string, unknown>> = [];
+    let bookingHistory: Array<Record<string, unknown>> = [];
 
     if (deliveryProfile) {
       const now = new Date();
@@ -1157,7 +1165,7 @@ export async function GET(req: NextRequest) {
         transformedAvailableOrders.map((o: { id: string }) => o.id),
       );
 
-      const [calendarRows, pendingBookings, communityUpcoming] = await Promise.all([
+      const [calendarRows, pendingBookings, historyCandidates, communityUpcoming] = await Promise.all([
         prisma.deliveryCalendarEntry.findMany({
           where: {
             deliveryProfileId: deliveryProfile.id,
@@ -1185,6 +1193,23 @@ export async function GET(req: NextRequest) {
           },
           orderBy: { createdAt: 'asc' },
           take: 10,
+        }),
+        prisma.deliveryBookingRequest.findMany({
+          where: {
+            deliveryProfileId: deliveryProfile.id,
+            OR: [
+              { status: 'EXPIRED' },
+              { status: 'PENDING', expiresAt: { lte: now } },
+              { status: { in: ['ACCEPTED', 'AUTO_CONFIRMED'] } },
+            ],
+          },
+          include: {
+            buyer: {
+              select: { id: true, name: true, username: true },
+            },
+          },
+          orderBy: { updatedAt: 'desc' },
+          take: 25,
         }),
         prisma.courierAssignment.findMany({
           where: {
@@ -1274,6 +1299,7 @@ export async function GET(req: NextRequest) {
                 : null,
               now,
             });
+            if (remapped.kind === 'PAYMENT_EXPIRED') return null;
             return {
             id: row.id,
             source: 'calendar' as const,
@@ -1299,7 +1325,8 @@ export async function GET(req: NextRequest) {
                 ? `/delivery/dashboard#booking-${row.bookingRequestId}`
                 : '/delivery/dashboard',
           };
-          }),
+          })
+          .filter((row): row is NonNullable<typeof row> => row != null),
         ...communityUpcoming.map((assignment) => {
           const dr = assignment.DeliveryRequest;
           const title =
@@ -1377,6 +1404,74 @@ export async function GET(req: NextRequest) {
         paymentDeadline: holdByBooking.get(b.id)?.paymentDeadline ?? null,
         href: `/delivery/dashboard#booking-${b.id}`,
       }));
+
+      const historyIds = historyCandidates.map((b) => b.id);
+      const historyHolds = historyIds.length
+        ? await prisma.stockReservation.findMany({
+            where: { bookingRequestId: { in: historyIds } },
+            select: {
+              bookingRequestId: true,
+              status: true,
+              paymentDeadline: true,
+              expiresAt: true,
+            },
+          })
+        : [];
+      const historyHoldByBooking = new Map(
+        historyHolds
+          .filter((hold) => hold.bookingRequestId)
+          .map((hold) => [hold.bookingRequestId as string, hold]),
+      );
+      const visibleIds = new Set(visibleBookings.map((b) => b.id));
+      const expiredCopy = courierPaymentStatusCopyNl('PAYMENT_EXPIRED');
+      bookingHistory = historyCandidates
+        .filter((b) => {
+          if (visibleIds.has(b.id)) return false;
+          if (b.status === 'EXPIRED') return true;
+          if (b.status === 'PENDING' && b.expiresAt.getTime() <= now.getTime()) return true;
+          if (b.status === 'ACCEPTED' || b.status === 'AUTO_CONFIRMED') {
+            return !courierDashboardKeepsBooking({
+              status: b.status,
+              expiresAt: b.expiresAt,
+              respondedAt: b.respondedAt,
+              now,
+              paymentWindowMs: PAYMENT_WINDOW_MS,
+              hold: historyHoldByBooking.get(b.id) ?? null,
+            });
+          }
+          return false;
+        })
+        .slice(0, 15)
+        .map((b) => {
+          const hold = historyHoldByBooking.get(b.id) ?? null;
+          const expiredAt =
+            courierBookingExpiredAt({
+              status: b.status === 'PENDING' && b.expiresAt.getTime() <= now.getTime()
+                ? 'EXPIRED'
+                : b.status,
+              expiresAt: b.expiresAt,
+              respondedAt: b.respondedAt,
+              paymentWindowMs: PAYMENT_WINDOW_MS,
+              hold,
+            }) ?? b.expiresAt;
+          return {
+            id: b.id,
+            status: 'PAYMENT_EXPIRED',
+            kind: 'PAYMENT_EXPIRED',
+            expiresAt: b.expiresAt,
+            expiredAt,
+            paymentDeadline: hold?.paymentDeadline ?? null,
+            quotedFeeCents: b.quotedFeeCents,
+            routeDistanceKm: b.routeDistanceKm,
+            buyerName: b.buyer?.name || b.buyer?.username || 'Klant',
+            itemDescription: readStandaloneBookingMeta(b.notes)?.itemDescription || null,
+            requestedPickupAt: readMarketplaceSlot(b.notes),
+            label: expiredCopy.label,
+            body: expiredCopy.body,
+            href: `/delivery/dashboard#booking-history-${b.id}`,
+            readOnly: true,
+          };
+        });
     }
 
     const stats = {
@@ -1430,6 +1525,7 @@ export async function GET(req: NextRequest) {
       availableOrders: transformedAvailableOrders,
       upcomingJobs,
       pendingBookingRequests,
+      bookingHistory,
       deliveryAgreement: deliveryProfile
         ? {
             acceptedAt: deliveryProfile.deliveryAgreementAcceptedAt,

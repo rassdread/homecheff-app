@@ -1033,10 +1033,19 @@ try {
       console.log(
         `🔁 Order ${existingOrder.id} exists for session ${session.id} — ensuring seller settlement`,
       );
+      const existingPiId =
+        typeof session.payment_intent === 'string'
+          ? session.payment_intent
+          : session.payment_intent && typeof session.payment_intent === 'object'
+            ? session.payment_intent.id
+            : null;
       const settlement = await settleAllSellerLegsForOrder(
         stripe,
         existingOrder.id,
-        { chargeProviderRef: session.id },
+        {
+          chargeProviderRef: session.id,
+          paymentIntentId: existingPiId,
+        },
       );
       if (!settlement.complete) {
         console.error(
@@ -1962,9 +1971,16 @@ try {
       let sourceTransactionChargeId: string | null = null;
       if ((mappedDeliveryMode as string) !== 'SHIPPING') {
         try {
+          const eventPiId =
+            typeof session.payment_intent === 'string'
+              ? session.payment_intent
+              : session.payment_intent && typeof session.payment_intent === 'object'
+                ? session.payment_intent.id
+                : null;
           const resolved = await resolveChargeIdForCheckoutSession(
             stripe,
             session.id,
+            { paymentIntentId: eventPiId },
           );
           if (
             resolved.chargeId &&

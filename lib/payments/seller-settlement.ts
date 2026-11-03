@@ -13,9 +13,17 @@ import {
   stripeTransferWasAttempted,
   type ListedSellerTransfer,
 } from '@/lib/payments/seller-transfer-recovery';
+import {
+  buildSeparateChargesTransferParams,
+  isInsufficientAvailableBalanceError,
+  isTransferGroupSourceConflict,
+} from '@/lib/payments/connect-transfer-params';
 
 export const PAYOUT_PROVIDER_REF_PENDING = 'pending_transfer';
 export const PAYOUT_PROVIDER_REF_FAILED_PREFIX = 'failed_';
+export const PAYOUT_PROVIDER_REF_INSUFFICIENT_PREFIX = 'failed_insufficient_balance_';
+export const PAYOUT_PROVIDER_REF_TRANSFER_GROUP_CONFLICT_PREFIX =
+  'failed_transfer_group_conflict_';
 export const PAYOUT_PROVIDER_REF_TRANSFER_PREFIX = 'tr_';
 
 export function sellerTransactionId(orderId: string, productId: string): string {
@@ -59,14 +67,54 @@ export function isFailedTransferRef(
  * Resolve the Stripe Charge object id (ch_… / py_…) for a Checkout Session.
  * source_transaction requires the Charge — never PI or Session ids.
  */
+async function chargeFromPaymentIntentId(
+  stripe: Stripe,
+  paymentIntentId: string,
+): Promise<{
+  chargeId: string | null;
+  paymentIntentId: string;
+  charge: Stripe.Charge | null;
+}> {
+  const fullPi = await stripe.paymentIntents.retrieve(paymentIntentId, {
+    expand: ['latest_charge'],
+  });
+  const charge = fullPi.latest_charge;
+  if (charge && typeof charge === 'object') {
+    return { chargeId: charge.id, paymentIntentId: fullPi.id, charge };
+  }
+  return {
+    chargeId: typeof charge === 'string' ? charge : null,
+    paymentIntentId: fullPi.id,
+    charge: null,
+  };
+}
+
+/**
+ * Resolve Charge for source_transaction.
+ * Prefer an explicit PaymentIntent id from the webhook event object when the
+ * hosted Checkout Session has not yet linked payment_intent (TEST / edge paths).
+ */
 export async function resolveChargeIdForCheckoutSession(
   stripe: Stripe,
   checkoutSessionId: string,
+  opts?: { paymentIntentId?: string | null },
 ): Promise<{
   chargeId: string | null;
   paymentIntentId: string | null;
   charge: Stripe.Charge | null;
 }> {
+  const explicitPi =
+    typeof opts?.paymentIntentId === 'string' && opts.paymentIntentId.startsWith('pi_')
+      ? opts.paymentIntentId
+      : null;
+  if (explicitPi) {
+    try {
+      return await chargeFromPaymentIntentId(stripe, explicitPi);
+    } catch {
+      /* fall through to session retrieve */
+    }
+  }
+
   const session = await stripe.checkout.sessions.retrieve(checkoutSessionId, {
     expand: ['payment_intent.latest_charge'],
   });
@@ -76,18 +124,7 @@ export async function resolveChargeIdForCheckoutSession(
     if (!paymentIntentId) {
       return { chargeId: null, paymentIntentId: null, charge: null };
     }
-    const fullPi = await stripe.paymentIntents.retrieve(paymentIntentId, {
-      expand: ['latest_charge'],
-    });
-    const charge = fullPi.latest_charge;
-    if (charge && typeof charge === 'object') {
-      return { chargeId: charge.id, paymentIntentId: fullPi.id, charge };
-    }
-    return {
-      chargeId: typeof charge === 'string' ? charge : null,
-      paymentIntentId: fullPi.id,
-      charge: null,
-    };
+    return chargeFromPaymentIntentId(stripe, paymentIntentId);
   }
   const charge = pi.latest_charge;
   if (charge && typeof charge === 'object') {
@@ -450,8 +487,19 @@ export async function settleSellerOrderItem(
   const attempted = stripeTransferWasAttempted(payout.providerRef);
   let listed: ListedSellerTransfer[] | null = null;
   try {
+    let listGroup = `order_${orderId}`;
+    if (sourceTransactionChargeId) {
+      try {
+        const charge = await stripe.charges.retrieve(sourceTransactionChargeId);
+        if (typeof charge.transfer_group === 'string' && charge.transfer_group) {
+          listGroup = charge.transfer_group;
+        }
+      } catch {
+        /* keep order_ group */
+      }
+    }
     const page = await stripe.transfers.list({
-      transfer_group: `order_${orderId}`,
+      transfer_group: listGroup,
       limit: 100,
     });
     listed = page.data.map((transfer) => ({
@@ -557,12 +605,27 @@ export async function settleSellerOrderItem(
     };
   }
 
+  let chargeTransferGroup: string | null = null;
+  if (sourceTransactionChargeId) {
+    try {
+      const charge = await stripe.charges.retrieve(sourceTransactionChargeId);
+      chargeTransferGroup =
+        typeof charge.transfer_group === 'string' && charge.transfer_group
+          ? charge.transfer_group
+          : null;
+    } catch {
+      chargeTransferGroup = null;
+    }
+  }
+
   try {
-    const transferParams: Stripe.TransferCreateParams = {
+    const transferParams = buildSeparateChargesTransferParams({
       amount: sellerNetCents,
       currency: 'eur',
       destination,
-      transfer_group: `order_${orderId}`,
+      orderId,
+      sourceTransactionChargeId,
+      chargeTransferGroup,
       metadata: {
         orderId,
         productId,
@@ -573,10 +636,7 @@ export async function settleSellerOrderItem(
         sourceTransactionChargeId: sourceTransactionChargeId || '',
         homecheff_app: 'true',
       },
-    };
-    if (sourceTransactionChargeId) {
-      transferParams.source_transaction = sourceTransactionChargeId;
-    }
+    });
 
     const transfer = await stripe.transfers.create(transferParams, {
       idempotencyKey: sellerTransferIdempotencyKey(
@@ -612,16 +672,25 @@ export async function settleSellerOrderItem(
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'transfer_failed';
+    const insufficient = isInsufficientAvailableBalanceError(message);
+    const groupConflict = isTransferGroupSourceConflict(message);
+    const providerRef = insufficient
+      ? `${PAYOUT_PROVIDER_REF_INSUFFICIENT_PREFIX}${Date.now()}`
+      : groupConflict
+        ? `${PAYOUT_PROVIDER_REF_TRANSFER_GROUP_CONFLICT_PREFIX}${Date.now()}`
+        : `${PAYOUT_PROVIDER_REF_FAILED_PREFIX}${Date.now()}`;
+
     await prisma.payout.update({
       where: { id: payout.id },
-      data: {
-        providerRef: `${PAYOUT_PROVIDER_REF_FAILED_PREFIX}${Date.now()}`,
-      },
+      data: { providerRef },
     });
-    await prisma.transaction.update({
-      where: { id: transactionId },
-      data: { status: 'FAILED', updatedAt: new Date() },
-    });
+    // Retryable Stripe conditions stay open — do not mark the Transaction FAILED.
+    if (!insufficient && !groupConflict) {
+      await prisma.transaction.update({
+        where: { id: transactionId },
+        data: { status: 'FAILED', updatedAt: new Date() },
+      });
+    }
     console.error(
       `[seller-settlement] transfer failed order=${orderId} product=${productId}:`,
       message,
@@ -635,9 +704,13 @@ export async function settleSellerOrderItem(
       sellerNetCents,
       transactionId,
       payoutId: payout.id,
-      status: 'TRANSFER_FAILED',
+      status: insufficient ? 'TRANSFER_PENDING' : 'TRANSFER_FAILED',
       transferId: null,
-      error: message,
+      error: insufficient
+        ? 'INSUFFICIENT_AVAILABLE_BALANCE'
+        : groupConflict
+          ? 'TRANSFER_GROUP_SOURCE_CONFLICT'
+          : message,
     };
   }
 }
@@ -661,6 +734,7 @@ export async function settleAllSellerLegsForOrder(
   opts?: {
     chargeProviderRef?: string | null;
     sourceTransactionChargeId?: string | null;
+    paymentIntentId?: string | null;
   },
 ): Promise<OrderSettlementCompleteness> {
   const order = await prisma.order.findUnique({
@@ -705,6 +779,7 @@ export async function settleAllSellerLegsForOrder(
     const resolved = await resolveChargeIdForCheckoutSession(
       stripe,
       order.stripeSessionId,
+      { paymentIntentId: opts?.paymentIntentId ?? null },
     );
     sourceTransactionChargeId = resolved.chargeId;
     if (resolved.charge) {

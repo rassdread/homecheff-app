@@ -11,6 +11,11 @@ import {
   type ListedSellerTransfer,
 } from '@/lib/payments/seller-transfer-recovery';
 import { isSuccessfulTransferRef, resolvePlatformFeeBps } from '@/lib/payments/seller-settlement';
+import {
+  buildSeparateChargesTransferParams,
+  isInsufficientAvailableBalanceError,
+  isTransferGroupSourceConflict,
+} from '@/lib/payments/connect-transfer-params';
 
 export const dynamic = 'force-dynamic';
 
@@ -184,13 +189,26 @@ export async function POST(
   }
 
   try {
+    let chargeTransferGroup: string | null = null;
+    if (chargeId) {
+      try {
+        const charge = await stripe.charges.retrieve(chargeId);
+        chargeTransferGroup =
+          typeof charge.transfer_group === 'string' && charge.transfer_group.trim()
+            ? charge.transfer_group.trim()
+            : null;
+      } catch {
+        chargeTransferGroup = null;
+      }
+    }
     const transfer = await stripe.transfers.create(
-      {
+      buildSeparateChargesTransferParams({
         amount: payout.amountCents,
         currency: 'eur',
         destination: seller.stripeConnectAccountId!,
-        transfer_group: `order_${orderId}`,
-        source_transaction: chargeId || undefined,
+        orderId,
+        sourceTransactionChargeId: chargeId || null,
+        chargeTransferGroup,
         metadata: {
           orderId,
           productId: item.productId,
@@ -198,7 +216,7 @@ export async function POST(
           recoveryGeneration: String(decision.generation),
           homecheff_app: 'true',
         },
-      },
+      }),
       { idempotencyKey: decision.idempotencyKey },
     );
     await prisma.payout.update({
@@ -224,10 +242,17 @@ export async function POST(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'transfer_failed';
+    const retryable =
+      isInsufficientAvailableBalanceError(message) || isTransferGroupSourceConflict(message);
+    const providerRef = retryable
+      ? isInsufficientAvailableBalanceError(message)
+        ? `failed_insufficient_balance_${Date.now()}`
+        : `failed_transfer_group_conflict_${Date.now()}`
+      : `failed_${Date.now()}`;
     await prisma.payout.update({
       where: { id: payout.id },
       data: {
-        providerRef: `failed_${Date.now()}`,
+        providerRef,
         transferFailureCode: `RECOVERY_G${decision.generation}_FAILED`,
         transferFailureAt: new Date(),
       },
@@ -236,9 +261,9 @@ export async function POST(
       targetType: 'payout',
       targetId: payout.id,
       oldValue: { providerRef: payout.providerRef },
-      newValue: { transferFailureCode: `RECOVERY_G${decision.generation}_FAILED` },
+      newValue: { transferFailureCode: `RECOVERY_G${decision.generation}_FAILED`, providerRef },
       reason,
-      meta: { error: message },
+      meta: { error: message, retryable },
     });
     return NextResponse.json({ ok: false, reason: 'TRANSFER_FAILED', generation: decision.generation }, { status: 502 });
   }

@@ -49,6 +49,10 @@ describe('courier payment display separates accept from paid', () => {
       }),
       'PAYMENT_EXPIRED',
     );
+    assert.match(
+      courierPaymentStatusCopyNl('PAYMENT_EXPIRED').body,
+      /Betaaltermijn verstreken/,
+    );
   });
 
   it('remaps calendar CONFIRMED without order away from financial confirmation', () => {

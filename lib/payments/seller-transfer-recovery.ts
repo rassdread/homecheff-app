@@ -88,6 +88,9 @@ export function stripeTransferWasAttempted(providerRef: string | null | undefine
   if (providerRef.startsWith('failed_missing_source_')) return false;
   if (providerRef.startsWith('failed_platform_fallback_blocked_')) return false;
   if (providerRef.startsWith('failed_charge_not_payable_')) return false;
+  // Retryable Stripe states — webhook / settlement may try again safely.
+  if (providerRef.startsWith('failed_insufficient_balance_')) return false;
+  if (providerRef.startsWith('failed_transfer_group_conflict_')) return false;
   return true;
 }
 
