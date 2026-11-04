@@ -90,13 +90,15 @@ export default function MarketplaceTileStandard({
             {title}
           </h3>
         </Link>
-        <TileValueExchangeBlock
-          model={model}
-          t={t}
-          variant="standard"
-          device="desktop"
-          showSettlement={false}
-        />
+        <Link href={model.href} prefetch className="min-w-0">
+          <TileValueExchangeBlock
+            model={model}
+            t={t}
+            variant="standard"
+            device="desktop"
+            showSettlement={false}
+          />
+        </Link>
         <TilePersonRow model={model} t={t} />
         <TileTrustCue
           trustCue={trustCue}

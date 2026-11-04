@@ -93,12 +93,14 @@ export default function MarketplaceTileCompact({
             {title}
           </h3>
         </Link>
-        <TileValueExchangeBlock
-          model={model}
-          t={t}
-          variant="compact"
-          showSettlement={false}
-        />
+        <Link href={model.href} prefetch className="min-w-0">
+          <TileValueExchangeBlock
+            model={model}
+            t={t}
+            variant="compact"
+            showSettlement={false}
+          />
+        </Link>
         <TilePersonRow model={model} t={t} />
         <TileTrustCue trustCue={trustCue} />
         {settlement ? <TileSettlementRow row={settlement} t={t} /> : null}

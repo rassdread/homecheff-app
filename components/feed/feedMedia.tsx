@@ -292,6 +292,7 @@ export function FeedCardPrimaryMedia({
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const didSwipe = useRef(false);
+  const feedScrollY = useRef(0);
   const gallery = (() => {
     const raw = Array.isArray(galleryUrls) ? galleryUrls : [];
     const urls = raw
@@ -489,10 +490,20 @@ export function FeedCardPrimaryMedia({
     setLightboxOpen(false);
     setLightboxPayload(null);
     resumeVideoNetwork(instanceId);
+    const y = feedScrollY.current;
+    const restore = () => window.scrollTo(0, y);
+    requestAnimationFrame(restore);
+    window.setTimeout(restore, 50);
   }, [instanceId]);
+
+  const syncLightboxPhoto = useCallback((index: number) => {
+    setPhotoIndex(index);
+    setImgBroken(false);
+  }, []);
 
   const openLightbox = useCallback(() => {
     if (!hasOpenableLightboxMedia) return;
+    feedScrollY.current = window.scrollY;
     if (hasVideoCandidate && corsSrc && !videoFailed) {
       wantPlayRef.current = false;
       videoRef.current?.pause();
@@ -599,6 +610,7 @@ export function FeedCardPrimaryMedia({
         const dy = Math.abs((e.touches[0]?.clientY ?? 0) - touchStartY.current);
         if (dx > 12 && dx > dy) {
           didSwipe.current = true;
+          if (e.cancelable) e.preventDefault();
         }
       }}
       onTouchEnd={(e) => {
@@ -692,6 +704,16 @@ export function FeedCardPrimaryMedia({
         type="button"
         className="absolute inset-0 z-10 cursor-zoom-in border-0 bg-transparent p-0"
         aria-label={t("feed.openMediaFullscreen")}
+        onKeyDown={(e) => {
+          if (!showCarouselControls) return;
+          if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            goPrevPhoto(e);
+          } else if (e.key === "ArrowRight") {
+            e.preventDefault();
+            goNextPhoto(e);
+          }
+        }}
         onClick={(e) => {
           if (didSwipe.current) {
             didSwipe.current = false;
@@ -716,16 +738,16 @@ export function FeedCardPrimaryMedia({
         <>
           <button
             type="button"
-            className="absolute left-1.5 top-1/2 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white shadow-md backdrop-blur-sm transition hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
-            aria-label="Vorige"
+            className="absolute left-1.5 top-1/2 z-30 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-slate-800 shadow-sm ring-1 ring-black/10 backdrop-blur-sm transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            aria-label="Vorige foto"
             onClick={goPrevPhoto}
           >
             <ChevronLeft className="h-5 w-5" aria-hidden />
           </button>
           <button
             type="button"
-            className="absolute right-1.5 top-1/2 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white shadow-md backdrop-blur-sm transition hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
-            aria-label="Volgende"
+            className="absolute right-1.5 top-1/2 z-30 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-slate-800 shadow-sm ring-1 ring-black/10 backdrop-blur-sm transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            aria-label="Volgende foto"
             onClick={goNextPhoto}
           >
             <ChevronRight className="h-5 w-5" aria-hidden />
@@ -738,11 +760,14 @@ export function FeedCardPrimaryMedia({
               <span
                 key={`${url}-${i}`}
                 className={`h-1.5 w-1.5 rounded-full ${
-                  i === safePhotoIndex ? "bg-white" : "bg-white/45"
+                  i === safePhotoIndex ? "bg-white shadow-sm ring-1 ring-black/25" : "bg-white/50"
                 }`}
               />
             ))}
           </div>
+          <span className="sr-only">
+            {`Foto ${safePhotoIndex + 1} van ${gallery.length}`}
+          </span>
         </>
       ) : null}
 
@@ -789,6 +814,7 @@ export function FeedCardPrimaryMedia({
     <FeedMediaLightbox
       open={lightboxOpen}
       onClose={closeLightbox}
+      onGalleryIndexChange={syncLightboxPhoto}
       payload={lightboxPayload}
       closeLabel={t("feed.closeMediaViewer")}
     />

@@ -84,10 +84,22 @@ ok(
 
 const lightbox = read('components/feed/FeedMediaLightbox.tsx');
 ok(
-  'fullscreen gallery supports arrows + escape',
+  'fullscreen gallery supports arrows, escape, swipe and keyboard',
   lightbox.includes('gallery?.sources') &&
     lightbox.includes('Escape') &&
-    lightbox.includes('ChevronLeft'),
+    lightbox.includes('ArrowLeft') &&
+    lightbox.includes('ChevronLeft') &&
+    lightbox.includes('data-lightbox-swipe'),
+);
+
+ok(
+  'feed restores scroll and keeps the active photo',
+  media.includes('feedScrollY') && media.includes('onGalleryIndexChange={syncLightboxPhoto}'),
+);
+ok(
+  'price area links to the item',
+  standard.includes('<TileValueExchangeBlock') &&
+    standard.split('<Link href={model.href}').length >= 3,
 );
 
 const geo = read('components/feed/GeoFeed.tsx');

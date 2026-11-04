@@ -31,6 +31,8 @@ type FeedMediaLightboxProps = {
   onClose: () => void;
   payload: FeedMediaLightboxPayload | null;
   closeLabel: string;
+  /** Keeps the feed carousel on the photo the visitor last viewed. */
+  onGalleryIndexChange?: (index: number) => void;
 };
 
 /**
@@ -42,11 +44,26 @@ export function FeedMediaLightbox({
   onClose,
   payload,
   closeLabel,
+  onGalleryIndexChange,
 }: FeedMediaLightboxProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const scaleRef = useRef(1);
+  const [zoomed, setZoomed] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const onGalleryIndexChangeRef = useRef(onGalleryIndexChange);
+  onGalleryIndexChangeRef.current = onGalleryIndexChange;
+
+  const galleryIndexRef = useRef(0);
+  galleryIndexRef.current = galleryIndex;
+
+  const moveGallery = useCallback((next: number) => {
+    setGalleryIndex(next);
+    onGalleryIndexChangeRef.current?.(next);
+  }, []);
 
   const syncHistoryClose = useCallback(() => {
+    onGalleryIndexChangeRef.current?.(galleryIndexRef.current);
     try {
       if (
         typeof window !== "undefined" &&
@@ -67,9 +84,21 @@ export function FeedMediaLightbox({
       if (e.key === "Escape") {
         e.preventDefault();
         syncHistoryClose();
+        return;
+      }
+      if (payload?.kind !== "image" || !payload.gallery || payload.gallery.sources.length < 2) {
+        return;
+      }
+      const last = payload.gallery.sources.length - 1;
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        moveGallery(Math.max(0, galleryIndexRef.current - 1));
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        moveGallery(Math.min(last, galleryIndexRef.current + 1));
       }
     },
-    [syncHistoryClose]
+    [syncHistoryClose, payload, moveGallery]
   );
 
   useEffect(() => {
@@ -80,11 +109,14 @@ export function FeedMediaLightbox({
         ? Math.max(0, Math.min(g.index, g.sources.length - 1))
         : 0
     );
+    scaleRef.current = 1;
+    setZoomed(false);
   }, [open, payload]);
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
+    const prevOverflow = document.body.style.overflow;
+    const y = window.scrollY;
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
 
@@ -95,13 +127,15 @@ export function FeedMediaLightbox({
     }
 
     const onPop = () => {
+      onGalleryIndexChangeRef.current?.(galleryIndexRef.current);
       onClose();
     };
     window.addEventListener("popstate", onPop);
     queueMicrotask(() => closeRef.current?.focus());
 
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevOverflow;
+      window.scrollTo(0, y);
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("popstate", onPop);
     };
@@ -123,6 +157,35 @@ export function FeedMediaLightbox({
     payload?.kind === "image" && payload.gallery?.sources?.length
       ? payload.gallery.sources.length
       : 0;
+
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!open || !el || galleryLen < 2) return;
+    let startX = 0;
+    let startY = 0;
+    const onStart = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      startX = event.touches[0]?.clientX ?? 0;
+      startY = event.touches[0]?.clientY ?? 0;
+    };
+    const onEnd = (event: TouchEvent) => {
+      if (scaleRef.current > 1.02) return;
+      const touch = event.changedTouches[0];
+      if (!touch) return;
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+      if (Math.abs(dx) < 48 || Math.abs(dx) <= Math.abs(dy)) return;
+      const last = galleryLen - 1;
+      if (dx < 0) moveGallery(Math.min(last, galleryIndexRef.current + 1));
+      else moveGallery(Math.max(0, galleryIndexRef.current - 1));
+    };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchend", onEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchend", onEnd);
+    };
+  }, [open, galleryLen, moveGallery]);
 
   if (!open || !payload || typeof document === "undefined") {
     return null;
@@ -155,7 +218,7 @@ export function FeedMediaLightbox({
           aria-label="Vorige"
           onClick={(e) => {
             e.stopPropagation();
-            setGalleryIndex((i) => Math.max(0, i - 1));
+            moveGallery(Math.max(0, galleryIndex - 1));
           }}
         >
           <ChevronLeft className="h-6 w-6" />
@@ -168,7 +231,7 @@ export function FeedMediaLightbox({
           aria-label="Volgende"
           onClick={(e) => {
             e.stopPropagation();
-            setGalleryIndex((i) => Math.min(galleryLen - 1, i + 1));
+            moveGallery(Math.min(galleryLen - 1, galleryIndex + 1));
           }}
         >
           <ChevronRight className="h-6 w-6" />
@@ -176,6 +239,8 @@ export function FeedMediaLightbox({
       )}
 
       <div
+        ref={stageRef}
+        data-lightbox-swipe="true"
         className="flex flex-1 items-center justify-center overflow-hidden pt-14 pb-6"
         onClick={(e) => e.stopPropagation()}
       >
@@ -190,10 +255,15 @@ export function FeedMediaLightbox({
               doubleClick={{ mode: "toggle", step: 2 }}
               wheel={{ step: 0.12 }}
               pinch={{ step: 5 }}
-              panning={{ velocityDisabled: true }}
+              panning={{ disabled: !zoomed, velocityDisabled: true }}
+              onTransform={(_ref, state) => {
+                scaleRef.current = state.scale;
+                const nextZoomed = state.scale > 1.02;
+                setZoomed((prev) => (prev === nextZoomed ? prev : nextZoomed));
+              }}
             >
               <TransformComponent
-                wrapperClass="!w-full !h-full max-h-[calc(100dvh-5rem)] flex items-center justify-center"
+                wrapperClass="!h-full !w-full max-h-[calc(100dvh-5rem)]"
                 contentClass="flex max-h-[calc(100dvh-5rem)] max-w-full items-center justify-center"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
