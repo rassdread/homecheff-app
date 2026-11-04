@@ -801,23 +801,18 @@ function isVisible(item: FeedItem) {
   return item.isActive !== false && Boolean(item.id?.trim());
 }
 
-function matchesSearch(
-  item: Pick<
-    FeedItem,
-    | 'title'
-    | 'description'
-    | 'listingKind'
-    | 'listingIntent'
-    | 'specializations'
-    | 'marketplaceCategory'
-    | 'category'
-    | 'feedSource'
-    | 'type'
-    | 'discovery'
-  >,
-  q: string
-) {
-  return matchesSearchTextQuery(toSearchableListingRecord(item), q);
+function matchesSearch(item: FeedItem, q: string) {
+  return matchesSearchTextQuery(
+    toSearchableListingRecord({
+      ...item,
+      seller: {
+        name: item.sellerName ?? null,
+        username: item.sellerUsername ?? null,
+        companyName: item.sellerCompanyName ?? null,
+      },
+    }),
+    q,
+  );
 }
 
 function inspSlotToSortable(slot: InspSlot) {
@@ -1417,6 +1412,20 @@ export default function GeoFeed({
   }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 350);
+  const [searchLane, setSearchLane] = useState<
+    "all" | "offer" | "people" | "inspiration"
+  >("all");
+  const [searchPeople, setSearchPeople] = useState<
+    Array<{
+      id: string;
+      name: string | null;
+      username: string | null;
+      image: string | null;
+      bio: string | null;
+      companyName?: string | null;
+      location?: { place?: string | null; city?: string | null } | null;
+    }>
+  >([]);
   const [sortBy, setSortBy] = useState<
     "newest" | "price" | "views" | "distance"
   >("newest");
@@ -2659,7 +2668,7 @@ export default function GeoFeed({
         radius: softNationalFallback || browseLocationMode === "country"
           ? 0
           : appliedRadius,
-        q: appliedQ,
+        q: appliedSearchQuery.trim() || appliedQ,
         category: appliedCategory,
         lat: softNationalFallback || browseLocationMode === "country"
           ? null
@@ -3279,6 +3288,7 @@ export default function GeoFeed({
     appliedRadius,
     appliedScope,
     appliedQ,
+    appliedSearchQuery,
     appliedPlace,
     coordsForApiLabels?.lat,
     coordsForApiLabels?.lng,
@@ -3363,7 +3373,7 @@ export default function GeoFeed({
             browseLocationMode === "country"
               ? 0
               : appliedRadius,
-          q: appliedQ,
+          q: appliedSearchQuery.trim() || appliedQ,
           category: appliedCategory,
           lat:
             softNationalFallback || browseLocationMode === "country"
@@ -3407,6 +3417,7 @@ export default function GeoFeed({
       appliedScope,
       appliedRadius,
       appliedQ,
+      appliedSearchQuery,
       appliedCategory,
       coordsForApiLabels?.lat,
       coordsForApiLabels?.lng,
@@ -5128,11 +5139,17 @@ export default function GeoFeed({
   ]);
 
   const composedDisplayRows = useMemo(() => {
-    // Gezocht is request-only — do not append sale/insp recirculation.
-    if (feedChip === "gezocht") return displayRows;
-    if (recirculatedRows.length === 0) return displayRows;
-    return [...displayRows, ...recirculatedRows];
-  }, [displayRows, recirculatedRows, feedChip]);
+    const query = appliedSearchQuery.trim();
+    // A text search must not recirculate unrelated tiles into the same result.
+    const base =
+      feedChip === "gezocht" || query || recirculatedRows.length === 0
+        ? displayRows
+        : [...displayRows, ...recirculatedRows];
+    if (!query || searchLane === "all") return base;
+    if (searchLane === "people") return [];
+    if (searchLane === "offer") return base.filter((row) => row.row === "sale");
+    return base.filter((row) => row.row === "insp");
+  }, [displayRows, recirculatedRows, feedChip, appliedSearchQuery, searchLane]);
 
   const exactResultCount = useMemo(() => {
     const rows = locationFilterActive
@@ -5685,10 +5702,11 @@ export default function GeoFeed({
     setSearchQuery(value);
   }, []);
 
-  /** Client-side refine search — debounced apply (no API fetch). */
+  /** Debounced search. The feed request uses this as q. */
   useEffect(() => {
     if (debouncedSearchQuery === appliedSearchQuery) return;
     setAppliedSearchQuery(debouncedSearchQuery);
+    if (!debouncedSearchQuery.trim()) setSearchLane("all");
     if (discoverySearchDirtyRef.current) {
       discoveryIntentRef.current = true;
       discoveryEpochAtIntentRef.current = discoveryEpochNowRef.current;
@@ -5696,6 +5714,28 @@ export default function GeoFeed({
       discoverySearchDirtyRef.current = false;
     }
   }, [debouncedSearchQuery, appliedSearchQuery]);
+
+  useEffect(() => {
+    const q = appliedSearchQuery.trim();
+    if (q.length < 2) {
+      setSearchPeople([]);
+      return;
+    }
+    const ac = new AbortController();
+    void fetch(`/api/users?q=${encodeURIComponent(q)}&take=8`, {
+      signal: ac.signal,
+      cache: "no-store",
+    })
+      .then(async (res) => {
+        if (!res.ok) return;
+        const data = (await res.json()) as { users?: typeof searchPeople };
+        if (!ac.signal.aborted) setSearchPeople(data.users ?? []);
+      })
+      .catch(() => {
+        if (!ac.signal.aborted) setSearchPeople([]);
+      });
+    return () => ac.abort();
+  }, [appliedSearchQuery]);
 
   const resetDraftFilters = useCallback(() => {
     setRadius(appliedRadius);
@@ -6135,6 +6175,89 @@ export default function GeoFeed({
       </div>
     ) : null;
 
+  const searchActive = appliedSearchQuery.trim().length > 0;
+  const visiblePeople =
+    searchLane === "offer" || searchLane === "inspiration" ? [] : searchPeople;
+  const searchLanes = [
+    { id: "all" as const, label: t("feed.searchLaneAll") },
+    { id: "offer" as const, label: t("feed.searchLaneOffer") },
+    { id: "people" as const, label: t("feed.searchLanePeople") },
+    { id: "inspiration" as const, label: t("feed.searchLaneInspiration") },
+  ];
+  const searchResultsEl = !searchActive ? null : (
+    <div className="mt-2 space-y-2" data-marketplace-search="">
+      <div className="flex flex-wrap gap-1.5" role="tablist">
+        {searchLanes.map((lane) => (
+          <button
+            key={lane.id}
+            type="button"
+            role="tab"
+            aria-selected={searchLane === lane.id}
+            onClick={() => setSearchLane(lane.id)}
+            className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
+              searchLane === lane.id
+                ? "border-emerald-600 bg-emerald-600 text-white"
+                : "border-gray-200 bg-white text-gray-800"
+            }`}
+          >
+            {lane.label}
+          </button>
+        ))}
+      </div>
+      {visiblePeople.length > 0 ? (
+        <ul className="space-y-1.5">
+          {visiblePeople.map((person) => {
+            const label = person.companyName || person.name || person.username || "";
+            const place = person.location?.city || person.location?.place || "";
+            const body = (
+              <span className="flex min-w-0 items-center gap-2">
+                {person.image ? (
+                  <img
+                    src={person.image}
+                    alt=""
+                    className="h-9 w-9 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-xs font-semibold text-emerald-800">
+                    {label.slice(0, 1).toUpperCase()}
+                  </span>
+                )}
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-gray-900">
+                    {label}
+                  </span>
+                  <span className="block truncate text-xs text-gray-500">
+                    {[person.username ? `@${person.username}` : "", place]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                </span>
+              </span>
+            );
+            return (
+              <li key={person.id}>
+                {person.username ? (
+                  <a
+                    href={`/user/${encodeURIComponent(person.username)}`}
+                    className="block rounded-lg border border-gray-100 bg-white px-2 py-1.5 hover:bg-emerald-50"
+                  >
+                    {body}
+                  </a>
+                ) : (
+                  <div className="rounded-lg border border-gray-100 bg-white px-2 py-1.5">
+                    {body}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      ) : searchLane === "people" ? (
+        <p className="text-sm text-gray-600">{t("feed.searchNoPeople")}</p>
+      ) : null}
+    </div>
+  );
+
   const resultCountEl =
     showNearbyLocationRequired ||
     (loading && !feedHydrated) ||
@@ -6251,11 +6374,15 @@ export default function GeoFeed({
         exactListingCount: displayRows.length,
       };
     }
-    const { exact, widened } = splitFeedRowsByRadiusMembership(
-      displayRows,
-      appliedRadius,
-    );
-    // Outside-radius rows stay in the suggestion stage, never as exact matches.
+    const split = splitFeedRowsByRadiusMembership(displayRows, appliedRadius);
+    let exact = split.exact;
+    let widened = split.widened;
+    // Inspiration and recipes stay visible during search. Sale items keep the radius.
+    if (appliedSearchQuery.trim()) {
+      const promoted = widened.filter((row) => row.row === "insp");
+      widened = widened.filter((row) => row.row !== "insp");
+      exact = [...exact, ...promoted];
+    }
     return {
       exactRows: exact,
       widenedRows: widened as typeof displayRows,
@@ -6271,6 +6398,7 @@ export default function GeoFeed({
     locationFilterActive,
     displayRows,
     appliedRadius,
+    appliedSearchQuery,
     recirculatedRows,
     saleWiderPool.length,
   ]);
@@ -7036,7 +7164,12 @@ export default function GeoFeed({
         tradeActive={discoveryDirection === "offer"}
       />
       {mobileFilterSheetEl}
-      {deliveryRequestOpen ? null : resultCountEl}
+      {deliveryRequestOpen ? null : (
+        <>
+          {searchResultsEl}
+          {resultCountEl}
+        </>
+      )}
     </>
   ) : workspaceRailOwnsFilters ? (
     /* WX Phase 1C / 1C.1 — start rail owns full filters; stage keeps search + compact chrome. */
@@ -7071,7 +7204,12 @@ export default function GeoFeed({
             onChange={setDesktopFeedColumns}
           />
         </div>
-        {deliveryRequestOpen ? null : resultCountEl}
+        {deliveryRequestOpen ? null : (
+        <>
+          {searchResultsEl}
+          {resultCountEl}
+        </>
+      )}
       </div>
     </div>
   ) : (
@@ -7141,7 +7279,12 @@ export default function GeoFeed({
             {filterPanelBodyEl}
           </div>
         ) : null}
-        {deliveryRequestOpen ? null : resultCountEl}
+        {deliveryRequestOpen ? null : (
+        <>
+          {searchResultsEl}
+          {resultCountEl}
+        </>
+      )}
       </div>
     </div>
   );
@@ -7167,7 +7310,12 @@ export default function GeoFeed({
           {t(quickCreateLabelKey(feedQuickCreateIntent))}
         </button>
       ) : null}
-      {deliveryRequestOpen ? null : resultCountEl}
+      {deliveryRequestOpen ? null : (
+        <>
+          {searchResultsEl}
+          {resultCountEl}
+        </>
+      )}
     </div>
   ) : null;
 

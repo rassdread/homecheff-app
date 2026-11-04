@@ -68,6 +68,7 @@ export type SearchableListingRecord = {
   seller?: {
     name?: string | null;
     username?: string | null;
+    companyName?: string | null;
   } | null;
   location?: {
     place?: string | null;

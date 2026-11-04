@@ -18,6 +18,7 @@ function haystackForItem(item: SearchableListingRecord): string {
     item.listingIntent,
     item.seller?.name,
     item.seller?.username,
+    item.seller?.companyName,
     item.location?.place,
     item.location?.city,
     ...(item.specializations ?? []),

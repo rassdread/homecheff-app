@@ -12,7 +12,11 @@ import {
   isMarketplaceSaleItem,
   isMarketplaceServiceItem,
 } from '@/lib/feed/marketplace-sale';
-import { buildProductTextSearchWhere } from '@/lib/search/filters/build-product-search-where';
+import {
+  buildDishTextSearchWhere,
+  buildListingTextSearchWhere,
+  buildProductTextSearchWhere,
+} from '@/lib/search/filters/build-product-search-where';
 import {
   combineProductSearchFilters,
   semanticProductWhereForDiscoverySlug,
@@ -493,5 +497,22 @@ describe('pagination cursor reset', () => {
     assert.notEqual(next.requestKey, advanced.requestKey);
     const geo = resetFeedCompositionState(advanced, 'scope=national&radius=0');
     assert.equal(geo.marketplaceSkip, 0);
+  });
+});
+
+describe('public seller search', () => {
+  it('matches name, username and business name and never email', () => {
+    for (const where of [
+      buildProductTextSearchWhere('Dee'),
+      buildDishTextSearchWhere('dee'),
+      buildListingTextSearchWhere('DEE'),
+    ]) {
+      const encoded = JSON.stringify(where);
+      assert.equal(encoded.includes('username'), true);
+      assert.equal(encoded.includes('companyName'), true);
+      assert.equal(encoded.includes('displayName'), true);
+      assert.equal(encoded.includes('email'), false);
+      assert.equal(encoded.includes('street'), false);
+    }
   });
 });

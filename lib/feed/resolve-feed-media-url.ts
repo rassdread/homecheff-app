@@ -77,6 +77,23 @@ export function resolveFeedUrlsFromMetadata(
   return { image: images[0] ?? null, images };
 }
 
+/**
+ * Published dishes and products can share an id. When a dish has no DishPhoto
+ * rows, the feed may still show the product gallery. Existing dish photos win.
+ * Nothing is written back to the database.
+ */
+export function fillMissingDishMediaFromProductImages(
+  dishPhotos: Map<string, FeedMediaMetaRow[]>,
+  productImages: Map<string, FeedMediaMetaRow[]>,
+  dishIds: readonly string[],
+): void {
+  for (const id of dishIds) {
+    if ((dishPhotos.get(id) ?? []).length > 0) continue;
+    const fallback = productImages.get(id) ?? [];
+    if (fallback.length > 0) dishPhotos.set(id, fallback);
+  }
+}
+
 export function classifyFeedMediaUrl(rawUrl: unknown): 'http' | 'data' | 'empty' | 'invalid' {
   if (rawUrl == null || (typeof rawUrl === 'string' && rawUrl.trim() === '')) {
     return 'empty';

@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CERTIFICATION_FIXTURE_EMAIL_SUFFIXES } from '@/lib/marketplace/public-listing-eligibility';
 import { INTERNAL_TEST_KEEP_EMAILS } from '@/lib/certification/internal-test-identities';
 
-export const dynamic = 'force-static';
-export const revalidate = 3600; // 1 hour cache like big platforms
+export const dynamic = 'force-dynamic';
 
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -31,25 +30,35 @@ export async function GET(request: NextRequest) {
 
     // Build search conditions
     const searchConditions: any = {
-      // Always exclude ADMIN users from search results
-      role: {
-        not: 'ADMIN'
-      },
-      // Same non-public identities already excluded from discovery and public profiles.
-      NOT: {
-        OR: [
-          ...CERTIFICATION_FIXTURE_EMAIL_SUFFIXES.map((suffix) => ({
-            email: { endsWith: suffix },
-          })),
-          { email: { contains: 'homecheff-validation.test' } },
-          { email: { startsWith: 'deleted+' } },
-          { email: { startsWith: 'cleaned-' } },
-          { bio: { contains: 'certificationFixture=true' } },
-          ...INTERNAL_TEST_KEEP_EMAILS.map((email) => ({
-            email: { equals: email },
-          })),
-        ],
-      },
+      role: { not: 'ADMIN' },
+      accountDeletedAt: null,
+      suspendedAt: null,
+      AND: [
+        {
+          // NULL bio is public. A NOT (bio contains …) clause drops those rows.
+          OR: [
+            { bio: null },
+            { bio: '' },
+            { NOT: { bio: { contains: 'certificationFixture=true' } } },
+          ],
+        },
+        {
+          NOT: {
+            OR: [
+              ...CERTIFICATION_FIXTURE_EMAIL_SUFFIXES.map((suffix) => ({
+                email: { endsWith: suffix },
+              })),
+              { email: { contains: 'homecheff-validation.test' } },
+              { email: { startsWith: 'deleted+' } },
+              { email: { startsWith: 'cleaned-' } },
+              { username: { startsWith: 'deleted_' } },
+              ...INTERNAL_TEST_KEEP_EMAILS.map((email) => ({
+                email: { equals: email },
+              })),
+            ],
+          },
+        },
+      ],
     };
 
     // Add text search conditions
@@ -63,7 +72,9 @@ export async function GET(request: NextRequest) {
         { username: { contains: searchTerm, mode: 'insensitive' } },
         { bio: { contains: searchTerm, mode: 'insensitive' } },
         { place: { contains: searchTerm, mode: 'insensitive' } },
-        { city: { contains: searchTerm, mode: 'insensitive' } }
+        { city: { contains: searchTerm, mode: 'insensitive' } },
+        { SellerProfile: { is: { companyName: { contains: searchTerm, mode: 'insensitive' } } } },
+        { SellerProfile: { is: { displayName: { contains: searchTerm, mode: 'insensitive' } } } },
       ];
     }
 
@@ -102,6 +113,8 @@ export async function GET(request: NextRequest) {
         SellerProfile: {
           select: {
             id: true,
+            companyName: true,
+            displayName: true,
             _count: {
               select: {
                 products: true // Just count, don't fetch all products
@@ -155,6 +168,7 @@ export async function GET(request: NextRequest) {
         displayNameOption: user.displayNameOption,
         followerCount: followerCountMap.get(user.id) || 0,
         productCount: user.SellerProfile?._count?.products || 0,
+        companyName: user.SellerProfile?.companyName || user.SellerProfile?.displayName || null,
         location: toPublicListLocation({
           place: user.place,
           city: user.city,

@@ -152,6 +152,7 @@ import {
 import {
   buildFeedMediaProxyUrl,
   classifyFeedMediaUrl,
+  fillMissingDishMediaFromProductImages,
   resolveFeedMediaUrlForResponse,
   resolveFeedUrlsFromMetadata,
 } from "@/lib/feed/resolve-feed-media-url";
@@ -566,18 +567,25 @@ async function handleFeedGet(
     },
   );
 
+  const listingText = q ? buildListingTextSearchWhere(q) : null;
+  const listingGeo =
+    lat && lng
+      ? feedDistanceBoxOrMissingCoords(Number(lat), Number(lng), effectiveRadius)
+      : null;
+  const listingAnd: Prisma.ListingWhereInput[] = [];
+  if (listingText && Object.keys(listingText).length > 0) listingAnd.push(listingText);
+  if (listingGeo && Object.keys(listingGeo).length > 0) {
+    listingAnd.push(listingGeo);
+  }
+  if (searchFilters.listingIntent === "REQUEST") {
+    listingAnd.push({ id: { in: [] } });
+  }
+  if (listingCategory) listingAnd.push({ category: listingCategory });
   const listingQuery = prisma.listing.findMany({
       where: {
         isPublic: true,
         status: "ACTIVE",
-        ...(q ? buildListingTextSearchWhere(q) : {}),
-        ...(searchFilters.listingIntent === 'REQUEST' ? { id: { in: [] as string[] } } : {}),
-        ...(listingCategory ? {
-          category: listingCategory
-        } : {}),
-        ...(lat && lng
-          ? feedDistanceBoxOrMissingCoords(Number(lat), Number(lng), effectiveRadius)
-          : {})
+        ...(listingAnd.length > 0 ? { AND: listingAnd } : {}),
       },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: candidateWindow.listingTake,
@@ -652,20 +660,29 @@ async function handleFeedGet(
 
   const dbDishStart = performance.now();
   const dbLinkedStart = performance.now();
-  const dishWhere = {
-    status: "PUBLISHED" as const,
-    ...(linkedProductIds.length > 0 ? { id: { notIn: linkedProductIds } } : {}),
-    ...(q ? buildDishTextSearchWhere(q) : {}),
-    ...(lat && lng
+  const dishText = q ? buildDishTextSearchWhere(q) : null;
+  // Inspiration has no sale address. A text search must not be dropped by the
+  // radius box, and the box must not overwrite the text OR.
+  const dishGeo =
+    !q && lat && lng
       ? feedDistanceBoxOrMissingCoords(Number(lat), Number(lng), effectiveRadius)
-      : {}),
-    ...(searchFilters.listingIntent === 'REQUEST' ||
-    searchFilters.listingIntent === 'OFFER' ||
+      : null;
+  const dishNarrow =
+    searchFilters.listingIntent === "REQUEST" ||
+    searchFilters.listingIntent === "OFFER" ||
     discoverySlugIsServices(vertical)
-      ? { AND: [{ id: { equals: '00000000-0000-0000-0000-000000000000' } }] }
+      ? { AND: [{ id: { equals: "00000000-0000-0000-0000-000000000000" } }] }
       : productCategory
         ? { category: productCategory }
-        : {}),
+        : null;
+  const dishAnd: Prisma.DishWhereInput[] = [];
+  if (dishText && Object.keys(dishText).length > 0) dishAnd.push(dishText);
+  if (dishGeo && Object.keys(dishGeo).length > 0) dishAnd.push(dishGeo);
+  if (dishNarrow && Object.keys(dishNarrow).length > 0) dishAnd.push(dishNarrow);
+  const dishWhere: Prisma.DishWhereInput = {
+    status: "PUBLISHED",
+    ...(linkedProductIds.length > 0 ? { id: { notIn: linkedProductIds } } : {}),
+    ...(dishAnd.length > 0 ? { AND: dishAnd } : {}),
   };
   const dishQuery = fetchFeedPublishedDishes(prisma, {
     where: dishWhere,
@@ -683,14 +700,22 @@ async function handleFeedGet(
   );
 
   // One DishPhoto metadata round-trip for linked donors + published dishes.
-  const dishPhotoMetadataPromise = dishQuery.then((dishes) => {
+  const dishPhotoMetadataPromise = dishQuery.then(async (dishes) => {
     const ids = [
       ...new Set([
         ...linkedIdsNeedingDonor,
         ...dishes.map((d) => d.id),
       ]),
     ];
-    return loadDishPhotoMetadata(ids);
+    const photos = await loadDishPhotoMetadata(ids);
+    const missing = dishes
+      .map((dish) => dish.id)
+      .filter((id) => (photos.get(id) ?? []).length === 0);
+    if (missing.length > 0) {
+      const fallback = await loadProductImageMetadata(missing);
+      fillMissingDishMediaFromProductImages(photos, fallback, missing);
+    }
+    return photos;
   });
 
   const linkedMediaQuery =
