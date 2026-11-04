@@ -1,8 +1,9 @@
 // Service Worker voor supersnelle caching
-// v3: Next `_next/static` niet meer cache-first (voorkomt oude Capacitor/JS-bundels).
-const CACHE_NAME = 'homecheff-v3';
-const STATIC_CACHE = 'homecheff-static-v3';
-const DYNAMIC_CACHE = 'homecheff-dynamic-v3';
+// v4: live search, feed and photos are network-first so a deploy cannot keep
+// an old marketplace, search response, or product image in cache.
+const CACHE_NAME = 'homecheff-v4';
+const STATIC_CACHE = 'homecheff-static-v4';
+const DYNAMIC_CACHE = 'homecheff-dynamic-v4';
 
 // Statische assets die altijd gecached moeten worden
 const STATIC_ASSETS = [
@@ -16,12 +17,8 @@ const STATIC_ASSETS = [
   '/manifest.json'
 ];
 
-// API routes die gecached moeten worden
-const CACHEABLE_API_ROUTES = [
-  '/api/users',
-  '/api/products',
-  '/api/conversations'
-];
+// Live marketplace data is never stored. A cached /api/users or /api/products
+// response was serving the previous search and catalog after a deploy.
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
@@ -83,38 +80,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle API routes
+  // Search, feed, inspiration and account APIs stay on the network.
   if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      caches.open(DYNAMIC_CACHE)
-        .then((cache) => {
-          return cache.match(request)
-            .then((cachedResponse) => {
-              if (cachedResponse) {
-                // Serve from cache, but also update in background
-                fetch(request)
-                  .then((response) => {
-                    if (response.ok) {
-                      cache.put(request, response.clone());
-                    }
-                  })
-                  .catch(() => {
-                    // Network error, keep cached version
-                  });
-                return cachedResponse;
-              }
-
-              // Not in cache, fetch from network
-              return fetch(request)
-                .then((response) => {
-                  if (response.ok && CACHEABLE_API_ROUTES.some(route => url.pathname.startsWith(route))) {
-                    cache.put(request, response.clone());
-                  }
-                  return response;
-                });
-            });
-        })
-    );
     return;
   }
 
@@ -132,24 +99,17 @@ self.addEventListener('fetch', (event) => {
       url.pathname.endsWith('.webp')) {
     
     event.respondWith(
-      caches.match(request)
-        .then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-
-          return fetch(request)
-            .then((response) => {
-              if (response.ok) {
-                const responseClone = response.clone();
-                caches.open(STATIC_CACHE)
-                  .then((cache) => {
-                    cache.put(request, responseClone);
-                  });
-              }
-              return response;
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(request, responseClone);
             });
+          }
+          return response;
         })
+        .catch(() => caches.match(request))
     );
     return;
   }

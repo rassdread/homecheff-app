@@ -27,6 +27,7 @@ import { HcpRewardProvider } from '@/components/gamification/HcpRewardProvider';
 import { CommsUnreadProvider } from '@/components/communication/CommsUnreadProvider';
 import NavigationHistorySync from '@/components/navigation/NavigationHistorySync';
 import FeedPerfBaselineMount from '@/components/performance/FeedPerfBaselineMount';
+import PwaServiceWorker from '@/components/pwa/PwaServiceWorker';
 import { WorkspaceChromeProvider } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
 import { SsrLanguageProvider } from '@/components/i18n/SsrLanguageProvider';
 import type { Language } from '@/lib/locale';
@@ -119,6 +120,7 @@ export default function Providers({
           <UserBootstrapProvider>
             <CommsUnreadProvider>
               <CommsRealtimeListener />
+              <PwaServiceWorker />
               <WebPushRegistration />
               <HcpRewardProvider>
                 <CreateFlowProvider>
