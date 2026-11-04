@@ -386,8 +386,10 @@ export default function NavBar() {
     // Validate session integrity
     validateAndCleanSession();
 
+    const cartUserId =
+      (session?.user as { id?: string } | undefined)?.id ?? null;
     if (session?.user?.email) {
-      setCartUserId(session.user.email);
+      if (cartUserId) setCartUserId(cartUserId);
       void fetchSellerOrdersUnread('session-change');
     } else {
       setCartUserId(null);
