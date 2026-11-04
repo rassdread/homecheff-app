@@ -17,6 +17,8 @@ import {
   validateProviderAutoConfirm,
 } from '@/lib/delivery/provider-acceptance';
 import { resolveDelivererPosition, resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
+import { withSalesLocationNote } from '@/lib/delivery/delivery-origin';
+import { resolveMarketplaceDeliveryOrigin } from '@/lib/seller/sales-locations-server';
 import { calculateDistance } from '@/lib/geocoding';
 import {
   distanceSemanticsMode,
@@ -88,6 +90,7 @@ async function resolveAuthoritativeQuote(
     productId?: string | null;
     buyerLat?: number | null;
     buyerLng?: number | null;
+    pickupLocationId?: string | null;
     profile: {
       pricingEnabled: boolean;
       baseFeeCents: number | null;
@@ -110,9 +113,9 @@ async function resolveAuthoritativeQuote(
     };
   }
 ): Promise<
-  | { ok: true; routeDistanceKm: number; quotedFeeCents: number | null }
+  | { ok: true; routeDistanceKm: number; quotedFeeCents: number | null; locationId: string | null }
   | { ok: false; status: number; code: string; error: string }
-  | { ok: true; routeDistanceKm: null; quotedFeeCents: null }
+  | { ok: true; routeDistanceKm: null; quotedFeeCents: null; locationId: null }
 > {
   const flags = getDeliveryAlignmentFlags();
   if (
@@ -123,7 +126,7 @@ async function resolveAuthoritativeQuote(
     !Number.isFinite(input.buyerLng)
   ) {
     // Soft path (manual without full route yet) — no fee lock.
-    return { ok: true, routeDistanceKm: null, quotedFeeCents: null };
+    return { ok: true, routeDistanceKm: null, quotedFeeCents: null, locationId: null };
   }
 
   const product = await prisma.product.findUnique({
@@ -141,7 +144,20 @@ async function resolveAuthoritativeQuote(
     },
   });
 
-  const pickup = resolveDeliveryPickupCoords(product);
+  const origin = await resolveMarketplaceDeliveryOrigin({
+    productIds: [input.productId],
+    requestedLocationId: input.pickupLocationId,
+    buyerLat: input.buyerLat,
+    buyerLng: input.buyerLng,
+  });
+  if (!origin.ok) {
+    return { ok: false, status: origin.status, code: origin.code, error: origin.error };
+  }
+  const locationId = origin.decision.kind === 'location' ? origin.decision.location.locationId : null;
+  const pickup =
+    origin.decision.kind === 'location'
+      ? { lat: origin.decision.location.lat, lng: origin.decision.location.lng }
+      : resolveDeliveryPickupCoords(product);
   if (!pickup) {
     return {
       ok: false,
@@ -248,10 +264,11 @@ async function resolveAuthoritativeQuote(
       ok: true,
       routeDistanceKm: quote.routeDistanceKm,
       quotedFeeCents: quote.deliveryFeeCents,
+      locationId,
     };
   }
 
-  return { ok: true, routeDistanceKm, quotedFeeCents: null };
+  return { ok: true, routeDistanceKm, quotedFeeCents: null, locationId };
 }
 
 const LIVE_BOOKING_STATUSES = ['PENDING', 'ACCEPTED', 'AUTO_CONFIRMED'] as const;
@@ -318,6 +335,7 @@ export async function createDeliveryBookingRequest(
     /** Ignored when server can recompute (Phase 5.7). */
     quotedFeeCents?: number | null;
     notes?: string | null;
+    pickupLocationId?: string | null;
     /** Original product hold. The courier window cannot extend past it. */
     holdUntil?: Date | null;
     /** Evaluate courier rules at this instant. Marketplace callers omit it and use now. */
@@ -364,6 +382,7 @@ export async function createDeliveryBookingRequest(
     productId: input.productId,
     buyerLat: input.buyerLat,
     buyerLng: input.buyerLng,
+    pickupLocationId: input.pickupLocationId,
     profile,
   });
   if (!authoritative.ok) {
@@ -384,6 +403,7 @@ export async function createDeliveryBookingRequest(
       : authoritative.routeDistanceKm != null
         ? null
         : input.quotedFeeCents ?? null;
+  const bookingNotes = withSalesLocationNote(input.notes, authoritative.locationId);
 
   const flags = getDeliveryAlignmentFlags();
   if (
@@ -490,7 +510,7 @@ export async function createDeliveryBookingRequest(
         routeDistanceKm,
         buyerLat: input.buyerLat ?? null,
         buyerLng: input.buyerLng ?? null,
-        notes: input.notes ?? null,
+        notes: bookingNotes,
         respondedAt: new Date(),
         updatedAt: new Date(),
       },
@@ -553,7 +573,7 @@ export async function createDeliveryBookingRequest(
       routeDistanceKm,
       buyerLat: input.buyerLat ?? null,
       buyerLng: input.buyerLng ?? null,
-      notes: input.notes ?? null,
+      notes: bookingNotes,
       updatedAt: new Date(),
     },
   );

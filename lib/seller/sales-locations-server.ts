@@ -1,6 +1,7 @@
 /**
  * Seller sales locations — database access.
  * Does not update Order rows, stock, Stripe, or delivery profiles.
+ * Delivery V12 reads active linked stalls as the courier pickup origin.
  */
 
 import type { Prisma, PrismaClient } from '@prisma/client';
@@ -24,6 +25,12 @@ import {
   type SalesLocationDraft,
 } from '@/lib/seller/sales-locations';
 import { toMarketplacePublicPickupLocation } from '@/lib/geo/public-place';
+import {
+  selectSharedDeliveryOrigin,
+  withSalesLocationNote,
+  type DeliveryOriginDecision,
+  type DeliveryOriginStall,
+} from '@/lib/delivery/delivery-origin';
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -541,6 +548,97 @@ export async function resolveCheckoutPickupAddress(input: {
   }
   if (labels.length === 0) return { ok: true, address: input.buyerAddress };
   return { ok: true, address: labels.join(' | ') };
+}
+
+export async function resolveMarketplaceDeliveryOrigin(input: {
+  productIds: string[];
+  requestedLocationId?: string | null;
+  buyerLat?: number | null;
+  buyerLng?: number | null;
+}): Promise<
+  | { ok: true; decision: DeliveryOriginDecision & { ok: true } }
+  | { ok: false; status: number; code: string; error: string }
+> {
+  const productIds = [...new Set(input.productIds.filter((id) => typeof id === 'string' && id.length > 0))];
+  if (productIds.length === 0) {
+    return { ok: true, decision: { ok: true, kind: 'legacy' } };
+  }
+  const links = await prisma.productSalesLocation.findMany({
+    where: { productId: { in: productIds }, location: { isActive: true } },
+    select: {
+      productId: true,
+      location: true,
+    },
+  });
+  if (links.length === 0) {
+    return { ok: true, decision: { ok: true, kind: 'legacy' } };
+  }
+  const entitled = await entitledIdSetForUsers([...new Set(links.map((link) => link.location.userId))]);
+  const byProduct = new Map<string, DeliveryOriginStall[]>();
+  for (const productId of productIds) byProduct.set(productId, []);
+  for (const link of links) {
+    const location = link.location;
+    if (!entitled.get(location.userId)?.has(location.id)) continue;
+    if (typeof location.lat !== 'number' || typeof location.lng !== 'number') continue;
+    if (!Number.isFinite(location.lat) || !Number.isFinite(location.lng)) continue;
+    const bucket = byProduct.get(link.productId) ?? [];
+    bucket.push({
+      locationId: location.id,
+      name: location.name,
+      city: location.city,
+      addressLabel: formatSalesLocationAddress(location),
+      lat: location.lat,
+      lng: location.lng,
+      isPrimary: location.isPrimary,
+    });
+    byProduct.set(link.productId, bucket);
+  }
+  const decision = selectSharedDeliveryOrigin({
+    perProduct: productIds.map((productId) => byProduct.get(productId) ?? []),
+    requestedLocationId: input.requestedLocationId,
+    buyerLat: input.buyerLat,
+    buyerLng: input.buyerLng,
+  });
+  if (!decision.ok) {
+    const error =
+      decision.code === 'NO_SHARED_LOCATION'
+        ? 'Deze producten kunnen niet samen vanaf één verkooplocatie worden opgehaald.'
+        : decision.code === 'LOCATION_WITHOUT_COORDINATES'
+          ? 'De verkooplocatie heeft geen coördinaten voor bezorging.'
+          : 'Deze verkooplocatie is niet beschikbaar voor deze bestelling.';
+    return { ok: false, status: 409, code: decision.code, error };
+  }
+  return { ok: true, decision };
+}
+
+export async function rememberDeliveryOriginOnOrder(input: {
+  orderId: string;
+  productIds: string[];
+  requestedLocationId?: string | null;
+  buyerLat?: number | null;
+  buyerLng?: number | null;
+}) {
+  const origin = await resolveMarketplaceDeliveryOrigin(input);
+  if (!origin.ok || origin.decision.kind !== 'location') return origin;
+  const addressLabel = origin.decision.location.addressLabel;
+  await prisma.order.update({
+    where: { id: input.orderId },
+    data: { pickupAddress: addressLabel },
+  });
+  const existing = await prisma.deliveryOrder.findUnique({
+    where: { orderId: input.orderId },
+    select: { notes: true },
+  });
+  if (existing) {
+    await prisma.deliveryOrder.update({
+      where: { orderId: input.orderId },
+      data: {
+        pickupAddress: addressLabel,
+        notes: withSalesLocationNote(existing.notes, origin.decision.location.locationId),
+      },
+    });
+  }
+  return origin;
 }
 
 export function addressLabelOf(location: {

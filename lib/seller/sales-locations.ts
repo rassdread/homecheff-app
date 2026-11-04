@@ -1,7 +1,8 @@
 /**
  * Multi-location V1 — pure rules.
  * One product row, many pickup points. Stock stays on Product.
- * Locations never rewrite orders or delivery pickup coordinates.
+ * Delivery origin is chosen in lib/delivery/delivery-origin.ts.
+ * Saving a location does not rewrite existing orders.
  */
 
 import { haversineKm } from '@/lib/community/geoDistance';

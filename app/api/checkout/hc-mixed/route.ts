@@ -20,7 +20,8 @@ import {
   isNewCourierFulfillmentMode,
 } from '@/lib/delivery/delivery-deployment-gate';
 import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
-import { resolveCheckoutPickupAddress } from '@/lib/seller/sales-locations-server';
+import { rememberDeliveryOriginOnOrder, resolveCheckoutPickupAddress, resolveMarketplaceDeliveryOrigin } from '@/lib/seller/sales-locations-server';
+import { deliveryModeUsesSalesOrigin } from '@/lib/delivery/delivery-origin';
 
 export const dynamic = 'force-dynamic';
 
@@ -122,6 +123,23 @@ export async function POST(req: NextRequest) {
     if (!items?.length) {
       return NextResponse.json({ ok: false, code: 'NO_ITEMS' }, { status: 400, headers: NO_STORE });
     }
+    const coordinates = body?.coordinates as { lat?: number; lng?: number } | null | undefined;
+    const requestedOriginId =
+      typeof body?.deliveryOriginLocationId === 'string' ? body.deliveryOriginLocationId : null;
+    if (deliveryModeUsesSalesOrigin(deliveryMode)) {
+      const origin = await resolveMarketplaceDeliveryOrigin({
+        productIds: items.map((item) => item.productId),
+        requestedLocationId: requestedOriginId,
+        buyerLat: typeof coordinates?.lat === 'number' ? coordinates.lat : null,
+        buyerLng: typeof coordinates?.lng === 'number' ? coordinates.lng : null,
+      });
+      if (!origin.ok) {
+        return NextResponse.json(
+          { ok: false, code: origin.code, message: origin.error },
+          { status: origin.status, headers: NO_STORE },
+        );
+      }
+    }
 
     const sellerRows = await prisma.product.findMany({
       where: { id: { in: items.map((item) => item.productId) } },
@@ -152,6 +170,15 @@ export async function POST(req: NextRequest) {
     const created = await createMixedHcOrderWithReserve(ctx);
     if (!created.ok) {
       return NextResponse.json(created, { status: 422, headers: NO_STORE });
+    }
+    if (deliveryModeUsesSalesOrigin(deliveryMode)) {
+      await rememberDeliveryOriginOnOrder({
+        orderId: created.orderId,
+        productIds: items.map((item) => item.productId),
+        requestedLocationId: requestedOriginId,
+        buyerLat: typeof coordinates?.lat === 'number' ? coordinates.lat : null,
+        buyerLng: typeof coordinates?.lng === 'number' ? coordinates.lng : null,
+      });
     }
 
     const { buyerTotalCents } = calculateStripeFeeForBuyer(created.remainingEurCents);

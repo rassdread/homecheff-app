@@ -8,6 +8,7 @@ import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing'
 import { normalizeFulfillmentInput } from '@/lib/delivery/delivery-fulfillment-vocabulary';
 import { resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
 import { normalizeCountryCode } from '@/lib/gamification/country-code';
+import { resolveMarketplaceDeliveryOrigin } from '@/lib/seller/sales-locations-server';
 
 
 export const dynamic = 'force-dynamic';
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
       deliveryMode,
       country,
       deliveryProfileId,
+      deliveryOriginLocationId,
     } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -90,6 +92,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Products not found' }, { status: 404 });
     }
 
+    const origin = await resolveMarketplaceDeliveryOrigin({
+      productIds,
+      requestedLocationId:
+        typeof deliveryOriginLocationId === 'string' ? deliveryOriginLocationId : null,
+      buyerLat: coordinates.lat,
+      buyerLng: coordinates.lng,
+    });
+    if (!origin.ok) {
+      return NextResponse.json({ error: origin.error, code: origin.code }, { status: origin.status });
+    }
+    const deliveryOrigin =
+      origin.decision.kind === 'location'
+        ? {
+            locationId: origin.decision.location.locationId,
+            name: origin.decision.location.name,
+            city: origin.decision.location.city,
+            addressLabel: origin.decision.location.addressLabel,
+            reason: origin.decision.reason,
+            alternatives: origin.decision.alternatives.map((stall) => ({
+              locationId: stall.locationId,
+              name: stall.name,
+              city: stall.city,
+            })),
+          }
+        : null;
+
     const buyerCountryCode = normalizeCountryCode(country) || 'NL';
 
     let totalDistance = 0;
@@ -99,9 +127,14 @@ export async function POST(req: NextRequest) {
 
     let sawPickup = false;
 
+    const sharedPickup =
+      origin.decision.kind === 'location'
+        ? { lat: origin.decision.location.lat, lng: origin.decision.location.lng }
+        : null;
+
     for (const item of items) {
       const product = products.find((p) => p.id === item.productId);
-      const pickup = resolveDeliveryPickupCoords(product);
+      const pickup = sharedPickup ?? resolveDeliveryPickupCoords(product);
       if (pickup) {
         sawPickup = true;
         sellerCountry =
@@ -224,6 +257,7 @@ export async function POST(req: NextRequest) {
         minimumFeeCents: quote.breakdown.minimumFeeCents,
         freeDeliveryRadiusKm: quote.breakdown.freeDeliveryRadiusKm,
         currency: profile.currency || 'EUR',
+        deliveryOrigin,
         breakdown: {
           baseFee: quote.breakdown.baseFeeCents,
           baseFeeCents: quote.breakdown.baseFeeCents,
@@ -273,6 +307,7 @@ export async function POST(req: NextRequest) {
       sellerCountry,
       buyerCountry: buyerCountryCode,
       pricingSource: 'PLATFORM_LEGACY',
+      deliveryOrigin,
       breakdown: {
         baseFee: pricing.baseFee,
         distanceFee: pricing.distanceFee,

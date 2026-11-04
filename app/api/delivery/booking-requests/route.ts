@@ -11,6 +11,7 @@ import {
   markBookingSuperseded,
 } from '@/lib/delivery/booking-request-service';
 import { readMarketplaceSlot } from '@/lib/delivery/checkout-courier-consistency';
+import { readSalesLocationId } from '@/lib/delivery/delivery-origin';
 import {
   attachBookingToHold,
   openPaymentWindowForBooking,
@@ -23,6 +24,23 @@ import {
   isCompletePhysicalDeliveryAddress,
   validatePhysicalDeliveryAddress,
 } from '@/lib/checkout/physical-delivery-address';
+
+function bookingRouteMoved(
+  request: { notes: string | null; buyerLat: number | null; buyerLng: number | null },
+  buyerLat: unknown,
+  buyerLng: unknown,
+  originId: string | null,
+): boolean {
+  const booked = readSalesLocationId(request.notes);
+  if ((originId || booked) && originId !== booked) return true;
+  if (typeof buyerLat === 'number' && request.buyerLat != null && Math.abs(buyerLat - request.buyerLat) > 0.0001) {
+    return true;
+  }
+  if (typeof buyerLng === 'number' && request.buyerLng != null && Math.abs(buyerLng - request.buyerLng) > 0.0001) {
+    return true;
+  }
+  return false;
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -139,7 +157,12 @@ export async function POST(req: NextRequest) {
       postalCode,
       city,
       country,
+      deliveryOriginLocationId,
     } = body;
+    const requestedOriginId =
+      typeof deliveryOriginLocationId === 'string' && deliveryOriginLocationId.trim()
+        ? deliveryOriginLocationId.trim()
+        : null;
     const requestedQuantity =
       typeof quantity === 'number' && Number.isInteger(quantity) && quantity > 0
         ? quantity
@@ -208,6 +231,16 @@ export async function POST(req: NextRequest) {
         alreadyAccepted &&
         alreadyAccepted.deliveryProfileId === deliveryProfileId
       ) {
+        if (bookingRouteMoved(alreadyAccepted, buyerLat, buyerLng, requestedOriginId)) {
+          return NextResponse.json(
+            {
+              error: 'De ophaal- of bezorglocatie wijkt af van de geaccepteerde boeking.',
+              code: 'DELIVERY_ROUTE_CHANGED',
+              bookingRequestId: alreadyAccepted.id,
+            },
+            { status: 409 },
+          );
+        }
         const hold = await prisma.stockReservation.findFirst({
           where: { bookingRequestId: alreadyAccepted.id, status: 'PENDING' },
         });
@@ -232,7 +265,8 @@ export async function POST(req: NextRequest) {
       });
       if (
         samePending &&
-        samePending.id !== replacesBookingRequestId
+        samePending.id !== replacesBookingRequestId &&
+        !bookingRouteMoved(samePending, buyerLat, buyerLng, requestedOriginId)
       ) {
         const hold = await prisma.stockReservation.findFirst({
           where: { bookingRequestId: samePending.id, status: 'PENDING' },
@@ -247,6 +281,21 @@ export async function POST(req: NextRequest) {
           quotedFeeCents: samePending.quotedFeeCents,
           reservation: reservationTiming(hold),
         });
+      }
+      if (
+        samePending &&
+        bookingRouteMoved(samePending, buyerLat, buyerLng, requestedOriginId)
+      ) {
+        const replaced = await cancelPendingBookingForReplacement(prisma, {
+          requestId: samePending.id,
+          buyerId: buyer.id,
+        });
+        if (!replaced.ok) {
+          return NextResponse.json(
+            { error: replaced.error, code: replaced.code },
+            { status: replaced.status },
+          );
+        }
       }
     }
 
@@ -313,6 +362,7 @@ export async function POST(req: NextRequest) {
         routeDistanceKm,
         quotedFeeCents,
         notes: notesWithAddress || undefined,
+        pickupLocationId: requestedOriginId,
         holdUntil: hold?.holdUntil ?? hold?.expiresAt ?? null,
       });
     } catch (error) {

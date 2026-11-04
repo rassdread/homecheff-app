@@ -282,6 +282,13 @@ export default function CheckoutPage() {
       currency: string;
       productId?: string;
     }>;
+    deliveryOrigin?: {
+      locationId: string;
+      name: string;
+      city: string;
+      addressLabel?: string;
+      alternatives?: Array<{ locationId: string; name: string; city: string }>;
+    } | null;
   } | null>(null);
   const [selectedShippingMethodId, setSelectedShippingMethodId] = useState<string | null>(null);
   const [isCalculatingFee, setIsCalculatingFee] = useState(false);
@@ -293,6 +300,7 @@ export default function CheckoutPage() {
   >({ kind: 'pending' });
   const restoredBookingProductRef = useRef<string | null>(null);
   const [bookingRequestId, setBookingRequestId] = useState<string | null>(null);
+  const [deliveryOriginLocationId, setDeliveryOriginLocationId] = useState<string | null>(null);
   const [bookingStatus, setBookingStatus] = useState<string | null>(null);
   const [bookingBusy, setBookingBusy] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
@@ -690,6 +698,9 @@ export default function CheckoutPage() {
             ...(selectedDeliverer?.id
               ? { deliveryProfileId: selectedDeliverer.id }
               : {}),
+            ...(deliveryOriginLocationId
+              ? { deliveryOriginLocationId }
+              : {}),
           })
         });
 
@@ -717,6 +728,7 @@ export default function CheckoutPage() {
     checkoutDraft.houseNumber,
     checkoutItems,
     selectedDeliverer?.id,
+    deliveryOriginLocationId,
     selectedShippingMethodId,
   ]);
 
@@ -1245,6 +1257,9 @@ export default function CheckoutPage() {
               smsNotificationCostCents,
               deliveryMode: deliveryModeOutbound,
               address: fullAddress,
+              coordinates: checkoutDraft.coordinates,
+              deliveryOriginLocationId:
+                deliveryOriginLocationId || actualDeliveryFee?.deliveryOrigin?.locationId || undefined,
               selectedDeliveryProfileId: selectedDeliverer?.id || undefined,
             }),
           });
@@ -1276,6 +1291,9 @@ export default function CheckoutPage() {
             deliveryFeeCents,
             smsNotificationCostCents,
             deliveryMode: deliveryModeOutbound,
+            coordinates: checkoutDraft.coordinates,
+            deliveryOriginLocationId:
+              deliveryOriginLocationId || actualDeliveryFee?.deliveryOrigin?.locationId || undefined,
           }),
         });
         const mixedData = await mixedRes.json();
@@ -1309,6 +1327,12 @@ export default function CheckoutPage() {
           deliveryDate: checkoutDraft.selectedDelivery !== 'pickup' ? checkoutDraft.deliveryDate : null,
           deliveryTime: checkoutDraft.deliveryTime,
           coordinates: checkoutDraft.coordinates,
+          ...(deliveryOriginLocationId || actualDeliveryFee?.deliveryOrigin?.locationId
+            ? {
+                deliveryOriginLocationId:
+                  deliveryOriginLocationId || actualDeliveryFee?.deliveryOrigin?.locationId,
+              }
+            : {}),
           ...(isDealCheckout && dealCommunityOrderId
             ? { communityOrderId: dealCommunityOrderId }
             : {}),
@@ -1847,6 +1871,47 @@ export default function CheckoutPage() {
                       </div>
                       {checkoutDraft.selectedDelivery === option.id ? (
                         <div id={`delivery-choice-${option.id}`} className="scroll-mt-28 scroll-mb-28 space-y-3">
+                          {actualDeliveryFee?.deliveryOrigin?.locationId &&
+                          option.id !== 'pickup' &&
+                          option.id !== 'shipping' ? (
+                            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-800">
+                              <p className="font-medium">
+                                Ophalen bij {actualDeliveryFee.deliveryOrigin.name}, {actualDeliveryFee.deliveryOrigin.city}
+                              </p>
+                              {Array.isArray(actualDeliveryFee.deliveryOrigin.alternatives) &&
+                              actualDeliveryFee.deliveryOrigin.alternatives.length > 1 ? (
+                                <label className="mt-2 block">
+                                  <span className="mb-1 block text-gray-600">Andere vestiging</span>
+                                  <select
+                                    className="w-full max-w-full rounded-md border border-gray-300 bg-white px-2 py-2"
+                                    value={deliveryOriginLocationId || actualDeliveryFee.deliveryOrigin.locationId}
+                                    onChange={async (event) => {
+                                      const nextId = event.target.value;
+                                      setDeliveryOriginLocationId(nextId);
+                                      setSelectedDeliverer(null);
+                                      setCourierMatch({ kind: 'pending' });
+                                      if (bookingRequestId && bookingStatus === 'PENDING') {
+                                        await fetch(
+                                          `/api/delivery/booking-requests/${bookingRequestId}/switch`,
+                                          { method: 'POST' },
+                                        ).catch(() => null);
+                                        setBookingRequestId(null);
+                                        setBookingStatus(null);
+                                      }
+                                    }}
+                                  >
+                                    {actualDeliveryFee.deliveryOrigin.alternatives.map(
+                                      (stall: { locationId: string; name: string; city: string }) => (
+                                        <option key={stall.locationId} value={stall.locationId}>
+                                          {stall.name}, {stall.city}
+                                        </option>
+                                      ),
+                                    )}
+                                  </select>
+                                </label>
+                              ) : null}
+                            </div>
+                          ) : null}
                   {/* Local provider: named selection (Phase 3) or legacy first-accept copy */}
                   {isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) && (
                     <div className="mt-3 space-y-4">
@@ -1859,10 +1924,13 @@ export default function CheckoutPage() {
                           reservationUi.kind !== 'accepted' &&
                           reservationUi.kind !== 'awaiting_courier' ? (
                             <DelivererSelector
-                              key={`${checkoutItems[0].productId}-${courierListEpoch}`}
+                              key={`${checkoutItems[0].productId}-${courierListEpoch}-${deliveryOriginLocationId || actualDeliveryFee?.deliveryOrigin?.locationId || 'nearest'}`}
                               productId={checkoutItems[0].productId}
                               buyerLat={Number(checkoutDraft.coordinates.lat)}
                               buyerLng={Number(checkoutDraft.coordinates.lng)}
+                              deliveryOriginLocationId={
+                                deliveryOriginLocationId || actualDeliveryFee?.deliveryOrigin?.locationId || null
+                              }
                               selectedDelivererId={selectedDeliverer?.id}
                               onMatchResolved={setCourierMatch}
                               onSelectDeliverer={async (d) => {
@@ -1903,6 +1971,10 @@ export default function CheckoutPage() {
                                       notes: d.requestedPickupAt
                                         ? marketplaceSlotNotes(d.requestedPickupAt)
                                         : undefined,
+                                      deliveryOriginLocationId:
+                                        deliveryOriginLocationId ||
+                                        actualDeliveryFee?.deliveryOrigin?.locationId ||
+                                        undefined,
                                       replacesBookingRequestId:
                                         previousBookingId &&
                                         selectedDeliverer?.id &&

@@ -29,6 +29,9 @@ export function lockedBookingCheckoutPrice(input: {
   bodyLat?: number | null;
   bodyLng?: number | null;
   clientQuoteCents?: number | null;
+  /** Set together when the booking was priced from a sales location. */
+  bookingSalesLocationId?: string | null;
+  bodySalesLocationId?: string | null;
 }): LockedBookingPrice {
   const fee = input.quotedFeeCents;
   const distance = input.routeDistanceKm;
@@ -69,6 +72,16 @@ export function lockedBookingCheckoutPrice(input: {
       status: 409,
       code: 'DELIVERY_ROUTE_CHANGED',
       error: 'Het bezorgadres wijkt af van de geaccepteerde boeking.',
+    };
+  }
+  const bookedStall = input.bookingSalesLocationId?.trim() || null;
+  const bodyStall = input.bodySalesLocationId?.trim() || null;
+  if (bookedStall && bodyStall !== bookedStall) {
+    return {
+      ok: false,
+      status: 409,
+      code: 'DELIVERY_ROUTE_CHANGED',
+      error: 'De ophaallocatie wijkt af van de geaccepteerde boeking.',
     };
   }
   if (

@@ -11,6 +11,7 @@ import {
   publicDeliveryIsClosed,
 } from "@/lib/delivery/delivery-pilot-access";
 import { resolveDelivererPosition, resolveDeliveryPickupCoords } from "@/lib/delivery/delivery-position";
+import { resolveMarketplaceDeliveryOrigin } from "@/lib/seller/sales-locations-server";
 import { logCommercialAgeBlock } from "@/lib/delivery/delivery-age";
 import { calculateProviderDeliveryPrice } from "@/lib/delivery/provider-pricing";
 import { toPublicPlaceLabel } from "@/lib/geo/public-place";
@@ -100,7 +101,33 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    const pickup = resolveDeliveryPickupCoords(product);
+    const origin = await resolveMarketplaceDeliveryOrigin({
+      productIds: [productId],
+      requestedLocationId: searchParams.get('deliveryOriginLocationId'),
+      buyerLat: Number.isFinite(buyerLat) && buyerLat !== 0 ? buyerLat : null,
+      buyerLng: Number.isFinite(buyerLng) && buyerLng !== 0 ? buyerLng : null,
+    });
+    if (!origin.ok) {
+      return NextResponse.json({ error: origin.error, code: origin.code }, { status: origin.status });
+    }
+    const pickup =
+      origin.decision.kind === 'location'
+        ? { lat: origin.decision.location.lat, lng: origin.decision.location.lng }
+        : resolveDeliveryPickupCoords(product);
+    const deliveryOrigin =
+      origin.decision.kind === 'location'
+        ? {
+            locationId: origin.decision.location.locationId,
+            name: origin.decision.location.name,
+            city: origin.decision.location.city,
+            addressLabel: origin.decision.location.addressLabel,
+            alternatives: origin.decision.alternatives.map((stall) => ({
+              locationId: stall.locationId,
+              name: stall.name,
+              city: stall.city,
+            })),
+          }
+        : null;
     if (!product || !pickup) {
       return NextResponse.json(
         { error: 'Product or seller location not found', code: 'DELIVERY_ROUTE_UNAVAILABLE' },
@@ -352,6 +379,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      deliveryOrigin,
       product: {
         id: product.id,
         title: product.title,

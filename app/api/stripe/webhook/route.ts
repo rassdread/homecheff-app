@@ -1230,7 +1230,11 @@ try {
             stripeSessionId: session.id,
             totalAmount: amountPaidCents,
             deliveryMode: mappedDeliveryMode,
-            pickupAddress: isPickup ? address : null,
+            pickupAddress: isPickup
+              ? address
+              : isDelivery && metadata.deliveryOriginAddress
+                ? metadata.deliveryOriginAddress
+                : null,
             deliveryAddress: (isDelivery || isShipping) ? address : null,
             pickupDate: pickupDate ? new Date(pickupDate) : null,
             deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
@@ -1608,6 +1612,8 @@ try {
                 minimumFeeCentsSnapshot?: number;
                 freeDeliveryRadiusKmSnapshot?: number;
                 quoteLockedAt?: Date;
+                pickupAddress?: string;
+                notes?: string;
               } = {
                 orderId: createdOrder.id,
                 productId: firstProduct?.id || items[0]?.productId,
@@ -1691,6 +1697,11 @@ try {
                   deliveryOrderData.deliveryProfileId = null;
                   deliveryOrderData.status = 'PENDING';
                 }
+              }
+
+              if (metadata.deliveryOriginLocationId) {
+                deliveryOrderData.pickupAddress = metadata.deliveryOriginAddress || undefined;
+                deliveryOrderData.notes = `salesLocationId=${metadata.deliveryOriginLocationId}`;
               }
 
               const deliveryOrder = await prisma.deliveryOrder.create({

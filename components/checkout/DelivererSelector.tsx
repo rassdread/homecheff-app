@@ -63,6 +63,7 @@ interface DelivererSelectorProps {
   onSelectDeliverer: (deliverer: Deliverer) => void;
   onMatchResolved?: (match: { kind: 'list'; count: number } | { kind: 'error' }) => void;
   selectedDelivererId?: string;
+  deliveryOriginLocationId?: string | null;
   /** Product-less standalone list. Marketplace checkout does not pass this. */
   externalDeliverers?: Deliverer[] | null;
 }
@@ -74,6 +75,7 @@ export default function DelivererSelector({
   onSelectDeliverer,
   onMatchResolved,
   selectedDelivererId,
+  deliveryOriginLocationId,
   externalDeliverers,
 }: DelivererSelectorProps) {
   const { t, language } = useTranslation();
@@ -125,6 +127,9 @@ export default function DelivererSelector({
         params.set('buyerLat', String(stableBuyerLat));
         params.set('buyerLng', String(stableBuyerLng));
       }
+      if (deliveryOriginLocationId) {
+        params.set('deliveryOriginLocationId', deliveryOriginLocationId);
+      }
 
       fetch(`/api/delivery/match-deliverers?${params}`)
         .then(async (response) => {
@@ -170,7 +175,7 @@ export default function DelivererSelector({
     return () => {
       window.clearTimeout(timer);
     };
-  }, [productId, stableBuyerLat, stableBuyerLng, externalDeliverers]);
+  }, [productId, stableBuyerLat, stableBuyerLng, externalDeliverers, deliveryOriginLocationId]);
 
   const getVehicleIcon = (vehicleType: string) => {
     switch (vehicleType) {

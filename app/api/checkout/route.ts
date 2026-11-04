@@ -59,6 +59,8 @@ import {
   expireStaleBookingRequests,
 } from '@/lib/delivery/booking-request-service';
 import { resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
+import { readSalesLocationId } from '@/lib/delivery/delivery-origin';
+import { resolveMarketplaceDeliveryOrigin } from '@/lib/seller/sales-locations-server';
 import { normalizeCountryCode } from '@/lib/gamification/country-code';
 import { randomUUID } from 'crypto';
 import { revalidateTag } from 'next/cache';
@@ -113,7 +115,10 @@ export async function POST(req: NextRequest) {
       postalCode,
       city,
       shippingMethodId,
+      deliveryOriginLocationId,
     } = body;
+    const requestedDeliveryOriginId =
+      typeof deliveryOriginLocationId === 'string' ? deliveryOriginLocationId.trim() : '';
 
     let selectedProviderId =
       (typeof selectedDeliveryProfileId === 'string' && selectedDeliveryProfileId.trim()) ||
@@ -651,6 +656,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    let persistedDeliveryOrigin: { locationId: string; addressLabel: string } | null = null;
     let lockedBookingPrice: {
       quotedFeeCents: number;
       routeDistanceKm: number;
@@ -724,6 +730,8 @@ export async function POST(req: NextRequest) {
         bodyLat: coordinates?.lat,
         bodyLng: coordinates?.lng,
         clientQuoteCents,
+        bookingSalesLocationId: readSalesLocationId(booking.notes),
+        bodySalesLocationId: requestedDeliveryOriginId || null,
       });
       if (!lockedPrice.ok) {
         return NextResponse.json(
@@ -766,10 +774,34 @@ export async function POST(req: NextRequest) {
         let routeOk = false;
         
         let sawPickup = false;
+        const origin = await resolveMarketplaceDeliveryOrigin({
+          productIds: items
+            .map((item: { productId?: string }) => item.productId)
+            .filter((id: string | undefined): id is string => typeof id === 'string'),
+          requestedLocationId: requestedDeliveryOriginId || null,
+          buyerLat: dropoff.lat,
+          buyerLng: dropoff.lng,
+        });
+        if (!origin.ok) {
+          return NextResponse.json(
+            { error: origin.error, code: origin.code },
+            { status: origin.status },
+          );
+        }
+        const sharedPickup =
+          origin.decision.kind === 'location'
+            ? { lat: origin.decision.location.lat, lng: origin.decision.location.lng }
+            : null;
+        if (origin.decision.kind === 'location') {
+          persistedDeliveryOrigin = {
+            locationId: origin.decision.location.locationId,
+            addressLabel: origin.decision.location.addressLabel,
+          };
+        }
         
         for (const item of items) {
           const product = products.find(p => p.id === item.productId);
-          const pickup = resolveDeliveryPickupCoords(product);
+          const pickup = sharedPickup ?? resolveDeliveryPickupCoords(product);
           if (pickup) {
             sawPickup = true;
             sellerCountry =
@@ -1326,6 +1358,10 @@ export async function POST(req: NextRequest) {
     }
     if (namedSelectionMeta) {
       Object.assign(metadataBase, namedSelectionMeta);
+    }
+    if (persistedDeliveryOrigin) {
+      metadataBase.deliveryOriginLocationId = persistedDeliveryOrigin.locationId;
+      metadataBase.deliveryOriginAddress = persistedDeliveryOrigin.addressLabel.slice(0, 450);
     }
     if (carrierShippingQuoteMeta) {
       Object.assign(metadataBase, carrierShippingQuoteMeta);

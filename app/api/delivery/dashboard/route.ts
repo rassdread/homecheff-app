@@ -2,6 +2,40 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+function dashboardPickupCoords(
+  product: Parameters<typeof resolveDeliveryPickupCoords>[0] & {
+    salesLocations?: Array<{
+      location: {
+        id: string;
+        lat: number | null;
+        lng: number | null;
+        isActive: boolean;
+        street: string;
+        houseNumber: string;
+        postalCode: string;
+        city: string;
+      };
+    }>;
+  } | null | undefined,
+  notes: string | null | undefined,
+) {
+  const locationId = readSalesLocationId(notes);
+  const location = locationId
+    ? product?.salesLocations?.find((link) => link.location.id === locationId && link.location.isActive)?.location
+    : undefined;
+  if (
+    location &&
+    typeof location.lat === 'number' &&
+    typeof location.lng === 'number' &&
+    Number.isFinite(location.lat) &&
+    Number.isFinite(location.lng)
+  ) {
+    return { lat: location.lat, lng: location.lng, location };
+  }
+  const coords = resolveDeliveryPickupCoords(product);
+  return coords ? { ...coords, location: null } : null;
+}
+
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -10,6 +44,7 @@ import { getRouteDistance } from '@/lib/google-maps-distance';
 import { Stripe } from 'stripe';
 import { financialStripeSecret } from '@/lib/stripe';
 import { resolveDelivererPosition, resolveDeliveryPickupCoords, resolveSellerCoords } from '@/lib/delivery/delivery-position';
+import { readSalesLocationId } from '@/lib/delivery/delivery-origin';
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 import { resolveDeliveryTimeAvailability } from '@/lib/delivery/delivery-time-availability';
 import { readStandaloneBookingMeta } from '@/lib/delivery/standalone-booking-meta';
@@ -898,6 +933,22 @@ export async function GET(req: NextRequest) {
                         select: { fileUrl: true },
                         take: 1
                       },
+                      salesLocations: {
+                        select: {
+                          location: {
+                            select: {
+                              id: true,
+                              lat: true,
+                              lng: true,
+                              isActive: true,
+                              street: true,
+                              houseNumber: true,
+                              postalCode: true,
+                              city: true,
+                            },
+                          },
+                        },
+                      },
                       seller: {
                         include: {
                           User: {
@@ -978,7 +1029,7 @@ export async function GET(req: NextRequest) {
             }
             if (!timeAvailability.available) return false;
             const product = deliveryOrder.order.items[0]?.Product;
-            const pickupCoords = resolveDeliveryPickupCoords(product);
+            const pickupCoords = dashboardPickupCoords(product, deliveryOrder.notes);
             const buyerUser = deliveryOrder.order.User;
             // Targeted jobs (assigned to this provider) stay visible even without geo.
             const isTargeted = deliveryOrder.deliveryProfileId === deliveryProfile.id;
@@ -1029,7 +1080,7 @@ export async function GET(req: NextRequest) {
               };
             }
             const product = deliveryOrder.order.items[0]?.Product!;
-            const pickupCoords = resolveDeliveryPickupCoords(product);
+            const pickupCoords = dashboardPickupCoords(product, deliveryOrder.notes);
             const buyerLat = deliveryOrder.order!.User!.lat;
             const buyerLng = deliveryOrder.order!.User!.lng;
             const hasGeo =
@@ -1080,7 +1131,7 @@ export async function GET(req: NextRequest) {
           return o.distanceToSeller <= deliveryProfile.maxDistance && o.distanceToBuyer <= deliveryProfile.maxDistance;
         }
         const product = o.deliveryOrder.order?.items[0]?.Product;
-        const pickupCoords = resolveDeliveryPickupCoords(product);
+        const pickupCoords = dashboardPickupCoords(product, o.deliveryOrder.notes);
         const buyerUser = o.deliveryOrder.order?.User;
         const pickupToDestinationKm =
           pickupCoords && buyerUser?.lat != null && buyerUser?.lng != null
@@ -1109,6 +1160,16 @@ export async function GET(req: NextRequest) {
         const product = deliveryOrder.order?.items[0]?.Product;
         const buyerUser = deliveryOrder.order?.User;
         const sellerUser = product?.seller?.User;
+        const pickup = dashboardPickupCoords(product, deliveryOrder.notes);
+        const sellerForAddress = pickup?.location
+          ? {
+              ...sellerUser,
+              address: `${pickup.location.street} ${pickup.location.houseNumber}`.trim(),
+              postalCode: pickup.location.postalCode,
+              city: pickup.location.city,
+              place: pickup.location.city,
+            }
+          : sellerUser;
         return {
           id: deliveryOrder.id,
           orderId: deliveryOrder.orderId,
@@ -1124,7 +1185,9 @@ export async function GET(req: NextRequest) {
           ),
           customerPhone: customerPhoneForPhase(buyerUser, 'available'),
           notes: notesForPreAccept(
-            deliveryOrder.notes || deliveryOrder.itemDescription || '',
+            (deliveryOrder.notes || '').replace(/(?:^|\n)salesLocationId=[0-9a-f-]{36}(?=\n|$)/gi, '').trim() ||
+              deliveryOrder.itemDescription ||
+              '',
             [deliveryOrder.deliveryAddress, deliveryOrder.order?.deliveryAddress],
           ),
           createdAt: deliveryOrder.createdAt,
@@ -1133,15 +1196,11 @@ export async function GET(req: NextRequest) {
             image: product?.Image?.[0]?.fileUrl || '',
             seller: {
               name: sellerUser?.name || 'Verkoper',
-              address: sellerAddressForPhase(sellerUser, 'available'),
+              address: sellerAddressForPhase(sellerForAddress, 'available'),
               phone: sellerPhoneForPhase(sellerUser, 'available'),
               ...coordsForPhase(
-                resolveDeliveryPickupCoords(product)?.lat ??
-                  resolveSellerCoords(product?.seller)?.lat ??
-                  null,
-                resolveDeliveryPickupCoords(product)?.lng ??
-                  resolveSellerCoords(product?.seller)?.lng ??
-                  null,
+                pickup?.lat ?? resolveSellerCoords(product?.seller)?.lat ?? null,
+                pickup?.lng ?? resolveSellerCoords(product?.seller)?.lng ?? null,
                 'available',
               ),
             }
