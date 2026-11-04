@@ -7,6 +7,7 @@ import CommunityDeliveryPanel from './CommunityDeliveryPanel';
 import DeliveryAgreementModal from './DeliveryAgreementModal';
 import GoOnlineDurationSheet, { type GoOnlineNotice } from './GoOnlineDurationSheet';
 import { useTranslation } from '@/hooks/useTranslation';
+import { BOOKING_UNAVAILABLE_COPY } from '@/lib/delivery/booking-notice';
 import {
   buildDeliveryActivationChecklist,
   type DeliveryActivationChecklistItem,
@@ -101,7 +102,11 @@ interface DeliveryOrder {
   };
 }
 
-export default function DeliveryDashboard() {
+export default function DeliveryDashboard({
+  focusBookingRequestId = null,
+}: {
+  focusBookingRequestId?: string | null;
+}) {
   const { t, language, isReady, isLoading: translationsLoading } = useTranslation();
   const [isOnline, setIsOnline] = useState(false);
   const [isTemporarilyOnline, setIsTemporarilyOnline] = useState(false);
@@ -138,6 +143,8 @@ export default function DeliveryDashboard() {
   const [agreementCurrentAccepted, setAgreementCurrentAccepted] = useState<boolean | null>(null);
   const [showAgreement, setShowAgreement] = useState(false);
   const [agreementBusy, setAgreementBusy] = useState(false);
+  const [deliveryLoaded, setDeliveryLoaded] = useState(false);
+  const [focusedBookingUnavailable, setFocusedBookingUnavailable] = useState(false);
   const [pendingBookingRequests, setPendingBookingRequests] = useState<
     Array<{
       id: string;
@@ -151,6 +158,31 @@ export default function DeliveryDashboard() {
       href?: string;
     }>
   >([]);
+  useEffect(() => {
+    if (!focusBookingRequestId || !deliveryLoaded) return;
+    const match = pendingBookingRequests.some((booking) => booking.id === focusBookingRequestId);
+    if (match) {
+      setFocusedBookingUnavailable(false);
+      document.getElementById(`booking-${focusBookingRequestId}`)?.scrollIntoView({ block: 'center' });
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const res = await fetch(`/api/delivery/booking-requests/${focusBookingRequestId}`);
+      if (cancelled) return;
+      if (!res.ok) {
+        setFocusedBookingUnavailable(true);
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      const expires = typeof data.expiresAt === 'string' ? Date.parse(data.expiresAt) : NaN;
+      const stillPending = data.status === 'PENDING' && Number.isFinite(expires) && expires > Date.now();
+      setFocusedBookingUnavailable(!stillPending);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [focusBookingRequestId, deliveryLoaded, pendingBookingRequests]);
   const [bookingHistory, setBookingHistory] = useState<
     Array<{
       id: string;
@@ -383,6 +415,7 @@ export default function DeliveryDashboard() {
           allOrders: data.allOrders || [],
         });
         if (isRefresh && signature === lastDeliveryPayloadRef.current) {
+          setDeliveryLoaded(true);
           return;
         }
         lastDeliveryPayloadRef.current = signature;
@@ -392,6 +425,7 @@ export default function DeliveryDashboard() {
         setAvailableOrders(data.availableOrders || []);
         setUpcomingJobs(data.upcomingJobs || []);
         setPendingBookingRequests(data.pendingBookingRequests || []);
+        setDeliveryLoaded(true);
         setBookingHistory(data.bookingHistory || []);
         setAgreementCurrentAccepted(data.deliveryAgreement?.currentVersionAccepted === true);
         setIsOnline(Boolean(data.availability?.available ?? data.isOnline));
@@ -1138,6 +1172,11 @@ export default function DeliveryDashboard() {
             </div>
           )}
           {/* Pending booking requests */}
+          {!isSeller && focusedBookingUnavailable ? (
+            <div className="lg:col-span-3 mb-2 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm font-medium text-amber-950" role="status">
+              {BOOKING_UNAVAILABLE_COPY}
+            </div>
+          ) : null}
           {!isSeller && pendingBookingRequests.length > 0 && (
             <div className="lg:col-span-3 mb-2">
               <div id="booking-requests" className="rounded-xl border-2 border-violet-200 bg-violet-50 p-4 sm:p-5">
@@ -1151,7 +1190,11 @@ export default function DeliveryDashboard() {
                     <div
                       key={booking.id}
                       id={`booking-${booking.id}`}
-                      className="rounded-lg border border-violet-200 bg-white p-3"
+                      className={`rounded-lg border bg-white p-3 ${
+                        booking.id === focusBookingRequestId
+                          ? 'border-emerald-600 ring-2 ring-emerald-600'
+                          : 'border-violet-200'
+                      }`}
                     >
                       <p className="font-medium text-sm text-gray-900 truncate">
                         {booking.buyerName || 'Klant'}

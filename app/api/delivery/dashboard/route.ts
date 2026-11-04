@@ -1322,7 +1322,7 @@ export async function GET(req: NextRequest) {
             href: row.deliveryOrderId
               ? `/delivery/dashboard#order-${row.deliveryOrderId}`
               : row.bookingRequestId
-                ? `/delivery/dashboard#booking-${row.bookingRequestId}`
+                ? `/delivery/dashboard?bookingRequestId=${encodeURIComponent(row.bookingRequestId)}`
                 : '/delivery/dashboard',
           };
           })
@@ -1402,7 +1402,7 @@ export async function GET(req: NextRequest) {
         itemDescription: readStandaloneBookingMeta(b.notes)?.itemDescription || null,
         requestedPickupAt: readMarketplaceSlot(b.notes),
         paymentDeadline: holdByBooking.get(b.id)?.paymentDeadline ?? null,
-        href: `/delivery/dashboard#booking-${b.id}`,
+        href: `/delivery/dashboard?bookingRequestId=${encodeURIComponent(b.id)}`,
       }));
 
       const historyIds = historyCandidates.map((b) => b.id);

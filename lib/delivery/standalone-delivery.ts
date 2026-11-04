@@ -770,6 +770,7 @@ export async function fulfillStandaloneDeliveryPayment(
         row.quotedFeeCents,
         row.routeDistanceKm,
         0,
+        { confirmed: true },
       );
     }
   } catch (error) {

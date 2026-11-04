@@ -208,6 +208,7 @@ export class NotificationService {
         case 'DELIVERY_ACCEPTED':
         case 'DELIVERY_PICKED_UP':
         case 'DELIVERY_COMPLETED':
+        case 'DELIVERY_CANCELLED':
         case 'DELIVERY_COUNTDOWN_WARNING':
           pushEnabled = userPreferences.pushDeliveryUpdates !== false;
           break;
@@ -262,6 +263,7 @@ export class NotificationService {
             break;
           case 'ORDER_PAID':
           case 'PAYMENT_RECEIVED':
+          case 'PAYMENT_FAILED':
           case 'ORDER_STATUS_UPDATE':
           case 'ORDER_READY_FOR_PICKUP':
           case 'ORDER_DELIVERED':
@@ -272,6 +274,7 @@ export class NotificationService {
           case 'DELIVERY_ACCEPTED':
           case 'DELIVERY_PICKED_UP':
           case 'DELIVERY_COMPLETED':
+          case 'DELIVERY_CANCELLED':
           case 'DELIVERY_COUNTDOWN_WARNING':
             emailEnabled = userPreferences.emailDeliveryUpdates !== false;
             break;
@@ -1858,25 +1861,32 @@ export class NotificationService {
   /**
    * Send notification when delivery order is available (to deliverers)
    */
-  static async sendDeliveryOrderAvailableNotification(delivererId: string, deliveryOrderId: string, orderId: string, orderNumber: string, deliveryFee: number, distance: number, estimatedTime: number): Promise<void> {
+  static async sendDeliveryOrderAvailableNotification(delivererId: string, deliveryOrderId: string, orderId: string, orderNumber: string, deliveryFee: number, distance: number, estimatedTime: number, options?: { confirmed?: boolean }): Promise<void> {
+    const confirmed = options?.confirmed === true;
     const message: NotificationMessage = {
-      title: '🔔 Nieuwe bezorgopdracht beschikbaar!',
-      body: `Nieuwe bezorgopdracht #${orderNumber} in jouw gebied! Afstand: ${distance.toFixed(1)}km, Verdiensten: €${(deliveryFee / 100).toFixed(2)}`,
+      title: confirmed
+        ? 'Bezorgopdracht bevestigd — betaling ontvangen'
+        : '🔔 Nieuwe bezorgopdracht beschikbaar!',
+      body: confirmed
+        ? `De betaling voor bezorgopdracht #${orderNumber} is ontvangen. De opdracht is bevestigd.`
+        : `Nieuwe bezorgopdracht #${orderNumber} in jouw gebied! Afstand: ${distance.toFixed(1)}km, Verdiensten: €${(deliveryFee / 100).toFixed(2)}`,
       urgent: true,
       data: {
-        type: 'DELIVERY_ORDER_AVAILABLE',
+        type: confirmed ? 'DELIVERY_ACCEPTED' : 'DELIVERY_ORDER_AVAILABLE',
         deliveryOrderId,
         orderId,
         orderNumber,
         deliveryFee,
         distance,
         estimatedTime,
-        link: `/bezorger/dashboard`
+        link: confirmed ? '/delivery/dashboard' : '/bezorger/dashboard',
       },
-      actions: [
-        { label: 'Accepteer opdracht', action: 'ACCEPT_DELIVERY' },
-        { label: 'Bekijk details', action: 'VIEW_DELIVERY' }
-      ]
+      actions: confirmed
+        ? [{ label: 'Bekijk opdracht', action: 'VIEW_DELIVERY' }]
+        : [
+            { label: 'Accepteer opdracht', action: 'ACCEPT_DELIVERY' },
+            { label: 'Bekijk details', action: 'VIEW_DELIVERY' },
+          ],
     };
 
     await this.send({
@@ -1884,7 +1894,9 @@ export class NotificationService {
       message,
       channels: ['push', 'email'],
       saveToDatabase: true,
-      emailIdempotencyKey: `delivery-available:${deliveryOrderId}:${delivererId}`,
+      emailIdempotencyKey: confirmed
+        ? `delivery-confirmed:${deliveryOrderId}:${delivererId}`
+        : `delivery-available:${deliveryOrderId}:${delivererId}`,
       emailPriority: EMAIL_PRIORITY.P1,
     });
   }

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import DeliveryDashboard from '@/components/delivery/DeliveryDashboard';
 import { DELIVERY_START_HREF } from '@/lib/delivery/delivery-profile-completion';
+import { sanitizeBookingRequestId } from '@/lib/delivery/booking-notice';
 
 /**
  * Canonical delivery dashboard entry: /delivery/dashboard
@@ -12,16 +13,24 @@ import { DELIVERY_START_HREF } from '@/lib/delivery/delivery-profile-completion'
  * - DeliveryProfile must exist (else /delivery/start, sellers without courier → seller dash)
  * - Incomplete / inactive / no-Stripe are soft UX states inside the client dashboard
  */
-export default async function DeliveryDashboardPage() {
+export default async function DeliveryDashboardPage({
+  searchParams,
+}: {
+  searchParams?: { bookingRequestId?: string };
+}) {
+  const focusBookingRequestId = sanitizeBookingRequestId(searchParams?.bookingRequestId);
+  const callbackUrl = focusBookingRequestId
+    ? `/delivery/dashboard?bookingRequestId=${encodeURIComponent(focusBookingRequestId)}`
+    : '/delivery/dashboard';
   const session = await auth();
 
   if (!session?.user) {
-    redirect(`/login?callbackUrl=/delivery/dashboard`);
+    redirect(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
   }
 
   const userId = (session.user as { id?: string }).id;
   if (!userId) {
-    redirect(`/login?callbackUrl=/delivery/dashboard`);
+    redirect(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
   }
 
   const user = await prisma.user.findUnique({
@@ -39,7 +48,7 @@ export default async function DeliveryDashboardPage() {
   });
 
   if (!user) {
-    redirect(`/login?callbackUrl=/delivery/dashboard`);
+    redirect(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
   }
 
   if (!user.emailVerified) {
@@ -57,5 +66,5 @@ export default async function DeliveryDashboardPage() {
     redirect(DELIVERY_START_HREF);
   }
 
-  return <DeliveryDashboard />;
+  return <DeliveryDashboard focusBookingRequestId={focusBookingRequestId} />;
 }

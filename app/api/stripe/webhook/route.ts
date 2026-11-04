@@ -6,6 +6,10 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { financialStripeSecret, normalizeSubscriptionName, PLAN_TO_PRICE } from "@/lib/stripe";
 import { NotificationService } from "@/lib/notifications/notification-service";
+import {
+  notifyBuyerPaymentFailed,
+  paymentFailureTarget,
+} from "@/lib/notifications/payment-failure-notice";
 import { calculateDistance } from "@/lib/geocoding";
 import { DELIVERY_PLATFORM_FEE_PERCENT } from "@/lib/fees";
 import { ensurePaidOrderShipment } from "@/lib/shipping/ensure-order-shipment";
@@ -812,12 +816,20 @@ try {
     if (failed.metadata?.checkoutKind === "STANDALONE_DELIVERY") {
       await noteStandalonePaymentFailure(prisma, { metadata: failed.metadata });
     }
+    const failedTarget = paymentFailureTarget(failed.metadata, failed.id);
+    if (failedTarget) {
+      await notifyBuyerPaymentFailed(prisma, failedTarget);
+    }
     return new NextResponse("ok", { status: 200 });
   }
   else if (event.type === "payment_intent.payment_failed") {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     if (paymentIntent.metadata?.checkoutKind === "STANDALONE_DELIVERY") {
       await noteStandalonePaymentFailure(prisma, { metadata: paymentIntent.metadata });
+    }
+    const failedTarget = paymentFailureTarget(paymentIntent.metadata, paymentIntent.id);
+    if (failedTarget) {
+      await notifyBuyerPaymentFailed(prisma, failedTarget);
     }
     return new NextResponse("ok", { status: 200 });
   }
@@ -1828,7 +1840,11 @@ try {
                   (await import('@/lib/orderNumberGenerator')).OrderNumberGenerator.getDisplayNumber(createdOrder.orderNumber, createdOrder.id),
                   (deliveryOrderData.quotedFeeCents ?? deliveryFeeCents) || 200,
                   distanceToBuyer,
-                  deliveryOrder.estimatedTime || 60
+                  deliveryOrder.estimatedTime || 60,
+                  {
+                    confirmed:
+                      namedSelection && deliveryOrderData.status === 'ACCEPTED',
+                  },
                 );
               }
             }

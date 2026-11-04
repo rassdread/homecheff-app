@@ -16,7 +16,6 @@ import {
   BOOKING_REQUEST_TTL_MS,
   validateProviderAutoConfirm,
 } from '@/lib/delivery/provider-acceptance';
-import { NotificationService } from '@/lib/notifications/notification-service';
 import { resolveDelivererPosition, resolveDeliveryPickupCoords } from '@/lib/delivery/delivery-position';
 import { calculateDistance } from '@/lib/geocoding';
 import {
@@ -29,6 +28,11 @@ import { getRouteDistance, isVerifiedRoadDistance, COMMERCIAL_DISTANCE_UNAVAILAB
 import { normalizeCountryCode } from '@/lib/gamification/country-code';
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 import { notifyReservationBuyer } from '@/lib/delivery/reservation-notifications';
+import {
+  notifyBookingExpired,
+  notifyCourierBookingCancelled,
+  notifyCourierOfNewBookingRequest,
+} from '@/lib/delivery/booking-request-notifications';
 import { openPaymentWindowForBooking } from '@/lib/products/courier-stock-hold';
 import { readStandaloneBookingMeta } from '@/lib/delivery/standalone-booking-meta';
 import { assertCourierBookableAt } from '@/lib/delivery/standalone-availability';
@@ -42,10 +46,40 @@ export async function expireStaleBookingRequests(
     expiresAt: { lt: new Date() },
     ...(ids?.length ? { id: { in: ids } } : {}),
   };
-  await prisma.deliveryBookingRequest.updateMany({
+  const stale = await prisma.deliveryBookingRequest.findMany({
     where,
-    data: { status: 'EXPIRED', updatedAt: new Date() },
+    select: {
+      id: true,
+      buyerId: true,
+      deliveryProfile: { select: { userId: true } },
+    },
   });
+  if (stale.length === 0) return;
+  const now = new Date();
+  const updated = await prisma.deliveryBookingRequest.updateMany({
+    where: {
+      id: { in: stale.map((row) => row.id) },
+      status: 'PENDING',
+      expiresAt: { lt: now },
+    },
+    data: { status: 'EXPIRED', updatedAt: now },
+  });
+  if (updated.count === 0) return;
+  const expired = await prisma.deliveryBookingRequest.findMany({
+    where: { id: { in: stale.map((row) => row.id) }, status: 'EXPIRED' },
+    select: {
+      id: true,
+      buyerId: true,
+      deliveryProfile: { select: { userId: true } },
+    },
+  });
+  for (const row of expired) {
+    await notifyBookingExpired(prisma, {
+      courierUserId: row.deliveryProfile.userId,
+      buyerUserId: row.buyerId,
+      bookingRequestId: row.id,
+    });
+  }
 }
 
 async function resolveAuthoritativeQuote(
@@ -526,28 +560,10 @@ export async function createDeliveryBookingRequest(
   if (inserted.conflict) return liveBookingConflict(inserted.conflict);
   const request = inserted.request;
 
-  try {
-    await NotificationService.send({
-      userId: profile.userId,
-      message: {
-        title: 'Nieuwe bezorgaanvraag',
-        body: input.itemSummary
-          ? `Een koper wil jou als bezorger. Omschrijving: ${input.itemSummary.slice(0, 140)}. Bevestig binnen 5 minuten.`
-          : 'Een koper wil jou als bezorger. Bevestig binnen 5 minuten.',
-        urgent: true,
-        data: {
-          type: 'DELIVERY_ORDER_AVAILABLE',
-          bookingRequestId: request.id,
-          buyerId: input.buyerId,
-          link: '/delivery/dashboard',
-        },
-      },
-      channels: ['push'],
-      saveToDatabase: true,
-    });
-  } catch (e) {
-    console.warn('booking request notify failed', e);
-  }
+  await notifyCourierOfNewBookingRequest(prisma, {
+    courierUserId: profile.userId,
+    bookingRequestId: request.id,
+  });
 
   return {
     ok: true as const,
@@ -707,7 +723,10 @@ export async function acceptDeliveryBookingRequest(
     return { ok: false as const, status: 409, error: 'Aanvraag is al afgehandeld' };
   }
 
-  await notifyReservationBuyer(request.buyerId, 'accepted');
+  await notifyReservationBuyer(request.buyerId, 'accepted', {
+    bookingRequestId: request.id,
+    prisma,
+  });
   if (standaloneMeta?.standaloneRequestId) {
     await prisma.standaloneDeliveryRequest.updateMany({
       where: { id: standaloneMeta.standaloneRequestId, paymentStatus: 'UNPAID' },
@@ -755,7 +774,10 @@ export async function rejectDeliveryBookingRequest(
     return { ok: false as const, status: 409, error: 'Aanvraag is al afgehandeld' };
   }
 
-  await notifyReservationBuyer(request.buyerId, 'rejected');
+  await notifyReservationBuyer(request.buyerId, 'rejected', {
+    bookingRequestId: request.id,
+    prisma,
+  });
   const rejectedMeta = readStandaloneBookingMeta(request.notes);
   if (rejectedMeta?.standaloneRequestId) {
     await prisma.standaloneDeliveryRequest.updateMany({
@@ -839,6 +861,16 @@ export async function releasePendingBookingForCourierSwitch(
       },
       data: { status: 'CANCELLED' },
     });
+    const courier = await prisma.deliveryProfile.findUnique({
+      where: { id: request.deliveryProfileId },
+      select: { userId: true },
+    });
+    if (courier?.userId) {
+      await notifyCourierBookingCancelled(prisma, {
+        courierUserId: courier.userId,
+        bookingRequestId: request.id,
+      });
+    }
     return {
       ok: true as const,
       active: false as const,
