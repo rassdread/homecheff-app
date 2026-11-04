@@ -8,6 +8,7 @@ import {
   type MarketplaceTileModel,
   type TranslateFn,
 } from '@/lib/marketplace/tiles';
+import { businessTileArticleClass } from '@/lib/marketplace/tiles/business-tile-chrome';
 import { MarketplacePreviewShell } from '@/components/marketplace/previews';
 import {
   TileMedia,
@@ -16,6 +17,7 @@ import {
   TileTrustCue,
   TileValueExchangeBlock,
 } from '@/components/marketplace/tiles/primitives';
+import { cn } from '@/lib/utils';
 
 export type MarketplaceTileStandardProps = {
   model: MarketplaceTileModel;
@@ -40,6 +42,10 @@ export default function MarketplaceTileStandard({
   const trustCue = buildTileTrustCue(model, t, 3);
   const settlement = buildTileSettlementRow(model);
   const title = model.title || t('common.dish');
+  const planChrome =
+    model.mode === 'inspiration'
+      ? ''
+      : businessTileArticleClass(model.trust.businessPlan, model.sellerRole);
 
   return (
     <MarketplacePreviewShell
@@ -48,16 +54,22 @@ export default function MarketplaceTileStandard({
       locale={locale}
       enabled={enablePreview}
     >
-      <article className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex h-auto flex-col self-start overflow-hidden">
+      <article
+        className={cn(
+          'feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex h-auto flex-col self-start overflow-hidden',
+          planChrome,
+        )}
+      >
       <TileMedia
         href={model.href}
         alt={model.imageAlt}
         imageUrl={model.coverImage}
+        galleryUrls={model.mode === 'inspiration' ? undefined : model.galleryUrls}
         videoUrl={model.videoUrl}
         videoPoster={model.videoPoster}
         mediaRatio="4:3"
         className="hc-feed-media"
-        badges={shareSurface === 'profile' ? badges : []}
+        badges={badges}
         overflowCount={overflowCount}
         favoriteId={model.id}
         favoriteTitle={title}

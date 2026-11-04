@@ -25,6 +25,7 @@ import { mapDiscoveryTrustToTileTrust } from './map-trust';
 import { resolveFulfillmentFlags } from '@/lib/marketplace/previews/resolve-fulfillment-flags';
 import { resolveTileValueExchangeFields } from './resolve-tile-value-exchange';
 import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
+import { resolveMarketplaceSellerTileRole } from './seller-tile-role';
 
 let legacyWarned = false;
 
@@ -134,6 +135,15 @@ export function mapGeoFeedCardToTileModel(
     coverImage:
       (d?.coverImage && hasUsableMediaUrl(d.coverImage) ? d.coverImage : null) ??
       (item.photo && hasUsableMediaUrl(item.photo) ? item.photo : null),
+    galleryUrls: (() => {
+      const raw = Array.isArray(item.galleryUrls) ? item.galleryUrls : [];
+      const urls = raw.filter((u): u is string => hasUsableMediaUrl(u));
+      const cover =
+        (d?.coverImage && hasUsableMediaUrl(d.coverImage) ? d.coverImage : null) ??
+        (item.photo && hasUsableMediaUrl(item.photo) ? item.photo : null);
+      if (cover && !urls.includes(cover)) return [cover, ...urls];
+      return urls;
+    })(),
     videoUrl: item.videoUrl ?? null,
     videoPoster: item.videoThumbnail ?? null,
     imageAlt: item.title ?? '',
@@ -168,7 +178,17 @@ export function mapGeoFeedCardToTileModel(
       : null,
 
     place: d?.city ?? item.place ?? null,
+    placeKind: item.placeKind ?? null,
     distanceKm: d?.distanceKm ?? item.distanceKm ?? null,
+    companyName: item.sellerCompanyName ?? null,
+    sellerRole:
+      mode === 'inspiration'
+        ? 'private'
+        : resolveMarketplaceSellerTileRole({
+            commerceDeclaration: item.sellerCommerceDeclaration,
+            verifiedBusiness: item.sellerVerifiedBusiness,
+            businessPlan: mapDiscoveryTrustToTileTrust(trustContract).businessPlan,
+          }),
 
     trust: mapDiscoveryTrustToTileTrust(trustContract),
 

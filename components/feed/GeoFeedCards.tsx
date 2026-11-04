@@ -36,6 +36,11 @@ export type GeoFeedCardItem = {
   sellerAvatar?: string | null;
   sellerDisplayFullName?: boolean | null;
   sellerDisplayNameOption?: string | null;
+  sellerCompanyName?: string | null;
+  sellerCommerceDeclaration?: string | null;
+  sellerVerifiedBusiness?: boolean | null;
+  placeKind?: 'sales_location' | 'area' | null;
+  galleryUrls?: string[] | null;
   sellerFansCount?: number;
   viewerIsFan?: boolean;
   isFavorited?: boolean;

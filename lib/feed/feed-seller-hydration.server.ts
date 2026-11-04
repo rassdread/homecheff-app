@@ -27,6 +27,7 @@ export const FEED_SELLER_PROFILE_SELECT = {
   lng: true,
   kvk: true,
   companyName: true,
+  commerceDeclaration: true,
   userId: true,
 } as const;
 
@@ -36,6 +37,8 @@ export type FeedSellerHydrated = {
   lng: number | null;
   kvk: string | null;
   companyName: string | null;
+  commerceDeclaration: string | null;
+  verifiedBusiness: boolean;
   User: {
     id: string;
     name: string | null;
@@ -79,6 +82,15 @@ export async function batchHydrateFeedSellers(
       User: { select: FEED_SELLER_USER_SELECT },
     },
   });
+  const userIds = rows.map((row) => row.userId).filter(Boolean);
+  const businesses =
+    userIds.length === 0
+      ? []
+      : await prisma.business.findMany({
+          where: { userId: { in: userIds } },
+          select: { userId: true, verified: true },
+        });
+  const verifiedByUser = new Map(businesses.map((row) => [row.userId, row.verified]));
 
   for (const row of rows) {
     if (!row.User) continue;
@@ -88,6 +100,8 @@ export async function batchHydrateFeedSellers(
       lng: row.lng,
       kvk: row.kvk,
       companyName: row.companyName,
+      commerceDeclaration: row.commerceDeclaration,
+      verifiedBusiness: verifiedByUser.get(row.userId) === true,
       User: withCanonicalAvatar(row.User),
     });
   }

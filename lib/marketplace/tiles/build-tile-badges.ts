@@ -49,6 +49,7 @@ type Candidate = {
   icon?: string;
   iconKind?: TileBadge['iconKind'];
   taxonomyTone?: TileBadge['taxonomyTone'];
+  businessPlan?: TileBadge['businessPlan'];
 };
 
 function collectCandidates(
@@ -134,13 +135,14 @@ function collectCandidates(
 
   const plan = model.trust.businessPlan;
   const planLabelKey = plan ? businessPlanLabelKey(plan) : null;
-  if (planLabelKey && plan !== 'individual') {
+  if (planLabelKey && plan && plan !== 'individual') {
     out.push({
-      kind: 'trust_badge',
+      kind: 'business_plan',
       label: t(planLabelKey),
       tone: 'trust',
       icon: 'Building2',
       iconKind: 'lucide',
+      businessPlan: plan,
     });
   }
 
@@ -204,6 +206,7 @@ export function buildTileBadges(
     icon: c.icon,
     iconKind: c.iconKind,
     taxonomyTone: c.taxonomyTone,
+    businessPlan: c.businessPlan,
   }));
 
   return {

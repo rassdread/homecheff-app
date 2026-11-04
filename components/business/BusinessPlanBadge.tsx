@@ -3,9 +3,9 @@
 import { businessPlanLabelKey, type BusinessPlanId } from '@/lib/business/visibility-profile';
 
 const TONE: Record<Exclude<BusinessPlanId, 'individual'>, string> = {
-  basic: 'bg-slate-100 text-slate-700 border-slate-200',
-  pro: 'bg-blue-50 text-blue-800 border-blue-200',
-  premium: 'bg-violet-50 text-violet-800 border-violet-200',
+  basic: 'bg-slate-50 text-slate-800 border-slate-300',
+  pro: 'bg-[#e8f4ef] text-[#1a4a40] border-[#347266]/40 uppercase tracking-[0.08em]',
+  premium: 'bg-[#f4f0fb] text-[#4c1d95] border-[#5b21b6]/35',
 };
 
 type Props = {

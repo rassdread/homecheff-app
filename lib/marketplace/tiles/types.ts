@@ -65,6 +65,8 @@ export type MarketplaceTileModel = {
   description: string | null;
 
   coverImage: string | null;
+  /** Ordered product photos for inline feed carousel (cover first when present). */
+  galleryUrls?: string[];
   videoUrl: string | null;
   videoPoster: string | null;
   imageAlt: string;
@@ -88,7 +90,12 @@ export type MarketplaceTileModel = {
   homeCheffCheckoutConfigured: boolean;
 
   person: MarketplaceTilePerson | null;
+  /** Legal/subscription classification. Company name alone does not set this. */
+  sellerRole?: 'business' | 'private';
+  companyName?: string | null;
   place: string | null;
+  /** sales_location is a public stall, never the private residence. */
+  placeKind?: 'sales_location' | 'area' | null;
   distanceKm: number | null;
 
   trust: MarketplaceTileTrust;
@@ -123,7 +130,8 @@ export type TileBadgeKind =
   | 'offer_category'
   | 'specialization'
   | 'accepted_value'
-  | 'trust_badge';
+  | 'trust_badge'
+  | 'business_plan';
 
 export type TileBadgeTone = 'request' | 'default' | 'date' | 'trust' | 'kind';
 
@@ -138,6 +146,8 @@ export type TileBadge = {
   icon?: string;
   iconKind?: TileBadgeIconKind;
   taxonomyTone?: TaxonomyTone | null;
+  /** Paid plan id for business_plan badges (Basic / Pro / Premium styling). */
+  businessPlan?: BusinessPlanId;
 };
 
 /** Reserved for Phase 5B+ barter badge row — not rendered in 5B-B */

@@ -1,9 +1,13 @@
 /**
  * Feed response media sanitizer — Phase 13L.
  * Strips inline data URLs and duplicate heavy media fields from /api/feed JSON.
+ * Carousel recovery: keeps a slim capped `galleryUrls` string[] (HTTP only).
  */
 
 const DATA_URL_PREFIX = 'data:';
+
+/** Max photo URLs retained on public feed items for inline carousel + lightbox. */
+export const FEED_GALLERY_URL_CAP = 8;
 
 export function isInlineDataMediaUrl(url: unknown): boolean {
   if (typeof url !== 'string') return false;
@@ -89,23 +93,58 @@ function sanitizeVideoBlock(
   };
 }
 
+function collectGalleryUrls(item: Record<string, unknown>): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const push = (raw: unknown) => {
+    const u = sanitizeFeedMediaUrl(raw);
+    if (!u || seen.has(u)) return;
+    seen.add(u);
+    out.push(u);
+  };
+
+  if (Array.isArray(item.images)) {
+    for (const entry of item.images) {
+      if (out.length >= FEED_GALLERY_URL_CAP) break;
+      if (typeof entry === 'string') push(entry);
+      else if (entry && typeof entry === 'object' && 'url' in entry) {
+        push((entry as { url?: unknown }).url);
+      }
+    }
+  }
+  if (Array.isArray(item.ListingMedia) && out.length < FEED_GALLERY_URL_CAP) {
+    const media = [
+      ...(item.ListingMedia as Array<{ url?: unknown; order?: number }>),
+    ].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    for (const row of media) {
+      if (out.length >= FEED_GALLERY_URL_CAP) break;
+      push(row?.url);
+    }
+  }
+  if (Array.isArray(item.galleryUrls) && out.length < FEED_GALLERY_URL_CAP) {
+    for (const entry of item.galleryUrls) {
+      if (out.length >= FEED_GALLERY_URL_CAP) break;
+      push(entry);
+    }
+  }
+  push(item.image);
+  push(item.photo);
+  return out.slice(0, FEED_GALLERY_URL_CAP);
+}
+
 /**
- * Slim feed item for API response: one cover URL, no inline data, no duplicate galleries.
+ * Slim feed item for API response: cover URL + capped galleryUrls, no inline data,
+ * no heavy ListingMedia / images object arrays.
  */
 export function sanitizeFeedItemForResponse(
   item: Record<string, unknown>,
 ): Record<string, unknown> {
+  const galleryUrls = collectGalleryUrls(item);
   const cover =
     sanitizeFeedMediaUrl(item.image) ??
     sanitizeFeedMediaUrl(item.photo) ??
-    sanitizeFeedMediaUrl(
-      Array.isArray(item.images) ? item.images[0] : null,
-    ) ??
-    sanitizeFeedMediaUrl(
-      Array.isArray(item.ListingMedia)
-        ? (item.ListingMedia[0] as { url?: string } | undefined)?.url
-        : null,
-    );
+    galleryUrls[0] ??
+    null;
 
   const videoUrl = sanitizeFeedMediaUrl(item.videoUrl ?? item.primaryVideoUrl);
   const videoRaw = item.Video;
@@ -117,6 +156,11 @@ export function sanitizeFeedItemForResponse(
   const next: Record<string, unknown> = { ...item };
   next.image = cover;
   if ('photo' in next) next.photo = cover;
+  if (galleryUrls.length > 0) {
+    next.galleryUrls = galleryUrls;
+  } else {
+    delete next.galleryUrls;
+  }
 
   delete next.images;
   delete next.ListingMedia;

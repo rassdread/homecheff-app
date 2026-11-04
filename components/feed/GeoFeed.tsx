@@ -75,6 +75,7 @@ import {
   pickPrimaryImageUrl,
   pickPrimaryVideoUrl,
 } from "@/components/feed/feedMedia";
+import { normalizeFeedGalleryUrls } from "@/lib/feed/normalize-feed-gallery-urls";
 import {
   getEffectiveFeedLayoutMode,
   useFeedLayoutMode,
@@ -415,6 +416,11 @@ type FeedItem = {
   lat: number | null;
   lng: number | null;
   photo: string | null;
+  galleryUrls?: string[] | null;
+  sellerCompanyName?: string | null;
+  sellerCommerceDeclaration?: string | null;
+  sellerVerifiedBusiness?: boolean | null;
+  placeKind?: "sales_location" | "area" | null;
   videoUrl: string | null;
   videoThumbnail: string | null;
   createdAt: string;
@@ -552,6 +558,9 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
         avatar?: string | null;
         displayFullName?: boolean | null;
         displayNameOption?: string | null;
+        companyName?: string | null;
+        commerceDeclaration?: string | null;
+        verifiedBusiness?: boolean | null;
       }
     | undefined;
 
@@ -670,6 +679,19 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     lat: resolvedCoords?.lat ?? null,
     lng: resolvedCoords?.lng ?? null,
     photo,
+    galleryUrls: normalizeFeedGalleryUrls(raw.galleryUrls, photo),
+    sellerCompanyName:
+      typeof seller?.companyName === "string" ? seller.companyName : null,
+    sellerCommerceDeclaration:
+      typeof seller?.commerceDeclaration === "string"
+        ? seller.commerceDeclaration
+        : null,
+    sellerVerifiedBusiness:
+      typeof seller?.verifiedBusiness === "boolean" ? seller.verifiedBusiness : null,
+    placeKind:
+      raw.placeKind === "sales_location" || raw.placeKind === "area"
+        ? raw.placeKind
+        : null,
     videoUrl,
     videoThumbnail,
     createdAt,
@@ -980,7 +1002,9 @@ function toCardItem(
     isInspiration: it.isInspiration,
     deliveryMode: it.deliveryMode,
     place: it.place,
+    placeKind: it.placeKind,
     photo: it.photo,
+    galleryUrls: Array.isArray(it.galleryUrls) ? it.galleryUrls : undefined,
     videoUrl: it.videoUrl,
     videoThumbnail: it.videoThumbnail,
     distanceKm,
@@ -994,6 +1018,9 @@ function toCardItem(
     sellerAvatar: it.sellerAvatar,
     sellerDisplayFullName: it.sellerDisplayFullName,
     sellerDisplayNameOption: it.sellerDisplayNameOption,
+    sellerCompanyName: it.sellerCompanyName,
+    sellerCommerceDeclaration: it.sellerCommerceDeclaration,
+    sellerVerifiedBusiness: it.sellerVerifiedBusiness,
     sellerFansCount: it.sellerFansCount,
     viewerIsFan: it.viewerIsFan,
     isFavorited: it.isFavorited,

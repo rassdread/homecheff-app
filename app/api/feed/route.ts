@@ -971,6 +971,7 @@ async function handleFeedGet(
     acceptedSpecializations: product.acceptedSpecializations ?? [],
     status: "ACTIVE" as const,
     place: productPlace,
+    placeKind: productAnchor.locationId ? 'sales_location' : 'area',
     lat: productCoords?.lat ?? null,
     lng: productCoords?.lng ?? null,
     pickupLat: productCoords?.lat ?? product.pickupLat ?? null,
@@ -1013,6 +1014,8 @@ async function handleFeedGet(
         : undefined,
       isBusiness: !!(product.seller.kvk && product.seller.companyName),
       companyName: product.seller.companyName || null,
+      commerceDeclaration: product.seller.commerceDeclaration || null,
+      verifiedBusiness: product.seller.verifiedBusiness === true,
       kvk: product.seller.kvk || null
     } : undefined,
     isBusiness: !!(product.seller?.kvk && product.seller?.companyName),

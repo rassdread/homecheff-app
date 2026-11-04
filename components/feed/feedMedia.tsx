@@ -9,10 +9,8 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import Link from "next/link";
-import { PlayCircle, Volume2, VolumeX } from "lucide-react";
+import { ChevronLeft, ChevronRight, PlayCircle, Volume2, VolumeX } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import { navDebug } from "@/lib/nav-debug";
 import { inspirationMediaClass } from "@/lib/inspiratie/media-fit";
 import { useSmartMediaFit } from "@/hooks/useSmartMediaFit";
@@ -51,20 +49,6 @@ const SERVER_FEED_AUDIO_SNAPSHOT = {
   audioEnabled: false,
   activeId: null as string | null,
 };
-
-const COARSE_POINTER_MQ = "(any-pointer: coarse)";
-
-function subscribeCoarsePointer(onStoreChange: () => void) {
-  if (typeof window === "undefined") return () => {};
-  const mq = window.matchMedia(COARSE_POINTER_MQ);
-  mq.addEventListener("change", onStoreChange);
-  return () => mq.removeEventListener("change", onStoreChange);
-}
-
-function getCoarsePointerSnapshot(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia(COARSE_POINTER_MQ).matches;
-}
 
 /** Voorkomt broken <img src=""> in Safari en bij lege strings. */
 export function hasUsableMediaUrl(url: unknown): url is string {
@@ -205,11 +189,14 @@ export function resolvePrimaryMediaForInspirationApi(item: {
 }
 
 export type FeedCardPrimaryMediaProps = {
+  /** Canonical listing href — title row navigates here; media opens fullscreen. */
   href: string;
   alt: string;
   videoUrl?: string | null;
   videoPoster?: string | null;
   imageUrl?: string | null;
+  /** Ordered photos for inline arrows/swipe; lightbox opens at current index. */
+  galleryUrls?: string[] | null;
   objectFit?: "cover" | "contain" | "smart";
   /** Extra classes op de inner media-wrapper (niet op aspect-box). */
   className?: string;
@@ -291,6 +278,7 @@ export function FeedCardPrimaryMedia({
   videoUrl,
   videoPoster,
   imageUrl,
+  galleryUrls = null,
   objectFit = "smart",
   className = "",
   badgeOverlay,
@@ -301,7 +289,30 @@ export function FeedCardPrimaryMedia({
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const wantPlayRef = useRef(false);
-  const smartFit = useSmartMediaFit(imageUrl ?? null, {
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const didSwipe = useRef(false);
+  const gallery = (() => {
+    const raw = Array.isArray(galleryUrls) ? galleryUrls : [];
+    const urls = raw
+      .map((u) => (typeof u === "string" ? u.trim() : ""))
+      .filter((u) => hasUsableMediaUrl(u));
+    const cover = hasUsableMediaUrl(imageUrl) ? imageUrl!.trim() : null;
+    if (cover && !urls.includes(cover)) return [cover, ...urls];
+    if (urls.length > 0) return urls;
+    return cover ? [cover] : [];
+  })();
+  /** Per-occurrence carousel index — remounted recirculated tiles start at 0. */
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const safePhotoIndex =
+    gallery.length === 0
+      ? 0
+      : Math.max(0, Math.min(photoIndex, gallery.length - 1));
+  const activeImageUrl =
+    gallery[safePhotoIndex] ??
+    (hasUsableMediaUrl(imageUrl) ? imageUrl!.trim() : null);
+
+  const smartFit = useSmartMediaFit(activeImageUrl ?? null, {
     mode: "card",
     forceFit: objectFit === "smart" ? undefined : objectFit,
   });
@@ -311,14 +322,6 @@ export function FeedCardPrimaryMedia({
   const interactionMode = useFeedVideoInteractionMode();
   const useHoverPlayback = interactionMode === "hover";
   const { t } = useTranslation();
-  const nativeMounted = useIsNativeAppMounted();
-  const coarsePointer = useSyncExternalStore(
-    subscribeCoarsePointer,
-    getCoarsePointerSnapshot,
-    () => false
-  );
-  /** Touch mobile web opens lightbox; native app navigates to listing detail on media tap. */
-  const lightboxEligible = coarsePointer && !nativeMounted;
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxPayload, setLightboxPayload] =
     useState<FeedMediaLightboxPayload | null>(null);
@@ -369,7 +372,13 @@ export function FeedCardPrimaryMedia({
     setVideoFailed(false);
     setImgBroken(false);
     wantPlayRef.current = false;
-  }, [videoUrl, imageUrl, showVideo]);
+  }, [videoUrl, activeImageUrl, showVideo]);
+
+  const galleryKey = gallery.join("|");
+  useEffect(() => {
+    setPhotoIndex(0);
+    setImgBroken(false);
+  }, [galleryKey]);
 
   useEffect(() => {
     if (!showVideo) return;
@@ -402,15 +411,20 @@ export function FeedCardPrimaryMedia({
 
   const posterEffective =
     (hasUsableMediaUrl(videoPoster) ? videoPoster!.trim() : null) ||
-    (hasUsableMediaUrl(imageUrl) ? imageUrl!.trim() : undefined);
+    (activeImageUrl && hasUsableMediaUrl(activeImageUrl)
+      ? activeImageUrl
+      : undefined);
   const staticPosterSrc =
     posterEffective ||
-    (hasUsableMediaUrl(imageUrl) ? imageUrl!.trim() : FEED_MEDIA_PLACEHOLDER);
+    (activeImageUrl && hasUsableMediaUrl(activeImageUrl)
+      ? activeImageUrl
+      : FEED_MEDIA_PLACEHOLDER);
 
   const showImage =
     (!showVideo || videoFailed) &&
-    hasUsableMediaUrl(imageUrl) &&
+    hasUsableMediaUrl(activeImageUrl) &&
     !imgBroken;
+  const showCarouselControls = showImage && gallery.length > 1;
 
   const onVideoError = useCallback(() => setVideoFailed(true), []);
   const onImgError = useCallback(() => setImgBroken(true), []);
@@ -469,7 +483,7 @@ export function FeedCardPrimaryMedia({
 
   const hasOpenableLightboxMedia =
     (Boolean(corsSrc) && !videoFailed) ||
-    (showImage && hasUsableMediaUrl(imageUrl));
+    (showImage && hasUsableMediaUrl(activeImageUrl));
 
   const closeLightbox = useCallback(() => {
     setLightboxOpen(false);
@@ -478,7 +492,7 @@ export function FeedCardPrimaryMedia({
   }, [instanceId]);
 
   const openLightbox = useCallback(() => {
-    if (!lightboxEligible || !hasOpenableLightboxMedia) return;
+    if (!hasOpenableLightboxMedia) return;
     if (hasVideoCandidate && corsSrc && !videoFailed) {
       wantPlayRef.current = false;
       videoRef.current?.pause();
@@ -496,29 +510,61 @@ export function FeedCardPrimaryMedia({
         poster: posterEffective,
       });
       setLightboxOpen(true);
+      navDebug("feed-tile:media-lightbox-video", { href });
       return;
     }
-    if (showImage && hasUsableMediaUrl(imageUrl)) {
+    if (showImage && hasUsableMediaUrl(activeImageUrl)) {
+      const sources = gallery.length > 0 ? gallery : [activeImageUrl!.trim()];
       setLightboxPayload({
         kind: "image",
-        src: imageUrl!.trim(),
+        src: activeImageUrl!.trim(),
         alt: label,
+        gallery: { sources, index: safePhotoIndex },
       });
       setLightboxOpen(true);
+      navDebug("feed-tile:media-lightbox-image", {
+        href,
+        index: safePhotoIndex,
+        count: sources.length,
+      });
     }
   }, [
-    lightboxEligible,
     hasOpenableLightboxMedia,
     hasVideoCandidate,
     corsSrc,
     videoFailed,
     showImage,
-    imageUrl,
+    activeImageUrl,
+    gallery,
+    safePhotoIndex,
     instanceId,
     fallbackVideoSrc,
     posterEffective,
     label,
+    href,
   ]);
+
+  const goPrevPhoto = useCallback(
+    (e?: { preventDefault?: () => void; stopPropagation?: () => void }) => {
+      e?.preventDefault?.();
+      e?.stopPropagation?.();
+      if (gallery.length <= 1) return;
+      setPhotoIndex((i) => (i <= 0 ? gallery.length - 1 : i - 1));
+      setImgBroken(false);
+    },
+    [gallery.length],
+  );
+
+  const goNextPhoto = useCallback(
+    (e?: { preventDefault?: () => void; stopPropagation?: () => void }) => {
+      e?.preventDefault?.();
+      e?.stopPropagation?.();
+      if (gallery.length <= 1) return;
+      setPhotoIndex((i) => (i >= gallery.length - 1 ? 0 : i + 1));
+      setImgBroken(false);
+    },
+    [gallery.length],
+  );
 
   const hoverMediaHandlers =
     useHoverPlayback && showVideo
@@ -533,7 +579,38 @@ export function FeedCardPrimaryMedia({
     <div
       ref={containerRef}
       className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100 feed-card-primary-media"
-      {...(lightboxEligible ? hoverMediaHandlers : {})}
+      data-image-slider={showCarouselControls ? "true" : undefined}
+      {...hoverMediaHandlers}
+      onTouchStart={(e) => {
+        if (!showCarouselControls) return;
+        touchStartX.current = e.touches[0]?.clientX ?? null;
+        touchStartY.current = e.touches[0]?.clientY ?? null;
+        didSwipe.current = false;
+      }}
+      onTouchMove={(e) => {
+        if (
+          !showCarouselControls ||
+          touchStartX.current == null ||
+          touchStartY.current == null
+        ) {
+          return;
+        }
+        const dx = Math.abs((e.touches[0]?.clientX ?? 0) - touchStartX.current);
+        const dy = Math.abs((e.touches[0]?.clientY ?? 0) - touchStartY.current);
+        if (dx > 12 && dx > dy) {
+          didSwipe.current = true;
+        }
+      }}
+      onTouchEnd={(e) => {
+        if (!showCarouselControls || touchStartX.current == null) return;
+        const endX = e.changedTouches[0]?.clientX ?? touchStartX.current;
+        const diff = touchStartX.current - endX;
+        touchStartX.current = null;
+        touchStartY.current = null;
+        if (!didSwipe.current || Math.abs(diff) < 40) return;
+        if (diff > 0) goNextPhoto();
+        else goPrevPhoto();
+      }}
     >
       <div className={`absolute inset-0 z-0 ${className}`}>
         {renderVideoElement ? (
@@ -585,7 +662,8 @@ export function FeedCardPrimaryMedia({
         ) : showImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={imageUrl!.trim()}
+            key={activeImageUrl!}
+            src={activeImageUrl!}
             alt={label}
             className={`absolute inset-0 h-full w-full ${fitClass}`}
             loading={imageLoading}
@@ -608,40 +686,65 @@ export function FeedCardPrimaryMedia({
         )}
       </div>
 
-      {lightboxEligible ? (
-        <button
-          type="button"
-          className={`absolute inset-0 z-10 border-0 bg-transparent p-0 ${
-            hasOpenableLightboxMedia
-              ? "cursor-pointer"
-              : "cursor-default pointer-events-none"
-          }`}
-          aria-label={t("feed.openMediaFullscreen")}
-          disabled={!hasOpenableLightboxMedia}
-          onClick={(e) => {
+      {/* Photo / video tap opens fullscreen gallery at the current index.
+          Title row (outside) opens the canonical item page. */}
+      <button
+        type="button"
+        className="absolute inset-0 z-10 cursor-zoom-in border-0 bg-transparent p-0"
+        aria-label={t("feed.openMediaFullscreen")}
+        onClick={(e) => {
+          if (didSwipe.current) {
+            didSwipe.current = false;
             e.preventDefault();
-            e.stopPropagation();
-            openLightbox();
-          }}
-        >
-          <span className="sr-only">{t("feed.openMediaFullscreen")}</span>
-        </button>
-      ) : (
-        <Link
-          href={href}
-          className="absolute inset-0 z-10"
-          aria-label={label}
-          onClick={() => navDebug('feed-tile:media-link', { href })}
-          onMouseEnter={
-            useHoverPlayback && showVideo ? onDesktopMouseEnter : undefined
+            return;
           }
-          onMouseLeave={
-            useHoverPlayback && showVideo ? onDesktopMouseLeave : undefined
-          }
-        >
-          <span className="sr-only">{label}</span>
-        </Link>
-      )}
+          e.preventDefault();
+          e.stopPropagation();
+          openLightbox();
+        }}
+        onMouseEnter={
+          useHoverPlayback && showVideo ? onDesktopMouseEnter : undefined
+        }
+        onMouseLeave={
+          useHoverPlayback && showVideo ? onDesktopMouseLeave : undefined
+        }
+      >
+        <span className="sr-only">{t("feed.openMediaFullscreen")}</span>
+      </button>
+
+      {showCarouselControls ? (
+        <>
+          <button
+            type="button"
+            className="absolute left-1.5 top-1/2 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white shadow-md backdrop-blur-sm transition hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            aria-label="Vorige"
+            onClick={goPrevPhoto}
+          >
+            <ChevronLeft className="h-5 w-5" aria-hidden />
+          </button>
+          <button
+            type="button"
+            className="absolute right-1.5 top-1/2 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white shadow-md backdrop-blur-sm transition hover:bg-black/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            aria-label="Volgende"
+            onClick={goNextPhoto}
+          >
+            <ChevronRight className="h-5 w-5" aria-hidden />
+          </button>
+          <div
+            className="pointer-events-none absolute bottom-2 left-1/2 z-20 flex -translate-x-1/2 gap-1"
+            aria-hidden
+          >
+            {gallery.map((url, i) => (
+              <span
+                key={`${url}-${i}`}
+                className={`h-1.5 w-1.5 rounded-full ${
+                  i === safePhotoIndex ? "bg-white" : "bg-white/45"
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      ) : null}
 
       {renderVideoElement ? (
         <button

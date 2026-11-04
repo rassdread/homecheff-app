@@ -51,11 +51,14 @@ export type FeedProductRow = {
     lng: number | null;
     kvk: string | null;
     companyName: string | null;
+    commerceDeclaration: string | null;
+    verifiedBusiness: boolean;
     User: {
       id: string;
       name: string | null;
       username: string | null;
       profileImage: string | null;
+      image?: string | null;
       displayFullName: boolean | null;
       displayNameOption: string | null;
       stripeConnectAccountId: string | null;
@@ -264,6 +267,8 @@ function attachSeller(
     lng: s.lng,
     kvk: s.kvk,
     companyName: s.companyName,
+    commerceDeclaration: s.commerceDeclaration,
+    verifiedBusiness: s.verifiedBusiness,
     User: s.User,
   };
 }

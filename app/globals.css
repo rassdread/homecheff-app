@@ -1427,6 +1427,30 @@ html.hc-pwa-standalone .hc-profile-v2-bottom-inset {
   box-shadow: var(--hc-shadow-1);
 }
 
+/* Business tile finish. Same card, photo ratio and content order.
+   The accent is a 3px inset bar plus a quiet ring. */
+.hc-card-lift.hc-business-tile-basic,
+.hc-card-lift.hc-business-tile-basic:hover {
+  box-shadow:
+    var(--hc-shadow-1),
+    0 0 0 1px rgb(203 213 225),
+    inset 0 3px 0 0 #64748b;
+}
+.hc-card-lift.hc-business-tile-pro,
+.hc-card-lift.hc-business-tile-pro:hover {
+  box-shadow:
+    var(--hc-shadow-1),
+    0 0 0 1px rgba(52, 114, 102, 0.45),
+    inset 0 3px 0 0 #347266;
+}
+.hc-card-lift.hc-business-tile-premium,
+.hc-card-lift.hc-business-tile-premium:hover {
+  box-shadow:
+    var(--hc-shadow-1),
+    0 0 0 1px rgba(91, 33, 182, 0.42),
+    inset 0 3px 0 0 #5b21b6;
+}
+
 .hc-btn-primary {
   display: inline-flex;
   align-items: center;
