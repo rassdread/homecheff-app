@@ -14,9 +14,15 @@ import {
   paymentFailureTarget,
 } from './booking-notice';
 
-test('email is immediate only when push cannot be offered', () => {
-  assert.deepEqual(courierRequestChannels(true), ['push']);
-  assert.deepEqual(courierRequestChannels(false), ['push', 'email']);
+test('a five-minute request uses push and email unless email is turned off', () => {
+  assert.deepEqual(courierRequestChannels({ hasActivePushToken: true, urgent: true }), ['push', 'email']);
+  assert.deepEqual(courierRequestChannels({ hasActivePushToken: false, urgent: true }), ['push', 'email']);
+  assert.deepEqual(
+    courierRequestChannels({ hasActivePushToken: true, urgent: true, emailDeliveryUpdates: false }),
+    ['push'],
+  );
+  assert.deepEqual(courierRequestChannels({ hasActivePushToken: false }), ['push', 'email']);
+  assert.deepEqual(courierRequestChannels({ hasActivePushToken: true }), ['push']);
 });
 
 test('a stored notice is not sent again', () => {

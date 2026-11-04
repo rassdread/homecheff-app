@@ -41,7 +41,7 @@ export async function notifyReservationBuyer(
         WHERE "userId" = ${userId} AND "isActive" = true
         LIMIT 1
       `.catch(() => []);
-      channels = courierRequestChannels(tokens.length > 0);
+      channels = courierRequestChannels({ hasActivePushToken: tokens.length > 0 });
     }
     const link = bookingRequestId ? bookingRequestDeepLink(bookingRequestId) : '/checkout';
     await NotificationService.send({

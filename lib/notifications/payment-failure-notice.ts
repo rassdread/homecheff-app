@@ -43,7 +43,7 @@ export async function notifyBuyerPaymentFailed(
           actionUrl: '/checkout',
         },
       },
-      channels: courierRequestChannels(tokens.length > 0),
+      channels: courierRequestChannels({ hasActivePushToken: tokens.length > 0, urgent: true }),
       saveToDatabase: true,
       emailIdempotencyKey: `payment-failed:${target.eventId}:${target.buyerId}`,
       emailPriority: EMAIL_PRIORITY.P0,

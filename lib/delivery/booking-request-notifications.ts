@@ -60,9 +60,10 @@ async function sendBookingNotice(prisma: PrismaClient, input: NoticeInput): Prom
     return;
   }
   const link = bookingRequestDeepLink(input.bookingRequestId);
-  const channels = courierRequestChannels(
-    await hasActivePushToken(prisma, input.userId),
-  );
+  const channels = courierRequestChannels({
+    hasActivePushToken: await hasActivePushToken(prisma, input.userId),
+    urgent: input.event === 'courier_requested',
+  });
   await NotificationService.send({
     userId: input.userId,
     message: {

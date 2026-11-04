@@ -2,8 +2,9 @@
  * Decisions for courier booking notices.
  * A registered push token means HomeCheff can offer the notice to FCM.
  * It does not prove the device received it or that the courier read it.
- * Email is sent immediately only when no active token exists, so a working
- * push registration is not paired with a second identical email.
+ * A five-minute request offers push and email together unless the courier
+ * turned email off. A missing token must not leave the courier unwarned.
+ * Cancel and expiry notices still avoid a second email when push can be offered.
  */
 
 export type BookingNoticeEvent =
@@ -26,10 +27,15 @@ export function bookingRequestDeepLink(bookingRequestId: string): string {
   return `/delivery/dashboard?bookingRequestId=${encodeURIComponent(bookingRequestId)}`;
 }
 
-export function courierRequestChannels(
-  hasActivePushToken: boolean,
-): Array<'push' | 'email'> {
-  return hasActivePushToken ? ['push'] : ['push', 'email'];
+export function courierRequestChannels(input: {
+  hasActivePushToken: boolean;
+  urgent?: boolean;
+  emailDeliveryUpdates?: boolean | null;
+}): Array<'push' | 'email'> {
+  const emailAllowed = input.emailDeliveryUpdates !== false;
+  if (input.urgent && emailAllowed) return ['push', 'email'];
+  if (!emailAllowed) return ['push'];
+  return input.hasActivePushToken ? ['push'] : ['push', 'email'];
 }
 
 export function bookingNoticeKey(
