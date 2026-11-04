@@ -45,6 +45,7 @@ type ProfileRow = {
   deliveryRegions: string[];
   lastOnlineAt: Date | null;
   onlineUntil: Date | null;
+  maxWeightGrams: number | null;
   updatedAt: Date;
   stripeIdentityState: string | null;
   stripeIdentityCheckedAt: Date | null;
@@ -160,6 +161,7 @@ export async function loadCourierNotificationAudience(
       deliveryRegions: true,
       lastOnlineAt: true,
       onlineUntil: true,
+      maxWeightGrams: true,
       updatedAt: true,
       stripeIdentityState: true,
       stripeIdentityCheckedAt: true,
@@ -248,6 +250,7 @@ export async function loadCourierNotificationAudience(
       isOnline: profile.isOnline,
       onlineUntil: profile.onlineUntil,
       lastOnlineAt: profile.lastOnlineAt,
+      maxWeightGrams: profile.maxWeightGrams,
       agreementRows: profile.agreementAcceptances,
       userLat: profile.user.lat,
       userLng: profile.user.lng,

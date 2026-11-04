@@ -225,25 +225,46 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
     invalidateQuote();
   }
 
-  async function suggestAddress(which: 'pickup' | 'dropoff', street: string) {
-    updateAddress(which, { street });
-    if (street.trim().length < 3) return;
-    const response = await fetch(`/api/delivery/address-suggest?q=${encodeURIComponent(street.trim())}`);
+  async function suggestAddress(which: 'pickup' | 'dropoff', next: AddressParts) {
+    const setParts = which === 'pickup' ? setPickup : setDropoff;
+    setParts(next);
+    invalidateQuote();
+    const query = [next.street, next.houseNumber, next.city].filter(Boolean).join(' ').trim();
+    if (query.length < 3) {
+      if (which === 'pickup') setPickupSuggestions([]);
+      else setDropoffSuggestions([]);
+      return;
+    }
+    const response = await fetch(`/api/delivery/address-suggest?q=${encodeURIComponent(query)}`);
     const data = await response.json().catch(() => ({ suggestions: [] }));
     const suggestions = Array.isArray(data.suggestions) ? data.suggestions as AddressSuggestion[] : [];
     if (which === 'pickup') setPickupSuggestions(suggestions);
     else setDropoffSuggestions(suggestions);
   }
 
-  function chooseSuggestion(which: 'pickup' | 'dropoff', suggestion: AddressSuggestion) {
+  async function chooseSuggestion(which: 'pickup' | 'dropoff', suggestion: AddressSuggestion) {
+    let postcode = suggestion.postcode;
+    if (!postcode) {
+      const query = [suggestion.street, suggestion.houseNumber, suggestion.city].filter(Boolean).join(' ');
+      const response = await fetch(`/api/delivery/address-suggest?q=${encodeURIComponent(query)}`);
+      const data = await response.json().catch(() => ({ suggestions: [] }));
+      const rows = Array.isArray(data.suggestions) ? data.suggestions as AddressSuggestion[] : [];
+      const match = rows.find((item) =>
+        item.postcode &&
+        item.street === suggestion.street &&
+        item.houseNumber === suggestion.houseNumber &&
+        item.city === suggestion.city,
+      );
+      postcode = match?.postcode || '';
+    }
     const setParts = which === 'pickup' ? setPickup : setDropoff;
-    setParts({
-      street: suggestion.street,
-      houseNumber: suggestion.houseNumber,
-      addition: suggestion.addition,
-      postcode: suggestion.postcode,
-      city: suggestion.city,
-    });
+    setParts((current) => ({
+      street: suggestion.street || current.street,
+      houseNumber: suggestion.houseNumber || current.houseNumber,
+      addition: suggestion.addition || current.addition,
+      postcode: postcode || current.postcode,
+      city: suggestion.city || current.city,
+    }));
     if (which === 'pickup') setPickupSuggestions([]);
     else setDropoffSuggestions([]);
     invalidateQuote();
@@ -402,7 +423,7 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
         parts={pickup}
         suggestions={pickupSuggestions}
         onChange={(patch) => updateAddress('pickup', patch)}
-        onStreet={(value) => void suggestAddress('pickup', value)}
+        onStreet={(value) => void suggestAddress('pickup', { ...pickup, street: value })}
         onPick={(suggestion) => chooseSuggestion('pickup', suggestion)}
       />
       <AddressFields
@@ -410,7 +431,7 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
         parts={dropoff}
         suggestions={dropoffSuggestions}
         onChange={(patch) => updateAddress('dropoff', patch)}
-        onStreet={(value) => void suggestAddress('dropoff', value)}
+        onStreet={(value) => void suggestAddress('dropoff', { ...dropoff, street: value })}
         onPick={(suggestion) => chooseSuggestion('dropoff', suggestion)}
       />
       <label className="mt-4 block text-sm font-medium text-gray-800">

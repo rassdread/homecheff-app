@@ -34,7 +34,17 @@ export async function GET(req: NextRequest) {
         postcode: String(doc.postcode || ''),
         city: String(doc.woonplaatsnaam || ''),
       };
-    }).filter((item: Suggestion) => item.street && item.houseNumber && item.postcode);
+    }).filter((item: Suggestion) => item.street && item.houseNumber);
+    for (const item of suggestions) {
+      if (item.postcode) continue;
+      const donor = suggestions.find((other) =>
+        other.postcode &&
+        other.street === item.street &&
+        other.houseNumber === item.houseNumber &&
+        other.city === item.city,
+      );
+      if (donor) item.postcode = donor.postcode;
+    }
     return NextResponse.json({ suggestions });
   } catch {
     return NextResponse.json({ suggestions: [] });

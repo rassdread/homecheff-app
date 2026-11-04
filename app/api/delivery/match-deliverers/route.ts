@@ -29,6 +29,10 @@ import {
   isCaribbeanCountry,
   marketplaceDistanceEligible,
 } from "@/lib/delivery/distance-semantics";
+import {
+  marketplaceKeepsCourier,
+  readExplicitMarketplaceShipment,
+} from "@/lib/delivery/courier-capacity";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +52,17 @@ export async function GET(req: NextRequest) {
     }
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get('productId');
+    // Existing marketplace calls omit these fields, so no courier is removed.
+    const explicitShipment = readExplicitMarketplaceShipment({
+      weightGrams: searchParams.get('weightGrams'),
+      packageCount: searchParams.get('packageCount'),
+      lengthCm: searchParams.get('lengthCm'),
+      widthCm: searchParams.get('widthCm'),
+      heightCm: searchParams.get('heightCm'),
+      shipmentKind: searchParams.get('shipmentKind'),
+      shipmentSize: searchParams.get('shipmentSize'),
+      description: searchParams.get('itemDescription'),
+    });
     const buyerLat = parseFloat(searchParams.get('buyerLat') || '0');
     const buyerLng = parseFloat(searchParams.get('buyerLng') || '0');
 
@@ -152,6 +167,14 @@ export async function GET(req: NextRequest) {
         estimatedPickupDelayMinutes: true,
         preparationTimeMinutes: true,
         maxSimultaneousDeliveries: true,
+        maxWeightGrams: true,
+        maxLengthCm: true,
+        maxWidthCm: true,
+        maxHeightCm: true,
+        maxPackageCount: true,
+        carriesFragile: true,
+        temperatureControlled: true,
+        liftAssistance: true,
         availableDays: true,
         user: {
           select: {
@@ -288,6 +311,13 @@ export async function GET(req: NextRequest) {
       })
       .filter(delivery => {
         const hasBuyer = Boolean(buyerLat && buyerLng);
+        // A missing capacity stays eligible. Only a registered shortfall drops the courier.
+        if (!marketplaceKeepsCourier({
+          capacity: delivery,
+          shipment: explicitShipment,
+        })) {
+          return false;
+        }
         return marketplaceDistanceEligible({
           version: delivery.distanceSemanticsVersion,
           isCaribbean: Boolean(isCaribbean),

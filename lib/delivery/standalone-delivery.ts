@@ -55,6 +55,14 @@ type CourierCard = {
   name: string;
   place: string;
   vehicleType: string;
+  maxWeightGrams: number | null;
+  maxLengthCm: number | null;
+  maxWidthCm: number | null;
+  maxHeightCm: number | null;
+  maxPackageCount: number | null;
+  carriesFragile: boolean | null;
+  temperatureControlled: boolean | null;
+  liftAssistance: boolean | null;
   deliveryRadius: number;
   distanceToSeller: number;
   distanceToBuyer: number;
@@ -214,6 +222,14 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput) {
       name,
       place: '',
       vehicleType: vehicle,
+      maxWeightGrams: profile.maxWeightGrams,
+      maxLengthCm: profile.maxLengthCm,
+      maxWidthCm: profile.maxWidthCm,
+      maxHeightCm: profile.maxHeightCm,
+      maxPackageCount: profile.maxPackageCount,
+      carriesFragile: profile.carriesFragile,
+      temperatureControlled: profile.temperatureControlled,
+      liftAssistance: profile.liftAssistance,
       deliveryRadius: profile.maxDistance,
       distanceToSeller: 0,
       distanceToBuyer: quote.routeDistanceKm,

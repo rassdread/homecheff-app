@@ -418,6 +418,14 @@ export function serializeCanonicalSettingsProfile(profile: {
   nationalCoverage: boolean;
   isVerified: boolean;
   distanceSemanticsVersion?: number | null;
+  maxWeightGrams?: number | null;
+  maxLengthCm?: number | null;
+  maxWidthCm?: number | null;
+  maxHeightCm?: number | null;
+  maxPackageCount?: number | null;
+  carriesFragile?: boolean | null;
+  temperatureControlled?: boolean | null;
+  liftAssistance?: boolean | null;
 }) {
   const timeSlots = profile.availableTimeSlots || [];
   return {
@@ -464,5 +472,13 @@ export function serializeCanonicalSettingsProfile(profile: {
     freeDeliveryRadiusKm: profile.freeDeliveryRadiusKm,
     currency: profile.currency,
     nationalCoverage: profile.nationalCoverage,
+    maxWeightGrams: profile.maxWeightGrams ?? null,
+    maxLengthCm: profile.maxLengthCm ?? null,
+    maxWidthCm: profile.maxWidthCm ?? null,
+    maxHeightCm: profile.maxHeightCm ?? null,
+    maxPackageCount: profile.maxPackageCount ?? null,
+    carriesFragile: profile.carriesFragile ?? null,
+    temperatureControlled: profile.temperatureControlled ?? null,
+    liftAssistance: profile.liftAssistance ?? null,
   };
 }

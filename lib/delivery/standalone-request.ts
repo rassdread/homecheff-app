@@ -46,7 +46,17 @@ export async function resolveStandaloneStops(body: Record<string, unknown>) {
   };
 }
 
-export function splitCouriersByCapacity<T extends { vehicleType?: string; maxWeightGrams?: number | null }>(
+export function splitCouriersByCapacity<T extends {
+  vehicleType?: string;
+  maxWeightGrams?: number | null;
+  maxLengthCm?: number | null;
+  maxWidthCm?: number | null;
+  maxHeightCm?: number | null;
+  maxPackageCount?: number | null;
+  carriesFragile?: boolean | null;
+  temperatureControlled?: boolean | null;
+  liftAssistance?: boolean | null;
+}>(
   couriers: T[],
   shipment: ShipmentRequest,
 ) {
@@ -55,6 +65,13 @@ export function splitCouriersByCapacity<T extends { vehicleType?: string; maxWei
   for (const courier of couriers) {
     const capacity = assessCourierCapacity({
       maxWeightGrams: courier.maxWeightGrams ?? null,
+      maxLengthCm: courier.maxLengthCm,
+      maxWidthCm: courier.maxWidthCm,
+      maxHeightCm: courier.maxHeightCm,
+      maxPackageCount: courier.maxPackageCount,
+      carriesFragile: courier.carriesFragile,
+      temperatureControlled: courier.temperatureControlled,
+      liftAssistance: courier.liftAssistance,
       shipment,
     });
     if (capacity.status === 'FITS') {

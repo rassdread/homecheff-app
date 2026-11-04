@@ -24,6 +24,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { getCurrentLocation } from '@/lib/geolocation';
 import { DELIVERY_PROFILE_UPDATED_EVENT } from '@/lib/delivery/delivery-profile-canonical';
 import { DELIVERY_DASHBOARD_HREF } from '@/lib/delivery/delivery-profile-completion';
+import { vehicleCapacityExample } from '@/lib/delivery/courier-capacity';
 import {
   aggregateRequirementNotice,
   noticesForDeliveryMissing,
@@ -60,6 +61,14 @@ interface DeliveryProfile {
   maxDeliveriesPerSlot?: number;
   preparationTimeMinutes?: number;
   estimatedPickupDelayMinutes?: number;
+  maxWeightGrams?: number | null;
+  maxLengthCm?: number | null;
+  maxWidthCm?: number | null;
+  maxHeightCm?: number | null;
+  maxPackageCount?: number | null;
+  carriesFragile?: boolean | null;
+  temperatureControlled?: boolean | null;
+  liftAssistance?: boolean | null;
   user: {
     id: string;
     name: string | null;
@@ -87,6 +96,16 @@ function euroInputToCents(raw: string): number | null {
   const n = Number(trimmed.replace(',', '.'));
   if (!Number.isFinite(n) || n < 0) return null;
   return Math.round(n * 100);
+}
+
+function gramsToKgInput(grams: number | null | undefined): string {
+  if (grams == null || !Number.isFinite(grams) || grams <= 0) return '';
+  return String(grams / 1000).replace('.', ',');
+}
+
+function cmToInput(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value) || value <= 0) return '';
+  return String(value);
 }
 
 function formatDeliveryCompletionHint(completion?: {
@@ -138,6 +157,14 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     homeLat: deliveryProfile.homeLat ?? deliveryProfile.user?.lat ?? null as number | null,
     homeLng: deliveryProfile.homeLng ?? deliveryProfile.user?.lng ?? null as number | null,
     homeAddress: deliveryProfile.homeAddress || deliveryProfile.user?.place || '',
+    maxWeightKg: gramsToKgInput(deliveryProfile.maxWeightGrams),
+    maxLengthCm: cmToInput(deliveryProfile.maxLengthCm),
+    maxWidthCm: cmToInput(deliveryProfile.maxWidthCm),
+    maxHeightCm: cmToInput(deliveryProfile.maxHeightCm),
+    maxPackageCount: cmToInput(deliveryProfile.maxPackageCount),
+    carriesFragile: deliveryProfile.carriesFragile === true,
+    temperatureControlled: deliveryProfile.temperatureControlled === true,
+    liftAssistance: deliveryProfile.liftAssistance === true,
   });
   
   const [loading, setLoading] = useState(false);
@@ -231,6 +258,14 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
         (profile.homeAddress as string) ||
         (user?.place as string) ||
         prev.homeAddress,
+      maxWeightKg: gramsToKgInput(profile.maxWeightGrams as number | null),
+      maxLengthCm: cmToInput(profile.maxLengthCm as number | null),
+      maxWidthCm: cmToInput(profile.maxWidthCm as number | null),
+      maxHeightCm: cmToInput(profile.maxHeightCm as number | null),
+      maxPackageCount: cmToInput(profile.maxPackageCount as number | null),
+      carriesFragile: profile.carriesFragile === true,
+      temperatureControlled: profile.temperatureControlled === true,
+      liftAssistance: profile.liftAssistance === true,
     }));
   };
 
@@ -380,6 +415,14 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
         homeLat: formData.homeLat,
         homeLng: formData.homeLng,
         homeAddress: formData.homeAddress || null,
+        maxWeightKg: formData.maxWeightKg,
+        maxLengthCm: formData.maxLengthCm,
+        maxWidthCm: formData.maxWidthCm,
+        maxHeightCm: formData.maxHeightCm,
+        maxPackageCount: formData.maxPackageCount,
+        carriesFragile: formData.carriesFragile,
+        temperatureControlled: formData.temperatureControlled,
+        liftAssistance: formData.liftAssistance,
       };
 
       const response = await fetch('/api/delivery/settings', {
@@ -589,6 +632,94 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                   </div>
                 </button>
               ))}
+            </div>
+          </div>
+
+          <div id="vervoerscapaciteit" className="bg-white rounded-xl shadow-sm border p-6 scroll-mt-24">
+            <h2 className="text-xl font-semibold text-gray-900">Wat kun je vervoeren?</h2>
+            <p className="mt-2 text-sm text-gray-600">{vehicleCapacityExample(formData.transportation)}</p>
+            {!formData.maxWeightKg.trim() ? (
+              <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+                Vul je vervoerscapaciteit in om passende bezorgaanvragen te ontvangen.
+              </p>
+            ) : null}
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <label className="text-sm text-gray-700">
+                Maximaal totaalgewicht (kg)
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={formData.maxWeightKg}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, maxWeightKg: event.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                />
+              </label>
+              <label className="text-sm text-gray-700">
+                Maximaal aantal pakketten
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={formData.maxPackageCount}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, maxPackageCount: event.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                />
+              </label>
+              <label className="text-sm text-gray-700">
+                Maximale lengte (cm)
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={formData.maxLengthCm}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, maxLengthCm: event.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                />
+              </label>
+              <label className="text-sm text-gray-700">
+                Maximale breedte (cm)
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={formData.maxWidthCm}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, maxWidthCm: event.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                />
+              </label>
+              <label className="text-sm text-gray-700">
+                Maximale hoogte (cm)
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={formData.maxHeightCm}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, maxHeightCm: event.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                />
+              </label>
+            </div>
+            <div className="mt-4 space-y-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.carriesFragile}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, carriesFragile: event.target.checked }))}
+                />
+                Ik kan breekbare spullen meenemen
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.temperatureControlled}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, temperatureControlled: event.target.checked }))}
+                />
+                Ik kan temperatuurgevoelige spullen meenemen
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.liftAssistance}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, liftAssistance: event.target.checked }))}
+                />
+                Ik kan helpen tillen
+              </label>
             </div>
           </div>
 

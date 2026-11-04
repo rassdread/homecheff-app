@@ -69,40 +69,84 @@ export function validateShipment(
   };
 }
 
-export function assessCourierCapacity(input: {
+export type RegisteredCapacity = {
   maxWeightGrams: number | null;
   maxLengthCm?: number | null;
+  maxWidthCm?: number | null;
+  maxHeightCm?: number | null;
+  maxPackageCount?: number | null;
+  carriesFragile?: boolean | null;
+  temperatureControlled?: boolean | null;
+  liftAssistance?: boolean | null;
+};
+
+function positiveLimit(value: number | null | undefined): number | null {
+  if (value == null || !Number.isFinite(value) || value <= 0) return null;
+  return value;
+}
+
+/**
+ * A courier is registered only when a maximum weight was saved.
+ * Missing dimensions stay unknown for a shipment that has dimensions.
+ * An explicit false on a special capability is a refusal. Null is not.
+ */
+export function assessCourierCapacity(input: RegisteredCapacity & {
   shipment: ShipmentRequest;
 }): { status: CapacityDecision; reason: string } {
   if (input.shipment.packageCount < 1 || input.shipment.weightGrams <= 0) {
     return { status: 'UNKNOWN', reason: 'De zending is nog niet volledig beschreven.' };
   }
-  if (input.maxWeightGrams == null) {
+  const maxWeight = positiveLimit(input.maxWeightGrams);
+  if (maxWeight == null) {
     return {
       status: 'UNKNOWN',
       reason: 'De laadcapaciteit van deze bezorger is niet geregistreerd.',
     };
   }
   const total = input.shipment.weightGrams * input.shipment.packageCount;
-  if (total > input.maxWeightGrams) {
+  if (total > maxWeight) {
     return {
       status: 'INSUFFICIENT',
       reason: 'Het gewicht past niet in de geregistreerde laadcapaciteit.',
     };
   }
-  const maxLength = input.maxLengthCm;
-  const longest = Math.max(input.shipment.lengthCm ?? 0, input.shipment.widthCm ?? 0, input.shipment.heightCm ?? 0);
-  if (maxLength == null && longest > 0) {
-    return {
-      status: 'UNKNOWN',
-      reason: 'De maximale afmetingen van deze bezorger zijn niet geregistreerd.',
-    };
-  }
-  if (maxLength != null && longest > maxLength) {
+  const packageLimit = positiveLimit(input.maxPackageCount);
+  if (packageLimit != null && input.shipment.packageCount > packageLimit) {
     return {
       status: 'INSUFFICIENT',
-      reason: 'De afmetingen passen niet in de geregistreerde laadruimte.',
+      reason: 'Het aantal pakketten past niet in de geregistreerde capaciteit.',
     };
+  }
+  const sides = [input.shipment.lengthCm, input.shipment.widthCm, input.shipment.heightCm];
+  const stated = sides.filter((side): side is number => side != null && side > 0);
+  if (stated.length > 0 && stated.length < 3) {
+    return { status: 'UNKNOWN', reason: 'De afmetingen van de zending zijn onvolledig.' };
+  }
+  if (stated.length === 3) {
+    const limits = [input.maxLengthCm, input.maxWidthCm, input.maxHeightCm].map(positiveLimit);
+    if (limits.some((limit) => limit == null)) {
+      return {
+        status: 'UNKNOWN',
+        reason: 'De maximale afmetingen van deze bezorger zijn niet geregistreerd.',
+      };
+    }
+    const cargo = (limits as number[]).slice().sort((a, b) => b - a);
+    const parcel = stated.slice().sort((a, b) => b - a);
+    if (parcel.some((side, index) => side > cargo[index])) {
+      return {
+        status: 'INSUFFICIENT',
+        reason: 'De afmetingen passen niet in de geregistreerde laadruimte.',
+      };
+    }
+  }
+  if (input.shipment.fragile && input.carriesFragile === false) {
+    return { status: 'INSUFFICIENT', reason: 'Deze bezorger vervoert geen breekbare zendingen.' };
+  }
+  if (input.shipment.temperatureSensitive && input.temperatureControlled === false) {
+    return { status: 'INSUFFICIENT', reason: 'Deze bezorger vervoert geen temperatuurgevoelige zendingen.' };
+  }
+  if (input.shipment.liftHelp && input.liftAssistance === false) {
+    return { status: 'INSUFFICIENT', reason: 'Deze bezorger biedt geen hulp bij tillen.' };
   }
   return { status: 'FITS', reason: 'De geregistreerde capaciteit is voldoende.' };
 }

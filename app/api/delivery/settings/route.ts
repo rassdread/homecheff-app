@@ -19,6 +19,7 @@ import {
 import { planDistanceSettingsWrite } from '@/lib/delivery/distance-semantics';
 import { enforcePaidDeliveryIdentity } from '@/lib/delivery/courier-identity-sync';
 import { courierIdentityMessage } from '@/lib/delivery/courier-identity';
+import { parseCourierCapacityWrite } from '@/lib/delivery/courier-capacity';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,6 +70,14 @@ const PROFILE_SELECT = {
   stripeIdentityState: true,
   stripeIdentityReason: true,
   stripeIdentityCheckedAt: true,
+  maxWeightGrams: true,
+  maxLengthCm: true,
+  maxWidthCm: true,
+  maxHeightCm: true,
+  maxPackageCount: true,
+  carriesFragile: true,
+  temperatureControlled: true,
+  liftAssistance: true,
 } as const;
 
 const USER_LOCATION_SELECT = {
@@ -251,6 +260,11 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    const capacity = parseCourierCapacityWrite(body);
+    if (capacity.present && 'error' in capacity) {
+      return NextResponse.json({ error: capacity.error, code: 'DELIVERY_CAPACITY_INVALID' }, { status: 400 });
+    }
+
     const built = buildCanonicalSettingsUpdate({
       body,
       existing,
@@ -399,6 +413,7 @@ export async function PUT(req: NextRequest) {
           homeLat: patch.homeLat,
           homeLng: patch.homeLng,
           homeAddress: patch.homeAddress,
+          ...(capacity.present ? capacity.value : {}),
           ...deliveryProfileAutoVerifyPatch(existing, completionPreview.isComplete),
           updatedAt: new Date(),
         },
