@@ -10,6 +10,11 @@ import {
   fetchSellerTrustBundles,
   mapDishToDiscoveryReadModel,
 } from '@/lib/discovery';
+import { loadProductImageMetadata } from '@/lib/feed/feed-media-metadata.server';
+import {
+  fillMissingDishMediaFromProductImages,
+  type FeedMediaMetaRow,
+} from '@/lib/feed/resolve-feed-media-url';
 import { INSPIRATION_LISTING_KIND } from '@/lib/marketplace/contracts/listing-kind-contract';
 
 export type GetInspiratieOptions = {
@@ -139,6 +144,24 @@ export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
     photos: dish.photos.map((p) => ({ id: p.id, url: p.url, isMain: p.idx === 0 })),
     videos: dish.videos?.length ? dish.videos.map((v) => ({ id: v.id, url: v.url, thumbnail: v.thumbnail ?? null, duration: v.duration ?? null, autoplay: true })) : [],
   }));
+
+  const missingPhotoIds = items.filter((item) => item.photos.length === 0).map((item) => item.id);
+  if (missingPhotoIds.length > 0) {
+    const dishPhotos = new Map<string, FeedMediaMetaRow[]>(
+      missingPhotoIds.map((id) => [id, []]),
+    );
+    const productImages = await loadProductImageMetadata(missingPhotoIds);
+    fillMissingDishMediaFromProductImages(dishPhotos, productImages, missingPhotoIds);
+    items = items.map((item) => {
+      if (item.photos.length > 0) return item;
+      const url = (dishPhotos.get(item.id) ?? []).find((row) => row.httpUrl)?.httpUrl;
+      if (!url) return item;
+      return {
+        ...item,
+        photos: [{ id: `${item.id}-product-image`, url, isMain: true }],
+      };
+    });
+  }
 
   if (sortBy === 'popular') {
     items.sort((a, b) => {

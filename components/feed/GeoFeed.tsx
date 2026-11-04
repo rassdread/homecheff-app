@@ -7417,6 +7417,21 @@ export default function GeoFeed({
           {t(quickCreateLabelKey(feedQuickCreateIntent))}
         </button>
       ) : null}
+      <label className="relative block min-w-0">
+        <span className="sr-only">{t("common.searchInProductsSimple")}</span>
+        <Search
+          className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
+          aria-hidden
+        />
+        <input
+          type="search"
+          data-wx-feed-search=""
+          value={searchQuery}
+          onChange={(e) => onMarketplaceSearchChange(e.target.value)}
+          placeholder={t("common.searchInProductsSimple")}
+          className="w-full min-h-[40px] rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-brand/50 focus:outline-none focus:ring-2 focus:ring-primary-brand/20"
+        />
+      </label>
       {deliveryRequestOpen ? null : (
         <>
           {searchResultsEl}
