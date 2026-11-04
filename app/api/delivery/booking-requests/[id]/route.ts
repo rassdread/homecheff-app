@@ -71,6 +71,7 @@ export async function GET(
       status: fresh?.status ?? request.status,
       acceptanceMode: request.acceptanceModeSnapshot,
       expiresAt: request.expiresAt,
+      serverNow: new Date().toISOString(),
       quotedFeeCents: request.quotedFeeCents,
       providerName: request.deliveryProfile.user?.name,
       deliveryProfileId: request.deliveryProfileId,

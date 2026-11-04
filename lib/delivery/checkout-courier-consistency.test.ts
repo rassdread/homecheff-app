@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing';
 import {
@@ -23,6 +24,13 @@ import {
   readMarketplaceSlot,
   shouldApplyMatchGeneration,
 } from '@/lib/delivery/checkout-courier-consistency';
+import {
+  courierAcceptanceRemainingMs,
+  courierCheckoutKind,
+  courierStatusCopy,
+  courierSwitchMayContinue,
+  formatCourierCountdown,
+} from '@/lib/delivery/checkout-courier-status';
 import { realCourierSlotStarts } from '@/lib/delivery/delivery-time-availability';
 import { unpaidHoldExpiredWhere } from '@/lib/products/courier-stock-hold';
 
@@ -46,8 +54,15 @@ describe('named checkout does not contradict the courier list', () => {
       match: { kind: 'list', count: 0 },
     });
     assert.equal(regionalCount, 1);
-    assert.equal(headline, 'Geen bezorger gevonden voor dit adres en dit product.');
-    assert.equal(headline?.includes('beschikbaar'), false);
+    assert.equal(headline, null);
+    const selector = readFileSync(
+      new URL('../../components/checkout/DelivererSelector.tsx', import.meta.url),
+      'utf8',
+    );
+    const emptyCopy =
+      'Er is momenteel geen geschikte bezorger beschikbaar. Probeer het later opnieuw.';
+    assert.equal(selector.includes(emptyCopy), true);
+    assert.equal(selector.includes('1 bezorger'), false);
   });
 
   it('shows the order match count only after that response is applied', () => {
@@ -343,5 +358,104 @@ describe('delivery price is the selected quote', () => {
     assert.equal(calculatePlatformFeeCents(productCents), 54);
     assert.equal(Math.round((quote.deliveryFeeCents * DELIVERY_DELIVERER_PERCENT) / 100), 227);
     assert.equal(Math.round((quote.deliveryFeeCents * DELIVERY_PLATFORM_FEE_PERCENT) / 100), 31);
+  });
+});
+
+describe('courier acceptance countdown uses the server deadline', () => {
+  it('formats the five-minute window as 04:59 down to 00:00', () => {
+    assert.equal(formatCourierCountdown(5 * 60 * 1000), '05:00');
+    assert.equal(formatCourierCountdown(4 * 60 * 1000 + 59 * 1000), '04:59');
+    assert.equal(formatCourierCountdown(0), '00:00');
+    assert.equal(formatCourierCountdown(-2000), '00:00');
+  });
+
+  it('does not move the deadline when the client clock is ahead', () => {
+    const expiresAt = '2026-11-04T12:05:00.000Z';
+    const serverNow = '2026-11-04T12:00:01.000Z';
+    const clientNowAtServerSync = Date.parse('2026-11-04T12:00:11.000Z');
+    const remaining = courierAcceptanceRemainingMs({
+      expiresAt,
+      serverNow,
+      clientNow: clientNowAtServerSync + 1000,
+      clientNowAtServerSync,
+    });
+    assert.equal(remaining, 4 * 60 * 1000 + 58 * 1000);
+    assert.equal(formatCourierCountdown(remaining), '04:58');
+  });
+
+  it('keeps waiting, accepted, rejected and the three expiries exclusive', () => {
+    const copy = courierStatusCopy('nl');
+    assert.equal(
+      courierCheckoutKind({
+        bookingStatus: 'PENDING',
+        reservationRemainingMs: 34 * 60 * 1000,
+        paymentRemainingMs: null,
+      }),
+      'waiting',
+    );
+    assert.equal(copy.waiting, 'Je bezorgverzoek is verstuurd. We wachten op bevestiging.');
+    assert.equal(
+      courierCheckoutKind({
+        bookingStatus: 'ACCEPTED',
+        reservationRemainingMs: 20 * 60 * 1000,
+        paymentRemainingMs: 20 * 60 * 1000,
+      }),
+      'accepted',
+    );
+    assert.equal(
+      copy.accepted,
+      'Je bezorger heeft je bezorgverzoek geaccepteerd. Je kunt nu veilig betalen.',
+    );
+    assert.equal(
+      courierCheckoutKind({
+        bookingStatus: 'REJECTED',
+        reservationRemainingMs: 20 * 60 * 1000,
+        paymentRemainingMs: null,
+      }),
+      'rejected',
+    );
+    assert.equal(
+      courierCheckoutKind({
+        bookingStatus: 'EXPIRED',
+        reservationRemainingMs: 10 * 60 * 1000,
+        paymentRemainingMs: null,
+      }),
+      'courier_expired',
+    );
+    assert.equal(
+      courierCheckoutKind({
+        bookingStatus: 'ACCEPTED',
+        reservationRemainingMs: 0,
+        paymentRemainingMs: 0,
+      }),
+      'payment_expired',
+    );
+    assert.equal(
+      courierCheckoutKind({
+        bookingStatus: 'PENDING',
+        reservationRemainingMs: 0,
+        paymentRemainingMs: null,
+      }),
+      'stock_expired',
+    );
+  });
+
+  it('opens a new courier list only after the server confirms the old request is inactive', () => {
+    assert.equal(
+      courierSwitchMayContinue({ httpOk: true, active: false, status: 'CANCELLED' }),
+      true,
+    );
+    assert.equal(
+      courierSwitchMayContinue({ httpOk: true, active: false, status: 'PENDING' }),
+      false,
+    );
+    assert.equal(
+      courierSwitchMayContinue({ httpOk: false, active: false, status: 'CANCELLED' }),
+      false,
+    );
+    assert.equal(
+      courierSwitchMayContinue({ httpOk: true, active: true, status: 'ACCEPTED' }),
+      false,
+    );
   });
 });

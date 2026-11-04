@@ -254,10 +254,7 @@ export default function DelivererSelector({
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
           <div className="space-y-1 text-sm text-amber-950">
             <p className="font-medium">
-              Er is op dit moment nog geen HomeCheff-bezorgpartner beschikbaar in jouw buurt.
-            </p>
-            <p className="text-amber-900/90">
-              Kies afhalen of een andere leveroptie als die beschikbaar is, of probeer later opnieuw.
+              Er is momenteel geen geschikte bezorger beschikbaar. Probeer het later opnieuw.
             </p>
           </div>
         </div>

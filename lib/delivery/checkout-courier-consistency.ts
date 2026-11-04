@@ -61,8 +61,9 @@ export function namedCheckoutCourierHeadline(input: {
   if (input.match.kind === 'pending') {
     return 'Bezorgerlijst wordt geladen voor deze bestelling.';
   }
+  // The open selector owns the empty state, so the option header does not repeat it.
   if (input.match.kind === 'error' || input.match.count === 0) {
-    return 'Geen bezorger gevonden voor dit adres en dit product.';
+    return null;
   }
   if (input.match.count === 1) return '1 bezorger voor deze bestelling.';
   return `${input.match.count} bezorgers voor deze bestelling.`;

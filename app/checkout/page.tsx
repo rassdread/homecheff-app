@@ -10,6 +10,7 @@ import { MapPin, Clock, Package, Truck, Users, CreditCard, CheckCircle, Navigati
 import Link from 'next/link';
 import TeenDeliveryInfo from '@/components/delivery/TeenDeliveryInfo';
 import DelivererSelector, { type Deliverer } from '@/components/checkout/DelivererSelector';
+import CourierAcceptanceStatus from '@/components/checkout/CourierAcceptanceStatus';
 import { getCurrentLocation } from '@/lib/geolocation';
 import { useDeliveryAvailability } from '@/hooks/useDeliveryAvailability';
 import { usePersistentState } from '@/hooks/usePersistentState';
@@ -25,6 +26,10 @@ import {
   namedCheckoutAvailable,
   namedCheckoutCourierHeadline,
 } from '@/lib/delivery/checkout-courier-consistency';
+import {
+  courierCheckoutKind,
+  courierSwitchMayContinue,
+} from '@/lib/delivery/checkout-courier-status';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import {
@@ -44,7 +49,6 @@ import {
 } from '@/lib/legal/consumer-commerce-context';
 import { consumerContextFromProductPayload } from '@/lib/legal/consumer-context-from-product';
 import { checkoutAddressForFulfillment } from '@/lib/seller/sales-locations';
-import { RESERVATION_COPY } from '@/lib/products/checkout-reservation-policy';
 import { selectOrdinaryCheckoutItems } from '@/lib/checkout/fulfillment-phase1';
 import {
   resolveDynamicDeliveryVisibility,
@@ -58,14 +62,6 @@ import {
   validatePhysicalDeliveryAddress,
 } from '@/lib/checkout/physical-delivery-address';
 
-function formatServerRemaining(remainingMs: number | null) {
-  if (remainingMs == null) return null;
-  const totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${String(seconds).padStart(2, '0')}`;
-}
-
 function ManualBookingPoller({
   bookingRequestId,
   bookingStatus,
@@ -78,10 +74,10 @@ function ManualBookingPoller({
     remainingMs: number | null;
     paymentRemainingMs: number | null;
     phase: string | null;
+    expiresAt: string | null;
+    serverNow: string | null;
   }) => void;
 }) {
-  const { tOr } = useTranslation();
-  const waitingForCourier = String(bookingStatus || '').toUpperCase() === 'PENDING';
   useEffect(() => {
     if (!checkoutShouldPollBooking(bookingStatus)) return;
     let cancelled = false;
@@ -95,6 +91,8 @@ function ManualBookingPoller({
             remainingMs: data.reservation?.remainingMs ?? null,
             paymentRemainingMs: data.reservation?.paymentRemainingMs ?? null,
             phase: data.reservation?.phase ?? null,
+            expiresAt: typeof data.expiresAt === 'string' ? data.expiresAt : null,
+            serverNow: typeof data.serverNow === 'string' ? data.serverNow : null,
           });
         }
       } catch {
@@ -109,18 +107,7 @@ function ManualBookingPoller({
     };
   }, [bookingRequestId, bookingStatus, onStatus]);
 
-  if (!waitingForCourier) return null;
-
-  return (
-    <p className="text-sm text-amber-800 flex items-center gap-2">
-      <Loader2 className="w-4 h-4 animate-spin" />
-      {tOr(
-        'checkout.reservation.waiting',
-        'Waiting for the courier to confirm (max. 5 minutes)…',
-        'Wachten op bevestiging van de bezorger (max. 5 minuten)…',
-      )}
-    </p>
-  );
+  return null;
 }
 
 type DeliveryOption = {
@@ -313,7 +300,11 @@ export default function CheckoutPage() {
   const [paymentRemainingMs, setPaymentRemainingMs] = useState<number | null>(null);
   const [acceptedSlotAt, setAcceptedSlotAt] = useState<string | null>(null);
   const [reservationPhase, setReservationPhase] = useState<string | null>(null);
-  const reservationCopy = language === 'en' ? RESERVATION_COPY.en : RESERVATION_COPY.nl;
+  const [courierExpiresAt, setCourierExpiresAt] = useState<string | null>(null);
+  const [courierServerNow, setCourierServerNow] = useState<string | null>(null);
+  const [courierSyncedAt, setCourierSyncedAt] = useState<number | null>(null);
+  const [courierListEpoch, setCourierListEpoch] = useState(0);
+  const [switchingCourier, setSwitchingCourier] = useState(false);
 
   useEffect(() => {
     fetch('/api/delivery/alignment-flags')
@@ -527,6 +518,11 @@ export default function CheckoutPage() {
     reservationRemainingMs,
     paymentRemainingMs,
     acceptedSlotAt,
+  });
+  const courierStatusKind = courierCheckoutKind({
+    bookingStatus,
+    reservationRemainingMs,
+    paymentRemainingMs,
   });
   const localProviderPayAllowed = checkoutLocalProviderPayAllowed({
     selectedDelivery: checkoutDraft.selectedDelivery,
@@ -773,22 +769,44 @@ export default function CheckoutPage() {
         status: String(data.booking.status || ''),
         paymentRemainingMs: data.reservation?.paymentRemainingMs ?? null,
       });
-      if (data.booking.status === 'EXPIRED' || !payable) {
-        // Expired / no longer payable: clear latch so the buyer can request again.
-        if (data.booking.status === 'EXPIRED') {
-          setBookingRequestId(null);
-          setBookingStatus(null);
-          setSelectedDeliverer(null);
-          setReservationRemainingMs(null);
-          setPaymentRemainingMs(null);
-          setReservationPhase(null);
-        } else if (
-          data.booking.status === 'ACCEPTED' ||
-          data.booking.status === 'AUTO_CONFIRMED'
-        ) {
-          setBookingRequestId(data.booking.id);
-          setBookingStatus('EXPIRED');
+      const restoredStatus = String(data.booking.status || '').toUpperCase();
+      const restoredExpiresAt =
+        typeof data.booking.expiresAt === 'string' ? data.booking.expiresAt : null;
+      const restoredServerNow = typeof data.serverNow === 'string' ? data.serverNow : null;
+      if (restoredStatus === 'PENDING' || restoredStatus === 'REJECTED' || restoredStatus === 'EXPIRED') {
+        restoredBookingProductRef.current = checkoutProductId;
+        setBookingRequestId(data.booking.id);
+        setBookingStatus(restoredStatus);
+        setCourierExpiresAt(restoredExpiresAt);
+        setCourierServerNow(restoredServerNow);
+        setCourierSyncedAt(Date.now());
+        setReservationRemainingMs(data.reservation?.remainingMs ?? null);
+        setPaymentRemainingMs(data.reservation?.paymentRemainingMs ?? null);
+        setReservationPhase(data.reservation?.phase ?? null);
+        if (restoredStatus === 'PENDING') {
+          setSelectedDeliverer({
+            id: data.booking.deliveryProfileId,
+            userId: '',
+            name: data.booking.providerName || 'Bezorger',
+            place: '',
+            vehicleType: data.booking.vehicleType || 'BIKE',
+            deliveryRadius: 0,
+            distanceToSeller: 0,
+            distanceToBuyer: data.booking.routeDistanceKm || 0,
+            totalDeliveryDistance: data.booking.routeDistanceKm || 0,
+            rating: 0,
+            completedDeliveries: 0,
+            quotedFeeCents: data.booking.quotedFeeCents,
+            acceptanceMode: data.booking.acceptanceMode,
+          });
         }
+        return;
+      }
+      if ((restoredStatus === 'ACCEPTED' || restoredStatus === 'AUTO_CONFIRMED') && !payable) {
+        setBookingRequestId(data.booking.id);
+        setBookingStatus('EXPIRED');
+        setPaymentRemainingMs(0);
+        setReservationRemainingMs(data.reservation?.remainingMs ?? 0);
         return;
       }
       restoredBookingProductRef.current = checkoutProductId;
@@ -1811,6 +1829,10 @@ export default function CheckoutPage() {
                                   ? t('checkout.checkingAvailability')
                                   : teenNeedsLocation
                                   ? t('checkout.teenAvailabilityValidate')
+                                  : checkoutDraft.selectedDelivery === option.id &&
+                                    (courierMatch.kind === 'error' ||
+                                      (courierMatch.kind === 'list' && courierMatch.count === 0))
+                                  ? null
                                   : namedCheckoutCourierHeadline({
                                       namedSelection: namedProviderSelectionEnabled && isTeenDelivery,
                                       selectionOpen: checkoutDraft.selectedDelivery === option.id,
@@ -1837,6 +1859,7 @@ export default function CheckoutPage() {
                           reservationUi.kind !== 'accepted' &&
                           reservationUi.kind !== 'awaiting_courier' ? (
                             <DelivererSelector
+                              key={`${checkoutItems[0].productId}-${courierListEpoch}`}
                               productId={checkoutItems[0].productId}
                               buyerLat={Number(checkoutDraft.coordinates.lat)}
                               buyerLng={Number(checkoutDraft.coordinates.lng)}
@@ -1923,6 +1946,9 @@ export default function CheckoutPage() {
                                   setAcceptedSlotAt(d.requestedPickupAt ?? null);
                                   setBookingRequestId(data.bookingRequestId);
                                   setBookingStatus(data.status);
+                                  setCourierExpiresAt(typeof data.expiresAt === 'string' ? data.expiresAt : null);
+                                  setCourierServerNow(typeof data.serverNow === 'string' ? data.serverNow : null);
+                                  setCourierSyncedAt(Date.now());
                                   setReservationRemainingMs(data.reservation?.remainingMs ?? null);
                                   setPaymentRemainingMs(data.reservation?.paymentRemainingMs ?? null);
                                   setReservationPhase(data.reservation?.phase ?? null);
@@ -1933,7 +1959,7 @@ export default function CheckoutPage() {
                                 }
                               }}
                             />
-                          ) : (
+                          ) : checkoutDraft.coordinates && checkoutItems[0]?.productId ? null : (
                             <p className="text-sm text-gray-600">
                               {tOr('surfaceLang.bookingValidate', 'Validate your delivery address first to see available couriers.', 'Valideer eerst je bezorgadres om beschikbare bezorgers te zien.')}
                             </p>
@@ -1957,15 +1983,22 @@ export default function CheckoutPage() {
                                   paymentRemainingMs: snapshot.paymentRemainingMs,
                                 });
                                 const upper = String(snapshot.status || '').toUpperCase();
+                                if (upper === 'CANCELLED' || upper === 'SUPERSEDED') {
+                                  setBookingRequestId(null);
+                                  setBookingStatus(null);
+                                  setSelectedDeliverer(null);
+                                  setCourierExpiresAt(null);
+                                  setCourierServerNow(null);
+                                  setCourierListEpoch((n) => n + 1);
+                                  return;
+                                }
                                 if (
                                   (upper === 'ACCEPTED' || upper === 'AUTO_CONFIRMED') &&
                                   !payable
                                 ) {
-                                  setBookingStatus('EXPIRED');
-                                  setBookingRequestId(null);
-                                  setSelectedDeliverer(null);
-                                  setReservationRemainingMs(0);
+                                  setBookingStatus(upper);
                                   setPaymentRemainingMs(0);
+                                  setReservationRemainingMs(snapshot.remainingMs);
                                   setReservationPhase(snapshot.phase);
                                   setBookingError(null);
                                   return;
@@ -1974,47 +2007,94 @@ export default function CheckoutPage() {
                                 setReservationRemainingMs(snapshot.remainingMs);
                                 setPaymentRemainingMs(snapshot.paymentRemainingMs);
                                 setReservationPhase(snapshot.phase);
+                                if (snapshot.expiresAt) setCourierExpiresAt(snapshot.expiresAt);
+                                if (snapshot.serverNow) {
+                                  setCourierServerNow(snapshot.serverNow);
+                                  setCourierSyncedAt(Date.now());
+                                }
                                 if (payable) setBookingError(null);
                               }}
                             />
                           )}
-                          {reservationUi.kind === 'expired' && (
-                            <p className="text-sm text-amber-900 font-medium">{reservationCopy.expired}</p>
-                          )}
-                          {reservationUi.kind === 'reserved' && (
-                            <p className="text-sm text-blue-800">
-                              {reservationCopy.reserved}
-                              {formatServerRemaining(reservationUi.remainingMs)
-                                ? ` ${formatServerRemaining(reservationUi.remainingMs)}`
-                                : ''}
+                          <CourierAcceptanceStatus
+                            kind={courierStatusKind}
+                            locale={language}
+                            expiresAt={courierExpiresAt}
+                            serverNow={courierServerNow}
+                            syncedAt={courierSyncedAt}
+                            paymentRemainingMs={paymentRemainingMs}
+                            switching={switchingCourier}
+                            onSwitchCourier={
+                              courierStatusKind === 'waiting' && bookingRequestId
+                                ? async () => {
+                                    if (switchingCourier) return;
+                                    setSwitchingCourier(true);
+                                    setBookingError(null);
+                                    try {
+                                      const res = await fetch(
+                                        `/api/delivery/booking-requests/${bookingRequestId}/switch`,
+                                        { method: 'POST' },
+                                      );
+                                      const data = await res.json().catch(() => null);
+                                      if (data?.code === 'COURIER_ALREADY_ACCEPTED') {
+                                        const snap = await fetch(
+                                          `/api/delivery/booking-requests/${bookingRequestId}`,
+                                        );
+                                        const body = await snap.json().catch(() => null);
+                                        setBookingStatus(String(body?.status || 'ACCEPTED'));
+                                        setPaymentRemainingMs(body?.reservation?.paymentRemainingMs ?? null);
+                                        setReservationRemainingMs(body?.reservation?.remainingMs ?? null);
+                                        setReservationPhase(body?.reservation?.phase ?? null);
+                                        if (typeof body?.expiresAt === 'string') setCourierExpiresAt(body.expiresAt);
+                                        if (typeof body?.serverNow === 'string') {
+                                          setCourierServerNow(body.serverNow);
+                                          setCourierSyncedAt(Date.now());
+                                        }
+                                        return;
+                                      }
+                                      if (
+                                        !courierSwitchMayContinue({
+                                          httpOk: res.ok,
+                                          active: data?.active,
+                                          status: data?.status,
+                                        })
+                                      ) {
+                                        setBookingError(
+                                          data?.error ||
+                                            'Het vorige bezorgverzoek is nog actief.',
+                                        );
+                                        return;
+                                      }
+                                      setBookingRequestId(null);
+                                      setBookingStatus(null);
+                                      setSelectedDeliverer(null);
+                                      setCourierExpiresAt(null);
+                                      setCourierServerNow(null);
+                                      setReservationRemainingMs(null);
+                                      setReservationPhase(null);
+                                      setCourierListEpoch((n) => n + 1);
+                                    } finally {
+                                      setSwitchingCourier(false);
+                                    }
+                                  }
+                                : undefined
+                            }
+                          />
+                          {'slotAt' in reservationUi && reservationUi.slotAt && courierStatusKind === 'accepted' ? (
+                            <p className="text-xs text-emerald-800">
+                              {new Date(reservationUi.slotAt).toLocaleString(language === 'en' ? 'en-GB' : 'nl-NL', {
+                                weekday: 'short',
+                                day: 'numeric',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
                             </p>
-                          )}
-                          {reservationUi.kind === 'awaiting_courier' && (
-                            <p className="text-sm text-blue-800">
-                              {reservationCopy.reserved}
-                              {formatServerRemaining(reservationUi.remainingMs)
-                                ? ` ${formatServerRemaining(reservationUi.remainingMs)}`
-                                : ''}
-                            </p>
-                          )}
-                          {reservationUi.kind === 'accepted' && (
-                            <p className="text-sm text-green-700 font-medium">
-                              {reservationCopy.accepted}
-                              {formatServerRemaining(reservationUi.paymentRemainingMs)
-                                ? ` ${formatServerRemaining(reservationUi.paymentRemainingMs)}`
-                                : ''}
-                              {reservationUi.slotAt
-                                ? ` · ${new Date(reservationUi.slotAt).toLocaleString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
-                                : ''}
-                            </p>
-                          )}
-                          {reservationUi.kind === 'rejected' && (
-                            <p className="text-sm text-amber-800">{reservationCopy.rejected}</p>
-                          )}
+                          ) : null}
                           {bookingRequestId &&
                             bookingStatus !== 'CONSUMED' &&
-                            reservationUi.kind !== 'expired' &&
-                            reservationUi.kind !== 'none' && (
+                            reservationUi.kind !== 'none' &&
+                            (reservationUi.kind !== 'expired' || courierStatusKind === 'payment_expired') && (
                             <div className="flex flex-wrap gap-2">
                               <button
                                 type="button"

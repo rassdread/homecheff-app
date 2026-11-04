@@ -4,7 +4,7 @@
  * productId + buyer coords exist; client values are not trusted.
  */
 
-import type { PrismaClient } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
 import { assertDelivererCanAccept } from '@/lib/delivery/delivery-eligibility';
@@ -220,6 +220,57 @@ async function resolveAuthoritativeQuote(
   return { ok: true, routeDistanceKm, quotedFeeCents: null };
 }
 
+const LIVE_BOOKING_STATUSES = ['PENDING', 'ACCEPTED', 'AUTO_CONFIRMED'] as const;
+
+/**
+ * One live booking per buyer+product. Serializable so two tabs cannot
+ * insert a second active request. Does not create a new stock hold.
+ */
+async function createBookingUnlessLive(
+  prisma: PrismaClient,
+  input: { buyerId: string; productId?: string | null },
+  data: Prisma.DeliveryBookingRequestUncheckedCreateInput,
+) {
+  try {
+    return await prisma.$transaction(
+      async (tx) => {
+        if (input.productId) {
+          const live = await tx.deliveryBookingRequest.findFirst({
+            where: {
+              buyerId: input.buyerId,
+              productId: input.productId,
+              status: { in: [...LIVE_BOOKING_STATUSES] },
+            },
+            select: { id: true, status: true },
+          });
+          if (live) return { conflict: live };
+        }
+        const request = await tx.deliveryBookingRequest.create({ data });
+        return { conflict: null, request };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034') {
+      return { conflict: { id: '', status: 'PENDING' as const } };
+    }
+    throw error;
+  }
+}
+
+function liveBookingConflict(conflict: { id: string; status: string }) {
+  const accepted = conflict.status === 'ACCEPTED' || conflict.status === 'AUTO_CONFIRMED';
+  return {
+    ok: false as const,
+    status: 409,
+    code: accepted ? ('COURIER_ALREADY_ACCEPTED' as const) : ('ACTIVE_BOOKING_EXISTS' as const),
+    error: accepted
+      ? 'De bezorger heeft al bevestigd. Rond die betaling af.'
+      : 'Er is al een bezorgverzoek voor deze bestelling.',
+    bookingRequestId: conflict.id || undefined,
+  };
+}
+
 export async function createDeliveryBookingRequest(
   prisma: PrismaClient,
   input: {
@@ -391,8 +442,10 @@ export async function createDeliveryBookingRequest(
       };
     }
 
-    const request = await prisma.deliveryBookingRequest.create({
-      data: {
+    const inserted = await createBookingUnlessLive(
+      prisma,
+      { buyerId: input.buyerId, productId: input.productId },
+      {
         buyerId: input.buyerId,
         deliveryProfileId: profile.id,
         productId: input.productId || null,
@@ -407,7 +460,9 @@ export async function createDeliveryBookingRequest(
         respondedAt: new Date(),
         updatedAt: new Date(),
       },
-    });
+    );
+    if (inserted.conflict) return liveBookingConflict(inserted.conflict);
+    const request = inserted.request;
 
     await prisma.deliveryCalendarEntry.create({
       data: {
@@ -450,8 +505,10 @@ export async function createDeliveryBookingRequest(
     };
   }
 
-  const request = await prisma.deliveryBookingRequest.create({
-    data: {
+  const inserted = await createBookingUnlessLive(
+    prisma,
+    { buyerId: input.buyerId, productId: input.productId },
+    {
       buyerId: input.buyerId,
       deliveryProfileId: profile.id,
       productId: input.productId || null,
@@ -465,7 +522,9 @@ export async function createDeliveryBookingRequest(
       notes: input.notes ?? null,
       updatedAt: new Date(),
     },
-  });
+  );
+  if (inserted.conflict) return liveBookingConflict(inserted.conflict);
+  const request = inserted.request;
 
   try {
     await NotificationService.send({
@@ -745,6 +804,69 @@ export async function cancelPendingBookingForReplacement(
     data: { status: 'CANCELLED' },
   });
   return { ok: true as const };
+}
+
+/**
+ * Buyer leaves a waiting courier to pick another.
+ * Cancels only a PENDING request. Stock hold stays attached so the next
+ * booking reuses it and does not extend holdUntil. Idempotent when the
+ * request is already inactive. An accepted request is not cancelled.
+ */
+export async function releasePendingBookingForCourierSwitch(
+  prisma: PrismaClient,
+  params: { requestId: string; buyerId: string },
+) {
+  const request = await prisma.deliveryBookingRequest.findUnique({
+    where: { id: params.requestId },
+  });
+  if (!request) {
+    return { ok: false as const, status: 404, code: 'NOT_FOUND' as const, error: 'Aanvraag niet gevonden' };
+  }
+  if (request.buyerId !== params.buyerId) {
+    return { ok: false as const, status: 403, code: 'NOT_OWNED' as const, error: 'Niet geautoriseerd' };
+  }
+  const now = new Date();
+  const updated = await prisma.deliveryBookingRequest.updateMany({
+    where: { id: request.id, buyerId: params.buyerId, status: 'PENDING' },
+    data: { status: 'CANCELLED', cancelledAt: now, updatedAt: now },
+  });
+  if (updated.count === 1) {
+    await prisma.deliveryCalendarEntry.updateMany({
+      where: {
+        bookingRequestId: request.id,
+        deliveryOrderId: null,
+        status: 'CONFIRMED',
+      },
+      data: { status: 'CANCELLED' },
+    });
+    return {
+      ok: true as const,
+      active: false as const,
+      status: 'CANCELLED' as const,
+      bookingRequestId: request.id,
+    };
+  }
+  const fresh = await prisma.deliveryBookingRequest.findUnique({
+    where: { id: request.id },
+    select: { status: true },
+  });
+  const status = fresh?.status ?? request.status;
+  if (status === 'ACCEPTED' || status === 'AUTO_CONFIRMED' || status === 'CONSUMED') {
+    return {
+      ok: false as const,
+      status: 409,
+      code: 'COURIER_ALREADY_ACCEPTED' as const,
+      error: 'De bezorger heeft al bevestigd. Rond die betaling af.',
+      active: true as const,
+      bookingRequestId: request.id,
+    };
+  }
+  return {
+    ok: true as const,
+    active: false as const,
+    status,
+    bookingRequestId: request.id,
+  };
 }
 
 export async function markBookingSuperseded(

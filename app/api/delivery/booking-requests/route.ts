@@ -7,8 +7,10 @@ import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-fla
 import {
   cancelPendingBookingForReplacement,
   createDeliveryBookingRequest,
+  expireStaleBookingRequests,
   markBookingSuperseded,
 } from '@/lib/delivery/booking-request-service';
+import { readMarketplaceSlot } from '@/lib/delivery/checkout-courier-consistency';
 import {
   attachBookingToHold,
   openPaymentWindowForBooking,
@@ -23,6 +25,77 @@ import {
 } from '@/lib/checkout/physical-delivery-address';
 
 export const dynamic = 'force-dynamic';
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const buyer = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    });
+    if (!buyer) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    const productId = req.nextUrl.searchParams.get('productId');
+    if (!productId) {
+      return NextResponse.json({ error: 'productId required' }, { status: 400 });
+    }
+    const booking = await prisma.deliveryBookingRequest.findFirst({
+      where: {
+        buyerId: buyer.id,
+        productId,
+        status: { in: ['PENDING', 'ACCEPTED', 'AUTO_CONFIRMED', 'REJECTED', 'EXPIRED'] },
+      },
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        deliveryProfile: {
+          select: {
+            id: true,
+            acceptanceMode: true,
+            transportation: true,
+            user: { select: { name: true } },
+          },
+        },
+      },
+    });
+    if (!booking) {
+      return NextResponse.json({ booking: null, serverNow: new Date().toISOString() });
+    }
+    await expireStaleBookingRequests(prisma, [booking.id]);
+    const fresh = await prisma.deliveryBookingRequest.findUnique({
+      where: { id: booking.id },
+    });
+    const hold = await prisma.stockReservation.findFirst({
+      where: { bookingRequestId: booking.id },
+      orderBy: { createdAt: 'desc' },
+    });
+    const status = fresh?.status ?? booking.status;
+    return NextResponse.json({
+      serverNow: new Date().toISOString(),
+      booking: {
+        id: booking.id,
+        status,
+        expiresAt: booking.expiresAt,
+        quotedFeeCents: booking.quotedFeeCents,
+        deliveryProfileId: booking.deliveryProfileId,
+        providerName: booking.deliveryProfile.user?.name ?? null,
+        acceptanceMode: booking.acceptanceModeSnapshot,
+        vehicleType: booking.deliveryProfile.transportation?.[0] ?? null,
+        routeDistanceKm: booking.routeDistanceKm,
+        buyerLat: booking.buyerLat,
+        buyerLng: booking.buyerLng,
+        requestedPickupAt: readMarketplaceSlot(booking.notes),
+      },
+      reservation: reservationTiming(hold),
+    });
+  } catch (error) {
+    console.error('list booking request', error);
+    return NextResponse.json({ error: 'Failed' }, { status: 500 });
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -253,6 +326,8 @@ export async function POST(req: NextRequest) {
         {
           error: result.error,
           code: result.code,
+          bookingRequestId:
+            'bookingRequestId' in result ? result.bookingRequestId : undefined,
           failedChecks: 'failedChecks' in result ? result.failedChecks : undefined,
         },
         { status: result.status }
@@ -280,6 +355,7 @@ export async function POST(req: NextRequest) {
       acceptanceMode: result.acceptanceMode,
       confirmed: result.confirmed,
       expiresAt: result.request.expiresAt,
+      serverNow: new Date().toISOString(),
       quotedFeeCents: result.request.quotedFeeCents,
       reservation: reservationTiming(storedHold),
     });

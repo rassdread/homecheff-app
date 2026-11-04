@@ -637,7 +637,8 @@ describe('checkout reservation safety', () => {
     assert.match(RESERVATION_COPY.en.rejected, /courier/i);
     assert.match(RESERVATION_COPY.en.expired, /expired/i);
     const page = readFileSync('app/checkout/page.tsx', 'utf8');
-    assert.match(page, /RESERVATION_COPY/);
+    assert.match(page, /CourierAcceptanceStatus/);
+    assert.doesNotMatch(page, /reservationCopy\.(accepted|expired|reserved)/);
   });
 
   it('TEST_23 two buyers racing for the last unit produce one hold', async () => {
