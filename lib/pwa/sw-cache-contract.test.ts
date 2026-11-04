@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { isKnownHomecheffRootPath } from '@/lib/seo/known-root-path-segments';
 
 const source = readFileSync(new URL('../../public/sw.js', import.meta.url), 'utf8');
 
@@ -26,4 +27,10 @@ test('images update from the network before a cached copy', () => {
 
 test('push deep links stay registered', () => {
   assert.match(source, /function resolvePushDeepLink/);
+});
+
+test('middleware must not rewrite the workers to the unknown-slug 404', () => {
+  assert.equal(isKnownHomecheffRootPath('/sw.js'), true);
+  assert.equal(isKnownHomecheffRootPath('/firebase-messaging-sw.js'), true);
+  assert.equal(isKnownHomecheffRootPath('/manifest.json'), true);
 });

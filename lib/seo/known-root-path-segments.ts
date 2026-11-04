@@ -163,6 +163,8 @@ const ROOT_FILE_SEGMENTS = new Set([
   'apple-icon.png',
   'apple-touch-icon.png',
   'manifest.json',
+  'sw.js',
+  'firebase-messaging-sw.js',
   'robots.txt',
   'notification.mp3',
   'opengraph-image',
