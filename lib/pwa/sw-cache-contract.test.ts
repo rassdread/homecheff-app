@@ -29,6 +29,11 @@ test('push deep links stay registered', () => {
   assert.match(source, /function resolvePushDeepLink/);
 });
 
+test('install does not precache unused legacy bundles', () => {
+  assert.doesNotMatch(source, /\/static\/js\/bundle\.js/);
+  assert.doesNotMatch(source, /\/static\/css\/main\.css/);
+});
+
 test('middleware must not rewrite the workers to the unknown-slug 404', () => {
   assert.equal(isKnownHomecheffRootPath('/sw.js'), true);
   assert.equal(isKnownHomecheffRootPath('/firebase-messaging-sw.js'), true);

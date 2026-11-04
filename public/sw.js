@@ -11,8 +11,6 @@ const STATIC_ASSETS = [
   '/login',
   '/register',
   '/messages',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
   '/favicon.ico',
   '/manifest.json'
 ];
