@@ -45,6 +45,30 @@ describe('inspiration guide publish gate', () => {
     );
   });
 
+  it('keeps an explicit private save private for designer and garden', () => {
+    for (const category of ['DESIGNER', 'GROWN'] as const) {
+      const result = resolveInspirationPublishStatus('PRIVATE', category, {
+        notes: 'bewaar als concept',
+        materials: ['linnen'],
+        plantType: 'munt',
+        soilType: 'potgrond',
+      });
+      assert.equal(result.status, 'PRIVATE');
+      assert.equal(result.heldAsDraft, false);
+    }
+  });
+
+  it('publishes designer and garden when publication is requested and a guide exists', () => {
+    assert.equal(
+      resolveInspirationPublishStatus('PUBLISHED', 'DESIGNER', { notes: 'zoom' }).status,
+      'PUBLISHED',
+    );
+    assert.equal(
+      resolveInspirationPublishStatus('PUBLISHED', 'GROWN', { notes: 'water geven' }).status,
+      'PUBLISHED',
+    );
+  });
+
   it('routes inspiration intent to category templates', () => {
     assert.equal(resolvePublicCreateSurface('inspiration', 'chef'), 'recipe');
     assert.equal(resolvePublicCreateSurface('inspiration', 'tuin'), 'garden');

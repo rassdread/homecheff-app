@@ -65,6 +65,7 @@ type GardenProject = {
     duration?: number | null;
   } | null;
   notes?: string;
+  status?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -172,6 +173,7 @@ export default function GardenManager({
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState<GardenProject | null>(null);
+  const [saveAsPrivate, setSaveAsPrivate] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -253,6 +255,7 @@ export default function GardenManager({
       const data = await response.json();
       const project = data.item as GardenProject;
       setEditingProject(project);
+      setSaveAsPrivate(project.status === 'PRIVATE');
       setFormData({
         title: project.title,
         description: project.description || '',
@@ -529,6 +532,7 @@ export default function GardenManager({
             })) || [],
             video: item.video || null,
             notes: item.notes || '',
+            status: item.status,
             createdAt: item.createdAt,
             updatedAt: item.updatedAt
           }));
@@ -550,6 +554,7 @@ export default function GardenManager({
 
   const resetGardenFormState = () => {
     setEditingProject(null);
+    setSaveAsPrivate(false);
     setFormData({
       title: "",
       description: "",
@@ -685,7 +690,7 @@ export default function GardenManager({
       const payload = {
         title: projectData.title,
         description: projectData.description,
-        status: 'PUBLISHED',
+        status: saveAsPrivate ? 'PRIVATE' : 'PUBLISHED',
         photos: mainPhotos.map((photo, index) => ({
           url: photo.url,
           idx: index,
@@ -765,6 +770,7 @@ export default function GardenManager({
           video: null
         });
         setGrowthPhotos([]); // Reset growth photos
+        setSaveAsPrivate(false);
         setShowForm(false);
         setEditingProject(null);
         setMessage({
@@ -900,7 +906,10 @@ export default function GardenManager({
         {!isPublic && !suppressPrimaryCreate && (
           <button
             type="button"
-            onClick={() => setShowForm(true)}
+            onClick={() => {
+              setSaveAsPrivate(false);
+              setShowForm(true);
+            }}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -1330,7 +1339,17 @@ export default function GardenManager({
                   </div>
                 </div>
 
-                <div className="sticky bottom-0 z-10 flex justify-end gap-3 border-t border-gray-200 bg-white p-4 max-lg:pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] lg:pb-6 shadow-sm sm:p-6">
+                <div className="sticky bottom-0 z-10 flex flex-col items-start justify-between gap-3 border-t border-gray-200 bg-white p-4 max-lg:pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] lg:pb-6 shadow-sm sm:flex-row sm:items-center sm:p-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saveAsPrivate}
+                      onChange={(e) => setSaveAsPrivate(e.target.checked)}
+                      className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                    />
+                    <span className="text-sm text-gray-700">Privé opslaan</span>
+                  </label>
+                  <div className="flex gap-3 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={() => requestGardenFormClose("close")}
@@ -1351,6 +1370,7 @@ export default function GardenManager({
                     <Sprout className="w-4 h-4" />
                     {editingProject ? t('chat.garden.update') : t('chat.garden.save')}
                   </button>
+                  </div>
                 </div>
             </div>
             </div>
@@ -1394,7 +1414,10 @@ export default function GardenManager({
           {!isPublic && !suppressPrimaryCreate && (
             <button
               type="button"
-              onClick={() => setShowForm(true)}
+              onClick={() => {
+                setSaveAsPrivate(false);
+                setShowForm(true);
+              }}
               className="mt-4 flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors mx-auto"
             >
               <Plus className="w-4 h-4" />
@@ -1491,6 +1514,7 @@ export default function GardenManager({
                           e.stopPropagation();
                           // Load and edit project
                           setEditingProject(project);
+                          setSaveAsPrivate(project.status === 'PRIVATE');
                           const mainPhotos = project.photos || [];
                           const growthPhotosData = project.growthPhotos || [];
                           

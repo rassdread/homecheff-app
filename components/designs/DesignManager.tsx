@@ -66,6 +66,7 @@ type Design = {
   } | null;
   notes?: string;
   instructions?: string[];
+  status?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -147,6 +148,7 @@ export default function DesignManager({
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingDesign, setEditingDesign] = useState<Design | null>(null);
+  const [saveAsPrivate, setSaveAsPrivate] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -249,6 +251,7 @@ export default function DesignManager({
           'stepNumber' in photo && typeof photo.stepNumber === 'number',
       );
       setEditingDesign(design);
+      setSaveAsPrivate(design.status === 'PRIVATE');
       setFormData({
         title: design.title,
         description: design.description || '',
@@ -488,6 +491,7 @@ export default function DesignManager({
             video: item.video || null,
             notes: item.notes || '',
             instructions: Array.isArray(item.instructions) ? item.instructions : [],
+            status: item.status,
             createdAt: item.createdAt,
             updatedAt: item.updatedAt
           }));
@@ -531,7 +535,7 @@ export default function DesignManager({
       const designData = {
         title: formData.title,
         description: formData.description,
-        status: 'PUBLISHED',
+        status: saveAsPrivate ? 'PRIVATE' : 'PUBLISHED',
         photos: formData.photos.map((photo, index) => ({
           url: photo.url,
           idx: index,
@@ -597,6 +601,7 @@ export default function DesignManager({
         };
         setFormData(emptyForm);
         setStepPhotos([]);
+        setSaveAsPrivate(false);
         setShowForm(false);
         setEditingDesign(null);
         setMessage({
@@ -743,6 +748,7 @@ export default function DesignManager({
   const resetDesignFormState = () => {
     localStorage.removeItem('designFormDraft');
     setEditingDesign(null);
+    setSaveAsPrivate(false);
     setFormData({
       title: '',
       description: '',
@@ -872,7 +878,10 @@ export default function DesignManager({
             {!suppressPrimaryCreate && (
               <button
                 type="button"
-                onClick={() => setShowForm(true)}
+                onClick={() => {
+                  setSaveAsPrivate(false);
+                  setShowForm(true);
+                }}
                 className="flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
@@ -1197,7 +1206,17 @@ export default function DesignManager({
 
                 </div>
 
-                <div className="sticky bottom-0 z-10 flex justify-end gap-3 border-t border-gray-200 bg-white p-4 max-lg:pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] lg:pb-6 shadow-sm sm:p-6">
+                <div className="sticky bottom-0 z-10 flex flex-col items-start justify-between gap-3 border-t border-gray-200 bg-white p-4 max-lg:pb-[calc(env(safe-area-inset-bottom,0px)+5.75rem)] lg:pb-6 shadow-sm sm:flex-row sm:items-center sm:p-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saveAsPrivate}
+                      onChange={(e) => setSaveAsPrivate(e.target.checked)}
+                      className="w-4 h-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500"
+                    />
+                    <span className="text-sm text-gray-700">Privé opslaan</span>
+                  </label>
+                  <div className="flex gap-3 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={() => requestDesignFormClose("close")}
@@ -1213,6 +1232,7 @@ export default function DesignManager({
                     <Palette className="w-4 h-4" />
                     {editingDesign ? t('common.update') : t('common.save')}
                   </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1255,7 +1275,10 @@ export default function DesignManager({
           {!isPublic && !suppressPrimaryCreate && (
             <button
               type="button"
-              onClick={() => setShowForm(true)}
+              onClick={() => {
+                setSaveAsPrivate(false);
+                setShowForm(true);
+              }}
               className="mt-4 flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors mx-auto"
             >
               <Plus className="w-4 h-4" />
@@ -1346,6 +1369,7 @@ export default function DesignManager({
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditingDesign(design);
+                          setSaveAsPrivate(design.status === 'PRIVATE');
                           setFormData({
                             title: design.title,
                             description: design.description || '',
