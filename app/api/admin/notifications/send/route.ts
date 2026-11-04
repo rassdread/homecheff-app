@@ -25,29 +25,16 @@ import {
 } from '@/lib/admin/courier-recipient-snapshot';
 import { SAFETY_SUPPORT_EMAIL } from '@/lib/legal/policy-urls';
 import {
-  classifySellerConnect,
-  sellerMatchesConnectFilter,
-  type SellerConnectClass,
-} from '@/lib/admin/seller-connect-segment';
+  assessSeller,
+  describeSellerQuery,
+  parseSellerAudienceQuery,
+  selectSellerRecipients,
+  sellerQueryKey,
+} from '@/lib/admin/seller-audience';
 
 export const dynamic = 'force-dynamic';
 
 const MAX_RECIPIENTS = 5000;
-
-const SELLER_CONNECT_FILTERS = new Set<SellerConnectClass | 'ANY'>([
-  'ANY',
-  'NOT_STARTED',
-  'STARTED_INCOMPLETE',
-  'LINKED_PAYOUT_UNKNOWN',
-  'PAYOUT_READY',
-  'UNKNOWN',
-]);
-
-function sellerConnectFilter(value: unknown): SellerConnectClass | 'ANY' {
-  return typeof value === 'string' && SELLER_CONNECT_FILTERS.has(value as SellerConnectClass | 'ANY')
-    ? (value as SellerConnectClass | 'ANY')
-    : 'ANY';
-}
 const EMAIL_BATCH_SIZE = 25;
 const EMAIL_BATCH_PAUSE_MS = 600;
 
@@ -123,29 +110,117 @@ export async function POST(req: NextRequest) {
         where: { role: { not: 'ADMIN' } },
       });
     } else if (targetType === 'sellers') {
-      const sellerConnect = sellerConnectFilter(body?.sellerConnect);
-      const sellers = await prisma.user.findMany({
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          stripeConnectAccountId: true,
-          stripeConnectOnboardingCompleted: true,
-        },
-        where: { role: 'SELLER' },
+      const legacyConnect = typeof body?.sellerConnect === 'string' && body.sellerConnect !== 'ANY'
+        ? { connect: [body.sellerConnect] }
+        : {};
+      const parsedSellers = parseSellerAudienceQuery({
+        ...legacyConnect,
+        ...(body?.sellerFilters && typeof body.sellerFilters === 'object' ? body.sellerFilters : {}),
       });
-      targetUsers = sellers
-        .filter((seller) =>
-          sellerMatchesConnectFilter(
-            classifySellerConnect({
-              stripeConnectAccountId: seller.stripeConnectAccountId,
-              onboardingCompleted: seller.stripeConnectOnboardingCompleted,
-              payoutsEnabled: null,
-            }),
-            sellerConnect,
-          ),
-        )
-        .map(({ id, email, name }) => ({ id, email, name }));
+      if (!parsedSellers.ok) {
+        return NextResponse.json({ error: parsedSellers.error }, { status: 400 });
+      }
+      const profiles = await prisma.sellerProfile.findMany({
+        select: {
+          commerceDeclaration: true,
+          subscriptionId: true,
+          subscriptionValidUntil: true,
+          Subscription: { select: { name: true, feeBps: true } },
+          _count: { select: { products: { where: { isActive: true } } } },
+          User: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              accountDeletedAt: true,
+              suspendedAt: true,
+              marketingAccepted: true,
+              stripeConnectAccountId: true,
+              stripeConnectOnboardingCompleted: true,
+              Business: { select: { verified: true } },
+            },
+          },
+        },
+      });
+      const assessed = profiles.map((profile) =>
+        assessSeller({
+          userId: profile.User.id,
+          name: profile.User.name,
+          email: profile.User.email,
+          deleted: profile.User.accountDeletedAt != null,
+          suspended: profile.User.suspendedAt != null,
+          marketingAccepted: profile.User.marketingAccepted,
+          commerceDeclaration: profile.commerceDeclaration,
+          businessVerified: profile.User.Business?.verified === true,
+          subscriptionId: profile.subscriptionId,
+          subscriptionValidUntil: profile.subscriptionValidUntil,
+          subscriptionName: profile.Subscription?.name ?? null,
+          feeBps: profile.Subscription?.feeBps ?? null,
+          activeProductCount: profile._count.products,
+          connectAccountId: profile.User.stripeConnectAccountId,
+          connectOnboardingCompleted: profile.User.stripeConnectOnboardingCompleted,
+          payoutsEnabled: null,
+          connectRestricted: null,
+          connectRequirementsDue: null,
+        }),
+      );
+      const audience = selectSellerRecipients(assessed, parsedSellers.query);
+      const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || '';
+      if (!secret.trim()) {
+        return NextResponse.json({ error: 'Ontvangerslijst kan niet worden vastgezet.' }, { status: 500 });
+      }
+      const snapshotToken = signCourierRecipientSnapshot(
+        { ids: audience.eligible.map((seller) => seller.userId), key: sellerQueryKey(parsedSellers.query) },
+        secret.trim(),
+      );
+      if (dryRun) {
+        const ids = audience.eligible.map((seller) => seller.userId);
+        const pushRows = ids.length
+          ? await prisma.pushToken.findMany({
+              where: { userId: { in: ids }, isActive: true },
+              select: { userId: true },
+              distinct: ['userId'],
+            })
+          : [];
+        return NextResponse.json({
+          dryRun: true,
+          targetCount: audience.eligible.length,
+          sellerCount: audience.eligible.length,
+          courierCount: 0,
+          emailRecipientCount: audience.eligible.filter((seller) => seller.email).length,
+          pushRecipientCount: pushRows.length,
+          excludedCount: audience.excluded.reduce((sum, row) => sum + row.count, 0),
+          excluded: audience.excluded,
+          activeFilters: describeSellerQuery(parsedSellers.query),
+          recipients: audience.eligible.slice(0, 20).map((seller) => ({
+            name: seller.name,
+            email: seller.email,
+            readiness: `${seller.account} · ${seller.plan} · ${seller.connect}`,
+            missing: [],
+          })),
+          page: 1,
+          pageSize: 20,
+          pageCount: 1,
+          recipientSnapshot: snapshotToken,
+          requiresConfirm: true,
+        });
+      }
+      const presented = typeof body?.recipientSnapshot === 'string' ? body.recipientSnapshot : '';
+      const read = readCourierRecipientSnapshot(presented, secret.trim());
+      if (!read.ok) return NextResponse.json({ error: read.error }, { status: 400 });
+      if (read.snapshot.key !== sellerQueryKey(parsedSellers.query)) {
+        return NextResponse.json(
+          { error: 'De filters zijn gewijzigd. Bekijk de ontvangers opnieuw.' },
+          { status: 400 },
+        );
+      }
+      const allowed = new Set(intersectCourierSnapshot(
+        audience.eligible.map((seller) => seller.userId),
+        read.snapshot.ids,
+      ));
+      targetUsers = audience.eligible
+        .filter((seller) => allowed.has(seller.userId))
+        .map((seller) => ({ id: seller.userId, email: seller.email, name: seller.name }));
     } else if (targetType === 'buyers') {
       targetUsers = await prisma.user.findMany({
         select: { id: true, email: true, name: true },

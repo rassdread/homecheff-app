@@ -30,6 +30,6 @@ test('the notification courier option is labeled as couriers and selects deliver
   assert.match(audience, /accountDeletedAt/);
   assert.equal(route.includes("role: 'DELIVERY'"), false);
   assert.match(route, /to:\s*\[user\.email!\]/);
-  assert.match(route, /role: 'SELLER'/);
+  assert.match(route, /sellerProfile\.findMany/);
   assert.match(route, /role: 'BUYER'/);
 });

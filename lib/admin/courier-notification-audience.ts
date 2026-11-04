@@ -44,6 +44,7 @@ type ProfileRow = {
   transportation: string[];
   deliveryRegions: string[];
   lastOnlineAt: Date | null;
+  onlineUntil: Date | null;
   updatedAt: Date;
   stripeIdentityState: string | null;
   stripeIdentityCheckedAt: Date | null;
@@ -158,6 +159,7 @@ export async function loadCourierNotificationAudience(
       transportation: true,
       deliveryRegions: true,
       lastOnlineAt: true,
+      onlineUntil: true,
       updatedAt: true,
       stripeIdentityState: true,
       stripeIdentityCheckedAt: true,
@@ -243,6 +245,9 @@ export async function loadCourierNotificationAudience(
       nationalCoverage: profile.nationalCoverage === true,
       transportation: profile.transportation,
       lastActivity,
+      isOnline: profile.isOnline,
+      onlineUntil: profile.onlineUntil,
+      lastOnlineAt: profile.lastOnlineAt,
       agreementRows: profile.agreementAcceptances,
       userLat: profile.user.lat,
       userLng: profile.user.lng,

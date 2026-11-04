@@ -65,12 +65,22 @@ export type AgreementAcceptanceState =
   | 'NOT_ACCEPTED'
   | 'UNKNOWN';
 
+export const COURIER_AVAILABILITY_FILTERS = ['ONLINE', 'OFFLINE', 'RECENT', 'NEVER'] as const;
+export type CourierAvailabilityFilter = (typeof COURIER_AVAILABILITY_FILTERS)[number];
+
+export const COURIER_CAPACITY_FILTERS = ['UNKNOWN', 'REGISTERED'] as const;
+export type CourierCapacityFilter = (typeof COURIER_CAPACITY_FILTERS)[number];
+
 export type CourierNotificationQuery = {
   segment: CourierSegmentId;
   vehicle: CourierVehicleFilter | null;
+  /** More than one vehicle matches with OR. Combined with other filters by AND. */
+  vehicles: CourierVehicleFilter[];
   area: string | null;
   activeWithinDays: 7 | 30 | 90 | null;
   templateId: CourierTemplateId | null;
+  availability: CourierAvailabilityFilter | null;
+  capacity: CourierCapacityFilter | null;
 };
 
 export type CourierStripeObservation =
@@ -106,6 +116,13 @@ export type CourierNotificationSource = {
   nationalCoverage: boolean;
   transportation: string[];
   lastActivity: Date | null;
+  /** Current online flag. Missing means not currently available. */
+  isOnline?: boolean;
+  /** Expiry of a temporary online override. A past value is not current availability. */
+  onlineUntil?: Date | string | null;
+  lastOnlineAt?: Date | string | null;
+  /** Registered max load in grams. Null or missing is UNKNOWN, never a fit. */
+  maxWeightGrams?: number | null;
   agreementRows: { version: string; contentHash: string; language: string }[] | null;
   profile: CanonicalDeliveryProfileRow;
   userLat: number | null;
@@ -131,6 +148,9 @@ export type AssessedCourier = {
   regions: string[];
   nationalCoverage: boolean;
   lastActivity: Date | null;
+  currentlyOnline: boolean;
+  everOnline: boolean;
+  capacity: 'UNKNOWN' | 'REGISTERED';
   primaryLabel: string;
   missing: string[];
   exclusionReason: string | null;
@@ -176,14 +196,41 @@ export function parseCourierNotificationQuery(
     }
     templateId = body.templateId as CourierTemplateId;
   }
+  const vehicles: CourierVehicleFilter[] = [];
+  const rawVehicles = Array.isArray(body.vehicles) ? body.vehicles : [];
+  for (const entry of rawVehicles) {
+    if (!(COURIER_VEHICLE_FILTERS as readonly string[]).includes(String(entry))) {
+      return { ok: false, error: 'Onbekend vervoermiddel.' };
+    }
+    const mode = entry as CourierVehicleFilter;
+    if (!vehicles.includes(mode)) vehicles.push(mode);
+  }
+  if (vehicle && !vehicles.includes(vehicle)) vehicles.unshift(vehicle);
+  let availability: CourierAvailabilityFilter | null = null;
+  if (body.availability != null && body.availability !== '') {
+    if (!(COURIER_AVAILABILITY_FILTERS as readonly string[]).includes(String(body.availability))) {
+      return { ok: false, error: 'Onbekende beschikbaarheidsfilter.' };
+    }
+    availability = body.availability as CourierAvailabilityFilter;
+  }
+  let capacity: CourierCapacityFilter | null = null;
+  if (body.capacity != null && body.capacity !== '') {
+    if (!(COURIER_CAPACITY_FILTERS as readonly string[]).includes(String(body.capacity))) {
+      return { ok: false, error: 'Onbekende capaciteitsfilter.' };
+    }
+    capacity = body.capacity as CourierCapacityFilter;
+  }
   return {
     ok: true,
     query: {
       segment: segment as CourierSegmentId,
       vehicle,
+      vehicles,
       area: area || null,
       activeWithinDays,
       templateId,
+      availability,
+      capacity,
     },
   };
 }
@@ -192,9 +239,12 @@ export function courierQueryKey(query: CourierNotificationQuery): string {
   return JSON.stringify({
     segment: query.segment,
     vehicle: query.vehicle,
+    vehicles: query.vehicles,
     area: (query.area || '').trim().toLowerCase(),
     activeWithinDays: query.activeWithinDays,
     templateId: query.templateId,
+    availability: query.availability,
+    capacity: query.capacity,
   });
 }
 
@@ -388,6 +438,9 @@ export function assessCourierForNotification(
     regions: source.regions,
     nationalCoverage: source.nationalCoverage,
     lastActivity: source.lastActivity,
+    currentlyOnline: courierIsCurrentlyOnline(source, now),
+    everOnline: courierWasEverOnline(source),
+    capacity: source.maxWeightGrams != null && source.maxWeightGrams > 0 ? 'REGISTERED' : 'UNKNOWN',
     primaryLabel: primaryLabel({
       ready,
       isActive: source.isActive,
@@ -451,9 +504,21 @@ function matchesSegment(courier: AssessedCourier, segment: CourierSegmentId): bo
   }
 }
 
-function matchesVehicle(courier: AssessedCourier, vehicle: CourierVehicleFilter | null): boolean {
-  if (!vehicle) return true;
-  return courier.transportation.includes(vehicle);
+function courierIsCurrentlyOnline(source: CourierNotificationSource, now: Date): boolean {
+  if (source.isOnline !== true) return false;
+  if (!source.onlineUntil) return false;
+  const until = source.onlineUntil instanceof Date ? source.onlineUntil.getTime() : Date.parse(String(source.onlineUntil));
+  return Number.isFinite(until) && until > now.getTime();
+}
+
+function courierWasEverOnline(source: CourierNotificationSource): boolean {
+  return source.lastOnlineAt != null || source.isOnline === true;
+}
+
+function matchesVehicle(courier: AssessedCourier, query: CourierNotificationQuery): boolean {
+  const wanted = query.vehicles.length > 0 ? query.vehicles : query.vehicle ? [query.vehicle] : [];
+  if (wanted.length === 0) return true;
+  return wanted.some((mode) => courier.transportation.includes(mode));
 }
 
 function matchesArea(courier: AssessedCourier, area: string | null): boolean {
@@ -497,8 +562,32 @@ export function selectCourierRecipients(
       bump('Valt buiten het gekozen bezorgerfilter');
       continue;
     }
-    if (!matchesVehicle(courier, query.vehicle)) {
+    if (!matchesVehicle(courier, query)) {
       bump('Ander vervoermiddel');
+      continue;
+    }
+    if (query.availability === 'ONLINE' && !courier.currentlyOnline) {
+      bump('Niet momenteel beschikbaar');
+      continue;
+    }
+    if (query.availability === 'OFFLINE' && (courier.currentlyOnline || !courier.everOnline)) {
+      bump('Niet offline');
+      continue;
+    }
+    if (query.availability === 'NEVER' && courier.everOnline) {
+      bump('Al eerder beschikbaar geweest');
+      continue;
+    }
+    if (query.availability === 'RECENT' && !matchesActivity(courier, query.activeWithinDays ?? 30, now)) {
+      bump('Niet recent actief');
+      continue;
+    }
+    if (query.capacity === 'REGISTERED' && courier.capacity !== 'REGISTERED') {
+      bump('Laadcapaciteit is niet geregistreerd');
+      continue;
+    }
+    if (query.capacity === 'UNKNOWN' && courier.capacity !== 'UNKNOWN') {
+      bump('Laadcapaciteit is wel geregistreerd');
       continue;
     }
     if (!matchesArea(courier, query.area)) {

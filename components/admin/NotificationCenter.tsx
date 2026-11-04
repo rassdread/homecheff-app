@@ -27,7 +27,13 @@ export default function NotificationCenter() {
   const [confirmEmailBlast, setConfirmEmailBlast] = useState(false);
   const [emailPreviewCount, setEmailPreviewCount] = useState<number | null>(null);
   const [courierSegment, setCourierSegment] = useState('ALL_EXISTING_COURIERS');
+  const [sellerAccount, setSellerAccount] = useState('');
+  const [sellerPlan, setSellerPlan] = useState('');
+  const [sellerProducts, setSellerProducts] = useState('');
+  const [sellerOnboarding, setSellerOnboarding] = useState('');
   const [sellerConnect, setSellerConnect] = useState('ANY');
+  const [courierAvailability, setCourierAvailability] = useState('');
+  const [courierCapacity, setCourierCapacity] = useState('');
   const [courierVehicle, setCourierVehicle] = useState('');
   const [courierArea, setCourierArea] = useState('');
   const [courierActivity, setCourierActivity] = useState('');
@@ -41,9 +47,20 @@ export default function NotificationCenter() {
   const courierFilters = {
     segment: courierSegment,
     vehicle: courierVehicle || null,
+    vehicles: courierVehicle ? [courierVehicle] : [],
     area: courierArea,
     activeWithinDays: courierActivity || null,
     templateId: courierTemplate || null,
+    availability: courierAvailability || null,
+    capacity: courierCapacity || null,
+  };
+
+  const sellerFilters = {
+    account: sellerAccount ? [sellerAccount] : [],
+    plans: sellerPlan ? [sellerPlan] : [],
+    products: sellerProducts || null,
+    onboarding: sellerOnboarding || null,
+    connect: sellerConnect && sellerConnect !== 'ANY' ? [sellerConnect] : [],
   };
 
   const clearCourierPreview = () => setCourierPreview(null);
@@ -55,11 +72,12 @@ export default function NotificationCenter() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          targetType: 'delivery',
+          targetType: targetType === 'sellers' ? 'sellers' : 'delivery',
           dryRun: true,
           sendNotification: false,
           sendEmail: false,
-          courierFilters,
+          courierFilters: targetType === 'delivery' ? courierFilters : undefined,
+          sellerFilters: targetType === 'sellers' ? sellerFilters : undefined,
           page,
           pageSize: 20,
         }),
@@ -92,7 +110,7 @@ export default function NotificationCenter() {
 
     if (submitLockRef.current || isLoading) return;
 
-    if (targetType === 'delivery' && !courierPreview?.recipientSnapshot) {
+    if ((targetType === 'delivery' || targetType === 'sellers') && !courierPreview?.recipientSnapshot) {
       alert('Bekijk eerst de ontvangers. Er wordt niets verstuurd voordat je die lijst bevestigt.');
       return;
     }
@@ -282,21 +300,63 @@ export default function NotificationCenter() {
           </div>
 
           {targetType === 'sellers' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Stripe Connect</label>
-              <select
-                value={sellerConnect}
-                onChange={(e) => setSellerConnect(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              >
-                <option value="ANY">Alle verkopers</option>
-                <option value="NOT_STARTED">Geen Connect gestart</option>
-                <option value="STARTED_INCOMPLETE">Connect gestart, nog niet afgerond</option>
-                <option value="LINKED_PAYOUT_UNKNOWN">Gekoppeld, uitbetaling niet geverifieerd</option>
-              </select>
-              <p className="mt-1 text-xs text-gray-500">
-                Een opgeslagen Stripe-account is geen bewijs dat uitbetalen mag. Onbekende status telt niet als geen Connect.
-              </p>
+            <div className="space-y-3 rounded-lg border border-gray-200 p-4">
+              <p className="text-xs text-gray-500">Filters tussen deze categorieën gelden samen. Een opgeslagen Stripe-account is geen bewijs dat uitbetalen mag.</p>
+              <label className="block text-sm text-gray-700">
+                Accounttype
+                <select value={sellerAccount} onChange={(e) => { setSellerAccount(e.target.value); clearCourierPreview(); }} className="mt-1 w-full rounded-lg border px-3 py-2">
+                  <option value="">Particulier en zakelijk</option>
+                  <option value="PRIVATE">Particuliere verkopers</option>
+                  <option value="BUSINESS">Zakelijke verkopers</option>
+                </select>
+              </label>
+              <label className="block text-sm text-gray-700">
+                Abonnement
+                <select value={sellerPlan} onChange={(e) => { setSellerPlan(e.target.value); clearCourierPreview(); }} className="mt-1 w-full rounded-lg border px-3 py-2">
+                  <option value="">Alle abonnementen</option>
+                  <option value="NONE">Geen zakelijk abonnement</option>
+                  <option value="BASIC">Basic</option>
+                  <option value="PRO">Pro</option>
+                  <option value="PREMIUM">Premium</option>
+                  <option value="ACTIVE">Actieve periode</option>
+                  <option value="EXPIRED">Verlopen</option>
+                </select>
+              </label>
+              <label className="block text-sm text-gray-700">
+                Producten
+                <select value={sellerProducts} onChange={(e) => { setSellerProducts(e.target.value); clearCourierPreview(); }} className="mt-1 w-full rounded-lg border px-3 py-2">
+                  <option value="">Alle</option>
+                  <option value="ACTIVE">Minstens één actief product</option>
+                  <option value="NONE">Geen actieve producten</option>
+                </select>
+              </label>
+              <label className="block text-sm text-gray-700">
+                Onboarding
+                <select value={sellerOnboarding} onChange={(e) => { setSellerOnboarding(e.target.value); clearCourierPreview(); }} className="mt-1 w-full rounded-lg border px-3 py-2">
+                  <option value="">Alle</option>
+                  <option value="COMPLETE">Afgerond</option>
+                  <option value="INCOMPLETE">Onvolledig</option>
+                </select>
+              </label>
+              <label className="block text-sm text-gray-700">
+                Stripe Connect
+                <select value={sellerConnect} onChange={(e) => { setSellerConnect(e.target.value); clearCourierPreview(); }} className="mt-1 w-full rounded-lg border px-3 py-2">
+                  <option value="ANY">Alle Connect-statussen</option>
+                  <option value="NOT_STARTED">Niet gestart</option>
+                  <option value="STARTED_INCOMPLETE">Gestart, nog niet afgerond</option>
+                  <option value="LINKED_PAYOUT_UNKNOWN">Gekoppeld, uitbetaling niet geverifieerd</option>
+                  <option value="REQUIREMENTS_DUE">Ontbrekende vereisten</option>
+                  <option value="PAYOUT_READY">Uitbetalingsgereed</option>
+                  <option value="RESTRICTED">Tijdelijk beperkt</option>
+                  <option value="UNKNOWN">UNKNOWN</option>
+                </select>
+              </label>
+              <button type="button" onClick={() => void loadCourierPreview(1)} disabled={previewLoading} className="inline-flex items-center rounded-lg border border-emerald-700 px-4 py-2 text-sm font-medium text-emerald-800">
+                {previewLoading ? t('admin.notificationCenter.sending') : t('admin.notificationCenter.previewRecipients')}
+              </button>
+              {courierPreview && (
+                <p className="text-sm text-gray-800">{courierPreview.targetCount} ontvangers. Uitgesloten: {courierPreview.excludedCount}.</p>
+              )}
             </div>
           )}
 
@@ -371,6 +431,24 @@ export default function NotificationCenter() {
                     <option value="7">{t('admin.notificationCenter.lastActivity7')}</option>
                     <option value="30">{t('admin.notificationCenter.lastActivity30')}</option>
                     <option value="90">{t('admin.notificationCenter.lastActivity90')}</option>
+                  </select>
+                </label>
+                <label className="block text-sm text-gray-700">
+                  Beschikbaarheid
+                  <select value={courierAvailability} onChange={(e) => { setCourierAvailability(e.target.value); clearCourierPreview(); }} className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg">
+                    <option value="">Alle</option>
+                    <option value="ONLINE">Momenteel beschikbaar</option>
+                    <option value="OFFLINE">Momenteel offline</option>
+                    <option value="RECENT">Recent actief</option>
+                    <option value="NEVER">Nog nooit beschikbaar</option>
+                  </select>
+                </label>
+                <label className="block text-sm text-gray-700">
+                  Laadcapaciteit
+                  <select value={courierCapacity} onChange={(e) => { setCourierCapacity(e.target.value); clearCourierPreview(); }} className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg">
+                    <option value="">Alle</option>
+                    <option value="REGISTERED">Geregistreerd maximumgewicht</option>
+                    <option value="UNKNOWN">Capaciteit UNKNOWN</option>
                   </select>
                 </label>
               </div>

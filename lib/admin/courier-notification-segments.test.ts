@@ -194,6 +194,26 @@ test('deleted, suspended, placeholder, and duplicate addresses are excluded', ()
   assert.equal(reasons.includes('Dubbel e-mailadres'), true);
 });
 
+test('current availability needs a future online window, and unknown capacity stays unknown', () => {
+  const online = source({
+    userId: 'online',
+    email: 'online@example.com',
+    isOnline: true,
+    onlineUntil: new Date('2026-10-28T13:00:00Z'),
+  });
+  const stale = source({
+    userId: 'stale',
+    email: 'stale@example.com',
+    isOnline: true,
+    onlineUntil: new Date('2026-10-28T11:00:00Z'),
+    lastOnlineAt: new Date('2026-10-28T11:00:00Z'),
+  });
+  const current = selected([online, stale], 'ALL_EXISTING_COURIERS', { availability: 'ONLINE' });
+  assert.deepEqual(current.eligible.map((row) => row.userId), ['online']);
+  const unknownCapacity = selected([online], 'ALL_EXISTING_COURIERS', { capacity: 'REGISTERED' });
+  assert.equal(unknownCapacity.eligible.length, 0);
+});
+
 test('vehicle, area, activity, and role overlap stay one recipient', () => {
   const bike = source({ userId: 'bike', email: 'bike@example.com', city: 'Vlaardingen', transportation: ['BIKE'] });
   const car = source({
@@ -251,7 +271,7 @@ test('courier templates do not promise public delivery or earnings', () => {
   assert.equal(reactivation?.promotional, true);
   assert.match(reactivation?.message || '', /Uitschrijven/);
   const route = readFileSync('app/api/admin/notifications/send/route.ts', 'utf8');
-  assert.match(route, /role: 'SELLER'/);
+  assert.match(route, /sellerProfile\.findMany/);
   assert.match(route, /role: 'BUYER'/);
   assert.match(route, /recipientSnapshot/);
   assert.equal(route.includes("role: 'DELIVERY'"), false);

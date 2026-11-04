@@ -9,9 +9,11 @@ const HOUSE = /\b(\d{1,5})\s*([A-Za-z])?(?:\s*[-\/]\s*([A-Za-z0-9]{1,6}))?\b/;
 
 export type ParsedDeliveryAddress = {
   raw: string;
+  street: string;
   postcode: string;
   houseNumber: string;
   addition: string;
+  city: string;
 };
 
 export function parseDutchDeliveryAddress(
@@ -46,15 +48,33 @@ export function parseDutchDeliveryAddress(
     };
   }
   const addition = [houseMatch[2], houseMatch[3]].filter(Boolean).join('-');
+  const beforeHouse = withoutPostcode.slice(0, houseMatch.index).replace(/,/g, ' ').trim();
+  const afterHouse = withoutPostcode.slice((houseMatch.index ?? 0) + houseMatch[0].length).replace(/,/g, ' ').trim();
   return {
     ok: true,
     address: {
       raw: text,
+      street: beforeHouse,
       postcode,
       houseNumber: houseMatch[1]!,
       addition,
+      city: afterHouse,
     },
   };
+}
+
+export function streetsMatch(typed: string, official: string): boolean {
+  const norm = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+  const left = norm(typed);
+  const right = norm(official);
+  if (!left || !right) return false;
+  return left === right || left.includes(right) || right.includes(left);
 }
 
 export function deliveryAddressFingerprint(raw: string): string {

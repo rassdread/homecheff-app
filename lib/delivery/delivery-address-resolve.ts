@@ -1,5 +1,5 @@
 import { geocodeDutchAddress } from '@/lib/dutch-geocoding';
-import { parseDutchDeliveryAddress } from '@/lib/delivery/delivery-address';
+import { parseDutchDeliveryAddress, streetsMatch } from '@/lib/delivery/delivery-address';
 
 export type ResolvedDeliveryPoint = {
   address: string;
@@ -30,6 +30,22 @@ export async function resolveDutchDeliveryPoint(
       status: 422,
       code: 'ADDRESS_NOT_FOUND',
       error: 'We kunnen dit adres nog niet nauwkeurig vinden.',
+    };
+  }
+  if (parsed.address.street && !streetsMatch(parsed.address.street, lookedUp.straatnaam)) {
+    return {
+      ok: false,
+      status: 422,
+      code: 'ADDRESS_MISMATCH',
+      error: 'Deze postcode en dit huisnummer horen niet bij deze straat.',
+    };
+  }
+  if (parsed.address.city && !streetsMatch(parsed.address.city, lookedUp.plaats)) {
+    return {
+      ok: false,
+      status: 422,
+      code: 'ADDRESS_MISMATCH',
+      error: 'Deze postcode hoort niet bij deze plaats.',
     };
   }
   const addition = parsed.address.addition ? ` ${parsed.address.addition}` : '';

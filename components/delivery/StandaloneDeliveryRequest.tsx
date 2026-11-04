@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import DelivererSelector, { type Deliverer } from '@/components/checkout/DelivererSelector';
 import { useTranslation } from '@/hooks/useTranslation';
 import { parseDutchDeliveryAddress } from '@/lib/delivery/delivery-address';
+import { validateShipment, type ShipmentKind, type ShipmentSize } from '@/lib/delivery/shipment-capacity';
 
 const DELIVERY_DRAFT_KEY = 'hc-standalone-delivery-draft';
 
@@ -32,16 +33,45 @@ function eur(cents: number) {
   return (cents / 100).toLocaleString('nl-NL', { style: 'currency', currency: 'EUR' });
 }
 
+type AddressParts = {
+  street: string;
+  houseNumber: string;
+  addition: string;
+  postcode: string;
+  city: string;
+};
+
+type AddressSuggestion = AddressParts & { label: string };
+
+const emptyAddress: AddressParts = { street: '', houseNumber: '', addition: '', postcode: '', city: '' };
+
+function composeAddress(parts: AddressParts) {
+  const house = `${parts.houseNumber}${parts.addition ? ` ${parts.addition}` : ''}`.trim();
+  const line = [parts.street, house].filter(Boolean).join(' ');
+  const place = [parts.postcode, parts.city].filter(Boolean).join(' ');
+  return place ? `${line}, ${place}` : line;
+}
+
 export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boolean }) {
   const { t } = useTranslation();
   const search = useSearchParams();
-  const [deliveryOpen, setDeliveryOpen] = useState<boolean | null>(null);
-  const [pickupAddress, setPickupAddress] = useState('');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const localPreview = process.env.NODE_ENV === 'development' && search?.get('preview') === '1';
+  const [deliveryOpen, setDeliveryOpen] = useState<boolean | null>(localPreview ? true : null);
+  const [pickup, setPickup] = useState<AddressParts>(emptyAddress);
+  const [dropoff, setDropoff] = useState<AddressParts>(emptyAddress);
+  const [pickupSuggestions, setPickupSuggestions] = useState<AddressSuggestion[]>([]);
+  const [dropoffSuggestions, setDropoffSuggestions] = useState<AddressSuggestion[]>([]);
   const [itemDescription, setItemDescription] = useState('');
-  const [shipmentSize, setShipmentSize] = useState('SMALL');
-  const [weightKg, setWeightKg] = useState('1');
+  const [shipmentKind, setShipmentKind] = useState<ShipmentKind>('PARCEL');
+  const [shipmentSize, setShipmentSize] = useState<ShipmentSize>('SMALL');
+  const [weightKg, setWeightKg] = useState('');
   const [packageCount, setPackageCount] = useState('1');
+  const [lengthCm, setLengthCm] = useState('');
+  const [widthCm, setWidthCm] = useState('');
+  const [heightCm, setHeightCm] = useState('');
+  const [fragile, setFragile] = useState(false);
+  const [temperatureSensitive, setTemperatureSensitive] = useState(false);
+  const [liftHelp, setLiftHelp] = useState(false);
   const [requestedPickupAt, setRequestedPickupAt] = useState('');
   const [couriers, setCouriers] = useState<Deliverer[] | null>(null);
   const [unavailable, setUnavailable] = useState<Array<{ id: string; name: string; code: string }>>([]);
@@ -52,6 +82,10 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
   const [resumeTick, setResumeTick] = useState(0);
 
   useEffect(() => {
+    if (localPreview) {
+      setDeliveryOpen(true);
+      return;
+    }
     let stop = false;
     fetch('/api/delivery/alignment-flags')
       .then((response) => response.json())
@@ -64,15 +98,15 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
     return () => {
       stop = true;
     };
-  }, []);
+  }, [localPreview]);
 
   useEffect(() => {
     const raw = window.sessionStorage.getItem(DELIVERY_DRAFT_KEY);
     if (!raw) return;
     try {
       const draft = JSON.parse(raw) as DeliveryDraft;
-      if (draft.pickupAddress) setPickupAddress(draft.pickupAddress);
-      if (draft.deliveryAddress) setDeliveryAddress(draft.deliveryAddress);
+      if (draft.pickupAddress) setPickup((current) => ({ ...current, street: draft.pickupAddress }));
+      if (draft.deliveryAddress) setDropoff((current) => ({ ...current, street: draft.deliveryAddress }));
       if (draft.itemDescription) setItemDescription(draft.itemDescription);
       if (draft.requestedPickupAt) setRequestedPickupAt(draft.requestedPickupAt);
       if (draft.resumeQuote) setResumeTick((tick) => (tick === 0 ? 1 : tick));
@@ -144,8 +178,8 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
 
   function saveDraft(resume: boolean) {
     const draft: DeliveryDraft = {
-      pickupAddress,
-      deliveryAddress,
+      pickupAddress: composeAddress(pickup),
+      deliveryAddress: composeAddress(dropoff),
       itemDescription,
       requestedPickupAt,
       resumeQuote: resume,
@@ -158,39 +192,91 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
   function routeBody() {
     const grams = Math.round(Number(weightKg.replace(',', '.')) * 1000);
     return {
-      pickupAddress,
-      deliveryAddress,
+      pickupAddress: composeAddress(pickup),
+      deliveryAddress: composeAddress(dropoff),
       itemDescription,
+      shipmentKind,
       shipmentSize,
       weightGrams: Number.isFinite(grams) ? grams : 0,
-      packageCount: Number(packageCount) || 1,
+      packageCount: Number(packageCount) || 0,
+      lengthCm: lengthCm ? Number(lengthCm.replace(',', '.')) : null,
+      widthCm: widthCm ? Number(widthCm.replace(',', '.')) : null,
+      heightCm: heightCm ? Number(heightCm.replace(',', '.')) : null,
+      fragile,
+      temperatureSensitive,
+      liftHelp,
       requestedPickupAt: requestedPickupAt ? new Date(requestedPickupAt).toISOString() : null,
     };
   }
 
-  function changeAddress(which: 'pickup' | 'dropoff', value: string) {
-    if (which === 'pickup') setPickupAddress(value);
-    else setDeliveryAddress(value);
+  function invalidateQuote(message?: string) {
     if (couriers || booked) {
       setCouriers(null);
       setBooked(null);
-      setError('Je adres is gewijzigd. We berekenen de beschikbare bezorgers opnieuw.');
+      setError(message || 'Je adres is gewijzigd. We berekenen de beschikbare bezorgers opnieuw.');
     }
   }
 
+  function updateAddress(which: 'pickup' | 'dropoff', patch: Partial<AddressParts>) {
+    const setParts = which === 'pickup' ? setPickup : setDropoff;
+    setParts((current) => ({ ...current, ...patch }));
+    if (which === 'pickup') setPickupSuggestions([]);
+    else setDropoffSuggestions([]);
+    invalidateQuote();
+  }
+
+  async function suggestAddress(which: 'pickup' | 'dropoff', street: string) {
+    updateAddress(which, { street });
+    if (street.trim().length < 3) return;
+    const response = await fetch(`/api/delivery/address-suggest?q=${encodeURIComponent(street.trim())}`);
+    const data = await response.json().catch(() => ({ suggestions: [] }));
+    const suggestions = Array.isArray(data.suggestions) ? data.suggestions as AddressSuggestion[] : [];
+    if (which === 'pickup') setPickupSuggestions(suggestions);
+    else setDropoffSuggestions(suggestions);
+  }
+
+  function chooseSuggestion(which: 'pickup' | 'dropoff', suggestion: AddressSuggestion) {
+    const setParts = which === 'pickup' ? setPickup : setDropoff;
+    setParts({
+      street: suggestion.street,
+      houseNumber: suggestion.houseNumber,
+      addition: suggestion.addition,
+      postcode: suggestion.postcode,
+      city: suggestion.city,
+    });
+    if (which === 'pickup') setPickupSuggestions([]);
+    else setDropoffSuggestions([]);
+    invalidateQuote();
+  }
+
   async function calculate() {
-    const pickup = parseDutchDeliveryAddress(pickupAddress);
-    const dropoff = parseDutchDeliveryAddress(deliveryAddress);
-    if (!pickup.ok) {
-      setError(`Ophaaladres: ${pickup.error}`);
+    const pickupLine = composeAddress(pickup);
+    const dropoffLine = composeAddress(dropoff);
+    const pickupParsed = parseDutchDeliveryAddress(pickupLine);
+    const dropoffParsed = parseDutchDeliveryAddress(dropoffLine);
+    if (!pickupParsed.ok) {
+      setError(`Ophaaladres: ${pickupParsed.error}`);
       return;
     }
-    if (!dropoff.ok) {
-      setError(`Controleer het afleveradres voordat je verdergaat. ${dropoff.error}`);
+    if (!dropoffParsed.ok) {
+      setError(`Controleer het afleveradres voordat je verdergaat. ${dropoffParsed.error}`);
       return;
     }
-    if (!itemDescription.trim()) {
-      setError('Beschrijf wat er bezorgd moet worden.');
+    const shipment = validateShipment({
+      kind: shipmentKind,
+      size: shipmentSize,
+      weightGrams: Math.round(Number(weightKg.replace(',', '.')) * 1000),
+      packageCount: Number(packageCount),
+      lengthCm: lengthCm ? Number(lengthCm.replace(',', '.')) : null,
+      widthCm: widthCm ? Number(widthCm.replace(',', '.')) : null,
+      heightCm: heightCm ? Number(heightCm.replace(',', '.')) : null,
+      description: itemDescription,
+      fragile,
+      temperatureSensitive,
+      liftHelp,
+    });
+    if (!shipment.ok) {
+      setError(shipment.error);
       return;
     }
     setBusy(true);
@@ -306,14 +392,27 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
 
       {deliveryOpen ? (
       <>
-      <label className="mt-6 block text-sm font-medium text-gray-800">
-        Ophaaladres
-        <input className="mt-1 w-full rounded-lg border px-3 py-2" value={pickupAddress} placeholder="Straat, huisnummer, postcode en plaats" onChange={(event) => changeAddress('pickup', event.target.value)} />
-      </label>
-      <label className="mt-4 block text-sm font-medium text-gray-800">
-        Afleveradres
-        <input className="mt-1 w-full rounded-lg border px-3 py-2" value={deliveryAddress} placeholder="Straat, huisnummer, postcode en plaats" onChange={(event) => changeAddress('dropoff', event.target.value)} />
-      </label>
+      {localPreview ? (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          Lokale voorbeeldweergave. De publieke Delivery-vlag staat uit, dus er wordt geen opdracht of betaling gemaakt.
+        </p>
+      ) : null}
+      <AddressFields
+        title="Ophaaladres"
+        parts={pickup}
+        suggestions={pickupSuggestions}
+        onChange={(patch) => updateAddress('pickup', patch)}
+        onStreet={(value) => void suggestAddress('pickup', value)}
+        onPick={(suggestion) => chooseSuggestion('pickup', suggestion)}
+      />
+      <AddressFields
+        title="Afleveradres"
+        parts={dropoff}
+        suggestions={dropoffSuggestions}
+        onChange={(patch) => updateAddress('dropoff', patch)}
+        onStreet={(value) => void suggestAddress('dropoff', value)}
+        onPick={(suggestion) => chooseSuggestion('dropoff', suggestion)}
+      />
       <label className="mt-4 block text-sm font-medium text-gray-800">
         Gewenst ophaalmoment
         <input className="mt-1 w-full rounded-lg border px-3 py-2" type="datetime-local" value={requestedPickupAt} onChange={(event) => setRequestedPickupAt(event.target.value)} />
@@ -322,8 +421,17 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
       <fieldset className="mt-4 rounded-lg border border-gray-200 p-3">
         <legend className="px-1 text-sm font-medium text-gray-800">Wat moet er worden bezorgd?</legend>
         <label className="mt-2 block text-sm text-gray-700">
+          Soort zending
+          <select className="mt-1 w-full rounded-lg border px-3 py-2" value={shipmentKind} onChange={(event) => { setShipmentKind(event.target.value as ShipmentKind); invalidateQuote('De zending is gewijzigd. We berekenen de bezorgers opnieuw.'); }}>
+            <option value="PARCEL">Pakket</option>
+            <option value="DOCUMENT">Document</option>
+            <option value="FOOD">Etenswaar</option>
+            <option value="OTHER">Overig</option>
+          </select>
+        </label>
+        <label className="mt-2 block text-sm text-gray-700">
           Grootte
-          <select className="mt-1 w-full rounded-lg border px-3 py-2" value={shipmentSize} onChange={(event) => { setShipmentSize(event.target.value); setCouriers(null); }}>
+          <select className="mt-1 w-full rounded-lg border px-3 py-2" value={shipmentSize} onChange={(event) => { setShipmentSize(event.target.value as ShipmentSize); invalidateQuote('De zending is gewijzigd. We berekenen de bezorgers opnieuw.'); }}>
             <option value="SMALL">Klein</option>
             <option value="MEDIUM">Middel</option>
             <option value="LARGE">Groot</option>
@@ -333,16 +441,28 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
         <div className="mt-2 grid grid-cols-2 gap-2">
           <label className="text-sm text-gray-700">
             Geschat gewicht (kg)
-            <input className="mt-1 w-full rounded-lg border px-3 py-2" inputMode="decimal" value={weightKg} onChange={(event) => { setWeightKg(event.target.value); setCouriers(null); }} />
+            <input className="mt-1 w-full rounded-lg border px-3 py-2" inputMode="decimal" value={weightKg} onChange={(event) => { setWeightKg(event.target.value); invalidateQuote('De zending is gewijzigd. We berekenen de bezorgers opnieuw.'); }} />
           </label>
           <label className="text-sm text-gray-700">
             Aantal pakketten
-            <input className="mt-1 w-full rounded-lg border px-3 py-2" inputMode="numeric" value={packageCount} onChange={(event) => { setPackageCount(event.target.value); setCouriers(null); }} />
+            <input className="mt-1 w-full rounded-lg border px-3 py-2" inputMode="numeric" value={packageCount} onChange={(event) => { setPackageCount(event.target.value); invalidateQuote('De zending is gewijzigd. We berekenen de bezorgers opnieuw.'); }} />
           </label>
+        </div>
+        {(shipmentSize === 'LARGE' || shipmentSize === 'CUSTOM') && (
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            <label className="text-sm text-gray-700">Lengte (cm)<input className="mt-1 w-full rounded-lg border px-3 py-2" inputMode="decimal" value={lengthCm} onChange={(event) => { setLengthCm(event.target.value); invalidateQuote('De zending is gewijzigd. We berekenen de bezorgers opnieuw.'); }} /></label>
+            <label className="text-sm text-gray-700">Breedte (cm)<input className="mt-1 w-full rounded-lg border px-3 py-2" inputMode="decimal" value={widthCm} onChange={(event) => { setWidthCm(event.target.value); invalidateQuote('De zending is gewijzigd. We berekenen de bezorgers opnieuw.'); }} /></label>
+            <label className="text-sm text-gray-700">Hoogte (cm)<input className="mt-1 w-full rounded-lg border px-3 py-2" inputMode="decimal" value={heightCm} onChange={(event) => { setHeightCm(event.target.value); invalidateQuote('De zending is gewijzigd. We berekenen de bezorgers opnieuw.'); }} /></label>
+          </div>
+        )}
+        <div className="mt-3 space-y-1 text-sm text-gray-700">
+          <label className="flex items-center gap-2"><input type="checkbox" checked={fragile} onChange={(event) => setFragile(event.target.checked)} /> Breekbaar</label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={temperatureSensitive} onChange={(event) => setTemperatureSensitive(event.target.checked)} /> Temperatuurgevoelig</label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={liftHelp} onChange={(event) => setLiftHelp(event.target.checked)} /> Hulp bij tillen</label>
         </div>
         <label className="mt-2 block text-sm text-gray-700">
           Beschrijving
-          <textarea className="mt-1 w-full rounded-lg border px-3 py-2" rows={3} value={itemDescription} onChange={(event) => setItemDescription(event.target.value)} placeholder="Bijvoorbeeld een doos met servies. Vermeld breekbaar of hulp bij tillen." />
+          <textarea className="mt-1 w-full rounded-lg border px-3 py-2" rows={3} value={itemDescription} onChange={(event) => setItemDescription(event.target.value)} placeholder="Wat zit erin?" />
         </label>
       </fieldset>
       {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
@@ -357,7 +477,11 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
         />
       )}
       {unavailable.length > 0 && (
-        <p className="text-xs text-gray-600">Niet beschikbaar voor dit moment: {unavailable.map((item) => item.name).join(', ')}</p>
+        <ul className="space-y-1 text-xs text-gray-600">
+          {unavailable.map((item) => (
+            <li key={`${item.id}-${item.code}`}>{item.name}{item.code === 'UNKNOWN' || item.code === 'INSUFFICIENT' ? `: ${'reason' in item ? String((item as { reason?: string }).reason || item.code) : item.code}` : ''}</li>
+          ))}
+        </ul>
       )}
       {booked && (
         <div className="rounded-xl border bg-white p-4 text-sm shadow-sm">
@@ -376,5 +500,50 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
       </>
       ) : null}
     </Shell>
+  );
+}
+
+function AddressFields({
+  title,
+  parts,
+  suggestions,
+  onChange,
+  onStreet,
+  onPick,
+}: {
+  title: string;
+  parts: AddressParts;
+  suggestions: AddressSuggestion[];
+  onChange: (patch: Partial<AddressParts>) => void;
+  onStreet: (value: string) => void;
+  onPick: (suggestion: AddressSuggestion) => void;
+}) {
+  return (
+    <fieldset className="mt-4 rounded-lg border border-gray-200 p-3">
+      <legend className="px-1 text-sm font-medium text-gray-800">{title}</legend>
+      <label className="mt-2 block text-sm text-gray-700">
+        Straat
+        <input className="mt-1 w-full rounded-lg border px-3 py-2" value={parts.street} onChange={(event) => onStreet(event.target.value)} />
+      </label>
+      {suggestions.length > 0 && (
+        <ul className="mt-1 overflow-hidden rounded-lg border bg-white text-sm">
+          {suggestions.map((suggestion) => (
+            <li key={suggestion.label}>
+              <button type="button" className="w-full px-3 py-2 text-left hover:bg-gray-50" onClick={() => onPick(suggestion)}>
+                {suggestion.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <label className="text-sm text-gray-700">Huisnummer<input className="mt-1 w-full rounded-lg border px-3 py-2" value={parts.houseNumber} onChange={(event) => onChange({ houseNumber: event.target.value })} /></label>
+        <label className="text-sm text-gray-700">Toevoeging<input className="mt-1 w-full rounded-lg border px-3 py-2" value={parts.addition} onChange={(event) => onChange({ addition: event.target.value })} /></label>
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <label className="text-sm text-gray-700">Postcode<input className="mt-1 w-full rounded-lg border px-3 py-2" value={parts.postcode} onChange={(event) => onChange({ postcode: event.target.value })} /></label>
+        <label className="text-sm text-gray-700">Plaats<input className="mt-1 w-full rounded-lg border px-3 py-2" value={parts.city} onChange={(event) => onChange({ city: event.target.value })} /></label>
+      </div>
+    </fieldset>
   );
 }

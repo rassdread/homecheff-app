@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { deliveryDisabledBody } from '@/lib/delivery/delivery-deployment-gate';
 import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
 import { createStandaloneQuote } from '@/lib/delivery/standalone-delivery';
-import { resolveStandaloneStops, visibleCouriers } from '@/lib/delivery/standalone-request';
+import { resolveStandaloneStops, splitCouriersByCapacity } from '@/lib/delivery/standalone-request';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,12 +44,21 @@ export async function POST(req: NextRequest) {
   if (!result.ok) {
     return NextResponse.json({ error: result.error, code: result.code }, { status: result.status });
   }
+  const capacity = splitCouriersByCapacity(result.couriers, stops.shipment);
   return NextResponse.json({
     success: true,
     routeDistanceKm: result.routeDistanceKm,
     requestedPickupAt: result.requestedPickupAt,
-    couriers: visibleCouriers(result.couriers, stops.shipment),
-    unavailable: result.unavailable,
-    capacity: 'UNKNOWN',
+    couriers: capacity.matched,
+    unavailable: [
+      ...(result.unavailable || []),
+      ...capacity.excluded.map((courier) => ({
+        id: 'id' in courier ? String((courier as { id?: string }).id || '') : '',
+        name: 'name' in courier ? String((courier as { name?: string }).name || 'Bezorger') : 'Bezorger',
+        code: courier.capacity,
+        reason: courier.capacityReason,
+      })),
+    ],
+    capacity: capacity.matched.length > 0 ? 'FITS' : 'UNKNOWN',
   });
 }

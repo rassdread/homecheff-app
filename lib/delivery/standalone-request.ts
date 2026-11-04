@@ -1,52 +1,71 @@
 import { resolveDutchDeliveryPoint } from '@/lib/delivery/delivery-address-resolve';
-import { assessCourierCapacity, type ShipmentRequest, type ShipmentSize } from '@/lib/delivery/shipment-capacity';
+import {
+  assessCourierCapacity,
+  describeShipment,
+  validateShipment,
+  type ShipmentKind,
+  type ShipmentRequest,
+  type ShipmentSize,
+} from '@/lib/delivery/shipment-capacity';
 
-const SIZES = new Set<ShipmentSize>(['SMALL', 'MEDIUM', 'LARGE', 'CUSTOM']);
-
-export function readShipment(body: Record<string, unknown>): ShipmentRequest {
-  const size = SIZES.has(body.shipmentSize as ShipmentSize)
-    ? (body.shipmentSize as ShipmentSize)
-    : 'SMALL';
-  const weight = Number(body.weightGrams);
-  const count = Number(body.packageCount);
-  return {
-    size,
-    weightGrams: Number.isFinite(weight) && weight > 0 ? weight : 0,
-    packageCount: Number.isFinite(count) && count > 0 ? Math.min(20, Math.round(count)) : 1,
-  };
+function flag(value: unknown): boolean {
+  return value === true || value === 'true' || value === '1' || value === 'on';
 }
 
-export function describeShipment(description: string, shipment: ShipmentRequest): string {
-  const kilos = shipment.weightGrams > 0 ? `${(shipment.weightGrams / 1000).toLocaleString('nl-NL')} kg` : 'gewicht onbekend';
-  const sizeLabel = { SMALL: 'klein', MEDIUM: 'middel', LARGE: 'groot', CUSTOM: 'eigen formaat' }[shipment.size];
-  return `${description.trim()} · ${shipment.packageCount} pakket(ten), ${sizeLabel}, ${kilos}`.slice(0, 240);
+export function readShipment(body: Record<string, unknown>) {
+  return validateShipment({
+    kind: body.shipmentKind as ShipmentKind,
+    size: (body.shipmentSize as ShipmentSize) || 'SMALL',
+    weightGrams: Number(body.weightGrams),
+    packageCount: Number(body.packageCount),
+    lengthCm: body.lengthCm == null || body.lengthCm === '' ? null : Number(body.lengthCm),
+    widthCm: body.widthCm == null || body.widthCm === '' ? null : Number(body.widthCm),
+    heightCm: body.heightCm == null || body.heightCm === '' ? null : Number(body.heightCm),
+    description: String(body.itemDescription || ''),
+    fragile: flag(body.fragile),
+    temperatureSensitive: flag(body.temperatureSensitive),
+    liftHelp: flag(body.liftHelp),
+  });
 }
 
 export async function resolveStandaloneStops(body: Record<string, unknown>) {
+  const shipment = readShipment(body);
+  if (!shipment.ok) {
+    return { ok: false as const, status: 400, code: 'SHIPMENT_INVALID', error: shipment.error };
+  }
   const pickup = await resolveDutchDeliveryPoint(String(body.pickupAddress || ''));
   if (!pickup.ok) return pickup;
   const dropoff = await resolveDutchDeliveryPoint(String(body.deliveryAddress || ''));
   if (!dropoff.ok) return dropoff;
-  const shipment = readShipment(body);
   return {
     ok: true as const,
     pickup: pickup.point,
     dropoff: dropoff.point,
-    shipment,
-    itemDescription: describeShipment(String(body.itemDescription || ''), shipment),
+    shipment: shipment.shipment,
+    itemDescription: describeShipment(shipment.shipment),
   };
 }
 
-export function visibleCouriers<T extends { vehicleType: string }>(
+export function splitCouriersByCapacity<T extends { vehicleType?: string; maxWeightGrams?: number | null }>(
   couriers: T[],
   shipment: ShipmentRequest,
 ) {
-  return couriers.flatMap((courier) => {
+  const matched: Array<T & { capacity: 'FITS'; capacityReason: string }> = [];
+  const excluded: Array<T & { capacity: 'UNKNOWN' | 'INSUFFICIENT'; capacityReason: string }> = [];
+  for (const courier of couriers) {
     const capacity = assessCourierCapacity({
-      maxWeightGrams: null,
+      maxWeightGrams: courier.maxWeightGrams ?? null,
       shipment,
     });
-    if (capacity.status === 'INSUFFICIENT') return [];
-    return [{ ...courier, capacity: capacity.status, capacityReason: capacity.reason }];
-  });
+    if (capacity.status === 'FITS') {
+      matched.push({ ...courier, capacity: 'FITS', capacityReason: capacity.reason });
+    } else {
+      excluded.push({
+        ...courier,
+        capacity: capacity.status,
+        capacityReason: capacity.reason,
+      });
+    }
+  }
+  return { matched, excluded };
 }
