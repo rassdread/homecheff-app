@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import DelivererSelector, { type Deliverer } from '@/components/checkout/DelivererSelector';
 import { useTranslation } from '@/hooks/useTranslation';
+import { parseDutchDeliveryAddress } from '@/lib/delivery/delivery-address';
 
 const DELIVERY_DRAFT_KEY = 'hc-standalone-delivery-draft';
 
@@ -11,10 +12,6 @@ type DeliveryDraft = {
   pickupAddress: string;
   deliveryAddress: string;
   itemDescription: string;
-  pickupLat: string;
-  pickupLng: string;
-  dropoffLat: string;
-  dropoffLng: string;
   requestedPickupAt: string;
   resumeQuote?: boolean;
 };
@@ -39,13 +36,12 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
   const { t } = useTranslation();
   const search = useSearchParams();
   const [deliveryOpen, setDeliveryOpen] = useState<boolean | null>(null);
-  const [pickupAddress, setPickupAddress] = useState('Koerierstraat 4, 3511 CD Utrecht');
-  const [deliveryAddress, setDeliveryAddress] = useState('Teststraat 12, 3511 AB Utrecht');
+  const [pickupAddress, setPickupAddress] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
   const [itemDescription, setItemDescription] = useState('');
-  const [pickupLat, setPickupLat] = useState('52.0907');
-  const [pickupLng, setPickupLng] = useState('5.1216');
-  const [dropoffLat, setDropoffLat] = useState('52.073');
-  const [dropoffLng, setDropoffLng] = useState('5.1216');
+  const [shipmentSize, setShipmentSize] = useState('SMALL');
+  const [weightKg, setWeightKg] = useState('1');
+  const [packageCount, setPackageCount] = useState('1');
   const [requestedPickupAt, setRequestedPickupAt] = useState('');
   const [couriers, setCouriers] = useState<Deliverer[] | null>(null);
   const [unavailable, setUnavailable] = useState<Array<{ id: string; name: string; code: string }>>([]);
@@ -78,10 +74,6 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
       if (draft.pickupAddress) setPickupAddress(draft.pickupAddress);
       if (draft.deliveryAddress) setDeliveryAddress(draft.deliveryAddress);
       if (draft.itemDescription) setItemDescription(draft.itemDescription);
-      if (draft.pickupLat) setPickupLat(draft.pickupLat);
-      if (draft.pickupLng) setPickupLng(draft.pickupLng);
-      if (draft.dropoffLat) setDropoffLat(draft.dropoffLat);
-      if (draft.dropoffLng) setDropoffLng(draft.dropoffLng);
       if (draft.requestedPickupAt) setRequestedPickupAt(draft.requestedPickupAt);
       if (draft.resumeQuote) setResumeTick((tick) => (tick === 0 ? 1 : tick));
     } catch {
@@ -155,10 +147,6 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
       pickupAddress,
       deliveryAddress,
       itemDescription,
-      pickupLat,
-      pickupLng,
-      dropoffLat,
-      dropoffLng,
       requestedPickupAt,
       resumeQuote: resume,
     };
@@ -168,19 +156,43 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
   }
 
   function routeBody() {
+    const grams = Math.round(Number(weightKg.replace(',', '.')) * 1000);
     return {
       pickupAddress,
       deliveryAddress,
       itemDescription,
-      pickupLat: Number(pickupLat),
-      pickupLng: Number(pickupLng),
-      dropoffLat: Number(dropoffLat),
-      dropoffLng: Number(dropoffLng),
+      shipmentSize,
+      weightGrams: Number.isFinite(grams) ? grams : 0,
+      packageCount: Number(packageCount) || 1,
       requestedPickupAt: requestedPickupAt ? new Date(requestedPickupAt).toISOString() : null,
     };
   }
 
+  function changeAddress(which: 'pickup' | 'dropoff', value: string) {
+    if (which === 'pickup') setPickupAddress(value);
+    else setDeliveryAddress(value);
+    if (couriers || booked) {
+      setCouriers(null);
+      setBooked(null);
+      setError('Je adres is gewijzigd. We berekenen de beschikbare bezorgers opnieuw.');
+    }
+  }
+
   async function calculate() {
+    const pickup = parseDutchDeliveryAddress(pickupAddress);
+    const dropoff = parseDutchDeliveryAddress(deliveryAddress);
+    if (!pickup.ok) {
+      setError(`Ophaaladres: ${pickup.error}`);
+      return;
+    }
+    if (!dropoff.ok) {
+      setError(`Controleer het afleveradres voordat je verdergaat. ${dropoff.error}`);
+      return;
+    }
+    if (!itemDescription.trim()) {
+      setError('Beschrijf wat er bezorgd moet worden.');
+      return;
+    }
     setBusy(true);
     setError('');
     setCouriers(null);
@@ -296,29 +308,43 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
       <>
       <label className="mt-6 block text-sm font-medium text-gray-800">
         Ophaaladres
-        <input className="mt-1 w-full rounded-lg border px-3 py-2" value={pickupAddress} onChange={(event) => setPickupAddress(event.target.value)} />
+        <input className="mt-1 w-full rounded-lg border px-3 py-2" value={pickupAddress} placeholder="Straat, huisnummer, postcode en plaats" onChange={(event) => changeAddress('pickup', event.target.value)} />
       </label>
-      <div className="mt-2 grid grid-cols-2 gap-2">
-        <input className="rounded-lg border px-3 py-2 text-sm" aria-label="Ophaal latitude" value={pickupLat} onChange={(event) => setPickupLat(event.target.value)} />
-        <input className="rounded-lg border px-3 py-2 text-sm" aria-label="Ophaal longitude" value={pickupLng} onChange={(event) => setPickupLng(event.target.value)} />
-      </div>
       <label className="mt-4 block text-sm font-medium text-gray-800">
         Afleveradres
-        <input className="mt-1 w-full rounded-lg border px-3 py-2" value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} />
+        <input className="mt-1 w-full rounded-lg border px-3 py-2" value={deliveryAddress} placeholder="Straat, huisnummer, postcode en plaats" onChange={(event) => changeAddress('dropoff', event.target.value)} />
       </label>
-      <div className="mt-2 grid grid-cols-2 gap-2">
-        <input className="rounded-lg border px-3 py-2 text-sm" aria-label="Aflever latitude" value={dropoffLat} onChange={(event) => setDropoffLat(event.target.value)} />
-        <input className="rounded-lg border px-3 py-2 text-sm" aria-label="Aflever longitude" value={dropoffLng} onChange={(event) => setDropoffLng(event.target.value)} />
-      </div>
       <label className="mt-4 block text-sm font-medium text-gray-800">
         Gewenst ophaalmoment
         <input className="mt-1 w-full rounded-lg border px-3 py-2" type="datetime-local" value={requestedPickupAt} onChange={(event) => setRequestedPickupAt(event.target.value)} />
         <span className="mt-1 block text-xs text-gray-500">Laat leeg voor zo snel mogelijk. Een later moment gebruikt de beschikbaarheid van de bezorger, ook als die nu offline is.</span>
       </label>
-      <label className="mt-4 block text-sm font-medium text-gray-800">
-        Wat moet worden bezorgd?
-        <textarea className="mt-1 w-full rounded-lg border px-3 py-2" rows={3} value={itemDescription} onChange={(event) => setItemDescription(event.target.value)} />
-      </label>
+      <fieldset className="mt-4 rounded-lg border border-gray-200 p-3">
+        <legend className="px-1 text-sm font-medium text-gray-800">Wat moet er worden bezorgd?</legend>
+        <label className="mt-2 block text-sm text-gray-700">
+          Grootte
+          <select className="mt-1 w-full rounded-lg border px-3 py-2" value={shipmentSize} onChange={(event) => { setShipmentSize(event.target.value); setCouriers(null); }}>
+            <option value="SMALL">Klein</option>
+            <option value="MEDIUM">Middel</option>
+            <option value="LARGE">Groot</option>
+            <option value="CUSTOM">Eigen formaat</option>
+          </select>
+        </label>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <label className="text-sm text-gray-700">
+            Geschat gewicht (kg)
+            <input className="mt-1 w-full rounded-lg border px-3 py-2" inputMode="decimal" value={weightKg} onChange={(event) => { setWeightKg(event.target.value); setCouriers(null); }} />
+          </label>
+          <label className="text-sm text-gray-700">
+            Aantal pakketten
+            <input className="mt-1 w-full rounded-lg border px-3 py-2" inputMode="numeric" value={packageCount} onChange={(event) => { setPackageCount(event.target.value); setCouriers(null); }} />
+          </label>
+        </div>
+        <label className="mt-2 block text-sm text-gray-700">
+          Beschrijving
+          <textarea className="mt-1 w-full rounded-lg border px-3 py-2" rows={3} value={itemDescription} onChange={(event) => setItemDescription(event.target.value)} placeholder="Bijvoorbeeld een doos met servies. Vermeld breekbaar of hulp bij tillen." />
+        </label>
+      </fieldset>
       {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
       <div className="sticky bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] z-30 mt-4 space-y-3">
       <button type="button" className="w-full rounded-lg bg-emerald-700 px-4 py-3 font-semibold text-white disabled:opacity-60" disabled={busy} onClick={calculate}>

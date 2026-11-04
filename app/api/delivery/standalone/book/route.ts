@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { deliveryDisabledBody } from '@/lib/delivery/delivery-deployment-gate';
 import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
 import { bookStandaloneCourier } from '@/lib/delivery/standalone-delivery';
+import { resolveStandaloneStops } from '@/lib/delivery/standalone-request';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,17 +28,21 @@ export async function POST(req: NextRequest) {
   if (!access.allowed) {
     return NextResponse.json(deliveryAccessDeniedBody(access.code), { status: 403 });
   }
+  const stops = await resolveStandaloneStops(body as Record<string, unknown>);
+  if (!stops.ok) {
+    return NextResponse.json({ error: stops.error, code: stops.code }, { status: stops.status });
+  }
   const requestedRaw = (body as { requestedPickupAt?: unknown }).requestedPickupAt;
   const result = await bookStandaloneCourier({
     requesterUserId: userId,
     deliveryProfileId,
-    pickupAddress: String((body as { pickupAddress?: unknown }).pickupAddress || ''),
-    deliveryAddress: String((body as { deliveryAddress?: unknown }).deliveryAddress || ''),
-    itemDescription: String((body as { itemDescription?: unknown }).itemDescription || ''),
-    pickupLat: Number((body as { pickupLat?: unknown }).pickupLat),
-    pickupLng: Number((body as { pickupLng?: unknown }).pickupLng),
-    dropoffLat: Number((body as { dropoffLat?: unknown }).dropoffLat),
-    dropoffLng: Number((body as { dropoffLng?: unknown }).dropoffLng),
+    pickupAddress: stops.pickup.address,
+    deliveryAddress: stops.dropoff.address,
+    itemDescription: stops.itemDescription,
+    pickupLat: stops.pickup.lat,
+    pickupLng: stops.pickup.lng,
+    dropoffLat: stops.dropoff.lat,
+    dropoffLng: stops.dropoff.lng,
     requestedPickupAt:
       typeof requestedRaw === 'string' && requestedRaw.trim() ? new Date(requestedRaw) : null,
   });

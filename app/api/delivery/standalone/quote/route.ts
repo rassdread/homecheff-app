@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { deliveryDisabledBody } from '@/lib/delivery/delivery-deployment-gate';
 import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
 import { createStandaloneQuote } from '@/lib/delivery/standalone-delivery';
+import { resolveStandaloneStops, visibleCouriers } from '@/lib/delivery/standalone-request';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,21 +24,22 @@ export async function POST(req: NextRequest) {
   if (!body || typeof body !== 'object') {
     return NextResponse.json({ error: 'Ongeldige aanvraag', code: 'MISSING_ADDRESS' }, { status: 400 });
   }
-  const requestedRaw = body.requestedPickupAt;
-  const requestedPickupAt =
-    typeof requestedRaw === 'string' && requestedRaw.trim()
-      ? new Date(requestedRaw)
-      : null;
+  const stops = await resolveStandaloneStops(body as Record<string, unknown>);
+  if (!stops.ok) {
+    return NextResponse.json({ error: stops.error, code: stops.code }, { status: stops.status });
+  }
+  const requestedRaw = (body as { requestedPickupAt?: unknown }).requestedPickupAt;
   const result = await createStandaloneQuote({
     requesterUserId: userId,
-    pickupAddress: String(body.pickupAddress || ''),
-    deliveryAddress: String(body.deliveryAddress || ''),
-    itemDescription: String(body.itemDescription || ''),
-    pickupLat: Number(body.pickupLat),
-    pickupLng: Number(body.pickupLng),
-    dropoffLat: Number(body.dropoffLat),
-    dropoffLng: Number(body.dropoffLng),
-    requestedPickupAt,
+    pickupAddress: stops.pickup.address,
+    deliveryAddress: stops.dropoff.address,
+    itemDescription: stops.itemDescription,
+    pickupLat: stops.pickup.lat,
+    pickupLng: stops.pickup.lng,
+    dropoffLat: stops.dropoff.lat,
+    dropoffLng: stops.dropoff.lng,
+    requestedPickupAt:
+      typeof requestedRaw === 'string' && requestedRaw.trim() ? new Date(requestedRaw) : null,
   });
   if (!result.ok) {
     return NextResponse.json({ error: result.error, code: result.code }, { status: result.status });
@@ -46,7 +48,8 @@ export async function POST(req: NextRequest) {
     success: true,
     routeDistanceKm: result.routeDistanceKm,
     requestedPickupAt: result.requestedPickupAt,
-    couriers: result.couriers,
+    couriers: visibleCouriers(result.couriers, stops.shipment),
     unavailable: result.unavailable,
+    capacity: 'UNKNOWN',
   });
 }
