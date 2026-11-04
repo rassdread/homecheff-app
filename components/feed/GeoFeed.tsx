@@ -228,6 +228,12 @@ import {
 } from "@/lib/feed/home-feed-early-bootstrap";
 import { FEED_FIRST_PAGE_TAKE } from "@/lib/feed/feed-pagination";
 import {
+  FEED_MOUNTED_CARD_CAP,
+  FEED_MOUNTED_CARD_STEP,
+  nextFeedDomStart,
+  sliceMountedFeedRows,
+} from "@/lib/feed/feed-dom-window";
+import {
   FEED_SCOPE_INTERNATIONAL,
   FEED_SCOPE_NATIONAL,
   FEED_SCOPE_NEARBY,
@@ -1309,6 +1315,16 @@ export default function GeoFeed({
     setCompositionState(next);
   }, []);
   /** Client-side recirculated rows appended after unique inventory is exhausted. */
+  const [feedDomStart, setFeedDomStart] = useState({
+    main: 0,
+    exact: 0,
+    suggestions: 0,
+  });
+  const [feedDomSpacer, setFeedDomSpacer] = useState({
+    main: 0,
+    exact: 0,
+    suggestions: 0,
+  });
   const [recirculatedRows, setRecirculatedRows] = useState<
     Array<{ row: "sale"; item: FeedItem } | { row: "insp"; slot: InspSlot }>
   >([]);
@@ -5536,6 +5552,97 @@ export default function GeoFeed({
     );
   }, [nativeMounted, nativeFeedRenderMore, composedDisplayRows]);
 
+  const feedDomKey = `${appliedScope}|${appliedRadius}|${appliedCategory}|${appliedSearchQuery}|${searchLane}|${feedChip}`;
+  useEffect(() => {
+    setFeedDomStart({ main: 0, exact: 0, suggestions: 0 });
+    setFeedDomSpacer({ main: 0, exact: 0, suggestions: 0 });
+  }, [feedDomKey]);
+
+  useEffect(() => {
+    let frame = 0;
+    let lastTop = 0;
+    const readTop = () => {
+      const desktop = document.getElementById("homecheff-feed-desktop");
+      if (
+        desktop &&
+        getComputedStyle(desktop).overflowY !== "visible" &&
+        desktop.scrollHeight > desktop.clientHeight
+      ) {
+        return desktop.scrollTop;
+      }
+      return window.scrollY;
+    };
+    const tick = () => {
+      const top = readTop();
+      const scrollingUp = top < lastTop - 8;
+      lastTop = top;
+      const grids = document.querySelectorAll<HTMLElement>(
+        "[data-feed-mounted-grid]",
+      );
+      grids.forEach((grid) => {
+        const key = grid.dataset.feedMountedGrid;
+        if (key !== "main" && key !== "exact" && key !== "suggestions") return;
+        const rowCount = Number(grid.dataset.feedRowCount || "0");
+        const kids = [...grid.children].filter(
+          (el): el is HTMLElement =>
+            el instanceof HTMLElement && el.dataset.feedDomSpacer !== "",
+        );
+        const marker = kids[FEED_MOUNTED_CARD_STEP - 1];
+        const oldestAbove = Boolean(
+          marker &&
+            kids.length >= FEED_MOUNTED_CARD_CAP &&
+            marker.getBoundingClientRect().bottom < 0,
+        );
+        const spacer = grid.querySelector<HTMLElement>("[data-feed-dom-spacer]");
+        const spacerRect = spacer?.getBoundingClientRect();
+        const releasedVisible = Boolean(
+          scrollingUp &&
+            spacerRect &&
+            spacerRect.bottom > 0 &&
+            spacerRect.top < 160,
+        );
+        setFeedDomStart((prev) => {
+          const next = nextFeedDomStart({
+            currentStart: prev[key],
+            rowCount,
+            oldestCardsAboveViewport: oldestAbove,
+            releasedRegionVisible: releasedVisible,
+          });
+          if (next === prev[key]) return prev;
+          if (next > prev[key]) {
+            const drop = kids.slice(0, next - prev[key]);
+            const height = drop.reduce(
+              (sum, el) => sum + el.getBoundingClientRect().height,
+              0,
+            );
+            setFeedDomSpacer((px) => ({ ...px, [key]: px[key] + height }));
+          } else {
+            setFeedDomSpacer((px) => ({
+              ...px,
+              [key]:
+                next === 0
+                  ? 0
+                  : Math.max(0, px[key] * (next / Math.max(1, prev[key]))),
+            }));
+          }
+          return { ...prev, [key]: next };
+        });
+      });
+    };
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(tick);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    const desktop = document.getElementById("homecheff-feed-desktop");
+    desktop?.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      desktop?.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
   const continuityRowsToRender = useMemo(() => {
     if (!nativeMounted) return continuityDisplayRows;
     if (nativeFeedRenderMore) return continuityDisplayRows;
@@ -7560,6 +7667,26 @@ export default function GeoFeed({
     return nodes;
   };
 
+  const renderMountedCards = (
+    key: "main" | "exact" | "suggestions",
+    rows: readonly (typeof feedRowsToRender)[number][],
+  ) => {
+    const mounted = sliceMountedFeedRows(rows, feedDomStart[key]);
+    return (
+      <>
+        {mounted.start > 0 ? (
+          <div
+            data-feed-dom-spacer=""
+            className="col-span-full"
+            style={{ height: feedDomSpacer[key] }}
+            aria-hidden
+          />
+        ) : null}
+        {buildFeedGridNodes(mounted.rows)}
+      </>
+    );
+  };
+
 
   const feedResultsBlock = deliveryRequestOpen ? (
     <div className="rounded-xl border border-emerald-100 bg-white p-3" data-marketplace-delivery-panel="1">
@@ -7624,6 +7751,8 @@ export default function GeoFeed({
                         : "desktop-exact"
                     }
                     className={feedResultsContainerClass}
+                    data-feed-mounted-grid="exact"
+                    data-feed-row-count={exactForPaint.length}
                     data-hc-viewer-place={viewerPlaceForApi || undefined}
                     data-hc-feed-query={appliedSearchQuery || undefined}
                     data-hc-feed-category={category || undefined}
@@ -7640,7 +7769,10 @@ export default function GeoFeed({
                         />
                       </div>
                     ) : null}
-                    {buildFeedGridNodes(exactForPaint as typeof feedRowsToRender)}
+                    {renderMountedCards(
+                      "exact",
+                      exactForPaint as typeof feedRowsToRender,
+                    )}
                   </div>
                 ) : null}
                 <DiscoveryContinuityBand
@@ -7683,6 +7815,8 @@ export default function GeoFeed({
                         : "desktop-cont"
                     }
                     className={feedResultsContainerClass}
+                    data-feed-mounted-grid="suggestions"
+                    data-feed-row-count={suggestionRowsVisible.length}
                     data-hc-viewer-place={viewerPlaceForApi || undefined}
                     data-hc-feed-query={appliedSearchQuery || undefined}
                     data-hc-feed-category={category || undefined}
@@ -7692,7 +7826,8 @@ export default function GeoFeed({
                     data-wx-discovery-continuity-feed=""
                     data-wx-discovery-suggestions=""
                   >
-                    {buildFeedGridNodes(
+                    {renderMountedCards(
+                      "suggestions",
                       suggestionRowsVisible as typeof feedRowsToRender,
                     )}
                   </div>
@@ -8117,6 +8252,8 @@ export default function GeoFeed({
         <div
           key={isMobileFeedUi ? effectiveFeedLayoutMode : "desktop"}
           className={feedResultsContainerClass}
+          data-feed-mounted-grid="main"
+          data-feed-row-count={feedRowsToRender.length}
           data-hc-viewer-place={viewerPlaceForApi || undefined}
                     data-hc-feed-query={appliedSearchQuery || undefined}
                     data-hc-feed-category={category || undefined}
@@ -8129,7 +8266,8 @@ export default function GeoFeed({
               <ExchangeSuggestionsMobileModule context="discovery" className="mb-3" />
             </div>
           ) : null}
-              {buildFeedGridNodes(
+              {renderMountedCards(
+                "main",
                 // Progressive local-first pool while marketplace pages remain.
                 // Exact-only paint is reserved for the exhaustion/continuity
                 // layout below — otherwise load-more pages that mix far/dup
