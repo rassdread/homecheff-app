@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import {
   getCardMediaFitMode,
-  loadImageAspectRatio,
+  readCachedImageAspectRatio,
+  subscribeImageAspectRatio,
 } from '@/lib/inspiratie/media-fit';
 
 export type SmartMediaFitMode = 'card' | 'preview' | 'always-contain';
@@ -16,42 +17,32 @@ type Options = {
 };
 
 /**
- * Resolves object-fit for card/feed/profile surfaces from image aspect ratio.
- * Defaults to contain until ratio is known (safe, no aggressive crop flash).
+ * Resolves object-fit for card/feed/profile surfaces from an image that is already on screen.
+ * Does not start its own download. The visible image reports its size on load.
+ * Defaults to contain until that size is known.
  */
 export function useSmartMediaFit(
   src: string | null | undefined,
   options: Options = {},
 ): 'cover' | 'contain' {
   const { mode = 'card', forceFit } = options;
-  const [fit, setFit] = useState<'cover' | 'contain'>(
-    forceFit ?? (mode === 'always-contain' ? 'contain' : 'contain'),
-  );
+  const url = src?.trim() || null;
+  const known =
+    forceFit || mode === 'always-contain' || !url
+      ? null
+      : readCachedImageAspectRatio(url);
+  const [, setTick] = useState(0);
 
   useEffect(() => {
-    if (forceFit) {
-      setFit(forceFit);
+    if (forceFit || mode === 'always-contain' || !url || known != null) return;
+    if (readCachedImageAspectRatio(url) != null) {
+      setTick((n) => n + 1);
       return;
     }
-    if (mode === 'always-contain') {
-      setFit('contain');
-      return;
-    }
-    if (!src || !src.trim()) {
-      setFit('contain');
-      return;
-    }
+    return subscribeImageAspectRatio(url, () => setTick((n) => n + 1));
+  }, [url, forceFit, mode, known]);
 
-    let cancelled = false;
-    void loadImageAspectRatio(src).then((ratio) => {
-      if (cancelled) return;
-      setFit(getCardMediaFitMode(ratio));
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [src, forceFit, mode]);
-
-  return fit;
+  if (forceFit) return forceFit;
+  if (mode === 'always-contain' || !url) return 'contain';
+  return getCardMediaFitMode(readCachedImageAspectRatio(url));
 }

@@ -18,7 +18,10 @@ import { EdgeAwareVideo } from '@/components/ui/EdgeAwareVideo';
 import { getVideoUrlWithCors, isEdgeAndroid, isEdgeBrowser, isSamsungBrowser } from '@/lib/videoUtils';
 import { videoManager } from '@/lib/videoManager';
 import { Pause, PlayCircle, Volume2, VolumeX } from 'lucide-react';
-import { inspirationMediaClass } from '@/lib/inspiratie/media-fit';
+import {
+  inspirationMediaClass,
+  rememberImageAspectFromElement,
+} from '@/lib/inspiratie/media-fit';
 import { useSmartMediaFit } from '@/hooks/useSmartMediaFit';
 
 export type InspirationItemMedia = {
@@ -64,6 +67,7 @@ function InspirationCardPhoto({
       priority={priority}
       quality={priority ? 70 : 60}
       loading={priority ? undefined : 'lazy'}
+      onLoad={(event) => rememberImageAspectFromElement(url, event.currentTarget)}
     />
   );
 }
@@ -338,6 +342,9 @@ export default function InspirationCardMedia({ item, priority = false, objectFit
           src={posterUrl}
           alt={alt}
           className={`h-full w-full ${posterFitClass}`}
+          onLoad={(event) =>
+            rememberImageAspectFromElement(posterUrl, event.currentTarget)
+          }
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/40 p-3">
           <span className="text-white text-sm font-medium rounded bg-black/60 px-3 py-2 text-center">

@@ -8,11 +8,15 @@ import {
   useId,
   useSyncExternalStore,
   type ReactNode,
+  type SyntheticEvent,
 } from "react";
 import { ChevronLeft, ChevronRight, PlayCircle, Volume2, VolumeX } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { navDebug } from "@/lib/nav-debug";
-import { inspirationMediaClass } from "@/lib/inspiratie/media-fit";
+import {
+  inspirationMediaClass,
+  rememberImageAspectFromElement,
+} from "@/lib/inspiratie/media-fit";
 import { useSmartMediaFit } from "@/hooks/useSmartMediaFit";
 import { FeedMediaLightbox } from "@/components/feed/FeedMediaLightbox";
 import type { FeedMediaLightboxPayload } from "@/components/feed/FeedMediaLightbox";
@@ -429,6 +433,14 @@ export function FeedCardPrimaryMedia({
 
   const onVideoError = useCallback(() => setVideoFailed(true), []);
   const onImgError = useCallback(() => setImgBroken(true), []);
+  const onDisplayedImageLoad = useCallback(
+    (event: SyntheticEvent<HTMLImageElement>) => {
+      const image = event.currentTarget;
+      rememberImageAspectFromElement(image.getAttribute("src"), image);
+      feedPerfMarkFirstImageOnce();
+    },
+    [],
+  );
 
   const tryPlayIfWanted = useCallback(() => {
     if (!feedAutoplayAllowed() || !wantPlayRef.current) return;
@@ -669,7 +681,7 @@ export function FeedCardPrimaryMedia({
             decoding="async"
             sizes={FEED_CARD_IMG_SIZES}
             onError={onImgError}
-            onLoad={feedPerfMarkFirstImageOnce}
+            onLoad={onDisplayedImageLoad}
           />
         ) : showImage ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -682,7 +694,7 @@ export function FeedCardPrimaryMedia({
             decoding="async"
             sizes={FEED_CARD_IMG_SIZES}
             onError={onImgError}
-            onLoad={feedPerfMarkFirstImageOnce}
+            onLoad={onDisplayedImageLoad}
           />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
@@ -693,7 +705,7 @@ export function FeedCardPrimaryMedia({
             loading={imageLoading}
             decoding="async"
             sizes={FEED_CARD_IMG_SIZES}
-            onLoad={feedPerfMarkFirstImageOnce}
+            onLoad={onDisplayedImageLoad}
           />
         )}
       </div>

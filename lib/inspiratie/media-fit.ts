@@ -85,10 +85,70 @@ export function inspirationMediaClass(
   return fit === 'contain' ? INSPIRATION_MEDIA_CLASS.contain : INSPIRATION_MEDIA_CLASS.cover;
 }
 
+const aspectRatioByUrl = new Map<string, number>();
+const aspectListenersByUrl = new Map<string, Set<() => void>>();
+
+function aspectKey(url: string): string {
+  return url.trim();
+}
+
+/** Ratio already measured from a displayed image. Does not fetch. */
+export function readCachedImageAspectRatio(
+  url: string | null | undefined,
+): number | null {
+  if (!url?.trim()) return null;
+  const ratio = aspectRatioByUrl.get(aspectKey(url));
+  return ratio == null ? null : ratio;
+}
+
 /**
- * Load natural aspect ratio for a remote image URL (client only).
+ * Record the ratio of an image the page already loaded.
+ * Feed tiles call this from the visible `<img>` onLoad so a second download is not started.
+ */
+export function rememberImageAspectRatio(
+  url: string | null | undefined,
+  width: number,
+  height: number,
+): void {
+  if (!url?.trim() || !(width > 0) || !(height > 0)) return;
+  const key = aspectKey(url);
+  const ratio = width / height;
+  if (aspectRatioByUrl.get(key) === ratio) return;
+  aspectRatioByUrl.set(key, ratio);
+  aspectListenersByUrl.get(key)?.forEach((listener) => listener());
+}
+
+export function rememberImageAspectFromElement(
+  url: string | null | undefined,
+  image: { naturalWidth: number; naturalHeight: number },
+): void {
+  rememberImageAspectRatio(url, image.naturalWidth, image.naturalHeight);
+}
+
+export function subscribeImageAspectRatio(
+  url: string,
+  listener: () => void,
+): () => void {
+  const key = aspectKey(url);
+  let listeners = aspectListenersByUrl.get(key);
+  if (!listeners) {
+    listeners = new Set();
+    aspectListenersByUrl.set(key, listeners);
+  }
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+    if (listeners.size === 0) aspectListenersByUrl.delete(key);
+  };
+}
+
+/**
+ * Load natural aspect ratio for a single detail image (client only).
+ * Feed cards must not use this: it starts a download beside the visible image.
  */
 export function loadImageAspectRatio(url: string): Promise<number | null> {
+  const cached = readCachedImageAspectRatio(url);
+  if (cached != null) return Promise.resolve(cached);
   if (typeof window === 'undefined' || !url) {
     return Promise.resolve(null);
   }
@@ -97,6 +157,7 @@ export function loadImageAspectRatio(url: string): Promise<number | null> {
     const img = new window.Image();
     img.onload = () => {
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+        rememberImageAspectRatio(url, img.naturalWidth, img.naturalHeight);
         resolve(img.naturalWidth / img.naturalHeight);
       } else {
         resolve(null);

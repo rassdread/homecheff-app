@@ -1,10 +1,12 @@
 'use client';
 
 import Image from 'next/image';
+import type { SyntheticEvent } from 'react';
 import { cn } from '@/lib/utils';
 import {
   inspirationMediaClass,
   INSPIRATION_MEDIA_CLASS,
+  rememberImageAspectFromElement,
 } from '@/lib/inspiratie/media-fit';
 import {
   useSmartMediaFit,
@@ -50,6 +52,9 @@ export default function SmartFitMediaImage({
     forceFit: mode === 'product-story-step' ? 'contain' : forceFit,
   });
   const fitClass = inspirationMediaClass(fit);
+  const onImageLoad = (event: SyntheticEvent<HTMLImageElement>) => {
+    rememberImageAspectFromElement(src, event.currentTarget);
+  };
 
   if (mode === 'product-story-step') {
     return (
@@ -59,6 +64,7 @@ export default function SmartFitMediaImage({
           src={src}
           alt={alt}
           loading={loading}
+          onLoad={onImageLoad}
           className={cn(INSPIRATION_MEDIA_CLASS.contain, className)}
         />
       </div>
@@ -79,6 +85,7 @@ export default function SmartFitMediaImage({
           alt={alt}
           loading={loading}
           onClick={onClick}
+          onLoad={onImageLoad}
           className={cn(INSPIRATION_MEDIA_CLASS.contain, className)}
         />
       </div>
@@ -100,6 +107,7 @@ export default function SmartFitMediaImage({
         priority={priority}
         className={cn(fitClass, 'bg-neutral-50', className)}
         sizes={sizes}
+        onLoad={onImageLoad}
       />
     );
   }
@@ -111,6 +119,7 @@ export default function SmartFitMediaImage({
       alt={alt}
       loading={priority ? 'eager' : loading}
       onClick={onClick}
+      onLoad={onImageLoad}
       className={imgClass}
     />
   );
