@@ -8,6 +8,9 @@ import {
   isPublicLandingEligible,
   isSafeForOpenGraphMedia,
   canOtherAffiliateShare,
+  canViewPromoLanding,
+  moderationStatusAfterVisibilityChange,
+  moderationStatusForNewPromo,
   requiresReuseConsent,
 } from './access';
 import { sanitizeDestinationPath } from './destination';
@@ -85,6 +88,43 @@ describe('affiliate media access + consent', () => {
     deletedAt: null,
   };
 
+  it('publishes community promo immediately and keeps hidden material hidden', () => {
+    assert.equal(moderationStatusForNewPromo(), 'ACTIVE');
+    assert.equal(
+      moderationStatusAfterVisibilityChange({
+        previousVisibility: 'PRIVATE',
+        nextVisibility: 'AFFILIATE_COMMUNITY',
+        currentStatus: 'ACTIVE',
+      }),
+      'ACTIVE',
+    );
+    assert.equal(
+      moderationStatusAfterVisibilityChange({
+        previousVisibility: 'PRIVATE',
+        nextVisibility: 'AFFILIATE_COMMUNITY',
+        currentStatus: 'REJECTED',
+      }),
+      'REJECTED',
+    );
+    assert.equal(
+      moderationStatusAfterVisibilityChange({
+        previousVisibility: 'AFFILIATE_COMMUNITY',
+        nextVisibility: 'AFFILIATE_COMMUNITY',
+        currentStatus: 'ARCHIVED',
+      }),
+      'ARCHIVED',
+    );
+    const live = {
+      creatorUserId: 'a',
+      visibility: 'AFFILIATE_COMMUNITY' as const,
+      moderationStatus: 'ACTIVE' as const,
+      deletedAt: null,
+    };
+    assert.equal(isListedCommunity(live), true);
+    assert.equal(canOtherAffiliateShare(live, 'b'), true);
+    assert.equal(canViewPromoLanding(live, 'b'), true);
+  });
+
   it('community requires consent and is hidden until ACTIVE', () => {
     assert.equal(requiresReuseConsent('AFFILIATE_COMMUNITY'), true);
     assert.equal(requiresReuseConsent('PRIVATE'), false);
@@ -110,6 +150,9 @@ describe('affiliate media access + consent', () => {
     assert.equal(canOtherAffiliateShare(priv, 'mehmet'), false);
     assert.equal(canOtherAffiliateShare(priv, 'tess'), true);
     assert.equal(isPublicLandingEligible(priv), true);
+    assert.equal(canViewPromoLanding(priv, 'mehmet'), false);
+    assert.equal(canViewPromoLanding(priv, null), false);
+    assert.equal(canViewPromoLanding(priv, 'tess'), true);
     assert.equal(isSafeForOpenGraphMedia(priv), false);
   });
 
@@ -330,7 +373,8 @@ describe('storage + security contracts', () => {
     assert.match(src, /reuseConsent/);
     assert.match(src, /validatePromoVideo/);
     assert.match(src, /validatePromoImage/);
-    assert.match(src, /UNDER_REVIEW/);
+    assert.match(src, /moderationStatusForNewPromo/);
+    assert.doesNotMatch(src, /actor\.isAdmin \? 'ACTIVE' : 'UNDER_REVIEW'/);
     assert.doesNotMatch(src, /CommissionLedger/);
   });
 

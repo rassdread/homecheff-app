@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { canAccessPromoLibrary, getPromoActor } from '@/lib/affiliate-media/actor';
+import { moderationStatusAfterVisibilityChange } from '@/lib/affiliate-media/access';
 import { sanitizeDestinationPath } from '@/lib/affiliate-media/destination';
 import { destinationForPlatform, parsePromoPlatform } from '@/lib/affiliate-media/platform';
 import { serializePromoAsset } from '@/lib/affiliate-media/serialize';
@@ -98,14 +99,11 @@ export async function PATCH(req: Request, ctx: Ctx) {
     destinationPath = dest;
   }
 
-  let moderationStatus = asset.moderationStatus;
-  if (visibility === 'AFFILIATE_COMMUNITY' && asset.visibility !== 'AFFILIATE_COMMUNITY' && !actor.isAdmin) {
-    moderationStatus = 'UNDER_REVIEW';
-  }
-  if (visibility === 'PRIVATE' && asset.visibility === 'AFFILIATE_COMMUNITY') {
-    // Withdraw from community discovery; keep ownership. Unlisted landing remains if ACTIVE.
-    moderationStatus = asset.moderationStatus === 'REJECTED' ? 'REJECTED' : 'ACTIVE';
-  }
+  const moderationStatus = moderationStatusAfterVisibilityChange({
+    previousVisibility: asset.visibility,
+    nextVisibility: visibility,
+    currentStatus: asset.moderationStatus,
+  });
 
   const updated = await prisma.affiliateMediaAsset.update({
     where: { id },

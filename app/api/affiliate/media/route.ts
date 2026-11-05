@@ -6,6 +6,7 @@ import {
   isListedCommunity,
   isListedOfficial,
   isOwnerLibraryItem,
+  moderationStatusForNewPromo,
 } from '@/lib/affiliate-media/access';
 import {
   AFFILIATE_MEDIA_IMAGE_MAX_BYTES,
@@ -389,14 +390,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  let moderationStatus: AffiliateMediaModerationStatus;
-  if (visibility === 'OFFICIAL') {
-    moderationStatus = 'ACTIVE';
-  } else if (visibility === 'AFFILIATE_COMMUNITY') {
-    moderationStatus = actor.isAdmin ? 'ACTIVE' : 'UNDER_REVIEW';
-  } else {
-    moderationStatus = 'ACTIVE';
-  }
+  const moderationStatus: AffiliateMediaModerationStatus = moderationStatusForNewPromo();
 
   const assetId = crypto.randomUUID();
   let shareSlug = newAffiliateMediaShareSlug();

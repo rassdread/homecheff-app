@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { REFERRAL_COOKIE_NAME } from '@/lib/affiliate-attribution-contract';
-import { isPublicLandingEligible, isSafeForOpenGraphMedia } from '@/lib/affiliate-media/access';
+import { canViewPromoLanding, isPublicLandingEligible, isSafeForOpenGraphMedia } from '@/lib/affiliate-media/access';
+import { getPromoActor } from '@/lib/affiliate-media/actor';
 import { sanitizeDestinationPath } from '@/lib/affiliate-media/destination';
 import { creatorCreditLabel } from '@/lib/affiliate-media/serialize';
 import { promoContinueHref } from '@/lib/affiliate-media/platform';
@@ -87,6 +88,8 @@ export default async function PromoLandingPage({ params }: Props) {
   const { shareSlug } = await params;
   const asset = await loadPublicAsset(shareSlug);
   if (!asset || !isPublicLandingEligible(asset)) notFound();
+  const actor = await getPromoActor();
+  if (!canViewPromoLanding(asset, actor?.userId ?? null)) notFound();
 
   const jar = await cookies();
   const refCode = jar.get(REFERRAL_COOKIE_NAME)?.value?.trim() || null;

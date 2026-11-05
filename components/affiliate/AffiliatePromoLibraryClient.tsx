@@ -720,8 +720,8 @@ export default function AffiliatePromoLibraryClient() {
             </span>
             </div>
             <p className="text-xs text-slate-600">Gemaakt door {asset.creatorCredit}</p>
-            {asset.moderationStatus === 'UNDER_REVIEW' ? (
-              <p className="text-xs text-amber-800">Wacht op controle voordat andere affiliates het zien.</p>
+            {asset.moderationStatus === 'REJECTED' ? (
+              <p className="text-xs text-amber-800">Verborgen door een beheerder.</p>
             ) : null}
             <div className="flex flex-wrap gap-2">
               <button
@@ -795,7 +795,7 @@ export default function AffiliatePromoLibraryClient() {
                   Maak privé
                 </button>
               ) : null}
-              {asset.isOwner ? (
+              {asset.isOwner || isAdmin ? (
                 <button
                   type="button"
                   onClick={() => {
@@ -807,6 +807,23 @@ export default function AffiliatePromoLibraryClient() {
                   className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-700"
                 >
                   Verwijderen
+                </button>
+              ) : null}
+              {isAdmin && !asset.builtin && asset.moderationStatus === 'ACTIVE' && asset.visibility === 'AFFILIATE_COMMUNITY' ? (
+                <button
+                  type="button"
+                  className="rounded-lg border border-amber-200 px-3 py-2 text-xs font-semibold text-amber-900"
+                  onClick={() => {
+                    if (!confirm('Dit communitymateriaal verbergen voor andere affiliates?')) return;
+                    void fetch(`/api/affiliate/media/${asset.id}`, {
+                      method: 'PATCH',
+                      credentials: 'include',
+                      headers: { 'content-type': 'application/json' },
+                      body: JSON.stringify({ action: 'REJECT' }),
+                    }).then(() => load(source, platform));
+                  }}
+                >
+                  Verbergen
                 </button>
               ) : null}
               {source === 'review' && isAdmin ? (
