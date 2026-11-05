@@ -30,7 +30,16 @@ import { listingPathFromAbsolute } from '@/lib/share/resolve-marketplace-share-u
 import {
   buildExactlyOnceWebShareData,
   countDestinationUrlsInNativePayload,
+  countHttpUrls,
 } from '@/lib/share/exactly-once-share';
+import { promoLandingMetadata } from './landing-metadata';
+import {
+  buildPromoVideoFileShareData,
+  fetchPromoVideoFile,
+  promoVideoFetchLabel,
+  promoVideoShareFileName,
+  sharePromoVideoFile,
+} from './native-video-share';
 import { creatorCreditLabel } from './serialize';
 import { isKnownHomecheffRootPath } from '@/lib/seo/known-root-path-segments';
 import { affiliateMediaBlobToken, affiliateMediaObjectKey, storageKeyFromTrustedBlobUrl } from './storage';
@@ -322,10 +331,13 @@ describe('feed isolation', () => {
 
 describe('open graph canonical never includes ref', () => {
   it('landing metadata uses canonicalPromoUrl without query', () => {
-    const src = read('app/p/[shareSlug]/page.tsx');
-    assert.match(src, /canonicalPromoUrl/);
-    assert.doesNotMatch(src, /\?ref=/);
-    assert.match(src, /url: canonical/);
+    const page = read('app/p/[shareSlug]/page.tsx');
+    const meta = read('lib/affiliate-media/landing-metadata.ts');
+    assert.match(page, /canonicalPromoUrl/);
+    assert.match(page, /promoLandingMetadata/);
+    assert.doesNotMatch(page, /\?ref=/);
+    assert.doesNotMatch(meta, /\?ref=/);
+    assert.match(meta, /url: canonical/);
   });
 });
 
@@ -388,7 +400,12 @@ describe('storage + security contracts', () => {
     const src = read('components/affiliate/AffiliatePromoLibraryClient.tsx');
     assert.match(src, /HomecheffVisibleShareSheet/);
     assert.match(src, /inFlight\.current/);
+    assert.match(src, /onShareVideo\(asset\)/);
+    assert.match(src, /Video delen/);
+    assert.match(src, /sharePromoVideoFile/);
+    assert.match(src, /onCopy\(asset\)/);
     assert.doesNotMatch(src, /navigator\.share/);
+    assert.doesNotMatch(src, /CommissionLedger/);
   });
 
   it('migration only creates affiliate-media structures', () => {
@@ -680,5 +697,164 @@ describe('affiliate promo upload repair', () => {
     );
     assert.match(affiliateMediaUploadErrorMessage('upload_token_failed'), /Opslag/);
     assert.match(affiliateMediaUploadErrorMessage('processing_timeout'), /niet opnieuw te worden geüpload/);
+  });
+});
+
+describe('native promo video share', () => {
+  const mediaUrl = 'https://example.public.blob.vercel-storage.com/affiliate-media/asset/video.mp4';
+  const affiliateUrl = 'https://homecheff.eu/p/abcdefgh?ref=VIEWER';
+
+  it('sends the MP4 with the affiliate link once in the caption and no page url', () => {
+    const file = new File([Uint8Array.from([0, 0, 0, 24])], 'clip.mp4', { type: 'video/mp4' });
+    const data = buildPromoVideoFileShareData({
+      title: 'Homecheff Promo algemeen NL',
+      caption: 'Bekijk de promo',
+      affiliateUrl,
+      file,
+    });
+    assert.equal(data.files[0]?.type, 'video/mp4');
+    assert.equal('url' in data, false);
+    assert.equal(countHttpUrls(data.text), 1);
+    assert.match(data.text, /ref=VIEWER/);
+    assert.match(data.text, /Bekijk de promo/);
+    const link = buildExactlyOnceWebShareData({
+      title: 'Homecheff Promo algemeen NL',
+      text: 'Bekijk de promo',
+      url: affiliateUrl,
+    });
+    assert.equal(link.url, affiliateUrl);
+    assert.equal(countHttpUrls(String(link.text || '')), 0);
+    assert.equal(link.files, undefined);
+  });
+
+  it('keeps a safe mp4 filename and fetch progress under 100 percent', () => {
+    assert.equal(promoVideoShareFileName('Homecheff Promo algemeen NL'), 'Homecheff-Promo-algemeen-NL.mp4');
+    assert.equal(promoVideoFetchLabel(100), 'Video ophalen… 99%');
+    assert.equal(promoVideoFetchLabel(null), 'Video ophalen…');
+  });
+
+  it('refuses an untrusted or non-mp4 download before reading it', async () => {
+    let calls = 0;
+    const blocked = await fetchPromoVideoFile('https://evil.example/affiliate-media/x/video.mp4', {
+      fetchImpl: async () => {
+        calls += 1;
+        return new Response(new Uint8Array([1]));
+      },
+    });
+    assert.equal(blocked.ok, false);
+    if (!blocked.ok) assert.equal(blocked.error, 'untrusted_blob_url');
+    assert.equal(calls, 0);
+
+    const html = await fetchPromoVideoFile(mediaUrl, {
+      fetchImpl: async () =>
+        new Response('<html>', { status: 200, headers: { 'content-type': 'text/html', 'content-length': '6' } }),
+    });
+    assert.equal(html.ok, false);
+    if (!html.ok) assert.equal(html.error, 'unsupported_video_type');
+  });
+
+  it('stops before reading a video larger than 80 MiB and keeps a small mp4 as one file', async () => {
+    const huge = await fetchPromoVideoFile(mediaUrl, {
+      maxBytes: 80,
+      fetchImpl: async () =>
+        new Response(
+          new ReadableStream({
+            pull() {
+              throw new Error('body_should_stay_unread');
+            },
+          }),
+          { status: 200, headers: { 'content-type': 'video/mp4', 'content-length': '200' } },
+        ),
+    });
+    assert.equal(huge.ok, false);
+    if (!huge.ok) assert.equal(huge.error, 'video_too_large');
+
+    const progress: Array<number | null> = [];
+    const small = await fetchPromoVideoFile(mediaUrl, {
+      fileName: 'Homecheff Promo',
+      fetchImpl: async () =>
+        new Response(Uint8Array.from([1, 2, 3, 4]), {
+          status: 200,
+          headers: { 'content-type': 'application/octet-stream', 'content-length': '4' },
+        }),
+      onProgress: (percent) => progress.push(percent),
+    });
+    assert.equal(small.ok, true);
+    if (small.ok) {
+      assert.equal(small.file.type, 'video/mp4');
+      assert.equal(small.file.size, 4);
+      assert.equal(small.file.name, 'Homecheff-Promo.mp4');
+    }
+    assert.deepEqual(progress, [99]);
+  });
+
+  it('does not call the share sheet when the browser cannot attach files', async () => {
+    const previous = globalThis.navigator;
+    let shared = false;
+    Object.defineProperty(globalThis, 'navigator', {
+      configurable: true,
+      value: {
+        canShare: () => false,
+        share: async () => {
+          shared = true;
+        },
+      },
+    });
+    try {
+      const file = new File([Uint8Array.from([1])], 'clip.mp4', { type: 'video/mp4' });
+      const data = buildPromoVideoFileShareData({
+        title: 'Promo',
+        caption: null,
+        affiliateUrl,
+        file,
+      });
+      const result = await sharePromoVideoFile(data);
+      assert.equal(result.ok, false);
+      if (!result.ok) assert.equal(result.method, 'unsupported');
+      assert.equal(shared, false);
+    } finally {
+      Object.defineProperty(globalThis, 'navigator', { configurable: true, value: previous });
+    }
+  });
+});
+
+describe('promo video link preview', () => {
+  const canonical = 'https://homecheff.eu/p/abcdefgh';
+  const video = {
+    creatorUserId: 'rass',
+    visibility: 'AFFILIATE_COMMUNITY' as const,
+    moderationStatus: 'ACTIVE' as const,
+    deletedAt: null,
+    kind: 'VIDEO',
+    mediaUrl: 'https://example.public.blob.vercel-storage.com/affiliate-media/asset/video.mp4',
+    posterUrl: 'https://example.public.blob.vercel-storage.com/affiliate-media/asset/poster.jpg',
+    title: 'Homecheff Promo algemeen NL',
+    caption: 'Promo',
+    width: 1280,
+    height: 720,
+  };
+
+  it('advertises the mp4 and its poster, not the green brand image', () => {
+    const meta = promoLandingMetadata(video, canonical);
+    assert.equal(meta.openGraph && 'type' in meta.openGraph ? meta.openGraph.type : '', 'video.other');
+    const videos = meta.openGraph && 'videos' in meta.openGraph ? meta.openGraph.videos : undefined;
+    const videoTag = Array.isArray(videos) ? videos[0] : undefined;
+    assert.equal(typeof videoTag === 'object' && videoTag && 'type' in videoTag ? videoTag.type : '', 'video/mp4');
+    const images = meta.openGraph && 'images' in meta.openGraph ? meta.openGraph.images : undefined;
+    const image = Array.isArray(images) ? images[0] : undefined;
+    assert.equal(typeof image === 'object' && image && 'url' in image ? image.url : '', video.posterUrl);
+    assert.doesNotMatch(JSON.stringify(meta), /ogBrand/);
+  });
+
+  it('keeps a private video out of the preview and an image on the image tags', () => {
+    const hidden = promoLandingMetadata({ ...video, visibility: 'PRIVATE' }, canonical);
+    assert.doesNotMatch(JSON.stringify(hidden), /video\.mp4/);
+    assert.doesNotMatch(JSON.stringify(hidden), /poster\.jpg/);
+    const imageMeta = promoLandingMetadata(
+      { ...video, kind: 'IMAGE', mediaUrl: video.posterUrl, posterUrl: null },
+      canonical,
+    );
+    assert.equal(imageMeta.openGraph && 'type' in imageMeta.openGraph ? imageMeta.openGraph.type : '', 'website');
+    assert.equal(imageMeta.openGraph && 'videos' in imageMeta.openGraph, false);
   });
 });

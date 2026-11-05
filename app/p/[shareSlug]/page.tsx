@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { REFERRAL_COOKIE_NAME } from '@/lib/affiliate-attribution-contract';
-import { canViewPromoLanding, isPublicLandingEligible, isSafeForOpenGraphMedia } from '@/lib/affiliate-media/access';
+import { canViewPromoLanding, isPublicLandingEligible } from '@/lib/affiliate-media/access';
+import { promoLandingMetadata } from '@/lib/affiliate-media/landing-metadata';
 import { getPromoActor } from '@/lib/affiliate-media/actor';
 import { sanitizeDestinationPath } from '@/lib/affiliate-media/destination';
 import { creatorCreditLabel } from '@/lib/affiliate-media/serialize';
@@ -36,52 +37,7 @@ async function loadPublicAsset(shareSlug: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { shareSlug } = await params;
   const asset = await loadPublicAsset(shareSlug);
-  const canonical = canonicalPromoUrl(shareSlug, MAIN_DOMAIN);
-
-  if (!asset || !isPublicLandingEligible(asset) || !isSafeForOpenGraphMedia(asset)) {
-    return {
-      title: 'HomeCheff',
-      robots: { index: false, follow: false, noarchive: true },
-      alternates: { canonical },
-      openGraph: {
-        title: 'HomeCheff',
-        url: canonical,
-        siteName: 'HomeCheff',
-      },
-    };
-  }
-
-  const ogImage = asset.kind === 'VIDEO' ? asset.posterUrl : asset.mediaUrl;
-  const title = asset.title?.trim() || 'HomeCheff';
-  const description =
-    asset.caption?.trim() ||
-    'Ontdek HomeCheff — lokaal kopen, verkopen, bezorgen en verdienen.';
-
-  return {
-    title: `${title} | HomeCheff`,
-    description,
-    robots:
-      asset.visibility === 'PRIVATE'
-        ? { index: false, follow: true, noarchive: true }
-        : { index: true, follow: true },
-    alternates: { canonical },
-    openGraph: {
-      title,
-      description,
-      url: canonical,
-      siteName: 'HomeCheff',
-      type: 'website',
-      images: ogImage
-        ? [{ url: ogImage, width: asset.width || 1200, height: asset.height || 630, alt: title }]
-        : [],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: ogImage ? [ogImage] : [],
-    },
-  };
+  return promoLandingMetadata(asset, canonicalPromoUrl(shareSlug, MAIN_DOMAIN));
 }
 
 export default async function PromoLandingPage({ params }: Props) {
