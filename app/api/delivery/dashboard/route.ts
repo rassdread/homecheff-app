@@ -36,6 +36,25 @@ function dashboardPickupCoords(
   return coords ? { ...coords, location: null } : null;
 }
 
+function stallAddressLabel(location: {
+  street: string;
+  houseNumber: string;
+  postalCode: string;
+  city: string;
+}) {
+  return `${location.street} ${location.houseNumber}, ${location.postalCode} ${location.city}`
+    .replace(/\s+,/g, ',')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function courierVisibleNotes(notes: string | null | undefined) {
+  return (notes || '')
+    .replace(/(?:^|\n)salesLocationId=[0-9a-f-]{36}(?=\n|$)/gi, '')
+    .replace(/\n{2,}/g, '\n')
+    .trim();
+}
+
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -149,6 +168,22 @@ export async function GET(req: NextRequest) {
                         Image: {
                           select: { fileUrl: true },
                           take: 1
+                        },
+                        salesLocations: {
+                          select: {
+                            location: {
+                              select: {
+                                id: true,
+                                lat: true,
+                                lng: true,
+                                isActive: true,
+                                street: true,
+                                houseNumber: true,
+                                postalCode: true,
+                                city: true,
+                              },
+                            },
+                          },
                         },
                         seller: {
                           include: {
@@ -768,24 +803,47 @@ export async function GET(req: NextRequest) {
 
         let currentDistance = 0;
         let currentEstimatedMin = currentOrder.estimatedTime || 30;
-        const sellerUser = currentOrder.order.items[0]?.Product?.seller?.User;
+        const currentProduct = currentOrder.order.items[0]?.Product;
+        const sellerUser = currentProduct?.seller?.User;
         const buyerUser = currentOrder.order.User as { lat?: number | null; lng?: number | null };
+        const pickup = dashboardPickupCoords(currentProduct, currentOrder.notes);
+        const pickupLat = pickup?.lat ?? sellerUser?.lat ?? null;
+        const pickupLng = pickup?.lng ?? sellerUser?.lng ?? null;
         const dlLat = (deliveryProfile.gpsTrackingEnabled && deliveryProfile.currentLat && deliveryProfile.currentLng)
           ? deliveryProfile.currentLat
           : userLocation?.lat;
         const dlLng = (deliveryProfile.gpsTrackingEnabled && deliveryProfile.currentLng)
           ? deliveryProfile.currentLng
           : userLocation?.lng;
-        if (sellerUser?.lat != null && sellerUser?.lng != null && buyerUser?.lat != null && buyerUser?.lng != null && dlLat != null && dlLng != null) {
-          const [r1, r2] = await Promise.all([
-            getRouteDistance({ lat: dlLat, lng: dlLng }, { lat: sellerUser.lat, lng: sellerUser.lng }, 'driving'),
-            getRouteDistance({ lat: sellerUser.lat, lng: sellerUser.lng }, { lat: buyerUser.lat, lng: buyerUser.lng }, 'driving')
-          ]);
-          if ('distance' in r1 && 'distance' in r2) {
-            currentDistance = Math.round((r1.distance + r2.distance) * 10) / 10;
-            currentEstimatedMin = r1.duration + r2.duration;
+        const lockedLeg = currentOrder.routeDistanceKmSnapshot;
+        if (pickupLat != null && pickupLng != null && dlLat != null && dlLng != null) {
+          const toPickup = await getRouteDistance(
+            { lat: dlLat, lng: dlLng },
+            { lat: pickupLat, lng: pickupLng },
+            'driving',
+          );
+          let dropoffKm = typeof lockedLeg === 'number' && lockedLeg > 0 ? lockedLeg : 0;
+          let dropoffMin = 0;
+          if (dropoffKm === 0 && buyerUser?.lat != null && buyerUser?.lng != null) {
+            const toBuyer = await getRouteDistance(
+              { lat: pickupLat, lng: pickupLng },
+              { lat: buyerUser.lat, lng: buyerUser.lng },
+              'driving',
+            );
+            if ('distance' in toBuyer) {
+              dropoffKm = toBuyer.distance;
+              dropoffMin = toBuyer.duration;
+            }
+          }
+          if ('distance' in toPickup) {
+            currentDistance = Math.round((toPickup.distance + dropoffKm) * 10) / 10;
+            currentEstimatedMin = toPickup.duration + dropoffMin;
           }
         }
+        const stallLabel = pickup?.location ? stallAddressLabel(pickup.location) : null;
+        const dropoffAddress = (
+          currentOrder.order.deliveryAddress || currentOrder.deliveryAddress || ''
+        ).trim();
 
         transformedCurrentOrder = {
           id: currentOrder.id,
@@ -795,13 +853,13 @@ export async function GET(req: NextRequest) {
           estimatedTime: currentEstimatedMin,
           distance: currentDistance || 0,
           customerName: currentOrder.order.User.name || currentOrder.order.User.username || 'Klant',
-          customerAddress: customerAddressForPhase(
+          customerAddress: dropoffAddress || customerAddressForPhase(
             currentOrder.order.User,
             currentOrder.order.deliveryAddress || currentOrder.deliveryAddress,
             'assigned'
           ),
           customerPhone: customerPhoneForPhase(currentOrder.order.User, 'assigned'),
-          notes: currentOrder.notes || '',
+          notes: courierVisibleNotes(currentOrder.notes),
           createdAt: currentOrder.createdAt,
           pickedUpAt: currentOrder.pickedUpAt,
           deliveredAt: currentOrder.deliveredAt,
@@ -811,7 +869,7 @@ export async function GET(req: NextRequest) {
             image: currentOrder.order.items[0]?.Product?.Image?.[0]?.fileUrl || '',
             seller: {
               name: currentOrder.order.items[0]?.Product?.seller?.User?.name || 'Verkoper',
-              address: sellerAddressForPhase(
+              address: stallLabel || sellerAddressForPhase(
                 currentOrder.order.items[0]?.Product?.seller?.User,
                 'assigned'
               ),
@@ -819,8 +877,8 @@ export async function GET(req: NextRequest) {
                 currentOrder.order.items[0]?.Product?.seller?.User,
                 'assigned'
               ),
-              lat: currentOrder.order.items[0]?.Product?.seller?.User?.lat || null,
-              lng: currentOrder.order.items[0]?.Product?.seller?.User?.lng || null
+              lat: pickupLat,
+              lng: pickupLng
             }
           }
         };

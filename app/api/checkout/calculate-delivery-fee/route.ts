@@ -183,6 +183,7 @@ export async function POST(req: NextRequest) {
             error:
               'Bezorgaanbieder is vereist voor provider-prijzen (deliveryProfileId).',
             code: 'DELIVERY_PROVIDER_REQUIRED',
+            deliveryOrigin,
           },
           { status: 400 }
         );

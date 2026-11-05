@@ -708,8 +708,19 @@ export default function CheckoutPage() {
           const data = await response.json();
           setActualDeliveryFee(data);
         } else {
-          console.error('Failed to calculate delivery fee');
-          setActualDeliveryFee(null);
+          const data = await response.json().catch(() => null);
+          if (data?.deliveryOrigin?.locationId) {
+            setActualDeliveryFee({
+              deliveryFeeCents: 0,
+              distance: 0,
+              isInternational: false,
+              breakdown: null,
+              deliveryOrigin: data.deliveryOrigin,
+            });
+          } else {
+            console.error('Failed to calculate delivery fee');
+            setActualDeliveryFee(null);
+          }
         }
       }
     } catch (error) {

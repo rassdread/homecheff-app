@@ -98,6 +98,8 @@ interface DeliveryOrder {
     seller: {
       name: string;
       address: string;
+      lat?: number | null;
+      lng?: number | null;
     };
   };
 }
@@ -1671,7 +1673,20 @@ export default function DeliveryDashboard({
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-xs sm:text-sm text-blue-900 mb-1">📦 {t('delivery.pickupAddress')}</p>
                           <p className="text-xs sm:text-sm text-blue-800 truncate">{currentOrder.product.seller.name}</p>
-                          <p className="text-xs sm:text-sm text-blue-700 mt-1 break-words">{currentOrder.product.seller.address}</p>
+                          <p className="text-xs sm:text-sm text-blue-700 mt-1 break-words">
+                            {currentOrder.product.seller.lat != null && currentOrder.product.seller.lng != null ? (
+                              <a
+                                className="underline"
+                                href={`https://www.google.com/maps/dir/?api=1&destination=${currentOrder.product.seller.lat},${currentOrder.product.seller.lng}`}
+                                rel="noopener noreferrer"
+                                target="_blank"
+                              >
+                                {currentOrder.product.seller.address}
+                              </a>
+                            ) : (
+                              currentOrder.product.seller.address
+                            )}
+                          </p>
                           {(currentOrder.product.seller as any).phone && (
                             <p className="text-xs sm:text-sm text-blue-700 mt-1">
                               📞 {(currentOrder.product.seller as any).phone}
@@ -1690,7 +1705,18 @@ export default function DeliveryDashboard({
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-xs sm:text-sm text-green-900 mb-1">🏠 {t('delivery.deliveryAddress')}</p>
                           <p className="text-xs sm:text-sm text-green-800 truncate">{currentOrder.customerName}</p>
-                          <p className="text-xs sm:text-sm text-green-700 mt-1 break-words">{currentOrder.customerAddress}</p>
+                          <p className="text-xs sm:text-sm text-green-700 mt-1 break-words">
+                            {currentOrder.customerAddress ? (
+                              <a
+                                className="underline"
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentOrder.customerAddress)}`}
+                                rel="noopener noreferrer"
+                                target="_blank"
+                              >
+                                {currentOrder.customerAddress}
+                              </a>
+                            ) : null}
+                          </p>
                           {currentOrder.customerPhone && (
                             <p className="text-xs sm:text-sm text-green-700 mt-1">
                               📞 {currentOrder.customerPhone}
