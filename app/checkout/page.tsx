@@ -313,6 +313,19 @@ export default function CheckoutPage() {
   const [courierSyncedAt, setCourierSyncedAt] = useState<number | null>(null);
   const [courierListEpoch, setCourierListEpoch] = useState(0);
   const [switchingCourier, setSwitchingCourier] = useState(false);
+  const bookedRouteRef = useRef<{
+    id: string;
+    lat: number;
+    lng: number;
+  } | null>(null);
+
+  const rememberBookedRoute = useCallback(
+    (id: string, lat: number | null | undefined, lng: number | null | undefined) => {
+      if (typeof lat !== 'number' || typeof lng !== 'number') return;
+      bookedRouteRef.current = { id, lat, lng };
+    },
+    [],
+  );
 
   useEffect(() => {
     fetch('/api/delivery/alignment-flags')
@@ -779,6 +792,40 @@ export default function CheckoutPage() {
   }, [checkoutDraft.coordinates?.lat, checkoutDraft.coordinates?.lng, checkoutProductId]);
 
   useEffect(() => {
+    const booked = bookedRouteRef.current;
+    const coords = checkoutDraft.coordinates;
+    if (
+      !booked ||
+      !coords ||
+      bookingStatus !== 'PENDING' ||
+      bookingRequestId !== booked.id
+    ) {
+      return;
+    }
+    const moved =
+      Math.abs(coords.lat - booked.lat) > 0.0001 ||
+      Math.abs(coords.lng - booked.lng) > 0.0001;
+    if (!moved) return;
+    let cancelled = false;
+    (async () => {
+      await fetch(`/api/delivery/booking-requests/${booked.id}/switch`, { method: 'POST' });
+      if (cancelled || bookedRouteRef.current?.id !== booked.id) return;
+      bookedRouteRef.current = null;
+      setBookingRequestId(null);
+      setBookingStatus(null);
+      setSelectedDeliverer(null);
+      setBookingError(null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    bookingRequestId,
+    bookingStatus,
+    checkoutDraft.coordinates,
+  ]);
+
+  useEffect(() => {
     if (!namedProviderSelectionEnabled || !checkoutProductId) return;
     if (restoredBookingProductRef.current === checkoutProductId) return;
     let cancelled = false;
@@ -807,6 +854,7 @@ export default function CheckoutPage() {
         setPaymentRemainingMs(data.reservation?.paymentRemainingMs ?? null);
         setReservationPhase(data.reservation?.phase ?? null);
         if (restoredStatus === 'PENDING') {
+          rememberBookedRoute(data.booking.id, data.booking.buyerLat, data.booking.buyerLng);
           setSelectedDeliverer({
             id: data.booking.deliveryProfileId,
             userId: '',
@@ -2027,6 +2075,11 @@ export default function CheckoutPage() {
                                     return;
                                   }
                                   setAcceptedSlotAt(d.requestedPickupAt ?? null);
+                                  rememberBookedRoute(
+                                    data.bookingRequestId,
+                                    checkoutDraft.coordinates?.lat,
+                                    checkoutDraft.coordinates?.lng,
+                                  );
                                   setBookingRequestId(data.bookingRequestId);
                                   setBookingStatus(data.status);
                                   setCourierExpiresAt(typeof data.expiresAt === 'string' ? data.expiresAt : null);

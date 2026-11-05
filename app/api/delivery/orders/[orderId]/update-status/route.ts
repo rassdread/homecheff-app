@@ -128,8 +128,10 @@ export async function POST(
     // Update delivery order status
     const updateData: Record<string, unknown> = {
       status,
-      notes: notes || null,
     };
+    if (typeof notes === 'string') {
+      updateData.notes = notes;
+    }
 
     const standalonePaidCancel = status === 'CANCELLED' && existingOrder.origin === 'STANDALONE';
     if (
