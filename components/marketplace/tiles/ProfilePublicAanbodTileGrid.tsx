@@ -9,7 +9,10 @@ import {
 import type { MarketplaceTilePerson } from '@/lib/marketplace/tiles';
 import MarketplaceTileMini from '@/components/marketplace/tiles/MarketplaceTileMini';
 import { useMakerFollowState } from '@/hooks/useMakerFollowState';
-import { getMakerFollowSnapshot } from '@/lib/follow/follow-state-store';
+import {
+  getMakerFollowSnapshot,
+  mergeSeededFansCount,
+} from '@/lib/follow/follow-state-store';
 
 export type ProfilePublicAanbodTileGridProps = {
   items: ProfileListingInput[];
@@ -37,8 +40,10 @@ export default function ProfilePublicAanbodTileGrid({
   const live = useMakerFollowState({
     sellerId: owner.userId,
     initialFollowing: owner.viewerIsFan,
-    initialFansCount:
-      owner.fansCount ?? getMakerFollowSnapshot(owner.userId)?.fansCount ?? 0,
+    initialFansCount: mergeSeededFansCount(
+      getMakerFollowSnapshot(owner.userId)?.fansCount,
+      owner.fansCount,
+    ),
   });
   const ownerWithFans: MarketplaceTilePerson = {
     ...owner,

@@ -29,6 +29,20 @@ import { resolveMarketplaceSellerTileRole } from './seller-tile-role';
 
 let legacyWarned = false;
 
+/** Use a loaded fan count, including 0. Do not invent 0 when neither source was loaded. */
+export function resolveTileFansCount(
+  sellerFansCount: number | null | undefined,
+  discoveryFansCount: number | null | undefined,
+): number | undefined {
+  if (typeof sellerFansCount === 'number' && Number.isFinite(sellerFansCount)) {
+    return Math.max(0, Math.floor(sellerFansCount));
+  }
+  if (typeof discoveryFansCount === 'number' && Number.isFinite(discoveryFansCount)) {
+    return Math.max(0, Math.floor(discoveryFansCount));
+  }
+  return undefined;
+}
+
 function warnMissingDiscovery(id: string) {
   if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
     if (!legacyWarned) {
@@ -172,7 +186,10 @@ export function mapGeoFeedCardToTileModel(
           avatar: item.sellerAvatar ?? null,
           displayFullName: item.sellerDisplayFullName,
           displayNameOption: item.sellerDisplayNameOption,
-          fansCount: item.sellerFansCount ?? item.discovery?.social.fansCount ?? 0,
+          fansCount: resolveTileFansCount(
+            item.sellerFansCount,
+            item.discovery?.social.fansCount,
+          ),
           viewerIsFan: item.viewerIsFan,
         }
       : null,

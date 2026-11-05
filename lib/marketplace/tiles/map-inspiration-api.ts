@@ -34,6 +34,7 @@ export function inspirationApiToCardItem(item: InspirationItem): GeoFeedCardItem
     sellerDisplayFullName: item.user.displayFullName,
     sellerDisplayNameOption: item.user.displayNameOption,
     sellerBadges: item.user.badges,
+    sellerFansCount: item.sellerFansCount ?? item.discovery?.social.fansCount,
     favoriteCount: fav,
   };
 }

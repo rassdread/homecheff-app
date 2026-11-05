@@ -78,6 +78,8 @@ export type InspirationItem = {
     displayNameOption?: string | null;
     badges?: Array<{ key: string; name: string; icon: string }>;
   };
+  /** Canonical Follow count for this maker. Absent means the count was not loaded. */
+  sellerFansCount?: number;
 };
 
 type InspiratieContentProps = {

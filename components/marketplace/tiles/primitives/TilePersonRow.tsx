@@ -27,7 +27,7 @@ export default function TilePersonRow({
   const { fansCount, isOwnProfile } = useMakerFollowState({
     sellerId: person?.userId ?? '',
     initialFollowing: person?.viewerIsFan,
-    initialFansCount: person?.fansCount ?? 0,
+    initialFansCount: person?.fansCount,
   });
 
   if (!person) return null;
@@ -143,7 +143,7 @@ export default function TilePersonRow({
           sellerId={person.userId}
           sellerName={displayName ?? undefined}
           initialFollowing={person.viewerIsFan}
-          initialFansCount={person.fansCount ?? 0}
+          initialFansCount={person.fansCount}
         />
       )}
     </div>

@@ -16,6 +16,7 @@ import {
   type FeedMediaMetaRow,
 } from '@/lib/feed/resolve-feed-media-url';
 import { INSPIRATION_LISTING_KIND } from '@/lib/marketplace/contracts/listing-kind-contract';
+import { countFansBySellerIds } from '@/lib/follow/batch-fan-counts';
 
 export type GetInspiratieOptions = {
   category?: string | null;
@@ -175,21 +176,31 @@ export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
   }
 
   const authorIds = [...new Set(items.map((it) => it.user.id))];
-  const badgeMap = await fetchAuthorBadgeSummariesByUserIds(authorIds, 2);
+  const [badgeMap, fansBySeller] = await Promise.all([
+    fetchAuthorBadgeSummariesByUserIds(authorIds, 2),
+    countFansBySellerIds(authorIds),
+  ]);
   const trustBundles = await fetchSellerTrustBundles(authorIds, badgeMap);
-  items = items.map((it) => ({
-    ...it,
-    discovery: mapDishToDiscoveryReadModel(it, {
-      favoriteCount: it.propsCount,
-      ...discoveryEnrichmentFromBundle(trustBundles.get(it.user.id), {
-        listingIsActive: it.status !== 'PRIVATE',
+  items = items.map((it) => {
+    const fansCount = fansBySeller.get(it.user.id) ?? 0;
+    return {
+      ...it,
+      sellerFansCount: fansCount,
+      discovery: mapDishToDiscoveryReadModel(it, {
+        ...discoveryEnrichmentFromBundle(trustBundles.get(it.user.id), {
+          listingIsActive: it.status !== 'PRIVATE',
+          fansCount,
+          favoriteCount: it.propsCount,
+        }),
+        fansCount,
+        favoriteCount: it.propsCount,
       }),
-    }),
-    user: {
-      ...it.user,
-      badges: badgeMap.get(it.user.id) ?? [],
-    },
-  }));
+      user: {
+        ...it.user,
+        badges: badgeMap.get(it.user.id) ?? [],
+      },
+    };
+  });
 
   return { items };
 }

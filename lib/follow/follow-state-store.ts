@@ -49,6 +49,23 @@ function emit(sellerId: string, snap: MakerFollowSnapshot) {
   );
 }
 
+/**
+ * A loaded count replaces the previous one, including a real 0.
+ * A missing count keeps the previous count and never invents 0.
+ */
+export function mergeSeededFansCount(
+  previous: number | undefined,
+  incoming: number | undefined,
+): number | undefined {
+  if (typeof incoming === 'number' && Number.isFinite(incoming)) {
+    return Math.max(0, Math.floor(incoming));
+  }
+  if (typeof previous === 'number' && Number.isFinite(previous)) {
+    return Math.max(0, Math.floor(previous));
+  }
+  return undefined;
+}
+
 export function getMakerFollowSnapshot(sellerId: string): MakerFollowSnapshot | null {
   if (!sellerId) return null;
   return snapshots.get(sellerId) ?? null;

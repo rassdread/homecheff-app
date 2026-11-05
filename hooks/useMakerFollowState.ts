@@ -7,6 +7,7 @@ import { openSoftAuthGateWithScroll } from '@/lib/onboarding/open-soft-auth-gate
 import {
   fetchMakerFollowStatusDeduped,
   getMakerFollowSnapshot,
+  mergeSeededFansCount,
   seedMakerFollowSnapshot,
   setMakerFollowSnapshot,
   subscribeMakerFollow,
@@ -33,12 +34,14 @@ export function useMakerFollowState({
     if (!sellerId) return;
     if (initialFollowing !== undefined || initialFansCount !== undefined) {
       const prev = getMakerFollowSnapshot(sellerId);
+      const fansCount = mergeSeededFansCount(prev?.fansCount, initialFansCount);
+      if (fansCount === undefined && initialFollowing === undefined) return;
       seedMakerFollowSnapshot(sellerId, {
         following:
           initialFollowing !== undefined
             ? Boolean(initialFollowing)
             : Boolean(prev?.following),
-        fansCount: initialFansCount ?? prev?.fansCount ?? 0,
+        fansCount: fansCount ?? prev?.fansCount ?? 0,
       });
     }
     return subscribeMakerFollow(sellerId, () => bump((n) => n + 1));
@@ -61,9 +64,11 @@ export function useMakerFollowState({
         const following = await fetchMakerFollowStatusDeduped(sellerId);
         if (cancelled) return;
         const prev = getMakerFollowSnapshot(sellerId);
+        const fansCount = mergeSeededFansCount(prev?.fansCount, initialFansCount);
+        if (fansCount === undefined) return;
         setMakerFollowSnapshot(sellerId, {
           following,
-          fansCount: prev?.fansCount ?? initialFansCount ?? 0,
+          fansCount,
         });
       } catch {
         /* keep seeded state */
