@@ -1,11 +1,19 @@
 import { isTrustedAffiliateMediaBlobUrl } from '@/lib/affiliate-media/trusted-blob';
 
+/** Production stores the store token as VERCEL_BLOB_READ_WRITE_TOKEN. Client-token signing only reads BLOB_READ_WRITE_TOKEN unless it is passed explicitly. */
+export function affiliateMediaBlobToken(): string | undefined {
+  const token =
+    process.env.BLOB_READ_WRITE_TOKEN?.trim() ||
+    process.env.VERCEL_BLOB_READ_WRITE_TOKEN?.trim();
+  return token || undefined;
+}
+
 export async function putAffiliateMediaBlob(input: {
   key: string;
   buffer: Buffer;
   contentType: string;
 }): Promise<{ url: string; key: string }> {
-  const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+  const token = affiliateMediaBlobToken();
   if (!token) {
     throw new Error('BLOB_TOKEN_MISSING');
   }
@@ -21,7 +29,7 @@ export async function putAffiliateMediaBlob(input: {
 
 export async function deleteAffiliateMediaBlob(url: string | null | undefined): Promise<void> {
   if (!url || !url.startsWith('http')) return;
-  const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+  const token = affiliateMediaBlobToken();
   if (!token) return;
   try {
     const { del } = await import('@vercel/blob');

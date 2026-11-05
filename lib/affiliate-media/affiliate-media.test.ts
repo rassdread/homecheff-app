@@ -30,7 +30,7 @@ import {
 } from '@/lib/share/exactly-once-share';
 import { creatorCreditLabel } from './serialize';
 import { isKnownHomecheffRootPath } from '@/lib/seo/known-root-path-segments';
-import { affiliateMediaObjectKey, storageKeyFromTrustedBlobUrl } from './storage';
+import { affiliateMediaBlobToken, affiliateMediaObjectKey, storageKeyFromTrustedBlobUrl } from './storage';
 import { isTrustedAffiliateMediaBlobUrl, totalFromContentRange } from './trusted-blob';
 import {
   affiliateMediaUploadErrorMessage,
@@ -386,6 +386,25 @@ describe('storage + security contracts', () => {
     assert.match(src, /getPromoActor/);
     assert.match(src, /allowedContentTypes/);
     assert.match(src, /AFFILIATE_MEDIA_VIDEO_MAX_BYTES/);
+    assert.match(src, /affiliateMediaBlobToken\(\)/);
+    assert.match(src, /token,/);
+  });
+
+  it('signs client tokens with the Vercel Blob env name used in production', () => {
+    const previousBlob = process.env.BLOB_READ_WRITE_TOKEN;
+    const previousVercel = process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+    delete process.env.BLOB_READ_WRITE_TOKEN;
+    process.env.VERCEL_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_store_secret';
+    assert.equal(affiliateMediaBlobToken(), 'vercel_blob_rw_store_secret');
+    process.env.BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_primary_secret';
+    assert.equal(affiliateMediaBlobToken(), 'vercel_blob_rw_primary_secret');
+    delete process.env.BLOB_READ_WRITE_TOKEN;
+    delete process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+    assert.equal(affiliateMediaBlobToken(), undefined);
+    if (previousBlob === undefined) delete process.env.BLOB_READ_WRITE_TOKEN;
+    else process.env.BLOB_READ_WRITE_TOKEN = previousBlob;
+    if (previousVercel === undefined) delete process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+    else process.env.VERCEL_BLOB_READ_WRITE_TOKEN = previousVercel;
   });
 });
 

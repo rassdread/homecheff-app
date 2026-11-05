@@ -7,6 +7,7 @@ import {
   ALLOWED_IMAGE_MIMES,
   ALLOWED_VIDEO_MIMES,
 } from '@/lib/affiliate-media/constants';
+import { affiliateMediaBlobToken } from '@/lib/affiliate-media/storage';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -20,8 +21,13 @@ export async function POST(request: Request) {
   }
 
   const body = (await request.json()) as HandleUploadBody;
+  const token = affiliateMediaBlobToken();
+  if (!token) {
+    return NextResponse.json({ error: 'BLOB_TOKEN_MISSING' }, { status: 400 });
+  }
   try {
     const json = await handleUpload({
+      token,
       request,
       body,
       onBeforeGenerateToken: async (pathname) => {
@@ -45,6 +51,7 @@ export async function POST(request: Request) {
     return NextResponse.json(json);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'upload_token_failed';
+    console.error('[affiliate-media-blob] token failed', message);
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
