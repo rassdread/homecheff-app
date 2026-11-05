@@ -80,6 +80,8 @@ export function affiliateMediaUploadErrorMessage(code: string | null | undefined
       return 'Te veel uploads. Probeer het later opnieuw.';
     case 'untrusted_blob_url':
       return 'Upload mislukt. Het bestand staat niet in de HomeCheff-opslag.';
+    case 'processing_timeout':
+      return 'De video is opgeslagen, maar verwerken duurde te lang. Probeer het opnieuw. Het bestand hoeft niet opnieuw te worden geüpload.';
     default: {
       if (code && /exceeds the maximum allowed size/i.test(code)) {
         return `Video is te groot. Maximaal ${videoMax} MB.`;

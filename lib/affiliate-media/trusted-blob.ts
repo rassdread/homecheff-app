@@ -23,6 +23,7 @@ export function totalFromContentRange(header: string | null): number | null {
 }
 
 const MAX_RANGE_BYTES = 8 * 1024 * 1024;
+const BLOB_READ_TIMEOUT_MS = 15_000;
 
 async function readBodyCapped(res: Response, cap: number): Promise<Buffer> {
   const reader = res.body?.getReader();
@@ -56,7 +57,12 @@ export async function probeTrustedAffiliateMediaBlob(
 ): Promise<{ ok: true; byteSize: number; contentType: string } | { ok: false; error: string }> {
   if (!isTrustedAffiliateMediaBlobUrl(url)) return { ok: false, error: 'untrusted_blob_url' };
   try {
-    const head = await fetch(url, { method: 'HEAD', redirect: 'error', cache: 'no-store' });
+    const head = await fetch(url, {
+      method: 'HEAD',
+      redirect: 'error',
+      cache: 'no-store',
+      signal: AbortSignal.timeout(BLOB_READ_TIMEOUT_MS),
+    });
     if (head.status === 404) return { ok: false, error: 'blob_fetch_failed' };
     const headLen = Number(head.headers.get('content-length') || 0);
     if (head.ok && headLen > 0) {
@@ -67,6 +73,7 @@ export async function probeTrustedAffiliateMediaBlob(
       headers: { Range: 'bytes=0-0' },
       redirect: 'error',
       cache: 'no-store',
+      signal: AbortSignal.timeout(BLOB_READ_TIMEOUT_MS),
     });
     const total = totalFromContentRange(ranged.headers.get('content-range'));
     await ranged.body?.cancel().catch(() => undefined);
@@ -87,6 +94,7 @@ export async function readTrustedBlobRange(url: string, offset: number, length: 
     headers: { Range: `bytes=${offset}-${offset + length - 1}` },
     redirect: 'error',
     cache: 'no-store',
+    signal: AbortSignal.timeout(BLOB_READ_TIMEOUT_MS),
   });
   if (res.status !== 206 && !(res.status === 200 && offset === 0)) {
     await res.body?.cancel().catch(() => undefined);
@@ -100,7 +108,11 @@ export async function fetchTrustedAffiliateMediaBlob(
   maxBytes: number,
 ): Promise<{ ok: true; buffer: Buffer; contentType: string } | { ok: false; error: string }> {
   if (!isTrustedAffiliateMediaBlobUrl(url)) return { ok: false, error: 'untrusted_blob_url' };
-  const res = await fetch(url, { redirect: 'error', cache: 'no-store' });
+  const res = await fetch(url, {
+    redirect: 'error',
+    cache: 'no-store',
+    signal: AbortSignal.timeout(BLOB_READ_TIMEOUT_MS),
+  });
   if (!res.ok) return { ok: false, error: 'blob_fetch_failed' };
   const len = Number(res.headers.get('content-length') || 0);
   if (len > maxBytes) return { ok: false, error: 'file_too_large' };

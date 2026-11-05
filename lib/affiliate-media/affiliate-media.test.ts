@@ -170,6 +170,36 @@ describe('LIMITED_VIDEO_V1 mp4 inspect', () => {
     assert.equal(v.ok, true);
   });
 
+  it('accepts a QuickTime-branded H.264 MP4 and rejects HEVC in that container', async () => {
+    function ftypMajor(major: string): Buffer {
+      const brand = Buffer.alloc(4);
+      brand.write(major, 0, 4, 'ascii');
+      return box('ftyp', Buffer.concat([brand, Buffer.alloc(4)]));
+    }
+    const h264 = Buffer.concat([
+      ftypMajor('qt  '),
+      box('wide', Buffer.alloc(0)),
+      box('moov', Buffer.concat([mvhdDuration(31_600), Buffer.from('avc1mp4a')])),
+    ]);
+    const accepted = inspectMp4(h264);
+    assert.equal(accepted.ok, true);
+    if (accepted.ok) assert.equal(accepted.durationMs, 31_600);
+    assert.equal(validatePromoVideo(h264, 'video/mp4', 'homecheff algemeen cartoon promo.mp4').ok, true);
+    const remote = await inspectMp4Source({
+      length: h264.length,
+      read: async (offset, length) => h264.subarray(offset, offset + length),
+    });
+    assert.equal(remote.ok, true);
+    if (remote.ok) assert.equal(remote.durationMs, 31_600);
+    const hevc = Buffer.concat([
+      ftypMajor('qt  '),
+      box('moov', Buffer.concat([mvhdDuration(10_000), Buffer.from('hvc1')])),
+    ]);
+    const rejected = inspectMp4(hevc);
+    assert.equal(rejected.ok, false);
+    if (!rejected.ok) assert.equal(rejected.error, 'unsupported_video_codec');
+  });
+
   it('rejects MOV/WebM and HEVC brands', () => {
     assert.equal(validatePromoVideo(Buffer.alloc(32), 'video/quicktime', 'clip.mov').ok, false);
     assert.equal(validatePromoVideo(Buffer.alloc(32), 'video/webm', 'clip.webm').ok, false);
@@ -605,5 +635,6 @@ describe('affiliate promo upload repair', () => {
       /80 MB/,
     );
     assert.match(affiliateMediaUploadErrorMessage('upload_token_failed'), /Opslag/);
+    assert.match(affiliateMediaUploadErrorMessage('processing_timeout'), /niet opnieuw te worden geüpload/);
   });
 });

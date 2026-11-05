@@ -120,6 +120,43 @@ async function uploadPromoBlob(
   }
 }
 
+const PROMO_BLOB_RESUME_KEY = 'hc-affiliate-promo-blob';
+
+function promoFileKey(file: File): string {
+  return `${file.name}:${file.size}:${file.lastModified}`;
+}
+
+function readPromoBlobResume(file: File): { mediaUrl: string; posterUrl: string } | null {
+  try {
+    const raw = sessionStorage.getItem(PROMO_BLOB_RESUME_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { key?: string; mediaUrl?: string; posterUrl?: string };
+    if (parsed.key !== promoFileKey(file) || !parsed.mediaUrl || !parsed.posterUrl) return null;
+    return { mediaUrl: parsed.mediaUrl, posterUrl: parsed.posterUrl };
+  } catch {
+    return null;
+  }
+}
+
+function writePromoBlobResume(file: File, mediaUrl: string, posterUrl: string) {
+  try {
+    sessionStorage.setItem(
+      PROMO_BLOB_RESUME_KEY,
+      JSON.stringify({ key: promoFileKey(file), mediaUrl, posterUrl }),
+    );
+  } catch {
+    /* private mode */
+  }
+}
+
+function clearPromoBlobResume() {
+  try {
+    sessionStorage.removeItem(PROMO_BLOB_RESUME_KEY);
+  } catch {
+    /* private mode */
+  }
+}
+
 async function posterFromVideo(file: File): Promise<File> {
   const url = URL.createObjectURL(file);
   try {
@@ -166,7 +203,9 @@ export default function AffiliatePromoLibraryClient() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [composerOpen, setComposerOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -276,6 +315,8 @@ export default function AffiliatePromoLibraryClient() {
     if (!file || busy) return;
     setBusy(true);
     setError(null);
+    setSavedMessage(null);
+    setProcessing(false);
     setProgress(null);
     try {
       const vis = official && isAdmin ? 'OFFICIAL' : visibility;
@@ -306,19 +347,29 @@ export default function AffiliatePromoLibraryClient() {
           setError(affiliateMediaUploadErrorMessage('video_too_large'));
           return;
         }
-        const poster = await posterFromVideo(file);
         if (direct) {
-          setProgress(1);
-          const mediaUrl = await uploadPromoBlob(file, 'video', (pct) => setProgress(Math.max(1, Math.round(pct * 0.9))));
-          const posterUrl = await uploadPromoBlob(poster, 'poster', (pct) => setProgress(90 + Math.round(pct * 0.08)));
-          form.set('mediaUrl', mediaUrl);
-          form.set('posterUrl', posterUrl);
-          form.set('mimeType', 'video/mp4');
+          const saved = readPromoBlobResume(file);
+          if (saved) {
+            form.set('mediaUrl', saved.mediaUrl);
+            form.set('posterUrl', saved.posterUrl);
+            form.set('mimeType', 'video/mp4');
+          } else {
+            const poster = await posterFromVideo(file);
+            setProgress(1);
+            const mediaUrl = await uploadPromoBlob(file, 'video', (pct) => setProgress(Math.max(1, Math.round(pct * 0.9))));
+            const posterUrl = await uploadPromoBlob(poster, 'poster', (pct) => setProgress(90 + Math.round(pct * 0.08)));
+            writePromoBlobResume(file, mediaUrl, posterUrl);
+            form.set('mediaUrl', mediaUrl);
+            form.set('posterUrl', posterUrl);
+            form.set('mimeType', 'video/mp4');
+          }
         } else {
+          const poster = await posterFromVideo(file);
           try {
             setProgress(1);
             const mediaUrl = await uploadPromoBlob(file, 'video', (pct) => setProgress(Math.max(1, Math.round(pct * 0.9))));
             const posterUrl = await uploadPromoBlob(poster, 'poster', (pct) => setProgress(90 + Math.round(pct * 0.08)));
+            writePromoBlobResume(file, mediaUrl, posterUrl);
             form.set('mediaUrl', mediaUrl);
             form.set('posterUrl', posterUrl);
             form.set('mimeType', 'video/mp4');
@@ -351,6 +402,7 @@ export default function AffiliatePromoLibraryClient() {
           }
         }
       }
+      if (form.get('mediaUrl')) setProcessing(true);
       setProgress(99);
       let res: Response;
       try {
@@ -360,19 +412,26 @@ export default function AffiliatePromoLibraryClient() {
       }
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setError(affiliateMediaUploadErrorMessage(json.error));
+        if (res.status === 504 || res.status === 408) {
+          setError(affiliateMediaUploadErrorMessage('processing_timeout'));
+        } else {
+          if (json.error === 'blob_fetch_failed' || json.error === 'untrusted_blob_url') clearPromoBlobResume();
+          setError(affiliateMediaUploadErrorMessage(json.error));
+        }
         return;
       }
       setTitle('');
       setCaption('');
       setConsent(false);
       setComposerOpen(false);
+      setSavedMessage('Het materiaal is opgeslagen.');
       if (fileRef.current) fileRef.current.value = '';
       await load(source, platform);
     } catch (err) {
       setError(affiliateMediaUploadErrorMessage(err instanceof Error ? err.message : null));
     } finally {
       setBusy(false);
+      setProcessing(false);
       setProgress(null);
     }
   };
@@ -595,7 +654,13 @@ export default function AffiliatePromoLibraryClient() {
           disabled={busy}
           className="inline-flex min-h-[44px] items-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white disabled:opacity-60"
         >
-          {busy ? (progress != null ? `Uploaden… ${progress}%` : 'Opslaan…') : 'Opslaan'}
+          {busy
+            ? processing
+              ? 'Upload voltooid — video wordt verwerkt…'
+              : progress != null
+                ? `Uploaden… ${progress}%`
+                : 'Opslaan…'
+            : 'Opslaan'}
         </button>
       </form>
       ) : null}
@@ -603,6 +668,11 @@ export default function AffiliatePromoLibraryClient() {
       {error ? (
         <p className="text-sm text-red-700" role="alert">
           {error}
+        </p>
+      ) : null}
+      {savedMessage ? (
+        <p className="text-sm text-emerald-800" role="status">
+          {savedMessage}
         </p>
       ) : null}
       {loading ? <p className="text-sm text-slate-600">Laden…</p> : null}

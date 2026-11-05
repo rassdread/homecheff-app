@@ -88,8 +88,13 @@ function actorPayload(actor: { isAdmin: boolean; isAffiliate: boolean; referralC
   return { isAdmin: actor.isAdmin, isAffiliate: actor.isAffiliate, referralCode: actor.referralCode };
 }
 
+const BLOB_CLEANUP_DEADLINE_MS = 4_000;
+
 async function discardStoredBlobs(urls: Array<string | null | undefined>): Promise<void> {
-  await Promise.all(urls.map((url) => deleteAffiliateMediaBlob(url)));
+  await Promise.race([
+    Promise.all(urls.map((url) => deleteAffiliateMediaBlob(url))),
+    new Promise((resolve) => setTimeout(resolve, BLOB_CLEANUP_DEADLINE_MS)),
+  ]);
 }
 
 export async function GET(req: Request) {

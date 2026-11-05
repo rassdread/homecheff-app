@@ -64,14 +64,19 @@ export type Mp4InspectResult =
  * LIMITED_VIDEO_V1: ISO-BMFF (MP4) container only.
  * Rejects HEVC/AV1/VP9 brands when present; requires ftyp + parseable boxes.
  */
-function ftypVerdict(buffer: Buffer): { ok: true; brands: string } | { ok: false; error: string } {
+function ftypVerdict(buffer: Buffer): { ok: true; brands: string } | { ok: false; error: string; brands?: string } {
   if (buffer.length < 16) return { ok: false, error: 'video_too_small' };
   const first = readBox(buffer, 0);
   if (!first || first.type !== 'ftyp') return { ok: false, error: 'not_mp4_ftyp' };
   const brands = buffer.subarray(first.start + 8, first.end).toString('ascii');
-  if (containsCodec(brands, HEVC_OR_UNSUPPORTED)) return { ok: false, error: 'unsupported_video_codec' };
-  if (!containsCodec(brands, FTYP_OK)) return { ok: false, error: 'unsupported_mp4_brand' };
+  if (containsCodec(brands, HEVC_OR_UNSUPPORTED)) return { ok: false, error: 'unsupported_video_codec', brands };
+  if (!containsCodec(brands, FTYP_OK)) return { ok: false, error: 'unsupported_mp4_brand', brands };
   return { ok: true, brands };
+}
+
+/** Apple and several editors write a normal H.264 MP4 with major brand "qt  ". */
+function isQuickTimeH264Container(brands: string | undefined): boolean {
+  return Boolean(brands?.includes('qt  '));
 }
 
 function durationFromMvhd(buffer: Buffer, body: number): number | null {
@@ -105,19 +110,38 @@ function durationInside(buffer: Buffer, start: number, end: number): number | nu
   return durationMs;
 }
 
-export function inspectMp4(buffer: Buffer): Mp4InspectResult {
-  const ftyp = ftypVerdict(buffer);
-  if (!ftyp.ok) return ftyp;
-
-  const asciiScan = buffer.subarray(0, Math.min(buffer.length, 2_000_000)).toString('latin1');
-  if (containsCodec(asciiScan, HEVC_OR_UNSUPPORTED)) return { ok: false, error: 'unsupported_video_codec' };
-
+function finishInspectedMp4(input: {
+  brands: string;
+  quickTime: boolean;
+  moovText: string;
+  durationMs: number | null;
+}): Mp4InspectResult {
+  if (containsCodec(input.moovText, HEVC_OR_UNSUPPORTED) || containsCodec(input.brands, HEVC_OR_UNSUPPORTED)) {
+    return { ok: false, error: 'unsupported_video_codec' };
+  }
+  const hasH264Hint = containsCodec(input.moovText, H264_HINTS) || containsCodec(input.brands, H264_HINTS);
+  if (input.quickTime && !hasH264Hint) return { ok: false, error: 'unsupported_mp4_brand' };
   return {
     ok: true,
-    durationMs: durationInside(buffer, 0, buffer.length),
-    hasH264Hint: containsCodec(asciiScan, H264_HINTS) || containsCodec(ftyp.brands, H264_HINTS),
-    brands: ftyp.brands.replace(/[^\w ]/g, ' ').trim(),
+    durationMs: input.durationMs,
+    hasH264Hint,
+    brands: input.brands.replace(/[^\w ]/g, ' ').trim(),
   };
+}
+
+export function inspectMp4(buffer: Buffer): Mp4InspectResult {
+  const ftyp = ftypVerdict(buffer);
+  const quickTime = !ftyp.ok && ftyp.error === 'unsupported_mp4_brand' && isQuickTimeH264Container(ftyp.brands);
+  if (!ftyp.ok && !quickTime) return ftyp;
+
+  const asciiScan = buffer.subarray(0, Math.min(buffer.length, 2_000_000)).toString('latin1');
+  const brands = ftyp.brands || '';
+  return finishInspectedMp4({
+    brands,
+    quickTime,
+    moovText: asciiScan,
+    durationMs: durationInside(buffer, 0, buffer.length),
+  });
 }
 
 export type Mp4ByteSource = {
@@ -158,7 +182,8 @@ export async function inspectMp4Source(source: Mp4ByteSource): Promise<Mp4Inspec
   const headLen = Math.min(source.length, REMOTE_HEAD_BYTES);
   const head = await source.read(0, headLen);
   const ftyp = ftypVerdict(head);
-  if (!ftyp.ok) return ftyp;
+  const quickTime = !ftyp.ok && ftyp.error === 'unsupported_mp4_brand' && isQuickTimeH264Container(ftyp.brands);
+  if (!ftyp.ok && !quickTime) return ftyp;
 
   const readWindow = async (offset: number, length: number): Promise<Buffer> => {
     if (offset < 0 || length <= 0) throw new Error('blob_fetch_failed');
@@ -182,18 +207,14 @@ export async function inspectMp4Source(source: Mp4ByteSource): Promise<Mp4Inspec
     offset = box.end;
   }
 
-  if (moov && containsCodec(moov.toString('latin1'), HEVC_OR_UNSUPPORTED)) {
-    return { ok: false, error: 'unsupported_video_codec' };
-  }
-
   const moovHeader = moov ? readBox(moov, 0) : null;
   const durationMs =
     moov && moovHeader ? durationInside(moov, moovHeader.headerSize, moov.length) : null;
   const moovText = moov ? moov.toString('latin1') : '';
-  return {
-    ok: true,
+  return finishInspectedMp4({
+    brands: ftyp.brands || '',
+    quickTime,
+    moovText,
     durationMs,
-    hasH264Hint: containsCodec(moovText, H264_HINTS) || containsCodec(ftyp.brands, H264_HINTS),
-    brands: ftyp.brands.replace(/[^\w ]/g, ' ').trim(),
-  };
+  });
 }
