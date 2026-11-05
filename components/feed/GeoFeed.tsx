@@ -224,8 +224,13 @@ import {
 } from "@/lib/feed/feed-query-params";
 import {
   joinOrFetchHomeFeedFirstPage,
+  primeHomeFeedFirstPage,
   takeHomeFeedEarlyBootstrap,
 } from "@/lib/feed/home-feed-early-bootstrap";
+import {
+  MARKETPLACE_SEARCH_DEBOUNCE_MS,
+  shouldLoadUnfilteredDiscovery,
+} from "@/lib/feed/search-request-policy";
 import { FEED_FIRST_PAGE_TAKE } from "@/lib/feed/feed-pagination";
 import {
   FEED_MOUNTED_CARD_CAP,
@@ -1427,7 +1432,10 @@ export default function GeoFeed({
     }
   }, []);
   const [searchQuery, setSearchQuery] = useState("");
-  const debouncedSearchQuery = useDebouncedValue(searchQuery, 350);
+  const debouncedSearchQuery = useDebouncedValue(
+    searchQuery,
+    MARKETPLACE_SEARCH_DEBOUNCE_MS,
+  );
   const [searchLane, setSearchLane] = useState<
     "all" | "offer" | "people" | "inspiration"
   >("all");
@@ -2658,56 +2666,76 @@ export default function GeoFeed({
     return () => window.clearTimeout(t);
   }, [feedHydrated, loading, items.length]);
 
+  const buildActiveFeedFirstPageParams = useCallback(
+    (query: string) => {
+      const softNationalFallback =
+        nearbyNeedsLocation &&
+        browseLocationMode !== "country" &&
+        browseLocationMode !== "region" &&
+        !browseCountryCode;
+      return buildGeoFeedApiParams(
+        {
+          scope: softNationalFallback
+            ? FEED_SCOPE_NATIONAL
+            : browseLocationMode === "country" || browseLocationMode === "region"
+              ? FEED_SCOPE_INTERNATIONAL
+              : appliedScope,
+          radius:
+            softNationalFallback || browseLocationMode === "country"
+              ? 0
+              : appliedRadius,
+          q: query.trim() || appliedQ,
+          category: appliedCategory,
+          lat:
+            softNationalFallback || browseLocationMode === "country"
+              ? null
+              : (coordsForApiLabels?.lat ?? null),
+          lng:
+            softNationalFallback || browseLocationMode === "country"
+              ? null
+              : (coordsForApiLabels?.lng ?? null),
+          place:
+            softNationalFallback || browseLocationMode === "country"
+              ? ""
+              : viewerPlaceForApi,
+          locationSource: softNationalFallback
+            ? null
+            : browseLocationMode === "country"
+              ? "country"
+              : appliedScope === FEED_SCOPE_NEARBY
+                ? apiLocationSource
+                : null,
+          countryCode: browseCountryCode || null,
+          locationMode:
+            browseLocationMode === "global" ? null : browseLocationMode,
+        },
+        { take: FEED_FIRST_PAGE_TAKE, skip: 0 },
+      );
+    },
+    [
+      nearbyNeedsLocation,
+      browseLocationMode,
+      browseCountryCode,
+      appliedScope,
+      appliedRadius,
+      appliedQ,
+      appliedCategory,
+      coordsForApiLabels?.lat,
+      coordsForApiLabels?.lng,
+      viewerPlaceForApi,
+      apiLocationSource,
+    ],
+  );
+
   useEffect(() => {
     if (feedStartupBlocked) return;
-
-    // Soft national fallback while waiting for IP/GPS/place — never blank the feed.
-    // Country boundary mode uses country filter — never invent NL mainland.
-    const softNationalFallback =
-      nearbyNeedsLocation &&
-      browseLocationMode !== "country" &&
-      browseLocationMode !== "region" &&
-      !browseCountryCode;
 
     setFeedHasMore(false);
     if (itemsRef.current.length > 0) {
       feedSealedNotePaginationReset();
     }
 
-    const params = buildGeoFeedApiParams(
-      {
-        scope: softNationalFallback
-          ? FEED_SCOPE_NATIONAL
-          : browseLocationMode === "country" || browseLocationMode === "region"
-            ? FEED_SCOPE_INTERNATIONAL
-            : appliedScope,
-        radius: softNationalFallback || browseLocationMode === "country"
-          ? 0
-          : appliedRadius,
-        q: appliedSearchQuery.trim() || appliedQ,
-        category: appliedCategory,
-        lat: softNationalFallback || browseLocationMode === "country"
-          ? null
-          : (coordsForApiLabels?.lat ?? null),
-        lng: softNationalFallback || browseLocationMode === "country"
-          ? null
-          : (coordsForApiLabels?.lng ?? null),
-        place:
-          softNationalFallback || browseLocationMode === "country"
-            ? ""
-            : viewerPlaceForApi,
-        locationSource: softNationalFallback
-          ? null
-          : browseLocationMode === "country"
-            ? "country"
-            : appliedScope === FEED_SCOPE_NEARBY
-              ? apiLocationSource
-              : null,
-        countryCode: browseCountryCode || null,
-        locationMode: browseLocationMode === "global" ? null : browseLocationMode,
-      },
-      { take: FEED_FIRST_PAGE_TAKE, skip: 0 },
-    );
+    const params = buildActiveFeedFirstPageParams(appliedSearchQuery);
 
     const requestKey = params.toString();
     const prevKey = latestFeedRequestKeyRef.current;
@@ -3313,7 +3341,8 @@ export default function GeoFeed({
     appliedCategory,
     browseCountryCode,
     browseLocationMode,
-    commitCompositionState
+    commitCompositionState,
+    buildActiveFeedFirstPageParams,
   ]);
 
   useEffect(() => {
@@ -5812,6 +5841,11 @@ export default function GeoFeed({
   /** Debounced search. The feed request uses this as q. */
   useEffect(() => {
     if (debouncedSearchQuery === appliedSearchQuery) return;
+    if (!feedStartupBlocked) {
+      const params = buildActiveFeedFirstPageParams(debouncedSearchQuery);
+      const requestKey = params.toString();
+      primeHomeFeedFirstPage(requestKey, `/api/feed?${requestKey}`);
+    }
     setAppliedSearchQuery(debouncedSearchQuery);
     if (!debouncedSearchQuery.trim()) setSearchLane("all");
     if (discoverySearchDirtyRef.current) {
@@ -5820,7 +5854,12 @@ export default function GeoFeed({
       discoveryKeyAtIntentRef.current = discoveryServerKeyRef.current;
       discoverySearchDirtyRef.current = false;
     }
-  }, [debouncedSearchQuery, appliedSearchQuery]);
+  }, [
+    debouncedSearchQuery,
+    appliedSearchQuery,
+    feedStartupBlocked,
+    buildActiveFeedFirstPageParams,
+  ]);
 
   useEffect(() => {
     const q = appliedSearchQuery.trim();
@@ -6607,6 +6646,16 @@ export default function GeoFeed({
   );
 
   useEffect(() => {
+    if (!shouldLoadUnfilteredDiscovery(appliedSearchQuery)) {
+      if (suggestionKeyRef.current !== "search") {
+        suggestionKeyRef.current = "search";
+        suggestionSkipRef.current = 0;
+        setSuggestionItems([]);
+        setSuggestionHasMore(false);
+        setSuggestionApiDone(false);
+      }
+      return;
+    }
     if (!showExhaustionContinuation) return;
     const key = discoveryPaginationResetKey({
       category: appliedCategory,

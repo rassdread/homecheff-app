@@ -315,6 +315,27 @@ export async function takeHomeFeedEarlyBootstrap(
  * - Different key → independent request (caller passes its key)
  * - AbortSignal only applies to fetches this call starts (not shared joins)
  */
+let primedFeedKey: string | null = null;
+let primedFeedAbort: AbortController | null = null;
+
+/**
+ * Start the first-page feed request before React paints the next result list.
+ * joinOrFetchHomeFeedFirstPage reuses this promise for the same key.
+ * A newer key aborts the previous prime so an older search cannot stay in flight.
+ */
+export function primeHomeFeedFirstPage(requestKey: string, url: string): void {
+  if (typeof window === 'undefined') return;
+  if (readInflight(requestKey)) return;
+  if (primedFeedAbort && primedFeedKey !== requestKey) {
+    primedFeedAbort.abort();
+  }
+  const controller = new AbortController();
+  primedFeedAbort = controller;
+  primedFeedKey = requestKey;
+  const promise = fetchHomeFeedFirstPage(requestKey, url, controller.signal);
+  registerInflight(requestKey, promise);
+}
+
 export async function joinOrFetchHomeFeedFirstPage(
   requestKey: string,
   url: string,
