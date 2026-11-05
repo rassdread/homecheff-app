@@ -1,3 +1,5 @@
+import { isTrustedAffiliateMediaBlobUrl } from '@/lib/affiliate-media/trusted-blob';
+
 export async function putAffiliateMediaBlob(input: {
   key: string;
   buffer: Buffer;
@@ -26,6 +28,17 @@ export async function deleteAffiliateMediaBlob(url: string | null | undefined): 
     await del(url, { token });
   } catch {
     /* orphan GC later */
+  }
+}
+
+export function storageKeyFromTrustedBlobUrl(url: string): string | null {
+  try {
+    if (!isTrustedAffiliateMediaBlobUrl(url)) return null;
+    const path = decodeURIComponent(new URL(url).pathname).replace(/^\/+/, '');
+    if (!path.startsWith('affiliate-media/') || path.includes('..') || path.length > 240) return null;
+    return path;
+  } catch {
+    return null;
   }
 }
 

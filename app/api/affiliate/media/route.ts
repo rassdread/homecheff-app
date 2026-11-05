@@ -11,7 +11,6 @@ import {
   AFFILIATE_MEDIA_IMAGE_MAX_BYTES,
   AFFILIATE_MEDIA_POSTER_MAX_BYTES,
   AFFILIATE_MEDIA_UPLOADS_PER_HOUR,
-  AFFILIATE_MEDIA_VIDEO_MAX_BYTES,
 } from '@/lib/affiliate-media/constants';
 import { sanitizeDestinationPath } from '@/lib/affiliate-media/destination';
 import { checkAffiliateMediaUploadRateLimit } from '@/lib/affiliate-media/rate-limit';
@@ -20,7 +19,14 @@ import { destinationForPlatform, inferPromoPlatform, parsePromoPlatform, type Pr
 import { newAffiliateMediaShareSlug } from '@/lib/affiliate-media/share-url';
 import { mergeOfficialVerdienCheckPromo } from '@/lib/affiliate-media/official-verdiencheck';
 import type { Prisma } from '@prisma/client';
-import { affiliateMediaObjectKey, deleteAffiliateMediaBlob, putAffiliateMediaBlob } from '@/lib/affiliate-media/storage';
+import { validateRemotePromoVideo } from '@/lib/affiliate-media/remote-video';
+import { shouldReuseExistingUpload } from '@/lib/affiliate-media/reuse-upload';
+import {
+  affiliateMediaObjectKey,
+  deleteAffiliateMediaBlob,
+  putAffiliateMediaBlob,
+  storageKeyFromTrustedBlobUrl,
+} from '@/lib/affiliate-media/storage';
 import { fetchTrustedAffiliateMediaBlob, isTrustedAffiliateMediaBlobUrl } from '@/lib/affiliate-media/trusted-blob';
 import { validatePromoImage, validatePromoPoster, validatePromoVideo } from '@/lib/affiliate-media/validate-file';
 import {
@@ -80,6 +86,10 @@ function platformWhere(platform: PromoPlatform | null): Prisma.AffiliateMediaAss
 
 function actorPayload(actor: { isAdmin: boolean; isAffiliate: boolean; referralCode: string | null }) {
   return { isAdmin: actor.isAdmin, isAffiliate: actor.isAffiliate, referralCode: actor.referralCode };
+}
+
+async function discardStoredBlobs(urls: Array<string | null | undefined>): Promise<void> {
+  await Promise.all(urls.map((url) => deleteAffiliateMediaBlob(url)));
 }
 
 export async function GET(req: Request) {
@@ -258,8 +268,27 @@ export async function POST(req: Request) {
     declaredName.toLowerCase().endsWith('.mp4') ||
     remoteMediaUrl.toLowerCase().includes('/video.mp4');
 
+  if (hasRemote) {
+    const existing = await prisma.affiliateMediaAsset.findFirst({
+      where: { mediaUrl: remoteMediaUrl, creatorUserId: actor.userId, deletedAt: null },
+      include: { creator: { select: CREATOR_SELECT } },
+    });
+    if (
+      existing &&
+      shouldReuseExistingUpload({
+        existing,
+        mediaUrl: remoteMediaUrl,
+        creatorUserId: actor.userId,
+      })
+    ) {
+      return NextResponse.json({
+        asset: serializePromoAsset(existing, existing.creator, actor.userId),
+      });
+    }
+  }
+
   let kind: 'IMAGE' | 'VIDEO';
-  let mediaBuf: Buffer;
+  let mediaBuf: Buffer | null = null;
   let mediaMime: string;
   let byteSize: number;
   let width: number | null = null;
@@ -269,13 +298,46 @@ export async function POST(req: Request) {
   let posterMime = 'image/jpeg';
 
   try {
+    if (isVideo && hasRemote) {
+      const video = await validateRemotePromoVideo(
+        remoteMediaUrl,
+        declaredMime || 'video/mp4',
+        declaredName || 'clip.mp4',
+      );
+      if (!video.ok) {
+        await discardStoredBlobs([remoteMediaUrl, remotePosterUrl]);
+        return NextResponse.json({ error: video.error }, { status: 400 });
+      }
+      if (!remotePosterUrl) {
+        await discardStoredBlobs([remoteMediaUrl]);
+        return NextResponse.json({ error: 'poster_required' }, { status: 400 });
+      }
+      const posterFetched = await fetchTrustedAffiliateMediaBlob(remotePosterUrl, AFFILIATE_MEDIA_POSTER_MAX_BYTES);
+      if (!posterFetched.ok) {
+        await discardStoredBlobs([remoteMediaUrl, remotePosterUrl]);
+        return NextResponse.json({ error: posterFetched.error }, { status: 400 });
+      }
+      const poster = validatePromoPoster(posterFetched.buffer, 'image/jpeg');
+      if (!poster.ok) {
+        await discardStoredBlobs([remoteMediaUrl, remotePosterUrl]);
+        return NextResponse.json({ error: poster.error }, { status: 400 });
+      }
+      kind = 'VIDEO';
+      mediaMime = video.mimeType;
+      byteSize = video.byteSize;
+      durationMs = video.durationMs;
+      posterBuf = poster.value.buffer;
+      posterMime = poster.value.mimeType;
+      width = poster.value.width;
+      height = poster.value.height;
+    } else {
     let buf: Buffer;
     if (hasRemote) {
-      const fetched = await fetchTrustedAffiliateMediaBlob(
-        remoteMediaUrl,
-        isVideo ? AFFILIATE_MEDIA_VIDEO_MAX_BYTES : AFFILIATE_MEDIA_IMAGE_MAX_BYTES,
-      );
-      if (!fetched.ok) return NextResponse.json({ error: fetched.error }, { status: 400 });
+      const fetched = await fetchTrustedAffiliateMediaBlob(remoteMediaUrl, AFFILIATE_MEDIA_IMAGE_MAX_BYTES);
+      if (!fetched.ok) {
+        await discardStoredBlobs([remoteMediaUrl]);
+        return NextResponse.json({ error: fetched.error }, { status: 400 });
+      }
       buf = fetched.buffer;
     } else {
       buf = Buffer.from(await (file as File).arrayBuffer());
@@ -284,7 +346,7 @@ export async function POST(req: Request) {
     if (isVideo) {
       const video = validatePromoVideo(buf, declaredMime || 'video/mp4', declaredName || 'clip.mp4');
       if (!video.ok) {
-        if (hasRemote) await deleteAffiliateMediaBlob(remoteMediaUrl);
+        if (hasRemote) await discardStoredBlobs([remoteMediaUrl, remotePosterUrl]);
         return NextResponse.json({ error: video.error }, { status: 400 });
       }
       kind = 'VIDEO';
@@ -293,38 +355,16 @@ export async function POST(req: Request) {
       byteSize = video.value.byteSize;
       durationMs = video.value.durationMs;
 
-      if (hasRemote) {
-        if (!remotePosterUrl) {
-          await deleteAffiliateMediaBlob(remoteMediaUrl);
-          return NextResponse.json({ error: 'poster_required' }, { status: 400 });
-        }
-        const posterFetched = await fetchTrustedAffiliateMediaBlob(remotePosterUrl, AFFILIATE_MEDIA_POSTER_MAX_BYTES);
-        if (!posterFetched.ok) {
-          await deleteAffiliateMediaBlob(remoteMediaUrl);
-          return NextResponse.json({ error: posterFetched.error }, { status: 400 });
-        }
-        const poster = validatePromoPoster(posterFetched.buffer, 'image/jpeg');
-        if (!poster.ok) {
-          await deleteAffiliateMediaBlob(remoteMediaUrl);
-          await deleteAffiliateMediaBlob(remotePosterUrl);
-          return NextResponse.json({ error: poster.error }, { status: 400 });
-        }
-        posterBuf = poster.value.buffer;
-        posterMime = poster.value.mimeType;
-        width = poster.value.width;
-        height = poster.value.height;
-      } else {
-        const posterFile = form.get('poster');
-        if (!(posterFile instanceof File)) {
-          return NextResponse.json({ error: 'poster_required' }, { status: 400 });
-        }
-        const poster = validatePromoPoster(Buffer.from(await posterFile.arrayBuffer()), posterFile.type || 'image/jpeg');
-        if (!poster.ok) return NextResponse.json({ error: poster.error }, { status: 400 });
-        posterBuf = poster.value.buffer;
-        posterMime = poster.value.mimeType;
-        width = poster.value.width;
-        height = poster.value.height;
+      const posterFile = form.get('poster');
+      if (!(posterFile instanceof File)) {
+        return NextResponse.json({ error: 'poster_required' }, { status: 400 });
       }
+      const poster = validatePromoPoster(Buffer.from(await posterFile.arrayBuffer()), posterFile.type || 'image/jpeg');
+      if (!poster.ok) return NextResponse.json({ error: poster.error }, { status: 400 });
+      posterBuf = poster.value.buffer;
+      posterMime = poster.value.mimeType;
+      width = poster.value.width;
+      height = poster.value.height;
     } else {
       const image = validatePromoImage(buf, declaredMime || 'image/jpeg');
       if (!image.ok) {
@@ -337,6 +377,7 @@ export async function POST(req: Request) {
       byteSize = image.value.byteSize;
       width = image.value.width;
       height = image.value.height;
+    }
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'upload_failed';
@@ -367,6 +408,9 @@ export async function POST(req: Request) {
       mediaUrl = remoteMediaUrl;
       posterUrl = remotePosterUrl || null;
     } else {
+      if (!mediaBuf) {
+        return NextResponse.json({ error: 'upload_failed' }, { status: 400 });
+      }
       const media = await putAffiliateMediaBlob({
         key: affiliateMediaObjectKey(assetId, kind === 'VIDEO' ? 'video' : 'image'),
         buffer: mediaBuf,
@@ -387,34 +431,46 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: msg === 'BLOB_TOKEN_MISSING' ? 'storage_unavailable' : 'upload_failed' }, { status: 503 });
   }
 
-  const created = await prisma.affiliateMediaAsset.create({
-    data: {
-      id: assetId,
-      creatorUserId: actor.userId,
-      kind,
-      storageKey: affiliateMediaObjectKey(assetId, kind === 'VIDEO' ? 'video' : 'image'),
-      mediaUrl,
-      posterUrl,
-      posterStorageKey: posterBuf || posterUrl ? affiliateMediaObjectKey(assetId, 'poster') : null,
-      mimeType: mediaMime,
-      byteSize,
-      width,
-      height,
-      durationMs,
-      title: copy.title,
-      caption: copy.caption,
-      ctaText: copy.ctaText,
-      visibility: visibility as AffiliateMediaVisibility,
-      moderationStatus,
-      reuseConsentAt: visibility === 'AFFILIATE_COMMUNITY' ? new Date() : null,
-      shareSlug,
-      destinationPath,
-      campaignTag: platform,
-    },
-    include: { creator: { select: CREATOR_SELECT } },
-  });
+  const mediaStorageKey =
+    storageKeyFromTrustedBlobUrl(mediaUrl) ||
+    affiliateMediaObjectKey(assetId, kind === 'VIDEO' ? 'video' : 'image');
+  const posterStorageKey = posterUrl
+    ? storageKeyFromTrustedBlobUrl(posterUrl) || affiliateMediaObjectKey(assetId, 'poster')
+    : null;
 
-  return NextResponse.json({
-    asset: serializePromoAsset(created, created.creator, actor.userId),
-  });
+  try {
+    const created = await prisma.affiliateMediaAsset.create({
+      data: {
+        id: assetId,
+        creatorUserId: actor.userId,
+        kind,
+        storageKey: mediaStorageKey,
+        mediaUrl,
+        posterUrl,
+        posterStorageKey,
+        mimeType: mediaMime,
+        byteSize,
+        width,
+        height,
+        durationMs,
+        title: copy.title,
+        caption: copy.caption,
+        ctaText: copy.ctaText,
+        visibility: visibility as AffiliateMediaVisibility,
+        moderationStatus,
+        reuseConsentAt: visibility === 'AFFILIATE_COMMUNITY' ? new Date() : null,
+        shareSlug,
+        destinationPath,
+        campaignTag: platform,
+      },
+      include: { creator: { select: CREATOR_SELECT } },
+    });
+    return NextResponse.json({
+      asset: serializePromoAsset(created, created.creator, actor.userId),
+    });
+  } catch (err) {
+    await discardStoredBlobs([mediaUrl, posterUrl]);
+    console.error('[affiliate-media] create failed', err instanceof Error ? err.message : 'error');
+    return NextResponse.json({ error: 'upload_failed' }, { status: 500 });
+  }
 }

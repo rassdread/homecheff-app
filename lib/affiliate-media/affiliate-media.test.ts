@@ -12,13 +12,17 @@ import {
 } from './access';
 import { sanitizeDestinationPath } from './destination';
 import { inspectImage, stripJpegExif } from './image-inspect';
-import { inspectMp4 } from './mp4-inspect';
+import { inspectMp4, inspectMp4Source } from './mp4-inspect';
 import { attributedPromoUrl, canonicalPromoUrl, isValidShareSlug } from './share-url';
 import { inferPromoPlatform, promoContinueHref, promoLibraryPath, promoShareAbsolute } from './platform';
 import { validateCommunityConsent } from './validate-meta';
-import { validatePromoImage, validatePromoVideo } from './validate-file';
+import { assertPromoVideoMeta, validatePromoImage, validatePromoVideo } from './validate-file';
 import { checkAffiliateMediaUploadRateLimit, _resetAffiliateMediaRateLimitForTests } from './rate-limit';
-import { AFFILIATE_MEDIA_UPLOADS_PER_HOUR } from './constants';
+import {
+  AFFILIATE_MEDIA_INLINE_MAX_BYTES,
+  AFFILIATE_MEDIA_UPLOADS_PER_HOUR,
+  AFFILIATE_MEDIA_VIDEO_MAX_BYTES,
+} from './constants';
 import { listingPathFromAbsolute } from '@/lib/share/resolve-marketplace-share-url';
 import {
   buildExactlyOnceWebShareData,
@@ -26,8 +30,14 @@ import {
 } from '@/lib/share/exactly-once-share';
 import { creatorCreditLabel } from './serialize';
 import { isKnownHomecheffRootPath } from '@/lib/seo/known-root-path-segments';
-import { affiliateMediaObjectKey } from './storage';
-import { isTrustedAffiliateMediaBlobUrl } from './trusted-blob';
+import { affiliateMediaObjectKey, storageKeyFromTrustedBlobUrl } from './storage';
+import { isTrustedAffiliateMediaBlobUrl, totalFromContentRange } from './trusted-blob';
+import {
+  affiliateMediaUploadErrorMessage,
+  affiliateMediaUploadTransport,
+  classifyAffiliatePromoFile,
+} from './upload-errors';
+import { shouldReuseExistingUpload } from './reuse-upload';
 
 const root = resolve(process.cwd());
 function read(rel: string): string {
@@ -375,5 +385,206 @@ describe('storage + security contracts', () => {
     assert.match(src, /affiliate-media/);
     assert.match(src, /getPromoActor/);
     assert.match(src, /allowedContentTypes/);
+    assert.match(src, /AFFILIATE_MEDIA_VIDEO_MAX_BYTES/);
+  });
+});
+
+describe('affiliate promo upload repair', () => {
+  const inspected = {
+    ok: true as const,
+    durationMs: 45_000,
+    hasH264Hint: true,
+    brands: 'isom',
+  };
+
+  it('accepts 47 MB and 55 MB mp4 metadata and rejects anything above 80 MB', () => {
+    assert.equal(AFFILIATE_MEDIA_VIDEO_MAX_BYTES, 80 * 1024 * 1024);
+    assert.ok(47 * 1024 * 1024 <= AFFILIATE_MEDIA_VIDEO_MAX_BYTES);
+    assert.ok(55 * 1024 * 1024 <= AFFILIATE_MEDIA_VIDEO_MAX_BYTES);
+    assert.equal(
+      assertPromoVideoMeta({
+        byteSize: 55 * 1024 * 1024,
+        declaredMime: 'video/mp4',
+        fileName: 'homecheff algemeen cartoon promo.mp4',
+        inspected,
+      }).ok,
+      true,
+    );
+    assert.equal(
+      assertPromoVideoMeta({
+        byteSize: 47 * 1024 * 1024,
+        declaredMime: 'video/mp4',
+        fileName: 'promo.mp4',
+        inspected,
+      }).ok,
+      true,
+    );
+    const tooBig = assertPromoVideoMeta({
+      byteSize: AFFILIATE_MEDIA_VIDEO_MAX_BYTES + 1,
+      declaredMime: 'video/mp4',
+      fileName: 'promo.mp4',
+      inspected,
+    });
+    assert.equal(tooBig.ok, false);
+    if (!tooBig.ok) assert.equal(tooBig.error, 'video_too_large');
+  });
+
+  it('keeps the Next.js body under the Vercel 4.5 MB cap and sends larger videos direct to blob', () => {
+    assert.ok(AFFILIATE_MEDIA_INLINE_MAX_BYTES <= 4 * 1024 * 1024);
+    assert.ok(AFFILIATE_MEDIA_INLINE_MAX_BYTES < 4.5 * 1024 * 1024);
+    assert.equal(affiliateMediaUploadTransport(3 * 1024 * 1024), 'inline');
+    assert.equal(affiliateMediaUploadTransport(55 * 1024 * 1024), 'direct');
+    const api = read('app/api/affiliate/media/route.ts');
+    assert.match(api, /validateRemotePromoVideo/);
+    assert.match(api, /shouldReuseExistingUpload/);
+    assert.doesNotMatch(api, /sizeLimit/);
+    const client = read('components/affiliate/AffiliatePromoLibraryClient.tsx');
+    assert.match(client, /onUploadProgress/);
+    assert.match(client, /affiliateMediaUploadTransport/);
+    assert.match(client, /affiliateMediaUploadErrorMessage/);
+    assert.doesNotMatch(client, /throw new Error\('upload_failed'\)/);
+  });
+
+  it('rejects invalid extensions and still accepts jpg, png and webp', () => {
+    assert.equal(classifyAffiliatePromoFile('clip.mov', 'video/quicktime'), 'rejected');
+    assert.equal(classifyAffiliatePromoFile('clip.webm', 'video/webm'), 'rejected');
+    assert.equal(classifyAffiliatePromoFile('clip.mkv', 'video/x-matroska'), 'rejected');
+    assert.equal(classifyAffiliatePromoFile('promo.mp4', 'video/mp4'), 'video');
+    assert.equal(classifyAffiliatePromoFile('promo.mp4', ''), 'video');
+    assert.equal(classifyAffiliatePromoFile('photo.jpg', 'image/jpeg'), 'image');
+    assert.equal(classifyAffiliatePromoFile('photo.png', 'image/png'), 'image');
+    assert.equal(classifyAffiliatePromoFile('photo.webp', 'image/webp'), 'image');
+    assert.equal(classifyAffiliatePromoFile('anim.gif', 'image/gif'), 'rejected');
+    const png = Buffer.alloc(24);
+    png.set([0x89, 0x50, 0x4e, 0x47], 0);
+    png.write('IHDR', 12, 'ascii');
+    png.writeUInt32BE(32, 16);
+    png.writeUInt32BE(32, 20);
+    assert.equal(validatePromoImage(png, 'image/png').ok, true);
+    const webp = Buffer.concat([Buffer.from('RIFF'), Buffer.alloc(4), Buffer.from('WEBP'), Buffer.alloc(8)]);
+    assert.equal(validatePromoImage(webp, 'image/webp').ok, true);
+    const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01]);
+    assert.equal(validatePromoImage(Buffer.concat([jpeg, Buffer.alloc(8)]), 'image/jpeg').ok, true);
+  });
+
+  it('reads duration from a moov atom after a large mdat without loading the payload', async () => {
+    const head = ftyp();
+    const mdatPayload = 50 * 1024 * 1024;
+    const mdatHeader = Buffer.alloc(8);
+    mdatHeader.writeUInt32BE(8 + mdatPayload);
+    mdatHeader.write('mdat', 4, 'ascii');
+    const moov = box('moov', mvhdDuration(30_000));
+    const moovOffset = head.length + mdatHeader.length + mdatPayload;
+    const length = moovOffset + moov.length;
+    const calls: { offset: number; length: number }[] = [];
+    const inspectedRemote = await inspectMp4Source({
+      length,
+      read: async (offset, size) => {
+        calls.push({ offset, length: size });
+        const out = Buffer.alloc(size);
+        const place = (partOffset: number, data: Buffer) => {
+          const start = Math.max(offset, partOffset);
+          const end = Math.min(offset + size, partOffset + data.length);
+          if (end > start) data.copy(out, start - offset, start - partOffset, end - partOffset);
+        };
+        place(0, head);
+        place(head.length, mdatHeader);
+        place(moovOffset, moov);
+        return out;
+      },
+    });
+    assert.equal(inspectedRemote.ok, true);
+    if (inspectedRemote.ok) assert.equal(inspectedRemote.durationMs, 30_000);
+    const downloaded = calls.reduce((sum, call) => sum + call.length, 0);
+    assert.ok(downloaded < 3 * 1024 * 1024);
+    assert.ok(calls.every((call) => call.length <= 2 * 1024 * 1024));
+    assert.ok(downloaded < length / 10);
+
+    const tooLong = box('moov', mvhdDuration(90_000));
+    const long = await inspectMp4Source({
+      length: head.length + tooLong.length,
+      read: async (offset, size) => Buffer.concat([head, tooLong]).subarray(offset, offset + size),
+    });
+    const decision = assertPromoVideoMeta({
+      byteSize: 12_000,
+      declaredMime: 'video/mp4',
+      fileName: 'long.mp4',
+      inspected: long,
+    });
+    assert.equal(decision.ok, false);
+    if (!decision.ok) assert.equal(decision.error, 'video_too_long');
+  });
+
+  it('rejects HEVC stored in moov and keeps private material unlisted', async () => {
+    const head = ftyp();
+    const moov = box('moov', Buffer.concat([mvhdDuration(4_000), Buffer.from('hvc1')]));
+    const hevc = await inspectMp4Source({
+      length: head.length + moov.length,
+      read: async (offset, size) => Buffer.concat([head, moov]).subarray(offset, offset + size),
+    });
+    assert.equal(hevc.ok, false);
+    if (!hevc.ok) assert.equal(hevc.error, 'unsupported_video_codec');
+
+    const priv = {
+      creatorUserId: 'owner',
+      visibility: 'PRIVATE' as const,
+      moderationStatus: 'ACTIVE' as const,
+      deletedAt: null,
+    };
+    assert.equal(isListedCommunity(priv), false);
+    assert.equal(canOtherAffiliateShare(priv, 'other-affiliate'), false);
+    assert.equal(isSafeForOpenGraphMedia(priv), false);
+    const community = { ...priv, visibility: 'AFFILIATE_COMMUNITY' as const };
+    assert.equal(isListedCommunity(community), true);
+    assert.equal(canOtherAffiliateShare(community, 'other-affiliate'), true);
+    const shared = attributedPromoUrl({ shareSlug: 'abcdefgh', sharingReferralCode: 'VIEWER' });
+    assert.match(shared, /ref=VIEWER/);
+    assert.equal(shared.includes('owner'), false);
+  });
+
+  it('reuses one record when the same stored file is saved again', () => {
+    const mediaUrl = 'https://example.public.blob.vercel-storage.com/affiliate-media/asset/video.mp4';
+    assert.equal(
+      shouldReuseExistingUpload({
+        existing: { mediaUrl, creatorUserId: 'owner', deletedAt: null },
+        mediaUrl,
+        creatorUserId: 'owner',
+      }),
+      true,
+    );
+    assert.equal(
+      shouldReuseExistingUpload({
+        existing: { mediaUrl, creatorUserId: 'owner', deletedAt: new Date() },
+        mediaUrl,
+        creatorUserId: 'owner',
+      }),
+      false,
+    );
+    assert.equal(
+      shouldReuseExistingUpload({
+        existing: { mediaUrl, creatorUserId: 'owner', deletedAt: null },
+        mediaUrl,
+        creatorUserId: 'someone-else',
+      }),
+      false,
+    );
+    assert.equal(storageKeyFromTrustedBlobUrl(mediaUrl), 'affiliate-media/asset/video.mp4');
+    assert.equal(storageKeyFromTrustedBlobUrl('https://evil.com/affiliate-media/asset/video.mp4'), null);
+    assert.equal(totalFromContentRange('bytes 0-0/57671680'), 57671680);
+  });
+
+  it('explains size, duration and storage failures in plain language', () => {
+    assert.match(affiliateMediaUploadErrorMessage('video_too_large'), /80 MB/);
+    assert.match(affiliateMediaUploadErrorMessage('video_too_long'), /60 seconden/);
+    assert.match(affiliateMediaUploadErrorMessage('image_too_large'), /8 MB/);
+    assert.match(affiliateMediaUploadErrorMessage('storage_unavailable'), /Opslag/);
+    assert.match(affiliateMediaUploadErrorMessage('video_mp4_only'), /MP4/);
+    assert.match(
+      affiliateMediaUploadErrorMessage(
+        'Body size of 57671680 bytes exceeds the maximum allowed size of 20971520 bytes',
+      ),
+      /80 MB/,
+    );
+    assert.match(affiliateMediaUploadErrorMessage('upload_token_failed'), /Opslag/);
   });
 });

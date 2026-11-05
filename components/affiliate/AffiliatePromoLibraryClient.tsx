@@ -8,7 +8,16 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { toAbsolutePublicUrl } from '@/lib/share/listing-share';
 import { canonicalPromoPath } from '@/lib/affiliate-media/share-url';
 import { promoShareAbsolute, parsePromoPlatform, type PromoPlatform } from '@/lib/affiliate-media/platform';
-import { AFFILIATE_MEDIA_VIDEO_MAX_DURATION_MS } from '@/lib/affiliate-media/constants';
+import {
+  AFFILIATE_MEDIA_IMAGE_MAX_BYTES,
+  AFFILIATE_MEDIA_VIDEO_MAX_BYTES,
+  AFFILIATE_MEDIA_VIDEO_MAX_DURATION_MS,
+} from '@/lib/affiliate-media/constants';
+import {
+  affiliateMediaUploadErrorMessage,
+  affiliateMediaUploadTransport,
+  classifyAffiliatePromoFile,
+} from '@/lib/affiliate-media/upload-errors';
 
 type Asset = {
   id: string;
@@ -59,7 +68,18 @@ function sourceFromQuery(raw: string | null): Source {
   return 'all';
 }
 
-async function uploadPromoBlob(file: File, kind: 'image' | 'video' | 'poster'): Promise<string> {
+function normalizeBlobUploadError(err: unknown): Error {
+  const message = err instanceof Error ? err.message : 'upload_failed';
+  if (/exceeds the maximum allowed size/i.test(message)) return new Error('video_too_large');
+  if (/Failed to\s+retrieve the client token/i.test(message)) return new Error('upload_token_failed');
+  return err instanceof Error ? err : new Error('upload_failed');
+}
+
+async function uploadPromoBlob(
+  file: File,
+  kind: 'image' | 'video' | 'poster',
+  onProgress?: (percentage: number) => void,
+): Promise<string> {
   const { upload } = await import('@vercel/blob/client');
   const id = crypto.randomUUID();
   const lower = file.name.toLowerCase();
@@ -73,13 +93,31 @@ async function uploadPromoBlob(file: File, kind: 'image' | 'video' | 'poster'): 
           : lower.endsWith('.webp')
             ? 'webp'
             : 'jpg';
-  const blob = await upload(`affiliate-media/${id}/${kind}.${ext}`, file, {
-    access: 'public',
-    handleUploadUrl: '/api/affiliate/media/blob',
-    multipart: file.size > 3 * 1024 * 1024,
-    contentType: file.type || (kind === 'video' ? 'video/mp4' : 'image/jpeg'),
-  });
-  return blob.url;
+  const contentType =
+    kind === 'video'
+      ? 'video/mp4'
+      : file.type && file.type.startsWith('image/')
+        ? file.type
+        : kind === 'poster'
+          ? 'image/jpeg'
+          : ext === 'png'
+            ? 'image/png'
+            : ext === 'webp'
+              ? 'image/webp'
+              : 'image/jpeg';
+  try {
+    const blob = await upload(`affiliate-media/${id}/${kind}.${ext}`, file, {
+      access: 'public',
+      handleUploadUrl: '/api/affiliate/media/blob',
+      multipart: file.size > 3 * 1024 * 1024,
+      contentType,
+      clientPayload: JSON.stringify({ byteSize: file.size, kind }),
+      onUploadProgress: ({ percentage }) => onProgress?.(Math.round(percentage)),
+    });
+    return blob.url;
+  } catch (err) {
+    throw normalizeBlobUploadError(err);
+  }
 }
 
 async function posterFromVideo(file: File): Promise<File> {
@@ -129,6 +167,7 @@ export default function AffiliatePromoLibraryClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<number | null>(null);
   const [composerOpen, setComposerOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
@@ -237,10 +276,11 @@ export default function AffiliatePromoLibraryClient() {
     if (!file || busy) return;
     setBusy(true);
     setError(null);
+    setProgress(null);
     try {
       const vis = official && isAdmin ? 'OFFICIAL' : visibility;
       if (vis === 'AFFILIATE_COMMUNITY' && !consent) {
-        setError('Geef toestemming voor hergebruik door andere affiliates.');
+        setError(affiliateMediaUploadErrorMessage('reuse_consent_required'));
         return;
       }
       const form = new FormData();
@@ -251,38 +291,76 @@ export default function AffiliatePromoLibraryClient() {
       form.set('fileName', file.name);
       form.set('mimeType', file.type || '');
       if (vis === 'AFFILIATE_COMMUNITY') form.set('reuseConsent', '1');
-      const lower = file.name.toLowerCase();
-      const videoLike = file.type.startsWith('video/') || lower.endsWith('.mp4');
-      if (videoLike) {
-        if (lower.endsWith('.mov') || lower.endsWith('.webm') || file.type.includes('quicktime') || file.type.includes('webm')) {
-          setError('Alleen MP4 (H.264) video is toegestaan.');
+      const kind = classifyAffiliatePromoFile(file.name, file.type || '');
+      if (kind === 'rejected') {
+        setError(
+          file.type.startsWith('video/') || file.name.toLowerCase().endsWith('.mp4')
+            ? affiliateMediaUploadErrorMessage('video_mp4_only')
+            : affiliateMediaUploadErrorMessage('unsupported_image_type'),
+        );
+        return;
+      }
+      const direct = affiliateMediaUploadTransport(file.size) === 'direct';
+      if (kind === 'video') {
+        if (file.size > AFFILIATE_MEDIA_VIDEO_MAX_BYTES) {
+          setError(affiliateMediaUploadErrorMessage('video_too_large'));
           return;
         }
         const poster = await posterFromVideo(file);
-        try {
-          const mediaUrl = await uploadPromoBlob(file, 'video');
-          const posterUrl = await uploadPromoBlob(poster, 'poster');
+        if (direct) {
+          setProgress(1);
+          const mediaUrl = await uploadPromoBlob(file, 'video', (pct) => setProgress(Math.max(1, Math.round(pct * 0.9))));
+          const posterUrl = await uploadPromoBlob(poster, 'poster', (pct) => setProgress(90 + Math.round(pct * 0.08)));
           form.set('mediaUrl', mediaUrl);
           form.set('posterUrl', posterUrl);
           form.set('mimeType', 'video/mp4');
-        } catch {
-          if (file.size > 4 * 1024 * 1024) throw new Error('upload_failed');
-          form.set('file', file);
-          form.set('poster', poster);
+        } else {
+          try {
+            setProgress(1);
+            const mediaUrl = await uploadPromoBlob(file, 'video', (pct) => setProgress(Math.max(1, Math.round(pct * 0.9))));
+            const posterUrl = await uploadPromoBlob(poster, 'poster', (pct) => setProgress(90 + Math.round(pct * 0.08)));
+            form.set('mediaUrl', mediaUrl);
+            form.set('posterUrl', posterUrl);
+            form.set('mimeType', 'video/mp4');
+          } catch (err) {
+            const message = err instanceof Error ? err.message : '';
+            if (message === 'video_too_large' || message === 'video_mp4_only' || message === 'video_too_long') throw err;
+            form.set('file', file);
+            form.set('poster', poster);
+            form.set('mimeType', 'video/mp4');
+          }
         }
       } else {
-        try {
-          const mediaUrl = await uploadPromoBlob(file, 'image');
+        if (file.size > AFFILIATE_MEDIA_IMAGE_MAX_BYTES) {
+          setError(affiliateMediaUploadErrorMessage('image_too_large'));
+          return;
+        }
+        if (direct) {
+          setProgress(1);
+          const mediaUrl = await uploadPromoBlob(file, 'image', (pct) => setProgress(Math.max(1, pct)));
           form.set('mediaUrl', mediaUrl);
-        } catch {
-          if (file.size > 4 * 1024 * 1024) throw new Error('upload_failed');
-          form.set('file', file);
+        } else {
+          try {
+            setProgress(1);
+            const mediaUrl = await uploadPromoBlob(file, 'image', (pct) => setProgress(Math.max(1, pct)));
+            form.set('mediaUrl', mediaUrl);
+          } catch (err) {
+            const message = err instanceof Error ? err.message : '';
+            if (message === 'image_too_large' || message === 'unsupported_image_type') throw err;
+            form.set('file', file);
+          }
         }
       }
-      const res = await fetch('/api/affiliate/media', { method: 'POST', credentials: 'include', body: form });
-      const json = (await res.json()) as { error?: string };
+      setProgress(99);
+      let res: Response;
+      try {
+        res = await fetch('/api/affiliate/media', { method: 'POST', credentials: 'include', body: form });
+      } catch {
+        res = await fetch('/api/affiliate/media', { method: 'POST', credentials: 'include', body: form });
+      }
+      const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setError(json.error === 'video_too_long' ? 'Video mag maximaal 60 seconden duren.' : json.error || 'Upload mislukt.');
+        setError(affiliateMediaUploadErrorMessage(json.error));
         return;
       }
       setTitle('');
@@ -292,9 +370,10 @@ export default function AffiliatePromoLibraryClient() {
       if (fileRef.current) fileRef.current.value = '';
       await load(source, platform);
     } catch (err) {
-      setError(err instanceof Error && err.message === 'video_too_long' ? 'Video mag maximaal 60 seconden duren.' : 'Upload mislukt.');
+      setError(affiliateMediaUploadErrorMessage(err instanceof Error ? err.message : null));
     } finally {
       setBusy(false);
+      setProgress(null);
     }
   };
 
@@ -496,19 +575,36 @@ export default function AffiliatePromoLibraryClient() {
           </fieldset>
         ) : null}
         <p className="text-xs text-slate-500">
-          Foto: JPG, PNG of WebP. Video: MP4, maximaal 60 seconden.
+          Foto: JPG, PNG of WebP, maximaal {Math.round(AFFILIATE_MEDIA_IMAGE_MAX_BYTES / (1024 * 1024))} MB. Video: MP4,
+          maximaal {Math.round(AFFILIATE_MEDIA_VIDEO_MAX_BYTES / (1024 * 1024))} MB en 60 seconden.
         </p>
+        {busy && progress != null ? (
+          <div
+            className="h-2 overflow-hidden rounded-full bg-slate-100"
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Uploadvoortgang"
+          >
+            <div className="h-full bg-emerald-600" style={{ width: `${progress}%` }} />
+          </div>
+        ) : null}
         <button
           type="submit"
           disabled={busy}
           className="inline-flex min-h-[44px] items-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white disabled:opacity-60"
         >
-          {busy ? 'Uploaden…' : 'Opslaan'}
+          {busy ? (progress != null ? `Uploaden… ${progress}%` : 'Opslaan…') : 'Opslaan'}
         </button>
       </form>
       ) : null}
 
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {error ? (
+        <p className="text-sm text-red-700" role="alert">
+          {error}
+        </p>
+      ) : null}
       {loading ? <p className="text-sm text-slate-600">Laden…</p> : null}
       {!loading && assets.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4">

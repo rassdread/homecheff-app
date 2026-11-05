@@ -10,7 +10,7 @@ import {
   ALLOWED_VIDEO_MIMES,
 } from '@/lib/affiliate-media/constants';
 import { inspectImage, stripJpegExif } from '@/lib/affiliate-media/image-inspect';
-import { inspectMp4 } from '@/lib/affiliate-media/mp4-inspect';
+import { inspectMp4, type Mp4InspectResult } from '@/lib/affiliate-media/mp4-inspect';
 
 export type ValidatedImage = {
   kind: 'IMAGE';
@@ -70,28 +70,46 @@ export function validatePromoPoster(
   return validatePromoImage(buffer, declaredMime);
 }
 
+export function assertPromoVideoMeta(input: {
+  byteSize: number;
+  declaredMime: string;
+  fileName: string;
+  inspected: Mp4InspectResult | null;
+}): { ok: true; durationMs: number } | { ok: false; error: string } {
+  if (input.byteSize > AFFILIATE_MEDIA_VIDEO_MAX_BYTES) return { ok: false, error: 'video_too_large' };
+  const mime = input.declaredMime.toLowerCase();
+  const name = input.fileName.toLowerCase();
+  if (name.endsWith('.mov') || name.endsWith('.webm') || mime.includes('quicktime') || mime.includes('webm')) {
+    return { ok: false, error: 'video_mp4_only' };
+  }
+  if (!ALLOWED_VIDEO_MIMES.includes(mime as (typeof ALLOWED_VIDEO_MIMES)[number]) && !name.endsWith('.mp4')) {
+    return { ok: false, error: 'video_mp4_only' };
+  }
+  if (!input.inspected) return { ok: false, error: 'video_duration_unknown' };
+  if (!input.inspected.ok) return { ok: false, error: input.inspected.error };
+  if (input.inspected.durationMs == null || input.inspected.durationMs <= 0) {
+    return { ok: false, error: 'video_duration_unknown' };
+  }
+  if (input.inspected.durationMs > AFFILIATE_MEDIA_VIDEO_MAX_DURATION_MS + AFFILIATE_MEDIA_VIDEO_DURATION_TOLERANCE_MS) {
+    return { ok: false, error: 'video_too_long' };
+  }
+  return { ok: true, durationMs: input.inspected.durationMs };
+}
+
 export function validatePromoVideo(
   buffer: Buffer,
   declaredMime: string,
   fileName: string,
 ): { ok: true; value: ValidatedVideo } | { ok: false; error: string } {
-  if (buffer.length > AFFILIATE_MEDIA_VIDEO_MAX_BYTES) return { ok: false, error: 'video_too_large' };
-  const mime = declaredMime.toLowerCase();
-  const name = fileName.toLowerCase();
-  if (!ALLOWED_VIDEO_MIMES.includes(mime as (typeof ALLOWED_VIDEO_MIMES)[number]) && !name.endsWith('.mp4')) {
-    return { ok: false, error: 'video_mp4_only' };
-  }
-  if (name.endsWith('.mov') || name.endsWith('.webm') || mime.includes('quicktime') || mime.includes('webm')) {
-    return { ok: false, error: 'video_mp4_only' };
-  }
-  const inspected = inspectMp4(buffer);
-  if (!inspected.ok) return inspected;
-  if (inspected.durationMs == null || inspected.durationMs <= 0) {
-    return { ok: false, error: 'video_duration_unknown' };
-  }
-  if (inspected.durationMs > AFFILIATE_MEDIA_VIDEO_MAX_DURATION_MS + AFFILIATE_MEDIA_VIDEO_DURATION_TOLERANCE_MS) {
-    return { ok: false, error: 'video_too_long' };
-  }
+  const inspected = buffer.length > AFFILIATE_MEDIA_VIDEO_MAX_BYTES ? null : inspectMp4(buffer);
+  const meta = assertPromoVideoMeta({
+    byteSize: buffer.length,
+    declaredMime,
+    fileName,
+    inspected,
+  });
+  if (!meta.ok) return meta;
+  if (!inspected || !inspected.ok) return { ok: false, error: 'video_duration_unknown' };
   return {
     ok: true,
     value: {
@@ -99,7 +117,7 @@ export function validatePromoVideo(
       buffer,
       mimeType: 'video/mp4',
       byteSize: buffer.length,
-      durationMs: inspected.durationMs,
+      durationMs: meta.durationMs,
       hasH264Hint: inspected.hasH264Hint,
     },
   };
