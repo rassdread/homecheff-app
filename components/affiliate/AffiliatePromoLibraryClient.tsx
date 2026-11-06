@@ -19,11 +19,17 @@ import {
   classifyAffiliatePromoFile,
 } from '@/lib/affiliate-media/upload-errors';
 import {
+  PROMO_IMAGE_SHARE_COPY,
   PROMO_VIDEO_SHARE_COPY,
+  buildPromoAffiliateCaption,
+  buildPromoImageFileShareData,
   buildPromoVideoFileShareData,
-  downloadPromoVideoFile,
+  downloadPromoMediaFile,
+  fetchPromoImageFile,
   fetchPromoVideoFile,
+  promoImageFetchLabel,
   promoVideoFetchLabel,
+  sharePromoImageFile,
   sharePromoVideoFile,
 } from '@/lib/affiliate-media/native-video-share';
 
@@ -320,65 +326,122 @@ export default function AffiliatePromoLibraryClient() {
     }
   };
 
-  const onShareVideo = async (asset: Asset) => {
-    if (asset.kind !== 'VIDEO' || asset.builtin || inFlight.current || sheetOpen) return;
+  const onCopyCaption = async (asset: Asset) => {
+    if (asset.builtin) return;
+    const path = shareTarget(asset);
+    const resolved = await resolveShareUrl({
+      listingAbsoluteUrl: path,
+      surface: 'affiliate_promo_caption',
+    });
+    const text = buildPromoAffiliateCaption({
+      title: asset.title,
+      caption: asset.caption,
+      affiliateUrl: resolved.url,
+    });
+    await navigator.clipboard.writeText(text);
+    setShareNotice(PROMO_IMAGE_SHARE_COPY.captionCopied);
+    recordShare(asset.id, 'caption');
+  };
+
+  const onShareMedia = async (asset: Asset, intent: 'share' | 'download') => {
+    if (asset.builtin || (asset.kind !== 'VIDEO' && asset.kind !== 'IMAGE') || inFlight.current || sheetOpen) return;
     inFlight.current = true;
     videoShareAbort.current?.abort();
     const controller = new AbortController();
     videoShareAbort.current = controller;
+    const video = asset.kind === 'VIDEO';
+    const labelFor = video ? promoVideoFetchLabel : promoImageFetchLabel;
     setShareNotice(null);
-    setVideoShare({ assetId: asset.id, label: promoVideoFetchLabel(null) });
+    setVideoShare({ assetId: asset.id, label: labelFor(null) });
     try {
       const path = shareTarget(asset);
       const resolved = await resolveShareUrl({
         listingAbsoluteUrl: path,
-        surface: 'affiliate_promo_video',
+        surface: video ? 'affiliate_promo_video' : 'affiliate_promo_image',
       });
-      const fetched = await fetchPromoVideoFile(asset.mediaUrl, {
-        maxBytes: AFFILIATE_MEDIA_VIDEO_MAX_BYTES,
-        fileName: asset.title || 'HomeCheff',
-        signal: controller.signal,
-        onProgress: (percent) => setVideoShare({ assetId: asset.id, label: promoVideoFetchLabel(percent) }),
-      });
+      const fetched = video
+        ? await fetchPromoVideoFile(asset.mediaUrl, {
+            maxBytes: AFFILIATE_MEDIA_VIDEO_MAX_BYTES,
+            fileName: asset.title || 'HomeCheff',
+            signal: controller.signal,
+            onProgress: (percent) => setVideoShare({ assetId: asset.id, label: labelFor(percent) }),
+          })
+        : await fetchPromoImageFile(asset.mediaUrl, {
+            maxBytes: AFFILIATE_MEDIA_IMAGE_MAX_BYTES,
+            fileName: asset.title || 'HomeCheff',
+            signal: controller.signal,
+            onProgress: (percent) => setVideoShare({ assetId: asset.id, label: labelFor(percent) }),
+          });
       if (!fetched.ok) {
         setVideoShare(null);
         if (fetched.error !== 'aborted') {
           setShareNotice(
             fetched.error === 'video_too_large'
               ? PROMO_VIDEO_SHARE_COPY.tooLarge
-              : fetched.error === 'unsupported_video_type'
-                ? PROMO_VIDEO_SHARE_COPY.notMp4
-                : PROMO_VIDEO_SHARE_COPY.fetchFailed,
+              : fetched.error === 'image_too_large'
+                ? PROMO_IMAGE_SHARE_COPY.tooLarge
+                : fetched.error === 'unsupported_video_type'
+                  ? PROMO_VIDEO_SHARE_COPY.notMp4
+                  : fetched.error === 'unsupported_image_type'
+                    ? PROMO_IMAGE_SHARE_COPY.wrongType
+                    : video
+                      ? PROMO_VIDEO_SHARE_COPY.fetchFailed
+                      : PROMO_IMAGE_SHARE_COPY.fetchFailed,
           );
         }
         return;
       }
-      const data = buildPromoVideoFileShareData({
-        title: asset.title || 'HomeCheff',
-        caption: asset.caption,
-        affiliateUrl: resolved.url,
-        file: fetched.file,
+      if (intent === 'download') {
+        downloadPromoMediaFile(fetched.file);
+        recordShare(asset.id, video ? 'video_download' : 'image_download');
+        setShareNotice(PROMO_IMAGE_SHARE_COPY.saved);
+        setVideoShare(null);
+        return;
+      }
+      const data = video
+        ? buildPromoVideoFileShareData({
+            title: asset.title || 'HomeCheff',
+            caption: asset.caption,
+            affiliateUrl: resolved.url,
+            file: fetched.file,
+          })
+        : buildPromoImageFileShareData({
+            title: asset.title || 'HomeCheff',
+            caption: asset.caption,
+            affiliateUrl: resolved.url,
+            file: fetched.file,
+          });
+      setVideoShare({
+        assetId: asset.id,
+        label: video ? PROMO_VIDEO_SHARE_COPY.sharing : PROMO_IMAGE_SHARE_COPY.sharing,
       });
-      setVideoShare({ assetId: asset.id, label: PROMO_VIDEO_SHARE_COPY.sharing });
-      const result = await sharePromoVideoFile(data);
+      const result = video ? await sharePromoVideoFile(data) : await sharePromoImageFile(data);
       if (result.method === 'cancelled' || result.method === 'busy') {
         setVideoShare(null);
         return;
       }
       if (result.ok) {
-        recordShare(asset.id, result.captionIncluded ? 'video_file' : 'video_file_no_caption');
+        recordShare(asset.id, result.captionIncluded ? (video ? 'video_file' : 'image_file') : video ? 'video_file_no_caption' : 'image_file_no_caption');
         setShareNotice(
-          result.captionIncluded ? PROMO_VIDEO_SHARE_COPY.shared : PROMO_VIDEO_SHARE_COPY.sharedWithoutCaption,
+          result.captionIncluded
+            ? video
+              ? PROMO_VIDEO_SHARE_COPY.shared
+              : PROMO_IMAGE_SHARE_COPY.shared
+            : video
+              ? PROMO_VIDEO_SHARE_COPY.sharedWithoutCaption
+              : PROMO_IMAGE_SHARE_COPY.sharedWithoutCaption,
         );
         setVideoShare(null);
         return;
       }
-      downloadPromoVideoFile(fetched.file);
-      recordShare(asset.id, 'video_download');
-      setShareNotice(PROMO_VIDEO_SHARE_COPY.downloaded);
+      downloadPromoMediaFile(fetched.file);
+      recordShare(asset.id, video ? 'video_download' : 'image_download');
+      setShareNotice(video ? PROMO_VIDEO_SHARE_COPY.downloaded : PROMO_IMAGE_SHARE_COPY.downloaded);
       setVideoShare(null);
     } catch {
-      if (!controller.signal.aborted) setShareNotice(PROMO_VIDEO_SHARE_COPY.fetchFailed);
+      if (!controller.signal.aborted) {
+        setShareNotice(video ? PROMO_VIDEO_SHARE_COPY.fetchFailed : PROMO_IMAGE_SHARE_COPY.fetchFailed);
+      }
       setVideoShare(null);
     } finally {
       inFlight.current = false;
@@ -806,14 +869,18 @@ export default function AffiliatePromoLibraryClient() {
               <p className="text-xs text-amber-800">Verborgen door een beheerder.</p>
             ) : null}
             <div className="flex flex-wrap gap-2">
-              {asset.kind === 'VIDEO' && !asset.builtin ? (
+              {!asset.builtin && (asset.kind === 'VIDEO' || asset.kind === 'IMAGE') ? (
                 <button
                   type="button"
                   disabled={videoShare?.assetId === asset.id}
-                  onClick={() => void onShareVideo(asset)}
+                  onClick={() => void onShareMedia(asset, 'share')}
                   className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
                 >
-                  {videoShare?.assetId === asset.id ? videoShare.label : 'Video delen'}
+                  {videoShare?.assetId === asset.id
+                    ? videoShare.label
+                    : asset.kind === 'VIDEO'
+                      ? 'Video delen'
+                      : 'Afbeelding delen'}
                 </button>
               ) : (
                 <button
@@ -833,12 +900,24 @@ export default function AffiliatePromoLibraryClient() {
               <button
                 type="button"
                 disabled={videoShare?.assetId === asset.id}
-                onClick={() => void (asset.kind === 'VIDEO' && !asset.builtin ? onShare(asset) : onCopy(asset))}
+                onClick={() => void (!asset.builtin ? onShare(asset) : onCopy(asset))}
                 className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold disabled:opacity-60"
               >
                 {tOr('affiliate.promoLibrary.shareMine', 'Share with my link', 'Deel met mijn link')}
               </button>
-              {videoShare?.assetId === asset.id && videoShare.label !== PROMO_VIDEO_SHARE_COPY.sharing ? (
+              {!asset.builtin ? (
+                <button
+                  type="button"
+                  disabled={videoShare?.assetId === asset.id}
+                  onClick={() => void onCopyCaption(asset)}
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold disabled:opacity-60"
+                >
+                  Bijschrift kopiëren
+                </button>
+              ) : null}
+              {videoShare?.assetId === asset.id &&
+              videoShare.label !== PROMO_VIDEO_SHARE_COPY.sharing &&
+              videoShare.label !== PROMO_IMAGE_SHARE_COPY.sharing ? (
                 <button
                   type="button"
                   onClick={() => videoShareAbort.current?.abort()}
@@ -847,17 +926,28 @@ export default function AffiliatePromoLibraryClient() {
                   Annuleren
                 </button>
               ) : null}
-              <a
-                href={asset.mediaUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                download
-                className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold"
-              >
-                {asset.kind === 'VIDEO'
-                  ? tOr('affiliate.promoLibrary.useVideo', 'Use video', 'Video gebruiken')
-                  : tOr('affiliate.promoLibrary.useImage', 'Use image', 'Afbeelding gebruiken')}
-              </a>
+              {!asset.builtin ? (
+                <button
+                  type="button"
+                  disabled={videoShare?.assetId === asset.id}
+                  onClick={() => void onShareMedia(asset, 'download')}
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold disabled:opacity-60"
+                >
+                  {asset.kind === 'VIDEO' ? 'Video downloaden' : 'Afbeelding downloaden'}
+                </button>
+              ) : (
+                <a
+                  href={asset.mediaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold"
+                >
+                  {asset.kind === 'VIDEO'
+                    ? tOr('affiliate.promoLibrary.useVideo', 'Use video', 'Video gebruiken')
+                    : tOr('affiliate.promoLibrary.useImage', 'Use image', 'Afbeelding gebruiken')}
+                </a>
+              )}
               {asset.isOwner ? (
                 <button
                   type="button"

@@ -34,10 +34,15 @@ import {
 } from '@/lib/share/exactly-once-share';
 import { promoLandingMetadata } from './landing-metadata';
 import {
+  buildPromoAffiliateCaption,
+  buildPromoImageFileShareData,
   buildPromoVideoFileShareData,
+  fetchPromoImageFile,
   fetchPromoVideoFile,
+  promoImageShareFileName,
   promoVideoFetchLabel,
   promoVideoShareFileName,
+  sharePromoImageFile,
   sharePromoVideoFile,
 } from './native-video-share';
 import { creatorCreditLabel } from './serialize';
@@ -400,10 +405,14 @@ describe('storage + security contracts', () => {
     const src = read('components/affiliate/AffiliatePromoLibraryClient.tsx');
     assert.match(src, /HomecheffVisibleShareSheet/);
     assert.match(src, /inFlight\.current/);
-    assert.match(src, /onShareVideo\(asset\)/);
+    assert.match(src, /onShareMedia\(asset, 'share'\)/);
     assert.match(src, /Video delen/);
+    assert.match(src, /Afbeelding delen/);
+    assert.match(src, /Bijschrift kopiëren/);
     assert.match(src, /sharePromoVideoFile/);
-    assert.match(src, /onCopy\(asset\)/);
+    assert.match(src, /sharePromoImageFile/);
+    assert.match(src, /onCopyCaption\(asset\)/);
+    assert.match(src, /result\.method === 'cancelled'/);
     assert.doesNotMatch(src, /navigator\.share/);
     assert.doesNotMatch(src, /CommissionLedger/);
   });
@@ -809,6 +818,139 @@ describe('native promo video share', () => {
         file,
       });
       const result = await sharePromoVideoFile(data);
+      assert.equal(result.ok, false);
+      if (!result.ok) assert.equal(result.method, 'unsupported');
+      assert.equal(shared, false);
+    } finally {
+      Object.defineProperty(globalThis, 'navigator', { configurable: true, value: previous });
+    }
+  });
+
+  it('treats a cancelled file share as cancelled and does not share a url', async () => {
+    const previous = globalThis.navigator;
+    const shared: Array<ShareData> = [];
+    Object.defineProperty(globalThis, 'navigator', {
+      configurable: true,
+      value: {
+        canShare: (data: ShareData) => Array.isArray(data.files) && !data.url,
+        share: async (data: ShareData) => {
+          shared.push(data);
+          const error = new Error('cancelled');
+          error.name = 'AbortError';
+          throw error;
+        },
+      },
+    });
+    try {
+      const file = new File([Uint8Array.from([1])], 'clip.mp4', { type: 'video/mp4' });
+      const data = buildPromoVideoFileShareData({ title: 'Promo', caption: null, affiliateUrl, file });
+      const result = await sharePromoVideoFile(data);
+      assert.equal(result.ok, false);
+      if (!result.ok) assert.equal(result.method, 'cancelled');
+      assert.equal(shared.length, 1);
+      assert.equal(shared[0]?.url, undefined);
+    } finally {
+      Object.defineProperty(globalThis, 'navigator', { configurable: true, value: previous });
+    }
+  });
+});
+
+describe('native promo image share', () => {
+  const affiliateUrl = 'https://homecheff.eu/p/abcdefgh?ref=VIEWER';
+
+  for (const [mime, ext, path] of [
+    ['image/jpeg', 'jpg', 'image.jpg'],
+    ['image/png', 'png', 'image.png'],
+    ['image/webp', 'webp', 'image.webp'],
+  ] as const) {
+    it(`shares a ${ext} file without a page url`, async () => {
+      const mediaUrl = `https://example.public.blob.vercel-storage.com/affiliate-media/asset/${path}`;
+      const fetched = await fetchPromoImageFile(mediaUrl, {
+        fileName: 'HomeCheff poster',
+        fetchImpl: async () =>
+          new Response(Uint8Array.from([1, 2, 3, 4]), {
+            status: 200,
+            headers: { 'content-type': mime, 'content-length': '4' },
+          }),
+      });
+      assert.equal(fetched.ok, true);
+      if (!fetched.ok) return;
+      assert.equal(fetched.file.type, mime);
+      assert.equal(fetched.file.size, 4);
+      assert.equal(fetched.file.name, `HomeCheff-poster.${ext}`);
+      const data = buildPromoImageFileShareData({
+        title: 'Poster',
+        caption: `Bekijk ${affiliateUrl} de promo`,
+        affiliateUrl,
+        file: fetched.file,
+      });
+      assert.equal('url' in data, false);
+      assert.equal(data.files[0]?.type, mime);
+      assert.equal(countHttpUrls(data.text), 1);
+      assert.match(data.text, /ref=VIEWER/);
+      assert.match(data.text, /Ontdek HomeCheff/);
+    });
+  }
+
+  it('refuses an untrusted image and an image above 8 MB before reading the body', async () => {
+    let calls = 0;
+    const blocked = await fetchPromoImageFile('https://evil.example/affiliate-media/x/image.jpg', {
+      fetchImpl: async () => {
+        calls += 1;
+        return new Response(new Uint8Array([1]));
+      },
+    });
+    assert.equal(blocked.ok, false);
+    if (!blocked.ok) assert.equal(blocked.error, 'untrusted_blob_url');
+    assert.equal(calls, 0);
+
+    const huge = await fetchPromoImageFile(
+      'https://example.public.blob.vercel-storage.com/affiliate-media/asset/image.png',
+      {
+        maxBytes: 8,
+        fetchImpl: async () =>
+          new Response(
+            new ReadableStream({
+              pull() {
+                throw new Error('body_should_stay_unread');
+              },
+            }),
+            { status: 200, headers: { 'content-type': 'image/png', 'content-length': '20' } },
+          ),
+      },
+    );
+    assert.equal(huge.ok, false);
+    if (!huge.ok) assert.equal(huge.error, 'image_too_large');
+  });
+
+  it('copies one personal affiliate link in the caption', () => {
+    const text = buildPromoAffiliateCaption({
+      title: 'Poster',
+      caption: 'https://homecheff.eu/p/abcdefgh?ref=MAKER',
+      affiliateUrl,
+    });
+    assert.equal(countHttpUrls(text), 1);
+    assert.match(text, /ref=VIEWER/);
+    assert.doesNotMatch(text, /ref=MAKER/);
+    assert.equal(promoImageShareFileName('Poster', 'image/jpeg').endsWith('.jpg'), true);
+  });
+
+  it('does not offer an image through the share sheet when files are unsupported', async () => {
+    const previous = globalThis.navigator;
+    let shared = false;
+    Object.defineProperty(globalThis, 'navigator', {
+      configurable: true,
+      value: {
+        canShare: () => false,
+        share: async () => {
+          shared = true;
+        },
+      },
+    });
+    try {
+      const file = new File([Uint8Array.from([1])], 'poster.jpg', { type: 'image/jpeg' });
+      const data = buildPromoImageFileShareData({ title: 'Poster', caption: null, affiliateUrl, file });
+      const result = await sharePromoImageFile(data);
       assert.equal(result.ok, false);
       if (!result.ok) assert.equal(result.method, 'unsupported');
       assert.equal(shared, false);
