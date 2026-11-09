@@ -7,6 +7,10 @@ import { prisma } from '@/lib/prisma';
 import { getCorsHeaders } from '@/lib/apiCors';
 import { resolveConversationContext } from '@/lib/communication/resolveConversationContext';
 import { resolveConversationHeader } from '@/lib/communication/resolveConversationHeader';
+import {
+  readOfficialConversation,
+  TEAM_HOMECHEFF_LABEL,
+} from '@/lib/communication/official-admin-message';
 
 export async function GET(
   req: NextRequest,
@@ -162,6 +166,19 @@ export async function GET(
         ? messageCount
         : 0;
 
+    const official = readOfficialConversation(conversation.metadata);
+    const visibleOtherParticipant = official
+      ? {
+          id: 'team-homecheff',
+          name: TEAM_HOMECHEFF_LABEL,
+          username: null,
+          profileImage: null,
+          displayFullName: true,
+          displayNameOption: 'full',
+          sellerVerified: false,
+        }
+      : otherParticipant;
+
     const context = resolveConversationContext(conversation);
 
     const contextHeader = await resolveConversationHeader({
@@ -186,8 +203,9 @@ export async function GET(
             Image: conversation.Product.Image ?? [],
           }
         : null,
-      otherParticipant,
-      participants: participantsForClient,
+      otherParticipant: visibleOtherParticipant,
+      participants: official ? [visibleOtherParticipant] : participantsForClient,
+      official,
       lastMessageAt: conversation.lastMessageAt,
       isActive: conversation.isActive,
       createdAt: conversation.createdAt,

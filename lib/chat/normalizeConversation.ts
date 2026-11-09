@@ -1,5 +1,6 @@
 import type { ChatThreadMessage, ChatThreadUser } from '@/components/chat/chatThreadTypes';
 import { reportMessagingDiagnostic } from '@/lib/chat/messagingDiagnostics';
+import { readOfficialConversation } from '@/lib/communication/official-admin-message';
 
 function str(v: unknown, max = 400): string | null {
   if (v == null) return null;
@@ -243,6 +244,13 @@ export type NormalizedConversationListItem = {
   createdAt: string;
   updatedAt: string | null;
   relationshipContext?: NormalizedRelationshipContext | null;
+  official?: {
+    senderLabel: string;
+    badge: string;
+    subject: string;
+    repliesDisabled: true;
+    action: { label: string; url: string } | null;
+  } | null;
 };
 
 function isoDate(raw: unknown): string {
@@ -318,6 +326,7 @@ export function normalizeConversationListItem(
     createdAt: isoDate(o.createdAt),
     updatedAt: isoDateOrNull(o.updatedAt),
     relationshipContext: rel,
+    official: readOfficialConversation(o.official) ?? readOfficialConversation(o.metadata),
   };
 }
 

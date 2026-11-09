@@ -50,6 +50,7 @@ import {
   loadProposalDraft,
   type ProposalBuyerDraft,
 } from '@/lib/proposals/proposal-draft-storage';
+import type { OfficialConversationView } from '@/lib/communication/official-admin-message';
 
 export interface ChatBoxProps {
   conversationId: string;
@@ -82,6 +83,7 @@ export interface ChatBoxProps {
   initialOpenProposal?: boolean;
   /** Called after proposal sheet was auto-opened (e.g. to clear URL param). */
   onProposalSheetAutoOpened?: () => void;
+  official?: OfficialConversationView | null;
 }
 
 export default function ChatBox({
@@ -94,6 +96,7 @@ export default function ChatBox({
   contextHeader = null,
   initialOpenProposal = false,
   onProposalSheetAutoOpened,
+  official = null,
 }: ChatBoxProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<ChatThreadMessage[]>([]);
@@ -152,7 +155,7 @@ export default function ChatBox({
   const nativeMounted = useIsNativeAppMounted();
   const { data: session } = useSession();
 
-  const peerId = (otherParticipant?.id ?? '').trim();
+  const peerId = official ? '' : (otherParticipant?.id ?? '').trim();
 
   const loadProposals = useCallback(async () => {
     if (!conversationId) return;
@@ -1014,7 +1017,9 @@ export default function ChatBox({
     });
   };
 
-  const peerProfileHref = otherParticipant.username?.trim()
+  const peerProfileHref = official
+    ? null
+    : otherParticipant.username?.trim()
     ? `/user/${encodeURIComponent(otherParticipant.username)}`
     : null;
 
@@ -1073,7 +1078,7 @@ export default function ChatBox({
     return bits.filter(Boolean).join(' · ');
   })();
 
-  const displayName = getDisplayName(otherParticipant);
+  const displayName = official ? official.senderLabel : getDisplayName(otherParticipant);
   const showPresence = isOnline !== undefined;
   const presenceTitleSuffix =
     otherUserTyping || !showPresence
@@ -1098,7 +1103,11 @@ export default function ChatBox({
         <h2 className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight text-gray-900">
           {displayName}
         </h2>
-        {otherParticipant.sellerVerified ? (
+        {official ? (
+          <span className="shrink-0 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800">
+            {official.badge}
+          </span>
+        ) : otherParticipant.sellerVerified ? (
           <BadgeCheck
             className="h-4 w-4 shrink-0 translate-y-px text-emerald-600"
             aria-label={t('profilePage.sidebar.verified')}
@@ -1293,6 +1302,22 @@ export default function ChatBox({
           </div>
         ) : (
           <div className="flex flex-col gap-4">
+            {official ? (
+              <article className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-800">
+                  {official.badge} · {official.senderLabel}
+                </p>
+                <h3 className="mt-1 text-base font-semibold text-gray-900">{official.subject}</h3>
+                {official.action ? (
+                  <a
+                    href={official.action.url}
+                    className="mt-3 inline-flex min-h-[44px] items-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+                  >
+                    {official.action.label}
+                  </a>
+                ) : null}
+              </article>
+            ) : null}
             {messages.map((msg) => (
               <ChatThreadMessageRow
                 key={msg.id}
@@ -1349,6 +1374,11 @@ export default function ChatBox({
       {/* Input — document flow (not fixed). Vertical budget comes from
           .hc-messages-root clearing --hc-bottom-nav-offset; do not add
           safe-area here (bottom nav already owns that inset). */}
+      {official?.repliesDisabled ? (
+        <div className="shrink-0 border-t border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
+          Je kunt hier nog niet op antwoorden.
+        </div>
+      ) : (
       <form
         onSubmit={handleSend}
         className={`hc-native-chat-composer shrink-0 border-t border-gray-200/90 bg-white/95 px-3 backdrop-blur-md sm:px-4 ${
@@ -1404,7 +1434,9 @@ export default function ChatBox({
           </button>
         </div>
       </form>
+      )}
 
+      {official ? null : (
       <CreateProposalSheet
         open={showCreateProposal}
         onClose={() => setShowCreateProposal(false)}
@@ -1418,6 +1450,7 @@ export default function ChatBox({
           void handleManualReload();
         }}
       />
+      )}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { NotificationService } from '@/lib/notifications/notification-service';
 import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
 import { tryAwardChatQuickResponseHcp } from '@/lib/gamification/interaction-hcp';
 import { syncConversationStatusAfterMessage } from '@/lib/communication/sync-conversation-status';
+import { officialRepliesAreDisabled } from '@/lib/communication/official-admin-message';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,6 +45,13 @@ export async function POST(
 
     if (!participant) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    if (await officialRepliesAreDisabled(conversationId)) {
+      return NextResponse.json(
+        { error: 'Je kunt op een officieel bericht van Team HomeCheff nog niet antwoorden.' },
+        { status: 403 }
+      );
     }
 
     // Create message quickly (no encryption for speed)

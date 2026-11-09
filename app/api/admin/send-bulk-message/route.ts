@@ -14,6 +14,7 @@ import {
   type AdminBulkEmailAttempt,
 } from '@/lib/email/admin-bulk-delivery';
 import { sendSelectedUserPush } from '@/lib/admin/admin-selected-push';
+import { createOfficialAdminCopies } from '@/lib/communication/official-admin-message';
 import {
   renderAdminBulkMessage,
   resolveAdminEmailAction,
@@ -36,10 +37,10 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email! },
-      select: { role: true },
+      select: { id: true, role: true },
     });
 
-    if (user?.role !== 'ADMIN' && user?.role !== 'SUPERADMIN') {
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -133,6 +134,17 @@ export async function POST(request: NextRequest) {
     }
 
     const broadcastId = randomUUID();
+    const officialCopies = await createOfficialAdminCopies({
+      adminUserId: user.id,
+      recipientIds: users.map((recipient) => recipient.id),
+      subject,
+      message,
+      action: action.action,
+      broadcastId,
+    });
+    const routeByUserId = Object.fromEntries(
+      officialCopies.map((copy) => [copy.recipientId, copy.pushRoute])
+    );
 
     const notifications = await Promise.all(
       users.map((u) =>
@@ -182,9 +194,10 @@ export async function POST(request: NextRequest) {
     const push = sendPush
       ? await sendSelectedUserPush({
           userIds: users.map((u) => u.id),
-          title: subject || 'Bericht van HomeCheff Admin',
+          title: subject || 'Bericht van Team HomeCheff',
           body: message,
           broadcastId,
+          routeByUserId,
         })
       : undefined;
 

@@ -182,6 +182,7 @@ export default function ConversationPage() {
               };
             })()}
             relationshipContext={conversation.relationshipContext ?? null}
+            official={conversation.official ?? null}
             contextHeader={contextHeader}
             onBack={handleBackToList}
             showBackOnDesktop

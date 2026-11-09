@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { sortConversationsByActivity } from "@/lib/chat/conversationListSort";
 import { reportMessagingDiagnostic } from "@/lib/chat/messagingDiagnostics";
+import {
+  readOfficialConversation,
+  TEAM_HOMECHEFF_LABEL,
+  type OfficialConversationView,
+} from "@/lib/communication/official-admin-message";
 
 export type LoadedConversation = {
   id: string;
@@ -55,6 +60,7 @@ export type LoadedConversation = {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  official?: OfficialConversationView | null;
 };
 
 /**
@@ -74,6 +80,7 @@ export async function loadConversationsForSessionUser(
             select: {
               id: true,
               title: true,
+              metadata: true,
               lastMessageAt: true,
               isActive: true,
               createdAt: true,
@@ -175,7 +182,16 @@ export async function loadConversationsForSessionUser(
           displayNameOption: null,
         };
       });
-      const otherParticipant = otherParticipants[0] || null;
+      const official = readOfficialConversation(conversation.metadata);
+      const teamParticipant = {
+        id: "team-homecheff",
+        name: TEAM_HOMECHEFF_LABEL,
+        username: null,
+        profileImage: null,
+        displayFullName: true,
+        displayNameOption: "full" as const,
+      };
+      const otherParticipant = official ? teamParticipant : otherParticipants[0] || null;
 
       const rawMsg = conversation.Message[0] ?? null;
       const lastMessage = rawMsg
@@ -227,6 +243,7 @@ export async function loadConversationsForSessionUser(
         isActive: conversation.isActive,
         createdAt: conversation.createdAt,
         updatedAt: conversation.updatedAt,
+        official,
       };
     }
   );

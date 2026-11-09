@@ -388,6 +388,7 @@ function MessagesPageContent() {
                   };
                 })()}
                 relationshipContext={selectedConversation.relationshipContext ?? null}
+                official={selectedConversation.official ?? null}
                 contextHeader={contextHeader}
                 onBack={handleBackToList}
                 initialOpenProposal={initialOpenProposal}

@@ -838,17 +838,20 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     c.otherParticipant || c.participants?.[0];
 
   const profileHrefFor = (c: Conversation): string | null => {
+    if (c.official) return null;
     const p = primaryParticipant(c);
     const u = p?.username?.trim();
     return u ? `/user/${encodeURIComponent(u)}` : null;
   };
 
   const displayTitle = (c: Conversation) => {
+    if (c.official) return c.official.senderLabel;
     const p = primaryParticipant(c);
     return p ? getDisplayName(p) : c.title || 'Gesprek';
   };
 
   const previewLine = (c: Conversation): string => {
+    if (c.official) return c.official.subject;
     const lm = c.lastMessage;
     if (!lm) return t('messages.conversationStarted');
     const prefix = getLastMessageSender(lm, session?.user);
@@ -920,8 +923,15 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
       const rowMiddle = (
         <div className="flex min-h-[48px] min-w-0 flex-1 touch-pan-y flex-col justify-center gap-0.5 rounded-lg py-2 pl-1 pr-2 text-left">
           <div className="flex items-start justify-between gap-2">
-            <span className="truncate text-sm font-medium text-gray-900">
-              {displayTitle(conversation)}
+            <span className="flex min-w-0 items-center gap-1.5">
+              <span className="truncate text-sm font-medium text-gray-900">
+                {displayTitle(conversation)}
+              </span>
+              {conversation.official ? (
+                <span className="shrink-0 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800">
+                  {conversation.official.badge}
+                </span>
+              ) : null}
             </span>
             <span className="flex shrink-0 items-center gap-1.5">
               {unread && (

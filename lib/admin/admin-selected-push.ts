@@ -5,10 +5,10 @@ import type { AdminBulkPushReport } from "@/lib/email/admin-bulk-delivery";
 
 const ANDROID_CHANNEL = "announcements";
 
-type PushSender = (token: string) => Promise<void>;
+type PushSender = (token: string, route: string) => Promise<void>;
 
 type PushTestDouble = {
-  tokens: Array<{ token: string }>;
+  tokens: Array<{ token: string; userId?: string }>;
   send: PushSender | null;
 };
 
@@ -52,6 +52,28 @@ async function deactivateToken(token: string): Promise<void> {
   }
 }
 
+export function pushRouteForToken(
+  row: { userId?: string },
+  routeByUserId?: Record<string, string>
+): string {
+  const specific = row.userId ? routeByUserId?.[row.userId] : undefined;
+  return parseInternalPathFromUnknownInput(specific || "/notifications/") ?? "/notifications/";
+}
+
+function pushData(route: string, broadcastId: string): Record<string, string> {
+  const conversationId = route.match(/^\/messages\/([a-zA-Z0-9_-]{6,})\/?$/)?.[1];
+  if (conversationId) {
+    return {
+      type: "chat",
+      route,
+      actionUrl: route,
+      conversationId,
+      broadcastId,
+    };
+  }
+  return { type: "announcement", route, broadcastId };
+}
+
 async function firebaseSender(input: {
   title: string;
   body: string;
@@ -62,23 +84,27 @@ async function firebaseSender(input: {
   if (!messaging) return null;
   const title = truncate(input.title || "HomeCheff", 64);
   const body = truncate(input.body || "Bericht", 110);
-  const route = parseInternalPathFromUnknownInput("/notifications/") ?? "/notifications/";
   const icon = canonicalLogoUrl("notification");
-  return async (token: string) => {
+  return async (token: string, route: string) => {
+    const data = pushData(route, input.broadcastId);
+    const channelId = data.type === "chat" ? "chat_messages" : ANDROID_CHANNEL;
     try {
       await messaging.send({
         token,
         notification: { title, body },
-        data: { type: "announcement", route, broadcastId: input.broadcastId },
+        data,
         android: {
           priority: "high",
-          notification: { channelId: ANDROID_CHANNEL, sound: "default", title, body },
+          notification: { channelId, sound: "default", title, body },
         },
         apns: {
           headers: { "apns-priority": "10", "apns-push-type": "alert" },
           payload: { aps: { alert: { title, body }, sound: "default" } },
         },
-        webpush: { notification: { title, body, icon, badge: icon } },
+        webpush: {
+          notification: { title, body, icon, badge: icon },
+          fcmOptions: { link: route },
+        },
       });
     } catch (error) {
       if (invalidToken(error)) await deactivateToken(token);
@@ -96,6 +122,7 @@ export async function sendSelectedUserPush(input: {
   title: string;
   body: string;
   broadcastId: string;
+  routeByUserId?: Record<string, string>;
 }): Promise<AdminBulkPushReport> {
   const rows = testDouble
     ? testDouble.tokens
@@ -103,18 +130,18 @@ export async function sendSelectedUserPush(input: {
         const { prisma } = await import("@/lib/prisma");
         return prisma.pushToken.findMany({
           where: { userId: { in: input.userIds }, isActive: true, type: "FCM" },
-          select: { token: true },
+          select: { token: true, userId: true },
         });
       })();
   const seen = new Set<string>();
-  const tokens: string[] = [];
+  const targets: Array<{ token: string; userId?: string }> = [];
   for (const row of rows) {
     const token = row.token?.trim();
     if (!token || seen.has(token) || !isValidFcmTokenShape(token)) continue;
     seen.add(token);
-    tokens.push(token);
+    targets.push({ token, userId: row.userId });
   }
-  if (tokens.length === 0) {
+  if (targets.length === 0) {
     return { requested: true, status: "no_device", tokens: 0, offered: 0, failed: 0 };
   }
 
@@ -123,22 +150,22 @@ export async function sendSelectedUserPush(input: {
     return {
       requested: true,
       status: "failed",
-      tokens: tokens.length,
+      tokens: targets.length,
       offered: 0,
-      failed: tokens.length,
+      failed: targets.length,
     };
   }
 
   let offered = 0;
   let failed = 0;
-  for (const token of tokens) {
+  for (const target of targets) {
     try {
-      await send(token);
+      await send(target.token, pushRouteForToken(target, input.routeByUserId));
       offered += 1;
     } catch {
       failed += 1;
     }
   }
   const status = failed === 0 ? "offered" : offered === 0 ? "failed" : "partial";
-  return { requested: true, status, tokens: tokens.length, offered, failed };
+  return { requested: true, status, tokens: targets.length, offered, failed };
 }

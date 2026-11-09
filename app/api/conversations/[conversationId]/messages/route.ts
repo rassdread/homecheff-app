@@ -15,6 +15,7 @@ import {
   syncConversationStatusAfterRead,
 } from '@/lib/communication/sync-conversation-status';
 import { logNotificationDiag } from '@/lib/notifications/fetch-diagnostics';
+import { officialRepliesAreDisabled } from '@/lib/communication/official-admin-message';
 
 // System encryption key (stored securely in env)
 const SYSTEM_KEY = process.env.ENCRYPTION_SYSTEM_KEY || 'change-this-in-production-to-secure-key';
@@ -260,6 +261,13 @@ export async function POST(
         error: 'Conversation not found',
         code: 'CONVERSATION_NOT_FOUND'
       }, { status: 404 });
+    }
+
+    if (await officialRepliesAreDisabled(conversationId)) {
+      return NextResponse.json(
+        { error: 'Je kunt op een officieel bericht van Team HomeCheff nog niet antwoorden.' },
+        { status: 403 }
+      );
     }
     // 🔖 LOG WATERMARK INFO: Email and Username for audit trail
     // Check if user has encryption enabled
