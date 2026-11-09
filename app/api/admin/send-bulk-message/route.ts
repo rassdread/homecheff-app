@@ -13,19 +13,12 @@ import {
   reportAdminBulkSend,
   type AdminBulkEmailAttempt,
 } from '@/lib/email/admin-bulk-delivery';
+import { renderAdminBulkMessage } from '@/lib/email/admin-bulk-message-content';
 import { sendTransactionalEmail } from '@/lib/email/idempotent-send';
 import { EMAIL_PRIORITY } from '@/lib/email/priority';
 import { getTransactionalFrom } from '@/lib/email-from';
 
 export const dynamic = 'force-dynamic';
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 
 export async function POST(request: NextRequest) {
   const mappedGuard = await requireMappedAdminCapability(request);
@@ -152,23 +145,17 @@ export async function POST(request: NextRequest) {
 
     const attempts: AdminBulkEmailAttempt[] = [];
     if (sendEmail) {
-      const safeMessage = escapeHtml(message);
       for (const u of withEmail) {
+        const rendered = renderAdminBulkMessage({
+          recipientName: u.name || '',
+          message,
+        });
         const result = await sendTransactionalEmail({
           from: getTransactionalFrom(),
           to: [u.email!],
           subject: subject || 'Bericht van HomeCheff Admin',
-          html: `
-            <!DOCTYPE html>
-            <html>
-            <head><meta charset="utf-8"><title>Bericht van HomeCheff Admin</title></head>
-            <body>
-              <h2>Hallo ${escapeHtml(u.name || 'Gebruiker')}!</h2>
-              <p>Je hebt een bericht ontvangen van het HomeCheff admin team:</p>
-              <p style="white-space: pre-wrap;">${safeMessage}</p>
-            </body>
-            </html>
-          `,
+          html: rendered.html,
+          text: rendered.text,
           eventType: 'admin_bulk_message',
           priority: EMAIL_PRIORITY.P2,
           route: 'admin/send-bulk-message',
