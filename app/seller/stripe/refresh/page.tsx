@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
+import { readStripeConnectReturnPath } from '@/lib/stripe/stripe-connect-return-path';
 import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-status';
 
 /**
@@ -48,9 +49,10 @@ export default function StripeConnectRefresh() {
         }
 
         // 2) Actionable → re-issue Account Link for SAME current account
-        const result = await startStripeConnectOnboarding({
-          returnPath: '/mijn-homecheff',
-        });
+        const storedReturn = readStripeConnectReturnPath('');
+        const result = await startStripeConnectOnboarding(
+          storedReturn ? { returnPath: storedReturn } : undefined,
+        );
         if (cancelled) return;
         if (result.statusOnly) {
           window.location.replace('/seller/stripe/success');

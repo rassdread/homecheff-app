@@ -40,6 +40,7 @@ import {
   Wallet
 } from 'lucide-react';
 import OperationsShell from '@/components/operations/OperationsShell';
+import ConnectPayoutBanner, { CONNECT_PAYOUT_OPEN_EVENT } from '@/components/stripe/ConnectPayoutBanner';
 import { CardListLoadingSkeleton } from '@/components/navigation/RouteLoadingSkeletons';
 
 interface DeliveryStats {
@@ -213,7 +214,6 @@ export default function DeliveryDashboard({
     onboardingCompleted?: boolean;
     uiStatus?: string | null;
   } | null>(null);
-  const [stripeLoading, setStripeLoading] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
   const [shippingOrders, setShippingOrders] = useState<any[]>([]);
   const [allOrders, setAllOrders] = useState<any[]>([]);
@@ -711,35 +711,9 @@ export default function DeliveryDashboard({
     }
   };
 
-  const handleStripeOnboard = async () => {
-    setStripeLoading(true);
-    try {
-      const response = await fetch('/api/stripe/connect/onboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        const errorMsg = data.error || t('delivery.errorStripeConnect');
-        console.error('❌ Error response:', errorMsg);
-        alert(errorMsg);
-        return;
-      }
-
-      if (data.onboardingUrl) {
-        window.location.href = data.onboardingUrl;
-      } else {
-        console.error('❌ No onboardingUrl in response:', data);
-        alert(t('delivery.errorStripeConnect'));
-      }
-    } catch (error) {
-      console.error('❌ Exception during onboarding:', error);
-      alert(t('delivery.errorSettingUpStripe'));
-    } finally {
-      setStripeLoading(false);
-    }
+  const handleStripeOnboard = () => {
+    document.getElementById('connect-payout-banner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.dispatchEvent(new Event(CONNECT_PAYOUT_OPEN_EVENT));
   };
 
   // Wait for translations to load before rendering
@@ -921,6 +895,8 @@ export default function DeliveryDashboard({
           </button>
         </div>
       ) : null}
+
+      {!isSeller ? <ConnectPayoutBanner returnPath="/delivery/dashboard" /> : null}
 
       {!isSeller && activationChecklist.length > 0 ? (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
@@ -2209,19 +2185,15 @@ export default function DeliveryDashboard({
                   </p>
                   <button
                     onClick={handleStripeOnboard}
-                    disabled={stripeLoading}
-                    className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-3 rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs sm:text-sm"
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-xs sm:text-sm"
                   >
                     <CreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span>
-                      {stripeLoading
-                        ? t('common.loading')
-                        : stripeConnectStatus?.uiStatus === 'ACTION_REQUIRED' ||
-                            stripeConnectStatus?.uiStatus === 'RESTRICTED'
-                          ? 'Actie nodig voor je betaalaccount'
-                          : stripeConnectStatus?.uiStatus === 'INCOMPLETE'
-                            ? 'Gegevens afronden'
-                            : t('delivery.setupNow')}
+                      {stripeConnectStatus?.uiStatus === 'INCOMPLETE' ||
+                      stripeConnectStatus?.uiStatus === 'ACTION_REQUIRED' ||
+                      stripeConnectStatus?.uiStatus === 'RESTRICTED'
+                        ? 'Verder met Stripe Connect'
+                        : t('delivery.setupNow')}
                     </span>
                     <ExternalLink className="w-3 h-3" />
                   </button>

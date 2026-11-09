@@ -6,13 +6,24 @@
 
 export const STRIPE_CONNECT_RETURN_PATH_KEY = 'hc-stripe-connect-return-path';
 
-const ALLOWED_PREFIXES = ['/sell', '/product/', '/verkoper', '/profile', '/mijn-homecheff', '/settings'];
+const ALLOWED_PREFIXES = ['/sell', '/product/', '/verkoper', '/delivery', '/profile', '/mijn-homecheff', '/settings'];
+
+/**
+ * `/sell` is a listing path. `/seller/...` is the Stripe return screen and must
+ * not replace the screen the person started from.
+ */
+export function isAllowedStripeReturnPath(path: string): boolean {
+  if (path === '/sell' || path.startsWith('/sell/') || path.startsWith('/sell?')) return true;
+  return ALLOWED_PREFIXES.some((prefix) => {
+    if (prefix === '/sell') return false;
+    return path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(`${prefix}?`);
+  });
+}
 
 export function rememberStripeConnectReturnPath(path: string): void {
   if (typeof window === 'undefined') return;
   const trimmed = path.trim();
-  if (!trimmed.startsWith('/')) return;
-  if (!ALLOWED_PREFIXES.some((p) => trimmed === p || trimmed.startsWith(p))) return;
+  if (!isAllowedStripeReturnPath(trimmed)) return;
   try {
     sessionStorage.setItem(STRIPE_CONNECT_RETURN_PATH_KEY, trimmed);
   } catch {
@@ -24,8 +35,7 @@ function storedReturnPath(fallback: string): string {
   if (typeof window === 'undefined') return fallback;
   try {
     const raw = sessionStorage.getItem(STRIPE_CONNECT_RETURN_PATH_KEY);
-    if (!raw || !raw.startsWith('/')) return fallback;
-    if (!ALLOWED_PREFIXES.some((p) => raw === p || raw.startsWith(p))) return fallback;
+    if (!isAllowedStripeReturnPath(raw)) return fallback;
     return raw;
   } catch {
     return fallback;
