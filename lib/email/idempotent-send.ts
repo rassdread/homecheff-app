@@ -26,6 +26,12 @@ export type TransactionalEmailInput = {
   priority: EmailPriority;
   businessEventId?: string;
   route?: string;
+  /**
+   * Skip EMAIL_PAUSE_P2 for one explicit admin action.
+   * Honored only together with route `admin/send-bulk-message` (hand-picked users).
+   * Welcome, review, contact, chat, shift and the notification broadcast stay paused.
+   */
+  allowDuringP2Pause?: boolean;
 };
 
 export type TransactionalEmailResult =
@@ -107,9 +113,13 @@ export async function sendTransactionalEmail(
   }
 
   // Operator kill-switch: pause P2 (welcome/review/broadcast) without blocking P0/P1.
+  // The selected-user admin route is the only caller allowed through while the pause stays on.
+  const selectedUserAdminBypass =
+    input.allowDuringP2Pause === true && input.route === "admin/send-bulk-message";
   if (
     input.priority === "P2" &&
-    (process.env.EMAIL_PAUSE_P2 === "1" || process.env.EMAIL_PAUSE_P2 === "true")
+    (process.env.EMAIL_PAUSE_P2 === "1" || process.env.EMAIL_PAUSE_P2 === "true") &&
+    !selectedUserAdminBypass
   ) {
     logEmailDeliveryDiag(
       "email_send_skipped",
@@ -178,8 +188,14 @@ export async function sendTransactionalEmail(
   );
 
   try {
-    const resend = new Resend(apiKey);
-    const { data, error } = await resend.emails.send(
+    const { data, error } = transportOverride
+      ? await transportOverride({
+          from,
+          to: recipients,
+          subject: input.subject,
+          html: input.html,
+        })
+      : await new Resend(apiKey).emails.send(
       {
         from,
         to: recipients,
@@ -244,4 +260,23 @@ export async function sendTransactionalEmail(
 /** Test helper — clear local idempotency map */
 export function __resetTransactionalEmailIdempotencyForTests() {
   recentKeys.clear();
+}
+
+export type TransactionalEmailTransport = (input: {
+  from: string;
+  to: string[];
+  subject: string;
+  html: string;
+}) => Promise<{
+  data: { id: string } | null;
+  error: { message: string } | null;
+}>;
+
+/** Test-only stand-in for Resend. Production leaves this unset and calls Resend. */
+let transportOverride: TransactionalEmailTransport | null = null;
+
+export function __setTransactionalEmailTransportForTests(
+  transport: TransactionalEmailTransport | null
+) {
+  transportOverride = transport;
 }

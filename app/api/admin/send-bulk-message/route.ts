@@ -172,6 +172,7 @@ export async function POST(request: NextRequest) {
           eventType: 'admin_bulk_message',
           priority: EMAIL_PRIORITY.P2,
           route: 'admin/send-bulk-message',
+          allowDuringP2Pause: true,
           idempotencyKey: `admin-bulk:${broadcastId}:${u.id}`,
           businessEventId: broadcastId,
         });

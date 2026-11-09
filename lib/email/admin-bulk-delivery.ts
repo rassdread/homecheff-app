@@ -180,6 +180,17 @@ export function reportAdminBulkSend(input: {
   }
 
   const noun = emailsAttempted === 1 ? "ontvanger" : "ontvangers";
+  if (emailsFailed === emailsAttempted) {
+    return {
+      ...base,
+      success: false,
+      outcome: "failed",
+      message: `De e-mailprovider heeft de mail geweigerd voor ${emailsAttempted} ${noun}.${noticeSentence(
+        input.notificationsSent
+      )}`,
+      httpStatus: 502,
+    };
+  }
   return {
     ...base,
     success: false,

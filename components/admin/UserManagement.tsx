@@ -427,11 +427,16 @@ export default function UserManagement() {
         {selectedUsers.length > 0 && (
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={openBulkMessageModal}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
             >
-              <MessageSquare className="w-4 h-4 inline mr-2" />
-              {t('admin.sendMessage')} ({selectedUsers.length})
+              <MessageSquare
+                aria-hidden="true"
+                className="h-4 w-4 shrink-0"
+                style={{ width: 16, height: 16, maxWidth: 16, display: 'block' }}
+              />
+              <span>Bericht sturen ({selectedUsers.length})</span>
             </button>
             <button
               onClick={handleBulkDelete}
@@ -698,7 +703,9 @@ export default function UserManagement() {
                 </button>
               </div>
               <p className="text-sm text-gray-600 mt-1">
-                Naar {selectedUsers.length} geselecteerde gebruikers
+                {selectedUsers.length === 1
+                  ? 'Naar 1 geselecteerde gebruiker'
+                  : `Naar ${selectedUsers.length} geselecteerde gebruikers`}
               </p>
             </div>
             
