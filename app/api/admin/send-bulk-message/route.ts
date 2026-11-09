@@ -7,6 +7,12 @@ import {
   claimAdminBroadcastIdempotencyKey,
   evaluateAdminEmailBlast,
 } from '@/lib/email/admin-blast-guard';
+import {
+  attemptFromTransactionalResult,
+  reportAdminBulkReplay,
+  reportAdminBulkSend,
+  type AdminBulkEmailAttempt,
+} from '@/lib/email/admin-bulk-delivery';
 import { sendTransactionalEmail } from '@/lib/email/idempotent-send';
 import { EMAIL_PRIORITY } from '@/lib/email/priority';
 import { getTransactionalFrom } from '@/lib/email-from';
@@ -43,10 +49,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => null);
     const userIds = body?.userIds;
     const message = typeof body?.message === 'string' ? body.message.trim() : '';
-    const type = body?.type;
+    const type =
+      body?.type === 'push' || body?.type === 'both' || body?.type === 'email'
+        ? body.type
+        : 'email';
     const subject =
       typeof body?.subject === 'string' ? body.subject.trim() : 'Bericht van HomeCheff Admin';
-    const sendEmail = body?.sendEmail !== false;
+    const sendEmail =
+      typeof body?.sendEmail === 'boolean' ? body.sendEmail : type !== 'push';
     const confirmEmailBlast = Boolean(body?.confirmEmailBlast);
     const dryRun = Boolean(body?.dryRun);
     const idempotencyKey =
@@ -107,14 +117,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (sendEmail && idempotencyKey && !claimAdminBroadcastIdempotencyKey(idempotencyKey)) {
+      const replay = reportAdminBulkReplay();
       return NextResponse.json(
         {
-          error: 'Deze bulk-actie is al uitgevoerd (idempotency).',
+          ...replay,
+          error: replay.message,
           code: 'IDEMPOTENT_REPLAY',
-          notificationsSent: 0,
-          emailsSent: 0,
         },
-        { status: 200 }
+        { status: replay.httpStatus }
       );
     }
 
@@ -140,7 +150,7 @@ export async function POST(request: NextRequest) {
       )
     );
 
-    let emailsSent = 0;
+    const attempts: AdminBulkEmailAttempt[] = [];
     if (sendEmail) {
       const safeMessage = escapeHtml(message);
       for (const u of withEmail) {
@@ -165,33 +175,61 @@ export async function POST(request: NextRequest) {
           idempotencyKey: `admin-bulk:${broadcastId}:${u.id}`,
           businessEventId: broadcastId,
         });
-        if (result.status === 'sent') emailsSent += 1;
+        attempts.push(attemptFromTransactionalResult(result));
       }
-
-      console.info(
-        '[admin_email_blast]',
-        JSON.stringify({
-          broadcastId,
-          route: 'send-bulk-message',
-          emailRecipientCount: withEmail.length,
-          emailsSent,
-          adminEmail: session.user.email,
-          ts: Date.now(),
-        })
-      );
     }
 
-    return NextResponse.json({
-      success: true,
+    const report = reportAdminBulkSend({
+      emailRequested: sendEmail,
       notificationsSent: notifications.length,
-      emailsSent,
-      message: `Bericht succesvol verzonden naar ${notifications.length} gebruikers`,
+      attempts,
     });
+
+    const blastLog = JSON.stringify({
+      broadcastId,
+      route: 'send-bulk-message',
+      outcome: report.outcome,
+      emailRecipientCount: withEmail.length,
+      emailsAttempted: report.emailsAttempted,
+      emailsSent: report.emailsSent,
+      emailsFailed: report.emailsFailed,
+      emailsSuppressed: report.emailsSuppressed,
+      adminEmail: session.user.email,
+      ts: Date.now(),
+    });
+    if (report.success) {
+      console.info('[admin_email_blast]', blastLog);
+    } else if (sendEmail) {
+      console.error('[admin_email_blast]', blastLog);
+    }
+
+    return NextResponse.json(
+      {
+        success: report.success,
+        outcome: report.outcome,
+        notificationsSent: report.notificationsSent,
+        emailsAttempted: report.emailsAttempted,
+        emailsSent: report.emailsSent,
+        emailsFailed: report.emailsFailed,
+        emailsSuppressed: report.emailsSuppressed,
+        message: report.message,
+      },
+      { status: report.httpStatus }
+    );
   } catch (error) {
     console.error(
       'Error sending bulk message:',
       error instanceof Error ? error.message.slice(0, 200) : 'error'
     );
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        outcome: 'failed',
+        error: 'De verzending is op de server vastgelopen. Er is niet bevestigd dat de e-mail is aangeboden.',
+        message:
+          'De verzending is op de server vastgelopen. Er is niet bevestigd dat de e-mail is aangeboden.',
+      },
+      { status: 500 }
+    );
   }
 }

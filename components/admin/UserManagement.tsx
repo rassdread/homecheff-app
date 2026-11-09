@@ -12,6 +12,7 @@ import {
   DEFAULT_ADMIN_USER_LIST_VIEW,
   type AdminUserListView,
 } from '@/lib/admin/user-population';
+import { interpretBulkSendResponse, type BulkSendFeedback } from '@/lib/email/admin-bulk-delivery';
 
 interface User {
   id: string;
@@ -77,6 +78,7 @@ export default function UserManagement() {
     type: 'email'
   });
   const [isSendingBulkMessage, setIsSendingBulkMessage] = useState(false);
+  const [bulkFeedback, setBulkFeedback] = useState<BulkSendFeedback | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -225,8 +227,9 @@ export default function UserManagement() {
   };
 
   const handleBulkMessage = async () => {
-    if (!bulkMessageData.message.trim() || selectedUsers.length === 0) return;
-    
+    if (!bulkMessageData.message.trim() || selectedUsers.length === 0 || isSendingBulkMessage) return;
+
+    setBulkFeedback(null);
     setIsSendingBulkMessage(true);
     try {
       const response = await fetch('/api/admin/send-bulk-message', {
@@ -241,30 +244,33 @@ export default function UserManagement() {
           type: bulkMessageData.type
         }),
       });
-
-      if (response.ok) {
-        alert(t('admin.messageSentToUsers', { count: selectedUsers.length }));
-        setShowBulkMessageModal(false);
-        setBulkMessageData({ subject: '', message: '', type: 'email' });
-        setSelectedUsers([]);
-      } else {
-        alert(t('errors.sendMessagesError'));
-      }
+      const data = await response.json().catch(() => null);
+      setBulkFeedback(interpretBulkSendResponse(response.status, data));
     } catch (error) {
       console.error('Error sending bulk message:', error);
-      alert(t('errors.sendMessagesError'));
+      setBulkFeedback({
+        tone: 'error',
+        message: 'De verzending is afgebroken voordat de server een uitslag gaf. Er is niet bevestigd dat de e-mail is aangeboden.',
+      });
     } finally {
       setIsSendingBulkMessage(false);
     }
   };
 
   const openBulkMessageModal = () => {
+    setBulkFeedback(null);
     setBulkMessageData({
       subject: t('admin.messageForUsers', { count: selectedUsers.length }),
       message: '',
       type: 'email'
     });
     setShowBulkMessageModal(true);
+  };
+
+  const closeBulkMessageModal = () => {
+    if (isSendingBulkMessage) return;
+    setShowBulkMessageModal(false);
+    setBulkFeedback(null);
   };
 
   const filteredUsers = users;
@@ -683,8 +689,10 @@ export default function UserManagement() {
                   {t('admin.bulkSendMessage')}
                 </h3>
                 <button
-                  onClick={() => setShowBulkMessageModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  type="button"
+                  onClick={closeBulkMessageModal}
+                  disabled={isSendingBulkMessage}
+                  className="text-gray-400 hover:text-gray-600 disabled:opacity-40"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -736,14 +744,32 @@ export default function UserManagement() {
                 />
               </div>
 
+              {bulkFeedback && (
+                <p
+                  role={bulkFeedback.tone === 'error' ? 'alert' : 'status'}
+                  className={`rounded-lg border px-3 py-2 text-sm ${
+                    bulkFeedback.tone === 'success'
+                      ? 'border-green-700 bg-green-50 text-green-950'
+                      : bulkFeedback.tone === 'partial'
+                        ? 'border-amber-700 bg-amber-50 text-amber-950'
+                        : 'border-red-700 bg-red-50 text-red-950'
+                  }`}
+                >
+                  {bulkFeedback.message}
+                </p>
+              )}
+
               <div className="flex gap-3 pt-4">
                 <button
-                  onClick={() => setShowBulkMessageModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  type="button"
+                  onClick={closeBulkMessageModal}
+                  disabled={isSendingBulkMessage}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   Annuleren
                 </button>
                 <button
+                  type="button"
                   onClick={handleBulkMessage}
                   disabled={!bulkMessageData.message.trim() || isSendingBulkMessage}
                   className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
