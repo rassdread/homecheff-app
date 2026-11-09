@@ -140,7 +140,7 @@ async function main() {
   assert.match(route, /allowDuringP2Pause:\s*true/);
   assert.match(route, /requireMappedAdminCapability/);
   assert.match(route, /evaluateAdminEmailBlast/);
-  assert.doesNotMatch(route, /buttonLabel/);
+  assert.match(route, /resolveAdminEmailAction/);
   assert.doesNotMatch(route, /bezorgpartner/);
   const ui = readFileSync(
     resolve(process.cwd(), "components/admin/UserManagement.tsx"),

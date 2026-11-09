@@ -75,7 +75,9 @@ export default function UserManagement() {
   const [bulkMessageData, setBulkMessageData] = useState({
     subject: '',
     message: '',
-    type: 'email'
+    type: 'email',
+    buttonLabel: '',
+    buttonUrl: ''
   });
   const [isSendingBulkMessage, setIsSendingBulkMessage] = useState(false);
   const [bulkFeedback, setBulkFeedback] = useState<BulkSendFeedback | null>(null);
@@ -228,6 +230,17 @@ export default function UserManagement() {
 
   const handleBulkMessage = async () => {
     if (!bulkMessageData.message.trim() || selectedUsers.length === 0 || isSendingBulkMessage) return;
+    const sendsEmail = bulkMessageData.type !== 'push';
+    const buttonLabel = sendsEmail ? bulkMessageData.buttonLabel.trim() : '';
+    const buttonUrl = sendsEmail ? bulkMessageData.buttonUrl.trim() : '';
+    if ((buttonLabel && !buttonUrl) || (!buttonLabel && buttonUrl)) {
+      setBulkFeedback({
+        tone: 'error',
+        message: 'Vul knoptekst en link allebei in, of laat ze allebei leeg.',
+        lines: ['Vul knoptekst en link allebei in, of laat ze allebei leeg.'],
+      });
+      return;
+    }
 
     setBulkFeedback(null);
     setIsSendingBulkMessage(true);
@@ -241,7 +254,9 @@ export default function UserManagement() {
           userIds: selectedUsers,
           subject: bulkMessageData.subject,
           message: bulkMessageData.message,
-          type: bulkMessageData.type
+          type: bulkMessageData.type,
+          buttonLabel,
+          buttonUrl
         }),
       });
       const data = await response.json().catch(() => null);
@@ -263,7 +278,9 @@ export default function UserManagement() {
     setBulkMessageData({
       subject: t('admin.messageForUsers', { count: selectedUsers.length }),
       message: '',
-      type: 'email'
+      type: 'email',
+      buttonLabel: '',
+      buttonUrl: ''
     });
     setShowBulkMessageModal(true);
   };
@@ -751,6 +768,38 @@ export default function UserManagement() {
                   placeholder={t('common.typeMessageHere')}
                 />
               </div>
+
+              {bulkMessageData.type !== 'push' && (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Knoptekst
+                    </label>
+                    <input
+                      type="text"
+                      value={bulkMessageData.buttonLabel}
+                      onChange={(e) => setBulkMessageData({ ...bulkMessageData, buttonLabel: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Naar mijn bezorgomgeving"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Link
+                    </label>
+                    <input
+                      type="url"
+                      value={bulkMessageData.buttonUrl}
+                      onChange={(e) => setBulkMessageData({ ...bulkMessageData, buttonUrl: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="https://homecheff.eu/delivery"
+                    />
+                  </div>
+                  <p className="sm:col-span-2 text-xs text-gray-500">
+                    Optioneel. Vul beide in voor een knop in de e-mail, of laat beide leeg.
+                  </p>
+                </div>
+              )}
 
               {bulkFeedback && (
                 <div

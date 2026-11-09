@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { renderAdminBulkMessage } from "./admin-bulk-message-content";
+import { renderAdminBulkMessage, resolveAdminEmailAction } from "./admin-bulk-message-content";
 
 function ok(msg: string) {
   console.log("  ✓", msg);
@@ -45,6 +45,44 @@ assert.equal(unsafe.html.includes("<script>"), false);
 assert.equal(unsafe.html.split("Hallo").length - 1, 1);
 ok("a written Hallo stays the only greeting and markup is escaped");
 
+const plain = renderAdminBulkMessage({
+  recipientName: "Sanne",
+  message: "Hoi,\n\nDit is een vrije tekst.",
+});
+assert.equal(plain.html.includes("Naar mijn bezorgomgeving"), false);
+assert.equal(resolveAdminEmailAction("", "").action, null);
+assert.equal(resolveAdminEmailAction("  ", "  ").action, null);
+ok("an empty button label and link leave the ordinary letter");
+
+const action = resolveAdminEmailAction(
+  "Naar mijn bezorgomgeving",
+  "https://homecheff.eu/delivery"
+);
+assert.equal(action.ok, true);
+if (action.ok && action.action) {
+  const withButton = renderAdminBulkMessage({
+    recipientName: "Sanne",
+    message: "Hoi,\n\nDit is een vrije tekst.",
+    action: action.action,
+  });
+  assert.match(withButton.html, /Naar mijn bezorgomgeving/);
+  assert.match(withButton.html, /href="https:\/\/homecheff\.eu\/delivery"/);
+  assert.match(withButton.text, /Naar mijn bezorgomgeving\nhttps:\/\/homecheff\.eu\/delivery/);
+}
+const stripe = resolveAdminEmailAction(
+  "Stripe",
+  "https://connect.stripe.com/setup/e/acct_123/abc"
+);
+assert.equal(stripe.ok, false);
+const half = resolveAdminEmailAction("Naar mijn bezorgomgeving", "");
+assert.equal(half.ok, false);
+if (!half.ok) {
+  assert.equal(half.error, "Vul knoptekst en link allebei in, of laat ze allebei leeg.");
+}
+const onlyUrl = resolveAdminEmailAction("", "https://homecheff.eu/delivery");
+assert.equal(onlyUrl.ok, false);
+ok("a HomeCheff button is optional, one field is rejected, and a Stripe link is refused");
+
 const route = readFileSync(
   resolve(process.cwd(), "app/api/admin/send-bulk-message/route.ts"),
   "utf8"
@@ -59,6 +97,8 @@ assert.match(route, /html: rendered\.html/);
 assert.match(route, /text: rendered\.text/);
 assert.match(route, /allowDuringP2Pause:\s*true/);
 assert.match(route, /requireMappedAdminCapability/);
+assert.match(route, /resolveAdminEmailAction/);
+assert.match(route, /action: action\.action/);
 assert.doesNotMatch(route, /HomeCheff admin team/);
 assert.doesNotMatch(route, /bezorgpartner/);
 assert.doesNotMatch(content, /bezorgpartner/);
@@ -74,6 +114,9 @@ assert.match(ui, /value=\{bulkMessageData\.message\}/);
 assert.match(ui, /message: e\.target\.value/);
 assert.match(ui, /subject: bulkMessageData\.subject/);
 assert.match(ui, /message: bulkMessageData\.message/);
+assert.match(ui, /buttonLabel/);
+assert.match(ui, /Knoptekst/);
+assert.match(ui, /Vul knoptekst en link allebei in, of laat ze allebei leeg\./);
 assert.match(ui, /message: ''/);
 assert.doesNotMatch(ui, /readOnly/);
 ok("subject and message stay editable and are sent from the form");

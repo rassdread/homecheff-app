@@ -14,7 +14,10 @@ import {
   type AdminBulkEmailAttempt,
 } from '@/lib/email/admin-bulk-delivery';
 import { sendSelectedUserPush } from '@/lib/admin/admin-selected-push';
-import { renderAdminBulkMessage } from '@/lib/email/admin-bulk-message-content';
+import {
+  renderAdminBulkMessage,
+  resolveAdminEmailAction,
+} from '@/lib/email/admin-bulk-message-content';
 import { sendTransactionalEmail } from '@/lib/email/idempotent-send';
 import { EMAIL_PRIORITY } from '@/lib/email/priority';
 import { getTransactionalFrom } from '@/lib/email-from';
@@ -52,6 +55,12 @@ export async function POST(request: NextRequest) {
     const sendEmail =
       typeof body?.sendEmail === 'boolean' ? body.sendEmail : type !== 'push';
     const sendPush = type === 'push' || type === 'both';
+    const action = sendEmail
+      ? resolveAdminEmailAction(body?.buttonLabel, body?.buttonUrl)
+      : { ok: true as const, action: null };
+    if (!action.ok) {
+      return NextResponse.json({ error: action.error, message: action.error }, { status: 400 });
+    }
     const confirmEmailBlast = Boolean(body?.confirmEmailBlast);
     const dryRun = Boolean(body?.dryRun);
     const idempotencyKey =
@@ -151,6 +160,7 @@ export async function POST(request: NextRequest) {
         const rendered = renderAdminBulkMessage({
           recipientName: u.name || '',
           message,
+          action: action.action,
         });
         const result = await sendTransactionalEmail({
           from: getTransactionalFrom(),

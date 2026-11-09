@@ -7,10 +7,53 @@ const SITE_URL = "https://homecheff.eu";
 const LEADING_GREETING =
   /^(hoi|hallo|hey|hé|he|hi|haai|beste|dag|goedemorgen|goedemiddag|goedenavond|goedendag)\b/i;
 
+export type AdminEmailAction = {
+  label: string;
+  url: string;
+};
+
 export type AdminBulkMessageContent = {
   html: string;
   text: string;
 };
+
+const BUTTON_LABEL_MAX = 80;
+
+export function resolveAdminEmailAction(
+  label: unknown,
+  url: unknown
+): { ok: true; action: AdminEmailAction | null } | { ok: false; error: string } {
+  const text = typeof label === "string" ? label.trim() : "";
+  const href = typeof url === "string" ? url.trim() : "";
+  if (!text && !href) return { ok: true, action: null };
+  if (!text || !href) {
+    return {
+      ok: false,
+      error: "Vul knoptekst en link allebei in, of laat ze allebei leeg.",
+    };
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(href);
+  } catch {
+    return { ok: false, error: "Gebruik een vaste HomeCheff-link, bijvoorbeeld https://homecheff.eu/delivery." };
+  }
+  const host = parsed.hostname.toLowerCase();
+  const allowedHost = host === "homecheff.eu" || host === "www.homecheff.eu";
+  if (parsed.protocol !== "https:" || !allowedHost || parsed.username || parsed.password) {
+    return {
+      ok: false,
+      error: "Gebruik een vaste HomeCheff-link, bijvoorbeeld https://homecheff.eu/delivery. Tijdelijke Stripe-links worden niet meegestuurd.",
+    };
+  }
+  return {
+    ok: true,
+    action: {
+      label: text.slice(0, BUTTON_LABEL_MAX),
+      url: parsed.toString(),
+    },
+  };
+}
 
 function escapeHtml(value: string): string {
   return value
@@ -71,15 +114,30 @@ function paragraphHtml(paragraph: string): string {
  * Letter for a hand-picked admin send. Uses the same green HomeCheff shell as
  * the verification mail: logo, calm card, and the support footer.
  */
+function actionHtml(action: AdminEmailAction): string {
+  const label = escapeHtml(action.label);
+  const url = escapeHtml(action.url);
+  return `<table role="presentation" cellspacing="0" cellpadding="0" style="margin:8px 0 28px 0;">
+    <tr>
+      <td style="border-radius:12px;background:linear-gradient(135deg,#10b981 0%,#059669 100%);">
+        <a href="${url}" style="display:inline-block;padding:14px 28px;font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:12px;">${label}</a>
+      </td>
+    </tr>
+  </table>`;
+}
+
 export function renderAdminBulkMessage(input: {
   recipientName: string;
   message: string;
+  action?: AdminEmailAction | null;
 }): AdminBulkMessageContent {
   const paragraphs = messageParagraphs(input.message, input.recipientName);
   const bodyHtml = paragraphs.map(paragraphHtml).join("\n");
+  const button = input.action ? actionHtml(input.action) : "";
   const bodyText = paragraphs.join("\n\n");
   const text = [
     bodyText,
+    ...(input.action ? ["", input.action.label, input.action.url] : []),
     "",
     "—",
     "HomeCheff",
@@ -107,6 +165,7 @@ export function renderAdminBulkMessage(input: {
           <tr>
             <td style="padding:36px 32px 18px 32px;">
               ${bodyHtml}
+              ${button}
             </td>
           </tr>
           <tr>
