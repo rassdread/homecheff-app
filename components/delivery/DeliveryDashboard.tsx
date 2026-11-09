@@ -168,6 +168,22 @@ export default function DeliveryDashboard() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('onderdeel') !== 'stripe') return;
+    let tries = 0;
+    const timer = window.setInterval(() => {
+      const banner = document.getElementById('connect-payout-banner');
+      tries += 1;
+      if (banner) {
+        banner.scrollIntoView({ block: 'start' });
+        window.clearInterval(timer);
+      } else if (tries > 20) {
+        window.clearInterval(timer);
+      }
+    }, 250);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
     fetchDeliveryData();
     if (!isSeller) {
       fetchOnlineStatus();

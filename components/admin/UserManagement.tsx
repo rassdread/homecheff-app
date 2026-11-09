@@ -13,6 +13,13 @@ import {
   type AdminUserListView,
 } from '@/lib/admin/user-population';
 import { interpretBulkSendResponse, type BulkSendFeedback } from '@/lib/email/admin-bulk-delivery';
+import { renderAdminBulkMessage, resolveAdminEmailAction } from '@/lib/email/admin-bulk-message-content';
+import {
+  COURIER_EMAIL_ACTIONS,
+  courierEmailActionById,
+  courierEmailActionUrl,
+  type CourierEmailActionId,
+} from '@/lib/email/courier-email-actions';
 
 interface User {
   id: string;
@@ -76,6 +83,7 @@ export default function UserManagement() {
     subject: '',
     message: '',
     type: 'email',
+    buttonChoice: 'none' as CourierEmailActionId,
     buttonLabel: '',
     buttonUrl: ''
   });
@@ -279,6 +287,7 @@ export default function UserManagement() {
       subject: t('admin.messageForUsers', { count: selectedUsers.length }),
       message: '',
       type: 'email',
+      buttonChoice: 'none',
       buttonLabel: '',
       buttonUrl: ''
     });
@@ -705,7 +714,7 @@ export default function UserManagement() {
       {/* Bulk Message Modal */}
       {showBulkMessageModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full">
+          <div className="bg-white rounded-lg max-w-lg w-full max-h-[92vh] overflow-y-auto">
             <div className="p-6 border-b">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">
@@ -770,35 +779,23 @@ export default function UserManagement() {
               </div>
 
               {bulkMessageData.type !== 'push' && (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Knoptekst
-                    </label>
-                    <input
-                      type="text"
-                      value={bulkMessageData.buttonLabel}
-                      onChange={(e) => setBulkMessageData({ ...bulkMessageData, buttonLabel: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Naar mijn bezorgomgeving"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Link
-                    </label>
-                    <input
-                      type="url"
-                      value={bulkMessageData.buttonUrl}
-                      onChange={(e) => setBulkMessageData({ ...bulkMessageData, buttonUrl: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="https://homecheff.eu/delivery"
-                    />
-                  </div>
-                  <p className="sm:col-span-2 text-xs text-gray-500">
-                    Optioneel. Vul beide in voor een knop in de e-mail, of laat beide leeg.
-                  </p>
-                </div>
+                <CourierDestinationFields
+                  choice={bulkMessageData.buttonChoice}
+                  buttonLabel={bulkMessageData.buttonLabel}
+                  buttonUrl={bulkMessageData.buttonUrl}
+                  message={bulkMessageData.message}
+                  onChoice={(buttonChoice) => {
+                    const action = courierEmailActionById(buttonChoice);
+                    setBulkMessageData({
+                      ...bulkMessageData,
+                      buttonChoice: action.id,
+                      buttonLabel: action.id === 'custom' ? bulkMessageData.buttonLabel : action.buttonLabel,
+                      buttonUrl: action.id === 'custom' ? bulkMessageData.buttonUrl : courierEmailActionUrl(action.path),
+                    });
+                  }}
+                  onButtonLabel={(buttonLabel) => setBulkMessageData({ ...bulkMessageData, buttonLabel })}
+                  onButtonUrl={(buttonUrl) => setBulkMessageData({ ...bulkMessageData, buttonUrl })}
+                />
               )}
 
               {bulkFeedback && (
@@ -1051,6 +1048,119 @@ export default function UserManagement() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CourierDestinationFields({
+  choice,
+  buttonLabel,
+  buttonUrl,
+  message,
+  onChoice,
+  onButtonLabel,
+  onButtonUrl,
+}: {
+  choice: CourierEmailActionId;
+  buttonLabel: string;
+  buttonUrl: string;
+  message: string;
+  onChoice: (choice: CourierEmailActionId) => void;
+  onButtonLabel: (value: string) => void;
+  onButtonUrl: (value: string) => void;
+}) {
+  const resolved = resolveAdminEmailAction(buttonLabel, buttonUrl);
+  const letter = message.trim()
+    ? renderAdminBulkMessage({
+        recipientName: 'Sanne',
+        message,
+        action: resolved.ok ? resolved.action : null,
+      })
+    : null;
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="courier-email-destination">
+          Waar wil je de ontvanger naartoe sturen?
+        </label>
+        <select
+          id="courier-email-destination"
+          value={choice}
+          onChange={(e) => onChoice(e.target.value as CourierEmailActionId)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          {COURIER_EMAIL_ACTIONS.map((action) => (
+            <option key={action.id} value={action.id}>
+              {action.choiceLabel}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-gray-500">
+          De link blijft werken nadat de ontvanger is ingelogd. Stripe gebruikt geen tijdelijke onboardinglink.
+        </p>
+      </div>
+
+      {choice === 'custom' && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Knoptekst
+            </label>
+            <input
+              type="text"
+              value={buttonLabel}
+              onChange={(e) => onButtonLabel(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Naar mijn bezorgomgeving"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Link
+            </label>
+            <input
+              type="url"
+              value={buttonUrl}
+              onChange={(e) => onButtonUrl(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="https://homecheff.eu/delivery"
+            />
+          </div>
+        </div>
+      )}
+
+      {choice !== 'custom' && choice !== 'none' && buttonLabel && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+          <p className="text-sm font-medium text-emerald-950">Deze knop komt in de mail</p>
+          <span className="mt-2 inline-block rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
+            {buttonLabel}
+          </span>
+          <p className="mt-2 break-all text-xs text-emerald-900">{buttonUrl}</p>
+        </div>
+      )}
+
+      {choice === 'none' && (
+        <p className="text-sm text-gray-600">Er komt geen knop in de mail.</p>
+      )}
+
+      {choice === 'custom' && !resolved.ok && (
+        <p className="text-sm text-red-700">{resolved.error}</p>
+      )}
+
+      {letter && (
+        <div>
+          <p className="mb-2 text-sm font-medium text-gray-700">Zo ziet de mail er op mobiel uit</p>
+          <div className="mx-auto w-full max-w-[390px] overflow-hidden rounded-[28px] border border-gray-300 bg-gray-100 shadow-inner">
+            <iframe
+              title="Mobiele mailpreview"
+              sandbox=""
+              srcDoc={letter.html}
+              className="h-[520px] w-full bg-white"
+            />
           </div>
         </div>
       )}
