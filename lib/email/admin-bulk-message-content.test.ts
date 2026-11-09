@@ -50,8 +50,10 @@ const plain = renderAdminBulkMessage({
   message: "Hoi,\n\nDit is een vrije tekst.",
 });
 assert.equal(plain.html.includes("Naar mijn bezorgomgeving"), false);
-assert.equal(resolveAdminEmailAction("", "").action, null);
-assert.equal(resolveAdminEmailAction("  ", "  ").action, null);
+const emptyAction = resolveAdminEmailAction("", "");
+const blankAction = resolveAdminEmailAction("  ", "  ");
+assert.equal(emptyAction.ok && emptyAction.action === null, true);
+assert.equal(blankAction.ok && blankAction.action === null, true);
 ok("an empty button label and link leave the ordinary letter");
 
 const action = resolveAdminEmailAction(
