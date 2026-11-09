@@ -4,7 +4,10 @@
  * only when the server says canCreateOnboardingLink.
  */
 
-import { rememberStripeConnectReturnPath } from '@/lib/stripe/stripe-connect-return-path';
+import {
+  isAllowedStripeReturnPath,
+  rememberStripeConnectReturnPath,
+} from '@/lib/stripe/stripe-connect-return-path';
 import type { ConnectTrack } from '@/lib/stripe/connect-tracks';
 import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-status';
 
@@ -30,7 +33,7 @@ export async function startStripeConnectOnboarding(options?: {
       rememberStripeConnectReturnPath(options.returnPath);
     } else if (typeof window !== 'undefined') {
       const path = `${window.location.pathname}${window.location.search}`;
-      if (path.startsWith('/sell')) {
+      if (isAllowedStripeReturnPath(path)) {
         rememberStripeConnectReturnPath(path);
       }
     }

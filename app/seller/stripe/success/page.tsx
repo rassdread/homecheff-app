@@ -9,7 +9,7 @@ import {
   clearStripeConnectReturnPath,
   readStripeConnectReturnPath,
 } from '@/lib/stripe/stripe-connect-return-path';
-import { stripeIncompleteReturn } from '@/lib/stripe/stripe-return-actions';
+import { stripeIncompleteReturn, stripeReturnDestination } from '@/lib/stripe/stripe-return-actions';
 import { startStripeConnectOnboarding } from '@/lib/stripe/start-connect-onboarding-client';
 import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-status';
 
@@ -58,15 +58,8 @@ export default function StripeConnectSuccess() {
     void checkStatus();
   }, [router]);
 
-  const continueHref = () => {
-    if (returnPath.startsWith('/sell')) return returnPath;
-    if (returnPath.startsWith('/product/')) return returnPath;
-    if (returnPath.startsWith('/verkoper')) return returnPath;
-    if (returnPath.startsWith('/profile')) return returnPath;
-    if (returnPath.startsWith('/mijn-homecheff')) return returnPath;
-    if (returnPath.startsWith('/settings')) return returnPath;
-    return '/mijn-homecheff';
-  };
+  const continueHref = () => stripeReturnDestination(returnPath).path;
+  const destination = stripeReturnDestination(returnPath);
 
   const resumeOnboarding = async () => {
     if (resumeLock.current) return;
@@ -121,18 +114,18 @@ export default function StripeConnectSuccess() {
     body =
       'Welkom bij HomeCheff. Je Stripe-betaalaccount is succesvol gekoppeld. Je kunt nu betalingen via HomeCheff ontvangen.';
     primaryLabel =
-      returnPath.startsWith('/sell') || returnPath.startsWith('/product/')
+      destination.kind === 'listing'
         ? 'Ga verder met je aanbod'
-        : 'Ga naar Mijn HomeCheff';
+        : destination.labelNl;
   } else if (pending || restrictedWaiting) {
     icon = <Clock className="h-16 w-16 text-sky-600 mx-auto mb-4" />;
     title = 'Verificatie wordt gecontroleerd';
     body =
       'Je gegevens zijn ingestuurd. Stripe controleert ze. Je hoeft ze niet opnieuw in te vullen. Je kunt alvast verder in HomeCheff.';
     primaryLabel =
-      returnPath.startsWith('/sell') || returnPath.startsWith('/product/')
+      destination.kind === 'listing'
         ? 'Ga verder met je aanbod'
-        : 'Ga naar Mijn HomeCheff';
+        : destination.labelNl;
   } else if (actionNeeded) {
     icon = <AlertCircle className="h-16 w-16 text-amber-600 mx-auto mb-4" />;
     title = en ? 'Payment account not finished' : 'Betaalaccount nog niet compleet';

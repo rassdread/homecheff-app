@@ -37,6 +37,7 @@ import Link from 'next/link';
 import OperationsShell from '@/components/operations/OperationsShell';
 import OrderStatusChip from '@/components/orders/OrderStatusChip';
 import SellerActionCenter from '@/components/seller/SellerActionCenter';
+import ConnectPayoutBanner from '@/components/stripe/ConnectPayoutBanner';
 import BusinessUpgradeCallout from '@/components/seller/BusinessUpgradeCallout';
 import BusinessDnaDashboardWidget from '@/components/business/BusinessDnaDashboardWidget';
 import type { BusinessPlanId } from '@/lib/business/visibility-profile';
@@ -434,6 +435,7 @@ export default function SellerDashboardClient() {
       >
         <div className="py-8">
           <div className="mb-6 sm:mb-8">
+            <ConnectPayoutBanner returnPath="/verkoper/dashboard" />
             <SellerActionCenter variant="dashboard" />
           </div>
           <div className="animate-pulse">
@@ -461,6 +463,7 @@ export default function SellerDashboardClient() {
     >
       <div className="py-8">
         <div className="mb-6 sm:mb-8">
+          <ConnectPayoutBanner returnPath="/verkoper/dashboard" />
           <SellerActionCenter variant="dashboard" />
           <BusinessUpgradeCallout />
           <BusinessDnaDashboardWidget
