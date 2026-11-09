@@ -248,7 +248,7 @@ export type NormalizedConversationListItem = {
     senderLabel: string;
     badge: string;
     subject: string;
-    repliesDisabled: true;
+    repliesDisabled: boolean;
     action: { label: string; url: string } | null;
   } | null;
 };
