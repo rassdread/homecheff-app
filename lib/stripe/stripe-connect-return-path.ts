@@ -35,7 +35,7 @@ function storedReturnPath(fallback: string): string {
   if (typeof window === 'undefined') return fallback;
   try {
     const raw = sessionStorage.getItem(STRIPE_CONNECT_RETURN_PATH_KEY);
-    if (!isAllowedStripeReturnPath(raw)) return fallback;
+    if (!raw || !isAllowedStripeReturnPath(raw)) return fallback;
     return raw;
   } catch {
     return fallback;
