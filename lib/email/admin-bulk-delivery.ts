@@ -17,6 +17,16 @@ export type AdminBulkOutcome =
   | "notification_only"
   | "replay";
 
+export type AdminBulkPushStatus = "no_device" | "offered" | "failed" | "partial";
+
+export type AdminBulkPushReport = {
+  requested: boolean;
+  status: AdminBulkPushStatus;
+  tokens: number;
+  offered: number;
+  failed: number;
+};
+
 export type AdminBulkSendReport = {
   success: boolean;
   outcome: AdminBulkOutcome;
@@ -27,11 +37,18 @@ export type AdminBulkSendReport = {
   emailsSuppressed: number;
   message: string;
   httpStatus: number;
+  emailRequested?: boolean;
+  pushRequested?: boolean;
+  pushStatus?: AdminBulkPushStatus;
+  pushOffered?: number;
+  pushFailed?: number;
+  pushTokens?: number;
 };
 
 export type BulkSendFeedback = {
   tone: "success" | "partial" | "error";
   message: string;
+  lines: string[];
 };
 
 const REASON_TEXT: Record<string, string> = {
@@ -109,11 +126,104 @@ export function reportAdminBulkReplay(): AdminBulkSendReport {
   };
 }
 
+function feedback(tone: BulkSendFeedback["tone"], message: string): BulkSendFeedback {
+  const lines = message
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+  return { tone, message, lines: lines.length > 0 ? lines : [message] };
+}
+
+function inAppLine(count: number): string {
+  const noun = count === 1 ? "gebruiker" : "gebruikers";
+  return count > 0
+    ? `In-app: melding opgeslagen voor ${count} ${noun}.`
+    : "In-app: geen melding opgeslagen.";
+}
+
+function pushLine(push: AdminBulkPushReport): string {
+  if (push.status === "no_device") return "Push: geen geschikt apparaat geregistreerd.";
+  const offeredNoun = push.offered === 1 ? "apparaat" : "apparaten";
+  if (push.status === "offered") {
+    return `Push: aangeboden aan de pushdienst voor ${push.offered} ${offeredNoun}.`;
+  }
+  if (push.status === "partial") {
+    return `Push: ${push.offered} van ${push.tokens} apparaten aangeboden aan de pushdienst, ${push.failed} mislukt.`;
+  }
+  const failedNoun = push.failed === 1 ? "apparaat" : "apparaten";
+  return `Push: mislukt. De pushdienst heeft de melding geweigerd voor ${push.failed} ${failedNoun}.`;
+}
+
+function emailChannelLine(input: {
+  emailRequested: boolean;
+  attempts: AdminBulkEmailAttempt[];
+}): string {
+  if (!input.emailRequested) return "E-mail: niet verstuurd.";
+  const emailsAttempted = input.attempts.length;
+  const emailsSent = input.attempts.filter((attempt) => attempt.status === "sent").length;
+  const emailsFailed = input.attempts.filter((attempt) => attempt.status === "failed").length;
+  const emailsSuppressed = input.attempts.filter((attempt) => attempt.status === "suppressed").length;
+  if (emailsAttempted === 0) return "E-mail: geen adres om aan te bieden.";
+  const noun = emailsAttempted === 1 ? "ontvanger" : "ontvangers";
+  if (emailsSent === emailsAttempted) {
+    return `E-mail: aangeboden aan de e-mailprovider voor ${emailsSent} van ${emailsAttempted} ${noun}.`;
+  }
+  if (emailsSent > 0) {
+    return `E-mail: gedeeltelijk, ${emailsSent} van ${emailsAttempted} aangeboden, ${emailsFailed} geweigerd en ${emailsSuppressed} niet aangeboden.`;
+  }
+  if (emailsFailed === emailsAttempted) {
+    return `E-mail: de e-mailprovider heeft de mail geweigerd voor ${emailsAttempted} ${noun}.`;
+  }
+  return `E-mail: niet aangeboden. Reden: ${describeReasons(input.attempts)}.`;
+}
+
+function reportWithPush(input: {
+  emailRequested: boolean;
+  notificationsSent: number;
+  attempts: AdminBulkEmailAttempt[];
+  push: AdminBulkPushReport;
+}): AdminBulkSendReport {
+  const emailsAttempted = input.attempts.length;
+  const emailsSent = input.attempts.filter((attempt) => attempt.status === "sent").length;
+  const emailsFailed = input.attempts.filter((attempt) => attempt.status === "failed").length;
+  const emailsSuppressed = input.attempts.filter((attempt) => attempt.status === "suppressed").length;
+  const emailOk =
+    !input.emailRequested || (emailsAttempted > 0 && emailsSent === emailsAttempted);
+  const pushOk = input.push.status === "offered";
+  const anyAccepted = emailsSent > 0 || input.push.status === "offered" || input.push.status === "partial";
+  const success = emailOk && pushOk;
+  const outcome: AdminBulkOutcome = success ? "sent" : anyAccepted || input.push.status === "no_device" ? "partial" : "failed";
+  const lines = [
+    inAppLine(input.notificationsSent),
+    pushLine(input.push),
+    emailChannelLine(input),
+  ];
+  return {
+    success,
+    outcome,
+    notificationsSent: input.notificationsSent,
+    emailsAttempted,
+    emailsSent,
+    emailsFailed,
+    emailsSuppressed,
+    message: lines.join("\n"),
+    httpStatus: outcome === "failed" ? 502 : 200,
+    emailRequested: input.emailRequested,
+    pushRequested: true,
+    pushStatus: input.push.status,
+    pushOffered: input.push.offered,
+    pushFailed: input.push.failed,
+    pushTokens: input.push.tokens,
+  };
+}
+
 export function reportAdminBulkSend(input: {
   emailRequested: boolean;
   notificationsSent: number;
   attempts: AdminBulkEmailAttempt[];
+  push?: AdminBulkPushReport;
 }): AdminBulkSendReport {
+  if (input.push?.requested) return reportWithPush({ ...input, push: input.push });
   const emailsAttempted = input.attempts.length;
   const emailsSent = input.attempts.filter((attempt) => attempt.status === "sent").length;
   const emailsFailed = input.attempts.filter((attempt) => attempt.status === "failed").length;
@@ -222,38 +332,40 @@ export function interpretBulkSendResponse(
     typeof record?.emailsAttempted === "number" ? record.emailsAttempted : null;
   const countsConfirmSend =
     sent !== null && attempted !== null && attempted > 0 && sent === attempted;
+  const pushRequested = record?.pushRequested === true;
+  const pushOffered = typeof record?.pushOffered === "number" ? record.pushOffered : 0;
+  const pushFailed = typeof record?.pushFailed === "number" ? record.pushFailed : 0;
+  const pushOk =
+    pushRequested && record?.pushStatus === "offered" && pushOffered > 0 && pushFailed === 0;
+  const emailSkipped = record?.emailRequested === false;
+  const channelsOk =
+    (countsConfirmSend && !pushRequested) ||
+    (emailSkipped && pushOk) ||
+    (countsConfirmSend && pushOk);
 
-  if (
-    status >= 200 &&
-    status < 300 &&
-    success &&
-    outcome === "sent" &&
-    countsConfirmSend &&
-    message
-  ) {
-    return { tone: "success", message };
+  if (status >= 200 && status < 300 && success && outcome === "sent" && message && channelsOk) {
+    return feedback("success", message);
   }
 
   if (outcome === "partial" && message) {
-    return { tone: "partial", message };
+    return feedback("partial", message);
   }
 
   if (outcome === "notification_only" && message) {
-    return { tone: success ? "partial" : "error", message };
+    return feedback(success ? "partial" : "error", message);
   }
 
   if ((outcome === "failed" || outcome === "replay") && message) {
-    return { tone: "error", message };
+    return feedback("error", message);
   }
 
   const unconfirmedSuccessClaim = success || outcome === "sent";
   if (message && !unconfirmedSuccessClaim) {
-    return { tone: "error", message };
+    return feedback("error", message);
   }
 
-  return {
-    tone: "error",
-    message:
-      "De server bevestigde niet dat de e-mail is aangeboden aan de provider. Er is geen succesmelding.",
-  };
+  return feedback(
+    "error",
+    "De server bevestigde niet dat de melding is aangeboden. Er is geen succesmelding."
+  );
 }

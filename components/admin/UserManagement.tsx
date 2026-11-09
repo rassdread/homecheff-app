@@ -251,6 +251,7 @@ export default function UserManagement() {
       setBulkFeedback({
         tone: 'error',
         message: 'De verzending is afgebroken voordat de server een uitslag gaf. Er is niet bevestigd dat de e-mail is aangeboden.',
+        lines: ['De verzending is afgebroken voordat de server een uitslag gaf. Er is niet bevestigd dat de e-mail is aangeboden.'],
       });
     } finally {
       setIsSendingBulkMessage(false);
@@ -752,7 +753,7 @@ export default function UserManagement() {
               </div>
 
               {bulkFeedback && (
-                <p
+                <div
                   role={bulkFeedback.tone === 'error' ? 'alert' : 'status'}
                   className={`rounded-lg border px-3 py-2 text-sm ${
                     bulkFeedback.tone === 'success'
@@ -762,8 +763,12 @@ export default function UserManagement() {
                         : 'border-red-700 bg-red-50 text-red-950'
                   }`}
                 >
-                  {bulkFeedback.message}
-                </p>
+                  <ul className="space-y-1">
+                    {(bulkFeedback.lines?.length ? bulkFeedback.lines : [bulkFeedback.message]).map((line, index) => (
+                      <li key={`${index}-${line}`}>{line}</li>
+                    ))}
+                  </ul>
+                </div>
               )}
 
               <div className="flex gap-3 pt-4">

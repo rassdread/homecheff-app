@@ -13,6 +13,7 @@ import {
   reportAdminBulkSend,
   type AdminBulkEmailAttempt,
 } from '@/lib/email/admin-bulk-delivery';
+import { sendSelectedUserPush } from '@/lib/admin/admin-selected-push';
 import { renderAdminBulkMessage } from '@/lib/email/admin-bulk-message-content';
 import { sendTransactionalEmail } from '@/lib/email/idempotent-send';
 import { EMAIL_PRIORITY } from '@/lib/email/priority';
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
       typeof body?.subject === 'string' ? body.subject.trim() : 'Bericht van HomeCheff Admin';
     const sendEmail =
       typeof body?.sendEmail === 'boolean' ? body.sendEmail : type !== 'push';
+    const sendPush = type === 'push' || type === 'both';
     const confirmEmailBlast = Boolean(body?.confirmEmailBlast);
     const dryRun = Boolean(body?.dryRun);
     const idempotencyKey =
@@ -167,10 +169,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const push = sendPush
+      ? await sendSelectedUserPush({
+          userIds: users.map((u) => u.id),
+          title: subject || 'Bericht van HomeCheff Admin',
+          body: message,
+          broadcastId,
+        })
+      : undefined;
+
     const report = reportAdminBulkSend({
       emailRequested: sendEmail,
       notificationsSent: notifications.length,
       attempts,
+      push,
     });
 
     const blastLog = JSON.stringify({
@@ -200,6 +212,12 @@ export async function POST(request: NextRequest) {
         emailsSent: report.emailsSent,
         emailsFailed: report.emailsFailed,
         emailsSuppressed: report.emailsSuppressed,
+        emailRequested: report.emailRequested ?? sendEmail,
+        pushRequested: Boolean(sendPush),
+        pushStatus: report.pushStatus,
+        pushOffered: report.pushOffered ?? 0,
+        pushFailed: report.pushFailed ?? 0,
+        pushTokens: report.pushTokens ?? 0,
         message: report.message,
       },
       { status: report.httpStatus }
