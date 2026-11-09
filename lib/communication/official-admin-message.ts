@@ -12,10 +12,10 @@ export type OfficialAdminAction = {
 };
 
 export type OfficialConversationView = {
-  senderLabel: typeof TEAM_HOMECHEFF_LABEL;
-  badge: typeof OFFICIAL_MESSAGE_BADGE;
+  senderLabel: string;
+  badge: string;
   subject: string;
-  repliesDisabled: true;
+  repliesDisabled: boolean;
   action: OfficialAdminAction | null;
 };
 
