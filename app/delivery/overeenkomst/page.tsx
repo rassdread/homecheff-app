@@ -10,7 +10,8 @@ export const dynamic = 'force-dynamic';
  */
 export default async function DeliveryAgreementPage() {
   const session = await auth();
-  if (!session?.user?.id) {
+  const userId = (session?.user as { id?: string } | undefined)?.id;
+  if (!userId) {
     redirect(`/login?callbackUrl=${encodeURIComponent('/delivery/overeenkomst')}`);
   }
 
