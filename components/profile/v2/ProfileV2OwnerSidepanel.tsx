@@ -38,6 +38,7 @@ import {
   emptyWorkspaceCounts,
   getHighlightedCommunityAction,
   getHighlightedQuickAction,
+  noticeForProfileTab,
   parseWorkspacePhotoCounts,
   type QuickActionId,
 } from '@/lib/profile/profile-v2/owner-sidepanel-data';
@@ -639,8 +640,54 @@ function HcpCompactStrip() {
   );
 }
 
+function TabNeededNotice() {
+  const { t } = useTranslation();
+  const {
+    activeTab,
+    derived,
+    onTabChange,
+    openAddAanbod,
+    openAddInspiratie,
+    openStripeSetup,
+    stripeLoading,
+  } = useSidepanelContext();
+  const notice = noticeForProfileTab(activeTab, derived.nextStep);
+  if (!notice) return null;
+
+  const onClick = () => {
+    if (notice.id === 'firstAanbod') openAddAanbod();
+    else if (notice.id === 'firstInspiratie') openAddInspiratie();
+    else if (notice.id === 'stripe') openStripeSetup();
+    else if (notice.id === 'setupRoles') window.location.href = '/onboarding/seller';
+    else if (notice.tab) onTabChange(notice.tab);
+  };
+
+  return (
+    <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+      <p className="font-semibold">{t(notice.titleKey)}</p>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={notice.id === 'stripe' && stripeLoading}
+        className="mt-1 min-h-[44px] font-semibold text-emerald-800 disabled:opacity-60"
+      >
+        {t(notice.ctaKey)}
+      </button>
+    </div>
+  );
+}
+
 function SidepanelContent({ surface }: { surface: Surface }) {
+  const { activeTab } = useSidepanelContext();
   const compact = surface === 'mobile-inline';
+
+  if (compact && activeTab !== 'overview') {
+    return (
+      <div className="mb-3">
+        <TabNeededNotice />
+      </div>
+    );
+  }
 
   return (
     <div className={cn('flex flex-col gap-3', compact ? 'mb-2' : undefined)}>

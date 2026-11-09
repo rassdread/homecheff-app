@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   computeRecommendedNextStep,
   emptyWorkspaceCounts,
+  noticeForProfileTab,
 } from './owner-sidepanel-data';
 import type { ProfileV2Stats, ProfileV2User } from './types';
 
@@ -35,5 +36,15 @@ describe('profile next step', () => {
   it('moves past the first listing when products already exist', () => {
     const step = computeRecommendedNextStep(user, stats(1, 0), emptyWorkspaceCounts());
     assert.equal(step.id, 'firstInspiratie');
+  });
+
+  it('keeps a needed action on its own tab and leaves other tabs clear', () => {
+    const aanbod = computeRecommendedNextStep(user, stats(0, 0), emptyWorkspaceCounts());
+    assert.equal(noticeForProfileTab('overview', aanbod), null);
+    assert.equal(noticeForProfileTab('aanbod', aanbod)?.id, 'firstAanbod');
+    assert.equal(noticeForProfileTab('inspiratie', aanbod), null);
+    const inspiratie = computeRecommendedNextStep(user, stats(1, 0), emptyWorkspaceCounts());
+    assert.equal(noticeForProfileTab('inspiratie', inspiratie)?.id, 'firstInspiratie');
+    assert.equal(noticeForProfileTab('community', inspiratie), null);
   });
 });

@@ -168,6 +168,19 @@ export default function ProfileV2Client({
     }
     return resolveInitialTab(searchParams);
   });
+  const selectTab = useCallback((tab: ProfileV2TabId) => {
+    setActiveTab((current) => {
+      if (current !== tab) {
+        window.setTimeout(() => {
+          document.getElementById('profile-v2-tabs')?.scrollIntoView({
+            block: 'start',
+            behavior: 'smooth',
+          });
+        }, 0);
+      }
+      return tab;
+    });
+  }, []);
   const [aanbodFilter, setAanbodFilter] = useState<ProfileV2AanbodFilter>(() =>
     resolveInitialAanbodFilter(searchParams),
   );
@@ -435,7 +448,7 @@ export default function ProfileV2Client({
 
   const panelProps = {
     ctx,
-    onNavigateTab: setActiveTab,
+    onNavigateTab: selectTab,
     aanbodFilter,
     onAanbodFilterChange: setAanbodFilter,
     inspiratieFilter,
@@ -459,7 +472,7 @@ export default function ProfileV2Client({
           activeTab,
           aanbodFilter,
           inspiratieFilter,
-          onTabChange: setActiveTab,
+          onTabChange: selectTab,
           onEditProfile: () => router.push('/settings'),
         }
       : null;
@@ -485,7 +498,7 @@ export default function ProfileV2Client({
     <ProfileV2Shell
       ctx={ctx}
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={selectTab}
       topBar={topBar}
       onEditProfile={() => router.push('/settings')}
       onPhotoChange={(url) => {

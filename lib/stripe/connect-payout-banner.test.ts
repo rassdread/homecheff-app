@@ -10,7 +10,8 @@ describe('connect payout banner', () => {
       needsTrackSelection: true,
     });
     assert.equal(model.phase, 'not_started');
-    assert.equal(model.actionLabelNl, 'Stripe Connect instellen');
+    assert.equal(model.presentation, 'action');
+    assert.equal(model.actionLabelNl, 'Instellen');
     assert.equal(model.askTrack, true);
     assert.match(model.titleNl, /Rond Stripe Connect af om uitbetalingen te ontvangen/);
   });
@@ -24,6 +25,7 @@ describe('connect payout banner', () => {
       connectTrack: 'PARTICULAR',
     });
     assert.equal(model.phase, 'resume');
+    assert.equal(model.presentation, 'action');
     assert.equal(model.actionLabelNl, 'Verder met Stripe Connect');
     assert.equal(model.askTrack, false);
   });
@@ -36,14 +38,18 @@ describe('connect payout banner', () => {
       paymentReady: false,
     });
     assert.equal(review.phase, 'in_review');
+    assert.equal(review.presentation, 'payments');
     assert.equal(review.actionLabelNl, null);
+    assert.equal(review.paymentsLineNl, 'Verificatie wordt gecontroleerd');
     const ready = connectPayoutBannerModel({
       hasAccount: true,
       uiStatus: 'PAYMENT_READY',
       paymentReady: true,
     });
     assert.equal(ready.phase, 'ready');
+    assert.equal(ready.presentation, 'payments');
     assert.equal(ready.actionLabelNl, null);
+    assert.equal(ready.paymentsLineNl, '✓ Uitbetalingen ingesteld');
   });
 
   it('the same account can return to either dashboard', () => {

@@ -2,11 +2,16 @@ import type { HomecheffConnectUiStatus } from '@/lib/stripe/connect-account-stat
 
 export type ConnectPayoutPhase = 'not_started' | 'resume' | 'in_review' | 'ready' | 'waiting';
 
+export type ConnectPayoutPresentation = 'action' | 'payments';
+
 export type ConnectPayoutBannerModel = {
   phase: ConnectPayoutPhase;
+  presentation: ConnectPayoutPresentation;
   titleNl: string;
   bodyNl: string;
   actionLabelNl: string | null;
+  /** Short line under the Betalingen heading. Empty while an action is still required. */
+  paymentsLineNl: string | null;
   askTrack: boolean;
 };
 
@@ -28,9 +33,11 @@ export function connectPayoutBannerModel(input: {
   if (input.paymentReady || status === 'PAYMENT_READY') {
     return {
       phase: 'ready',
-      titleNl: 'Betaalaccount gereed',
-      bodyNl: 'Je kunt uitbetalingen ontvangen via HomeCheff.',
+      presentation: 'payments',
+      titleNl: 'Betalingen',
+      bodyNl: '',
       actionLabelNl: null,
+      paymentsLineNl: '✓ Uitbetalingen ingesteld',
       askTrack: false,
     };
   }
@@ -38,10 +45,11 @@ export function connectPayoutBannerModel(input: {
   if (status === 'PENDING_VERIFICATION' && !input.canCreateOnboardingLink) {
     return {
       phase: 'in_review',
-      titleNl: 'Verificatie wordt gecontroleerd',
-      bodyNl:
-        'Je gegevens zijn ingestuurd. Stripe controleert ze. Je hoeft ze niet opnieuw in te vullen.',
+      presentation: 'payments',
+      titleNl: 'Betalingen',
+      bodyNl: '',
       actionLabelNl: null,
+      paymentsLineNl: 'Verificatie wordt gecontroleerd',
       askTrack: false,
     };
   }
@@ -49,10 +57,11 @@ export function connectPayoutBannerModel(input: {
   if (status === 'RESTRICTED' && !input.canCreateOnboardingLink) {
     return {
       phase: 'waiting',
-      titleNl: 'Stripe heeft je betaalaccount beperkt',
-      bodyNl:
-        'Er staan nu geen invulbare stappen open. Vernieuw later of neem contact op met support.',
+      presentation: 'payments',
+      titleNl: 'Betalingen',
+      bodyNl: '',
       actionLabelNl: null,
+      paymentsLineNl: 'Stripe heeft je betaalaccount beperkt',
       askTrack: false,
     };
   }
@@ -68,18 +77,22 @@ export function connectPayoutBannerModel(input: {
   if (started && canAct) {
     return {
       phase: 'resume',
+      presentation: 'action',
       titleNl: SETUP_TITLE,
       bodyNl: 'Je bent al begonnen. We gaan verder met je bestaande betaalaccount.',
       actionLabelNl: 'Verder met Stripe Connect',
+      paymentsLineNl: null,
       askTrack: false,
     };
   }
 
   return {
     phase: 'not_started',
+    presentation: 'action',
     titleNl: SETUP_TITLE,
     bodyNl: 'Kies particulier of bedrijf. Daarna ga je direct naar Stripe.',
-    actionLabelNl: 'Stripe Connect instellen',
+    actionLabelNl: 'Instellen',
+    paymentsLineNl: null,
     askTrack: true,
   };
 }

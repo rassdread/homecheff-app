@@ -26,13 +26,11 @@ import {
   Target,
   Zap,
   CheckCircle,
-  AlertCircle,
   Play,
   Pause,
   RefreshCw,
   MessageCircle,
   User,
-  CreditCard,
   ExternalLink,
   Package,
   Printer,
@@ -40,7 +38,7 @@ import {
   Wallet
 } from 'lucide-react';
 import OperationsShell from '@/components/operations/OperationsShell';
-import ConnectPayoutBanner, { CONNECT_PAYOUT_OPEN_EVENT } from '@/components/stripe/ConnectPayoutBanner';
+import ConnectPayoutBanner from '@/components/stripe/ConnectPayoutBanner';
 import { CardListLoadingSkeleton } from '@/components/navigation/RouteLoadingSkeletons';
 
 interface DeliveryStats {
@@ -209,11 +207,6 @@ export default function DeliveryDashboard({
   const [acceptingOrder, setAcceptingOrder] = useState<string | null>(null);
   const [gpsEnabled, setGpsEnabled] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [stripeConnectStatus, setStripeConnectStatus] = useState<{
-    accountId?: string | null;
-    onboardingCompleted?: boolean;
-    uiStatus?: string | null;
-  } | null>(null);
   const [isSeller, setIsSeller] = useState(false);
   const [shippingOrders, setShippingOrders] = useState<any[]>([]);
   const [allOrders, setAllOrders] = useState<any[]>([]);
@@ -227,10 +220,8 @@ export default function DeliveryDashboard({
 
   useEffect(() => {
     fetchDeliveryData();
-    // Only fetch online status and Stripe Connect if not a seller (sellers don't have delivery profiles)
     if (!isSeller) {
       fetchOnlineStatus();
-      fetchStripeConnectStatus();
       fetchActivationStatus();
     }
 
@@ -341,24 +332,6 @@ export default function DeliveryDashboard({
       }
     } catch (error) {
       console.error('Error fetching online status:', error);
-    }
-  };
-
-  const fetchStripeConnectStatus = async () => {
-    try {
-      const response = await fetch(`/api/stripe/connect/onboard?ts=${Date.now()}`, {
-        cache: 'no-store',
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setStripeConnectStatus({
-          accountId: data.accountId,
-          onboardingCompleted: Boolean(data.isCompleted || data.paymentReady),
-          uiStatus: data.uiStatus || null,
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching Stripe Connect status:', error);
     }
   };
 
@@ -709,11 +682,6 @@ export default function DeliveryDashboard({
       default:
         return status;
     }
-  };
-
-  const handleStripeOnboard = () => {
-    document.getElementById('connect-payout-banner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    window.dispatchEvent(new Event(CONNECT_PAYOUT_OPEN_EVENT));
   };
 
   // Wait for translations to load before rendering
@@ -2144,61 +2112,6 @@ export default function DeliveryDashboard({
                   ))
                 )}
               </div>
-            </div>
-
-            {/* Stripe Connect Status */}
-            <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
-                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>{t('delivery.paymentStatus')}</span>
-              </h3>
-              
-              {stripeConnectStatus?.onboardingCompleted ||
-              stripeConnectStatus?.uiStatus === 'PAYMENT_READY' ? (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
-                  <div className="flex items-center mb-2">
-                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mr-2 flex-shrink-0" />
-                    <span className="font-medium text-green-800 text-sm sm:text-base">{t('delivery.stripeConnectActive')}</span>
-                  </div>
-                  <p className="text-green-700 text-xs sm:text-sm">
-                    {t('delivery.stripeConnectActiveDesc')}
-                  </p>
-                </div>
-              ) : stripeConnectStatus?.uiStatus === 'PENDING_VERIFICATION' ? (
-                <div className="bg-sky-50 border border-sky-200 rounded-lg p-3 sm:p-4">
-                  <div className="flex items-center mb-2">
-                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-sky-600 mr-2 flex-shrink-0" />
-                    <span className="font-medium text-sky-800 text-sm sm:text-base">Verificatie loopt</span>
-                  </div>
-                  <p className="text-sky-700 text-xs sm:text-sm">
-                    Je gegevens zijn ontvangen. Stripe controleert je betaalaccount. Je hoeft nu niets opnieuw in te vullen.
-                  </p>
-                </div>
-              ) : (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4">
-                  <div className="flex items-center mb-2">
-                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mr-2 flex-shrink-0" />
-                    <span className="font-medium text-amber-800 text-sm sm:text-base">{t('delivery.stripeConnectRequired')}</span>
-                  </div>
-                  <p className="text-amber-700 text-xs sm:text-sm mb-2 sm:mb-3">
-                    {t('delivery.stripeConnectRequiredDesc')}
-                  </p>
-                  <button
-                    onClick={handleStripeOnboard}
-                    className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-xs sm:text-sm"
-                  >
-                    <CreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span>
-                      {stripeConnectStatus?.uiStatus === 'INCOMPLETE' ||
-                      stripeConnectStatus?.uiStatus === 'ACTION_REQUIRED' ||
-                      stripeConnectStatus?.uiStatus === 'RESTRICTED'
-                        ? 'Verder met Stripe Connect'
-                        : t('delivery.setupNow')}
-                    </span>
-                    <ExternalLink className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Tips */}

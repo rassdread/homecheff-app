@@ -262,6 +262,17 @@ export type QuickActionId =
   | 'trust'
   | 'editProfile';
 
+/** A compact notice only when the open next step belongs to this tab. */
+export function noticeForProfileTab(
+  activeTab: ProfileV2TabId,
+  nextStep: NextStep,
+): NextStep | null {
+  if (activeTab === 'overview') return null;
+  if (nextStep.id === 'pending' || nextStep.id === 'viewPublicProfile') return null;
+  if (nextStep.tab !== activeTab) return null;
+  return nextStep;
+}
+
 export function getHighlightedQuickAction(
   activeTab: ProfileV2TabId,
 ): QuickActionId | null {

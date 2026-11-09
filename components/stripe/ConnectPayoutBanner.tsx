@@ -104,16 +104,27 @@ export default function ConnectPayoutBanner({ returnPath }: { returnPath: string
     return () => window.removeEventListener(CONNECT_PAYOUT_OPEN_EVENT, open);
   }, [begin]);
 
+  if (!loaded) return null;
+
+  if (model.presentation === 'payments') {
+    return (
+      <section id="connect-payout-banner" className="mt-4" aria-labelledby="connect-payout-payments">
+        <h2 id="connect-payout-payments" className="text-sm font-semibold text-gray-800">
+          Betalingen
+        </h2>
+        <p className="mt-1 text-sm text-gray-600">{model.paymentsLineNl}</p>
+      </section>
+    );
+  }
+
   return (
     <section
       id="connect-payout-banner"
       className="mt-4 rounded-xl border-2 border-emerald-700 bg-emerald-50 px-4 py-4 text-emerald-950"
     >
-      <h2 className="text-base font-semibold sm:text-lg">
-        {loaded ? model.titleNl : 'Betaalaccount wordt gecontroleerd…'}
-      </h2>
-      {loaded ? <p className="mt-1 text-sm leading-relaxed">{model.bodyNl}</p> : null}
-      {loaded && choosing ? (
+      <h2 className="text-base font-semibold sm:text-lg">{model.titleNl}</h2>
+      {model.bodyNl ? <p className="mt-1 text-sm leading-relaxed">{model.bodyNl}</p> : null}
+      {choosing ? (
         <div className="mt-3 rounded-xl bg-white p-3 text-slate-900">
           <ConnectTrackSelector
             loading={loading}
@@ -122,7 +133,7 @@ export default function ConnectPayoutBanner({ returnPath }: { returnPath: string
           />
         </div>
       ) : null}
-      {loaded && model.actionLabelNl && !choosing ? (
+      {model.actionLabelNl && !choosing ? (
         <button
           type="button"
           onClick={begin}

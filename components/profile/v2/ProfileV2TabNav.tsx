@@ -15,7 +15,8 @@ export default function ProfileV2TabNav({ activeTab, onTabChange }: Props) {
 
   return (
     <nav
-      className="sticky z-10 mb-0"
+      id="profile-v2-tabs"
+      className="sticky z-10 mb-0 scroll-mt-16"
       style={{ top: 'max(3.5rem, calc(env(safe-area-inset-top, 0px) + 3rem))' }}
       aria-label={t('profileV2.tabs.navLabel')}
     >
