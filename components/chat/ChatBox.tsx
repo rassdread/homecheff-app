@@ -1321,7 +1321,21 @@ export default function ChatBox({
             {messages.map((msg) => (
               <ChatThreadMessageRow
                 key={msg.id}
-                msg={msg}
+                msg={
+                  official
+                    ? {
+                        ...msg,
+                        User: {
+                          id: "team-homecheff",
+                          name: official.senderLabel,
+                          username: null,
+                          profileImage: null,
+                          displayFullName: true,
+                          displayNameOption: "full",
+                        },
+                      }
+                    : msg
+                }
                 currentUserId={currentUserId}
                 formatTime={formatTime}
                 proposal={
