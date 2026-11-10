@@ -3,11 +3,19 @@ import { describe, it } from 'node:test';
 import {
   HISTORY_INCOMPLETE_NOTE,
   channelOutcomeLabel,
+  channelsFromMessageType,
   contentFingerprint,
   countDecisions,
+  describeChannelOutcomes,
+  filterHistorySends,
+  historyDay,
   planContentDeliveries,
   priorDeliveryId,
   priorFromStoredNotice,
+  readStoredBroadcastNotice,
+  recipientCountLabel,
+  rowsForHistoryQuery,
+  type HistoryListSend,
 } from './broadcast-history';
 
 const message = 'Je Connect-onboarding staat nog open.';
@@ -101,8 +109,13 @@ describe('same message is delivered once per channel', () => {
     const otherBody = contentFingerprint('email', title, subject, 'Andere tekst');
     assert.notEqual(same, otherSubject);
     assert.notEqual(same, otherBody);
-    assert.equal(channelOutcomeLabel('email', 'accepted').includes('Aflevering is niet bevestigd'), true);
+    assert.equal(channelOutcomeLabel('email', 'accepted'), 'E-mail geaccepteerd door maildienst');
+    assert.equal(channelOutcomeLabel('email', 'accepted').includes('Afgeleverd'), false);
+    assert.equal(channelOutcomeLabel('email', 'delivered'), 'Afgeleverd');
     assert.equal(channelOutcomeLabel('inApp', 'created'), 'In-appmelding aangemaakt');
+    assert.equal(channelOutcomeLabel('email', 'failed'), 'Mislukt');
+    assert.equal(channelOutcomeLabel('email', 'skipped_duplicate'), 'Overgeslagen als duplicaat');
+    assert.equal(channelOutcomeLabel('email', 'unconfirmed'), 'Uitkomst onbekend');
     assert.equal(HISTORY_INCOMPLETE_NOTE.includes('onvolledig'), true);
   });
 
@@ -123,5 +136,87 @@ describe('same message is delivered once per channel', () => {
     });
     assert.equal(decisions.find((item) => item.channel === 'inApp')?.action, 'skip');
     assert.equal(decisions.find((item) => item.channel === 'email')?.action, 'send');
+  });
+});
+
+describe('send history overview', () => {
+  const older: HistoryListSend = {
+    id: 'older-send',
+    subject: 'Eerste testbericht',
+    at: '2026-11-01T10:00:00.000Z',
+    audience: 'Niet geregistreerd',
+    channels: ['In-app', 'E-mail'],
+    channelIds: ['inApp', 'email'],
+    recipientCount: 2,
+    incomplete: true,
+    note: HISTORY_INCOMPLETE_NOTE,
+  };
+  const newer: HistoryListSend = {
+    id: 'newer-send',
+    subject: 'Tweede testbericht',
+    at: '2026-11-09T22:30:00.000Z',
+    audience: 'Bezorgpartners',
+    channels: ['In-app', 'Push'],
+    channelIds: ['inApp', 'push'],
+    recipientCount: 1,
+    incomplete: false,
+    note: null,
+  };
+
+  it('lists the newest send first and keeps the period and channel filters', () => {
+    assert.equal(historyDay('2026-11-09T23:30:00.000Z'), '2026-11-10');
+    const newestFirst = filterHistorySends([older, newer], { from: null, to: null, channel: 'all' });
+    assert.deepEqual(newestFirst.map((send) => send.id), ['newer-send', 'older-send']);
+    const emailOnly = filterHistorySends([older, newer], { from: '2026-11-01', to: '2026-11-02', channel: 'email' });
+    assert.deepEqual(emailOnly.map((send) => send.id), ['older-send']);
+    assert.equal(recipientCountLabel(1, false), '1 ontvanger');
+    assert.equal(recipientCountLabel(0, true), 'Ontvangers niet geregistreerd');
+  });
+
+  it('opens the original message from a person and keeps skipped or failed outcomes unread', () => {
+    const stored = readStoredBroadcastNotice({
+      title: subject,
+      message,
+      messageType: 'email',
+      broadcastId: 'test-broadcast',
+      from: 'admin',
+    });
+    assert.equal(stored?.message, message);
+    assert.deepEqual(channelsFromMessageType(stored?.messageType ?? null), ['inApp', 'email']);
+    assert.equal(readStoredBroadcastNotice({ title: 'Nieuwe badge', body: 'badge', data: { kind: 'HCP_BADGE' } }), null);
+    const outcomes = describeChannelOutcomes(['inApp', 'email'], { inApp: 'created', email: 'missing' });
+    assert.equal(outcomes[0]?.status, 'In-appmelding aangemaakt');
+    assert.equal(outcomes[0]?.received, true);
+    assert.equal(outcomes[1]?.status, 'Niet geregistreerd');
+    assert.equal(outcomes[1]?.received, false);
+    const failed = describeChannelOutcomes(['push'], { push: 'failed' });
+    const skipped = describeChannelOutcomes(['email'], { email: 'skipped_duplicate' });
+    assert.equal(failed[0]?.received, false);
+    assert.equal(skipped[0]?.status, 'Overgeslagen als duplicaat');
+    assert.equal(skipped[0]?.received, false);
+    const rows = rowsForHistoryQuery({
+      sends: [older, newer],
+      membership: [
+        { sendId: 'older-send', userId: 'test-seller-courier', channels: outcomes },
+        { sendId: 'newer-send', userId: 'test-courier', channels: failed },
+      ],
+      people: [
+        { id: 'test-seller-courier', name: 'Test verkoper', email: 'seller@homecheff.invalid', username: 'test-seller' },
+        { id: 'test-courier', name: 'Test bezorger', email: 'courier@homecheff.invalid', username: 'test-courier' },
+      ],
+      query: 'seller@homecheff.invalid',
+    });
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0]?.id, 'older-send');
+    assert.equal(rows[0]?.subject, 'Eerste testbericht');
+    assert.equal(rows[0]?.focus?.channels.some((channel) => channel.channel === 'E-mail'), true);
+    const bySubject = rowsForHistoryQuery({
+      sends: [older, newer],
+      membership: [],
+      people: [],
+      query: 'Tweede',
+    });
+    assert.equal(bySubject[0]?.id, 'newer-send');
+    assert.equal(bySubject[0]?.focus, null);
   });
 });

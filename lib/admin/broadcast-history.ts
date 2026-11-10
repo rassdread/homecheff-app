@@ -21,7 +21,7 @@ export type ContentDeliveryDecision = {
 };
 
 export const HISTORY_INCOMPLETE_NOTE =
-  'Oudere berichten zonder registratie. De geschiedenis kan onvolledig zijn.';
+  'Oudere verzendingen zijn onvolledig geregistreerd. Ontbrekende tekst of uitkomsten zijn niet als ontvangen geteld.';
 
 const CHANNELS: DeliveryChannel[] = ['inApp', 'push', 'email'];
 
@@ -126,16 +126,177 @@ export function duplicatePlanLines(decisions: ContentDeliveryDecision[]): string
   return lines;
 }
 
-export function channelOutcomeLabel(channel: DeliveryChannel, status: DeliveryRecordStatus | 'missing' | 'no_token' | 'suppressed'): string {
+export type HistoryOutcome =
+  | DeliveryRecordStatus
+  | 'delivered'
+  | 'skipped_duplicate'
+  | 'missing'
+  | 'no_token'
+  | 'suppressed';
+
+export function channelDisplayName(channel: DeliveryChannel): string {
+  if (channel === 'inApp') return 'In-app';
+  if (channel === 'push') return 'Push';
+  return 'E-mail';
+}
+
+export function channelOutcomeLabel(channel: DeliveryChannel, status: HistoryOutcome): string {
+  if (status === 'delivered') return 'Afgeleverd';
   if (channel === 'inApp' && status === 'created') return 'In-appmelding aangemaakt';
-  if (channel === 'push' && status === 'accepted') return 'Push geaccepteerd door de pushdienst. Aflevering op het toestel is niet bevestigd.';
-  if (channel === 'email' && status === 'accepted') return 'E-mail geaccepteerd door de maildienst. Aflevering is niet bevestigd.';
-  if (status === 'failed') return 'Definitief mislukt. Opnieuw proberen kan.';
-  if (status === 'unconfirmed') return 'Uitkomst onbekend. Apart gezet voor controle.';
-  if (status === 'no_token') return 'Geen geschikt apparaat. Niet aangeboden aan de pushdienst.';
-  if (status === 'suppressed') return 'Niet aangeboden.';
-  if (status === 'missing') return 'Niet geregistreerd.';
-  return 'Geen registratie voor dit kanaal.';
+  if (channel === 'push' && status === 'accepted') return 'Push geaccepteerd door de pushdienst';
+  if (channel === 'email' && status === 'accepted') return 'E-mail geaccepteerd door maildienst';
+  if (status === 'skipped_duplicate') return 'Overgeslagen als duplicaat';
+  if (status === 'failed') return 'Mislukt';
+  if (status === 'unconfirmed') return 'Uitkomst onbekend';
+  if (status === 'no_token') return 'Geen geschikt apparaat';
+  if (status === 'suppressed') return 'Niet aangeboden';
+  return 'Niet geregistreerd';
+}
+
+export function outcomeWasReceived(status: HistoryOutcome): boolean {
+  return status === 'created' || status === 'accepted' || status === 'delivered';
+}
+
+export type HistoryChannelStatus = {
+  channel: string;
+  status: string;
+  received: boolean;
+};
+
+export function describeChannelOutcomes(
+  channels: DeliveryChannel[],
+  state: Partial<Record<DeliveryChannel, HistoryOutcome>>,
+): HistoryChannelStatus[] {
+  return channels.map((channel) => {
+    const outcome = state[channel] ?? 'missing';
+    return {
+      channel: channelDisplayName(channel),
+      status: channelOutcomeLabel(channel, outcome),
+      received: outcomeWasReceived(outcome),
+    };
+  });
+}
+
+export function channelsFromMessageType(messageType: string | null): DeliveryChannel[] {
+  if (messageType === 'push') return ['inApp', 'push'];
+  if (messageType === 'both') return ['inApp', 'push', 'email'];
+  if (messageType === 'email') return ['inApp', 'email'];
+  return ['inApp'];
+}
+
+export function historyDay(at: string, timeZone = 'Europe/Amsterdam'): string {
+  const date = new Date(at);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+export function withinHistoryPeriod(at: string, from: string | null, to: string | null): boolean {
+  const day = historyDay(at);
+  if (!day) return false;
+  if (from && day < from) return false;
+  if (to && day > to) return false;
+  return true;
+}
+
+export function recipientCountLabel(count: number, incomplete: boolean): string {
+  if (count === 0 && incomplete) return 'Ontvangers niet geregistreerd';
+  if (count === 1) return '1 ontvanger';
+  return `${count} ontvangers`;
+}
+
+export function readStoredBroadcastNotice(payload: unknown): {
+  broadcastId: string;
+  title: string;
+  message: string;
+  messageType: string | null;
+} | null {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null;
+  const record = payload as Record<string, unknown>;
+  const data = record.data && typeof record.data === 'object' && !Array.isArray(record.data)
+    ? record.data as Record<string, unknown>
+    : null;
+  if (data?.kind === 'HCP_BADGE' || data?.orderId || data?.proposalId || data?.shiftId || data?.conversationId) return null;
+  const broadcastId = typeof record.broadcastId === 'string' ? record.broadcastId.trim() : '';
+  if (!broadcastId) return null;
+  const message = typeof record.message === 'string' && record.message.trim()
+    ? record.message
+    : typeof record.body === 'string'
+      ? record.body
+      : '';
+  const title = typeof record.title === 'string' && record.title.trim() ? record.title.trim() : 'Bericht zonder onderwerp';
+  const messageType = record.messageType === 'email' || record.messageType === 'push' || record.messageType === 'both'
+    ? record.messageType
+    : null;
+  return { broadcastId, title, message, messageType };
+}
+
+export type HistoryListSend = {
+  id: string;
+  subject: string;
+  at: string;
+  audience: string;
+  channels: string[];
+  channelIds: DeliveryChannel[];
+  recipientCount: number;
+  incomplete: boolean;
+  note: string | null;
+};
+
+export type HistoryMembership = {
+  sendId: string;
+  userId: string;
+  channels: HistoryChannelStatus[];
+};
+
+export function filterHistorySends(
+  sends: HistoryListSend[],
+  input: { from: string | null; to: string | null; channel: 'all' | DeliveryChannel },
+): HistoryListSend[] {
+  return sends
+    .filter((send) => withinHistoryPeriod(send.at, input.from, input.to))
+    .filter((send) => input.channel === 'all' || send.channelIds.includes(input.channel))
+    .sort((left, right) => right.at.localeCompare(left.at));
+}
+
+export function rowsForHistoryQuery(input: {
+  sends: HistoryListSend[];
+  membership: HistoryMembership[];
+  people: Array<{ id: string; name: string | null; email: string | null; username: string | null }>;
+  query: string;
+}): Array<HistoryListSend & { focus: { userId: string; name: string; email: string | null; channels: HistoryChannelStatus[] } | null }> {
+  const q = input.query.trim().toLowerCase();
+  const ordered = filterHistorySends(input.sends, { from: null, to: null, channel: 'all' });
+  if (!q) return ordered.map((send) => ({ ...send, focus: null }));
+  const people = input.people.filter((person) =>
+    [person.name, person.email || '', person.username || ''].join(' ').toLowerCase().includes(q),
+  );
+  const personIds = new Set(people.map((person) => person.id));
+  const byId = new Map(people.map((person) => [person.id, person]));
+  const bySend = new Map(ordered.map((send) => [send.id, send]));
+  const focused = input.membership.flatMap((item) => {
+    const send = bySend.get(item.sendId);
+    const person = byId.get(item.userId);
+    if (!send || !person || !personIds.has(item.userId)) return [];
+    return [{
+      ...send,
+      focus: {
+        userId: person.id,
+        name: person.name || person.username || 'Gebruiker',
+        email: person.email,
+        channels: item.channels,
+      },
+    }];
+  });
+  const focusedIds = new Set(focused.map((row) => row.id));
+  const subjects = ordered
+    .filter((send) => !focusedIds.has(send.id) && `${send.subject} ${send.audience}`.toLowerCase().includes(q))
+    .map((send) => ({ ...send, focus: null }));
+  return [...focused, ...subjects].sort((left, right) => right.at.localeCompare(left.at));
 }
 
 export function alreadySentLabel(channel: DeliveryChannel, at: string): string {
