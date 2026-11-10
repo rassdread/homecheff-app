@@ -27,6 +27,7 @@ import { stripReferralNoise } from '@/lib/chat/stripReferralNoise';
 import { isProposalI18nKey } from '@/lib/proposals/proposal-i18n-keys';
 import { saveScrollPosition } from '@/lib/appResumeCache';
 import { cn } from '@/lib/utils';
+import { canonicalLogoPath } from '@/lib/brand/canonical-logo';
 import { isNativeAndroid } from '@/lib/native/capacitor';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import {
@@ -871,6 +872,17 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     );
 
   const avatarVisual = (c: Conversation) => {
+    if (c.official) {
+      return (
+        <img
+          src={canonicalLogoPath('square')}
+          alt="HomeCheff"
+          width={48}
+          height={48}
+          className="h-12 w-12 shrink-0 rounded-2xl bg-white object-contain"
+        />
+      );
+    }
     const p = primaryParticipant(c);
     if (c.product?.Image?.[0]) {
       return (

@@ -92,12 +92,34 @@ describe("official admin inbox copies", () => {
     const chat = readFileSync(resolve(process.cwd(), "components/chat/ChatBox.tsx"), "utf8");
     assert.match(chat, /Je kunt hier nog niet op antwoorden/);
     assert.match(chat, /data-hc-chat-composer=""/);
+    assert.match(chat, /data-hc-official-letter/);
+    assert.match(chat, /data-hc-official-logo/);
+    assert.match(chat, /whitespace-pre-wrap/);
+    assert.match(chat, /canonicalLogoPath\('square'\)/);
+    assert.match(chat, /data-hc-official-action/);
+    const thread = readFileSync(
+      resolve(process.cwd(), "app/messages/[conversationId]/page.tsx"),
+      "utf8"
+    );
+    const inbox = readFileSync(resolve(process.cwd(), "app/messages/page.tsx"), "utf8");
+    const push = readFileSync(
+      resolve(process.cwd(), "components/native/NativeAppUxFoundation.tsx"),
+      "utf8"
+    );
+    assert.match(thread, /official=\{conversation\.official \?\? null\}/);
+    assert.match(inbox, /official=\{selectedConversation\.official \?\? null\}/);
+    assert.match(push, /router\.replace\(path\)/);
+    assert.match(chat, /href=\{official\.action\.url\}/);
+    assert.match(chat, /official \? null : <ConversationContextHeader/);
+    assert.match(chat, /!official && messages\.length === 0/);
     assert.match(chat, /official \? official\.senderLabel : getDisplayName\(otherParticipant\)/);
     const list = readFileSync(
       resolve(process.cwd(), "components/chat/ConversationsList.tsx"),
       "utf8"
     );
     assert.match(list, /conversation\.official\.badge/);
+    assert.match(list, /if \(c\.official\)/);
+    assert.match(list, /canonicalLogoPath\('square'\)/);
     const route = readFileSync(
       resolve(process.cwd(), "app/api/admin/send-bulk-message/route.ts"),
       "utf8"

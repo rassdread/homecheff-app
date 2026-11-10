@@ -51,6 +51,7 @@ import {
   type ProposalBuyerDraft,
 } from '@/lib/proposals/proposal-draft-storage';
 import type { OfficialConversationView } from '@/lib/communication/official-admin-message';
+import { canonicalLogoPath } from '@/lib/brand/canonical-logo';
 
 export interface ChatBoxProps {
   conversationId: string;
@@ -1221,12 +1222,23 @@ export default function ChatBox({
             </Link>
           ) : (
             <div className="flex min-h-0 min-w-0 flex-1 items-start gap-3 py-0.5 lg:min-h-[44px] lg:items-center">
-              <UserCircleAvatar
-                src={otherParticipant.profileImage}
-                alt={displayName}
-                size="lg"
-                nameForInitial={displayName}
-              />
+              {official ? (
+                <img
+                  src={canonicalLogoPath('square')}
+                  alt="HomeCheff"
+                  width={48}
+                  height={48}
+                  data-hc-official-logo=""
+                  className="h-12 w-12 shrink-0 rounded-2xl bg-white object-contain"
+                />
+              ) : (
+                <UserCircleAvatar
+                  src={otherParticipant.profileImage}
+                  alt={displayName}
+                  size="lg"
+                  nameForInitial={displayName}
+                />
+              )}
               {peerDetailsColumn}
             </div>
           )}
@@ -1263,7 +1275,7 @@ export default function ChatBox({
         </div>
       </div>
 
-      <ConversationContextHeader header={contextHeader} />
+      {official ? null : <ConversationContextHeader header={contextHeader} />}
 
       {/* Messages — enige scrollzone */}
       <div
@@ -1294,7 +1306,7 @@ export default function ChatBox({
               <Loader2 className="w-6 h-6 text-gray-300 animate-spin" />
             </div>
           </div>
-        ) : messages.length === 0 && !buyerProposalDraft ? (
+        ) : !official && messages.length === 0 && !buyerProposalDraft ? (
           <div className="flex h-full flex-col items-center justify-center text-gray-500">
             <div className="mb-4 text-5xl">💬</div>
             <p>{t('messages.noMessages')}</p>
@@ -1303,39 +1315,46 @@ export default function ChatBox({
         ) : (
           <div className="flex flex-col gap-4">
             {official ? (
-              <article className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-800">
+              <article
+                data-hc-official-letter=""
+                className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm"
+              >
+                <img
+                  src={canonicalLogoPath('square')}
+                  alt="HomeCheff"
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 rounded-2xl bg-white object-contain"
+                />
+                <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-emerald-800">
                   {official.badge} · {official.senderLabel}
                 </p>
                 <h3 className="mt-1 text-base font-semibold text-gray-900">{official.subject}</h3>
+                {messages.map((msg) => (
+                  <p
+                    key={msg.id}
+                    className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-gray-800"
+                  >
+                    {msg.text}
+                  </p>
+                ))}
                 {official.action ? (
                   <a
                     href={official.action.url}
-                    className="mt-3 inline-flex min-h-[44px] items-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+                    data-hc-official-action=""
+                    className="mt-4 inline-flex min-h-[44px] items-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white"
                   >
                     {official.action.label}
                   </a>
                 ) : null}
               </article>
             ) : null}
-            {messages.map((msg) => (
+            {official
+              ? null
+              : messages.map((msg) => (
               <ChatThreadMessageRow
                 key={msg.id}
-                msg={
-                  official
-                    ? {
-                        ...msg,
-                        User: {
-                          id: "team-homecheff",
-                          name: official.senderLabel,
-                          username: null,
-                          profileImage: null,
-                          displayFullName: true,
-                          displayNameOption: "full",
-                        },
-                      }
-                    : msg
-                }
+                msg={msg}
                 currentUserId={currentUserId}
                 formatTime={formatTime}
                 proposal={
@@ -1364,7 +1383,7 @@ export default function ChatBox({
               />
             ))}
             {/* Buyer-private CONCEPT — never delivered to seller until explicit send */}
-            {buyerProposalDraft ? (
+            {!official && buyerProposalDraft ? (
               <ProposalDraftCard
                 draft={buyerProposalDraft}
                 listingTitle={
