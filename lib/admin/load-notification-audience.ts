@@ -15,6 +15,12 @@ export function audienceWhere(audience: AudienceId, selection?: AudienceSelectio
   const eligible: Prisma.UserWhereInput = {
     role: { notIn: staff },
     accountDeletedAt: null,
+    // Reserved addresses are used by fixtures and internal system accounts.
+    NOT: [
+      { email: { endsWith: '.invalid', mode: 'insensitive' } },
+      { email: { endsWith: '@homecheff.internal', mode: 'insensitive' } },
+      { email: { endsWith: '.homecheff.internal', mode: 'insensitive' } },
+    ],
   };
   const sellers: Prisma.UserWhereInput = {
     OR: [{ role: 'SELLER' }, { sellerRoles: { isEmpty: false } }, { SellerProfile: { isNot: null } }],
