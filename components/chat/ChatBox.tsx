@@ -1079,7 +1079,7 @@ export default function ChatBox({
   })();
 
   const displayName = official ? official.senderLabel : getDisplayName(otherParticipant);
-  const showPresence = isOnline !== undefined;
+  const showPresence = !official && isOnline !== undefined;
   const presenceTitleSuffix =
     otherUserTyping || !showPresence
       ? null

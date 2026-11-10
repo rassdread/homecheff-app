@@ -49,7 +49,10 @@ export function officialMessageRoute(conversationId: string): string {
 export function readOfficialConversation(raw: unknown): OfficialConversationView | null {
   if (!raw || typeof raw !== "object") return null;
   const record = raw as Record<string, unknown>;
-  if (record.official !== true || record.repliesDisabled !== true) return null;
+  const storedCopy = record.official === true;
+  const parsedView =
+    typeof record.senderLabel === "string" && typeof record.subject === "string";
+  if ((!storedCopy && !parsedView) || record.repliesDisabled !== true) return null;
   const subject = typeof record.subject === "string" ? record.subject.trim() : "";
   if (!subject) return null;
   const actionRaw = record.action;

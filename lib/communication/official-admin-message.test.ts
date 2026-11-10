@@ -76,6 +76,16 @@ describe("official admin inbox copies", () => {
     assert.equal(view?.senderLabel, "Team HomeCheff");
     assert.equal(view?.badge, "Officieel");
     assert.equal(view?.subject, "Onderwerp");
+    assert.equal(
+      readOfficialConversation({
+        senderLabel: "Team HomeCheff",
+        badge: "Officieel",
+        subject: "Onderwerp",
+        repliesDisabled: true,
+        action,
+      })?.subject,
+      "Onderwerp"
+    );
     assert.equal(view?.action?.label, action.label);
     assert.equal(readOfficialConversation({ official: false }) , null);
 
