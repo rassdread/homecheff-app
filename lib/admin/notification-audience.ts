@@ -14,6 +14,7 @@
  */
 
 import { DELIVERY_AGREEMENT_DOCUMENT_ID } from '@/lib/delivery/delivery-agreement';
+import { isReservedNonMailboxEmail } from '@/lib/admin/user-population';
 
 export const DELIVERY_AGREEMENT_VERSION = DELIVERY_AGREEMENT_DOCUMENT_ID;
 
@@ -161,13 +162,34 @@ export function isDeliveryCandidate(
   return user.role === 'DELIVERY' || user.delivery != null;
 }
 
+function isStaffRole(role: string): boolean {
+  return role === 'ADMIN' || role === 'SUPERADMIN';
+}
+
 export function inAudience(user: AudienceCandidate, audience: AudienceId): boolean {
   if (user.accountDeletedAt) return false;
-  if (user.role === 'ADMIN' || user.role === 'SUPERADMIN') return false;
-  if (audience === 'all') return true;
+  if (isReservedNonMailboxEmail(user.email)) return false;
+  if (audience === 'all') return !isStaffRole(user.role);
   if (audience === 'buyers') return isBuyerCandidate(user);
   if (audience === 'sellers') return isSellerCandidate(user);
   if (audience === 'delivery') return isDeliveryCandidate(user);
+  return false;
+}
+
+/** Staff join Alle toepasselijke rollen only through a role-bound filter, not through a status that selects everyone. */
+function staffFitsApplicableFilters(user: AudienceCandidate, selection: AudienceSelection): boolean {
+  const courier = Boolean(
+    selection.agreementVersion
+      || selection.pendingStep
+      || selection.accountStatus === 'courier_blocked'
+      || selection.verification?.kind === 'courier',
+  );
+  const commerce = selection.verification?.kind === 'commerce_review';
+  const payout = Boolean(selection.stripe);
+  if (!courier && !commerce && !payout) return false;
+  if (payout && (isSellerCandidate(user) || isDeliveryCandidate(user))) return true;
+  if (courier && isDeliveryCandidate(user)) return true;
+  if (commerce && isSellerCandidate(user)) return true;
   return false;
 }
 
@@ -270,9 +292,15 @@ export function selectionCanList(selection: AudienceSelection): boolean {
 
 export function matchesAudience(user: AudienceCandidate, selection: AudienceSelection): boolean {
   if (user.accountDeletedAt) return false;
-  if (user.role === 'ADMIN' || user.role === 'SUPERADMIN') return false;
+  if (isReservedNonMailboxEmail(user.email)) return false;
   if (selection.excludeUserIds.includes(user.id)) return false;
-  if (selection.audience !== 'applicable' && !inAudience(user, selection.audience)) return false;
+  if (selection.audience === 'all') {
+    if (isStaffRole(user.role)) return false;
+  } else if (selection.audience === 'applicable') {
+    if (isStaffRole(user.role) && !staffFitsApplicableFilters(user, selection)) return false;
+  } else if (!inAudience(user, selection.audience)) {
+    return false;
+  }
   const filters = selectedFilters(selection);
   if (filters.length === 0) return selection.audience !== 'applicable';
   if (selection.match === 'any') return filters.some((filter) => filter(user));
@@ -341,6 +369,8 @@ export function checkedRecipients<T extends { id: string }>(
 
 export function audienceRoleLabels(user: AudienceCandidate): string[] {
   const labels: string[] = [];
+  if (user.role === 'SUPERADMIN') labels.push('Superadmin');
+  else if (user.role === 'ADMIN') labels.push('Beheerder');
   if (isBuyerCandidate(user)) labels.push('Koper');
   if (isSellerCandidate(user)) labels.push('Verkoper');
   if (isDeliveryCandidate(user)) labels.push('Bezorger');
@@ -579,6 +609,9 @@ export function describeSelection(selection: AudienceSelection): string[] {
     lines.push(`${selection.excludeUserIds.length} account(s) handmatig uitgesloten.`);
   }
   lines.push('Registratiedatum wordt getoond als accountleeftijd en niet als laatste activiteit.');
+  lines.push(
+    'Beheerders met een passend profiel kunnen in kopers, verkopers, bezorgpartners en toepasselijke filters staan. Alle gebruikers blijft zonder beheerders. Test- en systeemaccounts blijven uitgesloten.',
+  );
   return lines;
 }
 
@@ -607,6 +640,7 @@ export function previewCanonicalPayload(input: {
   sendEmail: boolean;
   confirmRepeat: boolean;
   recipientIds: string[];
+  manualAdmins?: Array<{ userId: string; channels: string[] }>;
 }): string {
   return JSON.stringify({
     selection: canonicalSelection(input.selection),
@@ -618,5 +652,8 @@ export function previewCanonicalPayload(input: {
     sendEmail: input.sendEmail,
     confirmRepeat: input.confirmRepeat,
     recipientIds: [...input.recipientIds].sort(),
+    manualAdmins: [...(input.manualAdmins ?? [])]
+      .map((admin) => ({ userId: admin.userId, channels: [...admin.channels].sort() }))
+      .sort((left, right) => left.userId.localeCompare(right.userId)),
   });
 }

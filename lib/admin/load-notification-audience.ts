@@ -11,26 +11,34 @@ import {
 
 const staff: UserRole[] = ['ADMIN', 'SUPERADMIN'];
 
+const reservedMailbox: Prisma.UserWhereInput = {
+  NOT: [
+    { email: { endsWith: '.invalid', mode: 'insensitive' } },
+    { email: { endsWith: '@homecheff.internal', mode: 'insensitive' } },
+    { email: { endsWith: '.homecheff.internal', mode: 'insensitive' } },
+  ],
+};
+
+const sellers: Prisma.UserWhereInput = {
+  OR: [{ role: 'SELLER' }, { sellerRoles: { isEmpty: false } }, { SellerProfile: { isNot: null } }],
+};
+
+const delivery: Prisma.UserWhereInput = {
+  OR: [{ role: 'DELIVERY' }, { DeliveryProfile: { isNot: null } }],
+};
+
+const buyers: Prisma.UserWhereInput = {
+  OR: [{ role: 'BUYER' }, { buyerRoles: { isEmpty: false } }],
+};
+
+function eligibleAudience(): Prisma.UserWhereInput {
+  return {
+    AND: [{ role: { notIn: staff } }, { accountDeletedAt: null }, reservedMailbox],
+  };
+}
+
 export function audienceWhere(audience: AudienceId, selection?: AudienceSelection): Prisma.UserWhereInput {
-  const eligible: Prisma.UserWhereInput = {
-    role: { notIn: staff },
-    accountDeletedAt: null,
-    // Reserved addresses are used by fixtures and internal system accounts.
-    NOT: [
-      { email: { endsWith: '.invalid', mode: 'insensitive' } },
-      { email: { endsWith: '@homecheff.internal', mode: 'insensitive' } },
-      { email: { endsWith: '.homecheff.internal', mode: 'insensitive' } },
-    ],
-  };
-  const sellers: Prisma.UserWhereInput = {
-    OR: [{ role: 'SELLER' }, { sellerRoles: { isEmpty: false } }, { SellerProfile: { isNot: null } }],
-  };
-  const delivery: Prisma.UserWhereInput = {
-    OR: [{ role: 'DELIVERY' }, { DeliveryProfile: { isNot: null } }],
-  };
-  const buyers: Prisma.UserWhereInput = {
-    OR: [{ role: 'BUYER' }, { buyerRoles: { isEmpty: false } }],
-  };
+  const eligible = eligibleAudience();
   const nobody: Prisma.UserWhereInput = { id: { in: [] } };
   if (audience === 'all') return eligible;
   if (audience === 'buyers') return { AND: [eligible, buyers] };
@@ -56,6 +64,36 @@ export function audienceWhere(audience: AudienceId, selection?: AudienceSelectio
   }
   if (or.length === 0) return { AND: [eligible, nobody] };
   return { AND: [eligible, { OR: or }] };
+}
+
+/** Staff stay out of Alle gebruikers. Other audiences include a matching admin or superadmin profile. */
+export function staffAudienceWhere(audience: AudienceId, selection?: AudienceSelection): Prisma.UserWhereInput | null {
+  const staffBase: Prisma.UserWhereInput = {
+    AND: [{ role: { in: staff } }, { accountDeletedAt: null }, reservedMailbox],
+  };
+  if (audience === 'all') return null;
+  if (audience === 'buyers') return { AND: [staffBase, buyers] };
+  if (audience === 'sellers') return { AND: [staffBase, sellers] };
+  if (audience === 'delivery') return { AND: [staffBase, delivery] };
+  const or: Prisma.UserWhereInput[] = [];
+  if (selection?.stripe) or.push({ OR: [sellers, delivery] });
+  if (
+    selection?.agreementVersion
+    || selection?.pendingStep
+    || selection?.accountStatus === 'courier_blocked'
+    || selection?.verification?.kind === 'courier'
+  ) {
+    or.push(delivery);
+  }
+  if (selection?.verification?.kind === 'commerce_review') or.push(sellers);
+  if (or.length === 0) return null;
+  return { AND: [staffBase, { OR: or }] };
+}
+
+export function activeStaffWhere(): Prisma.UserWhereInput {
+  return {
+    AND: [{ role: { in: staff } }, { accountDeletedAt: null }, { suspendedAt: null }, reservedMailbox],
+  };
 }
 
 const userSelect = {
@@ -227,18 +265,7 @@ export async function loadStripeLinkReviewIds(db: PrismaClient, userIds: string[
   return review;
 }
 
-export async function loadAudienceCandidates(
-  db: PrismaClient,
-  audience: AudienceId | AudienceSelection,
-  extraWhere?: Prisma.UserWhereInput,
-): Promise<AudienceCandidate[]> {
-  const selection = typeof audience === 'string' ? undefined : audience;
-  const audienceId = typeof audience === 'string' ? audience : audience.audience;
-  const scoped = audienceWhere(audienceId, selection);
-  const rows = await db.user.findMany({
-    where: extraWhere ? { AND: [scoped, extraWhere] } : scoped,
-    select: userSelect,
-  });
+async function candidatesFromRows(db: PrismaClient, rows: UserRow[]): Promise<AudienceCandidate[]> {
   const emptyIds = rows
     .filter((row) => !(row.stripeConnectAccountId || '').trim())
     .map((row) => row.id);
@@ -247,4 +274,63 @@ export async function loadAudienceCandidates(
     ...toAudienceCandidate(row),
     stripeLinkReview: !(row.stripeConnectAccountId || '').trim() && reviewIds.has(row.id),
   }));
+}
+
+export async function loadAudienceCandidates(
+  db: PrismaClient,
+  audience: AudienceId | AudienceSelection,
+  extraWhere?: Prisma.UserWhereInput,
+): Promise<AudienceCandidate[]> {
+  const selection = typeof audience === 'string' ? undefined : audience;
+  const audienceId = typeof audience === 'string' ? audience : audience.audience;
+  const scoped = audienceWhere(audienceId, selection);
+  const staffScoped = staffAudienceWhere(audienceId, selection);
+  const whereFor = (scope: Prisma.UserWhereInput) => (extraWhere ? { AND: [scope, extraWhere] } : scope);
+  const [rows, staffRows] = await Promise.all([
+    db.user.findMany({ where: whereFor(scoped), select: userSelect }),
+    staffScoped
+      ? db.user.findMany({ where: whereFor(staffScoped), select: userSelect })
+      : Promise.resolve([] as UserRow[]),
+  ]);
+  const seen = new Set<string>();
+  const combined: UserRow[] = [];
+  for (const row of [...rows, ...staffRows]) {
+    if (seen.has(row.id)) continue;
+    seen.add(row.id);
+    combined.push(row);
+  }
+  return candidatesFromRows(db, combined);
+}
+
+export async function searchActiveAdmins(db: PrismaClient, query: string): Promise<AudienceCandidate[]> {
+  const q = query.trim();
+  if (q.length < 2) return [];
+  const rows = await db.user.findMany({
+    where: {
+      AND: [
+        activeStaffWhere(),
+        {
+          OR: [
+            { name: { contains: q, mode: 'insensitive' } },
+            { email: { contains: q, mode: 'insensitive' } },
+            { username: { contains: q, mode: 'insensitive' } },
+          ],
+        },
+      ],
+    },
+    select: userSelect,
+    orderBy: { name: 'asc' },
+    take: 8,
+  });
+  return candidatesFromRows(db, rows);
+}
+
+export async function loadActiveAdminsByIds(db: PrismaClient, ids: string[]): Promise<AudienceCandidate[]> {
+  const unique = [...new Set(ids.map((id) => id.trim()).filter((id) => id.length > 0))];
+  if (unique.length === 0) return [];
+  const rows = await db.user.findMany({
+    where: { AND: [activeStaffWhere(), { id: { in: unique } }] },
+    select: userSelect,
+  });
+  return candidatesFromRows(db, rows);
 }

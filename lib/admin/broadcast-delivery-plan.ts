@@ -16,6 +16,7 @@ export type RecipientLedger = {
   emailAttempt: number;
   push: LedgerPush;
   pushAttempt: number;
+  channels?: { email: boolean; push: boolean; inApp: boolean };
 };
 
 export type ChannelPlan = 'send' | 'skip_done' | 'skip_unconfirmed';
@@ -132,6 +133,7 @@ export function ledgerMeta(ledger: RecipientLedger): Prisma.InputJsonValue {
     emailAttempt: ledger.emailAttempt,
     push: ledger.push,
     pushAttempt: ledger.pushAttempt,
+    ...(ledger.channels ? { channels: ledger.channels } : {}),
   };
 }
 

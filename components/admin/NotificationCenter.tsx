@@ -34,6 +34,21 @@ type PreviewRecipient = {
   reasons?: string[];
   registeredAt: string | null;
   alreadySent?: Array<{ channel: string; at: string; label: string }>;
+  channelLines?: string[];
+};
+
+type AddedAdmin = {
+  id: string;
+  name: string;
+  email: string | null;
+  channels: Array<'email' | 'push'>;
+};
+
+type AdminHit = {
+  id: string;
+  name: string;
+  email: string | null;
+  role: string;
 };
 
 type PreviewPayload = {
@@ -78,6 +93,9 @@ function readRecipients(value: unknown): PreviewRecipient[] {
             if (typeof prior.label !== 'string' || typeof prior.at !== 'string') return [];
             return [{ channel: typeof prior.channel === 'string' ? prior.channel : '', at: prior.at, label: prior.label }];
           })
+        : [],
+      channelLines: Array.isArray(row.channelLines)
+        ? row.channelLines.filter((line): line is string => typeof line === 'string' && line.trim().length > 0)
         : [],
     }];
   });
@@ -129,6 +147,9 @@ export default function NotificationCenter() {
   const [preview, setPreview] = useState<PreviewPayload | null>(null);
   const [notice, setNotice] = useState<ScreenNotice | null>(null);
   const [recipientQuery, setRecipientQuery] = useState('');
+  const [addedAdmins, setAddedAdmins] = useState<AddedAdmin[]>([]);
+  const [adminQuery, setAdminQuery] = useState('');
+  const [adminHits, setAdminHits] = useState<AdminHit[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const submitLockRef = useRef(false);
   const contentKeyRef = useRef<{ hash: string; key: string } | null>(null);
@@ -238,6 +259,60 @@ export default function NotificationCenter() {
     pushTitle,
   ]);
 
+  useEffect(() => {
+    setAddedAdmins((current) => {
+      let changed = false;
+      const next = current.flatMap((admin) => {
+        const channels = admin.channels.filter((channel) => (channel === 'email' ? sendEmail : sendNotification));
+        if (channels.length !== admin.channels.length) changed = true;
+        if (channels.length === 0) return [];
+        return [{ ...admin, channels }];
+      });
+      return changed ? next : current;
+    });
+  }, [sendEmail, sendNotification]);
+
+  useEffect(() => {
+    if (!sendEmail && !sendNotification) {
+      setAdminHits([]);
+      return;
+    }
+    const query = adminQuery.trim();
+    if (query.length < 2) {
+      setAdminHits([]);
+      return;
+    }
+    const controller = new AbortController();
+    const handle = setTimeout(() => {
+      fetch(`/api/admin/notifications/admins?q=${encodeURIComponent(query)}`, { signal: controller.signal })
+        .then(async (response) => {
+          const data = await response.json().catch(() => null);
+          if (controller.signal.aborted) return;
+          const rows = Array.isArray(data?.admins) ? data.admins : [];
+          setAdminHits(
+            rows.flatMap((item: unknown) => {
+              if (!item || typeof item !== 'object') return [];
+              const row = item as Record<string, unknown>;
+              if (typeof row.id !== 'string' || typeof row.name !== 'string') return [];
+              return [{
+                id: row.id,
+                name: row.name,
+                email: typeof row.email === 'string' ? row.email : null,
+                role: typeof row.role === 'string' ? row.role : 'Beheerder',
+              }];
+            }),
+          );
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) setAdminHits([]);
+        });
+    }, 300);
+    return () => {
+      clearTimeout(handle);
+      controller.abort();
+    };
+  }, [adminQuery, sendEmail, sendNotification]);
+
   const invalidatePreview = () => {
     setPreview(null);
     setConfirmEmailBlast(false);
@@ -264,6 +339,7 @@ export default function NotificationCenter() {
       route: linkPreset,
       selection: current,
       includeUserIds: selectedIds,
+      manualAdmins: addedAdmins.map((admin) => ({ userId: admin.id, channels: admin.channels })),
       sendNotification,
       sendEmail,
       confirmEmailBlast: sendEmail ? confirmEmailBlast : false,
@@ -276,12 +352,12 @@ export default function NotificationCenter() {
 
   const loadPreview = async () => {
     setNotice(null);
-    if (!selectionCanList(selection())) {
+    if (!selectionCanList(selection()) && addedAdmins.length === 0) {
       setNotice({ tone: 'error', lines: ['Alle toepasselijke rollen zonder statusfilter selecteert niemand. Kies een filter, of kies bewust Alle gebruikers.'] });
       return;
     }
-    if (selectedIds.length === 0) {
-      setNotice({ tone: 'error', lines: ['Vink minstens één ontvanger aan. Er is niets verstuurd.'] });
+    if (selectedIds.length === 0 && addedAdmins.length === 0) {
+      setNotice({ tone: 'error', lines: ['Vink minstens één ontvanger aan of voeg een beheerder toe. Er is niets verstuurd.'] });
       return;
     }
     if (!message.trim()) {
@@ -333,8 +409,8 @@ export default function NotificationCenter() {
   const handleSendMessage = async (event: React.FormEvent) => {
     event.preventDefault();
     if (submitLockRef.current || isLoading) return;
-    if (selectedIds.length === 0) {
-      setNotice({ tone: 'error', lines: ['Vink minstens één ontvanger aan. Er is niets verstuurd.'] });
+    if (selectedIds.length === 0 && addedAdmins.length === 0) {
+      setNotice({ tone: 'error', lines: ['Vink minstens één ontvanger aan of voeg een beheerder toe. Er is niets verstuurd.'] });
       return;
     }
     if (!preview?.previewToken) {
@@ -361,6 +437,9 @@ export default function NotificationCenter() {
         setMessage('');
         setPushTitle('');
         setSubject('');
+        setAddedAdmins([]);
+        setAdminQuery('');
+        setAdminHits([]);
         setPreview(null);
         setConfirmEmailBlast(false);
         setConfirmRepeat(false);
@@ -506,7 +585,7 @@ export default function NotificationCenter() {
               <option value="delivery">Bezorgpartners</option>
             </select>
             <p className="mt-1 text-xs text-gray-500">
-              De rol is optioneel. Alle toepasselijke rollen zonder statusfilter selecteert niemand. Alle gebruikers is een aparte keuze voor een brede verzending. Iemand met meerdere rollen verschijnt één keer.
+              De rol is optioneel. Alle toepasselijke rollen zonder statusfilter selecteert niemand. Alle gebruikers is een aparte keuze voor een brede verzending en bevat geen beheerders. Een beheerder met een passend profiel verschijnt wel bij kopers, verkopers of bezorgpartners. Test- en systeemaccounts blijven uitgesloten. Iemand met meerdere rollen verschijnt één keer.
             </p>
           </div>
 
@@ -818,6 +897,135 @@ export default function NotificationCenter() {
             </div>
           </div>
 
+          {(sendEmail || sendNotification) && (
+            <div className="rounded-lg border border-gray-200 p-4 space-y-3">
+              <div>
+                <h3 className="text-base font-medium text-gray-900">Beheerder toevoegen</h3>
+                <p className="text-sm text-gray-700">
+                  Zoek jezelf of een andere beheerder op naam of e-mailadres. Die persoon mag buiten de doelgroep vallen.
+                  Een nieuwe verzending begint zonder toegevoegde beheerders. E-mail gebruikt hetzelfde onderwerp, dezelfde tekst en dezelfde HomeCheff-opmaak.
+                  Push gebruikt dezelfde titel, tekst en interne bestemming, en maakt ook een in-appmelding aan.
+                </p>
+              </div>
+              <input
+                type="search"
+                value={adminQuery}
+                onChange={(event) => setAdminQuery(event.target.value)}
+                placeholder="Zoek een beheerder op naam of e-mailadres"
+                aria-label="Beheerder zoeken"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+              {adminHits.filter((hit) => !addedAdmins.some((admin) => admin.id === hit.id)).length > 0 && (
+                <ul className="divide-y divide-gray-100">
+                  {adminHits
+                    .filter((hit) => !addedAdmins.some((admin) => admin.id === hit.id))
+                    .map((hit) => (
+                      <li key={hit.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{hit.name}</p>
+                          <p className="text-sm text-gray-600">{hit.role}{hit.email ? ` · ${hit.email}` : ''}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const channels: Array<'email' | 'push'> = [
+                              ...(sendEmail ? (['email'] as const) : []),
+                              ...(sendNotification ? (['push'] as const) : []),
+                            ];
+                            setAddedAdmins((current) => current.some((admin) => admin.id === hit.id)
+                              ? current
+                              : [...current, { id: hit.id, name: hit.name, email: hit.email, channels }]);
+                            invalidatePreview();
+                          }}
+                          className="px-3 py-2 rounded-lg border border-emerald-700 text-sm text-emerald-800"
+                        >
+                          Toevoegen
+                        </button>
+                      </li>
+                    ))}
+                </ul>
+              )}
+              {addedAdmins.length === 0 ? (
+                <p className="text-sm text-gray-600">Nog geen beheerder toegevoegd.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {addedAdmins.map((admin) => (
+                    <li key={admin.id} className="rounded border px-3 py-2">
+                      <p className="text-sm font-medium text-gray-900">{admin.name}</p>
+                      <p className="text-sm text-gray-600">{admin.email || 'Geen e-mailadres'}</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-3">
+                        {sendEmail && (
+                          <label className="flex items-center gap-2 text-sm text-gray-800">
+                            <input
+                              type="checkbox"
+                              checked={admin.channels.includes('email')}
+                              onChange={() => {
+                                setAddedAdmins((current) => current.flatMap((item) => {
+                                  if (item.id !== admin.id) return [item];
+                                  const channels = item.channels.includes('email')
+                                    ? item.channels.filter((channel) => channel !== 'email')
+                                    : [...item.channels, 'email' as const];
+                                  return channels.length === 0 ? [] : [{ ...item, channels }];
+                                }));
+                                invalidatePreview();
+                              }}
+                              className="rounded border-gray-300 text-emerald-600"
+                            />
+                            E-mail
+                          </label>
+                        )}
+                        {sendNotification && (
+                          <label className="flex items-center gap-2 text-sm text-gray-800">
+                            <input
+                              type="checkbox"
+                              checked={admin.channels.includes('push')}
+                              onChange={() => {
+                                setAddedAdmins((current) => current.flatMap((item) => {
+                                  if (item.id !== admin.id) return [item];
+                                  const channels = item.channels.includes('push')
+                                    ? item.channels.filter((channel) => channel !== 'push')
+                                    : [...item.channels, 'push' as const];
+                                  return channels.length === 0 ? [] : [{ ...item, channels }];
+                                }));
+                                invalidatePreview();
+                              }}
+                              className="rounded border-gray-300 text-emerald-600"
+                            />
+                            Push
+                          </label>
+                        )}
+                        {sendEmail && sendNotification && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAddedAdmins((current) => current.map((item) => (
+                                item.id === admin.id ? { ...item, channels: ['email', 'push'] } : item
+                              )));
+                              invalidatePreview();
+                            }}
+                            className="px-3 py-1 rounded border border-gray-300 text-sm text-gray-800"
+                          >
+                            Beide
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAddedAdmins((current) => current.filter((item) => item.id !== admin.id));
+                            invalidatePreview();
+                          }}
+                          className="px-3 py-1 rounded border border-gray-300 text-sm text-gray-800"
+                        >
+                          Verwijderen
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
           {sendEmail && (
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
               <p className="font-medium">E-mailcapaciteit</p>
@@ -945,7 +1153,7 @@ export default function NotificationCenter() {
             <button
               type="button"
               onClick={loadPreview}
-              disabled={isLoading || !listable || selectedIds.length === 0}
+              disabled={isLoading || (selectedIds.length === 0 && addedAdmins.length === 0) || (!listable && addedAdmins.length === 0)}
               className="inline-flex items-center px-4 py-2 rounded-lg border border-emerald-700 text-emerald-800 disabled:opacity-50"
             >
               Voorbeeld bekijken
@@ -989,6 +1197,9 @@ export default function NotificationCenter() {
                 <p className="text-gray-800">{recipient.roles.join(' · ') || 'Geen rol'}</p>
                 <p className="text-gray-600">{recipient.email || 'Geen e-mailadres'}</p>
                 <p className="text-emerald-900">{(recipient.reasons || []).join(' · ')}</p>
+                {(recipient.channelLines || []).map((line) => (
+                  <p key={line} className="text-gray-800">{line}</p>
+                ))}
                 {(recipient.alreadySent || []).map((prior) => (
                   <p key={`${prior.channel}-${prior.at}`} className="text-amber-900">Dit bericht al verstuurd. {prior.label}</p>
                 ))}

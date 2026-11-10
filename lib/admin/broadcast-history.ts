@@ -134,6 +134,24 @@ export type HistoryOutcome =
   | 'no_token'
   | 'suppressed';
 
+export const PUSH_CREATES_IN_APP_NOTE = 'Push maakt ook een in-appmelding aan.';
+
+export function channelsFromLedgerMeta(meta: unknown): DeliveryChannel[] | null {
+  if (!meta || typeof meta !== 'object' || Array.isArray(meta)) return null;
+  const channels = (meta as Record<string, unknown>).channels;
+  if (!channels || typeof channels !== 'object' || Array.isArray(channels)) return null;
+  const record = channels as Record<string, unknown>;
+  const ids: DeliveryChannel[] = [];
+  if (record.inApp === true) ids.push('inApp');
+  if (record.push === true) ids.push('push');
+  if (record.email === true) ids.push('email');
+  return ids.length > 0 ? ids : null;
+}
+
+export function pushAlsoCreatesInApp(channels: readonly DeliveryChannel[]): boolean {
+  return channels.includes('push') && channels.includes('inApp');
+}
+
 export function channelDisplayName(channel: DeliveryChannel): string {
   if (channel === 'inApp') return 'In-app';
   if (channel === 'push') return 'Push';
@@ -148,7 +166,7 @@ export function channelOutcomeLabel(channel: DeliveryChannel, status: HistoryOut
   if (status === 'skipped_duplicate') return 'Overgeslagen als duplicaat';
   if (status === 'failed') return 'Mislukt';
   if (status === 'unconfirmed') return 'Uitkomst onbekend';
-  if (status === 'no_token') return 'Geen geschikt apparaat';
+  if (status === 'no_token') return 'Geen geldig pushapparaat geregistreerd';
   if (status === 'suppressed') return 'Niet aangeboden';
   return 'Niet geregistreerd';
 }

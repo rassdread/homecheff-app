@@ -28,7 +28,16 @@ import {
   type AudienceId,
   type AudienceSelection,
 } from '@/lib/admin/notification-audience';
-import { loadAudienceCandidates } from '@/lib/admin/load-notification-audience';
+import { loadActiveAdminsByIds, loadAudienceCandidates } from '@/lib/admin/load-notification-audience';
+import {
+  activeStaffRejection,
+  adminChannelLines,
+  mergeBroadcastRecipients,
+  narrowManualAdmins,
+  parseManualAdmins,
+  relevantContentDecisions,
+  type BroadcastChannelPlan,
+} from '@/lib/admin/notification-admin-selection';
 import {
   decideContentDeliveries,
   findPriorDeliveries,
@@ -36,7 +45,7 @@ import {
   recordPriorDelivery,
   shouldSendChannel,
 } from '@/lib/admin/load-broadcast-history';
-import { alreadySentLabel, type DeliveryChannel } from '@/lib/admin/broadcast-history';
+import { alreadySentLabel, duplicatePlanLines, type DeliveryChannel } from '@/lib/admin/broadcast-history';
 import {
   broadcastLedgerId,
   broadcastNotificationId,
@@ -101,6 +110,11 @@ function recipientView(user: AudienceCandidate, selection: AudienceSelection) {
 
 function previewTokenFor(input: Parameters<typeof previewCanonicalPayload>[0]): string {
   return createHash('sha256').update(previewCanonicalPayload(input)).digest('hex');
+}
+
+function stampChannels(ledger: RecipientLedger, plan: BroadcastChannelPlan | undefined): RecipientLedger {
+  if (!plan) return ledger;
+  return { ...ledger, channels: { email: plan.email, push: plan.push, inApp: plan.inApp } };
 }
 
 async function readLedgers(campaignId: string, userIds: string[]): Promise<Map<string, RecipientLedger>> {
@@ -183,7 +197,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error, message: parsed.error }, { status: 400 });
     }
     const selection = parsed.selection;
-    if (!selectionCanList(selection)) {
+    const manualParsed = parseManualAdmins(record.manualAdmins);
+    if (!manualParsed.ok) {
+      return NextResponse.json(
+        { error: manualParsed.error, message: manualParsed.error, lines: [manualParsed.error] },
+        { status: 400 },
+      );
+    }
+    const manualAdmins = narrowManualAdmins(manualParsed.admins, { sendEmail, sendNotification });
+    if (!selectionCanList(selection) && (listOnly || manualAdmins.length === 0)) {
       const error = 'Alle toepasselijke rollen zonder statusfilter selecteert niemand. Kies een filter, of kies bewust Alle gebruikers.';
       return NextResponse.json({ error, message: error, lines: [error] }, { status: 400 });
     }
@@ -212,7 +234,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const candidates = await loadAudienceCandidates(prisma, selection);
+    const candidates = selectionCanList(selection) ? await loadAudienceCandidates(prisma, selection) : [];
     const matched = candidates.filter((user) => matchesAudience(user, selection));
     if (matched.length > MAX_RECIPIENTS) {
       const error = `Te veel ontvangers (${matched.length}). Het maximum per actie is ${MAX_RECIPIENTS}.`;
@@ -257,32 +279,68 @@ export async function POST(req: NextRequest) {
     }
 
     const includeUserIds = Array.isArray(record.includeUserIds) ? record.includeUserIds : [];
-    if (includeUserIds.length > MAX_RECIPIENTS) {
+    if (includeUserIds.length + manualAdmins.length > MAX_RECIPIENTS) {
       const error = `Te veel aangevinkte ontvangers. Het maximum per actie is ${MAX_RECIPIENTS}.`;
       return NextResponse.json({ error, message: error, lines: [error] }, { status: 400 });
     }
-    const checked = checkedRecipients(matched, includeUserIds.filter((id): id is string => typeof id === 'string'));
+    const requestedIds = includeUserIds.filter((id): id is string => typeof id === 'string');
+    const checked = requestedIds.length === 0
+      ? { ok: true as const, recipients: [] as AudienceCandidate[] }
+      : checkedRecipients(matched, requestedIds);
     if (!checked.ok) {
       return NextResponse.json(
         { error: checked.error, message: checked.error, lines: [checked.error], code: checked.code === 'outside' ? 'PREVIEW_STALE' : 'NONE_CHECKED' },
         { status: checked.code === 'outside' ? 409 : 400 },
       );
     }
-    const chosen = checked.recipients;
-
-    const withEmail = chosen.filter((user) => user.email);
-    const blastGate = evaluateAdminEmailBlast({
+    const manualUsers = await loadActiveAdminsByIds(prisma, manualAdmins.map((admin) => admin.userId));
+    const manualById = new Map(manualUsers.map((user) => [user.id, user]));
+    for (const admin of manualAdmins) {
+      const rejection = activeStaffRejection(manualById.get(admin.userId) ?? null);
+      if (rejection) {
+        return NextResponse.json({ error: rejection, message: rejection, lines: [rejection] }, { status: 400 });
+      }
+    }
+    const plans = mergeBroadcastRecipients({
+      audienceUserIds: checked.recipients.map((user) => user.id),
+      manual: manualAdmins,
       sendEmail,
-      emailRecipientCount: withEmail.length,
-      targetType: selection.audience === 'all' && chosen.length === matched.length ? 'all' : 'custom',
+      sendNotification,
+    });
+    if (plans.length === 0) {
+      const error = 'Vink minstens één ontvanger aan of voeg een beheerder toe. Er is niets verstuurd.';
+      return NextResponse.json({ error, message: error, lines: [error], code: 'NONE_CHECKED' }, { status: 400 });
+    }
+    if (plans.length > MAX_RECIPIENTS) {
+      const error = `Te veel aangevinkte ontvangers. Het maximum per actie is ${MAX_RECIPIENTS}.`;
+      return NextResponse.json({ error, message: error, lines: [error] }, { status: 400 });
+    }
+    const userById = new Map<string, AudienceCandidate>();
+    for (const user of checked.recipients) userById.set(user.id, user);
+    for (const user of manualUsers) {
+      if (!userById.has(user.id)) userById.set(user.id, user);
+    }
+    const chosen = plans.flatMap((plan) => {
+      const user = userById.get(plan.userId);
+      return user ? [user] : [];
+    });
+    const planById = new Map(plans.map((plan) => [plan.userId, plan]));
+    const wants = (userId: string, channel: 'email' | 'push' | 'inApp') => planById.get(userId)?.[channel] === true;
+
+    const emailUsers = chosen.filter((user) => wants(user.id, 'email') && user.email);
+    const blastGate = evaluateAdminEmailBlast({
+      sendEmail: emailUsers.length > 0,
+      emailRecipientCount: emailUsers.length,
+      targetType: selection.audience === 'all' && chosen.length === matched.length && manualAdmins.length === 0 ? 'all' : 'custom',
       confirmEmailBlast,
       idempotencyKey: campaignId,
     });
     const safeRoute = sanitizeAdminBroadcastRoute(routeRaw);
     const pushTitle = titleRaw.length > 0 ? titleRaw.slice(0, 120) : 'HomeCheff';
     const requestedChannels: DeliveryChannel[] = [
-      ...(sendNotification ? (['inApp', 'push'] as DeliveryChannel[]) : []),
-      ...(sendEmail ? (['email'] as DeliveryChannel[]) : []),
+      ...(plans.some((plan) => plan.inApp) ? (['inApp'] as DeliveryChannel[]) : []),
+      ...(plans.some((plan) => plan.push) ? (['push'] as DeliveryChannel[]) : []),
+      ...(plans.some((plan) => plan.email) ? (['email'] as DeliveryChannel[]) : []),
     ];
     const contentPriors = await findPriorDeliveries(prisma, chosen.map((user) => user.id), {
       title: pushTitle,
@@ -296,6 +354,8 @@ export async function POST(req: NextRequest) {
       priors: contentPriors,
       confirmRepeat,
     });
+    const relevantDecisions = relevantContentDecisions(contentPlan.decisions, plans);
+    const contentLines = duplicatePlanLines(relevantDecisions);
     const previewToken = previewTokenFor({
       selection,
       message,
@@ -306,21 +366,46 @@ export async function POST(req: NextRequest) {
       sendEmail,
       confirmRepeat,
       recipientIds: chosen.map((user) => user.id),
+      manualAdmins,
     });
     const summary = describeSelection(selection);
     const channels = {
-      inApp: sendNotification ? chosen.length : 0,
-      push: sendNotification ? chosen.filter((user) => user.pushReachable).length : 0,
-      email: sendEmail ? withEmail.length : 0,
+      inApp: plans.filter((plan) => plan.inApp).length,
+      push: plans.filter((plan) => plan.push && userById.get(plan.userId)?.pushReachable).length,
+      email: emailUsers.length,
+    };
+    const previewRecipient = (user: AudienceCandidate) => {
+      const plan = planById.get(user.id)!;
+      const staff = user.role === 'ADMIN' || user.role === 'SUPERADMIN' || plan.source !== 'audience';
+      const reasons = plan.source === 'manual'
+        ? ['Handmatig toegevoegde beheerder, buiten de doelgroep']
+        : plan.source === 'both'
+          ? ['In de doelgroep en handmatig toegevoegd', ...inclusionReasons(user, selection)]
+          : inclusionReasons(user, selection);
+      return {
+        ...recipientView(user, selection),
+        reasons,
+        channelLines: staff
+          ? adminChannelLines({ plan, pushReachable: user.pushReachable, hasEmail: Boolean(user.email) })
+          : [],
+        alreadySent: relevantDecisions
+          .filter((decision) => decision.userId === user.id && (decision.action === 'skip' || decision.action === 'repeat') && decision.at)
+          .map((decision) => ({
+            channel: decision.channel,
+            at: decision.at,
+            label: alreadySentLabel(decision.channel, decision.at || ''),
+          })),
+      };
     };
 
     if (dryRun) {
       const lines = [
-        chosen.length === 0
-          ? 'Geen aangevinkte ontvangers. Verzenden blijft geblokkeerd.'
-          : `Definitieve selectie: ${chosen.length} aangevinkt van ${matched.length} gevonden. In-app ${channels.inApp}, push-bereikbaar ${channels.push}, e-mailadres ${channels.email}. Alleen aangevinkte gebruikers krijgen het bericht.`,
+        `Definitieve selectie: ${chosen.length} ontvanger(s), waarvan ${matched.length} binnen de filters. In-app ${channels.inApp}, push-bereikbaar ${channels.push}, e-mailadres ${channels.email}. Dezelfde persoon telt één keer per kanaal.`,
         ...summary,
-        ...contentPlan.lines,
+        ...(manualAdmins.length > 0
+          ? [`${manualAdmins.length} beheerder(s) handmatig toegevoegd. Kanalen worden samengevoegd als dezelfde persoon ook is aangevinkt.`]
+          : []),
+        ...contentLines,
       ];
       if (!blastGate.ok) lines.push(blastGate.error);
       return NextResponse.json({
@@ -331,19 +416,10 @@ export async function POST(req: NextRequest) {
         total: chosen.length,
         found: matched.length,
         channels,
-        duplicateLines: contentPlan.lines,
-        recipients: chosen.map((user) => ({
-          ...recipientView(user, selection),
-          alreadySent: contentPlan.decisions
-            .filter((decision) => decision.userId === user.id && (decision.action === 'skip' || decision.action === 'repeat') && decision.at)
-            .map((decision) => ({
-              channel: decision.channel,
-              at: decision.at,
-              label: alreadySentLabel(decision.channel, decision.at || ''),
-            })),
-        })),
+        duplicateLines: contentLines,
+        recipients: chosen.map(previewRecipient),
         requiresConfirm: blastGate.ok ? blastGate.requiresConfirm : blastGate.code === 'CONFIRM_REQUIRED',
-        emailRecipientCount: withEmail.length,
+        emailRecipientCount: emailUsers.length,
         gate: blastGate.ok ? 'ok' : blastGate.code,
         error: blastGate.ok ? undefined : blastGate.error,
         message: lines[0],
@@ -351,10 +427,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    if (chosen.length === 0) {
-      const error = 'Vink minstens één ontvanger aan. Er is niets verstuurd.';
-      return NextResponse.json({ error, message: error, lines: [error], code: 'NONE_CHECKED' }, { status: 400 });
-    }
     if (!blastGate.ok) {
       return NextResponse.json(
         {
@@ -393,7 +465,11 @@ export async function POST(req: NextRequest) {
         title: pushTitle,
         message,
         audience: selection.audience,
-        channels: { inApp: sendNotification, push: sendNotification, email: sendEmail },
+        channels: {
+          inApp: plans.some((plan) => plan.inApp),
+          push: plans.some((plan) => plan.push),
+          email: plans.some((plan) => plan.email),
+        },
         at: sentAt,
       });
       const ledgers = await readLedgers(campaignId, chosen.map((user) => user.id));
@@ -410,11 +486,11 @@ export async function POST(req: NextRequest) {
 
       let notificationsCreated = 0;
       let notificationsSkipped = 0;
-      if (sendNotification) {
+      if (plans.some((plan) => plan.inApp)) {
         const pending = chosen.filter(
-          (user) => planInApp(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(contentPlan.decisions, user.id, 'inApp'),
+          (user) => wants(user.id, 'inApp') && planInApp(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(relevantDecisions, user.id, 'inApp'),
         );
-        notificationsSkipped = chosen.length - pending.length;
+        notificationsSkipped = chosen.filter((user) => wants(user.id, 'inApp')).length - pending.length;
         if (pending.length > 0) {
           const created = await prisma.notification.createMany({
             data: pending.map((user) => ({
@@ -428,7 +504,7 @@ export async function POST(req: NextRequest) {
           notificationsCreated = created.count;
           notificationsSkipped += pending.length - created.count;
           for (const user of pending) {
-            const next = ledgerAfterInApp(ledgers.get(user.id) ?? null);
+            const next = stampChannels(ledgerAfterInApp(ledgers.get(user.id) ?? null), planById.get(user.id));
             ledgers.set(user.id, next);
             await saveLedger(campaignId, user.id, next);
             await recordPriorDelivery(prisma, {
@@ -449,11 +525,11 @@ export async function POST(req: NextRequest) {
       let pushFailed = 0;
       let pushSkipped = 0;
       let pushNoToken = 0;
-      if (sendNotification) {
+      if (plans.some((plan) => plan.push)) {
         const pending = chosen.filter(
-          (user) => planPush(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(contentPlan.decisions, user.id, 'push'),
+          (user) => wants(user.id, 'push') && planPush(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(relevantDecisions, user.id, 'push'),
         );
-        pushSkipped = chosen.length - pending.length;
+        pushSkipped = chosen.filter((user) => wants(user.id, 'push')).length - pending.length;
         if (pending.length > 0) {
           const push = await sendAdminBroadcastFcmByUser({
             userIds: pending.map((user) => user.id),
@@ -467,7 +543,7 @@ export async function POST(req: NextRequest) {
           for (const result of push.perUser) {
             const status = result.offered > 0 ? 'offered' : result.tokens === 0 ? 'no_token' : 'failed';
             if (status === 'no_token') pushNoToken += 1;
-            const next = ledgerAfterPush(ledgers.get(result.userId) ?? null, status);
+            const next = stampChannels(ledgerAfterPush(ledgers.get(result.userId) ?? null, status), planById.get(result.userId));
             ledgers.set(result.userId, next);
             await saveLedger(campaignId, result.userId, next);
             if (status === 'offered' || status === 'failed') {
@@ -491,12 +567,12 @@ export async function POST(req: NextRequest) {
       let emailsSuppressed = 0;
       let emailsUnconfirmed = 0;
       let emailsSkipped = 0;
-      if (sendEmail) {
-        const pending = withEmail.filter(
-          (user) => planEmail(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(contentPlan.decisions, user.id, 'email'),
+      if (plans.some((plan) => plan.email)) {
+        const pending = emailUsers.filter(
+          (user) => planEmail(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(relevantDecisions, user.id, 'email'),
         );
-        emailsSkipped = withEmail.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'skip_done').length;
-        emailsUnconfirmed = withEmail.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'skip_unconfirmed').length;
+        emailsSkipped = emailUsers.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'skip_done').length;
+        emailsUnconfirmed = emailUsers.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'skip_unconfirmed').length;
         for (let i = 0; i < pending.length; i += EMAIL_BATCH_SIZE) {
           const batch = pending.slice(i, i + EMAIL_BATCH_SIZE);
           await Promise.all(
@@ -523,7 +599,7 @@ export async function POST(req: NextRequest) {
               else if (status === 'unconfirmed') emailsUnconfirmed += 1;
               else if (status === 'suppressed') emailsSuppressed += 1;
               else emailsFailed += 1;
-              const next = ledgerAfterEmail(ledgers.get(user.id) ?? null, status);
+              const next = stampChannels(ledgerAfterEmail(ledgers.get(user.id) ?? null, status), planById.get(user.id));
               ledgers.set(user.id, next);
               await saveLedger(campaignId, user.id, next);
               await recordPriorDelivery(prisma, {
@@ -556,9 +632,9 @@ export async function POST(req: NextRequest) {
         emailsSuppressed,
         emailsUnconfirmed,
         emailsSkipped,
-        emailRequested: sendEmail,
-        pushRequested: sendNotification,
-        inAppRequested: sendNotification,
+        emailRequested: plans.some((plan) => plan.email),
+        pushRequested: plans.some((plan) => plan.push),
+        inAppRequested: plans.some((plan) => plan.inApp),
       });
 
       console.info(
@@ -582,7 +658,7 @@ export async function POST(req: NextRequest) {
           success: report.success,
           outcome: report.outcome,
           message: report.message,
-          lines: [...report.lines, ...contentPlan.lines],
+          lines: [...report.lines, ...contentLines],
           notificationsCreated,
           notificationsSkipped,
           pushOffered,

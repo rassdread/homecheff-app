@@ -4,6 +4,7 @@ import {
   HISTORY_INCOMPLETE_NOTE,
   campaignRecordId,
   channelDisplayName,
+  channelsFromLedgerMeta,
   channelsFromMessageType,
   contentFingerprint,
   describeChannelOutcomes,
@@ -19,6 +20,8 @@ import {
   isDeliveryChannel,
   planContentDeliveries,
   priorDeliveryId,
+  PUSH_CREATES_IN_APP_NOTE,
+  pushAlsoCreatesInApp,
   type ContentDeliveryDecision,
   type DeliveryChannel,
   type DeliveryRecordStatus,
@@ -216,6 +219,7 @@ export type HistoryRecipient = {
   name: string;
   email: string | null;
   channels: HistoryChannelStatus[];
+  note: string | null;
 };
 
 export type HistoryDetail = {
@@ -304,17 +308,19 @@ function buildSend(input: {
   const recipients: HistoryRecipient[] = userIds.map((userId) => {
     const user = input.users.get(userId);
     const ledger = asRecord(ledgerByUser.get(userId)?.meta);
+    const intended = channelsFromLedgerMeta(ledger) ?? input.channels;
     const state: Partial<Record<DeliveryChannel, HistoryOutcome>> = {};
-    if (input.channels.includes('inApp')) {
+    if (intended.includes('inApp')) {
       state.inApp = ledger?.inApp === true || noticeByUser.has(userId) ? 'created' : 'missing';
     }
-    if (input.channels.includes('email')) state.email = emailOutcome(ledger?.email) ?? 'missing';
-    if (input.channels.includes('push')) state.push = pushOutcome(ledger?.push) ?? 'missing';
+    if (intended.includes('email')) state.email = emailOutcome(ledger?.email) ?? 'missing';
+    if (intended.includes('push')) state.push = pushOutcome(ledger?.push) ?? 'missing';
     return {
       id: userId,
       name: user?.name || user?.username || 'Gebruiker',
       email: user?.email || null,
-      channels: describeChannelOutcomes(input.channels, state),
+      channels: describeChannelOutcomes(intended, state),
+      note: pushAlsoCreatesInApp(intended) ? PUSH_CREATES_IN_APP_NOTE : null,
     };
   }).sort((left, right) => left.name.localeCompare(right.name, 'nl'));
   const list: HistoryListSend = {

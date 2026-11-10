@@ -397,10 +397,12 @@ describe('notification send keeps unchecked filter matches out of the message', 
     const loader = readFileSync(resolve(process.cwd(), 'lib/admin/load-notification-audience.ts'), 'utf8');
     assert.match(loader, /loadStripeLinkReviewIds/);
     assert.match(loader, /stripeLinkReview:/);
-    assert.match(route, /shouldSendChannel\(contentPlan\.decisions/);
+    assert.match(route, /shouldSendChannel\(relevantDecisions/);
     assert.match(route, /confirmRepeat/);
     assert.match(route, /checkedRecipients\(matched/);
-    assert.match(route, /const chosen = checked\.recipients/);
+    assert.match(route, /mergeBroadcastRecipients/);
+    assert.match(route, /loadActiveAdminsByIds/);
+    assert.match(route, /manualAdmins/);
     assert.match(route, /readLedgers\(campaignId, chosen\.map/);
     assert.match(route, /listOnly/);
     assert.doesNotMatch(route, /readLedgers\(campaignId, matched/);
@@ -409,6 +411,8 @@ describe('notification send keeps unchecked filter matches out of the message', 
     assert.match(ui, /Selecteer alle resultaten/);
     assert.match(ui, /Wis selectie/);
     assert.match(ui, /includeUserIds: selectedIds/);
+    assert.match(ui, /Beheerder toevoegen/);
+    assert.match(ui, /manualAdmins:/);
     assert.match(ui, /listOnly: true/);
     assert.match(ui, /scrollIntoView/);
   });

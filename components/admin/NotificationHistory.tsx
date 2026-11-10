@@ -29,12 +29,13 @@ type HistoryDetail = {
   summary: HistorySummary;
   message: string;
   messageMissing: boolean;
-  recipients: Array<{
-    id: string;
-    name: string;
-    email: string | null;
-    channels: ChannelStatus[];
-  }>;
+    recipients: Array<{
+      id: string;
+      name: string;
+      email: string | null;
+      channels: ChannelStatus[];
+      note?: string | null;
+    }>;
 };
 
 function when(value: string): string {
@@ -198,6 +199,7 @@ export function NotificationHistory() {
                     {channel.channel}: {channel.status}
                   </p>
                 ))}
+                {recipient.note ? <p className="text-gray-700">{recipient.note}</p> : null}
               </li>
             ))}
           </ul>
