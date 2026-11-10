@@ -1,29 +1,52 @@
-import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextRequest, NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
+import { createHash } from 'crypto';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sanitizeAdminBroadcastRoute } from '@/lib/admin/sanitize-admin-broadcast-route';
-import { sendAdminBroadcastFcm } from '@/lib/admin/admin-broadcast-fcm';
-import {
-  claimAdminBroadcastIdempotencyKey,
-  evaluateAdminEmailBlast,
-} from '@/lib/email/admin-blast-guard';
+import { sendAdminBroadcastFcmByUser } from '@/lib/admin/admin-broadcast-fcm';
+import { evaluateAdminEmailBlast } from '@/lib/email/admin-blast-guard';
 import { sendTransactionalEmail } from '@/lib/email/idempotent-send';
 import { EMAIL_PRIORITY } from '@/lib/email/priority';
 import { getTransactionalFrom } from '@/lib/email-from';
-import { loadCourierNotificationAudience } from '@/lib/admin/courier-notification-audience';
+import { renderAdminBulkMessage } from '@/lib/email/admin-bulk-message-content';
 import {
-  courierQueryKey,
-  parseCourierNotificationQuery,
-} from '@/lib/admin/courier-notification-segments';
-import { courierTemplateIsPromotional } from '@/lib/admin/courier-notification-templates';
+  UNAVAILABLE_AUDIENCE_FACTS,
+  agreementState,
+  agreementStateLabel,
+  audienceRoleLabels,
+  describeSelection,
+  checkedRecipients,
+  emptySelection,
+  inclusionReasons,
+  matchesAudience,
+  selectionCanList,
+  payoutConnectStatus,
+  payoutConnectStatusLabel,
+  parseAudienceSelection,
+  previewCanonicalPayload,
+  type AudienceCandidate,
+  type AudienceId,
+  type AudienceSelection,
+} from '@/lib/admin/notification-audience';
+import { loadAudienceCandidates } from '@/lib/admin/load-notification-audience';
 import {
-  intersectCourierSnapshot,
-  readCourierRecipientSnapshot,
-  signCourierRecipientSnapshot,
-} from '@/lib/admin/courier-recipient-snapshot';
-import { SAFETY_SUPPORT_EMAIL } from '@/lib/legal/policy-urls';
+  broadcastLedgerId,
+  broadcastNotificationId,
+  claimBroadcastFlight,
+  emailAttemptNumber,
+  emailLedgerStatus,
+  formatBroadcastResult,
+  ledgerAfterEmail,
+  ledgerAfterInApp,
+  ledgerAfterPush,
+  ledgerMeta,
+  parseRecipientLedger,
+  planEmail,
+  planInApp,
+  planPush,
+  releaseBroadcastFlight,
+  type RecipientLedger,
+} from '@/lib/admin/broadcast-delivery-plan';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,13 +54,88 @@ const MAX_RECIPIENTS = 5000;
 const EMAIL_BATCH_SIZE = 25;
 const EMAIL_BATCH_PAUSE_MS = 600;
 
+function campaignKeyFrom(req: NextRequest, body: { idempotencyKey?: unknown } | null): string {
+  const header = req.headers.get('idempotency-key')?.trim() || '';
+  const raw = header || (typeof body?.idempotencyKey === 'string' ? body.idempotencyKey.trim() : '');
+  if (!/^[0-9a-zA-Z_-]{8,80}$/.test(raw)) return '';
+  return raw;
+}
+
+function selectionFromBody(body: Record<string, unknown>): { ok: true; selection: AudienceSelection } | { ok: false; error: string } {
+  if (body.selection != null) return parseAudienceSelection(body.selection);
+  const targetType = typeof body.targetType === 'string' ? body.targetType.trim() : '';
+  const legacy: Record<string, AudienceId> = {
+    all: 'all',
+    sellers: 'sellers',
+    buyers: 'buyers',
+    delivery: 'delivery',
+  };
+  const audience = legacy[targetType];
+  if (!audience) {
+    return { ok: false, error: 'Kies eerst een doelgroep. Een lege of onbekende selectie kan niet worden verstuurd.' };
+  }
+  return { ok: true, selection: emptySelection(audience) };
+}
+
+function recipientView(user: AudienceCandidate, selection: AudienceSelection) {
+  const created = user.createdAt instanceof Date ? user.createdAt : new Date(user.createdAt);
+  return {
+    id: user.id,
+    name: user.name || user.username || 'Gebruiker',
+    email: user.email,
+    roles: audienceRoleLabels(user),
+    connectLabel: payoutConnectStatusLabel(payoutConnectStatus(user)),
+    agreementLabel: agreementStateLabel(agreementState(user)),
+    reasons: inclusionReasons(user, selection),
+    registeredAt: Number.isNaN(created.getTime()) ? null : created.toISOString(),
+  };
+}
+
+function previewTokenFor(input: Parameters<typeof previewCanonicalPayload>[0]): string {
+  return createHash('sha256').update(previewCanonicalPayload(input)).digest('hex');
+}
+
+async function readLedgers(campaignId: string, userIds: string[]): Promise<Map<string, RecipientLedger>> {
+  const map = new Map<string, RecipientLedger>();
+  for (let i = 0; i < userIds.length; i += 500) {
+    const slice = userIds.slice(i, i + 500);
+    const rows = await prisma.auditLog.findMany({
+      where: { id: { in: slice.map((userId) => broadcastLedgerId(campaignId, userId)) } },
+      select: { id: true, meta: true },
+    });
+    for (const row of rows) {
+      const ledger = parseRecipientLedger(row.meta);
+      if (!ledger) continue;
+      const userId = slice.find((id) => broadcastLedgerId(campaignId, id) === row.id);
+      if (userId) map.set(userId, ledger);
+    }
+  }
+  return map;
+}
+
+async function saveLedger(campaignId: string, userId: string, ledger: RecipientLedger): Promise<void> {
+  const id = broadcastLedgerId(campaignId, userId);
+  const meta = ledgerMeta(ledger);
+  await prisma.auditLog.upsert({
+    where: { id },
+    create: {
+      id,
+      userId,
+      action: 'admin_broadcast_recipient',
+      meta,
+    },
+    update: { meta },
+  });
+}
+
 export async function POST(req: NextRequest) {
-  const mappedGuard = await requireMappedAdminCapability(req);
-  if (!mappedGuard.ok) return mappedGuard.response;
   try {
     const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Je bent niet aangemeld.', message: 'Je bent niet aangemeld.' },
+        { status: 401 },
+      );
     }
 
     const adminUser = await prisma.user.findUnique({
@@ -46,398 +144,360 @@ export async function POST(req: NextRequest) {
     });
 
     if (adminUser?.role !== 'ADMIN' && adminUser?.role !== 'SUPERADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Alleen een beheerder kan dit bericht versturen.', message: 'Alleen een beheerder kan dit bericht versturen.' },
+        { status: 403 },
+      );
     }
 
     const body = await req.json().catch(() => null);
-    const message = typeof body?.message === 'string' ? body.message.trim() : '';
-    const targetType = typeof body?.targetType === 'string' ? body.targetType.trim() : '';
-    const sendNotification = Boolean(body?.sendNotification);
-    const sendEmail = Boolean(body?.sendEmail);
-    const confirmEmailBlast = Boolean(body?.confirmEmailBlast);
-    const dryRun = Boolean(body?.dryRun);
-    const subject =
-      typeof body?.subject === 'string' ? body.subject.trim() : '';
-    const courierRequest = targetType === 'delivery';
-    const parsedCourier = courierRequest ? parseCourierNotificationQuery(body?.courierFilters ?? {}) : null;
-    if (parsedCourier && !parsedCourier.ok) {
-      return NextResponse.json({ error: parsedCourier.error }, { status: 400 });
-    }
-    const page = Math.max(1, Number(body?.page) || 1);
-    const pageSize = Math.min(50, Math.max(1, Number(body?.pageSize) || 20));
-    const titleRaw = typeof body?.title === 'string' ? body.title.trim() : '';
-    const routeRaw = body?.route;
-    const idempotencyKey =
-      req.headers.get('idempotency-key')?.trim() ||
-      (typeof body?.idempotencyKey === 'string' ? body.idempotencyKey.trim() : '');
-
-    if (!targetType || (!dryRun && !message)) {
+    if (!body || typeof body !== 'object') {
       return NextResponse.json(
-        { error: 'Message and targetType are required' },
-        { status: 400 }
+        { error: 'Het verzoek kon niet worden gelezen.', message: 'Het verzoek kon niet worden gelezen.' },
+        { status: 400 },
       );
     }
-    if (message.length > 4000) {
-      return NextResponse.json({ error: 'Bericht is te lang.' }, { status: 400 });
+    const record = body as Record<string, unknown>;
+    const message = typeof record.message === 'string' ? record.message.trim() : '';
+    const sendNotification = Boolean(record.sendNotification);
+    const sendEmail = Boolean(record.sendEmail);
+    const confirmEmailBlast = Boolean(record.confirmEmailBlast);
+    const dryRun = Boolean(record.dryRun);
+    const subject = typeof record.subject === 'string' ? record.subject.trim() : '';
+    const titleRaw = typeof record.title === 'string' ? record.title.trim() : '';
+    const routeRaw = record.route;
+    const campaignId = campaignKeyFrom(req, record);
+    const listOnly = record.listOnly === true;
+
+    const parsed = selectionFromBody(record);
+    if (!parsed.ok) {
+      return NextResponse.json({ error: parsed.error, message: parsed.error }, { status: 400 });
+    }
+    const selection = parsed.selection;
+    if (!selectionCanList(selection)) {
+      const error = 'Alle toepasselijke rollen zonder statusfilter selecteert niemand. Kies een filter, of kies bewust Alle gebruikers.';
+      return NextResponse.json({ error, message: error, lines: [error] }, { status: 400 });
     }
 
-    if (!dryRun && !sendNotification && !sendEmail) {
-      return NextResponse.json(
-        { error: 'Select at least one delivery method (notification or email)' },
-        { status: 400 }
-      );
-    }
-
-    if (!dryRun && sendEmail && !subject) {
-      return NextResponse.json(
-        { error: 'Email subject is required when sending email' },
-        { status: 400 }
-      );
-    }
-
-    let targetUsers: { id: string; email: string | null; name: string | null }[] = [];
-
-    if (targetType === 'all') {
-      targetUsers = await prisma.user.findMany({
-        select: { id: true, email: true, name: true },
-        where: { role: { not: 'ADMIN' } },
-      });
-    } else if (targetType === 'sellers') {
-      targetUsers = await prisma.user.findMany({
-        select: { id: true, email: true, name: true },
-        where: { role: 'SELLER' },
-      });
-    } else if (targetType === 'buyers') {
-      targetUsers = await prisma.user.findMany({
-        select: { id: true, email: true, name: true },
-        where: { role: 'BUYER' },
-      });
-    } else if (courierRequest && parsedCourier?.ok) {
-      const audience = await loadCourierNotificationAudience(prisma, parsedCourier.query);
-      const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || '';
-      if (!secret.trim()) {
-        return NextResponse.json({ error: 'Ontvangerslijst kan niet worden vastgezet.' }, { status: 500 });
-      }
-      const snapshotToken = signCourierRecipientSnapshot(
-        { ids: audience.eligible.map((courier) => courier.userId), key: courierQueryKey(parsedCourier.query) },
-        secret.trim(),
-      );
-      if (dryRun) {
-        const start = (page - 1) * pageSize;
-        const slice = audience.eligible.slice(start, start + pageSize);
-        const withEmail = audience.eligible.filter((courier) => courier.email);
-        const blastGate = evaluateAdminEmailBlast({
-          sendEmail: true,
-          emailRecipientCount: withEmail.length,
-          targetType,
-          confirmEmailBlast,
-          idempotencyKey,
-        });
-        return NextResponse.json({
-          dryRun: true,
-          targetCount: audience.eligible.length,
-          emailRecipientCount: withEmail.length,
-          excludedCount: audience.excluded.reduce((sum, row) => sum + row.count, 0),
-          excluded: audience.excluded,
-          recipients: slice.map((courier) => ({
-            name: courier.name,
-            email: courier.email,
-            readiness: courier.primaryLabel,
-            missing: courier.missing,
-          })),
-          page,
-          pageSize,
-          pageCount: Math.max(1, Math.ceil(audience.eligible.length / pageSize)),
-          recipientSnapshot: snapshotToken,
-          segment: parsedCourier.query.segment,
-          requiresConfirm: blastGate.ok ? blastGate.requiresConfirm : true,
-          softMax: 'softMax' in blastGate ? blastGate.softMax : 50,
-          hardMax: 'hardMax' in blastGate ? blastGate.hardMax : 500,
-          gate: blastGate.ok ? 'ok' : blastGate.code,
-          message: blastGate.ok
-            ? `Preview: ${withEmail.length} e-mails zouden worden verstuurd.`
-            : blastGate.error,
-        });
-      }
-      const presented = typeof body?.recipientSnapshot === 'string' ? body.recipientSnapshot : '';
-      const read = readCourierRecipientSnapshot(presented, secret.trim());
-      if (!read.ok) return NextResponse.json({ error: read.error }, { status: 400 });
-      if (read.snapshot.key !== courierQueryKey(parsedCourier.query)) {
+    if (!listOnly) {
+      if (!message) {
         return NextResponse.json(
-          { error: 'De filters zijn gewijzigd. Bekijk de ontvangers opnieuw.' },
+          { error: 'Vul een bericht in.', message: 'Vul een bericht in.' },
           { status: 400 },
         );
       }
-      const allowed = new Set(intersectCourierSnapshot(
-        audience.eligible.map((courier) => courier.userId),
-        read.snapshot.ids,
-      ));
-      targetUsers = audience.eligible
-        .filter((courier) => allowed.has(courier.userId) && courier.email)
-        .map((courier) => ({ id: courier.userId, email: courier.email, name: courier.name }));
-    } else {
-      return NextResponse.json({ error: 'Invalid targetType' }, { status: 400 });
+      if (!sendNotification && !sendEmail) {
+        return NextResponse.json(
+          {
+            error: 'Kies in-appmelding of e-mail. Een lege verzendmethode is geblokkeerd.',
+            message: 'Kies in-appmelding of e-mail. Een lege verzendmethode is geblokkeerd.',
+          },
+          { status: 400 },
+        );
+      }
+      if (sendEmail && !subject) {
+        return NextResponse.json(
+          { error: 'Vul een onderwerp in voor de e-mail.', message: 'Vul een onderwerp in voor de e-mail.' },
+          { status: 400 },
+        );
+      }
     }
 
-    if (targetUsers.length === 0) {
-      return NextResponse.json({ error: 'No target users found' }, { status: 400 });
+    const candidates = await loadAudienceCandidates(prisma, selection);
+    const matched = candidates.filter((user) => matchesAudience(user, selection));
+    if (matched.length > MAX_RECIPIENTS) {
+      const error = `Te veel ontvangers (${matched.length}). Het maximum per actie is ${MAX_RECIPIENTS}.`;
+      return NextResponse.json({ error, message: error }, { status: 400 });
     }
 
-    if (targetUsers.length > MAX_RECIPIENTS) {
-      return NextResponse.json(
-        {
-          error: `Too many recipients (max ${MAX_RECIPIENTS}). Narrow the audience or split the send.`,
-        },
-        { status: 400 }
-      );
-    }
-
-    const withEmailPreview = targetUsers.filter((u) => u.email);
-    const blastGate = evaluateAdminEmailBlast({
-      sendEmail,
-      emailRecipientCount: withEmailPreview.length,
-      targetType,
-      confirmEmailBlast,
-      idempotencyKey,
-    });
-
-    if (dryRun) {
+    if (listOnly) {
+      const listed = `${matched.length} gebruikers voldoen aan de filters. Vink aan wie het bericht krijgt.`;
+      const empty = 'Geen gebruikers voor deze filters.';
       return NextResponse.json({
-        dryRun: true,
-        targetCount: targetUsers.length,
-        emailRecipientCount: withEmailPreview.length,
-        requiresConfirm: blastGate.ok ? blastGate.requiresConfirm : true,
-        softMax: 'softMax' in blastGate ? blastGate.softMax : 50,
-        hardMax: 'hardMax' in blastGate ? blastGate.hardMax : 500,
-        gate: blastGate.ok ? 'ok' : blastGate.code,
-        message: blastGate.ok
-          ? `Preview: ${withEmailPreview.length} e-mails zouden worden verstuurd.`
-          : blastGate.error,
+        listOnly: true,
+        total: matched.length,
+        recipients: matched.map((user) => recipientView(user, selection)),
+        message: matched.length === 0 ? empty : listed,
+        lines: [matched.length === 0 ? empty : listed],
       });
     }
 
+    const includeUserIds = Array.isArray(record.includeUserIds) ? record.includeUserIds : [];
+    if (includeUserIds.length > MAX_RECIPIENTS) {
+      const error = `Te veel aangevinkte ontvangers. Het maximum per actie is ${MAX_RECIPIENTS}.`;
+      return NextResponse.json({ error, message: error, lines: [error] }, { status: 400 });
+    }
+    const checked = checkedRecipients(matched, includeUserIds.filter((id): id is string => typeof id === 'string'));
+    if (!checked.ok) {
+      return NextResponse.json(
+        { error: checked.error, message: checked.error, lines: [checked.error], code: checked.code === 'outside' ? 'PREVIEW_STALE' : 'NONE_CHECKED' },
+        { status: checked.code === 'outside' ? 409 : 400 },
+      );
+    }
+    const chosen = checked.recipients;
+
+    const withEmail = chosen.filter((user) => user.email);
+    const blastGate = evaluateAdminEmailBlast({
+      sendEmail,
+      emailRecipientCount: withEmail.length,
+      targetType: selection.audience === 'all' && chosen.length === matched.length ? 'all' : 'custom',
+      confirmEmailBlast,
+      idempotencyKey: campaignId,
+    });
+    const safeRoute = sanitizeAdminBroadcastRoute(routeRaw);
+    const pushTitle = titleRaw.length > 0 ? titleRaw.slice(0, 120) : 'HomeCheff';
+    const previewToken = previewTokenFor({
+      selection,
+      message,
+      subject,
+      title: pushTitle,
+      route: safeRoute,
+      sendNotification,
+      sendEmail,
+      recipientIds: chosen.map((user) => user.id),
+    });
+    const summary = describeSelection(selection);
+    const channels = {
+      inApp: sendNotification ? chosen.length : 0,
+      push: sendNotification ? chosen.filter((user) => user.pushReachable).length : 0,
+      email: sendEmail ? withEmail.length : 0,
+    };
+
+    if (dryRun) {
+      const lines = [
+        chosen.length === 0
+          ? 'Geen aangevinkte ontvangers. Verzenden blijft geblokkeerd.'
+          : `Definitieve selectie: ${chosen.length} aangevinkt van ${matched.length} gevonden. In-app ${channels.inApp}, push-bereikbaar ${channels.push}, e-mailadres ${channels.email}. Alleen aangevinkte gebruikers krijgen het bericht.`,
+        ...summary,
+      ];
+      if (!blastGate.ok) lines.push(blastGate.error);
+      return NextResponse.json({
+        dryRun: true,
+        previewToken: blastGate.ok || blastGate.code !== 'HARD_LIMIT' ? previewToken : null,
+        summary,
+        unavailable: UNAVAILABLE_AUDIENCE_FACTS,
+        total: chosen.length,
+        found: matched.length,
+        channels,
+        recipients: chosen.map((user) => recipientView(user, selection)),
+        requiresConfirm: blastGate.ok ? blastGate.requiresConfirm : blastGate.code === 'CONFIRM_REQUIRED',
+        emailRecipientCount: withEmail.length,
+        gate: blastGate.ok ? 'ok' : blastGate.code,
+        error: blastGate.ok ? undefined : blastGate.error,
+        message: lines[0],
+        lines,
+      });
+    }
+
+    if (chosen.length === 0) {
+      const error = 'Vink minstens één ontvanger aan. Er is niets verstuurd.';
+      return NextResponse.json({ error, message: error, lines: [error], code: 'NONE_CHECKED' }, { status: 400 });
+    }
     if (!blastGate.ok) {
       return NextResponse.json(
         {
           error: blastGate.error,
+          message: blastGate.error,
+          lines: [blastGate.error],
           code: blastGate.code,
           emailRecipientCount: blastGate.emailRecipientCount,
           softMax: blastGate.softMax,
           hardMax: blastGate.hardMax,
           requiresConfirm: true,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
-
-    if (idempotencyKey && !claimAdminBroadcastIdempotencyKey(idempotencyKey)) {
-      return NextResponse.json(
-        {
-          error: 'Deze broadcast is al uitgevoerd (idempotency). Geen dubbele e-mails verstuurd.',
-          code: 'IDEMPOTENT_REPLAY',
-        },
-        { status: 200 }
-      );
+    if (!campaignId) {
+      const error = 'Idempotency-Key ontbreekt. Vernieuw het voorbeeld en verstuur opnieuw, zodat een herhaling niemand dubbel aanschrijft.';
+      return NextResponse.json({ error, message: error, lines: [error] }, { status: 400 });
+    }
+    const providedPreview = typeof record.previewToken === 'string' ? record.previewToken : '';
+    if (!providedPreview || providedPreview !== previewToken) {
+      const error = 'De selectie is gewijzigd na het voorbeeld. Bekijk het voorbeeld opnieuw voordat je verstuurt.';
+      return NextResponse.json({ error, message: error, lines: [error], code: 'PREVIEW_STALE' }, { status: 409 });
+    }
+    if (!claimBroadcastFlight(campaignId)) {
+      const error = 'Deze verzending loopt al. Wacht op de uitslag voordat je het opnieuw probeert.';
+      return NextResponse.json({ error, message: error, lines: [error] }, { status: 409 });
     }
 
-    const broadcastId = randomUUID();
-    const safeRoute = sanitizeAdminBroadcastRoute(routeRaw);
-    const pushTitle =
-      titleRaw.length > 0 ? titleRaw.slice(0, 120) : 'HomeCheff';
-    const emailSubject = subject || 'Bericht van HomeCheff Admin';
-
-    const payload = {
-      title: pushTitle,
-      body: message,
-      message,
-      from: 'Admin',
-      timestamp: new Date().toISOString(),
-      link: safeRoute,
-      broadcastId,
-      data: {
-        type: 'ADMIN_ANNOUNCEMENT',
-        route: safeRoute,
-      },
-    };
-
-    let notificationsCreated = 0;
-    let pushSuccess = 0;
-    let pushFailures = 0;
-    let pushTokensAttempted = 0;
-
-    if (sendNotification) {
-      const { count } = await prisma.notification.createMany({
-        data: targetUsers.map((user) => ({
-          id: randomUUID(),
-          userId: user.id,
-          type: 'ADMIN_NOTICE',
-          payload,
-        })),
-      });
-      notificationsCreated = count;
-
-      const push = await sendAdminBroadcastFcm({
-        userIds: targetUsers.map((u) => u.id),
+    try {
+      const ledgers = await readLedgers(campaignId, chosen.map((user) => user.id));
+      const payload = {
         title: pushTitle,
-        body: message.slice(0, 500),
-        route: safeRoute,
-        broadcastId,
-      });
-      pushSuccess = push.success;
-      pushFailures = push.failures;
-      pushTokensAttempted = push.tokensAttempted;
-    }
+        body: message,
+        message,
+        from: 'Admin',
+        timestamp: new Date().toISOString(),
+        link: safeRoute,
+        broadcastId: campaignId,
+        data: { type: 'ADMIN_ANNOUNCEMENT', route: safeRoute },
+      };
 
-    let emailsSent = 0;
-    let emailsFailed = 0;
-    const promotional = Boolean(parsedCourier?.ok && courierTemplateIsPromotional(parsedCourier.query.templateId));
-    if (sendEmail) {
-      const withEmail = targetUsers.filter((u) => u.email);
-
-      for (let i = 0; i < withEmail.length; i += EMAIL_BATCH_SIZE) {
-        const batch = withEmail.slice(i, i + EMAIL_BATCH_SIZE);
-        const outcomes = await Promise.all(
-          batch.map(async (user) => {
-            const result = await sendTransactionalEmail({
-              from: getTransactionalFrom(),
-              to: [user.email!],
-              subject: emailSubject,
-              html: emailHtml(emailSubject, user.name, message, promotional),
-              eventType: promotional ? 'admin_broadcast_promotional' : 'admin_broadcast',
-              priority: EMAIL_PRIORITY.P2,
-              route: 'admin/notifications/send',
-              idempotencyKey: `admin-broadcast:${broadcastId}:${user.id}`,
-              businessEventId: broadcastId,
-            });
-            return result.status === 'sent';
-          })
-        );
-        emailsSent += outcomes.filter(Boolean).length;
-        emailsFailed += outcomes.filter((accepted) => !accepted).length;
-        if (i + EMAIL_BATCH_SIZE < withEmail.length) {
-          await new Promise((r) => setTimeout(r, EMAIL_BATCH_PAUSE_MS));
+      let notificationsCreated = 0;
+      let notificationsSkipped = 0;
+      if (sendNotification) {
+        const pending = chosen.filter((user) => planInApp(ledgers.get(user.id) ?? null) === 'send');
+        notificationsSkipped = chosen.length - pending.length;
+        if (pending.length > 0) {
+          const created = await prisma.notification.createMany({
+            data: pending.map((user) => ({
+              id: broadcastNotificationId(campaignId, user.id),
+              userId: user.id,
+              type: 'ADMIN_NOTICE' as const,
+              payload,
+            })),
+            skipDuplicates: true,
+          });
+          notificationsCreated = created.count;
+          notificationsSkipped += pending.length - created.count;
+          for (const user of pending) {
+            const next = ledgerAfterInApp(ledgers.get(user.id) ?? null);
+            ledgers.set(user.id, next);
+            await saveLedger(campaignId, user.id, next);
+          }
         }
       }
+
+      let pushOffered = 0;
+      let pushFailed = 0;
+      let pushSkipped = 0;
+      let pushNoToken = 0;
+      if (sendNotification) {
+        const pending = chosen.filter((user) => planPush(ledgers.get(user.id) ?? null) === 'send');
+        pushSkipped = chosen.length - pending.length;
+        if (pending.length > 0) {
+          const push = await sendAdminBroadcastFcmByUser({
+            userIds: pending.map((user) => user.id),
+            title: pushTitle,
+            body: message.slice(0, 500),
+            route: safeRoute,
+            broadcastId: campaignId,
+          });
+          pushOffered = push.success;
+          pushFailed = push.failures;
+          for (const result of push.perUser) {
+            const status = result.offered > 0 ? 'offered' : result.tokens === 0 ? 'no_token' : 'failed';
+            if (status === 'no_token') pushNoToken += 1;
+            const next = ledgerAfterPush(ledgers.get(result.userId) ?? null, status);
+            ledgers.set(result.userId, next);
+            await saveLedger(campaignId, result.userId, next);
+          }
+        }
+      }
+
+      let emailsAccepted = 0;
+      let emailsFailed = 0;
+      let emailsSuppressed = 0;
+      let emailsUnconfirmed = 0;
+      let emailsSkipped = 0;
+      if (sendEmail) {
+        const pending = withEmail.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'send');
+        emailsSkipped = withEmail.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'skip_done').length;
+        emailsUnconfirmed = withEmail.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'skip_unconfirmed').length;
+        for (let i = 0; i < pending.length; i += EMAIL_BATCH_SIZE) {
+          const batch = pending.slice(i, i + EMAIL_BATCH_SIZE);
+          await Promise.all(
+            batch.map(async (user) => {
+              const attempt = emailAttemptNumber(ledgers.get(user.id) ?? null);
+              const letter = renderAdminBulkMessage({
+                recipientName: user.name || '',
+                message,
+              });
+              const result = await sendTransactionalEmail({
+                from: getTransactionalFrom(),
+                to: [user.email!],
+                subject,
+                html: letter.html,
+                text: letter.text,
+                eventType: 'admin_broadcast',
+                priority: EMAIL_PRIORITY.P2,
+                route: 'admin/notifications/send',
+                idempotencyKey: `admin-broadcast:${campaignId}:${user.id}:email:${attempt}`,
+                businessEventId: campaignId,
+              });
+              const status = emailLedgerStatus(result);
+              if (status === 'accepted') emailsAccepted += 1;
+              else if (status === 'unconfirmed') emailsUnconfirmed += 1;
+              else if (status === 'suppressed') emailsSuppressed += 1;
+              else emailsFailed += 1;
+              const next = ledgerAfterEmail(ledgers.get(user.id) ?? null, status);
+              ledgers.set(user.id, next);
+              await saveLedger(campaignId, user.id, next);
+            }),
+          );
+          if (i + EMAIL_BATCH_SIZE < pending.length) {
+            await new Promise((resolve) => setTimeout(resolve, EMAIL_BATCH_PAUSE_MS));
+          }
+        }
+      }
+
+      const report = formatBroadcastResult({
+        notificationsCreated,
+        notificationsSkipped,
+        pushOffered,
+        pushFailed,
+        pushSkipped,
+        pushNoToken,
+        emailsAccepted,
+        emailsFailed,
+        emailsSuppressed,
+        emailsUnconfirmed,
+        emailsSkipped,
+        emailRequested: sendEmail,
+        pushRequested: sendNotification,
+        inAppRequested: sendNotification,
+      });
 
       console.info(
         '[admin_email_blast]',
         JSON.stringify({
-          broadcastId,
-          targetType,
-          segment: parsedCourier?.ok ? parsedCourier.query.segment : null,
-          filters: parsedCourier?.ok ? courierQueryKey(parsedCourier.query) : null,
-          recipientCount: withEmail.length,
-          attempted: withEmail.length,
-          providerAccepted: emailsSent,
-          failed: emailsFailed,
-          inboxDeliveryConfirmed: false,
+          broadcastId: campaignId,
+          audience: selection.audience,
+          outcome: report.outcome,
+          notificationsCreated,
+          pushOffered,
+          pushFailed,
+          emailsAccepted,
+          emailsFailed,
           adminEmail: session.user.email,
-          ts: new Date().toISOString(),
-        })
+          ts: Date.now(),
+        }),
       );
-    }
 
-    const parts: string[] = [];
-    if (notificationsCreated > 0) {
-      parts.push(`${notificationsCreated} in-app notificatie(s)`);
-    }
-    if (pushTokensAttempted > 0) {
-      parts.push(`${pushSuccess} push(s) afgeleverd (${pushFailures} mislukt)`);
-    }
-    if (sendEmail) {
-      parts.push(
-        `De e-mailprovider heeft ${emailsSent} bericht(en) aangenomen. Dat bevestigt niet dat ze in de inbox staan. Mislukt: ${emailsFailed}.`
+      return NextResponse.json(
+        {
+          success: report.success,
+          outcome: report.outcome,
+          message: report.message,
+          lines: report.lines,
+          notificationsCreated,
+          notificationsSkipped,
+          pushOffered,
+          pushFailed,
+          pushSkipped,
+          pushNoToken,
+          emailsAccepted,
+          emailsFailed,
+          emailsSuppressed,
+          emailsUnconfirmed,
+          emailsSkipped,
+          emailRequested: sendEmail,
+          pushRequested: sendNotification,
+        },
+        { status: report.httpStatus },
       );
+    } finally {
+      releaseBroadcastFlight(campaignId);
     }
-
-    return NextResponse.json({
-      success: true,
-      notificationsCreated,
-      emailsSent,
-      emailsFailed,
-      providerAccepted: emailsSent,
-      inboxDeliveryConfirmed: false,
-      push: {
-        tokensAttempted: pushTokensAttempted,
-        success: pushSuccess,
-        failures: pushFailures,
-      },
-      message: parts.length ? parts.join(' · ') : 'Geen verzending uitgevoerd',
-    });
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[admin/notifications/send]', error);
-    } else {
-      console.error(
-        '[admin/notifications/send]',
-        error instanceof Error ? error.message.slice(0, 200) : 'error'
-      );
-    }
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown',
-      },
-      { status: 500 }
+    console.error(
+      '[admin/notifications/send]',
+      error instanceof Error ? error.message.slice(0, 200) : 'error',
     );
+    const message = 'De verzending is op de server vastgelopen. Er is niet bevestigd dat het bericht is aangeboden.';
+    return NextResponse.json({ error: message, message, lines: [message] }, { status: 500 });
   }
 }
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function emailHtml(subject: string, name: string | null, message: string, promotional = false): string {
-  const safeName = escapeHtml(name || 'Gebruiker');
-  const safeSubject = escapeHtml(subject);
-  const safeBody = escapeHtml(message);
-  return `
-              <!DOCTYPE html>
-              <html>
-              <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>${safeSubject}</title>
-                <style>
-                  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f8fafc; }
-                  .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-                  .header { background: linear-gradient(135deg, #006D52 0%, #005843 100%); padding: 40px 30px; text-align: center; }
-                  .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 700; }
-                  .content { padding: 40px 30px; }
-                  .content h2 { color: #1f2937; margin: 0 0 20px 0; font-size: 24px; font-weight: 600; }
-                  .content p { color: #6b7280; margin: 0 0 20px 0; font-size: 16px; }
-                  .message-box { background: #f9fafb; border-left: 4px solid #006D52; padding: 20px; margin: 20px 0; border-radius: 4px; }
-                  .footer { background: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb; }
-                  .footer p { color: #6b7280; font-size: 14px; margin: 0; }
-                </style>
-              </head>
-              <body>
-                <div class="container">
-                  <div class="header">
-                    <h1>HomeCheff</h1>
-                  </div>
-                  <div class="content">
-                    <h2>Hallo ${safeName}!</h2>
-                    <p>Je hebt een bericht ontvangen van het HomeCheff-team:</p>
-                    <div class="message-box">
-                      <p style="white-space: pre-wrap; margin: 0;">${safeBody}</p>
-                    </div>
-                    <p>Je kunt dit bericht ook in de app bekijken onder meldingen.</p>
-                  </div>
-                  <div class="footer">
-                    <p>Met vriendelijke groet,<br>Het HomeCheff-team</p>
-                    ${
-                      promotional
-                        ? `<p style="margin-top:12px;">Je ontvangt dit omdat je marketingberichten hebt geaccepteerd. Uitschrijven: mail ${escapeHtml(SAFETY_SUPPORT_EMAIL)} met het onderwerp Uitschrijven.</p>`
-                        : ''
-                    }
-                  </div>
-                </div>
-              </body>
-              </html>
-            `;
-}

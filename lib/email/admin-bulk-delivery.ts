@@ -316,6 +316,25 @@ export function reportAdminBulkSend(input: {
  * Reads the bulk-send JSON. A success tone is returned only when the body
  * explicitly says the provider accepted every requested recipient.
  */
+/** Always at least one readable line. A blank server body is not a blank confirmation. */
+export function visibleBulkFeedbackLines(
+  feedback: { message?: string | null; lines?: string[] | null } | null | undefined,
+): string[] {
+  const lines = (feedback?.lines ?? [])
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+  if (lines.length > 0) return lines;
+  const message = typeof feedback?.message === "string" ? feedback.message.trim() : "";
+  const fromMessage = message
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+  if (fromMessage.length > 0) return fromMessage;
+  return [
+    "De server gaf geen leesbare uitslag. Er is niet bevestigd dat het bericht is aangeboden.",
+  ];
+}
+
 export function interpretBulkSendResponse(
   status: number,
   data: unknown
