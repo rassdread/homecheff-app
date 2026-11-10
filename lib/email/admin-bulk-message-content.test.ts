@@ -69,8 +69,23 @@ if (action.ok && action.action) {
   });
   assert.match(withButton.html, /Naar mijn bezorgomgeving/);
   assert.match(withButton.html, /href="https:\/\/homecheff\.eu\/delivery"/);
+  assert.match(withButton.html, /bgcolor="#059669"/);
+  assert.match(withButton.html, />https:\/\/homecheff\.eu\/delivery</);
+  assert.doesNotMatch(withButton.html, /linear-gradient/);
   assert.match(withButton.text, /Naar mijn bezorgomgeving\nhttps:\/\/homecheff\.eu\/delivery/);
 }
+const testing2 = renderAdminBulkMessage({
+  recipientName: "Sanne",
+  message: "double testing",
+  action: {
+    label: "Naar mijn bezorgomgeving",
+    url: "https://homecheff.eu/delivery",
+  },
+});
+assert.match(testing2.html, /double testing/);
+assert.match(testing2.html, /bgcolor="#059669"/);
+assert.match(testing2.text, /double testing\n\nNaar mijn bezorgomgeving\nhttps:\/\/homecheff\.eu\/delivery/);
+ok("the testing 2 letter keeps a solid button and the same link in HTML and plain text");
 const stripe = resolveAdminEmailAction(
   "Stripe",
   "https://connect.stripe.com/setup/e/acct_123/abc"
@@ -120,6 +135,7 @@ assert.match(ui, /buttonLabel/);
 assert.match(ui, /Knoptekst/);
 assert.match(ui, /Vul knoptekst en link allebei in, of laat ze allebei leeg\./);
 assert.match(ui, /message: ''/);
+assert.match(ui, /srcDoc=\{letter\.html\}/);
 assert.doesNotMatch(ui, /readOnly/);
 ok("subject and message stay editable and are sent from the form");
 

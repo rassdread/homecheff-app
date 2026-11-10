@@ -117,13 +117,17 @@ function paragraphHtml(paragraph: string): string {
 function actionHtml(action: AdminEmailAction): string {
   const label = escapeHtml(action.label);
   const url = escapeHtml(action.url);
-  return `<table role="presentation" cellspacing="0" cellpadding="0" style="margin:8px 0 28px 0;">
+  return `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:8px 0 12px 0;">
     <tr>
-      <td style="border-radius:12px;background:linear-gradient(135deg,#10b981 0%,#059669 100%);">
-        <a href="${url}" style="display:inline-block;padding:14px 28px;font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:12px;">${label}</a>
+      <td align="center" bgcolor="#059669" style="border-radius:12px;background-color:#059669;">
+        <a href="${url}" style="display:inline-block;padding:14px 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:16px;font-weight:600;line-height:1.2;color:#ffffff;text-decoration:none;border-radius:12px;background-color:#059669;">${label}</a>
       </td>
     </tr>
-  </table>`;
+  </table>
+  <p style="margin:0 0 18px 0;font-size:14px;line-height:1.6;color:#334155;">
+    <a href="${url}" style="color:#047857;font-weight:600;text-decoration:underline;">${label}</a><br>
+    <a href="${url}" style="color:#047857;text-decoration:underline;word-break:break-all;">${url}</a>
+  </p>`;
 }
 
 export function renderAdminBulkMessage(input: {
@@ -152,13 +156,13 @@ export function renderAdminBulkMessage(input: {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HomeCheff</title>
 </head>
-<body style="margin:0;padding:0;background:#ecfdf5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1e293b;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:linear-gradient(180deg,#ecfdf5 0%,#f8fafc 45%,#f1f5f9 100%);padding:32px 16px;">
+<body bgcolor="#ecfdf5" style="margin:0;padding:0;background-color:#ecfdf5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1e293b;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#ecfdf5" style="background-color:#ecfdf5;padding:32px 16px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 10px 40px rgba(15,118,110,0.12);border:1px solid #d1fae5;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="max-width:560px;background-color:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #d1fae5;">
           <tr>
-            <td style="padding:32px 28px 24px 28px;text-align:center;background:linear-gradient(135deg,#059669 0%,#047857 55%,#065f46 100%);">
+            <td align="center" bgcolor="#047857" style="padding:32px 28px 24px 28px;text-align:center;background-color:#047857;">
               <img src="${LOGO_URL}" width="96" height="96" alt="HomeCheff" style="display:block;margin:0 auto;border:0;border-radius:16px;background:#ffffff;padding:8px;box-sizing:border-box;" />
             </td>
           </tr>
