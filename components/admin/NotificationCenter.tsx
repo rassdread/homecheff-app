@@ -13,13 +13,14 @@ import {
   pendingStepLabel,
   payoutConnectStatusLabel,
   selectionCanList,
+  STRIPE_NOT_READY_LABEL,
   stripeFilterLabel,
   verificationFilterLabel,
   type AccountStatusFilter,
   type AudienceId,
   type AudienceSelection,
-  type PayoutConnectStatus,
   type PendingStepId,
+  type StripeAudienceFilter,
   type VerificationKind,
   type VerificationStatus,
 } from '@/lib/admin/notification-audience';
@@ -31,6 +32,8 @@ type PreviewRecipient = {
   roles: string[];
   connectLabel: string;
   agreementLabel: string;
+  stripeStatus?: string;
+  requiresExplicitCheck?: boolean;
   reasons?: string[];
   registeredAt: string | null;
   alreadySent?: Array<{ channel: string; at: string; label: string }>;
@@ -84,6 +87,8 @@ function readRecipients(value: unknown): PreviewRecipient[] {
       roles: Array.isArray(row.roles) ? row.roles.filter((role): role is string => typeof role === 'string') : [],
       connectLabel: typeof row.connectLabel === 'string' ? row.connectLabel : '',
       agreementLabel: typeof row.agreementLabel === 'string' ? row.agreementLabel : '',
+      stripeStatus: typeof row.stripeStatus === 'string' ? row.stripeStatus : '',
+      requiresExplicitCheck: row.requiresExplicitCheck === true,
       reasons: Array.isArray(row.reasons) ? row.reasons.filter((reason): reason is string => typeof reason === 'string') : [],
       registeredAt: typeof row.registeredAt === 'string' ? row.registeredAt : null,
       alreadySent: Array.isArray(row.alreadySent)
@@ -127,13 +132,15 @@ export default function NotificationCenter() {
   const [subject, setSubject] = useState('');
   const [audience, setAudience] = useState<AudienceId>('applicable');
   const [matchMode, setMatchMode] = useState<'all' | 'any'>('all');
-  const [stripe, setStripe] = useState<PayoutConnectStatus | ''>('');
+  const [stripe, setStripe] = useState<StripeAudienceFilter | ''>('');
   const [verificationKind, setVerificationKind] = useState<VerificationKind | ''>('');
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus | ''>('');
   const [agreementOpen, setAgreementOpen] = useState(false);
   const [accountStatus, setAccountStatus] = useState<AccountStatusFilter | ''>('');
   const [pendingStep, setPendingStep] = useState<PendingStepId | ''>('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [explicitReviewIds, setExplicitReviewIds] = useState<string[]>([]);
+  const [stripeNotes, setStripeNotes] = useState<string[]>([]);
   const [directory, setDirectory] = useState<PreviewRecipient[]>([]);
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
@@ -178,6 +185,8 @@ export default function NotificationCenter() {
       setListError(null);
       setListLoading(false);
       setSelectedIds([]);
+      setExplicitReviewIds([]);
+      setStripeNotes([]);
       return;
     }
     const controller = new AbortController();
@@ -219,6 +228,8 @@ export default function NotificationCenter() {
           const text = typeof data?.message === 'string' ? data.message : 'De ontvangerslijst kon niet worden geladen.';
           setDirectory([]);
           setSelectedIds([]);
+          setExplicitReviewIds([]);
+          setStripeNotes([]);
           setListError(text);
           return;
         }
@@ -226,6 +237,14 @@ export default function NotificationCenter() {
         const ids = new Set(recipients.map((recipient) => recipient.id));
         setDirectory(recipients);
         setSelectedIds((current) => current.filter((id) => ids.has(id)));
+        setExplicitReviewIds((current) => current.filter((id) => (
+          ids.has(id) && recipients.some((recipient) => recipient.id === id && recipient.requiresExplicitCheck)
+        )));
+        setStripeNotes(
+          Array.isArray(data.stripeCountLines)
+            ? data.stripeCountLines.filter((line: unknown): line is string => typeof line === 'string' && line.trim().length > 0)
+            : [],
+        );
         setRecipientPage(0);
         setListError(null);
       })
@@ -339,6 +358,7 @@ export default function NotificationCenter() {
       route: linkPreset,
       selection: current,
       includeUserIds: selectedIds,
+      explicitReviewUserIds: explicitReviewIds.filter((id) => selectedIds.includes(id)),
       manualAdmins: addedAdmins.map((admin) => ({ userId: admin.id, channels: admin.channels })),
       sendNotification,
       sendEmail,
@@ -616,16 +636,17 @@ export default function NotificationCenter() {
               <select
                 value={stripe}
                 onChange={(event) => {
-                  setStripe(event.target.value as PayoutConnectStatus | '');
+                  setStripe(event.target.value as StripeAudienceFilter | '');
                   invalidatePreview();
                 }}
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
               >
                 <option value="">Geen Stripe-filter</option>
+                <option value="not_ready">{STRIPE_NOT_READY_LABEL}</option>
                 <option value="none">{payoutConnectStatusLabel('none')}</option>
                 <option value="incomplete">{payoutConnectStatusLabel('incomplete')}</option>
-                <option value="ready">{payoutConnectStatusLabel('ready')}</option>
                 <option value="review">{payoutConnectStatusLabel('review')}</option>
+                <option value="ready">{payoutConnectStatusLabel('ready')}</option>
               </select>
             </label>
             <label className="block text-sm">
@@ -774,7 +795,12 @@ export default function NotificationCenter() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={() => changeChecked(directory.map((recipient) => recipient.id))}
+                    onClick={() => {
+                      const bulk = directory.filter((recipient) => !recipient.requiresExplicitCheck).map((recipient) => recipient.id);
+                      const kept = explicitReviewIds.filter((id) => directory.some((recipient) => recipient.id === id && recipient.requiresExplicitCheck));
+                      setExplicitReviewIds(kept);
+                      changeChecked([...new Set([...kept, ...bulk])]);
+                    }}
                     disabled={directory.length === 0}
                     className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-800 disabled:opacity-50"
                   >
@@ -783,7 +809,10 @@ export default function NotificationCenter() {
                   {query && (
                     <button
                       type="button"
-                      onClick={() => changeChecked([...new Set([...selectedIds, ...searchHits.map((recipient) => recipient.id)])])}
+                      onClick={() => changeChecked([...new Set([
+                        ...selectedIds,
+                        ...searchHits.filter((recipient) => !recipient.requiresExplicitCheck).map((recipient) => recipient.id),
+                      ])])}
                       disabled={searchHits.length === 0}
                       className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-800 disabled:opacity-50"
                     >
@@ -792,7 +821,10 @@ export default function NotificationCenter() {
                   )}
                   <button
                     type="button"
-                    onClick={() => changeChecked([])}
+                    onClick={() => {
+                      setExplicitReviewIds([]);
+                      changeChecked([]);
+                    }}
                     disabled={selectedIds.length === 0}
                     className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-800 disabled:opacity-50"
                   >
@@ -801,9 +833,16 @@ export default function NotificationCenter() {
                 </div>
                 <p className="text-xs text-gray-600">
                   {query
-                    ? 'Selecteer alle resultaten vinkt alle filterresultaten aan, ook buiten deze zoekopdracht en op andere pagina’s. Selecteer zoekresultaten vinkt alleen deze zoekopdracht aan. Wis selectie haalt elk vinkje weg.'
-                    : 'Selecteer alle resultaten vinkt alle filterresultaten aan, ook op andere pagina’s. Wis selectie haalt elk vinkje weg. Zoeken of bladeren bewaart de vinkjes.'}
+                    ? 'Selecteer alle resultaten vinkt de filterresultaten aan, behalve accounts met Stripe-koppeling controleren. Die vink je apart aan. Selecteer zoekresultaten doet hetzelfde voor deze zoekopdracht. Wis selectie haalt elk vinkje weg.'
+                    : 'Selecteer alle resultaten vinkt de filterresultaten aan, ook op andere pagina’s, behalve accounts met Stripe-koppeling controleren. Die vink je apart aan. Wis selectie haalt elk vinkje weg. Zoeken of bladeren bewaart de vinkjes.'}
                 </p>
+                {stripeNotes.length > 0 && (
+                  <ul className="space-y-1 text-sm text-gray-800">
+                    {stripeNotes.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                )}
                 {listError && <p className="text-sm text-red-800">{listError}</p>}
                 {!listLoading && !listError && directory.length === 0 && (
                   <p className="text-sm text-gray-600">Geen gebruikers voor deze filters.</p>
@@ -815,11 +854,15 @@ export default function NotificationCenter() {
                         type="checkbox"
                         checked={selectedSet.has(recipient.id)}
                         onChange={(event) => {
-                          changeChecked(
-                            event.target.checked
-                              ? [...selectedIds, recipient.id]
-                              : selectedIds.filter((id) => id !== recipient.id),
-                          );
+                          if (event.target.checked) {
+                            changeChecked([...selectedIds, recipient.id]);
+                            if (recipient.requiresExplicitCheck) {
+                              setExplicitReviewIds((current) => current.includes(recipient.id) ? current : [...current, recipient.id]);
+                            }
+                          } else {
+                            changeChecked(selectedIds.filter((id) => id !== recipient.id));
+                            setExplicitReviewIds((current) => current.filter((id) => id !== recipient.id));
+                          }
                         }}
                         aria-label={`Selecteer ${recipient.name}`}
                         className="mt-1 rounded border-gray-300 text-emerald-600"
@@ -828,6 +871,10 @@ export default function NotificationCenter() {
                         <p className="font-medium text-gray-900">{recipient.name}</p>
                         <p className="text-sm text-gray-800">{recipient.roles.join(' · ') || 'Geen rol'}</p>
                         <p className="text-sm text-gray-600">{recipient.email || 'Geen e-mailadres'}</p>
+                        {stripe ? <p className="text-sm text-gray-900">Stripe: {recipient.connectLabel}</p> : null}
+                        {recipient.requiresExplicitCheck ? (
+                          <p className="text-sm text-amber-900">Apart aanvinken. Selecteer alle resultaten slaat dit account over.</p>
+                        ) : null}
                         <p className="text-sm text-emerald-900">{(recipient.reasons || []).join(' · ')}</p>
                         {(recipient.alreadySent || []).map((prior) => (
                           <p key={`${prior.channel}-${prior.at}`} className="text-sm text-amber-900">
@@ -1196,6 +1243,10 @@ export default function NotificationCenter() {
                 <p className="font-medium text-gray-900">{recipient.name}</p>
                 <p className="text-gray-800">{recipient.roles.join(' · ') || 'Geen rol'}</p>
                 <p className="text-gray-600">{recipient.email || 'Geen e-mailadres'}</p>
+                {recipient.connectLabel ? <p className="text-gray-900">Stripe: {recipient.connectLabel}</p> : null}
+                {recipient.requiresExplicitCheck ? (
+                  <p className="text-amber-900">Apart aangevinkt. Selecteer alle resultaten neemt dit account niet mee.</p>
+                ) : null}
                 <p className="text-emerald-900">{(recipient.reasons || []).join(' · ')}</p>
                 {(recipient.channelLines || []).map((line) => (
                   <p key={line} className="text-gray-800">{line}</p>

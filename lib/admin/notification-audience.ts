@@ -27,6 +27,9 @@ export type AudienceId = 'applicable' | 'all' | 'buyers' | 'sellers' | 'delivery
 
 export type PayoutConnectStatus = 'none' | 'incomplete' | 'ready' | 'review';
 
+/** One list for every status that is not ready to pay out. Ready stays outside it. */
+export type StripeAudienceFilter = PayoutConnectStatus | 'not_ready';
+
 export type VerificationKind = 'email' | 'courier' | 'commerce_review';
 
 export type VerificationStatus = 'verified' | 'unverified' | 'pending';
@@ -43,7 +46,7 @@ export type PendingStepId =
 export type AudienceSelection = {
   audience: AudienceId;
   match: 'all' | 'any';
-  stripe: PayoutConnectStatus | null;
+  stripe: StripeAudienceFilter | null;
   verification: { kind: VerificationKind; status: VerificationStatus } | null;
   agreementVersion: string | null;
   accountStatus: AccountStatusFilter | null;
@@ -84,7 +87,7 @@ export type AudienceCandidate = {
 export type AgreementState = 'open' | 'accepted' | 'unknown_version' | 'not_applicable';
 
 const AUDIENCES = new Set<AudienceId>(['applicable', 'all', 'buyers', 'sellers', 'delivery']);
-const STRIPE = new Set<PayoutConnectStatus>(['none', 'incomplete', 'ready', 'review']);
+const STRIPE = new Set<StripeAudienceFilter>(['none', 'incomplete', 'ready', 'review', 'not_ready']);
 const VERIFICATION_KINDS = new Set<VerificationKind>(['email', 'courier', 'commerce_review']);
 const VERIFICATION_STATUS = new Set<VerificationStatus>(['verified', 'unverified', 'pending']);
 const ACCOUNT_STATUS = new Set<AccountStatusFilter>(['active', 'blocked', 'courier_blocked']);
@@ -144,6 +147,77 @@ export function payoutConnectStatusLabel(status: PayoutConnectStatus): string {
   if (status === 'review') return 'Stripe-koppeling controleren';
   if (status === 'incomplete') return 'Connect onvolledig';
   return 'Gereed voor uitbetalingen';
+}
+
+export const STRIPE_NOT_READY_LABEL = 'Stripe nog niet gereed voor uitbetalingen';
+
+export function stripeStatusMatches(status: PayoutConnectStatus, filter: StripeAudienceFilter): boolean {
+  if (filter === 'not_ready') return status !== 'ready';
+  return status === filter;
+}
+
+/** Review stays visible, but a bulk select must not include it. */
+export function requiresExplicitStripeCheck(user: {
+  stripeConnectAccountId?: string | null;
+  stripeConnectOnboardingCompleted?: boolean | null;
+  stripeLinkReview?: boolean | null;
+}): boolean {
+  return payoutConnectStatus(user) === 'review';
+}
+
+export type StripeStatusCounts = {
+  none: number;
+  incomplete: number;
+  review: number;
+  ready: number;
+  unique: number;
+};
+
+export function countStripeStatuses(
+  users: ReadonlyArray<{
+    stripeConnectAccountId?: string | null;
+    stripeConnectOnboardingCompleted?: boolean | null;
+    stripeLinkReview?: boolean | null;
+  }>,
+): StripeStatusCounts {
+  const counts: StripeStatusCounts = { none: 0, incomplete: 0, review: 0, ready: 0, unique: users.length };
+  for (const user of users) counts[payoutConnectStatus(user)] += 1;
+  return counts;
+}
+
+export function stripeCountLines(counts: StripeStatusCounts, filter: StripeAudienceFilter | null): string[] {
+  if (filter !== 'not_ready') return [];
+  const lines = [
+    `${payoutConnectStatusLabel('none')}: ${counts.none}.`,
+    `${payoutConnectStatusLabel('incomplete')}: ${counts.incomplete}.`,
+    `${payoutConnectStatusLabel('review')}: ${counts.review}. Die blijven buiten Selecteer alle resultaten.`,
+    `Uniek totaal: ${counts.unique}. ${payoutConnectStatusLabel('ready')} blijft buiten dit resultaat.`,
+  ];
+  const open = counts.none + counts.incomplete + counts.review;
+  if (counts.unique !== open) {
+    lines.push(`${counts.unique - open} persoon/personen staat door een ander filter in deze lijst.`);
+  }
+  return lines;
+}
+
+export function explicitReviewBlock(
+  users: ReadonlyArray<{
+    id: string;
+    stripeConnectAccountId?: string | null;
+    stripeConnectOnboardingCompleted?: boolean | null;
+    stripeLinkReview?: boolean | null;
+  }>,
+  explicitIds: readonly string[] | null | undefined,
+): string | null {
+  const explicit = new Set(
+    (explicitIds ?? [])
+      .filter((id): id is string => typeof id === 'string')
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0),
+  );
+  const blocked = users.some((user) => requiresExplicitStripeCheck(user) && !explicit.has(user.id));
+  if (!blocked) return null;
+  return 'Een account met Stripe-koppeling controleren moet apart aangevinkt worden. Selecteer alle resultaten neemt die accounts niet mee. Er is niets verstuurd.';
 }
 
 export function isBuyerCandidate(user: Pick<AudienceCandidate, 'role' | 'buyerRoles'>): boolean {
@@ -249,7 +323,7 @@ function selectedFilters(selection: AudienceSelection): Array<(user: AudienceCan
       if (selection.audience === 'applicable' && !isSellerCandidate(user) && !isDeliveryCandidate(user)) {
         return false;
       }
-      return payoutConnectStatus(user) === expected;
+      return stripeStatusMatches(payoutConnectStatus(user), expected);
     });
   }
   if (selection.verification) {
@@ -317,8 +391,8 @@ function audienceMembershipLabel(audience: AudienceId): string {
 /** Status labels that explain why a matching user is in the filter list. */
 export function inclusionReasons(user: AudienceCandidate, selection: AudienceSelection): string[] {
   const reasons: string[] = [];
-  if (selection.stripe && payoutConnectStatus(user) === selection.stripe) {
-    reasons.push(payoutConnectStatusLabel(selection.stripe));
+  if (selection.stripe && stripeStatusMatches(payoutConnectStatus(user), selection.stripe)) {
+    reasons.push(payoutConnectStatusLabel(payoutConnectStatus(user)));
   }
   if (selection.verification && verificationMatches(user, selection.verification)) {
     reasons.push(verificationFilterLabel(selection.verification));
@@ -455,12 +529,15 @@ export function parseAudienceSelection(
   if (match !== 'all' && match !== 'any') {
     return { ok: false, error: 'Kies of ontvangers aan alle filters of aan minstens één filter moeten voldoen.' };
   }
-  let stripe: PayoutConnectStatus | null = null;
+  let stripe: StripeAudienceFilter | null = null;
   if (value.stripe != null) {
-    if (typeof value.stripe !== 'string' || !STRIPE.has(value.stripe as PayoutConnectStatus)) {
-      return { ok: false, error: 'Onbekende Stripe-status. Kies geen account, Connect onvolledig of gereed.' };
+    if (typeof value.stripe !== 'string' || !STRIPE.has(value.stripe as StripeAudienceFilter)) {
+      return {
+        ok: false,
+        error: 'Onbekende Stripe-status. Kies nog niet gereed, geen actuele koppeling, Connect onvolledig, controleren of gereed.',
+      };
     }
-    stripe = value.stripe as PayoutConnectStatus;
+    stripe = value.stripe as StripeAudienceFilter;
   }
   let verification: AudienceSelection['verification'] = null;
   if (value.verification != null) {
@@ -542,7 +619,7 @@ export function audienceLabel(audience: AudienceId): string {
   return 'Bezorgpartners (bezorgprofiel of bezorgrol, ook bij een tweede rol)';
 }
 
-export function stripeFilterLabel(status: PayoutConnectStatus, audience: AudienceId): string {
+export function stripeFilterLabel(status: StripeAudienceFilter, audience: AudienceId): string {
   const payout =
     audience === 'delivery'
       ? 'bezorguitbetalingen'
@@ -551,6 +628,9 @@ export function stripeFilterLabel(status: PayoutConnectStatus, audience: Audienc
         : audience === 'applicable'
           ? 'verkoop- en bezorguitbetalingen'
           : 'het Stripe-account op de gebruiker';
+  if (status === 'not_ready') {
+    return `${STRIPE_NOT_READY_LABEL} voor ${payout}: geen actuele koppeling, Connect onvolledig of een koppeling om te controleren. Gereed voor uitbetalingen valt erbuiten.`;
+  }
   return `${payoutConnectStatusLabel(status)} voor ${payout}`;
 }
 
@@ -597,6 +677,9 @@ export function describeSelection(selection: AudienceSelection): string[] {
         : 'Filters: een ontvanger moet aan minstens één gekozen filter voldoen. Een gekozen rol geldt daarbij.',
   ];
   if (selection.stripe) lines.push(`Stripe: ${stripeFilterLabel(selection.stripe, selection.audience)}.`);
+  if (selection.stripe === 'not_ready' || selection.stripe === 'review') {
+    lines.push('Accounts met Stripe-koppeling controleren blijven zichtbaar en gaan niet mee in Selecteer alle resultaten. Die vink je apart aan.');
+  }
   if (selection.verification) lines.push(`Verificatie: ${verificationFilterLabel(selection.verification)}.`);
   if (selection.agreementVersion) {
     lines.push(
@@ -640,6 +723,7 @@ export function previewCanonicalPayload(input: {
   sendEmail: boolean;
   confirmRepeat: boolean;
   recipientIds: string[];
+  explicitReviewUserIds?: string[];
   manualAdmins?: Array<{ userId: string; channels: string[] }>;
 }): string {
   return JSON.stringify({
@@ -652,6 +736,7 @@ export function previewCanonicalPayload(input: {
     sendEmail: input.sendEmail,
     confirmRepeat: input.confirmRepeat,
     recipientIds: [...input.recipientIds].sort(),
+    explicitReviewUserIds: [...(input.explicitReviewUserIds ?? [])].sort(),
     manualAdmins: [...(input.manualAdmins ?? [])]
       .map((admin) => ({ userId: admin.userId, channels: [...admin.channels].sort() }))
       .sort((left, right) => left.userId.localeCompare(right.userId)),

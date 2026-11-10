@@ -16,7 +16,9 @@ import {
   audienceRoleLabels,
   describeSelection,
   checkedRecipients,
+  countStripeStatuses,
   emptySelection,
+  explicitReviewBlock,
   inclusionReasons,
   matchesAudience,
   selectionCanList,
@@ -24,6 +26,8 @@ import {
   payoutConnectStatusLabel,
   parseAudienceSelection,
   previewCanonicalPayload,
+  requiresExplicitStripeCheck,
+  stripeCountLines,
   type AudienceCandidate,
   type AudienceId,
   type AudienceSelection,
@@ -102,6 +106,8 @@ function recipientView(user: AudienceCandidate, selection: AudienceSelection) {
     email: user.email,
     roles: audienceRoleLabels(user),
     connectLabel: payoutConnectStatusLabel(payoutConnectStatus(user)),
+    stripeStatus: payoutConnectStatus(user),
+    requiresExplicitCheck: requiresExplicitStripeCheck(user),
     agreementLabel: agreementStateLabel(agreementState(user)),
     reasons: inclusionReasons(user, selection),
     registeredAt: Number.isNaN(created.getTime()) ? null : created.toISOString(),
@@ -274,7 +280,9 @@ export async function POST(req: NextRequest) {
             })),
         })),
         message: matched.length === 0 ? empty : listed,
-        lines: [matched.length === 0 ? empty : listed],
+        lines: [matched.length === 0 ? empty : listed, ...stripeCountLines(countStripeStatuses(matched), selection.stripe)],
+        stripeCountLines: stripeCountLines(countStripeStatuses(matched), selection.stripe),
+        stripeCounts: countStripeStatuses(matched),
       });
     }
 
@@ -292,6 +300,13 @@ export async function POST(req: NextRequest) {
         { error: checked.error, message: checked.error, lines: [checked.error], code: checked.code === 'outside' ? 'PREVIEW_STALE' : 'NONE_CHECKED' },
         { status: checked.code === 'outside' ? 409 : 400 },
       );
+    }
+    const explicitReviewUserIds = Array.isArray(record.explicitReviewUserIds)
+      ? record.explicitReviewUserIds.filter((id): id is string => typeof id === 'string')
+      : [];
+    const reviewBlock = explicitReviewBlock(checked.recipients, explicitReviewUserIds);
+    if (reviewBlock) {
+      return NextResponse.json({ error: reviewBlock, message: reviewBlock, lines: [reviewBlock] }, { status: 400 });
     }
     const manualUsers = await loadActiveAdminsByIds(prisma, manualAdmins.map((admin) => admin.userId));
     const manualById = new Map(manualUsers.map((user) => [user.id, user]));
@@ -366,6 +381,7 @@ export async function POST(req: NextRequest) {
       sendEmail,
       confirmRepeat,
       recipientIds: chosen.map((user) => user.id),
+      explicitReviewUserIds,
       manualAdmins,
     });
     const summary = describeSelection(selection);

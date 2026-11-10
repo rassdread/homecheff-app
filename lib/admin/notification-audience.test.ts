@@ -16,6 +16,11 @@ import {
   payoutConnectStatus,
   payoutConnectStatusLabel,
   stripeLinkNeedsReview,
+  stripeStatusMatches,
+  countStripeStatuses,
+  stripeCountLines,
+  explicitReviewBlock,
+  requiresExplicitStripeCheck,
   previewCanonicalPayload,
   type AudienceCandidate,
   type AudienceSelection,
@@ -390,6 +395,118 @@ describe('targeted audiences', () => {
   });
 });
 
+describe('Stripe nog niet gereed voor uitbetalingen', () => {
+  const none = user({ id: 'stripe-none', role: 'DELIVERY', delivery: deliveryOpen });
+  const incomplete = user({
+    id: 'stripe-incomplete',
+    role: 'SELLER',
+    hasSellerProfile: true,
+    delivery: deliveryOpen,
+    stripeConnectAccountId: 'acct_open',
+    stripeConnectOnboardingCompleted: false,
+  });
+  const review = user({ id: 'stripe-review', role: 'DELIVERY', delivery: deliveryOpen, stripeLinkReview: true });
+  const ready = user({
+    id: 'stripe-ready',
+    role: 'DELIVERY',
+    delivery: deliveryOpen,
+    stripeConnectAccountId: 'acct_ready_combined',
+    stripeConnectOnboardingCompleted: true,
+  });
+  const people = [none, incomplete, review, ready];
+  const combined = selection({ audience: 'delivery', stripe: 'not_ready' });
+
+  it('keeps the separate statuses and leaves ready payouts out of the combined list', () => {
+    assert.equal(stripeStatusMatches('none', 'not_ready'), true);
+    assert.equal(stripeStatusMatches('incomplete', 'not_ready'), true);
+    assert.equal(stripeStatusMatches('review', 'not_ready'), true);
+    assert.equal(stripeStatusMatches('ready', 'not_ready'), false);
+    assert.equal(matchesAudience(none, selection({ audience: 'delivery', stripe: 'none' })), true);
+    assert.equal(matchesAudience(review, selection({ audience: 'delivery', stripe: 'none' })), false);
+    assert.equal(matchesAudience(incomplete, selection({ audience: 'delivery', stripe: 'incomplete' })), true);
+    assert.equal(matchesAudience(ready, selection({ audience: 'delivery', stripe: 'ready' })), true);
+    const matched = people.filter((item) => matchesAudience(item, combined));
+    assert.deepEqual(matched.map((item) => item.id), ['stripe-none', 'stripe-incomplete', 'stripe-review']);
+    assert.deepEqual(inclusionReasons(none, combined), ['Geen actuele Stripe-koppeling in HomeCheff']);
+    assert.deepEqual(inclusionReasons(incomplete, combined), ['Connect onvolledig']);
+    assert.deepEqual(inclusionReasons(review, combined), ['Stripe-koppeling controleren']);
+    const counts = countStripeStatuses(matched);
+    assert.deepEqual(counts, { none: 1, incomplete: 1, review: 1, ready: 0, unique: 3 });
+    assert.equal(counts.none + counts.incomplete + counts.review + counts.ready, counts.unique);
+    assert.match(stripeCountLines(counts, 'not_ready').join(' '), /Uniek totaal: 3/);
+    assert.equal(parseAudienceSelection({ audience: 'delivery', stripe: 'not_ready' }).ok, true);
+    const bulk = matched.filter((item) => !requiresExplicitStripeCheck(item)).map((item) => item.id);
+    assert.deepEqual(bulk, ['stripe-none', 'stripe-incomplete']);
+    assert.equal(explicitReviewBlock(matched, bulk), 'Een account met Stripe-koppeling controleren moet apart aangevinkt worden. Selecteer alle resultaten neemt die accounts niet mee. Er is niets verstuurd.');
+    assert.equal(explicitReviewBlock([none, incomplete], bulk), null);
+    assert.equal(explicitReviewBlock(matched, [...bulk, review.id]), null);
+  });
+
+  it('counts a person with two roles once and still applies the other filters', () => {
+    const open = selection({ audience: 'applicable', stripe: 'not_ready' });
+    const matched = people.filter((item) => matchesAudience(item, open));
+    assert.deepEqual(matched.map((item) => item.id), ['stripe-none', 'stripe-incomplete', 'stripe-review']);
+    assert.equal(new Set(matched.map((item) => item.id)).size, matched.length);
+    const suspended = user({
+      id: 'suspended-open',
+      role: 'DELIVERY',
+      delivery: deliveryOpen,
+      suspendedAt: new Date(),
+      stripeConnectAccountId: 'acct_suspended',
+      stripeConnectOnboardingCompleted: false,
+    });
+    const activeFilter = selection({ audience: 'delivery', stripe: 'not_ready', accountStatus: 'active' });
+    assert.equal(matchesAudience(incomplete, activeFilter), true);
+    assert.equal(matchesAudience(suspended, activeFilter), false);
+    const accepted = user({
+      id: 'ready-open-agreement',
+      role: 'DELIVERY',
+      delivery: {
+        ...deliveryOpen,
+        agreementAcceptedAt: null,
+        agreementDocumentId: null,
+      },
+      stripeConnectAccountId: 'acct_ready_agreement',
+      stripeConnectOnboardingCompleted: true,
+    });
+    const narrowed = selection({
+      audience: 'delivery',
+      stripe: 'not_ready',
+      agreementVersion: DELIVERY_AGREEMENT_VERSION,
+    });
+    assert.equal(matchesAudience(review, narrowed), true);
+    assert.equal(matchesAudience(accepted, narrowed), false);
+    const either = selection({
+      audience: 'delivery',
+      match: 'any',
+      stripe: 'not_ready',
+      agreementVersion: DELIVERY_AGREEMENT_VERSION,
+    });
+    assert.equal(matchesAudience(accepted, either), true);
+    const eitherMatched = [review, accepted].filter((item) => matchesAudience(item, either));
+    const eitherCounts = countStripeStatuses(eitherMatched);
+    assert.equal(eitherCounts.unique, 2);
+    assert.equal(eitherCounts.ready, 1);
+    assert.match(stripeCountLines(eitherCounts, 'not_ready').join(' '), /ander filter/);
+    const tokenBase = {
+      selection: combined,
+      message: 'stripe',
+      subject: 'stripe',
+      title: 'stripe',
+      route: '/notifications',
+      sendNotification: true,
+      sendEmail: false,
+      confirmRepeat: false,
+      recipientIds: [none.id, review.id],
+      explicitReviewUserIds: [review.id],
+    };
+    assert.notEqual(
+      previewCanonicalPayload(tokenBase),
+      previewCanonicalPayload({ ...tokenBase, explicitReviewUserIds: [] }),
+    );
+  });
+});
+
 describe('notification send keeps unchecked filter matches out of the message', () => {
   it('requires the checked set on the server and does not address the whole filter result', () => {
     const route = readFileSync(resolve(process.cwd(), 'app/api/admin/notifications/send/route.ts'), 'utf8');
@@ -405,6 +522,12 @@ describe('notification send keeps unchecked filter matches out of the message', 
     assert.match(route, /manualAdmins/);
     assert.match(route, /readLedgers\(campaignId, chosen\.map/);
     assert.match(route, /listOnly/);
+    assert.match(route, /matchesAudience\(user, selection\)/);
+    assert.match(route, /explicitReviewBlock\(checked\.recipients/);
+    assert.match(route, /stripeCountLines\(countStripeStatuses\(matched\)/);
+    assert.match(ui, /not_ready/);
+    assert.match(ui, /requiresExplicitCheck/);
+    assert.match(ui, /explicitReviewUserIds/);
     assert.doesNotMatch(route, /readLedgers\(campaignId, matched/);
     assert.match(ui, /Ontvangers bekijken/);
     assert.match(ui, /id="notification-recipients"/);
