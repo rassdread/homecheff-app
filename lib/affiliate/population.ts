@@ -149,6 +149,20 @@ export function summarizeAffiliatePopulation(rows: PopulationRow[]): PopulationS
   return summary;
 }
 
+export function describeAffiliateCounts(summary: PopulationSummary): {
+  commercial: string;
+  review: string;
+  outside: string;
+  allRows: string;
+} {
+  return {
+    commercial: `Commerciële affiliates: ${summary.commercialParticipants}. Dat zijn accounts met klasse COMMERCIAL en een inschrijving. Daarvan zijn ${summary.likelyHistorical} waarschijnlijk historisch.`,
+    review: `Nog te beoordelen: ${summary.reviewRequired}. Dat is klasse REVIEW_REQUIRED, geen commerciële telling.`,
+    outside: `Buiten de commerciële telling: intern ${summary.internalIdentities}, technisch ${summary.technicalIdentities}, test ${summary.testCertification}.`,
+    allRows: `Alle affiliate-rijen: ${summary.rawRows}. Dit aantal bevat commerciële, historische, interne en testaccounts.`,
+  };
+}
+
 export function childPopulationClass(parentClass: string | null | undefined): string {
   if (parentClass === POPULATION_EXCLUDED_TEST) return POPULATION_EXCLUDED_TEST;
   return POPULATION_COMMERCIAL;

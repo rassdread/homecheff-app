@@ -1,7 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import AffiliateProgramControl from './AffiliateProgramControl';
+import {
+  AffiliateAdvancedAdmin,
+  AffiliateManualAdmission,
+  AffiliateOverviewStrip,
+  AffiliatePersonSettings,
+  AffiliateProgramSettings,
+} from './AffiliateProgramControl';
 import Link from 'next/link';
 import {
   Users,
@@ -9,7 +15,6 @@ import {
   TrendingUp,
   RefreshCw,
   Search,
-  Filter,
   CheckCircle,
   XCircle,
   Clock,
@@ -17,7 +22,6 @@ import {
   User,
   ArrowUpRight,
   ArrowDownRight,
-  Eye,
   Ban,
   Activity,
   ChevronDown,
@@ -35,7 +39,6 @@ import {
   Save,
   X,
   Edit,
-  Gift,
 } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
 import QRCode from 'qrcode';
@@ -202,7 +205,8 @@ export default function AffiliateManagement() {
   const { t } = useTranslation();
   const [data, setData] = useState<AffiliateData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'affiliates' | 'commissions' | 'payouts' | 'income' | 'links' | 'attributions' | 'promos'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'affiliates' | 'commissions' | 'payouts' | 'income' | 'links' | 'attributions' | 'promos' | 'settings' | 'advanced'>('overview');
+  const [rightsAffiliate, setRightsAffiliate] = useState<Affiliate | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'ACTIVE' | 'SUSPENDED'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'main' | 'sub'>('all');
@@ -767,7 +771,6 @@ export default function AffiliateManagement() {
 
   return (
     <div className="space-y-6">
-      <AffiliateProgramControl />
       {hierarchyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl border space-y-4">
@@ -859,54 +862,67 @@ export default function AffiliateManagement() {
           Bekijk beta-inzichten →
         </Link>
       </div>
-      {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-sm border">
-        <div className="border-b border-gray-200">
-          <nav className="flex -mb-px overflow-x-auto scrollbar-hide">
-            {[
-              { id: 'overview', label: t('admin.overview'), icon: Eye, shortLabel: 'Overzicht' },
-              { id: 'affiliates', label: t('admin.affiliates'), icon: Users, shortLabel: 'Affiliates' },
-              { id: 'income', label: t('admin.income'), icon: DollarSign, shortLabel: 'Inkomen' },
-              { id: 'commissions', label: t('admin.commissions'), icon: Activity, shortLabel: 'Commissies' },
-              { id: 'payouts', label: t('admin.payouts'), icon: TrendingUp, shortLabel: 'Uitbetalingen' },
-              { id: 'links', label: t('admin.promotionLinks'), icon: LinkIcon, shortLabel: 'Links' },
-              { id: 'promos', label: 'Promocodes', icon: Gift, shortLabel: 'Promo' },
-              { id: 'attributions', label: 'Koppelingen', icon: UserCheck, shortLabel: 'Koppelingen' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-3 sm:py-4 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap flex-shrink-0 transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-emerald-500 text-emerald-600 bg-emerald-50 sm:bg-transparent'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <tab.icon className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.shortLabel || tab.label}</span>
-              </button>
-            ))}
-          </nav>
+      <nav aria-label="Affiliates" className="space-y-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          {[
+            { id: 'overview', label: 'Overzicht' },
+            { id: 'affiliates', label: 'Affiliates' },
+            { id: 'commissions', label: 'Commissies' },
+            { id: 'payouts', label: 'Uitbetalingen' },
+            { id: 'links', label: 'Promotielinks' },
+            { id: 'settings', label: 'Programma-instellingen' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              className={`rounded-lg border px-3 py-2 text-left text-sm leading-snug ${
+                activeTab === tab.id ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-gray-300 bg-white text-gray-800'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
-      </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {[
+            { id: 'income', label: 'Inkomen' },
+            { id: 'promos', label: 'Promocodes' },
+            { id: 'attributions', label: 'Koppelingen' },
+            { id: 'advanced', label: 'Geavanceerd' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              className={`rounded-lg border px-3 py-2 text-left text-sm leading-snug ${
+                activeTab === tab.id ? 'border-emerald-700 bg-emerald-50 text-emerald-900' : 'border-gray-200 bg-white text-gray-700'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </nav>
 
       {/* Overview Tab */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
+          <AffiliateOverviewStrip />
           {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{t('admin.totalAffiliates')}</p>
+                  <p className="text-sm font-medium text-gray-600">Alle affiliate-rijen</p>
                   <p className="text-2xl font-bold text-gray-900">{data.statistics.totalAffiliates}</p>
                 </div>
                 <div className="p-3 bg-blue-100 rounded-lg">
                   <Users className="w-6 h-6 text-blue-600" />
                 </div>
               </div>
-              <div className="mt-4 flex gap-2 text-xs">
+              <p className="mt-3 text-xs text-gray-500">Status actief of geschorst. Historische, interne en testaccounts zitten in dit aantal.</p>
+              <div className="mt-2 flex gap-2 text-xs">
                 <span className="text-green-600">{data.statistics.activeAffiliates} {t('admin.active')}</span>
                 <span className="text-gray-400">•</span>
                 <span className="text-red-600">{data.statistics.suspendedAffiliates} {t('admin.suspended')}</span>
@@ -925,7 +941,8 @@ export default function AffiliateManagement() {
                   <DollarSign className="w-6 h-6 text-emerald-600" />
                 </div>
               </div>
-              <div className="mt-4 flex gap-2 text-xs">
+              <p className="mt-3 text-xs text-gray-500">Alle geregistreerde commissieboekingen, ongeacht het soort account.</p>
+              <div className="mt-2 flex gap-2 text-xs">
                 <span className="text-yellow-600">
                   {formatCurrency(data.statistics.pendingCommissions)} pending
                 </span>
@@ -948,7 +965,8 @@ export default function AffiliateManagement() {
                   <TrendingUp className="w-6 h-6 text-purple-600" />
                 </div>
               </div>
-              <div className="mt-4 flex gap-2 text-xs">
+              <p className="mt-3 text-xs text-gray-500">Alle geregistreerde uitbetalingen, ongeacht het soort account.</p>
+              <div className="mt-2 flex gap-2 text-xs">
                 <span className="text-green-600">
                   {data.statistics.payoutCounts.sent} verzonden
                 </span>
@@ -1039,6 +1057,14 @@ export default function AffiliateManagement() {
       {/* Affiliates Tab */}
       {activeTab === 'affiliates' && (
         <div className="space-y-6">
+          <AffiliateManualAdmission />
+          {rightsAffiliate ? (
+            <AffiliatePersonSettings
+              affiliate={{ id: rightsAffiliate.id, name: rightsAffiliate.user.name || 'Affiliate', email: rightsAffiliate.user.email }}
+            />
+          ) : (
+            <p className="text-sm text-gray-600">Zoek eerst een affiliate. Open daarna de rechten van die persoon.</p>
+          )}
           {/* Filters */}
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <div className="flex flex-col sm:flex-row gap-4">
@@ -1265,6 +1291,13 @@ export default function AffiliateManagement() {
                             ) : null}
                           </div>
                           <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setRightsAffiliate(affiliate)}
+                            className="px-3 py-1.5 text-xs font-medium text-emerald-800 bg-white border border-emerald-300 rounded-lg"
+                          >
+                            Rechten
+                          </button>
                           {affiliate.status === 'ACTIVE' ? (
                             <button
                               onClick={() => updateAffiliateStatus(affiliate.id, 'SUSPENDED')}
@@ -2320,6 +2353,10 @@ export default function AffiliateManagement() {
       )}
 
       {/* Attributions Tab */}
+      {activeTab === 'settings' && <AffiliateProgramSettings />}
+
+      {activeTab === 'advanced' && <AffiliateAdvancedAdmin />}
+
       {activeTab === 'promos' && <AdminPromoCodesPanel />}
 
       {activeTab === 'attributions' && (

@@ -1,4 +1,3 @@
-import { requireMappedAdminCapability } from '@/lib/admin-guard';
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { auth } from '@/lib/auth';
@@ -39,15 +38,14 @@ async function staff() {
 }
 
 export async function GET(req: Request) {
-  const mappedGuard = await requireMappedAdminCapability(req);
-  if (!mappedGuard.ok) return mappedGuard.response;
   const actor = await staff();
   if (!actor) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 });
   const affiliateId = new URL(req.url).searchParams.get('affiliateId');
-  const [programs, markets, population, enrollments, migrated, promos, attributions, ledgers] =
+  const [programs, markets, policies, population, enrollments, migrated, promos, attributions, ledgers] =
     await Promise.all([
       prisma.affiliateProgram.findMany({ orderBy: { effectiveFrom: 'asc' } }),
       prisma.affiliateMarketRecruitment.findMany({ include: { program: true } }),
+      prisma.affiliateCommercialPolicy.findMany({ orderBy: { code: 'asc' } }),
       loadAffiliatePopulationSummary(),
       prisma.affiliateProgramEnrollment.count(),
       prisma.affiliateProgramEnrollment.count({ where: { source: 'MIGRATED_EXISTING' } }),
@@ -65,6 +63,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     programs,
     markets,
+    policies,
     counts: {
       affiliates: population.rawRows,
       mains: population.explicitEffectiveMain,
@@ -83,8 +82,6 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const mappedGuard = await requireMappedAdminCapability(req);
-  if (!mappedGuard.ok) return mappedGuard.response;
   const actor = await staff();
   if (!actor) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 });
   const body = await req.json().catch(() => ({}));

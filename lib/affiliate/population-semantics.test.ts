@@ -18,6 +18,7 @@ import {
   isConfirmedPublicSignup,
   isPartnerInvite,
   migrationMarkerProvesSignup,
+  describeAffiliateCounts,
   summarizeAffiliatePopulation,
 } from './population';
 
@@ -137,6 +138,46 @@ describe('affiliate population semantics', () => {
     const signup = readFileSync(new URL('../../app/api/affiliate/signup/route.ts', import.meta.url), 'utf8');
     assert.match(signup, /PUBLIC_SIGNUP/);
     assert.match(signup, /acceptedTerms: true/);
+  });
+
+  it('names the commercial count separately from historical, internal and test rows', () => {
+    const summary = summarizeAffiliatePopulation([
+      {
+        populationClass: POPULATION_COMMERCIAL,
+        parentAffiliateId: null,
+        enrollmentSource: SOURCE_MIGRATED_EXISTING,
+        termsAcceptedAt: null,
+        canBecomeMain: false,
+        mainSource: null,
+        canInviteSubs: false,
+      },
+      {
+        populationClass: POPULATION_REVIEW,
+        parentAffiliateId: null,
+        enrollmentSource: null,
+        termsAcceptedAt: null,
+        canBecomeMain: false,
+        mainSource: null,
+        canInviteSubs: false,
+      },
+      {
+        populationClass: POPULATION_EXCLUDED_TEST,
+        parentAffiliateId: null,
+        enrollmentSource: null,
+        termsAcceptedAt: null,
+        canBecomeMain: false,
+        mainSource: null,
+        canInviteSubs: false,
+      },
+    ]);
+    const copy = describeAffiliateCounts(summary);
+    assert.equal(summary.commercialParticipants, 1);
+    assert.equal(summary.likelyHistorical, 1);
+    assert.match(copy.commercial, /Commerciële affiliates: 1/);
+    assert.match(copy.commercial, /waarschijnlijk historisch/);
+    assert.match(copy.review, /Nog te beoordelen: 1/);
+    assert.match(copy.outside, /test 1/);
+    assert.match(copy.allRows, /Alle affiliate-rijen: 3/);
   });
 
   it('persists admin admission separately from a technical seat', () => {
