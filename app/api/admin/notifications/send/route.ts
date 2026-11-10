@@ -30,6 +30,14 @@ import {
 } from '@/lib/admin/notification-audience';
 import { loadAudienceCandidates } from '@/lib/admin/load-notification-audience';
 import {
+  decideContentDeliveries,
+  findPriorDeliveries,
+  recordBroadcastCampaign,
+  recordPriorDelivery,
+  shouldSendChannel,
+} from '@/lib/admin/load-broadcast-history';
+import { alreadySentLabel, type DeliveryChannel } from '@/lib/admin/broadcast-history';
+import {
   broadcastLedgerId,
   broadcastNotificationId,
   claimBroadcastFlight,
@@ -162,6 +170,7 @@ export async function POST(req: NextRequest) {
     const sendNotification = Boolean(record.sendNotification);
     const sendEmail = Boolean(record.sendEmail);
     const confirmEmailBlast = Boolean(record.confirmEmailBlast);
+    const confirmRepeat = record.confirmRepeat === true;
     const dryRun = Boolean(record.dryRun);
     const subject = typeof record.subject === 'string' ? record.subject.trim() : '';
     const titleRaw = typeof record.title === 'string' ? record.title.trim() : '';
@@ -213,10 +222,35 @@ export async function POST(req: NextRequest) {
     if (listOnly) {
       const listed = `${matched.length} gebruikers voldoen aan de filters. Vink aan wie het bericht krijgt.`;
       const empty = 'Geen gebruikers voor deze filters.';
+      const priors = message
+        ? await findPriorDeliveries(prisma, matched.map((user) => user.id), {
+            title: titleRaw,
+            subject,
+            message,
+            channels: ['inApp', 'push', 'email'],
+          })
+        : [];
+      const content = message
+        ? decideContentDeliveries({
+            userIds: matched.map((user) => user.id),
+            channels: ['inApp', 'push', 'email'],
+            priors,
+            confirmRepeat: false,
+          })
+        : { decisions: [], lines: [] };
       return NextResponse.json({
         listOnly: true,
         total: matched.length,
-        recipients: matched.map((user) => recipientView(user, selection)),
+        recipients: matched.map((user) => ({
+          ...recipientView(user, selection),
+          alreadySent: content.decisions
+            .filter((decision) => decision.userId === user.id && decision.action === 'skip' && decision.at)
+            .map((decision) => ({
+              channel: decision.channel,
+              at: decision.at,
+              label: alreadySentLabel(decision.channel, decision.at || ''),
+            })),
+        })),
         message: matched.length === 0 ? empty : listed,
         lines: [matched.length === 0 ? empty : listed],
       });
@@ -246,6 +280,22 @@ export async function POST(req: NextRequest) {
     });
     const safeRoute = sanitizeAdminBroadcastRoute(routeRaw);
     const pushTitle = titleRaw.length > 0 ? titleRaw.slice(0, 120) : 'HomeCheff';
+    const requestedChannels: DeliveryChannel[] = [
+      ...(sendNotification ? (['inApp', 'push'] as DeliveryChannel[]) : []),
+      ...(sendEmail ? (['email'] as DeliveryChannel[]) : []),
+    ];
+    const contentPriors = await findPriorDeliveries(prisma, chosen.map((user) => user.id), {
+      title: pushTitle,
+      subject,
+      message,
+      channels: requestedChannels,
+    });
+    const contentPlan = decideContentDeliveries({
+      userIds: chosen.map((user) => user.id),
+      channels: requestedChannels,
+      priors: contentPriors,
+      confirmRepeat,
+    });
     const previewToken = previewTokenFor({
       selection,
       message,
@@ -254,6 +304,7 @@ export async function POST(req: NextRequest) {
       route: safeRoute,
       sendNotification,
       sendEmail,
+      confirmRepeat,
       recipientIds: chosen.map((user) => user.id),
     });
     const summary = describeSelection(selection);
@@ -269,6 +320,7 @@ export async function POST(req: NextRequest) {
           ? 'Geen aangevinkte ontvangers. Verzenden blijft geblokkeerd.'
           : `Definitieve selectie: ${chosen.length} aangevinkt van ${matched.length} gevonden. In-app ${channels.inApp}, push-bereikbaar ${channels.push}, e-mailadres ${channels.email}. Alleen aangevinkte gebruikers krijgen het bericht.`,
         ...summary,
+        ...contentPlan.lines,
       ];
       if (!blastGate.ok) lines.push(blastGate.error);
       return NextResponse.json({
@@ -279,7 +331,17 @@ export async function POST(req: NextRequest) {
         total: chosen.length,
         found: matched.length,
         channels,
-        recipients: chosen.map((user) => recipientView(user, selection)),
+        duplicateLines: contentPlan.lines,
+        recipients: chosen.map((user) => ({
+          ...recipientView(user, selection),
+          alreadySent: contentPlan.decisions
+            .filter((decision) => decision.userId === user.id && (decision.action === 'skip' || decision.action === 'repeat') && decision.at)
+            .map((decision) => ({
+              channel: decision.channel,
+              at: decision.at,
+              label: alreadySentLabel(decision.channel, decision.at || ''),
+            })),
+        })),
         requiresConfirm: blastGate.ok ? blastGate.requiresConfirm : blastGate.code === 'CONFIRM_REQUIRED',
         emailRecipientCount: withEmail.length,
         gate: blastGate.ok ? 'ok' : blastGate.code,
@@ -323,6 +385,17 @@ export async function POST(req: NextRequest) {
     }
 
     try {
+      const sentAt = new Date().toISOString();
+      await recordBroadcastCampaign(prisma, {
+        campaignId,
+        source: 'notifications',
+        subject,
+        title: pushTitle,
+        message,
+        audience: selection.audience,
+        channels: { inApp: sendNotification, push: sendNotification, email: sendEmail },
+        at: sentAt,
+      });
       const ledgers = await readLedgers(campaignId, chosen.map((user) => user.id));
       const payload = {
         title: pushTitle,
@@ -338,7 +411,9 @@ export async function POST(req: NextRequest) {
       let notificationsCreated = 0;
       let notificationsSkipped = 0;
       if (sendNotification) {
-        const pending = chosen.filter((user) => planInApp(ledgers.get(user.id) ?? null) === 'send');
+        const pending = chosen.filter(
+          (user) => planInApp(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(contentPlan.decisions, user.id, 'inApp'),
+        );
         notificationsSkipped = chosen.length - pending.length;
         if (pending.length > 0) {
           const created = await prisma.notification.createMany({
@@ -356,6 +431,16 @@ export async function POST(req: NextRequest) {
             const next = ledgerAfterInApp(ledgers.get(user.id) ?? null);
             ledgers.set(user.id, next);
             await saveLedger(campaignId, user.id, next);
+            await recordPriorDelivery(prisma, {
+              userId: user.id,
+              channel: 'inApp',
+              status: 'created',
+              at: sentAt,
+              campaignId,
+              title: pushTitle,
+              subject,
+              message,
+            });
           }
         }
       }
@@ -365,7 +450,9 @@ export async function POST(req: NextRequest) {
       let pushSkipped = 0;
       let pushNoToken = 0;
       if (sendNotification) {
-        const pending = chosen.filter((user) => planPush(ledgers.get(user.id) ?? null) === 'send');
+        const pending = chosen.filter(
+          (user) => planPush(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(contentPlan.decisions, user.id, 'push'),
+        );
         pushSkipped = chosen.length - pending.length;
         if (pending.length > 0) {
           const push = await sendAdminBroadcastFcmByUser({
@@ -383,6 +470,18 @@ export async function POST(req: NextRequest) {
             const next = ledgerAfterPush(ledgers.get(result.userId) ?? null, status);
             ledgers.set(result.userId, next);
             await saveLedger(campaignId, result.userId, next);
+            if (status === 'offered' || status === 'failed') {
+              await recordPriorDelivery(prisma, {
+                userId: result.userId,
+                channel: 'push',
+                status: status === 'offered' ? 'accepted' : 'failed',
+                at: sentAt,
+                campaignId,
+                title: pushTitle,
+                subject,
+                message,
+              });
+            }
           }
         }
       }
@@ -393,7 +492,9 @@ export async function POST(req: NextRequest) {
       let emailsUnconfirmed = 0;
       let emailsSkipped = 0;
       if (sendEmail) {
-        const pending = withEmail.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'send');
+        const pending = withEmail.filter(
+          (user) => planEmail(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(contentPlan.decisions, user.id, 'email'),
+        );
         emailsSkipped = withEmail.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'skip_done').length;
         emailsUnconfirmed = withEmail.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'skip_unconfirmed').length;
         for (let i = 0; i < pending.length; i += EMAIL_BATCH_SIZE) {
@@ -425,6 +526,16 @@ export async function POST(req: NextRequest) {
               const next = ledgerAfterEmail(ledgers.get(user.id) ?? null, status);
               ledgers.set(user.id, next);
               await saveLedger(campaignId, user.id, next);
+              await recordPriorDelivery(prisma, {
+                userId: user.id,
+                channel: 'email',
+                status: status === 'accepted' ? 'accepted' : status === 'unconfirmed' ? 'unconfirmed' : 'failed',
+                at: sentAt,
+                campaignId,
+                title: pushTitle,
+                subject,
+                message,
+              });
             }),
           );
           if (i + EMAIL_BATCH_SIZE < pending.length) {
@@ -471,7 +582,7 @@ export async function POST(req: NextRequest) {
           success: report.success,
           outcome: report.outcome,
           message: report.message,
-          lines: report.lines,
+          lines: [...report.lines, ...contentPlan.lines],
           notificationsCreated,
           notificationsSkipped,
           pushOffered,

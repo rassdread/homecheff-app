@@ -605,6 +605,7 @@ export function previewCanonicalPayload(input: {
   route: string;
   sendNotification: boolean;
   sendEmail: boolean;
+  confirmRepeat: boolean;
   recipientIds: string[];
 }): string {
   return JSON.stringify({
@@ -615,6 +616,7 @@ export function previewCanonicalPayload(input: {
     route: input.route,
     sendNotification: input.sendNotification,
     sendEmail: input.sendEmail,
+    confirmRepeat: input.confirmRepeat,
     recipientIds: [...input.recipientIds].sort(),
   });
 }

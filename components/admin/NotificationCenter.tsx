@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Send, Users, Mail, Bell, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { AdminEmailPreview } from './AdminEmailPreview';
+import { NotificationHistory } from './NotificationHistory';
 import {
   AUDIENCE_PRESETS,
   DELIVERY_AGREEMENT_VERSION,
@@ -32,6 +33,7 @@ type PreviewRecipient = {
   agreementLabel: string;
   reasons?: string[];
   registeredAt: string | null;
+  alreadySent?: Array<{ channel: string; at: string; label: string }>;
 };
 
 type PreviewPayload = {
@@ -69,6 +71,14 @@ function readRecipients(value: unknown): PreviewRecipient[] {
       agreementLabel: typeof row.agreementLabel === 'string' ? row.agreementLabel : '',
       reasons: Array.isArray(row.reasons) ? row.reasons.filter((reason): reason is string => typeof reason === 'string') : [],
       registeredAt: typeof row.registeredAt === 'string' ? row.registeredAt : null,
+      alreadySent: Array.isArray(row.alreadySent)
+        ? row.alreadySent.flatMap((item) => {
+            if (!item || typeof item !== 'object') return [];
+            const prior = item as Record<string, unknown>;
+            if (typeof prior.label !== 'string' || typeof prior.at !== 'string') return [];
+            return [{ channel: typeof prior.channel === 'string' ? prior.channel : '', at: prior.at, label: prior.label }];
+          })
+        : [],
     }];
   });
 }
@@ -114,6 +124,8 @@ export default function NotificationCenter() {
   const [sendNotification, setSendNotification] = useState(true);
   const [sendEmail, setSendEmail] = useState(false);
   const [confirmEmailBlast, setConfirmEmailBlast] = useState(false);
+  const [confirmRepeat, setConfirmRepeat] = useState(false);
+  const [screen, setScreen] = useState<'compose' | 'history'>('compose');
   const [preview, setPreview] = useState<PreviewPayload | null>(null);
   const [notice, setNotice] = useState<ScreenNotice | null>(null);
   const [recipientQuery, setRecipientQuery] = useState('');
@@ -148,6 +160,7 @@ export default function NotificationCenter() {
       return;
     }
     const controller = new AbortController();
+    const handle = setTimeout(() => {
     const body = {
       listOnly: true,
       selection: {
@@ -163,6 +176,9 @@ export default function NotificationCenter() {
         pendingStep: pendingStep || null,
         excludeUserIds: [],
       },
+      message: message.trim(),
+      subject: subject.trim(),
+      title: pushTitle.trim(),
     };
     setDirectory([]);
     setListLoading(true);
@@ -201,7 +217,11 @@ export default function NotificationCenter() {
       .finally(() => {
         if (!controller.signal.aborted) setListLoading(false);
       });
-    return () => controller.abort();
+    }, 400);
+    return () => {
+      clearTimeout(handle);
+      controller.abort();
+    };
   }, [
     audience,
     matchMode,
@@ -213,11 +233,15 @@ export default function NotificationCenter() {
     pendingStep,
     listVersion,
     listable,
+    message,
+    subject,
+    pushTitle,
   ]);
 
   const invalidatePreview = () => {
     setPreview(null);
     setConfirmEmailBlast(false);
+    setConfirmRepeat(false);
   };
 
   const campaignKey = () => {
@@ -243,6 +267,7 @@ export default function NotificationCenter() {
       sendNotification,
       sendEmail,
       confirmEmailBlast: sendEmail ? confirmEmailBlast : false,
+      confirmRepeat,
       dryRun,
       previewToken: dryRun ? undefined : preview?.previewToken,
       idempotencyKey: campaignKey(),
@@ -338,6 +363,7 @@ export default function NotificationCenter() {
         setSubject('');
         setPreview(null);
         setConfirmEmailBlast(false);
+        setConfirmRepeat(false);
         contentKeyRef.current = null;
       }
       if (data?.code === 'PREVIEW_STALE') {
@@ -400,8 +426,27 @@ export default function NotificationCenter() {
       <div>
         <h2 className="text-xl font-semibold text-gray-900">{t('admin.notificationCenter.title')}</h2>
         <p className="text-gray-600">{t('admin.notificationCenter.subtitle')}</p>
+        <div className="mt-3 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setScreen('compose')}
+            className={`rounded-lg px-3 py-2 text-sm ${screen === 'compose' ? 'bg-emerald-700 text-white' : 'border border-gray-300 text-gray-700'}`}
+          >
+            Nieuw bericht
+          </button>
+          <button
+            type="button"
+            onClick={() => setScreen('history')}
+            className={`rounded-lg px-3 py-2 text-sm ${screen === 'history' ? 'bg-emerald-700 text-white' : 'border border-gray-300 text-gray-700'}`}
+          >
+            Verzendgeschiedenis
+          </button>
+        </div>
       </div>
 
+      {screen === 'history' ? <NotificationHistory /> : null}
+      {screen === 'compose' ? (
+      <>
       {notice && (
         <div
           role={notice.tone === 'error' ? 'alert' : 'status'}
@@ -705,6 +750,11 @@ export default function NotificationCenter() {
                         <p className="text-sm text-gray-800">{recipient.roles.join(' · ') || 'Geen rol'}</p>
                         <p className="text-sm text-gray-600">{recipient.email || 'Geen e-mailadres'}</p>
                         <p className="text-sm text-emerald-900">{(recipient.reasons || []).join(' · ')}</p>
+                        {(recipient.alreadySent || []).map((prior) => (
+                          <p key={`${prior.channel}-${prior.at}`} className="text-sm text-amber-900">
+                            Dit bericht al verstuurd. {prior.label}
+                          </p>
+                        ))}
                       </div>
                     </li>
                   ))}
@@ -867,6 +917,22 @@ export default function NotificationCenter() {
             <div className="mt-1 text-sm text-gray-500">{message.length}/500 {t('common.characters')}</div>
           </div>
 
+          <label className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+            <input
+              type="checkbox"
+              checked={confirmRepeat}
+              onChange={(event) => {
+                setConfirmRepeat(event.target.checked);
+                setPreview(null);
+              }}
+              className="mt-1 rounded border-gray-300 text-emerald-600"
+            />
+            <span>
+              Herhaling bevestigen. Ontvangers die dit bericht al via hetzelfde kanaal kregen, krijgen het opnieuw.
+              Het voorbeeld toont hoeveel ontvangers dat zijn. Zonder dit vinkje worden die duplicaten overgeslagen.
+            </span>
+          </label>
+
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
@@ -923,6 +989,9 @@ export default function NotificationCenter() {
                 <p className="text-gray-800">{recipient.roles.join(' · ') || 'Geen rol'}</p>
                 <p className="text-gray-600">{recipient.email || 'Geen e-mailadres'}</p>
                 <p className="text-emerald-900">{(recipient.reasons || []).join(' · ')}</p>
+                {(recipient.alreadySent || []).map((prior) => (
+                  <p key={`${prior.channel}-${prior.at}`} className="text-amber-900">Dit bericht al verstuurd. {prior.label}</p>
+                ))}
               </li>
             ))}
           </ul>
@@ -963,6 +1032,8 @@ export default function NotificationCenter() {
           </div>
         </div>
       </div>
+      </>
+      ) : null}
     </div>
   );
 }

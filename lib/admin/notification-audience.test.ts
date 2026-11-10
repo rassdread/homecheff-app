@@ -230,6 +230,7 @@ describe('targeted audiences', () => {
       route: '/notifications',
       sendNotification: true,
       sendEmail: false,
+      confirmRepeat: false,
       recipientIds: ['seller-none'],
     };
     const first = previewCanonicalPayload(base);
@@ -396,6 +397,8 @@ describe('notification send keeps unchecked filter matches out of the message', 
     const loader = readFileSync(resolve(process.cwd(), 'lib/admin/load-notification-audience.ts'), 'utf8');
     assert.match(loader, /loadStripeLinkReviewIds/);
     assert.match(loader, /stripeLinkReview:/);
+    assert.match(route, /shouldSendChannel\(contentPlan\.decisions/);
+    assert.match(route, /confirmRepeat/);
     assert.match(route, /checkedRecipients\(matched/);
     assert.match(route, /const chosen = checked\.recipients/);
     assert.match(route, /readLedgers\(campaignId, chosen\.map/);
