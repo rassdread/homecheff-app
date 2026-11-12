@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import DeliverySettings from '@/components/delivery/DeliverySettings';
 import { DELIVERY_START_HREF } from '@/lib/delivery/delivery-profile-completion';
 import { getDeliveryProfileCompletionFromRow } from '@/lib/delivery/delivery-profile-completion';
+import { gramsToKilograms, interpretStoredCapacity } from '@/lib/delivery/transport-job';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -46,8 +47,18 @@ export default async function DeliverySettingsPage() {
     deliveryProfile.user,
   );
 
+  const storedCapacity = interpretStoredCapacity({
+    maxLengthCm: deliveryProfile.maxLengthCm,
+    maxWidthCm: deliveryProfile.maxWidthCm,
+    maxHeightCm: deliveryProfile.maxHeightCm,
+    maxWeightGrams: deliveryProfile.maxWeightGrams,
+    status: deliveryProfile.vehicleCapacityStatus,
+  });
   const deliveryProfileWithDefaults = {
     ...deliveryProfile,
+    ...storedCapacity,
+    maxWeightKg: storedCapacity.maxWeightGrams == null ? null : gramsToKilograms(storedCapacity.maxWeightGrams),
+    vehicleCapacityLegacy: storedCapacity.legacy,
     preferredRadius:
       deliveryProfile.preferredRadius || deliveryProfile.maxDistance || 5,
     homeLat: deliveryProfile.homeLat ?? deliveryProfile.user.lat ?? null,

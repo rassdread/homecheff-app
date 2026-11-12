@@ -68,7 +68,7 @@ export type VehicleCapacity = {
   maxHeightCm: number | null;
   /** Stored unit. A form kilogram is converted before it reaches this field. */
   maxWeightGrams: number | null;
-  status?: Partial<Record<CapacityAxis, CapacityMark>> | null;
+  status?: Partial<Record<CapacityAxis, InterpretedCapacityMark>> | null;
 };
 
 export type InterpretedCapacityMark = CapacityMark | 'legacy';
@@ -226,6 +226,19 @@ function readMeasurement(value: unknown): number | 'empty' | 'invalid' {
 export function transportProposalsEnabled(env: string | undefined = process.env.STANDALONE_TRANSPORT_PROPOSALS): boolean {
   if (env == null || env.trim() === '') return false;
   return ['1', 'true', 'on', 'yes'].includes(env.trim().toLowerCase());
+}
+
+/**
+ * The flag blocks a new transport checkout. A checkout that already has a
+ * Stripe session stays reachable. A received payment is not decided here.
+ */
+export function transportCheckoutFlagDecision(input: {
+  enabled: boolean;
+  existingSession: boolean;
+}): 'allow' | 'continue_existing' | 'block_new' {
+  if (input.enabled) return 'allow';
+  if (input.existingSession) return 'continue_existing';
+  return 'block_new';
 }
 
 export function isTransportVehicle(value: string): value is TransportVehicle {

@@ -23,6 +23,7 @@ import { normalizeCountryCode } from "@/lib/gamification/country-code";
 import { auth } from "@/lib/auth";
 import { isProviderVisibleToBuyer } from "@/lib/delivery/delivery-cert-scope";
 import { expireExpiredTemporaryOnline } from "@/lib/delivery/delivery-online-session";
+import { interpretStoredCapacity } from "@/lib/delivery/transport-job";
 import { resolveDeliveryTimeAvailability } from "@/lib/delivery/delivery-time-availability";
 import {
   isCaribbeanCountry,
@@ -34,7 +35,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    const buyerUserId = session?.user?.id ?? null;
+    const buyerUserId = (session?.user as { id?: string } | undefined)?.id ?? null;
     if (publicDeliveryIsClosed()) {
       return NextResponse.json(deliveryDisabledBody(), { status: 403 });
     }
@@ -151,6 +152,11 @@ export async function GET(req: NextRequest) {
         estimatedPickupDelayMinutes: true,
         preparationTimeMinutes: true,
         maxSimultaneousDeliveries: true,
+        maxWeightGrams: true,
+        maxLengthCm: true,
+        maxWidthCm: true,
+        maxHeightCm: true,
+        vehicleCapacityStatus: true,
         availableDays: true,
         user: {
           select: {
@@ -446,6 +452,13 @@ export async function GET(req: NextRequest) {
           routeDistance,
           calculatedDeliveryPrice,
           acceptanceMode: delivery.acceptanceMode || 'MANUAL_CONFIRM',
+          vehicleCapacity: interpretStoredCapacity({
+            maxLengthCm: delivery.maxLengthCm,
+            maxWidthCm: delivery.maxWidthCm,
+            maxHeightCm: delivery.maxHeightCm,
+            maxWeightGrams: delivery.maxWeightGrams,
+            status: delivery.vehicleCapacityStatus,
+          }),
           providerType: delivery.providerType || 'INDEPENDENT',
           companyDisplayName: (delivery as any).companyDisplayName || null,
           companyLogoUrl: (delivery as any).companyLogoUrl || null,

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import DeliveryNotificationListener from './DeliveryNotificationListener';
+import { TransportProposalInbox } from './TransportProposalInbox';
 import CommunityDeliveryPanel from './CommunityDeliveryPanel';
 import DeliveryAgreementModal from './DeliveryAgreementModal';
 import GoOnlineDurationSheet, { type GoOnlineNotice } from './GoOnlineDurationSheet';
@@ -118,6 +119,12 @@ export default function DeliveryDashboard() {
   const [onlineError, setOnlineError] = useState<string | null>(null);
   const [onlineNotice, setOnlineNotice] = useState<GoOnlineNotice>(null);
   const [currentOrder, setCurrentOrder] = useState<DeliveryOrder | null>(null);
+  const [courierMoney, setCourierMoney] = useState<{
+    reservedCents: number;
+    earnedCents: number;
+    transferredCents: number;
+    reviewCents: number;
+  } | null>(null);
   const [stats, setStats] = useState<DeliveryStats>({
     todayEarnings: 0,
     weekEarnings: 0,
@@ -377,6 +384,7 @@ export default function DeliveryDashboard() {
         }
         lastDeliveryPayloadRef.current = signature;
         setStats(data.stats);
+        setCourierMoney(data.courierMoney || null);
         setRecentOrders(data.recentOrders || []);
         setCurrentOrder(data.currentOrder);
         setAvailableOrders(data.availableOrders || []);
@@ -772,6 +780,7 @@ export default function DeliveryDashboard() {
       contentClassName="py-0"
     >
       <DeliveryNotificationListener />
+      <TransportProposalInbox />
       <GoOnlineDurationSheet
         open={onlineSheetOpen}
         mode={onlineSheetMode}
@@ -903,6 +912,12 @@ export default function DeliveryDashboard() {
                   <p className="text-xs sm:text-sm font-medium text-emerald-700">{t('delivery.totalEarned')}</p>
                   <p className="text-lg sm:text-2xl font-bold text-emerald-900 truncate">{formatCurrency(stats.totalEarnings)}</p>
                   <p className="text-xs text-emerald-600 mt-1">{t('delivery.totalEarnedDesc') || 'Totaal verdiend met bezorgen'}</p>
+                  {courierMoney ? (
+                    <p className="mt-2 text-xs text-emerald-800">
+                      Gereserveerd {formatCurrencyFromCents(courierMoney.reservedCents)} · verdiend {formatCurrencyFromCents(courierMoney.earnedCents)} · overgemaakt {formatCurrencyFromCents(courierMoney.transferredCents)}
+                      {courierMoney.reviewCents > 0 ? ` · ter beoordeling ${formatCurrencyFromCents(courierMoney.reviewCents)}` : ''}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="p-2 sm:p-3 bg-emerald-500 rounded-lg flex-shrink-0 ml-2">
                   <DollarSign className="w-4 h-4 sm:w-6 sm:h-6 text-white" />

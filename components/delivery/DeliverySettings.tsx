@@ -60,6 +60,13 @@ interface DeliveryProfile {
   maxDeliveriesPerSlot?: number;
   preparationTimeMinutes?: number;
   estimatedPickupDelayMinutes?: number;
+  maxLengthCm?: number | null;
+  maxWidthCm?: number | null;
+  maxHeightCm?: number | null;
+  maxWeightGrams?: number | null;
+  maxWeightKg?: number | null;
+  vehicleCapacityStatus?: Partial<Record<'length' | 'width' | 'height' | 'weight', string>>;
+  vehicleCapacityLegacy?: boolean;
   user: {
     id: string;
     name: string | null;
@@ -74,6 +81,11 @@ interface DeliveryProfile {
     missing?: string[];
     message?: string | null;
   };
+}
+
+function capacityMark(value: string | undefined): '' | 'unset' | 'unknown' | 'not_applicable' | 'set' {
+  if (value === 'unset' || value === 'unknown' || value === 'not_applicable' || value === 'set') return value;
+  return '';
 }
 
 function centsToEuroInput(cents: number | null | undefined): string {
@@ -135,6 +147,18 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     maxDeliveriesPerSlot: deliveryProfile.maxDeliveriesPerSlot ?? 2,
     preparationTimeMinutes: deliveryProfile.preparationTimeMinutes ?? 15,
     estimatedPickupDelayMinutes: deliveryProfile.estimatedPickupDelayMinutes ?? 10,
+    maxLengthCm: deliveryProfile.maxLengthCm ?? '',
+    maxWidthCm: deliveryProfile.maxWidthCm ?? '',
+    maxHeightCm: deliveryProfile.maxHeightCm ?? '',
+    maxWeightKg: deliveryProfile.maxWeightKg ?? '',
+    storedWeightGrams: deliveryProfile.maxWeightGrams ?? null,
+    vehicleCapacityStatus: {
+      length: capacityMark(deliveryProfile.vehicleCapacityStatus?.length),
+      width: capacityMark(deliveryProfile.vehicleCapacityStatus?.width),
+      height: capacityMark(deliveryProfile.vehicleCapacityStatus?.height),
+      weight: capacityMark(deliveryProfile.vehicleCapacityStatus?.weight),
+    },
+    capacityDirty: false,
     homeLat: deliveryProfile.homeLat ?? deliveryProfile.user?.lat ?? null as number | null,
     homeLng: deliveryProfile.homeLng ?? deliveryProfile.user?.lng ?? null as number | null,
     homeAddress: deliveryProfile.homeAddress || deliveryProfile.user?.place || '',
@@ -231,6 +255,18 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
         (profile.homeAddress as string) ||
         (user?.place as string) ||
         prev.homeAddress,
+      maxLengthCm: (profile.maxLengthCm as number | null) ?? '',
+      maxWidthCm: (profile.maxWidthCm as number | null) ?? '',
+      maxHeightCm: (profile.maxHeightCm as number | null) ?? '',
+      maxWeightKg: (profile.maxWeightKg as number | null) ?? '',
+      storedWeightGrams: (profile.maxWeightGrams as number | null) ?? null,
+      vehicleCapacityStatus: {
+        length: capacityMark((profile.vehicleCapacityStatus as { length?: string } | undefined)?.length),
+        width: capacityMark((profile.vehicleCapacityStatus as { width?: string } | undefined)?.width),
+        height: capacityMark((profile.vehicleCapacityStatus as { height?: string } | undefined)?.height),
+        weight: capacityMark((profile.vehicleCapacityStatus as { weight?: string } | undefined)?.weight),
+      },
+      capacityDirty: false,
     }));
   };
 
@@ -380,6 +416,15 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
         homeLat: formData.homeLat,
         homeLng: formData.homeLng,
         homeAddress: formData.homeAddress || null,
+        ...(formData.capacityDirty
+          ? {
+              vehicleCapacityStatus: formData.vehicleCapacityStatus,
+              maxLengthCm: formData.vehicleCapacityStatus.length === 'set' ? Number(formData.maxLengthCm) : null,
+              maxWidthCm: formData.vehicleCapacityStatus.width === 'set' ? Number(formData.maxWidthCm) : null,
+              maxHeightCm: formData.vehicleCapacityStatus.height === 'set' ? Number(formData.maxHeightCm) : null,
+              maxWeightKg: formData.vehicleCapacityStatus.weight === 'set' ? Number(formData.maxWeightKg) : null,
+            }
+          : {}),
       };
 
       const response = await fetch('/api/delivery/settings', {
@@ -586,9 +631,56 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                   <div className="flex flex-col items-center gap-2">
                     {option.icon}
                     <span className="text-sm font-medium">{option.label}</span>
+                    <span className="text-xs text-gray-600">Max {option.maxRange}km</span>
                   </div>
                 </button>
               ))}
+            </div>
+            <div className="mt-6 space-y-3">
+              <h3 className="text-sm font-semibold text-gray-900">Laadruimte</h3>
+              <p className="text-xs text-gray-600">
+                Kilogrammen worden als grammen opgeslagen. Een lege maat is niet nul en niet onbeperkt. Een eerder opgeslagen waarde blijft staan tot je een status kiest.
+              </p>
+              {([
+                ['length', 'Maximale lengte (cm)', 'maxLengthCm'],
+                ['width', 'Maximale breedte (cm)', 'maxWidthCm'],
+                ['height', 'Maximale hoogte (cm)', 'maxHeightCm'],
+                ['weight', 'Maximaal gewicht (kg)', 'maxWeightKg'],
+              ] as const).map(([axis, label, field]) => (
+                <div key={axis} className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <label className="text-sm text-gray-700">
+                    {label}
+                    <input
+                      className="mt-1 min-h-11 w-full rounded-lg border px-3 py-2"
+                      inputMode="numeric"
+                      value={formData[field]}
+                      disabled={formData.vehicleCapacityStatus[axis] !== 'set'}
+                      onChange={(event) => setFormData((prev) => ({ ...prev, [field]: event.target.value, capacityDirty: true }))}
+                    />
+                  </label>
+                  <label className="text-sm text-gray-700">
+                    Status
+                    <select
+                      className="mt-1 min-h-11 w-full rounded-lg border px-3 py-2"
+                      value={formData.vehicleCapacityStatus[axis]}
+                      onChange={(event) => setFormData((prev) => ({
+                        ...prev,
+                        capacityDirty: true,
+                        vehicleCapacityStatus: { ...prev.vehicleCapacityStatus, [axis]: event.target.value },
+                      }))}
+                    >
+                      <option value="">Eerder opgeslagen of nog niet gekozen</option>
+                      <option value="unset">Niet ingevuld</option>
+                      <option value="unknown">Onbekend</option>
+                      <option value="not_applicable">Niet van toepassing</option>
+                      <option value="set">Gemeten</option>
+                    </select>
+                  </label>
+                </div>
+              ))}
+              {formData.storedWeightGrams && formData.maxWeightKg === '' ? (
+                <p className="text-xs text-gray-600">Opgeslagen gewicht: {formData.storedWeightGrams} gram. Dit blijft bewaard tot je hele kilogrammen bevestigt.</p>
+              ) : null}
             </div>
           </div>
 

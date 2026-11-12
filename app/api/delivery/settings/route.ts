@@ -19,6 +19,7 @@ import {
 import { planDistanceSettingsWrite } from '@/lib/delivery/distance-semantics';
 import { enforcePaidDeliveryIdentity } from '@/lib/delivery/courier-identity-sync';
 import { courierIdentityMessage } from '@/lib/delivery/courier-identity';
+import { normalizeVehicleCapacity } from '@/lib/delivery/transport-job';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,6 +70,11 @@ const PROFILE_SELECT = {
   stripeIdentityState: true,
   stripeIdentityReason: true,
   stripeIdentityCheckedAt: true,
+  maxWeightGrams: true,
+  maxLengthCm: true,
+  maxWidthCm: true,
+  maxHeightCm: true,
+  vehicleCapacityStatus: true,
 } as const;
 
 const USER_LOCATION_SELECT = {
@@ -260,6 +266,24 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: built.error, code: 'DELIVERY_SETTINGS_INVALID' }, { status: 400 });
     }
 
+    const capacityTouched = ['vehicleCapacityStatus', 'maxLengthCm', 'maxWidthCm', 'maxHeightCm', 'maxWeightKg'].some(
+      (key) => body[key] !== undefined,
+    );
+    const capacity = capacityTouched
+      ? normalizeVehicleCapacity({
+          maxLengthCm: body.maxLengthCm,
+          maxWidthCm: body.maxWidthCm,
+          maxHeightCm: body.maxHeightCm,
+          maxWeightKg: body.maxWeightKg,
+          status: body.vehicleCapacityStatus,
+        })
+      : null;
+    if (capacity && !capacity.ok) {
+      return NextResponse.json(
+        { error: 'Controleer de voertuigcapaciteit. Een getal hoort bij de status gemeten, en kilogrammen worden als hele kilogrammen opgeslagen.', code: capacity.code },
+        { status: 400 },
+      );
+    }
     const patch = built.data;
     const distancePlan = planDistanceSettingsWrite({
       existingVersion: existing.distanceSemanticsVersion ?? null,
@@ -399,6 +423,15 @@ export async function PUT(req: NextRequest) {
           homeLat: patch.homeLat,
           homeLng: patch.homeLng,
           homeAddress: patch.homeAddress,
+          ...(capacity && capacity.ok
+            ? {
+                maxLengthCm: capacity.maxLengthCm,
+                maxWidthCm: capacity.maxWidthCm,
+                maxHeightCm: capacity.maxHeightCm,
+                maxWeightGrams: capacity.maxWeightGrams,
+                vehicleCapacityStatus: capacity.status,
+              }
+            : {}),
           ...deliveryProfileAutoVerifyPatch(existing, completionPreview.isComplete),
           updatedAt: new Date(),
         },

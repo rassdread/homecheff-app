@@ -15,6 +15,7 @@ import {
   standaloneWebhookDecision,
   transportPaymentReviewReason,
   transportReceivedPaymentDisposition,
+  transportCheckoutFlagDecision,
   transportProposalsEnabled,
   validateCargoPhoto,
   gramsToKilograms,
@@ -377,4 +378,9 @@ test('missing stripe link is not treated as ready and marketplace checkout is un
   assert.equal(transportProposalsEnabled('0'), false);
   assert.equal(transportProposalsEnabled(undefined), false);
   assert.equal(transportProposalsEnabled('1'), true);
+  assert.equal(transportCheckoutFlagDecision({ enabled: false, existingSession: false }), 'block_new');
+  assert.equal(transportCheckoutFlagDecision({ enabled: false, existingSession: true }), 'continue_existing');
+  assert.equal(transportCheckoutFlagDecision({ enabled: true, existingSession: false }), 'allow');
+  assert.equal(fulfill.includes("rememberUnfulfilledPayment(db, session, 'TRANSPORT_DISABLED'"), false);
+  assert.match(fulfill, /proposalVersion/);
 });

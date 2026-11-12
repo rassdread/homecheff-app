@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import DelivererSelector, { type Deliverer } from '@/components/checkout/DelivererSelector';
+import { TransportProposalInbox } from '@/components/delivery/TransportProposalInbox';
 import { useTranslation } from '@/hooks/useTranslation';
 
 const DELIVERY_DRAFT_KEY = 'hc-standalone-delivery-draft';
@@ -35,7 +36,15 @@ function eur(cents: number) {
   return (cents / 100).toLocaleString('nl-NL', { style: 'currency', currency: 'EUR' });
 }
 
-export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boolean }) {
+export function StandaloneDeliveryRequest({
+  embedded = false,
+  transportEnabled = false,
+  initialRequestId = '',
+}: {
+  embedded?: boolean;
+  transportEnabled?: boolean;
+  initialRequestId?: string;
+}) {
   const { t } = useTranslation();
   const search = useSearchParams();
   const [deliveryOpen, setDeliveryOpen] = useState<boolean | null>(null);
@@ -54,6 +63,14 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [resumeTick, setResumeTick] = useState(0);
+  const [jobKind, setJobKind] = useState<'SIMPLE' | 'TRANSPORT'>('SIMPLE');
+  const [cargoWeightKg, setCargoWeightKg] = useState('');
+  const [cargoLength, setCargoLength] = useState('');
+  const [cargoWidth, setCargoWidth] = useState('');
+  const [cargoHeight, setCargoHeight] = useState('');
+  const [proposalEuro, setProposalEuro] = useState('');
+  const [photoIds, setPhotoIds] = useState<string[]>([]);
+  const [history, setHistory] = useState<Array<{ id: string; jobKind: string; status: string; paymentStatus: string; itemDescription: string }>>([]);
 
   useEffect(() => {
     let stop = false;
@@ -89,7 +106,20 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
     }
   }, []);
 
-  const requestId = search.get('request');
+  useEffect(() => {
+    let stop = false;
+    fetch('/api/delivery/standalone')
+      .then((response) => response.json())
+      .then((data) => {
+        if (!stop && Array.isArray(data?.requests)) setHistory(data.requests);
+      })
+      .catch(() => undefined);
+    return () => {
+      stop = true;
+    };
+  }, [booked?.id, statusText]);
+
+  const requestId = search.get('request') || initialRequestId || null;
   const cancelled = search.get('geannuleerd') === '1';
   const paid = search.get('betaald') === '1';
   const [activeRequestId, setActiveRequestId] = useState<string | null>(requestId);
@@ -242,6 +272,55 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
     }
   }
 
+  async function sendProposal(deliverer: Deliverer) {
+    setBusy(true);
+    setError('');
+    const weight = Number(cargoWeightKg.replace(',', '.'));
+    const priceCents = Math.round(Number(proposalEuro.replace(',', '.')) * 100);
+    try {
+      const response = await fetch('/api/delivery/standalone/proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...routeBody(),
+          deliveryProfileId: deliverer.id,
+          priceCents: Number.isFinite(priceCents) ? priceCents : null,
+          negotiable: true,
+          cargo: {
+            itemCount: 1,
+            items: [{
+              lengthCm: Number(cargoLength) || 0,
+              widthCm: Number(cargoWidth) || 0,
+              heightCm: Number(cargoHeight) || 0,
+              weightKg: Number.isFinite(weight) ? weight : 0,
+            }],
+            totalWeightKg: Number.isFinite(weight) ? weight : 0,
+            floors: 0,
+            lift: false,
+            helpNeeded: false,
+            fragile: false,
+            note: '',
+            preferredVehicle: null,
+            photoIds,
+          },
+        }),
+      });
+      const data = await response.json().catch(() => null);
+      if (response.status === 401) {
+        saveDraft(false);
+        return;
+      }
+      if (!response.ok) {
+        setError(data?.error || 'Voorstel lukte niet');
+        return;
+      }
+      setActiveRequestId(data.request.id);
+      setStatusText('Voorstel verstuurd. Er is nog niets betaald.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function pay() {
     if (!booked?.paymentAvailable) return;
     setBusy(true);
@@ -315,6 +394,44 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
         <input className="mt-1 w-full rounded-lg border px-3 py-2" type="datetime-local" value={requestedPickupAt} onChange={(event) => setRequestedPickupAt(event.target.value)} />
         <span className="mt-1 block text-xs text-gray-500">Laat leeg voor zo snel mogelijk. Een later moment gebruikt de beschikbaarheid van de bezorger, ook als die nu offline is.</span>
       </label>
+      {transportEnabled ? (
+        <div className="mt-4 rounded-xl border p-3">
+          <p className="text-sm font-medium text-gray-800">Soort opdracht</p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <button type="button" className={`min-h-11 rounded-lg border px-3 py-2 ${jobKind === 'SIMPLE' ? 'bg-emerald-700 text-white' : ''}`} onClick={() => setJobKind('SIMPLE')}>Pakket</button>
+            <button type="button" className={`min-h-11 rounded-lg border px-3 py-2 ${jobKind === 'TRANSPORT' ? 'bg-emerald-700 text-white' : ''}`} onClick={() => setJobKind('TRANSPORT')}>Transport</button>
+          </div>
+          {jobKind === 'TRANSPORT' ? (
+            <div className="mt-3 grid gap-2">
+              <p className="text-xs text-gray-600">Een transport begint met een voorstel. Er wordt pas betaald nadat beide partijen dezelfde versie accepteren.</p>
+              <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="decimal" aria-label="Gewicht in kilogram" placeholder="Gewicht (kg)" value={cargoWeightKg} onChange={(event) => setCargoWeightKg(event.target.value)} />
+              <div className="grid grid-cols-3 gap-2">
+                <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="numeric" aria-label="Lengte in cm" placeholder="L cm" value={cargoLength} onChange={(event) => setCargoLength(event.target.value)} />
+                <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="numeric" aria-label="Breedte in cm" placeholder="B cm" value={cargoWidth} onChange={(event) => setCargoWidth(event.target.value)} />
+                <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="numeric" aria-label="Hoogte in cm" placeholder="H cm" value={cargoHeight} onChange={(event) => setCargoHeight(event.target.value)} />
+              </div>
+              <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="decimal" aria-label="Voorstel in euro" placeholder="Jouw voorstel in euro" value={proposalEuro} onChange={(event) => setProposalEuro(event.target.value)} />
+              <label className="text-sm text-gray-700">
+                Privéfoto van de lading
+                <input className="mt-1 block w-full text-sm" type="file" accept="image/jpeg,image/png,image/webp" onChange={async (event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  const form = new FormData();
+                  form.set('file', file);
+                  const response = await fetch('/api/delivery/standalone/cargo-photo', { method: 'POST', body: form });
+                  const data = await response.json().catch(() => null);
+                  if (!response.ok || !data?.photoId) {
+                    setError(data?.error || 'Foto uploaden lukte niet');
+                    return;
+                  }
+                  setPhotoIds((current) => [...current, data.photoId]);
+                }} />
+              </label>
+              {photoIds.length > 0 ? <p className="text-xs text-gray-600">{photoIds.length} privéfoto gekoppeld. Er is geen openbare link.</p> : null}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       <label className="mt-4 block text-sm font-medium text-gray-800">
         Wat moet worden bezorgd?
         <textarea className="mt-1 w-full rounded-lg border px-3 py-2" rows={3} value={itemDescription} onChange={(event) => setItemDescription(event.target.value)} />
@@ -324,10 +441,24 @@ export function StandaloneDeliveryRequest({ embedded = false }: { embedded?: boo
       <button type="button" className="w-full rounded-lg bg-emerald-700 px-4 py-3 font-semibold text-white disabled:opacity-60" disabled={busy} onClick={calculate}>
         Toon beschikbare bezorgers
       </button>
+      {history.length > 0 && (
+        <div className="rounded-xl border bg-white p-3 text-sm">
+          <p className="font-medium text-gray-900">Eerdere aanvragen</p>
+          <ul className="mt-2 space-y-2">
+            {history.map((row) => (
+              <li key={row.id}>
+                <a className="underline" href={`/bezorging/aanvragen?request=${row.id}`}>{row.itemDescription || 'Aanvraag'}</a>
+                <span className="text-gray-600"> · {row.jobKind === 'TRANSPORT' ? 'transport' : 'pakket'} · {row.status} · {row.paymentStatus}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {transportEnabled ? <TransportProposalInbox /> : null}
       {couriers && (
         <DelivererSelector
           externalDeliverers={couriers}
-          onSelectDeliverer={chooseCourier}
+          onSelectDeliverer={jobKind === 'TRANSPORT' && transportEnabled ? sendProposal : chooseCourier}
         />
       )}
       {unavailable.length > 0 && (

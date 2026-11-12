@@ -18,6 +18,7 @@
  */
 
 import type { ProviderActivationProfile } from '@/lib/delivery/provider-activation';
+import { gramsToKilograms, interpretStoredCapacity } from '@/lib/delivery/transport-job';
 
 export const DELIVERY_PROFILE_UPDATED_EVENT = 'deliveryProfileUpdated';
 
@@ -418,6 +419,11 @@ export function serializeCanonicalSettingsProfile(profile: {
   nationalCoverage: boolean;
   isVerified: boolean;
   distanceSemanticsVersion?: number | null;
+  maxLengthCm?: number | null;
+  maxWidthCm?: number | null;
+  maxHeightCm?: number | null;
+  maxWeightGrams?: number | null;
+  vehicleCapacityStatus?: unknown;
 }) {
   const timeSlots = profile.availableTimeSlots || [];
   return {
@@ -464,5 +470,23 @@ export function serializeCanonicalSettingsProfile(profile: {
     freeDeliveryRadiusKm: profile.freeDeliveryRadiusKm,
     currency: profile.currency,
     nationalCoverage: profile.nationalCoverage,
+    ...(() => {
+      const stored = interpretStoredCapacity({
+        maxLengthCm: profile.maxLengthCm ?? null,
+        maxWidthCm: profile.maxWidthCm ?? null,
+        maxHeightCm: profile.maxHeightCm ?? null,
+        maxWeightGrams: profile.maxWeightGrams ?? null,
+        status: profile.vehicleCapacityStatus,
+      });
+      return {
+        maxLengthCm: stored.maxLengthCm,
+        maxWidthCm: stored.maxWidthCm,
+        maxHeightCm: stored.maxHeightCm,
+        maxWeightGrams: stored.maxWeightGrams,
+        maxWeightKg: stored.maxWeightGrams == null ? null : gramsToKilograms(stored.maxWeightGrams),
+        vehicleCapacityStatus: stored.status,
+        vehicleCapacityLegacy: stored.legacy,
+      };
+    })(),
   };
 }

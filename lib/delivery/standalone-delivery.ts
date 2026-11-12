@@ -6,6 +6,8 @@ import { recordCheckoutPaymentIncident } from '@/lib/payments/checkout-payment-i
 import { calculateStripeFeeForBuyer } from '@/lib/fees';
 import {
   STANDALONE_PAYMENT_REVIEW_ACTION,
+  interpretStoredCapacity,
+  transportCheckoutFlagDecision,
   transportPaymentReviewReason,
   transportProposalsEnabled,
   transportReceivedPaymentDisposition,
@@ -73,6 +75,7 @@ type CourierCard = {
   confirmationMode: string;
   availabilityBadge: { code: string; labelNl: string; labelEn: string };
   verification: boolean;
+  vehicleCapacity?: ReturnType<typeof interpretStoredCapacity>;
 };
 
 function asAcceptanceProfile(profile: {
@@ -236,6 +239,13 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput) {
         labelEn: input.requestedPickupAt ? 'Available at the requested time' : 'Available now',
       },
       verification: profile.isVerified,
+      vehicleCapacity: interpretStoredCapacity({
+        maxLengthCm: profile.maxLengthCm,
+        maxWidthCm: profile.maxWidthCm,
+        maxHeightCm: profile.maxHeightCm,
+        maxWeightGrams: profile.maxWeightGrams,
+        status: profile.vehicleCapacityStatus,
+      }),
     });
   }
 
@@ -485,10 +495,39 @@ export async function createStandaloneCheckout(input: {
   if (!stripe) {
     return { ok: false as const, status: 503, code: 'STRIPE_UNAVAILABLE', error: 'Betalen is niet beschikbaar.' };
   }
+  const transportFlag = row.jobKind === 'TRANSPORT'
+    ? transportCheckoutFlagDecision({
+        enabled: transportProposalsEnabled(),
+        existingSession: Boolean(row.stripeSessionId),
+      })
+    : 'allow';
+  if (transportFlag === 'block_new') {
+    return { ok: false as const, status: 403, code: 'TRANSPORT_DISABLED', error: 'Transportvoorstellen staan uit.' };
+  }
+  let proposalVersion: string | null = null;
+  if (row.jobKind === 'TRANSPORT' && transportFlag === 'allow') {
+    const accepted = await prisma.deliveryTransportProposal.findFirst({
+      where: { requestId: row.id, status: 'ACCEPTED' },
+      orderBy: { version: 'desc' },
+      select: { version: true },
+    });
+    if (!accepted) {
+      return {
+        ok: false as const,
+        status: 409,
+        code: 'PROPOSAL_NOT_ACCEPTED',
+        error: 'Betalen kan pas nadat beide partijen het laatste voorstel hebben geaccepteerd.',
+      };
+    }
+    proposalVersion = String(accepted.version);
+  }
   if (row.stripeSessionId) {
     const existing = await stripe.checkout.sessions.retrieve(row.stripeSessionId);
     if (existing.status === 'open' && existing.url) {
       return { ok: true as const, url: existing.url, sessionId: existing.id, buyerTotalCents: row.buyerTotalCents };
+    }
+    if (transportFlag === 'continue_existing') {
+      return { ok: false as const, status: 403, code: 'TRANSPORT_DISABLED', error: 'Transportvoorstellen staan uit.' };
     }
   }
 
@@ -530,6 +569,7 @@ export async function createStandaloneCheckout(input: {
       quotedFeeCents: String(row.quotedFeeCents),
       buyerTotalCents: String(row.buyerTotalCents),
       deliveryProfileId: row.deliveryProfileId,
+      ...(proposalVersion ? { proposalVersion } : {}),
     },
     payment_intent_data: {
       metadata: {
@@ -537,6 +577,7 @@ export async function createStandaloneCheckout(input: {
         standaloneRequestId: row.id,
         requesterUserId: row.requesterUserId,
         deliveryProfileId: row.deliveryProfileId,
+        ...(proposalVersion ? { proposalVersion } : {}),
       },
     },
   });
@@ -675,9 +716,6 @@ export async function fulfillStandaloneDeliveryPayment(
     return rememberUnfulfilledPayment(db, session, 'AMOUNT_MISMATCH', 'Het betaalde bedrag wijkt af van de vastgelegde prijs.', row.requesterUserId);
   }
   if (row.jobKind === 'TRANSPORT') {
-    if (!transportProposalsEnabled()) {
-      return rememberUnfulfilledPayment(db, session, 'TRANSPORT_DISABLED', 'Transportvoorstellen staan uit.', row.requesterUserId);
-    }
     const proposals = await db.deliveryTransportProposal.findMany({
       where: { requestId: row.id },
       orderBy: { version: 'asc' },
@@ -685,14 +723,30 @@ export async function fulfillStandaloneDeliveryPayment(
     });
     const acceptedProposalVersion = proposals.find((proposal) => proposal.status === 'ACCEPTED')?.version ?? null;
     const paidProposalVersion = Number(session.metadata?.proposalVersion || 0);
+    const reviewRecorded = row.status === 'PAYMENT_REVIEW' || row.paymentStatus === 'REVIEW_REQUIRED';
+    const secretForMode = deps.stripeSecret === undefined ? financialStripeSecret() : deps.stripeSecret;
     const disposition = transportReceivedPaymentDisposition({
-      acceptedProposalVersion,
-      paidProposalVersion,
+      livemode: session.livemode ?? null,
+      platformIsTestMode: !secretForMode || secretForMode.startsWith('sk_test_'),
+      paymentStatus: session.payment_status,
+      currency: session.currency ?? null,
       amountTotal: session.amount_total,
+      metadataUserId: session.metadata?.requesterUserId ?? null,
+      requestUserId: row.requesterUserId,
       buyerTotalCents: row.buyerTotalCents,
       alreadyFulfilled: false,
+      reviewRecorded,
+      acceptedProposalVersion,
+      paidProposalVersion,
     });
-    if (disposition !== 'fulfill') {
+    if (disposition === 'duplicate' || disposition === 'duplicate_review') {
+      return { handled: true as const, ok: true as const, duplicate: true as const };
+    }
+    if (disposition === 'review') {
+      await db.standaloneDeliveryRequest.update({
+        where: { id: row.id },
+        data: { status: 'PAYMENT_REVIEW', paymentStatus: 'REVIEW_REQUIRED', updatedAt: new Date() },
+      });
       await db.auditLog.create({
         data: {
           id: randomUUID(),
@@ -714,6 +768,15 @@ export async function fulfillStandaloneDeliveryPayment(
         session,
         'TRANSPORT_PAYMENT_REVIEW',
         'De transportbetaling hoort niet bij de laatst geaccepteerde voorstelversie.',
+        row.requesterUserId,
+      );
+    }
+    if (disposition !== 'fulfill') {
+      return rememberUnfulfilledPayment(
+        db,
+        session,
+        'TRANSPORT_PAYMENT_REVIEW',
+        'De transportbetaling is niet uitvoerbaar.',
         row.requesterUserId,
       );
     }
