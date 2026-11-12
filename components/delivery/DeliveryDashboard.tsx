@@ -162,6 +162,25 @@ export default function DeliveryDashboard() {
   const [activeTab, setActiveTab] = useState<'delivery' | 'orders'>('delivery');
   const [courierTab, setCourierTab] = useState<'platform' | 'community'>('platform');
   const [feedback, setFeedback] = useState<{ type: 'error' | 'warning'; message: string } | null>(null);
+  const [loadMinutesInput, setLoadMinutesInput] = useState('');
+  const [unloadMinutesInput, setUnloadMinutesInput] = useState('');
+  const [acceptEstimate, setAcceptEstimate] = useState(false);
+  const [ackUnknown, setAckUnknown] = useState(false);
+  const [scheduleReview, setScheduleReview] = useState<{
+    bookingId: string;
+    driveMinutes: number | null;
+    driveIsEstimate: boolean;
+    neighbors: Array<{
+      id: string;
+      start: string | null;
+      end: string | null;
+      endKnown: boolean;
+      travelToMinutes: number | null;
+      travelFromMinutes: number | null;
+      travelIsEstimate: boolean;
+    }>;
+    message: string;
+  } | null>(null);
   const [activationChecklist, setActivationChecklist] = useState<
     DeliveryActivationChecklistItem[]
   >([]);
@@ -1099,13 +1118,38 @@ export default function DeliveryDashboard() {
                           type="button"
                           className="flex-1 min-h-[44px] rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700"
                           onClick={async () => {
+                            const reviewing = scheduleReview?.bookingId === booking.id;
+                            const loadMinutes = loadMinutesInput.trim() === '' ? null : Number(loadMinutesInput);
+                            const unloadMinutes = unloadMinutesInput.trim() === '' ? null : Number(unloadMinutesInput);
                             try {
                               const res = await fetch(
                                 `/api/delivery/booking-requests/${booking.id}/accept`,
-                                { method: 'POST' },
+                                {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: reviewing
+                                    ? JSON.stringify({
+                                        confirmation: {
+                                          loadMinutes,
+                                          unloadMinutes,
+                                          acceptEstimatedDrive: acceptEstimate,
+                                          acknowledgeUnknownConnections: ackUnknown,
+                                        },
+                                      })
+                                    : JSON.stringify({}),
+                                },
                               );
+                              const err = await res.json().catch(() => ({}));
                               if (!res.ok) {
-                                const err = await res.json().catch(() => ({}));
+                                if (err.schedule) {
+                                  setScheduleReview({
+                                    bookingId: booking.id,
+                                    driveMinutes: err.schedule.driveMinutes ?? null,
+                                    driveIsEstimate: Boolean(err.schedule.driveIsEstimate),
+                                    neighbors: Array.isArray(err.schedule.neighbors) ? err.schedule.neighbors : [],
+                                    message: err.error || 'Bevestig de planning.',
+                                  });
+                                }
                                 setFeedback({
                                   type: 'error',
                                   message:
@@ -1116,6 +1160,7 @@ export default function DeliveryDashboard() {
                                 });
                                 return;
                               }
+                              setScheduleReview(null);
                               await fetchDeliveryData(true);
                             } catch {
                               setFeedback({
@@ -1147,6 +1192,46 @@ export default function DeliveryDashboard() {
                           {t('common.cancel', { defaultValue: 'Afwijzen' })}
                         </button>
                       </div>
+                      {scheduleReview?.bookingId === booking.id ? (
+                        <div className="mt-3 space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-gray-800 scroll-mb-[calc(7rem+env(safe-area-inset-bottom,0px)+var(--keyboard-inset,0px))]">
+                          <p>{scheduleReview.message}</p>
+                          <p>
+                            Reistijd:{' '}
+                            {scheduleReview.driveMinutes == null
+                              ? 'niet bekend'
+                              : `${scheduleReview.driveMinutes} min (${scheduleReview.driveIsEstimate ? 'schatting' : 'route'})`}
+                          </p>
+                          {scheduleReview.neighbors.length > 0 ? (
+                            <ul className="space-y-1">
+                              {scheduleReview.neighbors.map((neighbor) => (
+                                <li key={neighbor.id}>
+                                  Andere opdracht
+                                  {neighbor.start ? ` vanaf ${new Date(neighbor.start).toLocaleString('nl-NL')}` : ', starttijd niet vastgelegd'}
+                                  {neighbor.endKnown && neighbor.end
+                                    ? `, tot ${new Date(neighbor.end).toLocaleString('nl-NL')}`
+                                    : ', eindtijd niet vastgelegd'}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                          <label className="block">
+                            Laden (minuten)
+                            <input inputMode="numeric" value={loadMinutesInput} onChange={(event) => setLoadMinutesInput(event.target.value)} className="mt-1 w-full min-h-[44px] rounded border border-gray-300 px-2" />
+                          </label>
+                          <label className="block">
+                            Lossen (minuten)
+                            <input inputMode="numeric" value={unloadMinutesInput} onChange={(event) => setUnloadMinutesInput(event.target.value)} className="mt-1 w-full min-h-[44px] rounded border border-gray-300 px-2" />
+                          </label>
+                          <label className="flex min-h-[44px] items-center gap-2">
+                            <input type="checkbox" checked={acceptEstimate} onChange={(event) => setAcceptEstimate(event.target.checked)} />
+                            Ik accepteer een geschatte reistijd
+                          </label>
+                          <label className="flex min-h-[44px] items-center gap-2">
+                            <input type="checkbox" checked={ackUnknown} onChange={(event) => setAckUnknown(event.target.checked)} />
+                            Ik beoordeel een onbekende aansluiting zelf
+                          </label>
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                 </div>

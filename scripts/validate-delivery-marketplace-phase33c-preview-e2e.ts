@@ -172,6 +172,12 @@ async function main() {
           const accepted = await acceptDeliveryBookingRequest(prisma, {
             requestId: bookingRequestId,
             deliveryProfileUserId: opts.profile.userId,
+            confirmation: {
+              loadMinutes: 10,
+              unloadMinutes: 5,
+              acceptEstimatedDrive: true,
+              acknowledgeUnknownConnections: true,
+            },
           });
           assert.equal(accepted.ok, true, JSON.stringify(accepted));
           bookingRequestId = accepted.ok ? accepted.request.id : bookingRequestId;

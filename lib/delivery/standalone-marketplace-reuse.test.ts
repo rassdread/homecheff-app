@@ -204,6 +204,12 @@ test('standalone quote no longer auto-selects the cheapest courier', { skip: !lo
     const accepted = await acceptDeliveryBookingRequest(prisma, {
       requestId: again.request.bookingRequestId,
       deliveryProfileUserId: courierAUser,
+      confirmation: {
+        loadMinutes: 10,
+        unloadMinutes: 5,
+        acceptEstimatedDrive: true,
+        acknowledgeUnknownConnections: true,
+      },
     });
     assert.equal(accepted.ok, true);
     const payable = await prisma.standaloneDeliveryRequest.findUnique({ where: { id: again.request.id } });

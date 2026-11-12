@@ -32,6 +32,33 @@ import { notifyReservationBuyer } from '@/lib/delivery/reservation-notifications
 import { openPaymentWindowForBooking } from '@/lib/products/courier-stock-hold';
 import { readStandaloneBookingMeta } from '@/lib/delivery/standalone-booking-meta';
 import { assertCourierBookableAt } from '@/lib/delivery/standalone-availability';
+import {
+  attachConnectionTravel,
+  finiteSchedulePoint,
+  resolveJobDrive,
+  sameScheduleInstant,
+  scheduleConflictError,
+  readMarketplaceSlot,
+  scheduleNeighbors,
+} from '@/lib/delivery/booking-schedule';
+import { assessSchedule, planReservation, routeModeForVehicle } from '@/lib/delivery/delivery-schedule';
+
+export type ScheduleConfirmation = {
+  loadMinutes: number | null;
+  unloadMinutes: number | null;
+  acceptEstimatedDrive?: boolean;
+  acknowledgeUnknownConnections?: boolean;
+};
+
+class ScheduleHold extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string,
+    readonly detail: Record<string, unknown>,
+  ) {
+    super(code);
+  }
+}
 
 export async function expireStaleBookingRequests(
   prisma: PrismaClient,
@@ -501,7 +528,11 @@ export async function createDeliveryBookingRequest(
 
 export async function acceptDeliveryBookingRequest(
   prisma: PrismaClient,
-  params: { requestId: string; deliveryProfileUserId: string }
+  params: {
+    requestId: string;
+    deliveryProfileUserId: string;
+    confirmation?: ScheduleConfirmation | null;
+  }
 ) {
   await expireStaleBookingRequests(prisma, [params.requestId]);
 
@@ -573,8 +604,9 @@ export async function acceptDeliveryBookingRequest(
   }
 
   const standaloneMeta = readStandaloneBookingMeta(request.notes);
-  if (standaloneMeta?.requestedPickupAt) {
-    const at = new Date(standaloneMeta.requestedPickupAt);
+  const requestedStartIso = standaloneMeta?.requestedPickupAt ?? readMarketplaceSlot(request.notes);
+  if (requestedStartIso) {
+    const at = new Date(requestedStartIso);
     if (!Number.isNaN(at.getTime())) {
       const bookable = assertCourierBookableAt(
         {
@@ -613,37 +645,147 @@ export async function acceptDeliveryBookingRequest(
   }
 
   const now = new Date();
-  const claimed = await prisma.$transaction(async (tx) => {
-    const updated = await tx.deliveryBookingRequest.updateMany({
-      where: { id: request.id, status: 'PENDING' },
-      data: {
-        status: 'ACCEPTED',
-        respondedAt: now,
-        updatedAt: now,
-      },
-    });
-    if (updated.count !== 1) return false;
-    await tx.deliveryCalendarEntry.create({
-      data: {
-        deliveryProfileId: request.deliveryProfileId,
-        bookingRequestId: request.id,
-        title: 'Handmatig bevestigde bezorging',
-        pickupAt: new Date(
-          now.getTime() +
-            ((request.deliveryProfile.estimatedPickupDelayMinutes ?? 10) +
-              (request.deliveryProfile.preparationTimeMinutes ?? 15)) *
-              60_000,
-        ),
-        status: 'CONFIRMED',
-        earningsCents: request.quotedFeeCents
-          ? Math.round(request.quotedFeeCents * 0.88)
-          : null,
-        updatedAt: now,
-      },
-    });
-    await openPaymentWindowForBooking(tx, request.id, now);
-    return true;
+  const requestedStart = requestedStartIso ? new Date(requestedStartIso) : null;
+  const start = requestedStart && !Number.isNaN(requestedStart.getTime()) ? requestedStart : now;
+  const drive = await resolveJobDrive(request.deliveryProfile, request);
+  const linkedRequest = await prisma.standaloneDeliveryRequest.findFirst({
+    where: { bookingRequestId: request.id },
+    select: { pickupLat: true, pickupLng: true, dropoffLat: true, dropoffLng: true },
   });
+  const vehicleMode = routeModeForVehicle(request.deliveryProfile.transportation[0] ?? null);
+  const previewNeighbors = await attachConnectionTravel(
+    prisma,
+    await scheduleNeighbors(prisma, request.deliveryProfileId, request.id),
+    {
+      pickup:
+        finiteSchedulePoint(linkedRequest?.pickupLat, linkedRequest?.pickupLng) ??
+        resolveDelivererPosition(request.deliveryProfile),
+      dropoff:
+        finiteSchedulePoint(linkedRequest?.dropoffLat, linkedRequest?.dropoffLng) ??
+        finiteSchedulePoint(request.buyerLat, request.buyerLng),
+    },
+    vehicleMode,
+  );
+  const schedulePreview = {
+    start: start.toISOString(),
+    driveMinutes: drive.minutes,
+    driveSource: drive.source,
+    driveIsEstimate: drive.source !== 'google' || !drive.matchesVehicle,
+    preparationTimeMinutes: request.deliveryProfile.preparationTimeMinutes,
+    estimatedPickupDelayMinutes: request.deliveryProfile.estimatedPickupDelayMinutes,
+    neighbors: previewNeighbors.map((neighbor) => ({
+      id: neighbor.id,
+      start: neighbor.start?.toISOString() ?? null,
+      end: neighbor.end?.toISOString() ?? null,
+      endKnown: neighbor.end != null,
+      travelToMinutes: neighbor.travelToCandidateMinutes,
+      travelFromMinutes: neighbor.travelFromCandidateMinutes,
+      travelIsEstimate: neighbor.travelSource !== 'google' || !neighbor.travelMatchesVehicle,
+    })),
+  };
+  if (!params.confirmation) {
+    return {
+      ok: false as const,
+      status: 422,
+      code: 'SCHEDULE_CONFIRMATION_REQUIRED',
+      error: 'Bevestig laden, rijden en lossen. Een ontbrekende tijd telt niet als nul minuten.',
+      schedule: schedulePreview,
+    };
+  }
+
+  let claimed = false;
+  try {
+    claimed = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${request.deliveryProfileId}, ${BigInt(0)}))`;
+      const freshWindows = await scheduleNeighbors(tx, request.deliveryProfileId, request.id);
+      const neighbors = freshWindows.map((window) => {
+        const prior = previewNeighbors.find(
+          (row) =>
+            row.id === window.id &&
+            sameScheduleInstant(row.start, window.pickupAt) &&
+            sameScheduleInstant(row.end, window.deliverAt),
+        );
+        return prior ?? {
+          id: window.id,
+          origin: 'UNKNOWN' as const,
+          start: window.pickupAt,
+          end: window.deliverAt,
+          travelToCandidateMinutes: null,
+          travelFromCandidateMinutes: null,
+          travelSource: 'unknown' as const,
+          travelMatchesVehicle: false,
+        };
+      });
+      const plan = planReservation({
+        start,
+        loadMinutes: params.confirmation?.loadMinutes ?? null,
+        driveMinutes: drive.minutes,
+        driveSource: drive.source,
+        driveMatchesVehicle: drive.matchesVehicle,
+        unloadMinutes: params.confirmation?.unloadMinutes ?? null,
+      });
+      const decision = assessSchedule(plan, neighbors);
+      if (!plan.complete || !plan.end || plan.occupiedMinutes == null) {
+        throw new ScheduleHold(422, 'SCHEDULE_CONFIRMATION_REQUIRED', { schedule: schedulePreview });
+      }
+      if (decision.conflicts.some((conflict) => conflict.code === 'WINDOW_OVERLAP' || conflict.code === 'TRAVEL_TOO_SHORT')) {
+        throw new ScheduleHold(422, 'SCHEDULE_CONFLICT', {
+          error: scheduleConflictError(decision.conflicts),
+          schedule: schedulePreview,
+          conflicts: decision.conflicts,
+        });
+      }
+      if (plan.driveIsEstimate && !params.confirmation?.acceptEstimatedDrive) {
+        throw new ScheduleHold(422, 'SCHEDULE_ESTIMATE_REQUIRED', {
+          error: 'De reistijd is een schatting. Bevestig die schatting of kies een ander moment.',
+          schedule: schedulePreview,
+        });
+      }
+      if (
+        decision.conflicts.some((conflict) => conflict.code === 'CONNECTION_UNKNOWN') &&
+        !params.confirmation?.acknowledgeUnknownConnections
+      ) {
+        throw new ScheduleHold(422, 'SCHEDULE_CONNECTION_UNKNOWN', {
+          error: 'De aansluiting op een andere opdracht is niet bekend. Bevestig dat je die zelf beoordeelt.',
+          schedule: schedulePreview,
+          conflicts: decision.conflicts,
+        });
+      }
+      const updated = await tx.deliveryBookingRequest.updateMany({
+        where: { id: request.id, status: 'PENDING' },
+        data: { status: 'ACCEPTED', respondedAt: now, updatedAt: now },
+      });
+      if (updated.count !== 1) return false;
+      await tx.deliveryCalendarEntry.create({
+        data: {
+          deliveryProfileId: request.deliveryProfileId,
+          bookingRequestId: request.id,
+          title: plan.driveIsEstimate ? 'Bevestigde bezorging (geschatte reistijd)' : 'Bevestigde bezorging',
+          pickupAt: plan.start,
+          deliverAt: plan.end,
+          travelTimeMinutes: drive.minutes,
+          estimatedDurationMinutes: plan.occupiedMinutes,
+          status: 'CONFIRMED',
+          earningsCents: request.quotedFeeCents ? Math.round(request.quotedFeeCents * 0.88) : null,
+          updatedAt: now,
+        },
+      });
+      await openPaymentWindowForBooking(tx, request.id, now);
+      return true;
+    });
+  } catch (error) {
+    if (error instanceof ScheduleHold) {
+      return {
+        ok: false as const,
+        status: error.status,
+        code: error.code,
+        error: typeof error.detail.error === 'string' ? error.detail.error : 'Planning niet bevestigd',
+        schedule: error.detail.schedule,
+        conflicts: error.detail.conflicts,
+      };
+    }
+    throw error;
+  }
   if (!claimed) {
     return { ok: false as const, status: 409, error: 'Aanvraag is al afgehandeld' };
   }

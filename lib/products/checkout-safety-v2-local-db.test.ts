@@ -87,6 +87,12 @@ describe('checkout safety v2 database races', { skip: !enabled }, () => {
         acceptDeliveryBookingRequest(prisma, {
           requestId: booking.id,
           deliveryProfileUserId: buyerB,
+          confirmation: {
+            loadMinutes: 10,
+            unloadMinutes: 5,
+            acceptEstimatedDrive: true,
+            acknowledgeUnknownConnections: true,
+          },
         }),
         cancelPendingBookingForReplacement(prisma, { requestId: booking.id, buyerId: buyerA }),
       ]);
