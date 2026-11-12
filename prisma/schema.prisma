@@ -139,6 +139,8 @@ model User {
   CourierAvailabilities                  CourierAvailability[]
   CourierAssignmentsAsCourier            CourierAssignment[]       @relation("CourierAssignmentCourier")
   DeliveryProfile                        DeliveryProfile?
+  salesLocations                         SellerSalesLocation[]
+  standaloneDeliveryRequests             StandaloneDeliveryRequest[]
   deliveryBookingRequestsAsBuyer         DeliveryBookingRequest[]  @relation("DeliveryBookingRequestBuyer")
   deliveryReviewsAsReviewer              DeliveryReview[]          @relation("DeliveryReviewReviewer")
   deliveryCompanyMemberships             DeliveryCompanyMember[]   @relation("DeliveryCompanyMemberUser")
@@ -712,6 +714,7 @@ model Product {
   conversations           Conversation[]
   proposals               Proposal[]
   deliveryOrders          DeliveryOrder[]
+  salesLocations          ProductSalesLocation[]
   favorites               Favorite[]
   Image                   Image[]
   Video                   ProductVideo?
@@ -2202,6 +2205,20 @@ model DeliveryProfile {
   vacationEnd                    DateTime?
   maxSimultaneousDeliveries      Int      @default(3)
   maxDeliveriesPerSlot           Int      @default(2)
+  /// Cargo limits already stored in production. Weight is grams. Dimensions are centimetres.
+  /// A stored number counts only when vehicleCapacityStatus for that axis is "set".
+  /// These columns are the capacity source. Do not add a second kilogram copy.
+  maxWeightGrams                 Int?
+  maxLengthCm                    Int?
+  maxWidthCm                     Int?
+  maxHeightCm                    Int?
+  maxPackageCount                Int?
+  carriesFragile                 Boolean?
+  temperatureControlled          Boolean?
+  liftAssistance                 Boolean?
+  /// Per axis: unset, unknown, not_applicable, or set. The gram and centimetre columns have no status of their own.
+  vehicleCapacityStatus          Json?
+  standaloneDeliveryRequests     StandaloneDeliveryRequest[]
   preparationTimeMinutes         Int      @default(15)
   estimatedPickupDelayMinutes    Int      @default(10)
   /// Set only when this courier accepts the signup agreement modal. Not privacy consent.
@@ -2249,7 +2266,7 @@ model DeliveryAgreementAcceptance {
   acceptedAt        DateTime        @default(now())
   deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
 
-  @@unique([deliveryProfileId, version, language])
+  @@unique([deliveryProfileId, version, language], map: "DeliveryAgreementAcceptance_deliveryProfileId_version_language_")
   @@index([userId, acceptedAt])
   @@map("DeliveryAgreementAcceptance")
 }
@@ -2654,11 +2671,92 @@ model StandaloneDeliveryRequest {
   paymentStatus           String   @default("UNPAID")
   status                  String   @default("QUOTED")
   deliveryOrderId         String?  @unique
+  /// SIMPLE keeps the existing package quote. TRANSPORT uses a proposal before booking.
+  jobKind                 String   @default("SIMPLE")
+  cargo                   Json?
+  proposalExpiresAt       DateTime?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
+  requester               User            @relation(fields: [requesterUserId], references: [id], onDelete: Cascade)
+  deliveryProfile         DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Restrict)
+  proposals               DeliveryTransportProposal[]
+  cargoPhotos             DeliveryCargoPhoto[]
 
   @@index([requesterUserId])
   @@map("StandaloneDeliveryRequest")
+}
+
+/// Versioned price proposal for a standalone moving job. Not a product barter Proposal.
+model DeliveryTransportProposal {
+  id           String                    @id
+  requestId    String
+  version      Int
+  authorUserId String
+  authorRole   String
+  action       String
+  priceCents   Int?
+  note         String?
+  status       String
+  expiresAt    DateTime
+  createdAt    DateTime                  @default(now())
+  request      StandaloneDeliveryRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, version])
+  @@index([requestId, status])
+  @@map("DeliveryTransportProposal")
+}
+
+/// Private cargo photo. The object key is not a public URL.
+model DeliveryCargoPhoto {
+  id          String                     @id
+  ownerUserId String
+  requestId   String?
+  objectKey   String                     @unique
+  mimeType    String
+  sizeBytes   Int
+  createdAt   DateTime                   @default(now())
+  deletedAt   DateTime?
+  request     StandaloneDeliveryRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  @@index([ownerUserId])
+  @@index([requestId])
+  @@map("DeliveryCargoPhoto")
+}
+
+/// Seller address used for sales. Existing products and orders are not rewritten.
+model SellerSalesLocation {
+  id          String                 @id
+  userId      String
+  name        String
+  street      String
+  houseNumber String
+  postalCode  String
+  city        String
+  country     String                 @default("NL")
+  lat         Float?
+  lng         Float?
+  isPrimary   Boolean                @default(false)
+  isActive    Boolean                @default(true)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products    ProductSalesLocation[]
+
+  @@index([userId, isActive])
+  @@index([userId, isPrimary])
+  @@map("SellerSalesLocation")
+}
+
+model ProductSalesLocation {
+  productId  String
+  locationId String
+  createdAt  DateTime            @default(now())
+  product    Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  location   SellerSalesLocation @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@id([productId, locationId])
+  @@index([locationId])
+  @@map("ProductSalesLocation")
 }
 
 model HomeCheffCollection {
@@ -3261,6 +3359,10 @@ enum TransportationMode {
   EBIKE
   SCOOTER
   CAR
+  ESTATE
+  VAN
+  BOX_TRUCK
+  TRAILER
 }
 
 enum ListingCategory {
