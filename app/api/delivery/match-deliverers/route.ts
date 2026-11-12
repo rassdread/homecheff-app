@@ -167,6 +167,20 @@ export async function GET(req: NextRequest) {
       }
     });
 
+    const openDeliveryCounts = deliveryProfiles.length === 0 ? [] : await prisma.deliveryOrder.groupBy({
+      by: ['deliveryProfileId'],
+      where: {
+        status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP'] },
+        deliveryProfileId: { in: deliveryProfiles.map((profile) => profile.id) },
+      },
+      _count: { _all: true },
+    });
+    const openCountByProfile = new Map(
+      openDeliveryCounts
+        .filter((row) => row.deliveryProfileId)
+        .map((row) => [row.deliveryProfileId as string, row._count._all]),
+    );
+
     const ageEligibleProfiles = deliveryProfiles.filter((delivery) => {
       if (!courierListedInPilot(delivery.id, delivery.user?.id)) {
         return false;
@@ -382,6 +396,7 @@ export async function GET(req: NextRequest) {
           {
             routeDistanceKm: routeDistance,
             requirePricingEnabled: flags.providerPricingEnabled,
+            activeDeliveryCount: openCountByProfile.get(delivery.id) ?? 0,
           }
         );
 

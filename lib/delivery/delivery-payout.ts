@@ -16,6 +16,7 @@ import { financialStripeSecret } from '@/lib/stripe';
 import { stripeLivemodeMatches } from '@/lib/stripe-runtime-guard';
 import { enforcePaidDeliveryIdentity } from '@/lib/delivery/courier-identity-sync';
 import { settleCourierTransferObligation } from '@/lib/delivery/courier-transfer-obligation';
+import { syncCourierEarningsCounter } from '@/lib/delivery/courier-earnings-counter';
 
 export type DeliveryPayoutInput = {
   deliveryOrderId: string;
@@ -222,6 +223,7 @@ export async function ensureDeliveryPayout(
   let created = false;
 
   if (existingPayout?.providerRef?.startsWith('tr_')) {
+    await syncCourierEarningsCounter(prisma, delivererUserId);
     return {
       created: false,
       payoutId: existingPayout.id,
@@ -560,6 +562,7 @@ export async function ensureDeliveryPayout(
     } catch (error) {
       console.error('[delivery-payout] transfer recorded at Stripe but the payout row was not updated', error instanceof Error ? error.name : 'error');
     }
+    await syncCourierEarningsCounter(prisma, delivererUserId);
     return {
       created: settled.created,
       payoutId,

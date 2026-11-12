@@ -13,8 +13,9 @@ function resolveDatabaseUrl(raw: string | undefined): string | undefined {
     const u = new URL(raw.trim());
     const isPooler =
       u.hostname.includes("-pooler") || u.searchParams.get("pgbouncer") === "true";
-    if (isPooler) {
-      if (!u.searchParams.has("pgbouncer")) u.searchParams.set("pgbouncer", "true");
+    const isLocal = u.hostname === "127.0.0.1" || u.hostname === "localhost";
+    if (isPooler || isLocal) {
+      if (isPooler && !u.searchParams.has("pgbouncer")) u.searchParams.set("pgbouncer", "true");
       if (!u.searchParams.has("connection_limit")) u.searchParams.set("connection_limit", "1");
       if (!u.searchParams.has("pool_timeout")) u.searchParams.set("pool_timeout", "20");
     }
