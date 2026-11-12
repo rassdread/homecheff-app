@@ -2131,7 +2131,6 @@ try {
 
           // Calculate deliverer payout (prefer detailed breakdown when available)
           const deliveryPlatformFee = deliveryFeeBreakdown?.homecheffCut ?? Math.round(deliveryFeeCents * DELIVERY_PLATFORM_FEE_PERCENT / 100);
-          const delivererPayoutCents = deliveryFeeCents - deliveryPlatformFee;
 
           // Create transaction for delivery (12% Homecheff fee on delivery costs)
           const deliveryTransactionData: any = {
@@ -2145,19 +2144,8 @@ try {
             providerRef: session.id,
             updatedAt: new Date()
           };
-          const deliveryTransaction = await prisma.transaction.create({
+          await prisma.transaction.create({
             data: deliveryTransactionData
-          });
-
-          // Create payout for deliverer (will be updated when order is delivered)
-          await prisma.payout.create({
-            data: {
-              id: `payout_delivery_${deliveryOrder.id}_${Date.now()}`,
-              transactionId: deliveryTransaction.id,
-              toUserId: deliveryOrder.deliveryProfile.user.id,
-              amountCents: delivererPayoutCents,
-              providerRef: session.payment_intent as string || null
-            }
           });
 
           // Affiliate: 50% of HomeCheff delivery PLATFORM fee only — never courier principal.
@@ -2179,15 +2167,7 @@ try {
             }
           }
 
-          // Update delivery profile earnings
-          await prisma.deliveryProfile.update({
-            where: { id: deliveryProfileId },
-            data: {
-              totalEarnings: {
-                increment: delivererPayoutCents
-              }
-            }
-          });
+          // The courier fee stays reserved until delivery. ensureDeliveryPayout records it then.
         }
       }
     } catch (orderError: any) {

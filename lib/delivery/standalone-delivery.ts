@@ -4,6 +4,12 @@ import { prisma } from '@/lib/prisma';
 import { financialStripeSecret, stripe } from '@/lib/stripe';
 import { recordCheckoutPaymentIncident } from '@/lib/payments/checkout-payment-incident';
 import { calculateStripeFeeForBuyer } from '@/lib/fees';
+import {
+  STANDALONE_PAYMENT_REVIEW_ACTION,
+  transportPaymentReviewReason,
+  transportProposalsEnabled,
+  transportReceivedPaymentDisposition,
+} from '@/lib/delivery/transport-job';
 import { getRouteDistance, isVerifiedRoadDistance, COMMERCIAL_DISTANCE_UNAVAILABLE } from '@/lib/google-maps-distance';
 import { calculateDistance } from '@/lib/geocoding';
 import { resolveDelivererPosition } from '@/lib/delivery/delivery-position';
@@ -668,6 +674,50 @@ export async function fulfillStandaloneDeliveryPayment(
   if (session.amount_total !== row.buyerTotalCents) {
     return rememberUnfulfilledPayment(db, session, 'AMOUNT_MISMATCH', 'Het betaalde bedrag wijkt af van de vastgelegde prijs.', row.requesterUserId);
   }
+  if (row.jobKind === 'TRANSPORT') {
+    if (!transportProposalsEnabled()) {
+      return rememberUnfulfilledPayment(db, session, 'TRANSPORT_DISABLED', 'Transportvoorstellen staan uit.', row.requesterUserId);
+    }
+    const proposals = await db.deliveryTransportProposal.findMany({
+      where: { requestId: row.id },
+      orderBy: { version: 'asc' },
+      select: { version: true, status: true },
+    });
+    const acceptedProposalVersion = proposals.find((proposal) => proposal.status === 'ACCEPTED')?.version ?? null;
+    const paidProposalVersion = Number(session.metadata?.proposalVersion || 0);
+    const disposition = transportReceivedPaymentDisposition({
+      acceptedProposalVersion,
+      paidProposalVersion,
+      amountTotal: session.amount_total,
+      buyerTotalCents: row.buyerTotalCents,
+      alreadyFulfilled: false,
+    });
+    if (disposition !== 'fulfill') {
+      await db.auditLog.create({
+        data: {
+          id: randomUUID(),
+          userId: row.requesterUserId,
+          action: STANDALONE_PAYMENT_REVIEW_ACTION,
+          meta: {
+            code: transportPaymentReviewReason({
+              acceptedProposalVersion,
+              paidProposalVersion,
+              amountTotal: session.amount_total,
+              buyerTotalCents: row.buyerTotalCents,
+            }),
+            requestId: row.id,
+          },
+        },
+      });
+      return rememberUnfulfilledPayment(
+        db,
+        session,
+        'TRANSPORT_PAYMENT_REVIEW',
+        'De transportbetaling hoort niet bij de laatst geaccepteerde voorstelversie.',
+        row.requesterUserId,
+      );
+    }
+  }
   if (!FULFILLABLE_STATUSES.has(row.status)) {
     return rememberUnfulfilledPayment(db, session, 'BOOKING_NOT_FULFILLABLE', 'De bezorgaanvraag staat niet meer open voor deze betaling.', row.requesterUserId);
   }
@@ -731,19 +781,6 @@ export async function fulfillStandaloneDeliveryPayment(
         providerRef: session.id,
         updatedAt: new Date(),
       },
-    });
-    await tx.payout.create({
-      data: {
-        id: `payout_delivery_${deliveryOrder.id}`,
-        transactionId: txnId,
-        toUserId: profile.userId,
-        amountCents: row.providerNetPayoutCents,
-        providerRef: checkoutPaymentIntentId(session),
-      },
-    });
-    await tx.deliveryProfile.update({
-      where: { id: row.deliveryProfileId },
-      data: { totalEarnings: { increment: row.providerNetPayoutCents } },
     });
     await tx.standaloneDeliveryRequest.update({
       where: { id: row.id },
