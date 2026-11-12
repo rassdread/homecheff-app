@@ -13,6 +13,7 @@ import { resolveDelivererPosition, resolveDeliveryPickupCoords, resolveSellerCoo
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 import { resolveDeliveryTimeAvailability } from '@/lib/delivery/delivery-time-availability';
 import { readStandaloneBookingMeta } from '@/lib/delivery/standalone-booking-meta';
+import { courierNetFromGrossCents, summarizeCourierLedger } from '@/lib/delivery/courier-earnings';
 import {
   customerAddressForPhase,
   customerPhoneForPhase,
@@ -1309,8 +1310,51 @@ export async function GET(req: NextRequest) {
         })
       : null;
 
+    let courierMoney: {
+      reservedCents: number;
+      earnedCents: number;
+      transferredCents: number;
+      reviewCents: number;
+    } | null = null;
+    if (deliveryProfile && userId) {
+      const [openOrders, payouts] = await Promise.all([
+        prisma.deliveryOrder.findMany({
+          where: {
+            deliveryProfileId: deliveryProfile.id,
+            status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP'] },
+          },
+          select: { quotedFeeCents: true, deliveryFee: true },
+        }),
+        prisma.payout.findMany({
+          where: { toUserId: userId, id: { startsWith: 'payout_delivery_' } },
+          select: { id: true, transactionId: true, amountCents: true, providerRef: true },
+        }),
+      ]);
+      const deliveryIds = payouts
+        .map((payout) => payout.id.replace(/^payout_delivery_/, '').replace(/_\d+$/, ''))
+        .filter(Boolean);
+      const orders = deliveryIds.length
+        ? await prisma.deliveryOrder.findMany({
+            where: { id: { in: deliveryIds } },
+            select: { id: true, status: true, orderId: true },
+          })
+        : [];
+      const summary = summarizeCourierLedger(payouts, orders);
+      const reservedCents = openOrders.reduce(
+        (sum, order) => sum + courierNetFromGrossCents(order.quotedFeeCents || order.deliveryFee || 0),
+        0,
+      );
+      courierMoney = {
+        reservedCents,
+        earnedCents: summary.earnedCents,
+        transferredCents: summary.paidCents,
+        reviewCents: Math.max(0, (deliveryProfile.totalEarnings || 0) - summary.earnedCents),
+      };
+    }
+
     return NextResponse.json({
       stats,
+      courierMoney,
       isOnline: timeAvailability?.available ?? false,
       isTemporarilyOnline: timeAvailability?.source === 'TEMPORARY_ONLINE_OVERRIDE',
       onlineUntil: deliveryProfile?.onlineUntil ?? null,

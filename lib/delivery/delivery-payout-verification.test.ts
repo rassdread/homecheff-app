@@ -56,9 +56,18 @@ function adultProfile(overrides: Partial<Profile> = {}): Profile {
   };
 }
 
-function harness(profile: Profile, options?: { payout?: Record<string, unknown> | null; profiles?: Profile[] }) {
+function harness(
+  profile: Profile,
+  options?: {
+    payout?: Record<string, unknown> | null;
+    profiles?: Profile[];
+    list?: () => Promise<{ data: Array<Record<string, unknown>>; has_more?: boolean }>;
+    create?: (params: { amount: number; source_transaction?: string }) => Promise<{ id: string; amount: number }>;
+  },
+) {
   const calls: string[] = [];
   const writes: string[] = [];
+  let storedEarnings = 0;
   let payout = options?.payout === undefined ? null : options.payout;
   const queue = options?.profiles ? [...options.profiles] : [];
   const stripe = {
@@ -91,9 +100,10 @@ function harness(profile: Profile, options?: { payout?: Record<string, unknown> 
       },
     },
     transfers: {
-      list: async () => ({ data: [] }),
+      list: options?.list ?? (async () => ({ data: [] })),
       create: async (params: { amount: number; source_transaction?: string }) => {
         calls.push(params.source_transaction ?? 'create');
+        if (options?.create) return options.create(params);
         return { id: 'tr_test_new', amount: params.amount };
       },
     },
@@ -101,16 +111,18 @@ function harness(profile: Profile, options?: { payout?: Record<string, unknown> 
   const prisma = {
     deliveryProfile: {
       findUnique: async () => {
-        if (queue.length > 0) return queue.shift()!;
-        return profile;
+        const row = queue.length > 0 ? queue.shift()! : profile;
+        return { ...row, totalEarnings: storedEarnings };
       },
-      updateMany: async () => {
+      updateMany: async ({ data }: { data?: { totalEarnings?: { increment?: number } } }) => {
+        if (typeof data?.totalEarnings?.increment === 'number') storedEarnings += data.totalEarnings.increment;
         writes.push('earnings');
         return { count: 1 };
       },
-      update: async () => {
+      update: async ({ data }: { data?: { totalEarnings?: number } }) => {
+        if (typeof data?.totalEarnings === 'number') storedEarnings = data.totalEarnings;
         writes.push('profile-update');
-        return profile;
+        return { ...profile, totalEarnings: storedEarnings };
       },
     },
     deliveryOrder: {
@@ -119,7 +131,9 @@ function harness(profile: Profile, options?: { payout?: Record<string, unknown> 
         deliveryFee: 1000,
         status: 'DELIVERED',
         notes: null,
+        orderId: 'd1',
       }),
+      findMany: async () => [{ id: 'd1', status: 'DELIVERED', orderId: 'd1' }],
     },
     order: {
       findUnique: async () => ({ stripeSessionId: 'cs_order', paymentMethod: 'IDEAL' }),
@@ -128,6 +142,7 @@ function harness(profile: Profile, options?: { payout?: Record<string, unknown> 
     payout: {
       findFirst: async () => payout,
       findUnique: async () => payout,
+      findMany: async () => (payout ? [payout] : []),
       update: async ({ data }: { data: Record<string, unknown> }) => {
         writes.push('payout-update');
         payout = { ...(payout ?? {}), ...data };
@@ -146,6 +161,7 @@ function harness(profile: Profile, options?: { payout?: Record<string, unknown> 
     transaction: {
       findUnique: async () => ({ id: 'txn_delivery_d1' }),
       findFirst: async () => null,
+      findMany: async () => [],
       create: async () => {
         writes.push('transaction-create');
         return { id: 'txn_delivery_d1' };
@@ -160,6 +176,7 @@ function harness(profile: Profile, options?: { payout?: Record<string, unknown> 
     calls,
     writes,
     payout: () => payout,
+    earnings: () => storedEarnings,
   };
 }
 
@@ -355,5 +372,85 @@ describe('courier payout verification', () => {
     assert.equal(box.calls.length, 0);
     assert.equal(box.payout()?.providerRef ?? null, null);
     assert.equal(box.writes.includes('payout-delete'), false);
+  });
+
+  it('delivery with a successful transfer earns once and a repeat does not add it again', async () => {
+    const box = harness(adultProfile(), { payout: null });
+    const first = await ensureDeliveryPayout(box.prisma as never, input, { stripe: box.stripe as never });
+    const earnedWrites = box.writes.filter((write) => write === 'earnings').length;
+    const second = await ensureDeliveryPayout(box.prisma as never, input, { stripe: box.stripe as never });
+    assert.equal(first.transferStatus, 'SUCCEEDED');
+    assert.equal(second.transferStatus, 'ALREADY_DONE');
+    assert.equal(earnedWrites, 1);
+    assert.equal(box.writes.filter((write) => write === 'earnings').length, 1);
+    assert.equal(box.calls.length, 1);
+    assert.equal(box.earnings(), 880);
+  });
+
+  it('a rejected transfer stays earned and the retry does not add the fee or create another transfer', async () => {
+    const box = harness(adultProfile(), {
+      payout: null,
+      create: async () => {
+        throw Object.assign(new Error('insufficient funds'), { statusCode: 402 });
+      },
+    });
+    const failed = await ensureDeliveryPayout(box.prisma as never, input, { stripe: box.stripe as never });
+    assert.equal(failed.transferStatus, 'FAILED');
+    assert.equal(box.earnings(), 880);
+    assert.equal(box.payout()?.providerRef ?? null, null);
+    const retried = await ensureDeliveryPayout(box.prisma as never, input, { stripe: box.stripe as never });
+    assert.equal(retried.transferId ?? null, null);
+    assert.equal(box.calls.length, 1);
+    assert.equal(box.writes.filter((write) => write === 'earnings').length, 1);
+    assert.equal(box.earnings(), 880);
+  });
+
+  it('a lookup failure can be followed by one transfer without adding the fee again', async () => {
+    let lookups = 0;
+    const box = harness(adultProfile(), {
+      payout: null,
+      list: async () => {
+        lookups += 1;
+        if (lookups === 1) throw new Error('stripe timeout');
+        return { data: [] };
+      },
+    });
+    const unknown = await ensureDeliveryPayout(box.prisma as never, input, { stripe: box.stripe as never });
+    assert.equal(unknown.transferStatus, 'FAILED');
+    assert.equal(box.calls.length, 0);
+    const retried = await ensureDeliveryPayout(box.prisma as never, input, { stripe: box.stripe as never });
+    assert.equal(retried.transferId, 'tr_test_new');
+    assert.equal(box.calls.length, 1);
+    assert.equal(box.writes.filter((write) => write === 'earnings').length, 1);
+    assert.equal(box.earnings(), 880);
+  });
+
+  it('an uncertain lookup does not create a second transfer when the transfer already exists', async () => {
+    let lookups = 0;
+    const box = harness(adultProfile(), {
+      payout: null,
+      list: async () => {
+        lookups += 1;
+        if (lookups === 1) throw new Error('stripe timeout');
+        return {
+          data: [{
+            id: 'tr_already_there',
+            amount: 880,
+            currency: 'eur',
+            reversed: false,
+            destination: 'acct_test',
+            metadata: { deliveryOrderId: 'd1', purpose: 'delivery_provider_principal' },
+          }],
+        };
+      },
+    });
+    const unknown = await ensureDeliveryPayout(box.prisma as never, input, { stripe: box.stripe as never });
+    assert.equal(unknown.transferStatus, 'FAILED');
+    assert.equal(box.calls.length, 0);
+    const found = await ensureDeliveryPayout(box.prisma as never, input, { stripe: box.stripe as never });
+    assert.equal(found.transferId, 'tr_already_there');
+    assert.equal(found.transferStatus, 'ALREADY_DONE');
+    assert.equal(box.calls.length, 0);
+    assert.equal(box.writes.filter((write) => write === 'earnings').length, 1);
   });
 });

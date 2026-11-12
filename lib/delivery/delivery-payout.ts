@@ -316,6 +316,7 @@ export async function ensureDeliveryPayout(
       const again = await prisma.payout.findUnique({ where: { id: stablePayoutId } });
       if (!again) throw error;
       if (again.providerRef?.startsWith('tr_')) {
+        await syncCourierEarningsCounter(prisma, delivererUserId);
         return {
           created: false,
           payoutId: again.id,
