@@ -84,10 +84,9 @@ export async function attachConnectionTravel(
 ): Promise<ScheduledNeighbor[]> {
   const bookingIds = windows.map((row) => row.bookingRequestId).filter((id): id is string => Boolean(id));
   const orderIds = windows.map((row) => row.deliveryOrderId).filter((id): id is string => Boolean(id));
-  const standaloneWhere = [
-    bookingIds.length ? { bookingRequestId: { in: bookingIds } } : null,
-    orderIds.length ? { deliveryOrderId: { in: orderIds } } : null,
-  ].filter((item): item is NonNullable<typeof item> => item != null);
+  const standaloneWhere: Array<{ bookingRequestId: { in: string[] } } | { deliveryOrderId: { in: string[] } }> = [];
+  if (bookingIds.length) standaloneWhere.push({ bookingRequestId: { in: bookingIds } });
+  if (orderIds.length) standaloneWhere.push({ deliveryOrderId: { in: orderIds } });
   const [standalones, bookings] = await Promise.all([
     standaloneWhere.length
       ? prisma.standaloneDeliveryRequest.findMany({
@@ -101,13 +100,20 @@ export async function attachConnectionTravel(
             dropoffLng: true,
           },
         })
-      : Promise.resolve([]),
+      : Promise.resolve([] as Array<{
+          bookingRequestId: string | null;
+          deliveryOrderId: string | null;
+          pickupLat: number;
+          pickupLng: number;
+          dropoffLat: number;
+          dropoffLng: number;
+        }>),
     bookingIds.length
       ? prisma.deliveryBookingRequest.findMany({
           where: { id: { in: bookingIds } },
           select: { id: true, buyerLat: true, buyerLng: true },
         })
-      : Promise.resolve([]),
+      : Promise.resolve([] as Array<{ id: string; buyerLat: number | null; buyerLng: number | null }>),
   ]);
   const bookingById = new Map(bookings.map((row) => [row.id, row]));
   const neighbors: ScheduledNeighbor[] = [];
@@ -162,7 +168,7 @@ export async function resolveJobDrive(
     lastGpsUpdate: Date | null;
     homeLat: number | null;
     homeLng: number | null;
-    user?: { lat?: number | null; lng?: number | null } | null;
+    user?: { lat: number | null; lng: number | null } | null;
   },
   request: { buyerLat: number | null; buyerLng: number | null; routeDistanceKm: number | null },
 ): Promise<{ minutes: number | null; source: TravelSource; matchesVehicle: boolean }> {

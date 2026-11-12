@@ -385,7 +385,7 @@ export async function fetchFeedProducts(
     const rows = (await prisma.product.findMany({
       where,
       ...args,
-    })) as FeedProductRow[];
+    })) as unknown as FeedProductRow[];
     return { rows };
   }
 
@@ -399,7 +399,7 @@ export async function fetchFeedProducts(
     ...args,
   });
 
-  return { rows: activeRows as FeedProductRow[] };
+  return { rows: activeRows as unknown as FeedProductRow[] };
 }
 
 function mergeLegacyRows(

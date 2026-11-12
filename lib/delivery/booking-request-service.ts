@@ -538,7 +538,7 @@ export async function acceptDeliveryBookingRequest(
 
   const request = await prisma.deliveryBookingRequest.findUnique({
     where: { id: params.requestId },
-    include: { deliveryProfile: { include: { user: { select: { dateOfBirth: true } } } } },
+    include: { deliveryProfile: { include: { user: { select: { dateOfBirth: true, lat: true, lng: true } } } } },
   });
   if (!request) {
     return { ok: false as const, status: 404, error: 'Aanvraag niet gevonden' };

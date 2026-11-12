@@ -56,8 +56,12 @@ export default async function DeliverySettingsPage() {
   });
   const deliveryProfileWithDefaults = {
     ...deliveryProfile,
-    ...storedCapacity,
+    maxLengthCm: storedCapacity.maxLengthCm,
+    maxWidthCm: storedCapacity.maxWidthCm,
+    maxHeightCm: storedCapacity.maxHeightCm,
+    maxWeightGrams: storedCapacity.maxWeightGrams,
     maxWeightKg: storedCapacity.maxWeightGrams == null ? null : gramsToKilograms(storedCapacity.maxWeightGrams),
+    vehicleCapacityStatus: storedCapacity.status,
     vehicleCapacityLegacy: storedCapacity.legacy,
     preferredRadius:
       deliveryProfile.preferredRadius || deliveryProfile.maxDistance || 5,
