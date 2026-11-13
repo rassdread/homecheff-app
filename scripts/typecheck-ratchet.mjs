@@ -38,13 +38,16 @@ function normalizePathText(value) {
 
 function toSignatures(output) {
   const signatures = [];
+  const rawBySignature = new Map();
   for (const line of output.split('\n')) {
     const match = line.match(/^(.*)\(\d+,\d+\): error (TS\d+): (.*)$/);
     if (!match) continue;
     let file = normalizePathText(match[1]).replace(/^\//, '');
-    signatures.push(`${file}\t${match[2]}\t${normalizePathText(match[3])}`);
+    const signature = `${file}\t${match[2]}\t${normalizePathText(match[3])}`;
+    if (!rawBySignature.has(signature)) rawBySignature.set(signature, line.trim());
+    signatures.push(signature);
   }
-  return [...new Set(signatures)].sort();
+  return { signatures: [...new Set(signatures)].sort(), rawBySignature };
 }
 
 function runTsc() {
@@ -76,7 +79,8 @@ if (!fs.existsSync(baselinePath)) {
   process.exit(1);
 }
 
-const current = toSignatures(runTsc());
+const typecheck = toSignatures(runTsc());
+const current = typecheck.signatures;
 
 if (process.env.WRITE_TYPECHECK_BASELINE === '1' && !process.env.VERCEL) {
   const header = [
@@ -110,7 +114,11 @@ if (zeroTolerance.length) {
 }
 if (added.length) {
   console.error('\nNew TypeScript errors (not in the baseline):\n');
-  for (const line of added.slice(0, 80)) console.error(`  ${line}`);
+  for (const line of added.slice(0, 80)) {
+    console.error(`  ${line}`);
+    const raw = typecheck.rawBySignature.get(line);
+    if (raw) console.error(`  raw: ${raw}`);
+  }
   if (added.length > 80) console.error(`  … ${added.length - 80} more`);
 }
 
