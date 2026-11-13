@@ -22,13 +22,13 @@ test('disabled Firebase, vault, and cargo settings do not initialize', async () 
   process.env.FIREBASE_PRIVATE_KEY = 'disabled';
   process.env.RECEIPT_VAULT_BLOB_READ_WRITE_TOKEN = 'disabled';
   try {
-    const firebase = await import('../firebase/admin.ts');
+    const firebase = await import('../firebase/admin');
     assert.equal(firebase.isFirebaseAdminConfigured(), false);
     assert.equal(firebase.getFirebaseMessaging(), null);
-    const vault = await import('../finance/evidence/vault-store.ts');
+    const vault = await import('../finance/evidence/vault-store');
     assert.equal(vault.isVaultConfigured(), false);
     assert.throws(() => vault.vaultToken(), (error: unknown) => (error as Error).name === 'VaultNotConfiguredError');
-    const cargo = await import('../delivery/cargo-photo-store.ts');
+    const cargo = await import('../delivery/cargo-photo-store');
     assert.equal(cargo.cargoPhotoToken(), null);
   } finally {
     for (const [name, value] of Object.entries(previous)) {
@@ -48,7 +48,7 @@ test('a PEM-shaped Firebase key remains configured', async () => {
   process.env.FIREBASE_CLIENT_EMAIL = 'push@example.test';
   process.env.FIREBASE_PRIVATE_KEY = '-----BEGIN PRIVATE KEY-----\nexample\n-----END PRIVATE KEY-----';
   try {
-    const firebase = await import('../firebase/admin.ts');
+    const firebase = await import('../firebase/admin');
     assert.equal(firebase.isFirebaseAdminConfigured(), true);
   } finally {
     for (const [name, value] of Object.entries(previous)) {

@@ -23,7 +23,7 @@ if (typeof window !== 'undefined') {
 let invalidPublicConfigLogged = false;
 let pusherServerInstance: Pusher | null = null;
 
-function runtimePusherEnv(env: PusherEnvShape = process.env): PusherEnvShape {
+function runtimePusherEnv(env: NodeJS.ProcessEnv = process.env): PusherEnvShape {
   return {
     PUSHER_APP_ID: env.PUSHER_APP_ID,
     PUSHER_SECRET: env.PUSHER_SECRET,

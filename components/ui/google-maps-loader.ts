@@ -29,16 +29,6 @@ export type GooglePlacesLibrary = {
   };
 };
 
-declare global {
-  interface Window {
-    google?: {
-      maps?: {
-        importLibrary?: (name: string) => Promise<GooglePlacesLibrary>;
-      };
-    };
-  }
-}
-
 function installBootstrap(apiKey: string) {
   if (window.google?.maps?.importLibrary) return;
   const options: Record<string, string> = { key: apiKey, v: 'weekly', language: 'nl' };

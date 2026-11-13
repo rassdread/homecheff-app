@@ -130,7 +130,7 @@ test('importing the pusher module does not connect when configuration is absent'
   delete process.env.NEXT_PUBLIC_PUSHER_KEY;
   delete process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
   try {
-    const pusher = await import('./pusher.ts');
+    const pusher = await import('./pusher');
     assert.throws(
       () => pusher.pusherServer.trigger('private-delivery-user', 'notification', { ok: true }),
       (error) => error instanceof pusher.PusherUnavailableError && error.code === 'PUSHER_DISABLED',

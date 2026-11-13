@@ -45,7 +45,7 @@ export function serverDistanceMatrixKey(env: NodeJS.ProcessEnv = process.env): s
   return configuredMapsKey(env.GOOGLE_MAPS_API_KEY);
 }
 
-export function browserPlacesKey(env: { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?: string }): string {
+export function browserPlacesKey(env: NodeJS.ProcessEnv = process.env): string {
   return configuredMapsKey(env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
 }
 

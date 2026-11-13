@@ -66,7 +66,7 @@ export async function readCargoObject(objectKey: string): Promise<{ stream: Read
         readFile(`${file}.type`, 'utf8'),
       ]);
       return {
-        stream: new Blob([body]).stream(),
+        stream: new Blob([new Uint8Array(body)]).stream(),
         contentType: contentType.trim() || 'application/octet-stream',
       };
     } catch {

@@ -227,7 +227,7 @@ export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
     items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
-  const authorIds = [...new Set(items.map((it) => it.user.id))];
+  const authorIds = [...new Set(items.map((it) => it.user.id).filter((id): id is string => typeof id === 'string'))];
   const badgeMap = await fetchAuthorBadgeSummariesByUserIds(authorIds, 2);
   const trustBundles = await fetchSellerTrustBundles(authorIds, badgeMap);
   items = items.map((it) => ({
