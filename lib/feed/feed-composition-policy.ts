@@ -263,6 +263,23 @@ export function interleaveSaleInspirationRows<TSale, TInsp>(input: {
 }
 
 /**
+ * Seeds for a repeat round are the items already on screen.
+ * A short stored history must not collapse that set into the two-item alternation.
+ */
+export function mergeRecircSeeds(
+  history: readonly RecircSeedItem[],
+  visible: readonly RecircSeedItem[],
+): RecircSeedItem[] {
+  const byId = new Map<string, RecircSeedItem>();
+  for (const seed of [...history, ...visible]) {
+    const id = seed.id?.trim();
+    if (!id || byId.has(id)) continue;
+    byId.set(id, { ...seed, id });
+  }
+  return [...byId.values()];
+}
+
+/**
  * Build a recirculation batch from previously shown eligible items.
  *
  * Inventory contract:
@@ -337,9 +354,10 @@ export function buildRecirculationBatch(input: {
     }
     for (const { seed } of scored) {
       if (seed.id === lastId) continue;
+      if (recentSet.has(seed.id) && scored.length > minSpacing) continue;
       return seed;
     }
-    return scored[0]?.seed ?? null;
+    return null;
   };
 
   for (let i = 0; i < take; i++) {

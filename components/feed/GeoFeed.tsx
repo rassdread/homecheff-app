@@ -271,6 +271,7 @@ import {
   FEED_RECIRC_BATCH_SIZE,
   FEED_RECIRC_MIN_SEED,
   buildRecirculationBatch,
+  mergeRecircSeeds,
   composeProgressiveNearbySalePool,
   inspirationEligibleForFeedScope,
   resolveInspirationCompositionScope,
@@ -3604,21 +3605,18 @@ export default function GeoFeed({
     if (!approaching && !comp.recirculationActive) return;
     if (comp.uniqueEligibleCount < FEED_RECIRC_MIN_SEED) return;
 
-    let seeds: RecircSeedItem[] = comp.displayedHistory;
-    if (seeds.length < FEED_RECIRC_MIN_SEED) {
-      seeds = [
-        ...itemsRef.current.map((row) => ({
-          id: row.id,
-          kind: (isMarketplaceSaleItem(row) ? "sale" : "insp") as
-            | "sale"
-            | "insp",
-        })),
-        ...inspiratiePoolRef.current.map((row) => ({
-          id: row.id,
-          kind: "insp" as const,
-        })),
-      ];
-    }
+    const seeds = mergeRecircSeeds(comp.displayedHistory, [
+      ...itemsRef.current.map((row) => ({
+        id: row.id,
+        kind: (isMarketplaceSaleItem(row) ? "sale" : "insp") as
+          | "sale"
+          | "insp",
+      })),
+      ...inspiratiePoolRef.current.map((row) => ({
+        id: row.id,
+        kind: "insp" as const,
+      })),
+    ]);
     const batch = buildRecirculationBatch({
       seeds,
       recentIds: comp.recentIds,
@@ -3900,24 +3898,19 @@ export default function GeoFeed({
           : lastRow.row === "sale"
             ? lastRow.item.id
             : lastRow.slot.item.id;
-        let seeds: RecircSeedItem[] = comp.displayedHistory;
-        if (seeds.length < FEED_RECIRC_MIN_SEED) {
-          seeds = [
-            ...itemsRef.current.map((row) => ({
-              id: row.id,
-              kind: (isMarketplaceSaleItem(row) ? "sale" : "insp") as
-                | "sale"
-                | "insp",
-            })),
-            ...inspiratiePoolRef.current.map((row) => ({
-              id: row.id,
-              kind: "insp" as const,
-            })),
-          ];
-        }
-        const batch =
-          prepared ??
-          buildRecirculationBatch({
+        const seeds = mergeRecircSeeds(comp.displayedHistory, [
+          ...itemsRef.current.map((row) => ({
+            id: row.id,
+            kind: (isMarketplaceSaleItem(row) ? "sale" : "insp") as
+              | "sale"
+              | "insp",
+          })),
+          ...inspiratiePoolRef.current.map((row) => ({
+            id: row.id,
+            kind: "insp" as const,
+          })),
+        ]);
+        const batch = buildRecirculationBatch({
             seeds,
             recentIds: comp.recentIds,
             lastDisplayedId: lastId,
