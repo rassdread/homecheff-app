@@ -11,6 +11,12 @@ import {
   mapDishToDiscoveryReadModel,
 } from '@/lib/discovery';
 import { INSPIRATION_LISTING_KIND } from '@/lib/marketplace/contracts/listing-kind-contract';
+import { inspirationEligibleForFeedScope } from '@/lib/feed/feed-composition-policy';
+import {
+  INSPIRATION_FEED_PAGE_TAKE,
+  decodeInspirationCursor,
+  encodeInspirationCursor,
+} from '@/lib/feed/inspiration-feed-page';
 
 export type GetInspiratieOptions = {
   category?: string | null;
@@ -20,6 +26,12 @@ export type GetInspiratieOptions = {
   take?: number;
   skip?: number;
   q?: string | null;
+  /** Feed discovery scope. When set, pagination is a keyset cursor instead of skip. */
+  feedScope?: 'nearby' | 'national' | 'international' | null;
+  cursor?: string | null;
+  viewerLat?: number | null;
+  viewerLng?: number | null;
+  radiusKm?: number | null;
 };
 
 export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
@@ -30,9 +42,14 @@ export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
   if (region && region !== 'all') where.tags = { has: region };
   if (q?.trim()) Object.assign(where, buildDishTextSearchWhere(q.trim()));
 
-  const dishes = await prisma.dish.findMany({
-    where,
-    select: {
+  const discoveryScope = options.feedScope;
+  const pageTake = discoveryScope
+    ? Math.min(Math.max(take || INSPIRATION_FEED_PAGE_TAKE, 1), INSPIRATION_FEED_PAGE_TAKE)
+    : take;
+  let hasMore = false;
+  let nextCursor: string | null = null;
+
+  const dishSelect = {
       id: true,
       title: true,
       description: true,
@@ -64,13 +81,72 @@ export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
       videos: {
         select: { id: true, url: true, thumbnail: true, duration: true },
       },
-    },
-    orderBy: { createdAt: 'desc' },
-    skip,
-    take,
-  });
+  };
 
-  if (dishes.length === 0) return { items: [] };
+  let dishes;
+  if (discoveryScope) {
+    const cursor = decodeInspirationCursor(options.cursor);
+    const keyset = cursor
+      ? {
+          OR: [
+            { createdAt: { lt: new Date(cursor.createdAt) } },
+            {
+              AND: [
+                { createdAt: new Date(cursor.createdAt) },
+                { id: { lt: cursor.id } },
+              ],
+            },
+          ],
+        }
+      : null;
+    const scanned = await prisma.dish.findMany({
+      where: keyset ? { AND: [where, keyset] } : where,
+      select: dishSelect,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: pageTake + 1,
+    });
+    hasMore = scanned.length > pageTake;
+    const window = hasMore ? scanned.slice(0, pageTake) : scanned;
+    const last = window[window.length - 1];
+    nextCursor =
+      hasMore && last
+        ? encodeInspirationCursor({
+            createdAt: last.createdAt.toISOString(),
+            id: last.id,
+          })
+        : null;
+    const viewer =
+      typeof options.viewerLat === 'number' &&
+      typeof options.viewerLng === 'number'
+        ? { lat: options.viewerLat, lng: options.viewerLng }
+        : null;
+    dishes = window.filter((dish) => {
+      const lat = dish.lat ?? dish.user.lat ?? null;
+      const lng = dish.lng ?? dish.user.lng ?? null;
+      return inspirationEligibleForFeedScope({
+        scope: discoveryScope,
+        item: {
+          lat,
+          lng,
+          place: dish.place ?? dish.user.place ?? null,
+        },
+        viewer,
+        radiusKm: options.radiusKm ?? 0,
+      });
+    });
+  } else {
+    const scanned = await prisma.dish.findMany({
+      where,
+      select: dishSelect,
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: pageTake + 1,
+    });
+    hasMore = scanned.length > pageTake;
+    dishes = hasMore ? scanned.slice(0, pageTake) : scanned;
+  }
+
+  if (dishes.length === 0) return { items: [], hasMore, nextCursor };
 
   const dishIds = dishes.map((d) => d.id);
   const [viewCounts, propsCounts, reviewCounts, avgRatings] = await Promise.all([
@@ -168,5 +244,5 @@ export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
     },
   }));
 
-  return { items };
+  return { items, hasMore, nextCursor };
 }

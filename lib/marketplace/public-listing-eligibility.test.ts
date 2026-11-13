@@ -79,5 +79,33 @@ describe('public-listing-eligibility SoT', () => {
       }),
       true,
     );
+    assert.equal(isCertificationFixtureUser({ email: 'a@b.com', bio: null }), false);
+    assert.equal(isCertificationFixtureUser({ email: 'a@b.com', bio: '' }), false);
+  });
+
+  it('keeps a missing seller bio public in the SQL filter', () => {
+    const where = publicListingEligibilityWhere();
+    const json = JSON.stringify(where);
+    assert.match(json, /"bio":null/);
+    assert.match(json, /"bio":""/);
+    const emailNot = json.slice(0, json.indexOf('"bio":null'));
+    assert.equal(emailNot.includes('certificationFixture=true'), false);
+    assert.equal(
+      isListingPubliclyDiscoverable({
+        isActive: true,
+        integrityStatus: 'ACTIVE',
+        sellerEmail: 'real@example.com',
+        sellerBio: null,
+      }),
+      true,
+    );
+    assert.equal(
+      isListingPubliclyDiscoverable({
+        isActive: true,
+        integrityStatus: 'ACTIVE',
+        sellerBio: 'certificationFixture=true',
+      }),
+      false,
+    );
   });
 });

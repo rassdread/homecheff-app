@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   appendPersonalRef,
+  dedupeAuthorizedMemberships,
   resolveShareMode,
   shareUrlHasPersonalRef,
   shareUrlIsCompanyTracking,
@@ -65,6 +66,41 @@ describe('resolveShareMode precedence', () => {
       hasPersonalAffiliate: false,
     });
     assert.deepEqual(mode, { kind: 'plain' });
+  });
+});
+
+describe('authorized organization memberships', () => {
+  it('keeps one row per organization id and drops inactive memberships', () => {
+    const rows = dedupeAuthorizedMemberships([
+      {
+        organizationId: 'org-1',
+        companyName: 'Atelier Noord',
+        role: 'OWNER',
+        status: 'ACTIVE',
+      },
+      {
+        organizationId: 'org-1',
+        companyName: 'Atelier Noord',
+        role: 'MARKETER',
+        status: 'ACTIVE',
+      },
+      {
+        organizationId: 'org-2',
+        companyName: 'Atelier Noord',
+        role: 'OWNER',
+        status: 'ACTIVE',
+      },
+      {
+        organizationId: 'org-3',
+        companyName: 'Gestopt',
+        role: 'OWNER',
+        status: 'REMOVED',
+      },
+    ]);
+    assert.deepEqual(
+      rows.map((row) => row.organizationId),
+      ['org-1', 'org-2'],
+    );
   });
 });
 

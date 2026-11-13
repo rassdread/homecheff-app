@@ -2,13 +2,14 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { Share2 } from 'lucide-react';
-import { useSession } from 'next-auth/react';
 import { useMarketplaceShareContext } from '@/hooks/useMarketplaceShareContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import AffiliatePromoteChooser from '@/components/share/AffiliatePromoteChooser';
 import HomecheffVisibleShareSheet from '@/components/share/HomecheffVisibleShareSheet';
 import { useOverlayHistoryBack } from '@/hooks/useOverlayHistoryBack';
 import { createPortal } from 'react-dom';
+import { invokeNativeShareOnce } from '@/lib/share/exactly-once-share';
+import { toAbsolutePublicUrl } from '@/lib/share/listing-share';
 
 interface ShareButtonProps {
   url: string;
@@ -22,13 +23,12 @@ interface ShareButtonProps {
 export default function ShareButton({
   url,
   title,
-  description,
+  description: _description,
   className,
   surface = 'detail',
   imageUrl = null,
 }: ShareButtonProps) {
   const { t, isReady } = useTranslation();
-  const { data: session } = useSession();
   const [chooserOpen, setChooserOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
@@ -38,15 +38,11 @@ export default function ShareButton({
 
   const {
     memberships,
-    loading: contextLoading,
-    needsContextChoice,
     setSharePreference,
     resolveShareUrl,
   } = useMarketplaceShareContext();
 
   useOverlayHistoryBack('detail-share-chooser', chooserOpen, () => setChooserOpen(false));
-
-  const shareReady = !session?.user?.email || !contextLoading;
 
   const openResolvedSheet = useCallback(
     async (force?: { mode: 'personal' | 'company'; organizationId?: string }) => {
@@ -72,19 +68,24 @@ export default function ShareButton({
       <button
         ref={triggerRef}
         type="button"
-        disabled={busy || !shareReady}
+        disabled={busy}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          if (busy || !shareReady || inFlightRef.current) return;
-          if (needsContextChoice) {
-            setChooserOpen(true);
-            return;
-          }
+          if (busy || inFlightRef.current) return;
+          const absolute = toAbsolutePublicUrl(url);
           inFlightRef.current = true;
-          void openResolvedSheet().finally(() => {
-            inFlightRef.current = false;
-          });
+          setBusy(true);
+          void invokeNativeShareOnce({ title, text: title, url: absolute })
+            .then((native) => {
+              if (native.ok || native.method === 'cancelled' || native.method === 'busy') return;
+              setSheetUrl(absolute);
+              setSheetOpen(true);
+            })
+            .finally(() => {
+              inFlightRef.current = false;
+              setBusy(false);
+            });
         }}
         aria-label={isReady ? t('share.via') : 'Delen'}
         className={`
@@ -98,6 +99,19 @@ export default function ShareButton({
         <Share2 className="w-5 h-5 shrink-0" aria-hidden />
         <span>{isReady ? t('share.button') : 'Delen'}</span>
       </button>
+      {memberships.length > 0 ? (
+        <button
+          type="button"
+          className="mt-2 text-sm font-semibold text-emerald-800 underline"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setChooserOpen(true);
+          }}
+        >
+          Promoot
+        </button>
+      ) : null}
 
       {chooserOpen && typeof document !== 'undefined'
         ? createPortal(
@@ -137,7 +151,6 @@ export default function ShareButton({
         }}
         url={sheetUrl}
         shareTitle={title}
-        shareText={description || title}
         itemImageUrl={imageUrl}
       />
     </div>

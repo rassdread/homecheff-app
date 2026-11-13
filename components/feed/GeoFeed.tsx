@@ -271,6 +271,7 @@ import {
   FEED_RECIRC_BATCH_SIZE,
   FEED_RECIRC_MIN_SEED,
   buildRecirculationBatch,
+  mergeRecircSeeds,
   composeProgressiveNearbySalePool,
   inspirationEligibleForFeedScope,
   resolveInspirationCompositionScope,
@@ -293,6 +294,10 @@ import {
   discoveryWindowCanContinue,
   resolveDiscoveryFetch,
 } from "@/lib/feed/discovery-continuity";
+import {
+  INSPIRATION_FEED_PAGE_TAKE,
+  inspirationCursorAdvanced,
+} from "@/lib/feed/inspiration-feed-page";
 import { isLocalFeedItem } from "@/lib/geo/feed-radius-filter";
 import {
   composedFeedCanContinue,
@@ -1250,6 +1255,8 @@ export default function GeoFeed({
   const requestInFlightStateRef = useRef(false);
   const [requestInFlight, setRequestInFlight] = useState(false);
   const [feedHasMore, setFeedHasMore] = useState(false);
+  const [feedLoadFailed, setFeedLoadFailed] = useState(false);
+  const [feedRetry, setFeedRetry] = useState(0);
   const [feedLoadingMore, setFeedLoadingMore] = useState(false);
   const feedLoadMoreRef = useRef<HTMLDivElement | null>(null);
   /** Prevents repeat auto-kick of broadened page 0 for the same requestKey. */
@@ -1322,6 +1329,13 @@ export default function GeoFeed({
   const [feedHydrated, setFeedHydrated] = useState(false);
   const itemsRef = useRef<FeedItem[]>([]);
   const inspiratiePoolRef = useRef<InspirationItem[]>(initialInspiratieItems);
+  const inspirationCursorRef = useRef<string | null>(null);
+  const inspirationHasMoreRef = useRef(false);
+  const inspirationScopeRef = useRef("national");
+  const continueInspirationRef = useRef<
+    (signal: AbortSignal, replace: boolean) => Promise<boolean>
+  >(async () => false);
+  const [inspirationScopeEpoch, setInspirationScopeEpoch] = useState(0);
   const apiViewerCoordsRef = useRef<ViewerCoords | null>(null);
   const discoveryFeedRef = useRef<DiscoveryFeedPayload | null>(null);
   const nativeFeedRenderMoreRef = useRef(false);
@@ -1814,12 +1828,14 @@ export default function GeoFeed({
     sortOrder,
   ]);
 
+  const initialInspiratieRef = useRef(initialInspiratieItems);
   useEffect(() => {
     if (feedRestoredFromCacheRef.current) return;
+    if (initialInspiratieRef.current.length === 0) return;
     startTransition(() => {
-      setInspiratiePool(initialInspiratieItems);
+      setInspiratiePool(initialInspiratieRef.current);
     });
-  }, [initialInspiratieItems]);
+  }, []);
 
   useEffect(() => {
     itemsRef.current = items;
@@ -2707,7 +2723,11 @@ export default function GeoFeed({
       itemsRef.current = cached.items as FeedItem[];
       setItems(cached.items as FeedItem[]);
       setDiscoveryFeed(cached.discoveryFeed ?? null);
-      setInspiratiePool(cached.inspiratiePool);
+      setInspiratiePool((current) =>
+        current.length > (cached.inspiratiePool?.length ?? 0)
+          ? current
+          : (cached.inspiratiePool as InspirationItem[]),
+      );
       const nextRecirc = (restored.recirculatedRows ||
         []) as typeof recirculatedRows;
       recirculatedRowsRef.current = nextRecirc;
@@ -2910,6 +2930,7 @@ export default function GeoFeed({
           if (!joined?.ok || !joined.json || typeof joined.json !== "object") {
             setDiscoveryFeed(null);
             setFeedHasMore(false);
+            setFeedLoadFailed(true);
             setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
             return;
           }
@@ -2923,9 +2944,11 @@ export default function GeoFeed({
         if (!data) {
           setDiscoveryFeed(null);
           setFeedHasMore(false);
+          setFeedLoadFailed(true);
           setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
           return;
         }
+        setFeedLoadFailed(false);
         {
           if (cancelled) return;
           // Reject late responses from a previous scope/radius/coords selection.
@@ -3241,7 +3264,8 @@ export default function GeoFeed({
     appliedCategory,
     browseCountryCode,
     browseLocationMode,
-    commitCompositionState
+    commitCompositionState,
+    feedRetry,
   ]);
 
   useEffect(() => {
@@ -3593,21 +3617,18 @@ export default function GeoFeed({
     if (!approaching && !comp.recirculationActive) return;
     if (comp.uniqueEligibleCount < FEED_RECIRC_MIN_SEED) return;
 
-    let seeds: RecircSeedItem[] = comp.displayedHistory;
-    if (seeds.length < FEED_RECIRC_MIN_SEED) {
-      seeds = [
-        ...itemsRef.current.map((row) => ({
-          id: row.id,
-          kind: (isMarketplaceSaleItem(row) ? "sale" : "insp") as
-            | "sale"
-            | "insp",
-        })),
-        ...inspiratiePoolRef.current.map((row) => ({
-          id: row.id,
-          kind: "insp" as const,
-        })),
-      ];
-    }
+    const seeds = mergeRecircSeeds(comp.displayedHistory, [
+      ...itemsRef.current.map((row) => ({
+        id: row.id,
+        kind: (isMarketplaceSaleItem(row) ? "sale" : "insp") as
+          | "sale"
+          | "insp",
+      })),
+      ...inspiratiePoolRef.current.map((row) => ({
+        id: row.id,
+        kind: "insp" as const,
+      })),
+    ]);
     const batch = buildRecirculationBatch({
       seeds,
       recentIds: comp.recentIds,
@@ -3677,9 +3698,40 @@ export default function GeoFeed({
     }
 
     const comp = compositionStateRef.current;
-    if (comp.emptyTerminal) {
+    if (comp.emptyTerminal && !inspirationHasMoreRef.current) {
       setFeedHasMore(false);
       return;
+    }
+
+    if (inspirationHasMoreRef.current) {
+      feedLoadingMoreRef.current = true;
+      setFeedLoadingMore(true);
+      try {
+        const progressed = await continueInspirationRef.current(
+          new AbortController().signal,
+          false,
+        );
+        if (progressed || inspirationHasMoreRef.current) {
+          feedHasMoreRef.current = true;
+          setFeedHasMore(true);
+          if (
+            progressed &&
+            inspirationHasMoreRef.current &&
+            inspiratiePoolRef.current.length === 0
+          ) {
+            window.setTimeout(() => {
+              feedHasMoreRef.current = true;
+              void loadMoreFeedRef.current?.();
+            }, 40);
+          } else if (progressed) {
+            queueNearEndContinuation(80);
+          }
+          return;
+        }
+      } finally {
+        feedLoadingMoreRef.current = false;
+        setFeedLoadingMore(false);
+      }
     }
 
     /**
@@ -3867,12 +3919,9 @@ export default function GeoFeed({
 
     const shouldRecirculate = shouldActivateRecirculation(comp);
 
-    if (shouldRecirculate && discoveryConstraintActiveRef.current) {
-      feedHasMoreRef.current = false;
-      setFeedHasMore(false);
-      return;
-    }
-
+    // A location, search, or category constraint still shows the continuity
+    // band. It must not end the feed: recirculation repeats already shown
+    // eligible items with the existing spacing rules.
     if (shouldRecirculate) {
       if (recirculationInFlightRef.current) return;
       recirculationInFlightRef.current = true;
@@ -3892,24 +3941,19 @@ export default function GeoFeed({
           : lastRow.row === "sale"
             ? lastRow.item.id
             : lastRow.slot.item.id;
-        let seeds: RecircSeedItem[] = comp.displayedHistory;
-        if (seeds.length < FEED_RECIRC_MIN_SEED) {
-          seeds = [
-            ...itemsRef.current.map((row) => ({
-              id: row.id,
-              kind: (isMarketplaceSaleItem(row) ? "sale" : "insp") as
-                | "sale"
-                | "insp",
-            })),
-            ...inspiratiePoolRef.current.map((row) => ({
-              id: row.id,
-              kind: "insp" as const,
-            })),
-          ];
-        }
-        const batch =
-          prepared ??
-          buildRecirculationBatch({
+        const seeds = mergeRecircSeeds(comp.displayedHistory, [
+          ...itemsRef.current.map((row) => ({
+            id: row.id,
+            kind: (isMarketplaceSaleItem(row) ? "sale" : "insp") as
+              | "sale"
+              | "insp",
+          })),
+          ...inspiratiePoolRef.current.map((row) => ({
+            id: row.id,
+            kind: "insp" as const,
+          })),
+        ]);
+        const batch = buildRecirculationBatch({
             seeds,
             recentIds: comp.recentIds,
             lastDisplayedId: lastId,
@@ -4426,63 +4470,137 @@ export default function GeoFeed({
     compositionState.emptyTerminal,
   ]);
 
+  const continueInspiration = useCallback(
+    async (signal: AbortSignal, replace: boolean) => {
+      if (!replace && !inspirationHasMoreRef.current) return false;
+      const previous = replace ? null : inspirationCursorRef.current;
+      const scope =
+        inspirationScopeRef.current ||
+        (appliedScope === FEED_SCOPE_NEARBY && !nearbyNeedsLocation
+          ? "national"
+          : appliedScope);
+      const inspParams = new URLSearchParams({
+        take: String(INSPIRATION_FEED_PAGE_TAKE),
+        sortBy: "newest",
+        category: buildInspiratieCategoryParam(appliedCategory),
+        feedScope: scope,
+      });
+      if (appliedQ.trim()) inspParams.set("q", appliedQ.trim());
+      if (previous) inspParams.set("cursor", previous);
+      if (scope === FEED_SCOPE_NEARBY && effectiveViewerForDistance) {
+        inspParams.set("lat", String(effectiveViewerForDistance.lat));
+        inspParams.set("lng", String(effectiveViewerForDistance.lng));
+        inspParams.set("radiusKm", String(appliedRadius));
+      }
+      try {
+        const inspRes = await fetch(`/api/inspiratie?${inspParams.toString()}`, {
+          signal,
+          cache: "no-store",
+        });
+        if (!inspRes.ok) return false;
+        let inspData: {
+          items?: unknown;
+          hasMore?: unknown;
+          nextCursor?: unknown;
+        };
+        try {
+          inspData = await inspRes.json();
+        } catch {
+          reportAppDiagnostic("feed_inspiration_json_invalid", {});
+          return false;
+        }
+        if (signal.aborted) return false;
+        const page = Array.isArray(inspData.items)
+          ? (inspData.items as InspirationItem[])
+          : [];
+        const nextCursor =
+          typeof inspData.nextCursor === "string" ? inspData.nextCursor : null;
+        const hasMore = inspirationCursorAdvanced(
+          previous,
+          nextCursor,
+          inspData.hasMore === true,
+        );
+        inspirationCursorRef.current = hasMore ? nextCursor : null;
+        inspirationHasMoreRef.current = hasMore;
+        const fresh = page.filter(
+          (item) => item && typeof item.id === "string" && item.id.trim() !== "",
+        );
+        if (replace) {
+          inspiratiePoolRef.current = fresh;
+          setInspiratiePool(fresh);
+        } else if (fresh.length > 0) {
+          const seen = new Set(inspiratiePoolRef.current.map((item) => item.id));
+          const merged = [...inspiratiePoolRef.current];
+          for (const item of fresh) {
+            if (seen.has(item.id)) continue;
+            seen.add(item.id);
+            merged.push(item);
+          }
+          inspiratiePoolRef.current = merged;
+          setInspiratiePool(merged);
+        }
+        return hasMore || fresh.length > 0;
+      } catch (error) {
+        if ((error as Error)?.name === "AbortError") return false;
+        console.error("[GeoFeed] deferred inspiratie fetch failed", error);
+        return false;
+      }
+    },
+    [
+      appliedCategory,
+      appliedQ,
+      appliedRadius,
+      appliedScope,
+      effectiveViewerForDistance,
+      nearbyNeedsLocation,
+    ],
+  );
+
+  useEffect(() => {
+    continueInspirationRef.current = continueInspiration;
+  }, [continueInspiration]);
+
   useEffect(() => {
     if (feedStartupBlocked || !feedHydrated) return;
     if (loading && itemsRef.current.length === 0) return;
-    const inspKey = `${appliedCategory}|${appliedQ.trim()}`;
+    const inspKey = `${appliedCategory}|${appliedQ.trim()}|${inspirationScopeEpoch}`;
     if (
+      inspirationScopeEpoch === 0 &&
       inspiratiePoolRef.current.length > 0 &&
       lastInspiratieFetchKeyRef.current === inspKey
     ) {
       return;
     }
     lastInspiratieFetchKeyRef.current = inspKey;
-
+    inspirationCursorRef.current = null;
+    inspirationHasMoreRef.current = true;
     const ac = new AbortController();
-    const run = async () => {
-      const inspCategory = buildInspiratieCategoryParam(appliedCategory);
-      const inspParams = new URLSearchParams({
-        take: "48",
-        sortBy: "newest",
-        category: inspCategory,
-      });
-      if (appliedQ.trim()) {
-        inspParams.set("q", appliedQ.trim());
+    void continueInspiration(ac.signal, true).then(() => {
+      if (ac.signal.aborted) return;
+      if (inspirationHasMoreRef.current) {
+        feedHasMoreRef.current = true;
+        setFeedHasMore(true);
       }
-      try {
-        const inspRes = await fetch(
-          `/api/inspiratie?${inspParams.toString()}`,
-          { signal: ac.signal, cache: "no-store" },
-        );
-        if (!inspRes.ok) return;
-        let inspData: { items?: unknown };
-        try {
-          inspData = await inspRes.json();
-        } catch {
-          reportAppDiagnostic("feed_inspiration_json_invalid", {});
-          return;
-        }
-        if (Array.isArray(inspData.items) && inspData.items.length > 0) {
-          const pool = inspData.items as InspirationItem[];
-          const withIds = pool.filter(
-            (it) => it && typeof it.id === "string" && it.id.trim() !== "",
-          );
-          setInspiratiePool(withIds);
-        }
-      } catch (error) {
-        if ((error as Error)?.name === "AbortError") return;
-        console.error("[GeoFeed] deferred inspiratie fetch failed", error);
+      if (
+        inspirationHasMoreRef.current &&
+        inspiratiePoolRef.current.length === 0
+      ) {
+        window.setTimeout(() => {
+          if (ac.signal.aborted || !inspirationHasMoreRef.current) return;
+          feedHasMoreRef.current = true;
+          void loadMoreFeedRef.current?.();
+        }, 80);
       }
-    };
-    void run();
+    });
     return () => ac.abort();
   }, [
     feedStartupBlocked,
     feedHydrated,
     loading,
-    nearbyNeedsLocation,
     appliedCategory,
     appliedQ,
+    inspirationScopeEpoch,
+    continueInspiration,
   ]);
 
   const activeFeedItems = useMemo(
@@ -4664,6 +4782,14 @@ export default function GeoFeed({
     nearbyNeedsLocation,
     localSaleCount: locationFilterActive ? localSalePool.length : undefined,
   });
+
+  useEffect(() => {
+    if (inspirationScopeRef.current === inspirationCompositionScope) return;
+    inspirationScopeRef.current = inspirationCompositionScope;
+    inspirationCursorRef.current = null;
+    inspirationHasMoreRef.current = true;
+    setInspirationScopeEpoch((epoch) => epoch + 1);
+  }, [inspirationCompositionScope]);
 
   const useSmartRanking =
     feedChip !== "sale" &&
@@ -7398,6 +7524,28 @@ export default function GeoFeed({
               </>
             );
           })()}
+          {recirculatedRows.length > 0 ? (
+            <div
+              className={feedResultsContainerClass}
+              data-testid="feed-recirculation"
+            >
+              {buildFeedGridNodes(
+                recirculatedRows as typeof feedRowsToRender,
+              )}
+            </div>
+          ) : null}
+          {feedLoadFailed && displayCount === 0 ? (
+            <div className="rounded-xl border bg-white p-4 text-sm text-gray-700">
+              <p>De feed kon niet geladen worden.</p>
+              <button
+                type="button"
+                className="mt-3 inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                onClick={() => setFeedRetry((n) => n + 1)}
+              >
+                Opnieuw proberen
+              </button>
+            </div>
+          ) : null}
           {feedHasMore ? (
             <div
               ref={feedLoadMoreRef}

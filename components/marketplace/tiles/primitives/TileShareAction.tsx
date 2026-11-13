@@ -3,13 +3,13 @@
 import { useCallback, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Share2, Check } from 'lucide-react';
-import { useSession } from 'next-auth/react';
 import { useMarketplaceShareContext } from '@/hooks/useMarketplaceShareContext';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cardActionBoundaryProps } from '@/lib/ui/card-action-boundary';
 import {
   toAbsolutePublicUrl,
 } from '@/lib/share/listing-share';
+import { invokeNativeShareOnce } from '@/lib/share/exactly-once-share';
 import AffiliatePromoteChooser from '@/components/share/AffiliatePromoteChooser';
 import HomecheffVisibleShareSheet from '@/components/share/HomecheffVisibleShareSheet';
 import { useOverlayHistoryBack } from '@/hooks/useOverlayHistoryBack';
@@ -31,7 +31,7 @@ type TileShareActionProps = {
 export default function TileShareAction({
   href,
   title,
-  description,
+  description: _description,
   imageUrl = null,
   baseUrl,
   surface = 'tile',
@@ -39,11 +39,8 @@ export default function TileShareAction({
   className = '',
 }: TileShareActionProps) {
   const { t, isReady } = useTranslation();
-  const { data: session } = useSession();
   const {
     memberships,
-    loading: contextLoading,
-    needsContextChoice,
     setSharePreference,
     resolveShareUrl,
   } = useMarketplaceShareContext();
@@ -56,8 +53,6 @@ export default function TileShareAction({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const inFlightRef = useRef(false);
   useOverlayHistoryBack('tile-share-chooser', chooserOpen, () => setChooserOpen(false));
-
-  const shareReady = !session?.user?.email || !contextLoading;
 
   const trackAnalytics = useCallback(
     (shareMethod: string, ok: boolean, kind?: string | null) => {
@@ -120,21 +115,27 @@ export default function TileShareAction({
     async (e: MouseEvent | KeyboardEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      if (busy || !shareReady || inFlightRef.current) return;
-      if (needsContextChoice) {
-        setChooserOpen(true);
-        return;
-      }
+      if (busy || inFlightRef.current) return;
+      const absolute = toAbsolutePublicUrl(href, baseUrl);
       inFlightRef.current = true;
       setBusy(true);
       try {
-        await resolveAndShare();
+        const native = await invokeNativeShareOnce({
+          title,
+          text: title,
+          url: absolute,
+        });
+        trackAnalytics('native', native.ok, 'plain');
+        if (native.ok || native.method === 'cancelled' || native.method === 'busy') return;
+        setSheetUrl(absolute);
+        setSheetOpen(true);
+        trackAnalytics('panel', true, 'plain');
       } finally {
         inFlightRef.current = false;
         setBusy(false);
       }
     },
-    [busy, needsContextChoice, resolveAndShare, shareReady],
+    [baseUrl, busy, href, title, trackAnalytics],
   );
 
   const chooserPortal =
@@ -184,7 +185,7 @@ export default function TileShareAction({
         ref={triggerRef}
         type="button"
         onClick={onShare}
-        disabled={busy || !shareReady}
+        disabled={busy}
         aria-label={copied ? (isReady ? t('share.copied') : 'Link gekopieerd') : isReady ? t('share.shareItem') : 'Delen'}
         title={copied ? (isReady ? t('share.copied') : 'Link gekopieerd') : isReady ? t('share.shareItem') : 'Delen'}
         className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-md ring-1 ring-white/80 backdrop-blur-sm transition-colors hover:bg-white hover:text-secondary-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-brand disabled:opacity-60"
@@ -197,6 +198,19 @@ export default function TileShareAction({
           <Share2 className="h-4 w-4" aria-hidden />
         )}
       </button>
+      {memberships.length > 0 ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setChooserOpen(true);
+          }}
+          className="ml-1 inline-flex h-9 items-center rounded-full bg-white/90 px-2 text-xs font-semibold text-gray-800 shadow-md ring-1 ring-white/80"
+        >
+          Promoot
+        </button>
+      ) : null}
 
       {chooserPortal}
       <HomecheffVisibleShareSheet
@@ -207,7 +221,6 @@ export default function TileShareAction({
         }}
         url={sheetUrl}
         shareTitle={title}
-        shareText={description?.trim() || title}
         itemImageUrl={imageUrl}
         onCopied={() => {
           setCopied(true);
