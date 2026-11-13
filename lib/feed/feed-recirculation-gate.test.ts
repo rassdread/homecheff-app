@@ -13,5 +13,6 @@ describe('feed recirculation is not ended by a discovery constraint', () => {
       src.includes('shouldRecirculate && discoveryConstraintActiveRef'),
       false,
     );
+    assert.equal(src.includes('data-testid="feed-recirculation"'), true);
   });
 });

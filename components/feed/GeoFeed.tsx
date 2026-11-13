@@ -7426,6 +7426,16 @@ export default function GeoFeed({
               </>
             );
           })()}
+          {recirculatedRows.length > 0 ? (
+            <div
+              className={feedResultsContainerClass}
+              data-testid="feed-recirculation"
+            >
+              {buildFeedGridNodes(
+                recirculatedRows as typeof feedRowsToRender,
+              )}
+            </div>
+          ) : null}
           {feedLoadFailed && displayCount === 0 ? (
             <div className="rounded-xl border bg-white p-4 text-sm text-gray-700">
               <p>De feed kon niet geladen worden.</p>
