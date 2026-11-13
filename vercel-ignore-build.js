@@ -29,6 +29,7 @@ const decision = decideVercelProjectIgnore({
   projectName: process.env.VERCEL_PROJECT_NAME || '',
   commitMessage: process.env.VERCEL_GIT_COMMIT_MESSAGE || '',
   changedPaths: changedPaths(),
+  gitBranch: process.env.VERCEL_GIT_COMMIT_REF || '',
 });
 
 if (decision.action === 'skip') {

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { X, Bell } from 'lucide-react';
-import { pusherClient } from '@/lib/pusher';
+import { getPusherClient, subscribeRealtimeChannel } from '@/lib/pusher';
 import { useCommsUnread } from '@/hooks/useCommsUnread';
 import { canonicalLogoPath } from '@/lib/brand/canonical-logo';
 import { parseInternalPathFromUnknownInput } from '@/lib/native/safeRoute';
@@ -113,10 +113,11 @@ export default function CommsRealtimeListener() {
 
   useEffect(() => {
     if (!userId || subscribedRef.current) return;
-    subscribedRef.current = true;
 
     const channelName = `private-delivery-${userId}`;
-    const channel = pusherClient.subscribe(channelName);
+    const channel = subscribeRealtimeChannel(getPusherClient(), channelName);
+    if (!channel) return;
+    subscribedRef.current = true;
 
     channel.bind(
       'notification',
@@ -184,7 +185,7 @@ export default function CommsRealtimeListener() {
     return () => {
       subscribedRef.current = false;
       channel.unbind_all();
-      pusherClient.unsubscribe(channelName);
+      channel.unsubscribe();
     };
   }, [userId, refresh, router, dismissToast]);
 

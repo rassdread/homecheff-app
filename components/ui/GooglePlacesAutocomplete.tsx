@@ -6,6 +6,7 @@ import {
   loadGooglePlaces,
   placePredictionToLegacy,
 } from '@/components/ui/google-maps-loader';
+import { browserPlacesKey } from '@/lib/delivery/maps-key-placement';
 import {
   placeDetailsToAddress,
   placesSearchShouldRecover,
@@ -63,7 +64,9 @@ export default function GooglePlacesAutocomplete({
 
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim();
+    const apiKey = browserPlacesKey({
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    });
     if (!apiKey) {
       setPlacesUnavailable(true);
       return;
@@ -111,7 +114,9 @@ export default function GooglePlacesAutocomplete({
     }
     searchTimerRef.current = window.setTimeout(() => {
       const requestId = ++requestIdRef.current;
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim();
+      const apiKey = browserPlacesKey({
+        NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+      });
       if (!apiKey) {
         setPlacesUnavailable(true);
         return;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { pusherServer } from '@/lib/pusher';
+import { pusherServer, PusherUnavailableError } from '@/lib/pusher';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,6 +51,14 @@ export async function POST(req: NextRequest) {
     const authResponse = pusherServer.authorizeChannel(socketId, channelName);
     return NextResponse.json(authResponse);
   } catch (error) {
+    if (error instanceof PusherUnavailableError) {
+      console.error('[Pusher Auth]', error.code);
+      const disabled = error.code === 'PUSHER_DISABLED';
+      return NextResponse.json(
+        { error: disabled ? 'realtime_disabled' : 'realtime_invalid' },
+        { status: disabled ? 503 : 500 },
+      );
+    }
     console.error('[Pusher Auth] Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

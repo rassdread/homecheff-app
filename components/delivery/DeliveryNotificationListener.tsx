@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { pusherClient } from '@/lib/pusher';
+import { getPusherClient, subscribeRealtimeChannel } from '@/lib/pusher';
 import { Bell, X, CheckCircle, Clock } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { canonicalLogoPath } from '@/lib/brand/canonical-logo';
@@ -66,7 +66,8 @@ export default function DeliveryNotificationListener() {
 
   useEffect(() => {
     if (!userId) return;
-    const channel = pusherClient.subscribe(`private-delivery-${userId}`);
+    const channel = subscribeRealtimeChannel(getPusherClient(), `private-delivery-${userId}`);
+    if (!channel) return;
     
     // Delivery-dashboard toasts only for DELIVERY_* / go-online.
     // App-wide chat/order/proposal toasts live in CommsRealtimeListener (Providers).

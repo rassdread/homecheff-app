@@ -32,8 +32,21 @@ export type MapsProductionConfig = {
   reason: MapsProductionReason;
 };
 
+const MAPS_DISABLED_SENTINEL = 'disabled';
+
+/** An empty value or the preview sentinel never becomes a Google request. */
+export function configuredMapsKey(value: string | undefined): string {
+  const trimmed = (value || '').trim();
+  if (!trimmed || trimmed.toLowerCase() === MAPS_DISABLED_SENTINEL) return '';
+  return trimmed;
+}
+
 export function serverDistanceMatrixKey(env: NodeJS.ProcessEnv = process.env): string {
-  return (env.GOOGLE_MAPS_API_KEY || '').trim();
+  return configuredMapsKey(env.GOOGLE_MAPS_API_KEY);
+}
+
+export function browserPlacesKey(env: { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?: string }): string {
+  return configuredMapsKey(env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
 }
 
 export function describeMapsKeyPlacement(env: NodeJS.ProcessEnv = process.env): MapsKeyPlacement {
@@ -58,7 +71,7 @@ export function mapsRuntime(env: NodeJS.ProcessEnv = process.env): MapsRuntime {
  */
 export function assessMapsProductionConfig(env: NodeJS.ProcessEnv = process.env): MapsProductionConfig {
   const serverKey = serverDistanceMatrixKey(env);
-  const browserKey = (env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '').trim();
+  const browserKey = browserPlacesKey(env);
   const role = (env.GOOGLE_MAPS_KEY_ROLE || '').trim();
   const serverKeyCopiedToBrowser = Boolean(serverKey && browserKey && serverKey === browserKey);
   const runtime = mapsRuntime(env);

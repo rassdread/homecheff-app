@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { calculateStripeFeeForBuyer } from '@/lib/fees';
 import { platformContribution } from './platform-contribution';
-import { assessMapsProductionConfig, describeMapsKeyPlacement, serverDistanceMatrixKey } from './maps-key-placement';
+import { assessMapsProductionConfig, browserPlacesKey, describeMapsKeyPlacement, serverDistanceMatrixKey } from './maps-key-placement';
 
 describe('certified delivery contribution', () => {
   it('matches the affiliate marketplace charge without taking the courier share', () => {
@@ -167,5 +167,12 @@ describe('distance matrix key placement', () => {
     assert.equal(assessMapsProductionConfig(production).reason, 'SERVER_KEY_EXPOSED_AS_BROWSER_KEY');
     production.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = 'browser-key';
     assert.equal(assessMapsProductionConfig(production).payable, true);
+    const disabled: NodeJS.ProcessEnv = { NODE_ENV: 'test' };
+    disabled.GOOGLE_MAPS_API_KEY = 'disabled';
+    disabled.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = 'disabled';
+    assert.equal(serverDistanceMatrixKey(disabled), '');
+    assert.equal(browserPlacesKey(disabled), '');
+    assert.equal(describeMapsKeyPlacement(disabled).source, 'missing');
+    assert.equal(assessMapsProductionConfig(disabled).payable, false);
   });
 });
