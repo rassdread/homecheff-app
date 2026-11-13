@@ -293,6 +293,11 @@ import {
   discoveryWindowCanContinue,
   resolveDiscoveryFetch,
 } from "@/lib/feed/discovery-continuity";
+import {
+  INSPIRATION_FEED_MAX_PAGES,
+  INSPIRATION_FEED_PAGE_TAKE,
+  inspirationFeedShouldContinue,
+} from "@/lib/feed/inspiration-feed-page";
 import { isLocalFeedItem } from "@/lib/geo/feed-radius-filter";
 import {
   composedFeedCanContinue,
@@ -1250,6 +1255,8 @@ export default function GeoFeed({
   const requestInFlightStateRef = useRef(false);
   const [requestInFlight, setRequestInFlight] = useState(false);
   const [feedHasMore, setFeedHasMore] = useState(false);
+  const [feedLoadFailed, setFeedLoadFailed] = useState(false);
+  const [feedRetry, setFeedRetry] = useState(0);
   const [feedLoadingMore, setFeedLoadingMore] = useState(false);
   const feedLoadMoreRef = useRef<HTMLDivElement | null>(null);
   /** Prevents repeat auto-kick of broadened page 0 for the same requestKey. */
@@ -2910,6 +2917,7 @@ export default function GeoFeed({
           if (!joined?.ok || !joined.json || typeof joined.json !== "object") {
             setDiscoveryFeed(null);
             setFeedHasMore(false);
+            setFeedLoadFailed(true);
             setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
             return;
           }
@@ -2923,9 +2931,11 @@ export default function GeoFeed({
         if (!data) {
           setDiscoveryFeed(null);
           setFeedHasMore(false);
+          setFeedLoadFailed(true);
           setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
           return;
         }
+        setFeedLoadFailed(false);
         {
           if (cancelled) return;
           // Reject late responses from a previous scope/radius/coords selection.
@@ -3241,7 +3251,8 @@ export default function GeoFeed({
     appliedCategory,
     browseCountryCode,
     browseLocationMode,
-    commitCompositionState
+    commitCompositionState,
+    feedRetry,
   ]);
 
   useEffect(() => {
@@ -3867,12 +3878,9 @@ export default function GeoFeed({
 
     const shouldRecirculate = shouldActivateRecirculation(comp);
 
-    if (shouldRecirculate && discoveryConstraintActiveRef.current) {
-      feedHasMoreRef.current = false;
-      setFeedHasMore(false);
-      return;
-    }
-
+    // A location, search, or category constraint still shows the continuity
+    // band. It must not end the feed: recirculation repeats already shown
+    // eligible items with the existing spacing rules.
     if (shouldRecirculate) {
       if (recirculationInFlightRef.current) return;
       recirculationInFlightRef.current = true;
@@ -4441,34 +4449,54 @@ export default function GeoFeed({
     const ac = new AbortController();
     const run = async () => {
       const inspCategory = buildInspiratieCategoryParam(appliedCategory);
-      const inspParams = new URLSearchParams({
-        take: "48",
-        sortBy: "newest",
-        category: inspCategory,
-      });
-      if (appliedQ.trim()) {
-        inspParams.set("q", appliedQ.trim());
-      }
+      const collected: InspirationItem[] = [];
+      const seen = new Set<string>();
+      let skip = 0;
+      let pagesFetched = 0;
       try {
-        const inspRes = await fetch(
-          `/api/inspiratie?${inspParams.toString()}`,
-          { signal: ac.signal, cache: "no-store" },
-        );
-        if (!inspRes.ok) return;
-        let inspData: { items?: unknown };
-        try {
-          inspData = await inspRes.json();
-        } catch {
-          reportAppDiagnostic("feed_inspiration_json_invalid", {});
-          return;
-        }
-        if (Array.isArray(inspData.items) && inspData.items.length > 0) {
-          const pool = inspData.items as InspirationItem[];
-          const withIds = pool.filter(
-            (it) => it && typeof it.id === "string" && it.id.trim() !== "",
+        while (pagesFetched < INSPIRATION_FEED_MAX_PAGES) {
+          const inspParams = new URLSearchParams({
+            take: String(INSPIRATION_FEED_PAGE_TAKE),
+            skip: String(skip),
+            sortBy: "newest",
+            category: inspCategory,
+          });
+          if (appliedQ.trim()) {
+            inspParams.set("q", appliedQ.trim());
+          }
+          const inspRes = await fetch(
+            `/api/inspiratie?${inspParams.toString()}`,
+            { signal: ac.signal, cache: "no-store" },
           );
-          setInspiratiePool(withIds);
+          if (!inspRes.ok) break;
+          let inspData: { items?: unknown };
+          try {
+            inspData = await inspRes.json();
+          } catch {
+            reportAppDiagnostic("feed_inspiration_json_invalid", {});
+            break;
+          }
+          const page = Array.isArray(inspData.items)
+            ? (inspData.items as InspirationItem[])
+            : [];
+          pagesFetched += 1;
+          for (const item of page) {
+            if (!item || typeof item.id !== "string" || item.id.trim() === "") continue;
+            if (seen.has(item.id)) continue;
+            seen.add(item.id);
+            collected.push(item);
+          }
+          skip += page.length;
+          if (
+            !inspirationFeedShouldContinue({
+              pageLength: page.length,
+              pagesFetched,
+            })
+          ) {
+            break;
+          }
         }
+        if (collected.length > 0) setInspiratiePool(collected);
       } catch (error) {
         if ((error as Error)?.name === "AbortError") return;
         console.error("[GeoFeed] deferred inspiratie fetch failed", error);
@@ -7398,6 +7426,18 @@ export default function GeoFeed({
               </>
             );
           })()}
+          {feedLoadFailed && displayCount === 0 ? (
+            <div className="rounded-xl border bg-white p-4 text-sm text-gray-700">
+              <p>De feed kon niet geladen worden.</p>
+              <button
+                type="button"
+                className="mt-3 inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                onClick={() => setFeedRetry((n) => n + 1)}
+              >
+                Opnieuw proberen
+              </button>
+            </div>
+          ) : null}
           {feedHasMore ? (
             <div
               ref={feedLoadMoreRef}
