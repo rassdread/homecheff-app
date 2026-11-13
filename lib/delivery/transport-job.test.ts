@@ -88,7 +88,10 @@ test('cargo photos are private and typed', () => {
   assert.equal(validateCargoPhoto({ mimeType: 'image/png', sizeBytes: 9 * 1024 * 1024 }).ok, false);
   assert.equal(canReadCargoPhoto({ ownerUserId: 'buyer', viewerUserId: 'buyer', courierUserId: 'courier', paid: false }), true);
   assert.equal(canReadCargoPhoto({ ownerUserId: 'buyer', viewerUserId: 'courier', courierUserId: 'courier', paid: false }), false);
+  assert.equal(canReadCargoPhoto({ ownerUserId: 'buyer', viewerUserId: 'courier', courierUserId: 'courier', paid: false, assigned: true }), true);
   assert.equal(canReadCargoPhoto({ ownerUserId: 'buyer', viewerUserId: 'courier', courierUserId: 'courier', paid: true }), true);
+  assert.equal(canReadCargoPhoto({ ownerUserId: 'buyer', viewerUserId: 'courier', courierUserId: 'courier', paid: true, assigned: true, closed: true }), false);
+  assert.equal(canReadCargoPhoto({ ownerUserId: 'buyer', viewerUserId: 'other', courierUserId: 'courier', paid: false, assigned: true }), false);
   assert.equal(canReadCargoPhoto({ ownerUserId: 'buyer', viewerUserId: 'stranger', courierUserId: 'courier', paid: true }), false);
 });
 

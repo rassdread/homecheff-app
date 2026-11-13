@@ -4,9 +4,20 @@
  * No URL is returned to the browser.
  */
 import { randomUUID } from 'crypto';
+import { mkdir, readFile, unlink, writeFile } from 'fs/promises';
+import path from 'path';
 import { del, get, put } from '@vercel/blob';
 
 const KEY_PREFIX = 'cargo';
+
+function localPhotoDir(): string | null {
+  const dir = process.env.CARGO_PHOTO_LOCAL_DIR?.trim();
+  return dir || null;
+}
+
+function localPhotoPath(objectKey: string): string {
+  return path.join(localPhotoDir() || '', objectKey);
+}
 
 export function cargoPhotoToken(): string | null {
   return process.env.RECEIPT_VAULT_BLOB_READ_WRITE_TOKEN?.trim() || null;
@@ -21,6 +32,15 @@ export function isCargoObjectKey(key: string): boolean {
 }
 
 export async function putCargoObject(input: { objectKey: string; body: Buffer; contentType: string }): Promise<void> {
+  if (!isCargoObjectKey(input.objectKey)) throw new Error('INVALID_KEY');
+  const dir = localPhotoDir();
+  if (dir) {
+    const file = localPhotoPath(input.objectKey);
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, input.body);
+    await writeFile(`${file}.type`, input.contentType);
+    return;
+  }
   const token = cargoPhotoToken();
   if (!token) throw new Error('PRIVATE_STORAGE_UNAVAILABLE');
   if (!isCargoObjectKey(input.objectKey)) throw new Error('INVALID_KEY');
@@ -35,8 +55,25 @@ export async function putCargoObject(input: { objectKey: string; body: Buffer; c
 }
 
 export async function readCargoObject(objectKey: string): Promise<{ stream: ReadableStream<Uint8Array>; contentType: string } | null> {
+  if (!isCargoObjectKey(objectKey)) return null;
+  const dir = localPhotoDir();
+  if (dir) {
+    try {
+      const file = localPhotoPath(objectKey);
+      const [body, contentType] = await Promise.all([
+        readFile(file),
+        readFile(`${file}.type`, 'utf8'),
+      ]);
+      return {
+        stream: new Blob([body]).stream(),
+        contentType: contentType.trim() || 'application/octet-stream',
+      };
+    } catch {
+      return null;
+    }
+  }
   const token = cargoPhotoToken();
-  if (!token || !isCargoObjectKey(objectKey)) return null;
+  if (!token) return null;
   try {
     const result = await get(objectKey, { access: 'private', token, useCache: false });
     if (!result || result.statusCode !== 200) return null;
@@ -47,7 +84,14 @@ export async function readCargoObject(objectKey: string): Promise<{ stream: Read
 }
 
 export async function deleteCargoObject(objectKey: string): Promise<void> {
+  if (!isCargoObjectKey(objectKey)) return;
+  const dir = localPhotoDir();
+  if (dir) {
+    await unlink(localPhotoPath(objectKey)).catch(() => undefined);
+    await unlink(`${localPhotoPath(objectKey)}.type`).catch(() => undefined);
+    return;
+  }
   const token = cargoPhotoToken();
-  if (!token || !isCargoObjectKey(objectKey)) return;
+  if (!token) return;
   await del(objectKey, { token });
 }

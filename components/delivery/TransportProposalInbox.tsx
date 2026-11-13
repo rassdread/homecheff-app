@@ -15,6 +15,7 @@ type Proposal = {
   buyerTotalCents?: number;
   note: string | null;
   itemDescription: string;
+  photoIds?: string[];
   pickupArea: string;
   deliveryArea: string;
 };
@@ -88,6 +89,18 @@ export function TransportProposalInbox() {
         {rows.map((row) => (
           <article key={row.id} className="rounded-lg border p-3 text-sm">
             <p>{row.itemDescription}</p>
+            {row.photoIds && row.photoIds.length > 0 ? (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {row.photoIds.map((photoId) => (
+                  <img
+                    key={photoId}
+                    alt="Privéfoto van de lading"
+                    src={`/api/delivery/standalone/cargo-photo?id=${encodeURIComponent(photoId)}`}
+                    className="h-24 w-24 rounded-lg object-cover sm:h-28 sm:w-28"
+                  />
+                ))}
+              </div>
+            ) : null}
             <p className="text-gray-600">{row.pickupArea} → {row.deliveryArea}</p>
             <p>Afgesproken of voorgesteld bedrag {eur(row.agreedCents ?? row.priceCents)} · versie {row.version} · {row.action}</p>
             {row.platformCommissionCents != null ? <p>Platformkosten {eur(row.platformCommissionCents)}</p> : null}

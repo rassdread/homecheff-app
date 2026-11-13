@@ -15,6 +15,7 @@ import { useDeliveryAvailability } from '@/hooks/useDeliveryAvailability';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { getActiveCartIdentifier } from '@/lib/cart';
 import { calculateStripeFeeForBuyer } from '@/lib/fees';
+import { knownCheckoutDeliveryFeeCents } from '@/lib/checkout/known-delivery-fee';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import {
@@ -811,16 +812,29 @@ export default function CheckoutPage() {
     [checkoutItems]
   );
 
-  // Use actual calculated fee if available, otherwise use estimated fee
-  const deliveryFeeCents = useMemo(() => {
-    if (actualDeliveryFee && checkoutDraft.addressValidated) {
-      return actualDeliveryFee.deliveryFeeCents;
-    }
-    if (checkoutDraft.selectedDelivery && checkoutDraft.selectedDelivery !== 'pickup') {
-      return 0;
-    }
-    return Math.round((selectedOption?.price ?? 0) * 100);
-  }, [actualDeliveryFee, selectedOption?.price, checkoutDraft.addressValidated]);
+  const deliveryQuoteCents = useMemo(
+    () =>
+      knownCheckoutDeliveryFeeCents({
+        selectedDelivery: checkoutDraft.selectedDelivery,
+        addressValidated: checkoutDraft.addressValidated,
+        optionPrice: selectedOption?.price,
+        quote: actualDeliveryFee
+          ? {
+              deliveryFeeCents: actualDeliveryFee.deliveryFeeCents,
+              selectionRequired: actualDeliveryFee.selectionRequired,
+              shippingMethodId: actualDeliveryFee.shippingMethodId,
+              withinFreeRadius: actualDeliveryFee.breakdown?.withinFreeRadius === true,
+            }
+          : null,
+      }),
+    [actualDeliveryFee, checkoutDraft.addressValidated, checkoutDraft.selectedDelivery, selectedOption?.price],
+  );
+  const deliveryQuoteMissing = Boolean(
+    checkoutDraft.selectedDelivery &&
+      checkoutDraft.selectedDelivery !== 'pickup' &&
+      deliveryQuoteCents == null,
+  );
+  const deliveryFeeCents = deliveryQuoteCents ?? 0;
 
   // Calculate SMS notification cost (per seller, with platform fee)
   // SMS provider cost: ~€0.05 per SMS, platform fee: 20% = €0.01, total: €0.06 per seller
@@ -873,10 +887,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (
-      checkoutDraft.selectedDelivery !== 'pickup' &&
-      !actualDeliveryFee
-    ) {
+    if (checkoutDraft.selectedDelivery !== 'pickup' && deliveryQuoteMissing) {
       setCheckoutError(t('checkout.priceAfterAddress'));
       return;
     }
@@ -1361,9 +1372,14 @@ export default function CheckoutPage() {
                                   <AlertCircle className="w-4 h-4 text-red-500" />
                                 )}
                               </h3>
-                              {showCalculatedFee && (
+                              {showCalculatedFee && deliveryQuoteCents != null && checkoutDraft.selectedDelivery === option.id && (
                                 <span className="text-lg font-bold text-primary-brand">
-                                  €{displayPrice.toFixed(2)}
+                                  €{(deliveryQuoteCents / 100).toFixed(2)}
+                                </span>
+                              )}
+                              {showCalculatedFee && deliveryQuoteCents == null && checkoutDraft.selectedDelivery === option.id && (
+                                <span className="text-sm font-medium text-gray-500">
+                                  {t('checkout.priceAfterAddress')}
                                 </span>
                               )}
                               {showLoadingFee && (
@@ -1880,6 +1896,10 @@ export default function CheckoutPage() {
                       <span>
                         {isCalculatingFee ? (
                           <Loader2 className="w-4 h-4 animate-spin inline" />
+                        ) : deliveryQuoteMissing ? (
+                          language === 'en' ? 'Not calculated yet' : 'Nog niet berekend'
+                        ) : deliveryQuoteCents === 0 && actualDeliveryFee?.breakdown?.withinFreeRadius === true ? (
+                          t('checkout.free')
                         ) : (
                           `€${(deliveryFeeCents / 100).toFixed(2)}`
                         )}
@@ -1893,11 +1913,11 @@ export default function CheckoutPage() {
                     )}
                     <div className="flex justify-between text-sm">
                       <span>{t('checkout.transactionFeeStripe')}</span>
-                      <span>€{(stripeFeeCents / 100).toFixed(2)}</span>
+                      <span>{deliveryQuoteMissing ? '—' : `€${(stripeFeeCents / 100).toFixed(2)}`}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-2">
                       <span>{t('checkout.total')}</span>
-                      <span className="text-primary-brand">€{(buyerTotalCents / 100).toFixed(2)}</span>
+                      <span className="text-primary-brand">{deliveryQuoteMissing ? '—' : `€${(buyerTotalCents / 100).toFixed(2)}`}</span>
                     </div>
                   </div>
 
@@ -1921,6 +1941,7 @@ export default function CheckoutPage() {
                       isProcessing ||
                       !checkoutDraft.selectedDelivery ||
                       isLocalProviderUnavailable ||
+                      deliveryQuoteMissing ||
                       (buyerTotalCents <= 0 && selectedHc <= 0)
                     }
                     className="w-full mt-6 py-4 text-lg"
@@ -1937,7 +1958,9 @@ export default function CheckoutPage() {
                     ) : (
                       <>
                         <CreditCard className="w-5 h-5 mr-2" />
-                        {t('checkout.payNow', { amount: (buyerTotalCents / 100).toFixed(2) })}
+                        {deliveryQuoteMissing
+                          ? (language === 'en' ? 'Delivery price missing' : 'Bezorgprijs ontbreekt')
+                          : t('checkout.payNow', { amount: (buyerTotalCents / 100).toFixed(2) })}
                       </>
                     )}
                   </Button>

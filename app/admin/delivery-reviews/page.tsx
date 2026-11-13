@@ -45,6 +45,12 @@ export default async function DeliveryReviewsPage() {
     select: { id: true, orderId: true, quotedFeeCents: true, status: true },
   });
   const failedTransfers = failedPayouts.map(describeDeliveryPayout);
+  const stalePayments = await prisma.auditLog.findMany({
+    where: { action: 'standalone_delivery_payment_review' },
+    orderBy: { createdAt: 'desc' },
+    take: 20,
+    select: { id: true, createdAt: true, meta: true },
+  });
 
   return (
     <main style={{ maxWidth: 880, margin: '0 auto', padding: 24 }}>
@@ -63,6 +69,22 @@ export default async function DeliveryReviewsPage() {
               <div>Status {row.status} · {REFUND_STATUS_COPY[status].nl}</div>
               <div>Bijgewerkt {row.updatedAt.toISOString()}</div>
               <div>Eerdere besluiten: {prior.length}</div>
+            </li>
+          );
+        })}
+      </ul>
+      <h2>Verouderde transportbetalingen</h2>
+      <p>Deze betaling is vastgelegd. Er is geen opdracht voor de oude voorstelversie en geen overboeking naar de bezorger.</p>
+      {stalePayments.length === 0 ? <p>Geen verouderde transportbetalingen.</p> : null}
+      <ul>
+        {stalePayments.map((row) => {
+          const meta = row.meta && typeof row.meta === 'object' ? row.meta as Record<string, unknown> : {};
+          return (
+            <li key={row.id} style={{ marginBottom: 16 }}>
+              <div>Bedrag {typeof meta.amountCents === 'number' ? meta.amountCents : 'onbekend'} cent</div>
+              <div>Valuta {typeof meta.currency === 'string' ? meta.currency : 'onbekend'}</div>
+              <div>Stripe-referentie {typeof meta.stripeReference === 'string' ? meta.stripeReference : 'onbekend'}</div>
+              <div>Reden {typeof meta.reason === 'string' ? meta.reason : 'onbekend'}</div>
             </li>
           );
         })}

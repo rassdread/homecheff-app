@@ -2,8 +2,12 @@
 import * as React from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
+  fetchAddressPredictions,
+  loadGooglePlaces,
+  placePredictionToLegacy,
+} from '@/components/ui/google-maps-loader';
+import {
   placeDetailsToAddress,
-  placesPredictionStatusUnavailable,
   placesSearchShouldRecover,
 } from '@/lib/delivery/places-autocomplete-fallback';
 
@@ -54,77 +58,31 @@ export default function GooglePlacesAutocomplete({
   const onChangeRef = React.useRef(onChange);
   const requestIdRef = React.useRef(0);
   const searchTimerRef = React.useRef<number | null>(null);
+  const predictionsRef = React.useRef(new Map<string, { toPlace: () => unknown }>());
   onChangeRef.current = onChange;
 
-  // Load Google Maps JavaScript API
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    // Check if already loaded
-    if (window.google?.maps?.places) {
-      console.log('[GooglePlacesAutocomplete] Google Maps already loaded');
-      setIsLoaded(true);
-      return;
-    }
-
-    // Check if script is already being loaded
-    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-    if (existingScript) {
-      console.log('[GooglePlacesAutocomplete] Script already exists, waiting for load...');
-      // Wait for it to load
-      let attempts = 0;
-      const maxAttempts = 50; // 5 seconds max
-      const checkInterval = setInterval(() => {
-        attempts++;
-        if (window.google?.maps?.places) {
-          console.log('[GooglePlacesAutocomplete] Google Maps loaded from existing script');
-          setIsLoaded(true);
-          clearInterval(checkInterval);
-        } else if (attempts >= maxAttempts) {
-          console.error('[GooglePlacesAutocomplete] Timeout waiting for existing script to load');
-          clearInterval(checkInterval);
-        }
-      }, 100);
-      return () => clearInterval(checkInterval);
-    }
-
-    // Load Google Maps JavaScript API
-    // In Next.js, NEXT_PUBLIC_ variables are available at runtime (embedded during build)
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    
-    if (!apiKey || apiKey.trim() === '') {
-      console.error('[GooglePlacesAutocomplete] Maps key is not set');
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim();
+    if (!apiKey) {
       setPlacesUnavailable(true);
       return;
     }
-
-    console.log('[GooglePlacesAutocomplete] Loading Google Maps script...');
+    let stop = false;
     setIsLoading(true);
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=nl`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      console.log('[GooglePlacesAutocomplete] Google Maps script loaded successfully');
-      if (window.google?.maps?.places) {
-        console.log('[GooglePlacesAutocomplete] Places API is available');
+    loadGooglePlaces(apiKey)
+      .then(() => {
+        if (stop) return;
         setIsLoaded(true);
         setIsLoading(false);
-      } else {
-        console.error('[GooglePlacesAutocomplete] Places library did not load');
+      })
+      .catch(() => {
+        if (stop) return;
         setPlacesUnavailable(true);
         setIsLoading(false);
-      }
-    };
-    script.onerror = (error) => {
-      console.error('[GooglePlacesAutocomplete] Maps script failed to load');
-      setPlacesUnavailable(true);
-      setIsLoading(false);
-    };
-    document.head.appendChild(script);
-
+      });
     return () => {
-      // Cleanup: don't remove script as other components might use it
+      stop = true;
     };
   }, []);
 
@@ -147,50 +105,44 @@ export default function GooglePlacesAutocomplete({
   const requestPredictions = React.useCallback((query: string) => {
     if (searchTimerRef.current) window.clearTimeout(searchTimerRef.current);
     const trimmed = query.trim();
-    if (!isLoaded || trimmed.length < 3 || !window.google?.maps?.places?.AutocompleteService) {
+    if (!isLoaded || trimmed.length < 3) {
       setSuggestions([]);
       return;
     }
     searchTimerRef.current = window.setTimeout(() => {
       const requestId = ++requestIdRef.current;
-      const service = new window.google.maps.places.AutocompleteService();
-      const options: Record<string, unknown> = {
-        input: trimmed,
-        types: ['address'],
-      };
-      if (country && country.length === 2) {
-        options.componentRestrictions = { country: country.toLowerCase() };
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim();
+      if (!apiKey) {
+        setPlacesUnavailable(true);
+        return;
       }
-      let settled = false;
       const timeout = window.setTimeout(() => {
-        if (settled || requestIdRef.current !== requestId) return;
-        settled = true;
+        if (requestIdRef.current !== requestId) return;
         setSuggestions([]);
         setPlacesUnavailable(true);
       }, 8000);
-      service.getPlacePredictions(options, (predictions: any[] | null, status: string) => {
-        if (requestIdRef.current !== requestId) return;
-        settled = true;
-        window.clearTimeout(timeout);
-        if (status === 'OK' && predictions && predictions.length > 0) {
+      loadGooglePlaces(apiKey)
+        .then((library) => fetchAddressPredictions(library, trimmed, country))
+        .then((predictions) => {
+          if (requestIdRef.current !== requestId) return;
+          window.clearTimeout(timeout);
+          predictionsRef.current = new Map(predictions.map((item) => [item.placeId, item]));
           setPlacesUnavailable(false);
-          setSuggestions(
-            predictions.slice(0, 5).map((item) => ({
-              placeId: String(item.place_id || ''),
-              description: String(item.description || ''),
-            })).filter((item) => item.placeId && item.description),
-          );
-          return;
-        }
-        setSuggestions([]);
-        if (placesPredictionStatusUnavailable(status)) setPlacesUnavailable(true);
-      });
+          setSuggestions(predictions.map((item) => ({ placeId: item.placeId, description: item.description })));
+        })
+        .catch(() => {
+          if (requestIdRef.current !== requestId) return;
+          window.clearTimeout(timeout);
+          setSuggestions([]);
+          setPlacesUnavailable(true);
+        });
     }, 250);
   }, [country, isLoaded]);
 
   const selectSuggestion = React.useCallback((placeId: string, description: string) => {
     setSuggestions([]);
-    if (!window.google?.maps?.places?.PlacesService) {
+    const prediction = predictionsRef.current.get(placeId);
+    if (!prediction) {
       setPlacesUnavailable(true);
       return;
     }
@@ -198,17 +150,9 @@ export default function GooglePlacesAutocomplete({
       autocompleteRef.current.value = description;
       lastValueRef.current = description;
     }
-    const places = new window.google.maps.places.PlacesService(document.createElement('div'));
-    places.getDetails(
-      { placeId, fields: ['address_components', 'geometry', 'formatted_address'] },
-      (place: any, status: string) => {
-        if (status !== 'OK' || !place) {
-          setPlacesUnavailable(true);
-          return;
-        }
-        applyPlace(place);
-      },
-    );
+    placePredictionToLegacy(prediction as { toPlace: () => any })
+      .then((place) => applyPlace(place))
+      .catch(() => setPlacesUnavailable(true));
   }, [applyPlace]);
 
   React.useEffect(() => {

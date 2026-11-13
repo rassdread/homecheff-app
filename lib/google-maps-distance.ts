@@ -32,9 +32,9 @@ export function isVerifiedRoadDistance(
       'distance' in value &&
       value.distanceSource === 'google' &&
       Number.isFinite(value.distance) &&
-      value.distance > 0 &&
+      value.distance >= 0 &&
       Number.isFinite(value.duration) &&
-      value.duration > 0,
+      value.duration >= 0,
   );
 }
 
@@ -56,10 +56,10 @@ export function interpretDistanceMatrixElement(data: {
     element?.status !== 'OK' ||
     typeof meters !== 'number' ||
     !Number.isFinite(meters) ||
-    meters <= 0 ||
+    meters < 0 ||
     typeof seconds !== 'number' ||
     !Number.isFinite(seconds) ||
-    seconds <= 0
+    seconds < 0
   ) {
     return null;
   }

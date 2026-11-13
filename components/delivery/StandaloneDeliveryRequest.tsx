@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import DelivererSelector, { type Deliverer } from '@/components/checkout/DelivererSelector';
 import { TransportProposalInbox } from '@/components/delivery/TransportProposalInbox';
+import GooglePlacesAutocomplete from '@/components/ui/GooglePlacesAutocomplete';
 import { useTranslation } from '@/hooks/useTranslation';
 
 const DELIVERY_DRAFT_KEY = 'hc-standalone-delivery-draft';
@@ -48,13 +49,13 @@ export function StandaloneDeliveryRequest({
   const { t } = useTranslation();
   const search = useSearchParams();
   const [deliveryOpen, setDeliveryOpen] = useState<boolean | null>(null);
-  const [pickupAddress, setPickupAddress] = useState('Koerierstraat 4, 3511 CD Utrecht');
-  const [deliveryAddress, setDeliveryAddress] = useState('Teststraat 12, 3511 AB Utrecht');
+  const [pickupAddress, setPickupAddress] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
   const [itemDescription, setItemDescription] = useState('');
-  const [pickupLat, setPickupLat] = useState('52.0907');
-  const [pickupLng, setPickupLng] = useState('5.1216');
-  const [dropoffLat, setDropoffLat] = useState('52.073');
-  const [dropoffLng, setDropoffLng] = useState('5.1216');
+  const [pickupLat, setPickupLat] = useState('');
+  const [pickupLng, setPickupLng] = useState('');
+  const [dropoffLat, setDropoffLat] = useState('');
+  const [dropoffLng, setDropoffLng] = useState('');
   const [requestedPickupAt, setRequestedPickupAt] = useState('');
   const [couriers, setCouriers] = useState<Deliverer[] | null>(null);
   const [unavailable, setUnavailable] = useState<Array<{ id: string; name: string; code: string }>>([]);
@@ -210,11 +211,22 @@ export function StandaloneDeliveryRequest({
     };
   }
 
+  function selectedPlace(lat: string, lng: string) {
+    const latitude = Number(lat);
+    const longitude = Number(lng);
+    return Number.isFinite(latitude) && Number.isFinite(longitude) && lat !== '' && lng !== '';
+  }
+
   async function calculate() {
     setBusy(true);
     setError('');
     setCouriers(null);
     setBooked(null);
+    if (!selectedPlace(pickupLat, pickupLng) || !selectedPlace(dropoffLat, dropoffLng)) {
+      setError('Kies een ophaal- en afleveradres uit de adreslijst.');
+      setBusy(false);
+      return;
+    }
     try {
       const response = await fetch('/api/delivery/standalone/quote', {
         method: 'POST',
@@ -375,20 +387,30 @@ export function StandaloneDeliveryRequest({
       <>
       <label className="mt-6 block text-sm font-medium text-gray-800">
         Ophaaladres
-        <input className="mt-1 w-full rounded-lg border px-3 py-2" value={pickupAddress} onChange={(event) => setPickupAddress(event.target.value)} />
+        <GooglePlacesAutocomplete
+          value={pickupAddress}
+          className="mt-1 w-full"
+          placeholder="Kies een ophaaladres"
+          onChange={(address, place) => {
+            setPickupAddress(place?.formattedAddress || address);
+            setPickupLat(place ? String(place.lat) : '');
+            setPickupLng(place ? String(place.lng) : '');
+          }}
+        />
       </label>
-      <div className="mt-2 grid grid-cols-2 gap-2">
-        <input className="rounded-lg border px-3 py-2 text-sm" aria-label="Ophaal latitude" value={pickupLat} onChange={(event) => setPickupLat(event.target.value)} />
-        <input className="rounded-lg border px-3 py-2 text-sm" aria-label="Ophaal longitude" value={pickupLng} onChange={(event) => setPickupLng(event.target.value)} />
-      </div>
       <label className="mt-4 block text-sm font-medium text-gray-800">
         Afleveradres
-        <input className="mt-1 w-full rounded-lg border px-3 py-2" value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} />
+        <GooglePlacesAutocomplete
+          value={deliveryAddress}
+          className="mt-1 w-full"
+          placeholder="Kies een afleveradres"
+          onChange={(address, place) => {
+            setDeliveryAddress(place?.formattedAddress || address);
+            setDropoffLat(place ? String(place.lat) : '');
+            setDropoffLng(place ? String(place.lng) : '');
+          }}
+        />
       </label>
-      <div className="mt-2 grid grid-cols-2 gap-2">
-        <input className="rounded-lg border px-3 py-2 text-sm" aria-label="Aflever latitude" value={dropoffLat} onChange={(event) => setDropoffLat(event.target.value)} />
-        <input className="rounded-lg border px-3 py-2 text-sm" aria-label="Aflever longitude" value={dropoffLng} onChange={(event) => setDropoffLng(event.target.value)} />
-      </div>
       <label className="mt-4 block text-sm font-medium text-gray-800">
         Gewenst ophaalmoment
         <input className="mt-1 w-full rounded-lg border px-3 py-2" type="datetime-local" value={requestedPickupAt} onChange={(event) => setRequestedPickupAt(event.target.value)} />
@@ -448,7 +470,7 @@ export function StandaloneDeliveryRequest({
             {history.map((row) => (
               <li key={row.id}>
                 <a className="underline" href={`/bezorging/aanvragen?request=${row.id}`}>{row.itemDescription || 'Aanvraag'}</a>
-                <span className="text-gray-600"> · {row.jobKind === 'TRANSPORT' ? 'transport' : 'pakket'} · {row.status} · {row.paymentStatus}</span>
+                <span className="text-gray-600"> · {row.jobKind === 'TRANSPORT' ? 'transport' : 'pakket'} · {row.status === 'PAYMENT_REVIEW' ? 'betaling wordt beoordeeld' : row.status} · {row.paymentStatus === 'REVIEW_REQUIRED' ? 'betaling ontvangen, wacht op beoordeling' : row.paymentStatus}</span>
               </li>
             ))}
           </ul>

@@ -25,9 +25,13 @@ export const getPusherClient = () => {
     return null as any;
   }
   
+  const key = process.env.NEXT_PUBLIC_PUSHER_KEY?.trim();
+  const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER?.trim();
+  if (!key || !cluster) return null as any;
+
   if (!pusherClientInstance) {
-    pusherClientInstance = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    pusherClientInstance = new PusherClient(key, {
+      cluster,
       authEndpoint: '/api/pusher/auth',
       // Performance optimizations
       enabledTransports: ['ws', 'wss'],

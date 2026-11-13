@@ -562,13 +562,29 @@ export function validateCargoPhoto(input: { mimeType: string; sizeBytes: number 
   return { ok: true };
 }
 
+const CARGO_PHOTO_CLOSED_STATUSES = new Set([
+  'REJECTED',
+  'EXPIRED',
+  'CANCELLED',
+  'CANCELLED_AFTER_PAYMENT',
+]);
+
+export function cargoPhotoAccessClosed(status: string | null | undefined): boolean {
+  return status != null && CARGO_PHOTO_CLOSED_STATUSES.has(status);
+}
+
 export function canReadCargoPhoto(input: {
   ownerUserId: string;
   viewerUserId: string | null;
   courierUserId: string | null;
   paid: boolean;
+  assigned?: boolean;
+  closed?: boolean;
 }): boolean {
   if (!input.viewerUserId) return false;
   if (input.viewerUserId === input.ownerUserId) return true;
-  return Boolean(input.paid && input.courierUserId && input.viewerUserId === input.courierUserId);
+  if (input.closed) return false;
+  const isAssignedCourier = Boolean(input.courierUserId && input.viewerUserId === input.courierUserId);
+  if (!isAssignedCourier) return false;
+  return input.paid || input.assigned === true;
 }

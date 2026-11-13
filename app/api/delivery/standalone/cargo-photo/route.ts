@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { canReadCargoPhoto, validateCargoPhoto } from '@/lib/delivery/transport-job';
+import { canReadCargoPhoto, cargoPhotoAccessClosed, validateCargoPhoto } from '@/lib/delivery/transport-job';
 import { deleteCargoObject, isCargoObjectKey, newCargoObjectKey, putCargoObject, readCargoObject } from '@/lib/delivery/cargo-photo-store';
 
 export const dynamic = 'force-dynamic';
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
   if (!photoId) return NextResponse.json({ error: 'Foto ontbreekt' }, { status: 400 });
   const photo = await prisma.deliveryCargoPhoto.findUnique({
     where: { id: photoId },
-    include: { request: { select: { paymentStatus: true, deliveryProfileId: true } } },
+    include: { request: { select: { paymentStatus: true, deliveryProfileId: true, status: true } } },
   });
   if (!photo || photo.deletedAt || !isCargoObjectKey(photo.objectKey)) {
     return NextResponse.json({ error: 'Niet gevonden' }, { status: 404 });
@@ -60,11 +60,14 @@ export async function GET(req: NextRequest) {
         select: { userId: true },
       })
     : null;
+  const closed = cargoPhotoAccessClosed(photo.request?.status);
   const allowed = canReadCargoPhoto({
     ownerUserId: photo.ownerUserId,
     viewerUserId: userId,
     courierUserId: courier?.userId ?? null,
     paid: photo.request?.paymentStatus === 'PAID',
+    assigned: Boolean(photo.request) && !closed,
+    closed,
   });
   if (!allowed) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 });
   const stored = await readCargoObject(photo.objectKey);

@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = 'force-dynamic';
@@ -38,6 +39,21 @@ import { requiresInventoryForCheckout } from "@/lib/proposals/proposal-stock-pol
 import { parseFulfillmentOptions } from "@/lib/marketplace/listing-taxonomy";
 import { confirmReservationAndDecrementStock } from "@/lib/products/stock-reservation";
 import { CheckoutStockConflictError } from "@/lib/products/checkout-reservation-policy";
+
+async function recordOrderConversationProblem(buyerId: string, orderId: string, code: string) {
+  try {
+    await prisma.auditLog.create({
+      data: {
+        id: randomUUID(),
+        userId: buyerId,
+        action: 'order_conversation_failed',
+        meta: { orderId, code },
+      },
+    });
+  } catch (error) {
+    console.error('Order conversation failure was not recorded', error instanceof Error ? error.name : 'error');
+  }
+}
 import { releaseUnpaidCheckoutHold } from "@/lib/products/courier-stock-hold";
 import { isHomeCheffDeliveryEnabled } from "@/lib/delivery/delivery-deployment-gate";
 import { fulfillStandaloneDeliveryPayment } from "@/lib/delivery/standalone-delivery";
@@ -1398,6 +1414,29 @@ try {
           .filter((id): id is string => Boolean(id));
       }
 
+      const knownUsers = sellerIds.length
+        ? await prisma.user.findMany({
+            where: { id: { in: sellerIds } },
+            select: { id: true },
+          })
+        : [];
+      const knownUserIds = new Set(knownUsers.map((user) => user.id));
+      const sellerProfileIds = sellerIds.filter((id) => !knownUserIds.has(id));
+      if (sellerProfileIds.length > 0) {
+        const profiles = await prisma.sellerProfile.findMany({
+          where: { id: { in: sellerProfileIds } },
+          select: { id: true, userId: true },
+        });
+        const resolvedProfileIds = new Set(profiles.map((profile) => profile.id));
+        const unresolvedProfileIds = sellerProfileIds.filter((id) => !resolvedProfileIds.has(id));
+        sellerIds = [
+          ...knownUserIds,
+          ...profiles.map((profile) => profile.userId).filter((id): id is string => Boolean(id)),
+        ];
+        if (unresolvedProfileIds.length > 0) {
+          await recordOrderConversationProblem(buyerId, createdOrder.id, 'SELLER_PROFILE_UNRESOLVED');
+        }
+      }
       const uniqueSellerUserIds = [...new Set(sellerIds.filter(Boolean))] as string[];
       for (const sellerUserId of uniqueSellerUserIds) {
         try {
@@ -1407,25 +1446,34 @@ try {
         }
       }
 
-      // Create order conversation for communication
-      const conversation = await prisma.conversation.create({
-        data: {
-          id: `order_${createdOrder.id}`,
-          orderId: createdOrder.id,
-          title: `Bestelling ${createdOrder.orderNumber}`,
-          lastMessageAt: new Date(),
-          ConversationParticipant: {
-            create: [
-              { userId: buyerId, id: `participant_buyer_${Date.now()}` },
-              // Add seller participants based on items
-              ...sellerIds.map((sellerId: string, index: number) => ({
-                id: `participant_seller_${Date.now()}_${index}`,
-                userId: sellerId,
-              })),
-            ],
+      // A chat failure must not skip the delivery order. The seller id in
+      // checkout metadata can be a seller profile id, which is not a user.
+      let conversation: { id: string } | null = null;
+      try {
+        conversation = await prisma.conversation.create({
+          data: {
+            id: `order_${createdOrder.id}`,
+            orderId: createdOrder.id,
+            title: `Bestelling ${createdOrder.orderNumber}`,
+            lastMessageAt: new Date(),
+            ConversationParticipant: {
+              create: [
+                { userId: buyerId, id: `participant_buyer_${Date.now()}` },
+                ...sellerIds.map((sellerId: string, index: number) => ({
+                  id: `participant_seller_${Date.now()}_${index}`,
+                  userId: sellerId,
+                })),
+              ],
+            },
           },
-        },
-      });
+        });
+      } catch (conversationError) {
+        const code = conversationError && typeof conversationError === 'object' && 'code' in conversationError
+          ? String((conversationError as { code?: unknown }).code || 'CONVERSATION_FAILED')
+          : 'CONVERSATION_FAILED';
+        console.error('Order conversation was not created', code);
+        await recordOrderConversationProblem(buyerId, createdOrder.id, code);
+      }
 
       // Send system message with pickup/delivery details
       if (deliveryMode === 'PICKUP') {
@@ -1449,7 +1497,7 @@ try {
             }
           });
 
-          if (seller?.User) {
+          if (seller?.User && conversation) {
             const pickupAddress = [
               seller.User.address,
               seller.User.postalCode,

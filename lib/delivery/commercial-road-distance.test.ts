@@ -50,13 +50,34 @@ test('API error, ZERO_RESULTS, and invalid payloads are not commercial quotes', 
   assert.equal(
     interpretDistanceMatrixElement(
       googleBody({
-        rows: [{ elements: [{ status: 'OK', distance: { value: 0 }, duration: { value: 60 } }] }],
+        rows: [{ elements: [{ status: 'OK', distance: { value: -1 }, duration: { value: 60 } }] }],
       }),
     ),
     null,
   );
   assert.equal(interpretDistanceMatrixElement(null), null);
   assert.equal(isVerifiedRoadDistance({ error: 'x', message: 'y' }), false);
+});
+
+test('a same-place Google route is a verified zero, not a missing price', () => {
+  const result = interpretDistanceMatrixElement(
+    googleBody({
+      rows: [{ elements: [{ status: 'OK', distance: { value: 0, text: '0 km' }, duration: { value: 0, text: '0 min' } }] }],
+    }),
+  );
+  assert.equal(result?.distance, 0);
+  assert.equal(result?.distanceSource, 'google');
+  assert.equal(isVerifiedRoadDistance(result), true);
+  assert.equal(
+    isVerifiedRoadDistance({
+      distance: 0,
+      duration: 0,
+      distanceText: '0 km',
+      durationText: '0 min',
+      distanceSource: 'haversine',
+    }),
+    false,
+  );
 });
 
 test('missing key, timeout, and HTTP error return labeled haversine and cannot price', async () => {

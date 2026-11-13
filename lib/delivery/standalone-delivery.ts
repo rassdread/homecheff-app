@@ -370,6 +370,23 @@ export async function bookStandaloneCourier(input: StandaloneQuoteInput & { deli
 async function revalidateStoredQuote(requestId: string) {
   const row = await prisma.standaloneDeliveryRequest.findUnique({ where: { id: requestId } });
   if (!row) return { ok: false as const, status: 404, code: 'NOT_FOUND', error: 'Offerte niet gevonden.' };
+  if (row.jobKind === 'TRANSPORT') {
+    const accepted = await prisma.deliveryTransportProposal.findFirst({
+      where: { requestId: row.id, status: 'ACCEPTED' },
+      orderBy: { version: 'desc' },
+      select: { priceCents: true },
+    });
+    if (accepted?.priceCents == null || accepted.priceCents !== row.quotedFeeCents) {
+      return {
+        ok: false as const,
+        status: 409,
+        code: 'DELIVERY_QUOTE_CHANGED',
+        error: 'De bezorgprijs is gewijzigd. Vraag een nieuwe offerte aan.',
+        quotedFeeCents: accepted?.priceCents ?? null,
+      };
+    }
+    return { ok: true as const, row };
+  }
   const route = await getRouteDistance(
     { lat: row.pickupLat, lng: row.pickupLng },
     { lat: row.dropoffLat, lng: row.dropoffLng },
@@ -712,7 +729,7 @@ export async function fulfillStandaloneDeliveryPayment(
   if ((session.currency || '').toLowerCase() !== 'eur') {
     return rememberUnfulfilledPayment(db, session, 'CURRENCY_MISMATCH', 'De betaalvaluta is niet euro.', row.requesterUserId);
   }
-  if (session.amount_total !== row.buyerTotalCents) {
+  if (row.jobKind !== 'TRANSPORT' && session.amount_total !== row.buyerTotalCents) {
     return rememberUnfulfilledPayment(db, session, 'AMOUNT_MISMATCH', 'Het betaalde bedrag wijkt af van de vastgelegde prijs.', row.requesterUserId);
   }
   if (row.jobKind === 'TRANSPORT') {
@@ -760,6 +777,10 @@ export async function fulfillStandaloneDeliveryPayment(
               buyerTotalCents: row.buyerTotalCents,
             }),
             requestId: row.id,
+            amountCents: session.amount_total,
+            currency: (session.currency || 'eur').toLowerCase(),
+            stripeReference: session.id,
+            reason: 'De transportbetaling hoort niet bij de laatst geaccepteerde voorstelversie.',
           },
         },
       });

@@ -44,6 +44,9 @@ export async function GET() {
         note: latest?.note ?? null,
         expiresAt: latest?.expiresAt ?? row.proposalExpiresAt,
         itemDescription: row.itemDescription,
+        photoIds: Array.isArray((row.cargo as { photoIds?: unknown } | null)?.photoIds)
+          ? (row.cargo as { photoIds: unknown[] }).photoIds.filter((id): id is string => typeof id === 'string')
+          : [],
         cargo: row.cargo,
         ...view,
       };

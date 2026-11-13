@@ -90,6 +90,24 @@ export async function POST(
       userId: access.settlementUserId,
     };
 
+    if (status === 'DELIVERED' && existingOrder.status === 'DELIVERED') {
+      const buyerUserId = existingOrder.order?.userId || existingOrder.requesterUserId;
+      if (!buyerUserId) {
+        return NextResponse.json({ error: 'Koper ontbreekt' }, { status: 400 });
+      }
+      const payout = await ensureDeliveryPayout(prisma, {
+        deliveryOrderId: existingOrder.id,
+        orderId: existingOrder.orderId || existingOrder.id,
+        delivererUserId: access.settlementUserId,
+        buyerUserId,
+      });
+      return NextResponse.json({
+        success: true,
+        retry: true,
+        transferStatus: payout.transferStatus ?? null,
+      });
+    }
+
     const transition = assertDeliveryStatusTransition(
       existingOrder.status,
       status
