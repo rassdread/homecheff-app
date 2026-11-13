@@ -233,7 +233,17 @@ export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
   const trustBundles = await fetchSellerTrustBundles(authorIds, badgeMap);
   items = items.map((it) => ({
     ...it,
-    discovery: mapDishToDiscoveryReadModel(it, {
+    discovery: mapDishToDiscoveryReadModel({
+      id: it.id,
+      title: it.title,
+      description: it.description,
+      category: it.category,
+      subcategory: it.subcategory,
+      status: it.status,
+      place: it.location.place,
+      photos: it.photos.map((photo) => ({ url: photo.url })),
+      videos: it.videos.map((video) => ({ url: video.url })),
+    }, {
       favoriteCount: it.propsCount,
       ...discoveryEnrichmentFromBundle(trustBundles.get(it.user.id), {
         listingIsActive: it.status !== 'PRIVATE',
