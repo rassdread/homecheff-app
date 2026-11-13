@@ -25,6 +25,19 @@ export const FEED_RECIRC_MIN_SEED = 1;
 /** Target minimum gap between two occurrences of the same id (positions). */
 export const FEED_RECIRC_MIN_SPACING = 6;
 
+/**
+ * A gap of `minSpacing` positions cannot exist unless the unique set is
+ * larger than that gap. When the gap cannot apply, a 3+ set still makes one
+ * fair pass over every id before any id is repeated, and it never repeats
+ * the same id on two consecutive positions.
+ */
+export function recirculationSpacingApplies(
+  uniqueCount: number,
+  minSpacing = FEED_RECIRC_MIN_SPACING,
+): boolean {
+  return uniqueCount > minSpacing;
+}
+
 /** Max recirculated rows appended per load-more tick (bounded). */
 export const FEED_RECIRC_BATCH_SIZE = 8;
 
@@ -37,7 +50,8 @@ export const FEED_RECIRC_HISTORY_CAP = 120;
  * 0  → empty state; never recirculate or request-loop
  * 1  → spaced single-seed recirculation (1 card per batch)
  * 2  → safe alternation; no consecutive duplicate; flip order across batches
- * 3+ → least-recent + spacing policy
+ * 3+ → least-recent rotation. The spacing gap applies only when
+ *       recirculationSpacingApplies is true (the set is larger than the gap).
  */
 export type InventoryContinuationMode =
   | 'empty_state'
@@ -286,7 +300,7 @@ export function mergeRecircSeeds(
  * - 0 seeds → [] (caller shows empty state; no loop)
  * - 1 seed  → at most 1 card (viewport spacing via load-more batches)
  * - 2 seeds → alternate; never consecutive; flip order across batches
- * - 3+      → least-recent + min spacing + kind rotation
+ * - 3+      → least-recent rotation. Spacing only when the set is larger than the gap.
  */
 export function buildRecirculationBatch(input: {
   seeds: RecircSeedItem[];
@@ -332,6 +346,7 @@ export function buildRecirculationBatch(input: {
   const minSpacing = input.minSpacing ?? FEED_RECIRC_MIN_SPACING;
   const recent = input.recentIds.slice(-Math.max(minSpacing, 1));
   const recentSet = new Set(recent);
+  const spacingActive = recirculationSpacingApplies(uniqueSeeds.length, minSpacing);
   const out: RecircSeedItem[] = [];
   let lastId = input.lastDisplayedId;
   let lastKind: ComposedRowKind | null = null;
@@ -346,15 +361,20 @@ export function buildRecirculationBatch(input: {
   });
 
   const tryPick = (preferKindFlip: boolean): RecircSeedItem | null => {
+    const waitingForFullPass = !spacingActive && out.length < scored.length;
+    const skipUntilFullPass = (id: string) =>
+      waitingForFullPass && out.some((item) => item.id === id);
     for (const { seed } of scored) {
       if (seed.id === lastId) continue;
-      if (recentSet.has(seed.id) && scored.length > minSpacing) continue;
+      if (spacingActive && recentSet.has(seed.id)) continue;
+      if (skipUntilFullPass(seed.id)) continue;
       if (preferKindFlip && lastKind && seed.kind === lastKind) continue;
       return seed;
     }
     for (const { seed } of scored) {
       if (seed.id === lastId) continue;
-      if (recentSet.has(seed.id) && scored.length > minSpacing) continue;
+      if (spacingActive && recentSet.has(seed.id)) continue;
+      if (skipUntilFullPass(seed.id)) continue;
       return seed;
     }
     return null;
