@@ -6,6 +6,11 @@ import {
   normalizeAffiliateCompanyKvk,
   suggestOwnedCompanyIdentity,
 } from "@/lib/affiliate/affiliate-company-kvk";
+import { dedupeAuthorizedMemberships } from "@/lib/share/resolve-marketplace-share-url";
+import {
+  localListingShareUrl,
+  localShareMembershipsForUsername,
+} from "@/lib/share/local-share-membership-fixture";
 
 export const dynamic = "force-dynamic";
 const NO_STORE = { "Cache-Control": "private, no-store, max-age=0" } as const;
@@ -35,10 +40,18 @@ export async function GET(req: Request) {
   }
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true },
+    select: { id: true, username: true },
   });
   if (!user) {
     return NextResponse.json({ ok: false, code: "USER_NOT_FOUND" }, { status: 404, headers: NO_STORE });
+  }
+
+  const fixtureMemberships = localShareMembershipsForUsername(user.username);
+  if (fixtureMemberships) {
+    return NextResponse.json(
+      { ok: true, memberships: fixtureMemberships },
+      { headers: NO_STORE },
+    );
   }
 
   const url = new URL(req.url);
@@ -115,10 +128,42 @@ export async function POST(req: Request) {
   }
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, email: true },
+    select: { id: true, email: true, username: true },
   });
   if (!user) {
     return NextResponse.json({ ok: false, code: "USER_NOT_FOUND" }, { status: 404, headers: NO_STORE });
+  }
+
+  const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+  const action = String(body.action || "CREATE_ORG");
+  const fixtureMemberships = localShareMembershipsForUsername(user.username);
+  if (fixtureMemberships && action === "ENSURE_LISTING_SHARE_ASSET") {
+    const organizationId = String(body.organizationId || "");
+    const destinationPath = String(body.destinationPath || "");
+    const allowed = dedupeAuthorizedMemberships(
+      fixtureMemberships
+        .filter((membership) => (membership.organization.status || "ACTIVE") === "ACTIVE")
+        .map((membership) => ({
+          organizationId: membership.organization.id,
+          companyName: membership.organization.companyName,
+          displayName: membership.organization.displayName,
+          role: membership.role,
+          status: membership.status,
+        })),
+    ).map((membership) => membership.organizationId);
+    const trackingUrl = localListingShareUrl({
+      origin: new URL(req.url).origin,
+      organizationId,
+      destinationPath,
+      allowedOrganizationIds: allowed,
+    });
+    if (!trackingUrl) {
+      return NextResponse.json(
+        { ok: false, code: "FORBIDDEN" },
+        { status: 403, headers: NO_STORE },
+      );
+    }
+    return NextResponse.json({ ok: true, trackingUrl }, { headers: NO_STORE });
   }
 
   const secret = growthSecret();
@@ -130,8 +175,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, code: "CONFIGURATION_ERROR" }, { status: 503, headers: NO_STORE });
   }
 
-  const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
-  const action = String(body.action || "CREATE_ORG");
   if (action === "CREATE_ORG" || action === "UPDATE_COMPANY_DETAILS") {
     const affiliate = await prisma.affiliate.findUnique({
       where: { userId: user.id },
