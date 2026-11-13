@@ -11,6 +11,7 @@ import { useAffiliateLink } from '@/hooks/useAffiliateLink';
 import {
   appendPersonalRef,
   listingPathFromAbsolute,
+  dedupeAuthorizedMemberships,
   resolveShareMode,
   type OrgMembershipSummary,
   type ResolvedShareMode,
@@ -134,15 +135,17 @@ export function useMarketplaceShareContext() {
           if (!cancelled) setMemberships([]);
           return;
         }
-        const rows: OrgMembershipSummary[] = json.memberships
-          .filter((m) => m.organization?.id && (m.organization.status || 'ACTIVE') === 'ACTIVE')
-          .map((m) => ({
-            organizationId: m.organization!.id,
-            companyName: m.organization!.companyName || m.organization!.displayName || 'Company',
-            displayName: m.organization!.displayName,
-            role: m.role,
-            status: m.status,
-          }));
+        const rows: OrgMembershipSummary[] = dedupeAuthorizedMemberships(
+          json.memberships
+            .filter((m) => m.organization?.id && (m.organization.status || 'ACTIVE') === 'ACTIVE')
+            .map((m) => ({
+              organizationId: m.organization!.id,
+              companyName: m.organization!.companyName || m.organization!.displayName || 'Company',
+              displayName: m.organization!.displayName,
+              role: m.role,
+              status: m.status,
+            })),
+        );
         setMemberships(rows);
       })
       .catch(() => {
@@ -204,7 +207,7 @@ export function useMarketplaceShareContext() {
       listingAbsoluteUrl: string;
       surface?: string;
       /** Force mode for this action (after explicit UI choice). */
-      forceMode?: 'personal' | 'company';
+      forceMode?: 'plain' | 'personal' | 'company';
       forceOrganizationId?: string;
     }): Promise<{ url: string; kind: 'plain' | 'personal' | 'company'; fromCache: boolean }> => {
       const listing = input.listingAbsoluteUrl;
@@ -213,6 +216,9 @@ export function useMarketplaceShareContext() {
       const personalToken = personalRefTokenForUrl(listing, referralCode, centralUserId);
       let effective = mode;
 
+      if (input.forceMode === 'plain') {
+        return { url: listing, kind: 'plain', fromCache: true };
+      }
       if (input.forceMode === 'personal') {
         effective = personalToken ? { kind: 'personal' } : { kind: 'plain' };
       } else if (input.forceMode === 'company') {

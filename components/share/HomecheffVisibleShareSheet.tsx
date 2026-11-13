@@ -168,7 +168,6 @@ export default function HomecheffVisibleShareSheet({
   onClose,
   url,
   shareTitle,
-  shareText,
   payload,
   preparing = false,
   copy: copyOverrides,
@@ -203,6 +202,10 @@ export default function HomecheffVisibleShareSheet({
   }, [open]);
 
   useEffect(() => {
+    setNote('');
+  }, [url, shareTitle]);
+
+  useEffect(() => {
     if (!userFile) {
       setUserPreview(null);
       return;
@@ -229,7 +232,7 @@ export default function HomecheffVisibleShareSheet({
   const effectiveUrl = payload?.url || url;
   const ready = Boolean(effectiveUrl) && !preparing;
 
-  const composedText = [note.trim(), shareText || shareTitle].filter(Boolean).join('\n\n');
+  const composedText = note.trim() || shareTitle;
 
   const copyUrlWithOptionalFallback = useCallback(
     async (reason?: 'files_unsupported') => {
@@ -267,7 +270,7 @@ export default function HomecheffVisibleShareSheet({
       if (!effectiveUrl) return;
       const formatted = payload
         ? formatShareForChannel(payload, channel)
-        : { title: shareTitle, text: shareText || shareTitle, url: effectiveUrl };
+        : { title: shareTitle, text: composedText, url: effectiveUrl };
       const clipboardText = composeSingleUrlShareBody(
         formatted.text,
         effectiveUrl,
@@ -299,7 +302,7 @@ export default function HomecheffVisibleShareSheet({
       onDestination,
       onNativeShare,
       payload,
-      shareText,
+      composedText,
       shareTitle,
       userFile,
     ],
@@ -363,7 +366,7 @@ export default function HomecheffVisibleShareSheet({
     ? payload
       ? buildMailtoShareUrlFromPayload(payload)
       : `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(
-          composeSingleUrlShareBody(shareText || shareTitle, effectiveUrl!, shareTitle),
+          composeSingleUrlShareBody(composedText, effectiveUrl!, shareTitle),
         )}`
     : undefined;
   const imageUrl = payload?.image || itemImageUrl || undefined;

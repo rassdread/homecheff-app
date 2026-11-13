@@ -19,6 +19,26 @@ export type OrgMembershipSummary = {
   status?: string;
 };
 
+/**
+ * One row per organization the caller may act for.
+ * Same display name with a different organization id stays.
+ * A repeated membership of the same organization does not.
+ */
+export function dedupeAuthorizedMemberships(
+  rows: readonly OrgMembershipSummary[],
+): OrgMembershipSummary[] {
+  const byId = new Map<string, OrgMembershipSummary>();
+  for (const row of rows) {
+    const organizationId = row.organizationId?.trim();
+    if (!organizationId) continue;
+    if (row.status && row.status !== "ACTIVE") continue;
+    if (!byId.has(organizationId)) {
+      byId.set(organizationId, { ...row, organizationId });
+    }
+  }
+  return [...byId.values()];
+}
+
 export function appendPersonalRef(
   listingUrl: string,
   referralCode: string | null | undefined,
