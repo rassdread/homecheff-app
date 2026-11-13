@@ -103,16 +103,43 @@ describe('small recirculation inventories', () => {
   });
 
   for (const count of [3, 4, 5, 6]) {
-    it(`rotates all ${count} items without a consecutive repeat`, () => {
+    it(`rotates all ${count} items for three rounds without a consecutive repeat`, () => {
       const shown = ticks(count, 3);
-      assert.ok(shown.length >= count);
-      const firstRound = shown.slice(0, count);
-      assert.equal(new Set(firstRound).size, count);
+      assert.ok(shown.length >= count * 3);
+      const rounds = Math.floor(shown.length / count);
+      assert.ok(rounds >= 3);
+      for (let round = 0; round < 3; round += 1) {
+        const slice = shown.slice(round * count, (round + 1) * count);
+        assert.equal(new Set(slice).size, count);
+      }
       for (let index = 1; index < shown.length; index += 1) {
         assert.notEqual(shown[index], shown[index - 1]);
       }
     });
   }
+
+  it('keeps a newly discovered item in the next round', () => {
+    const first = buildRecirculationBatch({
+      seeds: seedsOf(3),
+      recentIds: [],
+      lastDisplayedId: null,
+      take: 3,
+      batchIndex: 0,
+    }).map((seed) => seed.id);
+    const discovered = [
+      ...seedsOf(3),
+      { id: 'item-new', kind: 'insp' as const },
+    ];
+    const next = buildRecirculationBatch({
+      seeds: discovered,
+      recentIds: first,
+      lastDisplayedId: first[first.length - 1] ?? null,
+      take: 4,
+      batchIndex: 1,
+    }).map((seed) => seed.id);
+    assert.equal(next.slice(0, 4).includes('item-new'), true);
+    assert.equal(new Set(next.slice(0, 4)).size, 4);
+  });
 
   it('keeps a six-position gap when seven items make that gap possible', () => {
     const seeds = seedsOf(7);

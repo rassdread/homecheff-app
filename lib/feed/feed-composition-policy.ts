@@ -52,6 +52,7 @@ export const FEED_RECIRC_HISTORY_CAP = 120;
  * 2  → safe alternation; no consecutive duplicate; flip order across batches
  * 3+ → least-recent rotation. The spacing gap applies only when
  *       recirculationSpacingApplies is true (the set is larger than the gap).
+ *       Below that size every id is used once per round, then the next round starts.
  */
 export type InventoryContinuationMode =
   | 'empty_state'
@@ -360,21 +361,29 @@ export function buildRecirculationBatch(input: {
     return a.idx - b.idx;
   });
 
+  const placed = new Map<string, number>();
+  const leastPlaced = () => {
+    let min = Infinity;
+    for (const { seed } of scored) {
+      min = Math.min(min, placed.get(seed.id) ?? 0);
+    }
+    return Number.isFinite(min) ? min : 0;
+  };
   const tryPick = (preferKindFlip: boolean): RecircSeedItem | null => {
-    const waitingForFullPass = !spacingActive && out.length < scored.length;
-    const skipUntilFullPass = (id: string) =>
-      waitingForFullPass && out.some((item) => item.id === id);
+    const floor = spacingActive ? null : leastPlaced();
+    const alreadyHadThisRound = (id: string) =>
+      floor !== null && (placed.get(id) ?? 0) > floor;
     for (const { seed } of scored) {
       if (seed.id === lastId) continue;
       if (spacingActive && recentSet.has(seed.id)) continue;
-      if (skipUntilFullPass(seed.id)) continue;
+      if (alreadyHadThisRound(seed.id)) continue;
       if (preferKindFlip && lastKind && seed.kind === lastKind) continue;
       return seed;
     }
     for (const { seed } of scored) {
       if (seed.id === lastId) continue;
       if (spacingActive && recentSet.has(seed.id)) continue;
-      if (skipUntilFullPass(seed.id)) continue;
+      if (alreadyHadThisRound(seed.id)) continue;
       return seed;
     }
     return null;
@@ -390,12 +399,14 @@ export function buildRecirculationBatch(input: {
       lastId = alt.id;
       lastKind = alt.kind;
       recentSet.add(alt.id);
+      if (!spacingActive) placed.set(alt.id, (placed.get(alt.id) ?? 0) + 1);
       continue;
     }
     out.push(pick);
     lastId = pick.id;
     lastKind = pick.kind;
     recentSet.add(pick.id);
+    if (!spacingActive) placed.set(pick.id, (placed.get(pick.id) ?? 0) + 1);
   }
 
   return out;
