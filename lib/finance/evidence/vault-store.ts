@@ -18,6 +18,7 @@
  */
 import { randomUUID } from 'crypto';
 import { del, get, head, put } from '@vercel/blob';
+import { configuredCredential } from '@/lib/runtime/configured-credential';
 
 /** Namespace inside the dedicated private store. Carries no user information. */
 const KEY_PREFIX = 'ev';
@@ -30,13 +31,13 @@ export class VaultNotConfiguredError extends Error {
 }
 
 export function vaultToken(): string {
-  const token = process.env.RECEIPT_VAULT_BLOB_READ_WRITE_TOKEN?.trim();
+  const token = configuredCredential(process.env.RECEIPT_VAULT_BLOB_READ_WRITE_TOKEN);
   if (!token) throw new VaultNotConfiguredError();
   return token;
 }
 
 export function isVaultConfigured(): boolean {
-  return Boolean(process.env.RECEIPT_VAULT_BLOB_READ_WRITE_TOKEN?.trim());
+  return Boolean(configuredCredential(process.env.RECEIPT_VAULT_BLOB_READ_WRITE_TOKEN));
 }
 
 /**

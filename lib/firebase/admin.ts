@@ -2,6 +2,7 @@
  * Firebase Admin (server-only) voor FCM. Geen throw als env ontbreekt — push wordt dan overgeslagen.
  */
 import admin from "firebase-admin";
+import { configuredCredential } from "@/lib/runtime/configured-credential";
 
 let loggedMissingConfig = false;
 let loggedInvalidPem = false;
@@ -17,9 +18,9 @@ function logDevReady(ok: boolean): void {
 
 export function isFirebaseAdminConfigured(): boolean {
   return Boolean(
-    process.env.FIREBASE_PROJECT_ID &&
-      process.env.FIREBASE_CLIENT_EMAIL &&
-      process.env.FIREBASE_PRIVATE_KEY
+    configuredCredential(process.env.FIREBASE_PROJECT_ID) &&
+      configuredCredential(process.env.FIREBASE_CLIENT_EMAIL) &&
+      configuredCredential(process.env.FIREBASE_PRIVATE_KEY)
   );
 }
 
@@ -44,7 +45,7 @@ export function getFirebaseMessaging(): admin.messaging.Messaging | null {
 
   try {
     if (admin.apps.length === 0) {
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n");
+      const privateKey = configuredCredential(process.env.FIREBASE_PRIVATE_KEY).replace(/\\n/g, "\n");
       const pemOk =
         privateKey.includes("BEGIN PRIVATE KEY") &&
         privateKey.includes("END PRIVATE KEY");

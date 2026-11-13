@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import { mkdir, readFile, unlink, writeFile } from 'fs/promises';
 import path from 'path';
 import { del, get, put } from '@vercel/blob';
+import { configuredCredential } from '@/lib/runtime/configured-credential';
 
 const KEY_PREFIX = 'cargo';
 
@@ -20,7 +21,7 @@ function localPhotoPath(objectKey: string): string {
 }
 
 export function cargoPhotoToken(): string | null {
-  return process.env.RECEIPT_VAULT_BLOB_READ_WRITE_TOKEN?.trim() || null;
+  return configuredCredential(process.env.RECEIPT_VAULT_BLOB_READ_WRITE_TOKEN) || null;
 }
 
 export function newCargoObjectKey(): string {

@@ -1,9 +1,18 @@
+import { configuredCredential } from '@/lib/runtime/configured-credential';
+
+function blobToken(): string {
+  return (
+    configuredCredential(process.env.BLOB_READ_WRITE_TOKEN) ||
+    configuredCredential(process.env.VERCEL_BLOB_READ_WRITE_TOKEN)
+  );
+}
+
 export async function putAffiliateMediaBlob(input: {
   key: string;
   buffer: Buffer;
   contentType: string;
 }): Promise<{ url: string; key: string }> {
-  const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+  const token = blobToken();
   if (!token) {
     throw new Error('BLOB_TOKEN_MISSING');
   }
@@ -19,7 +28,7 @@ export async function putAffiliateMediaBlob(input: {
 
 export async function deleteAffiliateMediaBlob(url: string | null | undefined): Promise<void> {
   if (!url || !url.startsWith('http')) return;
-  const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+  const token = blobToken();
   if (!token) return;
   try {
     const { del } = await import('@vercel/blob');

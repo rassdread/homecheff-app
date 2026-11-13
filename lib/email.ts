@@ -25,9 +25,10 @@ import {
 } from '@/lib/email/idempotent-send';
 import { EMAIL_PRIORITY } from '@/lib/email/priority';
 import { resolveResendApiKeyForSend } from '@/lib/email/env-policy';
+import { configuredCredential } from '@/lib/runtime/configured-credential';
 
 function requireResendKey(): string {
-  const key = resolveResendApiKeyForSend() || process.env.RESEND_API_KEY?.trim();
+  const key = resolveResendApiKeyForSend() || configuredCredential(process.env.RESEND_API_KEY);
   if (!key) {
     console.error('[email] RESEND_API_KEY ontbreekt');
     logEmailVerificationDiag('config_missing_api_key', {});
