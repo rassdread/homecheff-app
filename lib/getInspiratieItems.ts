@@ -228,7 +228,14 @@ export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
     items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
-  const authorIds = [...new Set(items.map((it) => it.user.id).filter((id): id is string => typeof id === 'string'))];
+  const authorIds: string[] = [];
+  const seenAuthorIds = new Set<string>();
+  for (const item of items) {
+    const authorId = item.user.id;
+    if (typeof authorId !== 'string' || seenAuthorIds.has(authorId)) continue;
+    seenAuthorIds.add(authorId);
+    authorIds.push(authorId);
+  }
   const badgeMap = await fetchAuthorBadgeSummariesByUserIds(authorIds, 2);
   const trustBundles = await fetchSellerTrustBundles(authorIds, badgeMap);
   items = items.map((it) => ({
