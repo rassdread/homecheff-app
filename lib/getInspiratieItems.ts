@@ -2,6 +2,7 @@
  * Server-side fetch van inspiratie-items. Zelfde logica als /api/inspiratie.
  * Gebruikt o.a. op de homepage zodat de feed direct met data wordt geserveerd (geen lege skeleton).
  */
+import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { fetchAuthorBadgeSummariesByUserIds } from '@/lib/gamification/author-badge-summaries';
 import { buildDishTextSearchWhere } from '@/lib/search';
@@ -36,7 +37,7 @@ export type GetInspiratieOptions = {
 
 export async function getInspiratieItems(options: GetInspiratieOptions = {}) {
   const { category = 'all', subcategory, region = 'all', sortBy = 'newest', take = 24, skip = 0, q } = options;
-  const where: Record<string, unknown> = { status: 'PUBLISHED' };
+  const where: Prisma.DishWhereInput = { status: 'PUBLISHED' };
   if (category && category !== 'all') where.category = category;
   if (subcategory) where.subcategory = subcategory;
   if (region && region !== 'all') where.tags = { has: region };
