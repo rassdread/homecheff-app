@@ -22,8 +22,10 @@ export function placesSearchShouldRecover(input: {
   placeholder?: string | null;
   value?: string | null;
 }): boolean {
+  // The search field is disabled while Places is still loading. That is not
+  // Google's error state. Only the widget's own failure text means the search
+  // was rejected and the form should stay usable.
   return (
-    input.disabled ||
     isPlacesWidgetFailureText(input.placeholder) ||
     isPlacesWidgetFailureText(input.value)
   );

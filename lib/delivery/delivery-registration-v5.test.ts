@@ -117,6 +117,14 @@ describe('places autocomplete fallback', () => {
       }),
       false,
     );
+    assert.equal(
+      placesSearchShouldRecover({
+        disabled: true,
+        placeholder: 'Begin met typen om een adres te zoeken...',
+        value: '',
+      }),
+      false,
+    );
     assert.equal(placesPredictionStatusUnavailable('REQUEST_DENIED'), true);
     assert.equal(placesPredictionStatusUnavailable('OK'), false);
     assert.equal(placesPredictionStatusUnavailable('ZERO_RESULTS'), false);
