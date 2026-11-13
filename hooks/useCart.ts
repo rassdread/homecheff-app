@@ -5,7 +5,8 @@ import { useSession } from 'next-auth/react';
 import {
   getCart, 
   saveCart, 
-  clearAllCartData, 
+  clearAllCartData,
+  rememberCartOwner, 
   removeCartProducts,
   rememberPendingCheckoutProducts,
   readPendingCheckoutProducts,
@@ -75,8 +76,15 @@ export function useCart() {
       setCartUserId(null);
     }
 
-    // Set the user ID for cart isolation
-    setCartUserId(userId);
+    // The cart key is the account id. An older cart stored under the email moves once.
+    if (userId) {
+      rememberCartOwner({
+        userId,
+        email: (session?.user as { email?: string | null } | undefined)?.email ?? null,
+      });
+    } else {
+      setCartUserId(null);
+    }
 
     // Load cart from lib/cart.ts
     const cart = getCart();

@@ -231,7 +231,8 @@ export function clearCart(): Cart {
   return cart;
 }
 
-// Set user ID for cart isolation
+// Set user ID for cart isolation. The stored identity is the account id.
+// An email is only accepted as a legacy key to move, never as the current key.
 export function setCartUserId(userId: string | null): void {
   if (typeof window === 'undefined') return;
   
@@ -240,6 +241,45 @@ export function setCartUserId(userId: string | null): void {
   } else {
     localStorage.removeItem('current_user_id');
   }
+}
+
+function readStoredCart(key: string): Cart | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.items)) return null;
+    return parsed as Cart;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Keep one cart key per account id.
+ * A cart saved earlier under the account email moves once when the id cart is still empty.
+ */
+export function rememberCartOwner(owner: { userId: string; email?: string | null }): void {
+  if (typeof window === 'undefined') return;
+  const userId = owner.userId.trim();
+  if (!userId || userId.includes('@')) return;
+
+  const email = owner.email?.trim() ?? '';
+  if (email && email !== userId && email.includes('@')) {
+    const legacyKey = `${CART_KEY_PREFIX}${email}`;
+    const nextKey = `${CART_KEY_PREFIX}${userId}`;
+    const legacy = readStoredCart(legacyKey);
+    const next = readStoredCart(nextKey);
+    if ((legacy?.items.length ?? 0) > 0 && (next?.items.length ?? 0) === 0) {
+      localStorage.setItem(
+        nextKey,
+        JSON.stringify({ ...legacy, lastUpdated: Date.now() }),
+      );
+      localStorage.removeItem(legacyKey);
+    }
+  }
+
+  localStorage.setItem('current_user_id', userId);
 }
 
 // Clear all cart data (for logout)

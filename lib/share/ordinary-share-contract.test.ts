@@ -56,7 +56,9 @@ describe('ordinary share contract', () => {
   it('the HomeCheff menu copies only the link and starts from the title', () => {
     const src = read('components/share/HomecheffVisibleShareSheet.tsx');
     assert.match(src, /const composedText = note\.trim\(\) \|\| shareTitle/);
-    assert.match(src, /navigator\.clipboard\.writeText\(effectiveUrl\)/);
+    assert.match(src, /copyPublicUrl\(effectiveUrl/);
+    assert.match(src, /readOnly/);
+    assert.match(src, /setCopied\(true\)/);
     assert.doesNotMatch(src, /shareText \|\| shareTitle/);
     assert.match(src, /\}, \[url, shareTitle\]\)/);
   });

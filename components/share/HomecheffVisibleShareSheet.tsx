@@ -27,6 +27,7 @@ import {
   formatShareForChannel,
   type HomecheffSharePayload,
 } from '@/lib/share/homecheff-share-payload';
+import { copyPublicUrl } from '@/lib/share/copy-public-url';
 import {
   buildFacebookShareUrl,
   buildLinkedInShareUrl,
@@ -48,6 +49,8 @@ export type VisibleShareCopy = {
   email: string;
   copyLink: string;
   copied: string;
+  copyDenied: string;
+  selectLink: string;
   moreOptions: string;
   close: string;
   instagramHint: string;
@@ -76,6 +79,9 @@ const DEFAULT_COPY_NL: VisibleShareCopy = {
   email: 'E-mail',
   copyLink: 'Link kopiëren',
   copied: 'Link gekopieerd',
+  copyDenied:
+    'Kopiëren is door de browser geweigerd. Selecteer de link en kopieer die zelf.',
+  selectLink: 'Link selecteren',
   moreOptions: 'Meer opties',
   close: 'Sluiten',
   instagramHint:
@@ -185,6 +191,8 @@ export default function HomecheffVisibleShareSheet({
   const [hint, setHint] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState('');
+  const [manualUrl, setManualUrl] = useState<string | null>(null);
+  const manualLinkRef = useRef<HTMLInputElement>(null);
   const [userFile, setUserFile] = useState<File | null>(null);
   const [userPreview, setUserPreview] = useState<string | null>(null);
 
@@ -196,6 +204,7 @@ export default function HomecheffVisibleShareSheet({
     setHint(null);
     setError(null);
     setNote('');
+    setManualUrl(null);
     setUserFile(null);
     const t = window.setTimeout(() => closeRef.current?.focus(), 0);
     return () => window.clearTimeout(t);
@@ -253,17 +262,22 @@ export default function HomecheffVisibleShareSheet({
 
   const doCopyUrl = useCallback(async () => {
     if (!effectiveUrl) return;
-    try {
-      await navigator.clipboard.writeText(effectiveUrl);
+    const result = await copyPublicUrl(effectiveUrl, (value) =>
+      navigator.clipboard.writeText(value),
+    );
+    if (result === 'copied') {
       setCopied(true);
+      setManualUrl(null);
       setError(null);
       onCopied?.();
       onDestination?.('copy');
       window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setError(copy.error);
+      return;
     }
-  }, [copy.error, effectiveUrl, onCopied, onDestination]);
+    setCopied(false);
+    setManualUrl(effectiveUrl);
+    setError(copy.copyDenied);
+  }, [copy.copyDenied, effectiveUrl, onCopied, onDestination]);
 
   const copyCaptionAndMaybeNative = useCallback(
     async (channel: 'instagram' | 'tiktok') => {
@@ -647,6 +661,36 @@ export default function HomecheffVisibleShareSheet({
               )}
               {copied ? copy.copied : copy.copyLink}
             </DestButton>
+
+            {manualUrl ? (
+              <div className="sm:col-span-2 space-y-2">
+                <p className="text-sm text-slate-700" role="status">
+                  {copy.copyDenied}
+                </p>
+                <label className="block text-sm font-semibold text-slate-800" htmlFor={`${titleId}-public-link`}>
+                  Openbare link
+                  <input
+                    ref={manualLinkRef}
+                    id={`${titleId}-public-link`}
+                    readOnly
+                    value={manualUrl}
+                    aria-label="Openbare link"
+                    className="mt-1 w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900"
+                    onFocus={(event) => event.currentTarget.select()}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="inline-flex min-h-[44px] items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800"
+                  onClick={() => {
+                    manualLinkRef.current?.focus();
+                    manualLinkRef.current?.select();
+                  }}
+                >
+                  {copy.selectLink}
+                </button>
+              </div>
+            ) : null}
 
             {showNative ? (
               <DestButton

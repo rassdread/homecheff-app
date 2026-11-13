@@ -15,7 +15,7 @@ import CartIcon from '@/components/cart/CartIcon';
 import { openCartDrawer } from '@/lib/checkout/cart-drawer-bus';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
-import { setCartUserId, clearAllCartData } from '@/lib/cart';
+import { setCartUserId, rememberCartOwner, clearAllCartData } from '@/lib/cart';
 import { validateAndCleanSession, setupSessionIsolation, performLogout } from '@/lib/session-cleanup';
 import { useCart } from '@/hooks/useCart';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -386,8 +386,13 @@ export default function NavBar() {
     // Validate session integrity
     validateAndCleanSession();
 
-    if (session?.user?.email) {
-      setCartUserId(session.user.email);
+    if (status === 'loading') {
+      return;
+    }
+
+    const accountId = (session?.user as { id?: string } | undefined)?.id ?? null;
+    if (accountId) {
+      rememberCartOwner({ userId: accountId, email: session?.user?.email ?? null });
       void fetchSellerOrdersUnread('session-change');
     } else {
       setCartUserId(null);
