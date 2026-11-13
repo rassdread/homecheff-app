@@ -49,6 +49,77 @@ function getCartKey(): string {
   return `${CART_KEY_PREFIX}${identifier}`;
 }
 
+const CART_EXPIRY_MS = 30 * 60 * 1000;
+const cartListeners = new Set<() => void>();
+let cartStoreListenerInstalled = false;
+let cartSnapshotToken = '';
+let cartSnapshotItems: CartItem[] = [];
+const serverCartItems: CartItem[] = [];
+
+function emitCartStore(): void {
+  cartSnapshotToken = '';
+  cartListeners.forEach((listener) => listener());
+}
+
+function ensureCartStoreListener(): void {
+  if (typeof window === 'undefined' || cartStoreListenerInstalled) return;
+  if (typeof window.addEventListener !== 'function') return;
+  cartStoreListenerInstalled = true;
+  window.addEventListener('storage', (event) => {
+    if (
+      event.key == null ||
+      event.key === 'current_user_id' ||
+      event.key.startsWith(CART_KEY_PREFIX)
+    ) {
+      emitCartStore();
+    }
+  });
+}
+
+/** Read the current owner without creating a guest id during render. */
+export function readActiveCartIdentifier(): string | null {
+  if (typeof window === 'undefined') return null;
+  const userId = localStorage.getItem('current_user_id');
+  if (userId) return userId;
+  return sessionStorage.getItem('anonymous_cart_id');
+}
+
+function itemsFromStoredCart(raw: string | null): CartItem[] {
+  if (!raw) return [];
+  try {
+    const cart = JSON.parse(raw) as Cart;
+    if (!cart || !Array.isArray(cart.items)) return [];
+    if (cart.lastUpdated && Date.now() - cart.lastUpdated > CART_EXPIRY_MS) return [];
+    return cart.items;
+  } catch {
+    return [];
+  }
+}
+
+export function subscribeCartStore(listener: () => void): () => void {
+  ensureCartStoreListener();
+  cartListeners.add(listener);
+  return () => {
+    cartListeners.delete(listener);
+  };
+}
+
+export function getCartItemsSnapshot(): CartItem[] {
+  if (typeof window === 'undefined') return cartSnapshotItems;
+  const id = readActiveCartIdentifier();
+  const key = id ? `${CART_KEY_PREFIX}${id}` : '';
+  const raw = key ? localStorage.getItem(key) : null;
+  const token = `${key}\n${raw ?? ''}`;
+  if (token === cartSnapshotToken) return cartSnapshotItems;
+  cartSnapshotToken = token;
+  cartSnapshotItems = itemsFromStoredCart(raw);
+  return cartSnapshotItems;
+}
+
+export function getServerCartItemsSnapshot(): CartItem[] {
+  return serverCartItems;
+}
+
 export function getCart(): Cart {
   if (typeof window === 'undefined') return { items: [], totalItems: 0, totalAmount: 0 };
   
@@ -60,10 +131,9 @@ export function getCart(): Cart {
     const cart = JSON.parse(stored);
     
     // Check if cart has expired (30 minutes)
-    const CART_EXPIRY_TIME = 30 * 60 * 1000; // 30 minutes in milliseconds
     const now = Date.now();
     
-    if (cart.lastUpdated && (now - cart.lastUpdated) > CART_EXPIRY_TIME) {
+    if (cart.lastUpdated && (now - cart.lastUpdated) > CART_EXPIRY_MS) {
       // Cart has expired, clear it
       const emptyCart = { items: [], totalItems: 0, totalAmount: 0, lastUpdated: now };
       saveCart(emptyCart);
@@ -88,6 +158,7 @@ export function saveCart(cart: Cart): void {
     // Always update the timestamp when saving
     const cartWithTimestamp = { ...cart, lastUpdated: Date.now() };
     localStorage.setItem(cartKey, JSON.stringify(cartWithTimestamp));
+    emitCartStore();
   } catch (error) {
     console.error('Failed to save cart:', error);
   }
@@ -241,6 +312,7 @@ export function setCartUserId(userId: string | null): void {
   } else {
     localStorage.removeItem('current_user_id');
   }
+  emitCartStore();
 }
 
 function readStoredCart(key: string): Cart | null {
@@ -280,27 +352,25 @@ export function rememberCartOwner(owner: { userId: string; email?: string | null
   }
 
   localStorage.setItem('current_user_id', userId);
+  emitCartStore();
 }
 
-// Clear all cart data (for logout)
+/**
+ * Detach the cart from the current browser session.
+ * Account carts stay under their own key so the next account cannot see or
+ * adopt them, and a later sign-in of the same account still finds its lines.
+ * Only the guest cart is removed, because it has no account to return to.
+ */
 export function clearAllCartData(): void {
   if (typeof window === 'undefined') return;
-  
-  // Clear current user ID
+
   localStorage.removeItem('current_user_id');
-  
-  // Clear session storage for anonymous carts
+  const anonymousId = sessionStorage.getItem('anonymous_cart_id');
   sessionStorage.removeItem('anonymous_cart_id');
-  
-  // Clear all cart-related localStorage items
-  const keysToRemove: string[] = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith(CART_KEY_PREFIX)) {
-      keysToRemove.push(key);
-    }
+  if (anonymousId) {
+    localStorage.removeItem(`${CART_KEY_PREFIX}${anonymousId}`);
   }
-  keysToRemove.forEach(key => localStorage.removeItem(key));
+  emitCartStore();
 }
 
 // Get cart expiration info
@@ -315,9 +385,8 @@ export function getCartExpirationInfo(): { isExpired: boolean; timeRemaining: nu
     const cart = JSON.parse(stored);
     if (!cart.lastUpdated) return { isExpired: false, timeRemaining: 0, timeRemainingText: '' };
     
-    const CART_EXPIRY_TIME = 30 * 60 * 1000; // 30 minutes
     const now = Date.now();
-    const timeRemaining = CART_EXPIRY_TIME - (now - cart.lastUpdated);
+    const timeRemaining = CART_EXPIRY_MS - (now - cart.lastUpdated);
     const isExpired = timeRemaining <= 0;
     
     let timeRemainingText = '';

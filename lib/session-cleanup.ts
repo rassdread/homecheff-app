@@ -3,6 +3,10 @@
  */
 
 import { clearAllCartData } from '@/lib/cart';
+
+function keepStoredAccountCart(key: string): boolean {
+  return key.startsWith('homecheff_cart_');
+}
 import { AFTER_LOGIN_CREATE_ACTION_KEY } from '@/lib/afterLoginCreateIntent';
 import { REGISTER_DRAFT_STORAGE_KEY } from '@/lib/auth/post-auth-redirect';
 import { HC_CREATE_FLOW_INTENT_KEY } from '@/lib/createFlowIntent';
@@ -35,6 +39,7 @@ export function clearAllUserData(): void {
     const key = localStorage.key(i);
     if (!key) continue;
     if (key === 'homecheff-language' || key.startsWith('i18n-')) continue; // keep language + translation cache
+    if (keepStoredAccountCart(key)) continue;
     if (
       key.startsWith('hc_app_resume') ||
       key.startsWith('hc_cap_') ||
@@ -177,6 +182,7 @@ export function clearStorageForCredentialLoginStart(): void {
     const key = localStorage.key(i);
     if (!key) continue;
     if (preserveDraftOrPrefsLocalKey(key)) continue;
+    if (keepStoredAccountCart(key)) continue;
     if (
       key.startsWith('hc_app_resume') ||
       key.startsWith('hc_cap_') ||
@@ -256,6 +262,7 @@ export function clearSensitiveUserDataOnLogout(): void {
     const key = localStorage.key(i);
     if (!key) continue;
     if (preserveDraftOrPrefsLocalKey(key)) continue;
+    if (keepStoredAccountCart(key)) continue;
     if (
       key.startsWith('hc_app_resume') ||
       key.startsWith('hc_cap_') ||

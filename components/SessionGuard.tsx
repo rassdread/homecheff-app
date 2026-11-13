@@ -18,6 +18,30 @@ import {
   type MarketplaceAuthChannelMessage,
 } from '@/lib/auth/session-identity-channel';
 
+/**
+ * null: the session endpoint answered and there is no user.
+ * undefined: the request failed or disagreed with getSession. Do not wipe.
+ */
+async function readConfirmedSessionUserId(): Promise<string | null | undefined> {
+  try {
+    const response = await fetch('/api/auth/session', {
+      credentials: 'same-origin',
+      cache: 'no-store',
+    });
+    if (!response.ok) return undefined;
+    const body = await response.json();
+    const bodyId =
+      typeof body?.user?.id === 'string' && body.user.id.trim() ? body.user.id.trim() : null;
+    const live = await getSession();
+    const liveId =
+      typeof live?.user?.id === 'string' && live.user.id.trim() ? live.user.id.trim() : null;
+    if (bodyId !== liveId) return undefined;
+    return bodyId;
+  } catch {
+    return undefined;
+  }
+}
+
 function clearIdentityBoundClientResidue(): void {
   try {
     clearSensitiveUserDataOnLogout();
@@ -85,24 +109,29 @@ export default function SessionGuard() {
   // useSession path (same tab + NextAuth client cache updates)
   useEffect(() => {
     if (status === 'loading') return;
+    let cancelled = false;
     if (status === 'unauthenticated') {
-      applyIdentityChange(null, 'useSession_unauthenticated');
-      return;
+      void readConfirmedSessionUserId().then((userId) => {
+        if (cancelled || userId === undefined) return;
+        applyIdentityChange(userId, 'useSession_confirmed');
+      });
+      return () => {
+        cancelled = true;
+      };
     }
     const id = typeof session?.user?.id === 'string' ? session.user.id : null;
-    applyIdentityChange(id, 'useSession');
+    if (id) applyIdentityChange(id, 'useSession');
+    return () => {
+      cancelled = true;
+    };
   }, [status, session?.user?.id]);
 
   // Cross-tab + BFCache: independently re-fetch server session
   useEffect(() => {
     const sync = async (reason: string) => {
-      try {
-        const s = await getSession();
-        const id = typeof s?.user?.id === 'string' ? s.user.id : null;
-        applyIdentityChange(id, reason);
-      } catch {
-        /* ignore transient */
-      }
+      const userId = await readConfirmedSessionUserId();
+      if (userId === undefined) return;
+      applyIdentityChange(userId, reason);
     };
 
     const onVis = () => {

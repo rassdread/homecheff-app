@@ -5,7 +5,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { clearSensitiveUserDataOnLogout, setupSessionIsolation } from '@/lib/session-cleanup';
+import { setupSessionIsolation } from '@/lib/session-cleanup';
 import { clearPx4aItemFormDraft } from '@/lib/studio/px4a-item-form-draft';
 
 export function useSessionIsolation() {
@@ -17,11 +17,10 @@ export function useSessionIsolation() {
   }, []);
 
   useEffect(() => {
-    // Match SessionGuard: only wipe on a confirmed logout.
-    // A brief NextAuth "unauthenticated" flicker on /sell/new remount must not
-    // clear hc-px4a-item-form:v1 during a HomeCheff → Studio → HomeCheff round-trip.
+    // A brief NextAuth "unauthenticated" flicker is not a logout. It must not
+    // delete the account cart. Confirmed logout still clears that cart in
+    // performLogout and SessionGuard. The listing-draft clear below stays.
     if (prev.current === 'authenticated' && status === 'unauthenticated') {
-      clearSensitiveUserDataOnLogout();
       clearPx4aItemFormDraft();
     }
     prev.current = status;

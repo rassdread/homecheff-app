@@ -1,20 +1,21 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import { useSession } from 'next-auth/react';
 import {
   getCart, 
   saveCart, 
-  clearAllCartData,
-  rememberCartOwner, 
+  subscribeCartStore,
+  getCartItemsSnapshot,
+  getServerCartItemsSnapshot,
   removeCartProducts,
   rememberPendingCheckoutProducts,
   readPendingCheckoutProducts,
   discardPendingCheckoutProducts,
-  setCartUserId,
   CartItem as LibCartItem,
   Cart
 } from '@/lib/cart';
+import { applyCartSession } from '@/lib/cart-session';
 import { blocksHomecheffCartCheckout } from '@/lib/marketplace/commerce/barter-commerce-alignment';
 
 export interface CartItem extends LibCartItem {}
@@ -57,40 +58,32 @@ const recalculateCartTotals = (cart: Cart) => {
 };
 
 export function useCart() {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const items = useSyncExternalStore(
+    subscribeCartStore,
+    getCartItemsSnapshot,
+    getServerCartItemsSnapshot,
+  );
   const [isOpen, setIsOpen] = useState(false);
   const { data: session, status } = useSession();
-  const previousUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (status === 'loading') {
+      applyCartSession({ kind: 'loading' });
       return;
     }
 
-    const userId = (session?.user as any)?.id ?? null;
-    const previousUserId = previousUserIdRef.current;
-
-    // Detect explicit logout (previously logged-in user -> no user)
-    if (previousUserId && !userId) {
-      clearAllCartData();
-      setCartUserId(null);
-    }
-
-    // The cart key is the account id. An older cart stored under the email moves once.
-    if (userId) {
-      rememberCartOwner({
+    const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
+    if (status === 'authenticated' && userId) {
+      applyCartSession({
+        kind: 'account',
         userId,
         email: (session?.user as { email?: string | null } | undefined)?.email ?? null,
       });
-    } else {
-      setCartUserId(null);
+      return;
     }
 
-    // Load cart from lib/cart.ts
-    const cart = getCart();
-    setItems(cart.items);
-
-    previousUserIdRef.current = userId;
+    // A missing session, including a failed refetch, is not a logout.
+    applyCartSession({ kind: 'unavailable' });
   }, [session, status]);
 
   const addItem = (item: Omit<CartItem, 'quantity'>, quantity: number = 1): AddItemResult => {
@@ -204,7 +197,6 @@ export function useCart() {
     if (didMutate) {
       recalculateCartTotals(cart);
       saveCart(cart);
-      setItems([...cart.items]);
     }
 
     return {
@@ -225,7 +217,6 @@ export function useCart() {
     cart.totalAmount = cart.items.reduce((sum, item) => sum + (item.priceCents * item.quantity), 0);
     
     saveCart(cart);
-    setItems([...cart.items]);
   };
 
   const updateQuantity = (id: string, quantity: number): UpdateQuantityResult => {
@@ -257,7 +248,6 @@ export function useCart() {
 
       recalculateCartTotals(cart);
       saveCart(cart);
-      setItems([...cart.items]);
 
       return {
         success: reason === undefined,
@@ -277,12 +267,10 @@ export function useCart() {
   const clearCart = () => {
     const cart = { items: [], totalItems: 0, totalAmount: 0, lastUpdated: Date.now() };
     saveCart(cart);
-    setItems([]);
   };
 
   const removeProductIds = (productIds: string[]) => {
-    const cart = removeCartProducts(productIds);
-    setItems([...cart.items]);
+    removeCartProducts(productIds);
   };
 
   const rememberCheckoutProducts = (productIds: string[]) => {
@@ -293,8 +281,7 @@ export function useCart() {
     const productIds = readPendingCheckoutProducts();
     discardPendingCheckoutProducts();
     if (productIds.length === 0) return;
-    const cart = removeCartProducts(productIds);
-    setItems([...cart.items]);
+    removeCartProducts(productIds);
   };
 
   const discardCheckoutProducts = () => {

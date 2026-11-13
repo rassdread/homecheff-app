@@ -15,7 +15,7 @@ import CartIcon from '@/components/cart/CartIcon';
 import { openCartDrawer } from '@/lib/checkout/cart-drawer-bus';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
-import { setCartUserId, rememberCartOwner, clearAllCartData } from '@/lib/cart';
+import { rememberCartOwner } from '@/lib/cart';
 import { validateAndCleanSession, setupSessionIsolation, performLogout } from '@/lib/session-cleanup';
 import { useCart } from '@/hooks/useCart';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -394,8 +394,7 @@ export default function NavBar() {
     if (accountId) {
       rememberCartOwner({ userId: accountId, email: session?.user?.email ?? null });
       void fetchSellerOrdersUnread('session-change');
-    } else {
-      setCartUserId(null);
+    } else if (status === 'unauthenticated') {
       setSellerOrdersUnread(0);
       setUserProfile(null);
       hasFetchedProfileRef.current = false;
