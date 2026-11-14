@@ -7,6 +7,8 @@ import { calculateStripeFeeForBuyer } from '@/lib/fees';
 import {
   STANDALONE_PAYMENT_REVIEW_ACTION,
   interpretStoredCapacity,
+  fitCargo,
+  type TransportCargo,
   transportCheckoutFlagDecision,
   transportPaymentReviewReason,
   transportProposalsEnabled,
@@ -27,6 +29,7 @@ import { NotificationService } from '@/lib/notifications/notification-service';
 import { courierCanBeListedForPaidJob, ensureCourierPayable } from '@/lib/delivery/courier-payable';
 import { courierListedInPilot, servicePilotDenial } from '@/lib/delivery/delivery-pilot-access';
 import { createDeliveryBookingRequest } from '@/lib/delivery/booking-request-service';
+import { pickupOverlapsBooking, suggestedPickupTimes } from '@/lib/delivery/standalone-pickup-options';
 import { assertCourierBookableAt } from '@/lib/delivery/standalone-availability';
 import { standaloneBookingNotes } from '@/lib/delivery/standalone-booking-meta';
 import type { ProviderAcceptanceProfile } from '@/lib/delivery/provider-acceptance';
@@ -55,6 +58,7 @@ export type StandaloneQuoteInput = {
   dropoffLng: number;
   /** Null means as soon as possible. */
   requestedPickupAt?: Date | null;
+  cargo?: TransportCargo | null;
 };
 
 type CourierCard = {
@@ -110,7 +114,7 @@ function asAcceptanceProfile(profile: {
   };
 }
 
-export async function createStandaloneQuote(input: StandaloneQuoteInput) {
+export async function createStandaloneQuote(input: StandaloneQuoteInput, includeAlternatives = true) {
   const pickupAddress = input.pickupAddress.trim();
   const deliveryAddress = input.deliveryAddress.trim();
   const itemDescription = input.itemDescription.trim();
@@ -135,6 +139,11 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput) {
     return { ok: false as const, status: 422, code: COMMERCIAL_DISTANCE_UNAVAILABLE.code, error: COMMERCIAL_DISTANCE_UNAVAILABLE.error, message: COMMERCIAL_DISTANCE_UNAVAILABLE.message };
   }
 
+  const now = new Date();
+  const requestedAt = input.requestedPickupAt ?? now;
+  if (Number.isNaN(requestedAt.getTime()) || requestedAt.getTime() < now.getTime() - 5 * 60 * 1000) {
+    return { ok: false as const, status: 400, code: 'INVALID_PICKUP_TIME', error: 'Kies een ophaalmoment in de toekomst, of laat het leeg voor zo snel mogelijk.' };
+  }
   const profiles = await prisma.deliveryProfile.findMany({
     where: {
       isActive: true,
@@ -143,19 +152,22 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput) {
     },
     include: {
       user: { select: { id: true, name: true, dateOfBirth: true, lat: true, lng: true, country: true } },
+      calendarEntries: {
+        where: {
+          status: { in: ['PENDING', 'CONFIRMED'] },
+          pickupAt: { lt: new Date(requestedAt.getTime() + 9 * 86_400_000) },
+          OR: [{ deliverAt: null }, { deliverAt: { gte: now } }],
+        },
+        select: { pickupAt: true, deliverAt: true, estimatedDurationMinutes: true },
+      },
     },
   });
   if (profiles.length === 0) {
     return { ok: false as const, status: 422, code: 'NO_COURIER', error: 'Geen bezorger beschikbaar.' };
   }
 
-  const requestedAt = input.requestedPickupAt ?? new Date();
-  if (Number.isNaN(requestedAt.getTime()) || requestedAt.getTime() < Date.now() - 5 * 60 * 1000) {
-    return { ok: false as const, status: 400, code: 'INVALID_PICKUP_TIME', error: 'Kies een ophaalmoment in de toekomst, of laat het leeg voor zo snel mogelijk.' };
-  }
-
   const couriers: CourierCard[] = [];
-  const unavailable: Array<{ id: string; name: string; code: string }> = [];
+  const unavailable: Array<{ id: string; name: string; code: string; pickupTimes: string[] }> = [];
 
   for (const profile of profiles) {
     const eligible = isCommerciallyMatchableDeliverer({
@@ -166,6 +178,8 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput) {
       profileAge: profile.age,
     });
     if (!eligible) continue;
+    if (input.cargo && input.cargo.items.some(item => item.lengthCm > 0 || item.widthCm > 0 || item.heightCm > 0 || item.weightKg > 0)
+      && fitCargo(input.cargo, profile) !== 'fit') continue;
     if (!courierListedInPilot(profile.id, profile.user?.id)) continue;
     const distanceMode = distanceSemanticsMode(profile.distanceSemanticsVersion);
     if (distanceMode === 'unsupported') continue;
@@ -206,17 +220,18 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput) {
       providerCountryCode: 'NL',
     });
     if (!quote.ok) continue;
-    const bookable = assertCourierBookableAt(
-      asAcceptanceProfile({ ...profile, dateOfBirth: profile.user?.dateOfBirth }),
-      requestedAt,
-      quote.routeDistanceKm,
-    );
+    const acceptance = asAcceptanceProfile({ ...profile, dateOfBirth: profile.user?.dateOfBirth });
+    const bookable = assertCourierBookableAt(acceptance, requestedAt, quote.routeDistanceKm);
     const name = profile.user.name?.trim() || 'Bezorgaanbieder';
-    if (!bookable.ok) {
-      unavailable.push({ id: profile.id, name, code: bookable.code });
+    if (!bookable.ok && !bookable.failedChecks.every(check => ['working_hours', 'break', 'vacation'].includes(check))) continue;
+    const available = bookable.ok && !pickupOverlapsBooking(requestedAt, route.duration, profile.calendarEntries);
+    if (!available && !includeAlternatives) continue;
+    if (!(await courierCanBeListedForPaidJob(prisma, profile.id))) continue;
+    if (!available) {
+      const pickupTimes = suggestedPickupTimes(acceptance, requestedAt, now, quote.routeDistanceKm, route.duration, profile.calendarEntries);
+      if (pickupTimes.length) unavailable.push({ id: profile.id, name, code: bookable.ok ? 'DELIVERY_CAPACITY_FULL' : bookable.code, pickupTimes });
       continue;
     }
-    if (!(await courierCanBeListedForPaidJob(prisma, profile.id))) continue;
     const vehicle = profile.transportation[0] || 'BIKE';
     couriers.push({
       id: profile.id,
@@ -261,7 +276,7 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput) {
 }
 
 export async function bookStandaloneCourier(input: StandaloneQuoteInput & { deliveryProfileId: string }) {
-  const listed = await createStandaloneQuote(input);
+  const listed = await createStandaloneQuote(input, false);
   if (!listed.ok) return listed;
   const selected = listed.couriers.find((courier) => courier.id === input.deliveryProfileId);
   if (!selected) {

@@ -24,10 +24,9 @@ import {
 import { assessSchedule, planReservation, routeModeForVehicle } from '@/lib/delivery/delivery-schedule';
 import {
   applyProposalAction,
-  interpretStoredCapacity,
+  fitCargo,
   isTransportVehicle,
   transportProposalsEnabled,
-  vehicleFits,
   type ProposalAction,
   type TransportCargo,
 } from '@/lib/delivery/transport-job';
@@ -71,28 +70,6 @@ export function readTransportCargo(value: unknown): TransportCargo | null {
     preferredVehicle: preferred,
     photoIds: Array.isArray(raw.photoIds) ? raw.photoIds.filter((id): id is string => typeof id === 'string').slice(0, 12) : [],
   };
-}
-
-function fitCargo(
-  cargo: TransportCargo,
-  profile: {
-    transportation: string[];
-    maxLengthCm: number | null;
-    maxWidthCm: number | null;
-    maxHeightCm: number | null;
-    maxWeightGrams: number | null;
-    vehicleCapacityStatus: unknown;
-  },
-) {
-  const interpreted = interpretStoredCapacity(profile);
-  return vehicleFits(cargo, {
-    modes: profile.transportation,
-    maxLengthCm: interpreted.maxLengthCm,
-    maxWidthCm: interpreted.maxWidthCm,
-    maxHeightCm: interpreted.maxHeightCm,
-    maxWeightGrams: interpreted.maxWeightGrams,
-    status: interpreted.status,
-  });
 }
 
 async function courierCanTakePaidJob(deliveryProfileId: string) {

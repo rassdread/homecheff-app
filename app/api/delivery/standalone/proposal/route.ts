@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     dropoffLat: Number(body.dropoffLat),
     dropoffLng: Number(body.dropoffLng),
     requestedPickupAt: typeof requestedRaw === 'string' && requestedRaw.trim() ? new Date(requestedRaw) : null,
-  });
+  }, false);
   if (!listed.ok) return NextResponse.json({ error: listed.error, code: listed.code }, { status: listed.status });
   const selected = listed.couriers.find((courier) => courier.id === String(body.deliveryProfileId || ''));
   if (!selected) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { deliveryDisabledBody } from '@/lib/delivery/delivery-deployment-gate';
 import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
+import { readTransportCargo } from '@/lib/delivery/transport-proposal-service';
 import { createStandaloneQuote } from '@/lib/delivery/standalone-delivery';
 
 export const dynamic = 'force-dynamic';
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
     dropoffLat: Number(body.dropoffLat),
     dropoffLng: Number(body.dropoffLng),
     requestedPickupAt,
+    cargo: readTransportCargo(body.cargo),
   });
   if (!result.ok) {
     return NextResponse.json({ error: result.error, code: result.code }, { status: result.status });

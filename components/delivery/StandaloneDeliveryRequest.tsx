@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import DelivererSelector, { type Deliverer } from '@/components/checkout/DelivererSelector';
 import { TransportProposalInbox } from '@/components/delivery/TransportProposalInbox';
@@ -42,6 +42,15 @@ type Booked = {
   routeDistanceKm: number;
 };
 
+const pickupLabel = new Intl.DateTimeFormat('nl-NL', {
+  weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+});
+
+function localPickupInput(iso: string) {
+  const at = new Date(iso);
+  return new Date(at.getTime() - at.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
 function eur(cents: number) {
   return (cents / 100).toLocaleString('nl-NL', { style: 'currency', currency: 'EUR' });
 }
@@ -66,8 +75,10 @@ export function StandaloneDeliveryRequest({
   const [dropoffLat, setDropoffLat] = useState('');
   const [dropoffLng, setDropoffLng] = useState('');
   const [requestedPickupAt, setRequestedPickupAt] = useState('');
+  const [selectedPickupIso, setSelectedPickupIso] = useState<string | null>(null);
+  const quoteSequence = useRef(0);
   const [couriers, setCouriers] = useState<Deliverer[] | null>(null);
-  const [unavailable, setUnavailable] = useState<Array<{ id: string; name: string; code: string }>>([]);
+  const [unavailable, setUnavailable] = useState<Array<{ id: string; name: string; pickupTimes: string[] }>>([]);
   const [booked, setBooked] = useState<Booked | null>(null);
   const [statusText, setStatusText] = useState('');
   const [error, setError] = useState('');
@@ -203,7 +214,7 @@ export function StandaloneDeliveryRequest({
     };
   }, [activeRequestId, cancelled]);
 
-  function saveDraft(resume: boolean) {
+  function saveDraft(resume: boolean, moment = requestedPickupAt) {
     const draft: DeliveryDraft = {
       pickupAddress,
       deliveryAddress,
@@ -212,7 +223,7 @@ export function StandaloneDeliveryRequest({
       pickupLng,
       dropoffLat,
       dropoffLng,
-      requestedPickupAt,
+      requestedPickupAt: moment,
       transport: transport ? {
         weightKg: cargoWeightKg,
         lengthCm: cargoLength,
@@ -227,7 +238,7 @@ export function StandaloneDeliveryRequest({
     window.location.href = `/login?callbackUrl=${encodeURIComponent(back)}`;
   }
 
-  function routeBody() {
+  function routeBody(pickupIso = selectedPickupIso) {
     return {
       pickupAddress,
       deliveryAddress,
@@ -236,7 +247,28 @@ export function StandaloneDeliveryRequest({
       pickupLng: Number(pickupLng),
       dropoffLat: Number(dropoffLat),
       dropoffLng: Number(dropoffLng),
-      requestedPickupAt: requestedPickupAt ? new Date(requestedPickupAt).toISOString() : null,
+      requestedPickupAt: pickupIso ?? (requestedPickupAt ? new Date(requestedPickupAt).toISOString() : null),
+    };
+  }
+
+  function transportCargo() {
+    const weight = Number(cargoWeightKg.replace(',', '.'));
+    return {
+      itemCount: 1,
+      items: [{
+        lengthCm: Number(cargoLength) || 0,
+        widthCm: Number(cargoWidth) || 0,
+        heightCm: Number(cargoHeight) || 0,
+        weightKg: Number.isFinite(weight) ? weight : 0,
+      }],
+      totalWeightKg: Number.isFinite(weight) ? weight : 0,
+      floors: 0,
+      lift: false,
+      helpNeeded: false,
+      fragile: false,
+      note: '',
+      preferredVehicle: null,
+      photoIds,
     };
   }
 
@@ -246,10 +278,19 @@ export function StandaloneDeliveryRequest({
     return Number.isFinite(latitude) && Number.isFinite(longitude) && lat !== '' && lng !== '';
   }
 
-  async function calculate() {
+  function clearQuote() {
+    quoteSequence.current++;
+    setCouriers(null);
+    setUnavailable([]);
+    setError('');
+  }
+
+  async function calculate(pickupIso = selectedPickupIso) {
+    const sequence = ++quoteSequence.current;
     setBusy(true);
     setError('');
     setCouriers(null);
+    setUnavailable([]);
     setBooked(null);
     if (!selectedPlace(pickupLat, pickupLng) || !selectedPlace(dropoffLat, dropoffLng)) {
       setError('Kies een ophaal- en afleveradres uit de adreslijst.');
@@ -260,11 +301,12 @@ export function StandaloneDeliveryRequest({
       const response = await fetch('/api/delivery/standalone/quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(routeBody()),
+        body: JSON.stringify({ ...routeBody(pickupIso), cargo: transport ? transportCargo() : undefined }),
       });
       const data = await response.json();
+      if (sequence !== quoteSequence.current) return;
       if (response.status === 401) {
-        saveDraft(true);
+        saveDraft(true, pickupIso ? localPickupInput(pickupIso) : requestedPickupAt);
         return;
       }
       if (!response.ok) {
@@ -274,6 +316,8 @@ export function StandaloneDeliveryRequest({
       setCouriers(data.couriers || []);
       setUnavailable(data.unavailable || []);
       window.sessionStorage.removeItem(DELIVERY_DRAFT_KEY);
+    } catch {
+      if (sequence === quoteSequence.current) setError('Beschikbaarheid ophalen lukte niet. Probeer het opnieuw.');
     } finally {
       setBusy(false);
     }
@@ -322,7 +366,6 @@ export function StandaloneDeliveryRequest({
   async function sendProposal(deliverer: Deliverer) {
     setBusy(true);
     setError('');
-    const weight = Number(cargoWeightKg.replace(',', '.'));
     try {
       const response = await fetch('/api/delivery/standalone/proposal', {
         method: 'POST',
@@ -332,23 +375,7 @@ export function StandaloneDeliveryRequest({
           deliveryProfileId: deliverer.id,
           priceCents: proposalCents,
           negotiable: true,
-          cargo: {
-            itemCount: 1,
-            items: [{
-              lengthCm: Number(cargoLength) || 0,
-              widthCm: Number(cargoWidth) || 0,
-              heightCm: Number(cargoHeight) || 0,
-              weightKg: Number.isFinite(weight) ? weight : 0,
-            }],
-            totalWeightKg: Number.isFinite(weight) ? weight : 0,
-            floors: 0,
-            lift: false,
-            helpNeeded: false,
-            fragile: false,
-            note: '',
-            preferredVehicle: null,
-            photoIds,
-          },
+          cargo: transportCargo(),
         }),
       });
       const data = await response.json().catch(() => null);
@@ -436,6 +463,7 @@ export function StandaloneDeliveryRequest({
           className="mt-1 w-full"
           placeholder="Kies een ophaaladres"
           onChange={(address, place) => {
+            clearQuote();
             setPickupAddress(place?.formattedAddress || address);
             setPickupLat(place ? String(place.lat) : '');
             setPickupLng(place ? String(place.lng) : '');
@@ -449,6 +477,7 @@ export function StandaloneDeliveryRequest({
           className="mt-1 w-full"
           placeholder="Kies een afleveradres"
           onChange={(address, place) => {
+            clearQuote();
             setDeliveryAddress(place?.formattedAddress || address);
             setDropoffLat(place ? String(place.lat) : '');
             setDropoffLng(place ? String(place.lng) : '');
@@ -457,24 +486,28 @@ export function StandaloneDeliveryRequest({
       </label>
       <label className="mt-4 block text-sm font-medium text-gray-800">
         Gewenst ophaalmoment
-        <input className="mt-1 w-full rounded-lg border px-3 py-2" type="datetime-local" value={requestedPickupAt} onChange={(event) => setRequestedPickupAt(event.target.value)} />
+        <input className="mt-1 w-full rounded-lg border px-3 py-2" type="datetime-local" value={requestedPickupAt} onChange={(event) => {
+          clearQuote();
+          setSelectedPickupIso(null);
+          setRequestedPickupAt(event.target.value);
+        }} />
         <span className="mt-1 block text-xs text-gray-500">Laat leeg voor zo snel mogelijk. Een later moment gebruikt de beschikbaarheid van de bezorger, ook als die nu offline is.</span>
       </label>
       {transportEnabled ? (
         <div className="mt-4 rounded-xl border p-3">
           <p className="text-sm font-medium text-gray-800">Soort opdracht</p>
           <div className="mt-2 grid grid-cols-2 gap-2">
-            <button type="button" className={`min-h-11 rounded-lg border px-3 py-2 ${jobKind === 'SIMPLE' ? 'bg-emerald-700 text-white' : ''}`} onClick={() => setJobKind('SIMPLE')}>Pakket</button>
-            <button type="button" className={`min-h-11 rounded-lg border px-3 py-2 ${jobKind === 'TRANSPORT' ? 'bg-emerald-700 text-white' : ''}`} onClick={() => setJobKind('TRANSPORT')}>Transport</button>
+            <button type="button" className={`min-h-11 rounded-lg border px-3 py-2 ${jobKind === 'SIMPLE' ? 'bg-emerald-700 text-white' : ''}`} onClick={() => { if (jobKind !== 'SIMPLE') clearQuote(); setJobKind('SIMPLE'); }}>Pakket</button>
+            <button type="button" className={`min-h-11 rounded-lg border px-3 py-2 ${jobKind === 'TRANSPORT' ? 'bg-emerald-700 text-white' : ''}`} onClick={() => { if (jobKind !== 'TRANSPORT') clearQuote(); setJobKind('TRANSPORT'); }}>Transport</button>
           </div>
           {jobKind === 'TRANSPORT' ? (
             <div className="mt-3 grid gap-2">
               <p className="text-xs text-gray-600">Je kunt eerst een vraag stellen aan een bezorger. Vul een bedrag in zodra je een voorstel wilt sturen.</p>
-              <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="decimal" aria-label="Gewicht in kilogram" placeholder="Gewicht (kg)" value={cargoWeightKg} onChange={(event) => setCargoWeightKg(event.target.value)} />
+              <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="decimal" aria-label="Gewicht in kilogram" placeholder="Gewicht (kg)" value={cargoWeightKg} onChange={(event) => { clearQuote(); setCargoWeightKg(event.target.value); }} />
               <div className="grid grid-cols-3 gap-2">
-                <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="numeric" aria-label="Lengte in cm" placeholder="L cm" value={cargoLength} onChange={(event) => setCargoLength(event.target.value)} />
-                <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="numeric" aria-label="Breedte in cm" placeholder="B cm" value={cargoWidth} onChange={(event) => setCargoWidth(event.target.value)} />
-                <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="numeric" aria-label="Hoogte in cm" placeholder="H cm" value={cargoHeight} onChange={(event) => setCargoHeight(event.target.value)} />
+                <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="numeric" aria-label="Lengte in cm" placeholder="L cm" value={cargoLength} onChange={(event) => { clearQuote(); setCargoLength(event.target.value); }} />
+                <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="numeric" aria-label="Breedte in cm" placeholder="B cm" value={cargoWidth} onChange={(event) => { clearQuote(); setCargoWidth(event.target.value); }} />
+                <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="numeric" aria-label="Hoogte in cm" placeholder="H cm" value={cargoHeight} onChange={(event) => { clearQuote(); setCargoHeight(event.target.value); }} />
               </div>
               <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="decimal" aria-label="Voorstel in euro" placeholder="Jouw voorstel in euro" value={proposalEuro} onChange={(event) => setProposalEuro(event.target.value)} />
               <label className="text-sm text-gray-700">
@@ -504,7 +537,7 @@ export function StandaloneDeliveryRequest({
       </label>
       {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
       <div className="mt-4 space-y-3">
-      <button type="button" className="w-full rounded-lg bg-emerald-700 px-4 py-3 font-semibold text-white disabled:opacity-60" disabled={busy} onClick={calculate}>
+      <button type="button" className="w-full rounded-lg bg-emerald-700 px-4 py-3 font-semibold text-white disabled:opacity-60" disabled={busy} onClick={() => void calculate()}>
         Toon beschikbare bezorgers
       </button>
       {history.length > 0 && (
@@ -548,8 +581,32 @@ export function StandaloneDeliveryRequest({
           )}
         />
       )}
-      {unavailable.length > 0 && (
-        <p className="text-xs text-gray-600">Niet beschikbaar voor dit moment: {unavailable.map((item) => item.name).join(', ')}</p>
+      {couriers && unavailable.length > 0 && (
+        <section className="space-y-3 rounded-xl border bg-white p-4" aria-label="Andere ophaalmomenten">
+          <h2 className="font-semibold text-gray-900">Andere ophaalmomenten</h2>
+          <p className="text-sm text-gray-600">Deze bezorgers hebben op andere tijden ruimte volgens hun rooster. Kies een moment om de beschikbaarheid opnieuw te bekijken.</p>
+          {unavailable.map(courier => (
+            <div key={courier.id}>
+              <p className="text-sm font-medium">{courier.name}</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {courier.pickupTimes.map(iso => (
+                  <button key={iso} type="button" disabled={busy}
+                    className="min-h-11 rounded-lg border border-emerald-700 px-3 text-sm text-emerald-800"
+                    onClick={() => {
+                      setRequestedPickupAt(localPickupInput(iso));
+                      setSelectedPickupIso(iso);
+                      void calculate(iso);
+                    }}>
+                    {pickupLabel.format(new Date(iso))}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+      {couriers?.length === 0 && !unavailable.length && (
+        <p className="text-sm text-gray-600">Ook in de komende week vanaf het gekozen moment is geen ander ophaalmoment gevonden. Je kunt zelf een andere datum of tijd proberen.</p>
       )}
       {booked && (
         <div className="rounded-xl border bg-white p-4 text-sm shadow-sm">

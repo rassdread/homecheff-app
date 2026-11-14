@@ -258,6 +258,28 @@ export function capacityAxisLabel(axis: CapacityAxis, mark: CapacityMark): strin
   return `${AXIS_LABEL[axis]} is niet van toepassing`;
 }
 
+export function fitCargo(
+  cargo: TransportCargo,
+  profile: {
+    transportation: string[];
+    maxLengthCm: number | null;
+    maxWidthCm: number | null;
+    maxHeightCm: number | null;
+    maxWeightGrams: number | null;
+    vehicleCapacityStatus: unknown;
+  },
+) {
+  const interpreted = interpretStoredCapacity({ ...profile, status: profile.vehicleCapacityStatus });
+  return vehicleFits(cargo, {
+    modes: profile.transportation,
+    maxLengthCm: interpreted.maxLengthCm,
+    maxWidthCm: interpreted.maxWidthCm,
+    maxHeightCm: interpreted.maxHeightCm,
+    maxWeightGrams: interpreted.maxWeightGrams,
+    status: interpreted.status,
+  });
+}
+
 export function vehicleFits(cargo: TransportCargo, vehicle: VehicleCapacity): VehicleFit {
   const interpreted = vehicle.status == null
     ? interpretStoredCapacity({
