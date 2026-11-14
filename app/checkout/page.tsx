@@ -527,7 +527,7 @@ export default function CheckoutPage() {
       setActualDeliveryFee(null);
       return;
     }
-    setSelectedDeliverer(selected as Deliverer);
+    setSelectedDeliverer(selected as unknown as Deliverer);
     setActualDeliveryFee({
       deliveryFeeCents: quote.deliveryFeeCents,
       distance: quote.distanceKm,
@@ -1609,7 +1609,7 @@ export default function CheckoutPage() {
                             productId={checkoutItems[0].productId}
                             buyerLat={checkoutDraft.coordinates.lat}
                             buyerLng={checkoutDraft.coordinates.lng}
-                            externalDeliverers={matchedDeliverers as Deliverer[]}
+                            externalDeliverers={matchedDeliverers as unknown as Deliverer[]}
                             selectedDelivererId={
                               checkoutDraft.selectedDeliveryProfileId || selectedDeliverer?.id
                             }
