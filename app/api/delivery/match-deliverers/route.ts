@@ -323,7 +323,7 @@ export async function GET(req: NextRequest) {
         }
       });
 
-    const payableDeliverers = [];
+    const payableDeliverers: typeof filteredAndSortedDeliverers = [];
     for (const delivery of filteredAndSortedDeliverers) {
       if (await courierCanBeListedForPaidJob(prisma, delivery.id)) {
         payableDeliverers.push(delivery);
