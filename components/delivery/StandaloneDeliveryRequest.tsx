@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import DelivererSelector, { type Deliverer } from '@/components/checkout/DelivererSelector';
 import { TransportProposalInbox } from '@/components/delivery/TransportProposalInbox';
+import StartChatButton from '@/components/chat/StartChatButton';
 import GooglePlacesAutocomplete from '@/components/ui/GooglePlacesAutocomplete';
 import { useTranslation } from '@/hooks/useTranslation';
 import { shownCourierLeftPaidList } from '@/lib/delivery/paid-courier-selection';
@@ -19,6 +20,13 @@ type DeliveryDraft = {
   dropoffLat: string;
   dropoffLng: string;
   requestedPickupAt: string;
+  transport?: {
+    weightKg: string;
+    lengthCm: string;
+    widthCm: string;
+    heightCm: string;
+    proposalEuro: string;
+  };
   resumeQuote?: boolean;
 };
 
@@ -71,6 +79,9 @@ export function StandaloneDeliveryRequest({
   const [cargoWidth, setCargoWidth] = useState('');
   const [cargoHeight, setCargoHeight] = useState('');
   const [proposalEuro, setProposalEuro] = useState('');
+  const proposalCents = Math.round(Number(proposalEuro.replace(',', '.')) * 100);
+  const validProposalPrice = Number.isSafeInteger(proposalCents) && proposalCents > 0;
+  const transport = jobKind === 'TRANSPORT' && transportEnabled;
   const [photoIds, setPhotoIds] = useState<string[]>([]);
   const [history, setHistory] = useState<Array<{ id: string; jobKind: string; status: string; paymentStatus: string; itemDescription: string }>>([]);
 
@@ -102,11 +113,19 @@ export function StandaloneDeliveryRequest({
       if (draft.dropoffLat) setDropoffLat(draft.dropoffLat);
       if (draft.dropoffLng) setDropoffLng(draft.dropoffLng);
       if (draft.requestedPickupAt) setRequestedPickupAt(draft.requestedPickupAt);
+      if (transportEnabled && draft.transport) {
+        setJobKind('TRANSPORT');
+        setCargoWeightKg(draft.transport.weightKg);
+        setCargoLength(draft.transport.lengthCm);
+        setCargoWidth(draft.transport.widthCm);
+        setCargoHeight(draft.transport.heightCm);
+        setProposalEuro(draft.transport.proposalEuro);
+      }
       if (draft.resumeQuote) setResumeTick((tick) => (tick === 0 ? 1 : tick));
     } catch {
       window.sessionStorage.removeItem(DELIVERY_DRAFT_KEY);
     }
-  }, []);
+  }, [transportEnabled]);
 
   useEffect(() => {
     let stop = false;
@@ -170,6 +189,8 @@ export function StandaloneDeliveryRequest({
           providerDisplayName: data.providerDisplayName,
           routeDistanceKm: data.routeDistanceKm,
         });
+      } else if (data?.status === 'PROPOSAL') {
+        setStatusText('Je voorstel staat bij Verhuisvoorstellen.');
       } else if (data?.paymentStatus === 'UNPAID') {
         setStatusText(cancelled ? 'Betaling geannuleerd. Er is geen bezorgopdracht.' : data?.status === 'BOOKING_REQUESTED' ? 'Wacht op de gekozen bezorger.' : 'Nog niet betaald');
       }
@@ -192,6 +213,13 @@ export function StandaloneDeliveryRequest({
       dropoffLat,
       dropoffLng,
       requestedPickupAt,
+      transport: transport ? {
+        weightKg: cargoWeightKg,
+        lengthCm: cargoLength,
+        widthCm: cargoWidth,
+        heightCm: cargoHeight,
+        proposalEuro,
+      } : undefined,
       resumeQuote: resume,
     };
     window.sessionStorage.setItem(DELIVERY_DRAFT_KEY, JSON.stringify(draft));
@@ -295,7 +323,6 @@ export function StandaloneDeliveryRequest({
     setBusy(true);
     setError('');
     const weight = Number(cargoWeightKg.replace(',', '.'));
-    const priceCents = Math.round(Number(proposalEuro.replace(',', '.')) * 100);
     try {
       const response = await fetch('/api/delivery/standalone/proposal', {
         method: 'POST',
@@ -303,7 +330,7 @@ export function StandaloneDeliveryRequest({
         body: JSON.stringify({
           ...routeBody(),
           deliveryProfileId: deliverer.id,
-          priceCents: Number.isFinite(priceCents) ? priceCents : null,
+          priceCents: proposalCents,
           negotiable: true,
           cargo: {
             itemCount: 1,
@@ -339,8 +366,12 @@ export function StandaloneDeliveryRequest({
         setError(data?.error || 'Voorstel lukte niet');
         return;
       }
+      setCouriers(null);
+      setBooked(null);
       setActiveRequestId(data.request.id);
-      setStatusText('Voorstel verstuurd. Er is nog niets betaald.');
+      setStatusText('Voorstel verstuurd. Je vindt het bij Verhuisvoorstellen.');
+    } catch {
+      setError('Verzenden kon niet worden bevestigd. Kijk bij Verhuisvoorstellen voordat je het opnieuw probeert.');
     } finally {
       setBusy(false);
     }
@@ -386,7 +417,7 @@ export function StandaloneDeliveryRequest({
     <Shell className={embedded ? 'mx-auto max-w-xl px-1 py-2 pb-28' : 'mx-auto max-w-xl px-4 py-8 pb-40'} data-delivery-request="standalone">
       <h1 className="text-2xl font-bold text-gray-900">Bezorging aanvragen</h1>
       <p className="mt-2 text-sm text-gray-600">
-        Lokale bezorging zonder HomeCheff-product. Jij kiest de bezorger. De prijs wordt op de server berekend. Het ophaalmoment is een verzoek, geen gegarandeerde aankomst.
+        Lokale bezorging zonder HomeCheff-product. Jij kiest de bezorger. Het ophaalmoment is een verzoek, geen gegarandeerde aankomst.
       </p>
       <p className="mt-2 text-sm text-gray-600">
         Dit is een bezorgverzoek, geen aanmelding als bezorger.{' '}
@@ -438,7 +469,7 @@ export function StandaloneDeliveryRequest({
           </div>
           {jobKind === 'TRANSPORT' ? (
             <div className="mt-3 grid gap-2">
-              <p className="text-xs text-gray-600">Een transport begint met een voorstel. Er wordt pas betaald nadat beide partijen dezelfde versie accepteren.</p>
+              <p className="text-xs text-gray-600">Je kunt eerst een vraag stellen aan een bezorger. Vul een bedrag in zodra je een voorstel wilt sturen.</p>
               <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="decimal" aria-label="Gewicht in kilogram" placeholder="Gewicht (kg)" value={cargoWeightKg} onChange={(event) => setCargoWeightKg(event.target.value)} />
               <div className="grid grid-cols-3 gap-2">
                 <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="numeric" aria-label="Lengte in cm" placeholder="L cm" value={cargoLength} onChange={(event) => setCargoLength(event.target.value)} />
@@ -472,7 +503,7 @@ export function StandaloneDeliveryRequest({
         <textarea className="mt-1 w-full rounded-lg border px-3 py-2" rows={3} value={itemDescription} onChange={(event) => setItemDescription(event.target.value)} />
       </label>
       {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
-      <div className="sticky bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] z-30 mt-4 space-y-3">
+      <div className="mt-4 space-y-3">
       <button type="button" className="w-full rounded-lg bg-emerald-700 px-4 py-3 font-semibold text-white disabled:opacity-60" disabled={busy} onClick={calculate}>
         Toon beschikbare bezorgers
       </button>
@@ -493,7 +524,28 @@ export function StandaloneDeliveryRequest({
       {couriers && (
         <DelivererSelector
           externalDeliverers={couriers}
-          onSelectDeliverer={jobKind === 'TRANSPORT' && transportEnabled ? sendProposal : chooseCourier}
+          showQuotePrice={!transport}
+          renderActions={(deliverer) => (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <StartChatButton
+                sellerId={deliverer.userId}
+                sellerName={deliverer.displayName || deliverer.name}
+                label="Stel een vraag"
+                courierQuestion
+                showSuccessMessage
+              />
+              <button
+                type="button"
+                className="min-h-11 rounded-xl bg-emerald-700 px-4 py-2 font-semibold text-white disabled:opacity-60"
+                disabled={busy || (transport && !validProposalPrice)}
+                onClick={() => transport ? sendProposal(deliverer) : chooseCourier(deliverer)}
+              >
+                {transport ? 'Stuur voorstel' : 'Vraag pakketbezorging aan'}
+                {transport && validProposalPrice ? ` · ${eur(proposalCents)}` : ''}
+              </button>
+              {transport && !validProposalPrice && <p className="w-full text-sm text-gray-600">Vul bij ‘Jouw voorstel in euro’ een bedrag in om een voorstel te sturen.</p>}
+            </div>
+          )}
         />
       )}
       {unavailable.length > 0 && (

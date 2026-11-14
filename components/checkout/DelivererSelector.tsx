@@ -5,7 +5,7 @@
  * Buyer chooses a specific provider; HomeCheff validates provider-defined rules.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { MapPin, Clock, Star, Truck, Bike, Car, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { NO_PAID_COURIER_MESSAGE } from '@/lib/delivery/paid-courier-selection';
@@ -56,15 +56,18 @@ interface RegionInfo {
   deliveryMode: 'island' | 'distance';
 }
 
-interface DelivererSelectorProps {
+type DelivererSelectorProps = {
   productId?: string;
   buyerLat?: number;
   buyerLng?: number;
-  onSelectDeliverer: (deliverer: Deliverer) => void;
   selectedDelivererId?: string;
   /** Product-less standalone list. Marketplace checkout does not pass this. */
   externalDeliverers?: Deliverer[] | null;
-}
+  showQuotePrice?: boolean;
+} & (
+  | { onSelectDeliverer: (deliverer: Deliverer) => void; renderActions?: never }
+  | { renderActions: (deliverer: Deliverer) => ReactNode; onSelectDeliverer?: never }
+);
 
 export default function DelivererSelector({
   productId,
@@ -73,6 +76,8 @@ export default function DelivererSelector({
   onSelectDeliverer,
   selectedDelivererId,
   externalDeliverers,
+  renderActions,
+  showQuotePrice = true,
 }: DelivererSelectorProps) {
   const { t, language } = useTranslation();
   const [deliverers, setDeliverers] = useState<Deliverer[]>([]);
@@ -273,16 +278,16 @@ export default function DelivererSelector({
           return (
             <div
               key={deliverer.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => onSelectDeliverer(deliverer)}
-              onKeyDown={(event) => {
+              role={renderActions ? undefined : 'button'}
+              tabIndex={renderActions ? undefined : 0}
+              onClick={renderActions ? undefined : () => onSelectDeliverer?.(deliverer)}
+              onKeyDown={renderActions ? undefined : (event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault();
-                  onSelectDeliverer(deliverer);
+                  onSelectDeliverer?.(deliverer);
                 }
               }}
-              className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+              className={`p-4 rounded-lg border-2 transition-all ${renderActions ? '' : 'cursor-pointer'} ${
                 selectedDelivererId === deliverer.id
                   ? 'border-green-500 bg-green-50'
                   : 'border-gray-200 hover:border-green-300 hover:bg-gray-50'
@@ -376,7 +381,7 @@ export default function DelivererSelector({
                   </div>
                 </div>
 
-                <div className="text-right shrink-0">
+                {showQuotePrice && <div className="text-right shrink-0">
                   {priceCents != null ? (
                     <p className="text-lg font-semibold text-emerald-700">
                       {formatCents(priceCents, locale)}
@@ -384,8 +389,9 @@ export default function DelivererSelector({
                   ) : (
                     <p className="text-sm text-gray-500">Prijs n.n.b.</p>
                   )}
-                </div>
+                </div>}
               </div>
+              {renderActions?.(deliverer)}
             </div>
           );
         })}

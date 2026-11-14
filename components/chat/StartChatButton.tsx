@@ -33,6 +33,8 @@ interface StartChatButtonProps {
   onMessageSent?: (conversationId: string) => void;
   className?: string;
   showSuccessMessage?: boolean;
+  /** Open directly in the free-text composer for a courier. */
+  courierQuestion?: boolean;
   /** Override default button label (e.g. marketplace preview). */
   label?: string;
   /** Skip chat modal and start conversation immediately (requires productId). */
@@ -71,6 +73,7 @@ export default function StartChatButton({
   onMessageSent,
   className = '',
   showSuccessMessage = false,
+  courierQuestion = false,
   label,
   skipModal = false,
   openProposalAfterStart = false,
@@ -365,7 +368,9 @@ export default function StartChatButton({
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link
-              href={`/messages?conversation=${successConversationId}`}
+              href={buildMessagesConversationUrl(successConversationId)}
+              target={courierQuestion ? '_blank' : undefined}
+              rel={courierQuestion ? 'noopener' : undefined}
               className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 min-h-[44px]"
               onClick={() => setSuccessConversationId(null)}
             >
@@ -393,7 +398,7 @@ export default function StartChatButton({
             ? t('common.loadingDots')
             : status === 'loading'
               ? t('common.loadingDots')
-              : t('common.startChat')
+              : buttonLabel
         }
         className={`
           flex min-h-[44px] items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all duration-200
@@ -500,11 +505,11 @@ export default function StartChatButton({
             ) : null}
 
             <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3 sm:p-4 space-y-3">
-              <p className="text-sm text-gray-800 bg-sky-50 border border-sky-200 rounded-lg p-3">
+              {!courierQuestion && <p className="text-sm text-gray-800 bg-sky-50 border border-sky-200 rounded-lg p-3">
                 {productId ? t('common.chatIntroProduct') : t('common.chatIntroGeneral')}
-              </p>
+              </p>}
 
-              {(!productId || contactMode === 'quick') ? (
+              {!courierQuestion && (!productId || contactMode === 'quick') ? (
               <div data-hc-first-contact-quick-panel="">
                 <h3 className="text-sm font-semibold text-gray-900 mb-2">
                   {t('common.quickMessages')}
@@ -528,7 +533,7 @@ export default function StartChatButton({
               </div>
               ) : null}
 
-              {!productId ? (
+              {!productId && !courierQuestion ? (
               <div className="flex items-center gap-2 py-1">
                 <div className="h-px flex-1 bg-gray-200" />
                 <span className="text-xs font-medium text-gray-600">OF</span>
