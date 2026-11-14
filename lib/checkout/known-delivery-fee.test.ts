@@ -2,6 +2,18 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { knownCheckoutDeliveryFeeCents } from './known-delivery-fee';
 
+test('no chosen delivery option is not a free delivery price', () => {
+  assert.equal(
+    knownCheckoutDeliveryFeeCents({
+      selectedDelivery: '',
+      addressValidated: true,
+      quote: null,
+      optionPrice: 0,
+    }),
+    null,
+  );
+});
+
 test('a missing marketplace quote is not free delivery', () => {
   assert.equal(
     knownCheckoutDeliveryFeeCents({

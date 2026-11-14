@@ -263,7 +263,10 @@ export default function SimplifiedAccountMenu({
 
       <button
         type="button"
-        onClick={() => void onLogout()}
+        onClick={(event) => {
+          event.stopPropagation();
+          void onLogout();
+        }}
         className={cn(rowClassName, 'w-full text-left text-red-600 hover:bg-red-50 min-h-[44px]')}
         role="menuitem"
       >

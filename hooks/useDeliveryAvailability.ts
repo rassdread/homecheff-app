@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useState } from 'react';
+import { checkoutCourierMatchPath } from '@/lib/checkout/matched-courier-quote';
 
 export interface DeliveryAvailability {
   isAvailable: boolean;
@@ -10,101 +11,98 @@ export interface DeliveryAvailability {
   message?: string;
 }
 
+export type CheckoutMatchedDeliverer = {
+  id: string;
+  quotedFeeCents?: number | null;
+  calculatedDeliveryPrice?: number | null;
+  withinFreeRadius?: boolean | null;
+  routeDistanceKm?: number | null;
+  distanceToBuyer?: number | null;
+  totalDeliveryDistance?: number | null;
+  [key: string]: unknown;
+};
+
+/**
+ * Checkout availability comes from the existing product match.
+ * The server resolves the pickup. The browser does not send seller coordinates.
+ */
 export function useDeliveryAvailability(
-  userLocation: { lat: number; lng: number } | null,
-  sellerLocations?: Array<{lat: number; lng: number; productId: string}>
+  buyer: { lat: number; lng: number } | null,
+  productId: string | null,
 ) {
   const [availability, setAvailability] = useState<DeliveryAvailability>({
     isAvailable: false,
     estimatedTime: 0,
     deliveryFee: 0,
     availableCount: 0,
-    message: 'Locatie niet beschikbaar'
+    message: 'Locatie niet beschikbaar',
   });
+  const [deliverers, setDeliverers] = useState<CheckoutMatchedDeliverer[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const sellerLocationsKey = useMemo(() => {
-    if (!sellerLocations || sellerLocations.length === 0) {
-      return '[]';
-    }
-    const normalized = sellerLocations
-      .map((location) => ({
-        lat: Number(location.lat?.toFixed(5) ?? 0),
-        lng: Number(location.lng?.toFixed(5) ?? 0),
-        productId: location.productId,
-      }))
-      .sort((a, b) => (a.productId > b.productId ? 1 : a.productId < b.productId ? -1 : 0));
-    return JSON.stringify(normalized);
-  }, [sellerLocations]);
-
   useEffect(() => {
-    if (!userLocation) {
+    if (!buyer || !productId) {
+      setDeliverers([]);
       setAvailability({
         isAvailable: false,
         estimatedTime: 0,
         deliveryFee: 0,
         availableCount: 0,
-        message: 'Locatie niet beschikbaar'
+        message: buyer ? 'Product niet beschikbaar' : 'Locatie niet beschikbaar',
       });
       return;
     }
 
-    const checkAvailability = async () => {
+    const controller = new AbortController();
+    const load = async () => {
       setLoading(true);
+      setDeliverers([]);
       try {
-        // If we have seller locations, check availability for the closest seller
-        // (bezorgers must be within range of BOTH seller and buyer)
-        let sellerLat: number | null = null;
-        let sellerLng: number | null = null;
-        
-        if (sellerLocations && sellerLocations.length > 0) {
-          // Use first seller location (or could calculate closest one)
-          // For multiple products, we check if any deliverer can reach both locations
-          sellerLat = sellerLocations[0].lat;
-          sellerLng = sellerLocations[0].lng;
-        }
-
-        const response = await fetch('/api/delivery/check-availability', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            lat: userLocation.lat,
-            lng: userLocation.lng,
-            sellerLat: sellerLat,
-            sellerLng: sellerLng
-          })
+        const response = await fetch(checkoutCourierMatchPath(productId, buyer), {
+          signal: controller.signal,
         });
-
-        if (response.ok) {
-          const data = await response.json();
-          setAvailability(data);
-        } else {
+        const data = await response.json();
+        if (!response.ok || data?.success !== true) {
+          setDeliverers([]);
           setAvailability({
             isAvailable: false,
             estimatedTime: 0,
             deliveryFee: 0,
             availableCount: 0,
-            message: 'Bezorging niet beschikbaar in dit gebied'
+            message: 'Geen bezorgers beschikbaar in jouw regio op dit moment',
           });
+          return;
         }
+        const matched = Array.isArray(data.matchedDeliverers) ? data.matchedDeliverers : [];
+        setDeliverers(matched);
+        setAvailability({
+          isAvailable: matched.length > 0,
+          estimatedTime: 0,
+          deliveryFee: 0,
+          availableCount: matched.length,
+          message:
+            matched.length > 0
+              ? `${matched.length} bezorger${matched.length === 1 ? '' : 's'} beschikbaar`
+              : 'Geen bezorgers beschikbaar in jouw regio op dit moment',
+        });
       } catch (error) {
-        console.error('Error checking delivery availability:', error);
+        if ((error as Error)?.name === 'AbortError') return;
+        setDeliverers([]);
         setAvailability({
           isAvailable: false,
           estimatedTime: 0,
           deliveryFee: 0,
           availableCount: 0,
-          message: 'Fout bij controleren beschikbaarheid'
+          message: 'Fout bij controleren beschikbaarheid',
         });
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
-    checkAvailability();
-  }, [userLocation?.lat, userLocation?.lng, sellerLocationsKey]);
+    void load();
+    return () => controller.abort();
+  }, [buyer?.lat, buyer?.lng, productId]);
 
-  return { availability, loading };
+  return { availability, deliverers, loading };
 }

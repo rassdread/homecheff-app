@@ -35,6 +35,8 @@ export interface Deliverer {
   completedDeliveries: number;
   quotedFeeCents?: number | null;
   calculatedDeliveryPrice?: number | null;
+  withinFreeRadius?: boolean | null;
+  routeDistanceKm?: number | null;
   acceptanceMode?: string;
   confirmationMode?: string;
   estimatedArrivalMinutes?: number;
@@ -256,8 +258,13 @@ export default function DelivererSelector({
 
       <div className="space-y-3">
         {deliverers.map((deliverer) => {
-          const priceCents =
+          const rawPriceCents =
             deliverer.quotedFeeCents ?? deliverer.calculatedDeliveryPrice ?? null;
+          const priceCents =
+            typeof rawPriceCents === 'number' &&
+            (rawPriceCents > 0 || deliverer.withinFreeRadius === true)
+              ? rawPriceCents
+              : null;
           return (
             <div
               key={deliverer.id}

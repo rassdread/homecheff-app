@@ -16,6 +16,7 @@ import { usePersistentState } from '@/hooks/usePersistentState';
 import { getActiveCartIdentifier } from '@/lib/cart';
 import { calculateStripeFeeForBuyer } from '@/lib/fees';
 import { knownCheckoutDeliveryFeeCents } from '@/lib/checkout/known-delivery-fee';
+import { quoteFromMatchedCourier } from '@/lib/checkout/matched-courier-quote';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import {
@@ -108,6 +109,7 @@ type DeliveryOption = {
 
 type CheckoutDraft = {
   selectedDelivery: string;
+  selectedDeliveryProfileId: string;
   street: string;
   houseNumber: string;
   postalCode: string;
@@ -151,6 +153,7 @@ export default function CheckoutPage() {
 
   const checkoutDraftDefaults = useMemo<CheckoutDraft>(() => ({
     selectedDelivery: '',
+    selectedDeliveryProfileId: '',
     street: '',
     houseNumber: '',
     postalCode: '',
@@ -296,8 +299,6 @@ export default function CheckoutPage() {
       .catch(() => setParcelCarrierConfigured(false));
   }, []);
 
-  // Get product locations from cart for delivery matching
-  const [sellerLocations, setSellerLocations] = useState<Array<{lat: number, lng: number, productId: string}>>([]);
   const [productDataMap, setProductDataMap] = useState<Map<string, {sellerCanDeliver?: boolean}>>(new Map());
   const [checkoutConsumerContexts, setCheckoutConsumerContexts] = useState<
     ConsumerCommerceContext[]
@@ -308,7 +309,6 @@ export default function CheckoutPage() {
   useEffect(() => {
     const fetchProductLocations = async () => {
       if (checkoutItems.length === 0) {
-        setSellerLocations([]);
         setProductDataMap(new Map());
         setCheckoutConsumerContexts([]);
         return;
@@ -316,7 +316,6 @@ export default function CheckoutPage() {
 
       try {
         const productIds = checkoutItems.map(item => item.productId);
-        const locations: Array<{lat: number, lng: number, productId: string}> = [];
         const productMap = new Map<string, {sellerCanDeliver?: boolean}>();
         const contexts: ConsumerCommerceContext[] = [];
 
@@ -341,11 +340,9 @@ export default function CheckoutPage() {
           if (!entry) continue;
           const { productId, data } = entry;
           const product = data.product || data;
-          // Seller location can be in product.seller.User.lat/lng or product.seller.lat/lng
-          const sellerLat = product.seller?.User?.lat || product.seller?.lat;
-          const sellerLng = product.seller?.User?.lng || product.seller?.lng;
 
-          // Store product data for sellerCanDeliver check
+          // Store product data for sellerCanDeliver check.
+          // Pickup coordinates stay on the server; the public product payload omits them.
           productMap.set(productId, {
             sellerCanDeliver: product.sellerCanDeliver || false
           });
@@ -354,13 +351,8 @@ export default function CheckoutPage() {
             product as Record<string, unknown>,
           );
           if (ctx) contexts.push(ctx);
-
-          if (sellerLat && sellerLng) {
-            locations.push({ lat: sellerLat, lng: sellerLng, productId });
-          }
         }
 
-        setSellerLocations(locations);
         setProductDataMap(productMap);
         setCheckoutConsumerContexts(contexts);
       } catch (error) {
@@ -477,15 +469,53 @@ export default function CheckoutPage() {
     };
   }, [isCheckoutHydrated, session, hasExistingAddressDraft, updateDraft]);
 
-  // Check delivery availability with seller locations
-  const { 
+  const checkoutProductId = checkoutItems[0]?.productId ?? null;
+  const buyerForMatch =
+    checkoutDraft.addressValidated && checkoutDraft.coordinates
+      ? checkoutDraft.coordinates
+      : null;
+  const {
     availability,
-    loading: availabilityLoading 
-  } = useDeliveryAvailability(checkoutDraft.coordinates, sellerLocations);
-  
+    deliverers: matchedDeliverers,
+    loading: availabilityLoading,
+  } = useDeliveryAvailability(buyerForMatch, checkoutProductId);
+
   const isDeliveryAvailable = availability.isAvailable;
-  const availableDeliverersCount = 0; // Will be updated when deliverers are available
   const estimatedDeliveryTime = availability.estimatedTime;
+
+  useEffect(() => {
+    if (!isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)) return;
+    const selected = matchedDeliverers.find(
+      (deliverer) => deliverer.id === checkoutDraft.selectedDeliveryProfileId,
+    );
+    if (!selected) {
+      setSelectedDeliverer(null);
+      setActualDeliveryFee(null);
+      return;
+    }
+    setSelectedDeliverer(selected as Deliverer);
+    const quote = quoteFromMatchedCourier(selected);
+    if (!quote) {
+      setActualDeliveryFee(null);
+      return;
+    }
+    setActualDeliveryFee({
+      deliveryFeeCents: quote.deliveryFeeCents,
+      distance: quote.distanceKm,
+      isInternational: false,
+      breakdown: {
+        baseFee: 0,
+        distanceFee: quote.deliveryFeeCents,
+        totalDeliveryFee: quote.deliveryFeeCents,
+        distance: quote.distanceKm,
+        withinFreeRadius: quote.withinFreeRadius,
+      },
+    });
+  }, [
+    matchedDeliverers,
+    checkoutDraft.selectedDelivery,
+    checkoutDraft.selectedDeliveryProfileId,
+  ]);
 
   // Get current location for delivery
   const getLocation = async () => {
@@ -508,9 +538,11 @@ export default function CheckoutPage() {
       setActualDeliveryFee(null);
       return;
     }
-    
-    const isDelivery = isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) || 
-                       isSellerDeliveryCheckoutSelection(checkoutDraft.selectedDelivery);
+    if (isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)) {
+      return;
+    }
+
+    const isDelivery = isSellerDeliveryCheckoutSelection(checkoutDraft.selectedDelivery);
     const isShipping = checkoutDraft.selectedDelivery === 'shipping';
     
     // For delivery: need coordinates
@@ -621,9 +653,7 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             items: checkoutItems,
             coordinates: checkoutDraft.coordinates,
-            deliveryMode: isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)
-              ? outboundLocalProviderMode()
-              : checkoutDraft.selectedDelivery,
+            deliveryMode: checkoutDraft.selectedDelivery,
             country: checkoutDraft.country || 'NL',
             ...(selectedDeliverer?.id
               ? { deliveryProfileId: selectedDeliverer.id }
@@ -666,10 +696,12 @@ export default function CheckoutPage() {
       setActualDeliveryFee(null);
       return;
     }
+    if (isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)) {
+      return;
+    }
 
     const isShipping = checkoutDraft.selectedDelivery === 'shipping';
-    const isDelivery = isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) || 
-                       isSellerDeliveryCheckoutSelection(checkoutDraft.selectedDelivery);
+    const isDelivery = isSellerDeliveryCheckoutSelection(checkoutDraft.selectedDelivery);
 
     const shouldCalc =
       (isShipping && !!checkoutDraft.postalCode && !!checkoutDraft.country) ||
@@ -834,6 +866,7 @@ export default function CheckoutPage() {
       checkoutDraft.selectedDelivery !== 'pickup' &&
       deliveryQuoteCents == null,
   );
+  const deliveryPriceUnknown = deliveryQuoteCents == null;
   const deliveryFeeCents = deliveryQuoteCents ?? 0;
 
   // Calculate SMS notification cost (per seller, with platform fee)
@@ -857,7 +890,7 @@ export default function CheckoutPage() {
 
   const isLocalProviderUnavailable =
     isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) &&
-    (!checkoutDraft.coordinates || !isDeliveryAvailable);
+    (!checkoutDraft.coordinates || deliveryQuoteCents == null);
 
   const handleCheckout = async () => {
     setCheckoutError(null);
@@ -1317,7 +1350,10 @@ export default function CheckoutPage() {
                     const isShipping = option.id === 'shipping';
                     const teenNeedsLocation = isTeenDelivery && !checkoutDraft.coordinates;
                     const teenUnavailableByRange =
-                      isTeenDelivery && checkoutDraft.coordinates && !isDeliveryAvailable;
+                      isTeenDelivery &&
+                      Boolean(checkoutDraft.coordinates) &&
+                      !availabilityLoading &&
+                      !isDeliveryAvailable;
                     const isLoading = isTeenDelivery && availabilityLoading;
                     const cardDisabled = !option.available || (isTeenDelivery && (teenNeedsLocation || teenUnavailableByRange));
                     
@@ -1355,7 +1391,15 @@ export default function CheckoutPage() {
                             ? 'border-primary-brand bg-primary-50 cursor-pointer'
                             : 'border-gray-200 hover:border-gray-300 cursor-pointer'
                         }`}
-                        onClick={() => !cardDisabled && updateDraft({ selectedDelivery: option.id })}
+                        onClick={() => {
+                          if (cardDisabled) return;
+                          updateDraft({
+                            selectedDelivery: option.id,
+                            ...(option.id === 'local_provider'
+                              ? {}
+                              : { selectedDeliveryProfileId: '' }),
+                          });
+                        }}
                       >
                         <div className="flex items-start gap-4">
                           <div className={`p-2 rounded-lg ${
@@ -1514,13 +1558,20 @@ export default function CheckoutPage() {
                     {namedProviderSelectionEnabled ? (
                       <>
                         {checkoutDraft.coordinates && checkoutItems[0]?.productId ? (
+                          availabilityLoading ? (
+                            <p className="text-sm text-blue-700">{t('checkout.checkingAvailability')}</p>
+                          ) : (
                           <DelivererSelector
                             productId={checkoutItems[0].productId}
                             buyerLat={checkoutDraft.coordinates.lat}
                             buyerLng={checkoutDraft.coordinates.lng}
-                            selectedDelivererId={selectedDeliverer?.id}
+                            externalDeliverers={matchedDeliverers as Deliverer[]}
+                            selectedDelivererId={
+                              checkoutDraft.selectedDeliveryProfileId || selectedDeliverer?.id
+                            }
                             onSelectDeliverer={async (d) => {
                               const previousBookingId = bookingRequestId;
+                              updateDraft({ selectedDeliveryProfileId: d.id });
                               setSelectedDeliverer(d);
                               setBookingError(null);
                               setBookingBusy(true);
@@ -1569,6 +1620,7 @@ export default function CheckoutPage() {
                               }
                             }}
                           />
+                          )
                         ) : (
                           <p className="text-sm text-gray-600">
                             {tOr('surfaceLang.bookingValidate', 'Validate your delivery address first to see available couriers.', 'Valideer eerst je bezorgadres om beschikbare bezorgers te zien.')}
@@ -1856,7 +1908,11 @@ export default function CheckoutPage() {
 
                   <div className="mt-4 mb-2">
                     <HcCheckoutPanel
-                      enabled={status === 'authenticated' && checkoutItems.length > 0}
+                      enabled={
+                        status === 'authenticated' &&
+                        checkoutItems.length > 0 &&
+                        deliveryQuoteCents != null
+                      }
                       items={checkoutItems.map((i) => ({
                         productId: i.productId,
                         quantity: i.quantity,
@@ -1896,9 +1952,9 @@ export default function CheckoutPage() {
                       <span>
                         {isCalculatingFee ? (
                           <Loader2 className="w-4 h-4 animate-spin inline" />
-                        ) : deliveryQuoteMissing ? (
+                        ) : deliveryPriceUnknown ? (
                           language === 'en' ? 'Not calculated yet' : 'Nog niet berekend'
-                        ) : deliveryQuoteCents === 0 && actualDeliveryFee?.breakdown?.withinFreeRadius === true ? (
+                        ) : deliveryQuoteCents === 0 && (checkoutDraft.selectedDelivery === 'pickup' || actualDeliveryFee?.breakdown?.withinFreeRadius === true) ? (
                           t('checkout.free')
                         ) : (
                           `€${(deliveryFeeCents / 100).toFixed(2)}`
@@ -1913,11 +1969,11 @@ export default function CheckoutPage() {
                     )}
                     <div className="flex justify-between text-sm">
                       <span>{t('checkout.transactionFeeStripe')}</span>
-                      <span>{deliveryQuoteMissing ? '—' : `€${(stripeFeeCents / 100).toFixed(2)}`}</span>
+                      <span>{deliveryPriceUnknown ? '—' : `€${(stripeFeeCents / 100).toFixed(2)}`}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-2">
                       <span>{t('checkout.total')}</span>
-                      <span className="text-primary-brand">{deliveryQuoteMissing ? '—' : `€${(buyerTotalCents / 100).toFixed(2)}`}</span>
+                      <span className="text-primary-brand">{deliveryPriceUnknown ? '—' : `€${(buyerTotalCents / 100).toFixed(2)}`}</span>
                     </div>
                   </div>
 
@@ -1941,7 +1997,7 @@ export default function CheckoutPage() {
                       isProcessing ||
                       !checkoutDraft.selectedDelivery ||
                       isLocalProviderUnavailable ||
-                      deliveryQuoteMissing ||
+                      deliveryPriceUnknown ||
                       (buyerTotalCents <= 0 && selectedHc <= 0)
                     }
                     className="w-full mt-6 py-4 text-lg"
@@ -1958,8 +2014,10 @@ export default function CheckoutPage() {
                     ) : (
                       <>
                         <CreditCard className="w-5 h-5 mr-2" />
-                        {deliveryQuoteMissing
-                          ? (language === 'en' ? 'Delivery price missing' : 'Bezorgprijs ontbreekt')
+                        {deliveryPriceUnknown
+                          ? (!checkoutDraft.selectedDelivery
+                              ? t('checkout.selectDeliveryOption')
+                              : (language === 'en' ? 'Delivery price missing' : 'Bezorgprijs ontbreekt'))
                           : t('checkout.payNow', { amount: (buyerTotalCents / 100).toFixed(2) })}
                       </>
                     )}

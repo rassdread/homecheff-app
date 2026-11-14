@@ -314,12 +314,10 @@ export default function NavBar() {
     }
 
     if (isProfileDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside as any);
+      document.addEventListener('click', handleClickOutside);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside as any);
+      document.removeEventListener('click', handleClickOutside);
     };
   }, [isProfileDropdownOpen]);
 
@@ -764,9 +762,10 @@ export default function NavBar() {
                         adminHref={ADMIN_WORKSPACE_HREF}
                         rowClassName="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         onNavigate={() => setIsProfileDropdownOpen(false)}
-                        onLogout={async () => {
+                        onLogout={() => {
+                          const logout = handleLogout();
                           setIsProfileDropdownOpen(false);
-                          await handleLogout();
+                          void logout;
                         }}
                       />
                     </div>,
@@ -810,7 +809,7 @@ export default function NavBar() {
               suppressNavbarChrome
                 ? 'hc-wx-landscape-menu-panel !flex fixed inset-x-0 top-[3.25rem] z-[99990] max-h-[calc(100dvh-3.25rem)] shadow-lg border-b pointer-events-auto pb-[max(1rem,env(safe-area-inset-bottom,0px))]'
                 : cn(
-                    'fixed inset-x-0 z-[200] max-w-7xl mx-auto px-3 sm:px-5 shadow-lg',
+                    'pointer-events-auto fixed inset-x-0 z-[200] max-w-7xl mx-auto px-3 sm:px-5 shadow-lg',
                     'top-[var(--hc-top-nav-height,4rem)]',
                     bottomNavReachable
                       ? 'max-h-[calc(100dvh-var(--hc-top-nav-height,4rem)-var(--hc-bottom-nav-offset,5.25rem))] pb-[max(1rem,calc(env(safe-area-inset-bottom,0px)+5.5rem))]'
@@ -1022,9 +1021,10 @@ export default function NavBar() {
                       setIsMobileMenuOpen(false);
                       navDebug('navbar:mobile', { section: 'account-menu' });
                     }}
-                    onLogout={async () => {
+                    onLogout={() => {
+                      const logout = handleLogout();
                       setIsMobileMenuOpen(false);
-                      await handleLogout();
+                      void logout;
                     }}
                   />
 

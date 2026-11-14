@@ -346,6 +346,7 @@ export async function GET(req: NextRequest) {
 
         let calculatedDeliveryPrice: number | null = null;
         let pricingCode: string | null = null;
+        let withinFreeRadius = false;
         if (routeDistance != null) {
           const quote = calculateProviderDeliveryPrice({
             pricing: {
@@ -366,6 +367,7 @@ export async function GET(req: NextRequest) {
           });
           if (quote.ok) {
             calculatedDeliveryPrice = quote.deliveryFeeCents;
+            withinFreeRadius = quote.withinFreeRadius;
           } else {
             pricingCode = quote.code;
           }
@@ -443,6 +445,7 @@ export async function GET(req: NextRequest) {
           nationalCoverage: delivery.nationalCoverage,
           routeDistanceKm: routeDistance,
           quotedFeeCents: calculatedDeliveryPrice,
+          withinFreeRadius,
           pricingSource: delivery.pricingEnabled ? 'PROVIDER' : null,
           pricingFormulaVersion: calculatedDeliveryPrice != null ? 'provider-v1' : null,
           pricingCode,

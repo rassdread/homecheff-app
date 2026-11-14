@@ -16,7 +16,8 @@ export function knownCheckoutDeliveryFeeCents(input: {
   optionPrice?: number | null;
 }): number | null {
   const mode = input.selectedDelivery;
-  if (!mode || mode === 'pickup') {
+  if (!mode) return null;
+  if (mode === 'pickup') {
     return Math.round((input.optionPrice ?? 0) * 100);
   }
   const quote = input.quote;

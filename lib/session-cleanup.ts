@@ -529,15 +529,22 @@ export function setupSessionIsolation(): void {
 export async function performLogout(target: string = '/'): Promise<void> {
   if (typeof window === 'undefined') return;
 
-  // Push-token server-side deactiveren zolang sessie-cookies nog geldig zijn.
-  try {
-    const { unregisterNativePushTokenBeforeLogout } = await import(
-      '@/lib/native/pushLogout'
-    );
-    await unregisterNativePushTokenBeforeLogout();
-  } catch {
-    /* ignore */
-  }
+  // Push-opruiming mag de sessie niet openhouden. De cookie-wipe wacht er hoogstens
+  // kort op, en gaat daarna door ook als het tokenverzoek blijft hangen.
+  const pushCleanup = (async () => {
+    try {
+      const { unregisterNativePushTokenBeforeLogout } = await import(
+        '@/lib/native/pushLogout'
+      );
+      await unregisterNativePushTokenBeforeLogout();
+    } catch {
+      /* ignore */
+    }
+  })();
+  await Promise.race([
+    pushCleanup,
+    new Promise((resolve) => setTimeout(resolve, 1500)),
+  ]);
 
   // Lokale data: gevoelige keys weg, create-/listing-concepten waar mogelijk bewaren.
   try {
@@ -556,34 +563,43 @@ export async function performLogout(target: string = '/'): Promise<void> {
   }
 
   // 1) Server-side cookie-purge (HttpOnly cookies kun je alleen server-side wissen).
-  try {
-    await fetch('/api/auth/ecosystem-logout', {
-      method: 'POST',
-      credentials: 'include',
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch {
-    /* netwerkfout: force-logout fallback */
+  // Een hangend verzoek mag de navigatie niet tegenhouden.
+  const requestSessionEnd = async (path: string): Promise<boolean> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
     try {
-      await fetch('/api/auth/force-logout', {
+      const response = await fetch(path, {
         method: 'POST',
         credentials: 'include',
         cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
       });
+      return response.ok;
     } catch {
-      /* continue */
+      return false;
+    } finally {
+      clearTimeout(timer);
     }
+  };
+
+  const ended = await requestSessionEnd('/api/auth/ecosystem-logout');
+  if (!ended) {
+    await requestSessionEnd('/api/auth/force-logout');
   }
 
   // 2) Best-effort NextAuth signOut zonder redirect (synchroniseert client-side session-state).
-  try {
-    const { signOut } = await import('next-auth/react');
-    await signOut({ redirect: false });
-  } catch {
-    /* signOut mag falen — server-call hierboven heeft de cookies al gewist */
-  }
+  await Promise.race([
+    (async () => {
+      try {
+        const { signOut } = await import('next-auth/react');
+        await signOut({ redirect: false });
+      } catch {
+        /* signOut mag falen — server-call hierboven heeft de cookies al gewist */
+      }
+    })(),
+    new Promise((resolve) => setTimeout(resolve, 4000)),
+  ]);
 
   // 3) Belt-and-braces: extra non-HttpOnly cookie-namen (CSRF/callback) lokaal overschrijven.
   try {
