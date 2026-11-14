@@ -17,6 +17,7 @@ import { getActiveCartIdentifier } from '@/lib/cart';
 import { calculateStripeFeeForBuyer } from '@/lib/fees';
 import { knownCheckoutDeliveryFeeCents } from '@/lib/checkout/known-delivery-fee';
 import { quoteFromMatchedCourier } from '@/lib/checkout/matched-courier-quote';
+import { decideRefreshedCourierSelection } from '@/lib/checkout/refreshed-courier-selection';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import {
@@ -275,6 +276,7 @@ export default function CheckoutPage() {
   const [selectedShippingMethodId, setSelectedShippingMethodId] = useState<string | null>(null);
   const [isCalculatingFee, setIsCalculatingFee] = useState(false);
   const [namedProviderSelectionEnabled, setNamedProviderSelectionEnabled] = useState(false);
+  const [deliveryFlagsLoaded, setDeliveryFlagsLoaded] = useState(false);
   const [parcelCarrierConfigured, setParcelCarrierConfigured] = useState(false);
   const [selectedDeliverer, setSelectedDeliverer] = useState<Deliverer | null>(null);
   const [bookingRequestId, setBookingRequestId] = useState<string | null>(null);
@@ -291,8 +293,12 @@ export default function CheckoutPage() {
       .then((r) => r.json())
       .then((d) => {
         setNamedProviderSelectionEnabled(Boolean(d.namedProviderSelectionEnabled));
+        setDeliveryFlagsLoaded(true);
       })
-      .catch(() => setNamedProviderSelectionEnabled(false));
+      .catch(() => {
+        setNamedProviderSelectionEnabled(false);
+        setDeliveryFlagsLoaded(true);
+      });
     fetch('/api/shipping/calculate-price')
       .then((r) => r.json())
       .then((d) => setParcelCarrierConfigured(Boolean(d.configured)))
@@ -485,20 +491,43 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery)) return;
+    const decision = decideRefreshedCourierSelection({
+      cartItemCount: checkoutItems.length,
+      deliveryFlagsLoaded,
+      selectedDelivery: checkoutDraft.selectedDelivery,
+      selectedDeliveryProfileId: checkoutDraft.selectedDeliveryProfileId,
+      optionAvailable: true,
+      matchStatus:
+        !buyerForMatch || !checkoutProductId
+          ? 'idle'
+          : availabilityLoading
+            ? 'loading'
+            : 'settled',
+      matchedDeliverers,
+    });
+    if (decision.hold) return;
+    if (!decision.courierId || decision.deliveryFeeCents == null) {
+      setSelectedDeliverer(null);
+      setActualDeliveryFee(null);
+      if (checkoutDraft.selectedDeliveryProfileId) {
+        updateDraft({ selectedDeliveryProfileId: '' });
+      }
+      return;
+    }
     const selected = matchedDeliverers.find(
-      (deliverer) => deliverer.id === checkoutDraft.selectedDeliveryProfileId,
+      (deliverer) => deliverer.id === decision.courierId,
     );
-    if (!selected) {
+    const quote = quoteFromMatchedCourier(selected);
+    if (
+      !selected ||
+      !quote ||
+      quote.deliveryFeeCents !== decision.deliveryFeeCents
+    ) {
       setSelectedDeliverer(null);
       setActualDeliveryFee(null);
       return;
     }
     setSelectedDeliverer(selected as Deliverer);
-    const quote = quoteFromMatchedCourier(selected);
-    if (!quote) {
-      setActualDeliveryFee(null);
-      return;
-    }
     setActualDeliveryFee({
       deliveryFeeCents: quote.deliveryFeeCents,
       distance: quote.distanceKm,
@@ -512,9 +541,15 @@ export default function CheckoutPage() {
       },
     });
   }, [
-    matchedDeliverers,
+    availabilityLoading,
+    buyerForMatch,
     checkoutDraft.selectedDelivery,
     checkoutDraft.selectedDeliveryProfileId,
+    checkoutItems.length,
+    checkoutProductId,
+    deliveryFlagsLoaded,
+    matchedDeliverers,
+    updateDraft,
   ]);
 
   // Get current location for delivery
@@ -832,12 +867,21 @@ export default function CheckoutPage() {
   const availableOptions = deliveryOptions.filter(option => option.available);
   const selectedOption = deliveryOptions.find(option => option.id === checkoutDraft.selectedDelivery);
   
-  // Reset selected delivery if it's no longer available
+  // Reset selected delivery if it's no longer available.
+  // The named-courier flag starts unknown. Do not wipe a restored courier
+  // while that request is still in flight.
   useEffect(() => {
+    if (checkoutItems.length === 0) return;
+    if (
+      checkoutDraft.selectedDelivery === 'local_provider' &&
+      !deliveryFlagsLoaded
+    ) {
+      return;
+    }
     if (checkoutDraft.selectedDelivery && selectedOption && !selectedOption.available) {
       updateDraft({ selectedDelivery: '' });
     }
-  }, [availableDeliveryModes, checkoutDraft.selectedDelivery, selectedOption, updateDraft]);
+  }, [availableDeliveryModes, checkoutDraft.selectedDelivery, checkoutItems.length, deliveryFlagsLoaded, selectedOption, updateDraft]);
 
   const productsTotalCents = useMemo(
     () => checkoutItems.reduce((sum, item) => sum + item.priceCents * item.quantity, 0),
