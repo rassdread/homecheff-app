@@ -14,7 +14,7 @@ test('checkout matches a product on the server and keeps the returned price', ()
 
   assert.match(page, /useDeliveryAvailability\(buyerForMatch, checkoutProductId\)/);
   assert.match(page, /quoteFromMatchedCourier/);
-  assert.match(page, /externalDeliverers=\{matchedDeliverers/);
+  assert.match(page, /externalDeliverers=\{payableMatchedDeliverers/);
   assert.match(page, /selectedDeliveryProfileId/);
   assert.doesNotMatch(page, /sellerLocations|check-availability/);
   assert.match(hook, /checkoutCourierMatchPath/);

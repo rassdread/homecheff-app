@@ -25,6 +25,7 @@ import { isProviderVisibleToBuyer } from "@/lib/delivery/delivery-cert-scope";
 import { expireExpiredTemporaryOnline } from "@/lib/delivery/delivery-online-session";
 import { interpretStoredCapacity } from "@/lib/delivery/transport-job";
 import { resolveDeliveryTimeAvailability } from "@/lib/delivery/delivery-time-availability";
+import { courierCanBeListedForPaidJob } from "@/lib/delivery/courier-payable";
 import {
   isCaribbeanCountry,
   marketplaceDistanceEligible,
@@ -322,6 +323,13 @@ export async function GET(req: NextRequest) {
         }
       });
 
+    const payableDeliverers = [];
+    for (const delivery of filteredAndSortedDeliverers) {
+      if (await courierCanBeListedForPaidJob(prisma, delivery.id)) {
+        payableDeliverers.push(delivery);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       product: {
@@ -340,7 +348,7 @@ export async function GET(req: NextRequest) {
         deliveryMode: isCaribbean ? 'island' : 'distance'
       },
       // Named provider selection contract (Phase 3). No GPS in public payload.
-      matchedDeliverers: filteredAndSortedDeliverers.map((delivery) => {
+      matchedDeliverers: payableDeliverers.map((delivery) => {
         const routeDistance =
           buyerLat && buyerLng ? delivery.distanceToBuyer : null;
 
@@ -482,7 +490,7 @@ export async function GET(req: NextRequest) {
           isAutoConfirmEligible: autoCheck.ok && delivery.acceptanceMode === ACCEPTANCE_MODE_AUTO,
         };
       }),
-      totalMatches: filteredAndSortedDeliverers.length
+      totalMatches: payableDeliverers.length
     });
 
   } catch (error) {

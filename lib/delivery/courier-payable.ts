@@ -141,3 +141,20 @@ export async function ensureCourierPayable(
   }
   return { ok: true };
 }
+
+/**
+ * Same Connect, payout, and current-agreement gate as booking.
+ * A candidate whose status cannot be confirmed is left out. The others stay.
+ * Stored fresh status is used as-is. Stripe is contacted only for a stale row.
+ */
+export async function courierCanBeListedForPaidJob(
+  prisma: PrismaClient,
+  deliveryProfileId: string,
+): Promise<boolean> {
+  try {
+    const payable = await ensureCourierPayable(prisma, deliveryProfileId);
+    return payable.ok;
+  } catch {
+    return false;
+  }
+}

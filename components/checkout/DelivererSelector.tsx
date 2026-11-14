@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Clock, Star, Truck, Bike, Car, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { NO_PAID_COURIER_MESSAGE } from '@/lib/delivery/paid-courier-selection';
 
 function formatCents(cents: number, locale: string) {
   return new Intl.NumberFormat(locale, {
@@ -203,19 +204,23 @@ export default function DelivererSelector({
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
           <div className="space-y-1 text-sm text-amber-950">
             <p className="font-medium">
-              Er is op dit moment nog geen HomeCheff-bezorgpartner beschikbaar in jouw buurt.
+              {NO_PAID_COURIER_MESSAGE}
             </p>
-            <p className="text-amber-900/90">
-              Kies afhalen of een andere leveroptie als die beschikbaar is, of probeer later opnieuw.
-            </p>
+            {productId ? (
+              <p className="text-amber-900/90">
+                Kies afhalen of een andere leveroptie als die beschikbaar is, of probeer later opnieuw.
+              </p>
+            ) : null}
           </div>
         </div>
-        <a
-          href="/delivery/start"
-          className="inline-flex text-sm font-medium text-emerald-800 underline"
-        >
-          Wil je bezorgen via HomeCheff?
-        </a>
+        {productId ? (
+          <a
+            href="/delivery/start"
+            className="inline-flex text-sm font-medium text-emerald-800 underline"
+          >
+            Wil je bezorgen via HomeCheff?
+          </a>
+        ) : null}
       </div>
     );
   }

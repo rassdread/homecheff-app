@@ -18,6 +18,7 @@ import { calculateStripeFeeForBuyer } from '@/lib/fees';
 import { knownCheckoutDeliveryFeeCents } from '@/lib/checkout/known-delivery-fee';
 import { quoteFromMatchedCourier } from '@/lib/checkout/matched-courier-quote';
 import { decideRefreshedCourierSelection } from '@/lib/checkout/refreshed-courier-selection';
+import { shownCourierLeftPaidList } from '@/lib/delivery/paid-courier-selection';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import {
@@ -485,6 +486,11 @@ export default function CheckoutPage() {
     deliverers: matchedDeliverers,
     loading: availabilityLoading,
   } = useDeliveryAvailability(buyerForMatch, checkoutProductId);
+  const [droppedPaidCourierIds, setDroppedPaidCourierIds] = useState<string[]>([]);
+  const payableMatchedDeliverers = useMemo(
+    () => matchedDeliverers.filter((deliverer) => !droppedPaidCourierIds.includes(deliverer.id)),
+    [droppedPaidCourierIds, matchedDeliverers],
+  );
 
   const isDeliveryAvailable = availability.isAvailable;
   const estimatedDeliveryTime = availability.estimatedTime;
@@ -503,7 +509,7 @@ export default function CheckoutPage() {
           : availabilityLoading
             ? 'loading'
             : 'settled',
-      matchedDeliverers,
+      matchedDeliverers: payableMatchedDeliverers,
     });
     if (decision.hold) return;
     if (!decision.courierId || decision.deliveryFeeCents == null) {
@@ -514,7 +520,7 @@ export default function CheckoutPage() {
       }
       return;
     }
-    const selected = matchedDeliverers.find(
+    const selected = payableMatchedDeliverers.find(
       (deliverer) => deliverer.id === decision.courierId,
     );
     const quote = quoteFromMatchedCourier(selected);
@@ -548,7 +554,7 @@ export default function CheckoutPage() {
     checkoutItems.length,
     checkoutProductId,
     deliveryFlagsLoaded,
-    matchedDeliverers,
+    payableMatchedDeliverers,
     updateDraft,
   ]);
 
@@ -1143,6 +1149,15 @@ export default function CheckoutPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (shownCourierLeftPaidList(data.code) && selectedDeliverer) {
+          const lostId = selectedDeliverer.id;
+          setDroppedPaidCourierIds((current) => (current.includes(lostId) ? current : [...current, lostId]));
+          setSelectedDeliverer(null);
+          setActualDeliveryFee(null);
+          updateDraft({ selectedDeliveryProfileId: '' });
+          setCheckoutError('');
+          return;
+        }
         const message =
           typeof data.errorKey === 'string'
             ? t(data.errorKey)
@@ -1609,7 +1624,7 @@ export default function CheckoutPage() {
                             productId={checkoutItems[0].productId}
                             buyerLat={checkoutDraft.coordinates.lat}
                             buyerLng={checkoutDraft.coordinates.lng}
-                            externalDeliverers={matchedDeliverers as unknown as Deliverer[]}
+                            externalDeliverers={payableMatchedDeliverers as unknown as Deliverer[]}
                             selectedDelivererId={
                               checkoutDraft.selectedDeliveryProfileId || selectedDeliverer?.id
                             }
@@ -1642,6 +1657,16 @@ export default function CheckoutPage() {
                                 });
                                 const data = await res.json();
                                 if (!res.ok) {
+                                  if (shownCourierLeftPaidList(data.code)) {
+                                    setDroppedPaidCourierIds((current) =>
+                                      current.includes(d.id) ? current : [...current, d.id],
+                                    );
+                                    setSelectedDeliverer(null);
+                                    setActualDeliveryFee(null);
+                                    updateDraft({ selectedDeliveryProfileId: '' });
+                                    setBookingError(null);
+                                    return;
+                                  }
                                   if (data.code === 'COURIER_ALREADY_ACCEPTED' && data.bookingRequestId) {
                                     setBookingRequestId(data.bookingRequestId);
                                     setBookingStatus('ACCEPTED');

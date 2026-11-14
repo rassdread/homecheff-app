@@ -6,6 +6,7 @@ import DelivererSelector, { type Deliverer } from '@/components/checkout/Deliver
 import { TransportProposalInbox } from '@/components/delivery/TransportProposalInbox';
 import GooglePlacesAutocomplete from '@/components/ui/GooglePlacesAutocomplete';
 import { useTranslation } from '@/hooks/useTranslation';
+import { shownCourierLeftPaidList } from '@/lib/delivery/paid-courier-selection';
 
 const DELIVERY_DRAFT_KEY = 'hc-standalone-delivery-draft';
 
@@ -270,6 +271,12 @@ export function StandaloneDeliveryRequest({
         return;
       }
       if (!response.ok) {
+        if (shownCourierLeftPaidList(data.code)) {
+          setCouriers((current) => (current ?? []).filter((item) => item.id !== deliverer.id));
+          setBooked(null);
+          setError('');
+          return;
+        }
         setError(data.error || 'Boeken lukte niet');
         return;
       }
@@ -323,6 +330,12 @@ export function StandaloneDeliveryRequest({
         return;
       }
       if (!response.ok) {
+        if (shownCourierLeftPaidList(data?.code)) {
+          setCouriers((current) => (current ?? []).filter((item) => item.id !== deliverer.id));
+          setBooked(null);
+          setError('');
+          return;
+        }
         setError(data?.error || 'Voorstel lukte niet');
         return;
       }

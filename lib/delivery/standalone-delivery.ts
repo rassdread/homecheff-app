@@ -24,7 +24,7 @@ import { calculateProviderDeliveryPrice } from '@/lib/delivery/provider-pricing'
 import { isCommerciallyMatchableDeliverer } from '@/lib/delivery/delivery-eligibility';
 import { splitDeliveryCommission } from '@/lib/delivery/quote-snapshot';
 import { NotificationService } from '@/lib/notifications/notification-service';
-import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
+import { courierCanBeListedForPaidJob, ensureCourierPayable } from '@/lib/delivery/courier-payable';
 import { courierListedInPilot, servicePilotDenial } from '@/lib/delivery/delivery-pilot-access';
 import { createDeliveryBookingRequest } from '@/lib/delivery/booking-request-service';
 import { assertCourierBookableAt } from '@/lib/delivery/standalone-availability';
@@ -216,6 +216,7 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput) {
       unavailable.push({ id: profile.id, name, code: bookable.code });
       continue;
     }
+    if (!(await courierCanBeListedForPaidJob(prisma, profile.id))) continue;
     const vehicle = profile.transportation[0] || 'BIKE';
     couriers.push({
       id: profile.id,

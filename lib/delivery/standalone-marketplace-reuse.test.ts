@@ -67,6 +67,7 @@ test('standalone quote no longer auto-selects the cheapest courier', { skip: !lo
     temporaryOffline: courierA.temporaryOffline,
     stripeTransfersStatus: courierA.stripeTransfersStatus,
     stripeTransfersCheckedAt: courierA.stripeTransfersCheckedAt,
+    stripePayoutsEnabled: courierA.stripePayoutsEnabled,
   };
   async function markPayable(profileId: string, userId: string) {
     await prisma.user.update({
@@ -75,7 +76,11 @@ test('standalone quote no longer auto-selects the cheapest courier', { skip: !lo
     });
     await prisma.deliveryProfile.update({
       where: { id: profileId },
-      data: { stripeTransfersStatus: 'active', stripeTransfersCheckedAt: new Date() },
+      data: {
+        stripeTransfersStatus: 'active',
+        stripePayoutsEnabled: true,
+        stripeTransfersCheckedAt: new Date(),
+      },
     });
     const row = agreementAcceptanceRow({ deliveryProfileId: profileId, userId });
     await prisma.deliveryAgreementAcceptance.upsert({
@@ -139,6 +144,8 @@ test('standalone quote no longer auto-selects the cheapest courier', { skip: !lo
   });
 
   try {
+    await markPayable(bProfile.id, bUser.id);
+    await markPayable(courierA.id, courierAUser);
     const listed = await createStandaloneQuote({ ...route, requesterUserId: buyerId });
     assert.equal(listed.ok, true);
     if (!listed.ok) return;
@@ -154,8 +161,6 @@ test('standalone quote no longer auto-selects the cheapest courier', { skip: !lo
     assert.ok(costly.quotedFeeCents > cheap.quotedFeeCents);
     const byName = [...listed.couriers].sort((a, b) => a.name.localeCompare(b.name, 'nl'));
     assert.deepEqual(listed.couriers.map((c) => c.id), byName.map((c) => c.id));
-    await markPayable(bProfile.id, bUser.id);
-    await markPayable(courierA.id, courierAUser);
 
     const booked = await bookStandaloneCourier({
       ...route,
