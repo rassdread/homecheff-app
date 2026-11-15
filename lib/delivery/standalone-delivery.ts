@@ -27,6 +27,7 @@ import { isCommerciallyMatchableDeliverer } from '@/lib/delivery/delivery-eligib
 import { splitDeliveryCommission } from '@/lib/delivery/quote-snapshot';
 import { NotificationService } from '@/lib/notifications/notification-service';
 import { courierCanBeListedForPaidJob, ensureCourierPayable } from '@/lib/delivery/courier-payable';
+import { ensureCourierIdentityFreshForListing } from '@/lib/delivery/courier-identity-sync';
 import { courierListedInPilot, servicePilotDenial } from '@/lib/delivery/delivery-pilot-access';
 import { createDeliveryBookingRequest } from '@/lib/delivery/booking-request-service';
 import { pickupOverlapsBooking, suggestedPickupTimes } from '@/lib/delivery/standalone-pickup-options';
@@ -226,6 +227,7 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput, include
     if (!bookable.ok && !bookable.failedChecks.every(check => ['working_hours', 'break', 'vacation'].includes(check))) continue;
     const available = bookable.ok && !pickupOverlapsBooking(requestedAt, route.duration, profile.calendarEntries);
     if (!available && !includeAlternatives) continue;
+    if (!(await ensureCourierIdentityFreshForListing(prisma, profile.id)).ok) continue;
     if (!(await courierCanBeListedForPaidJob(prisma, profile.id))) continue;
     if (!available) {
       const pickupTimes = suggestedPickupTimes(acceptance, requestedAt, now, quote.routeDistanceKm, route.duration, profile.calendarEntries);

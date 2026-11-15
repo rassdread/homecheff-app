@@ -287,7 +287,19 @@ export function delivererAcceptDenialResponse(denial: DelivererAcceptDenial) {
   };
 }
 
-/** Matching / availability: only verified active profiles (age filtered in query layer). */
+/**
+ * Active couriers a customer search may load.
+ * Identity is applied afterwards, with a Stripe read when the cache is older than 15 minutes.
+ */
+export function delivererCandidateWhere() {
+  return {
+    isActive: true,
+    isVerified: true,
+    isBlocked: false,
+  } as const;
+}
+
+/** Stored match window. Search routes refresh a stale row before they use this filter. */
 export function delivererMatchingWhere(now = new Date()) {
   const freshAfter = new Date(now.getTime() - COURIER_TRANSFER_FRESH_MS);
   return {

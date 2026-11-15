@@ -299,7 +299,7 @@ export async function createDeliveryBookingRequest(
     };
   }
 
-  const payable = await ensureCourierPayable(prisma, profile.id);
+  const payable = await ensureCourierPayable(prisma, profile.id, { live: true });
   if (!payable.ok) return payable;
 
   const authoritative = await resolveAuthoritativeQuote(prisma, {

@@ -5810,6 +5810,7 @@
     "ebike": "E-bike",
     "scooter": "Scooter",
     "car": "Car",
+    "van": "Van",
     "vehicle": "Vehicle",
     "onSameIsland": "On the same island",
     "kmFromSeller": "{distance} km from seller",

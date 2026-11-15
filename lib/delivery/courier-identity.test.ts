@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { classifyCourierStripeIdentity, courierIdentityMessage } from './courier-identity';
 import { paidIdentityAllowsDelivery } from './courier-paid-identity';
-import { enforcePaidDeliveryIdentity, refreshStaleCourierIdentityForMatching } from './courier-identity-sync';
+import { enforcePaidDeliveryIdentity, ensureCourierIdentityFreshForListing, refreshStaleCourierIdentityForMatching } from './courier-identity-sync';
 import { syncCourierConnectAccount } from './delivery-webhook-events';
 
 const verified = {
@@ -254,5 +254,62 @@ describe('stripe connect identity evidence', () => {
     });
     assert.equal(revoked.refreshed, 1);
     assert.notEqual(writes[1]?.stripeIdentityState, 'VERIFIED');
+  });
+
+  it('refreshes one courier older than 15 minutes during search and keeps a fresh cache', async () => {
+    const now = new Date('2026-11-15T07:00:00.000Z');
+    const writes: Array<{ stripeIdentityState?: string }> = [];
+    let reads = 0;
+    const state = {
+      stripeIdentityState: 'VERIFIED' as string | null,
+      stripeIdentityCheckedAt: new Date(now.getTime() - 16 * 60 * 1000),
+    };
+    const db = {
+      deliveryProfile: {
+        findUnique: async () => ({
+          id: 'profile_verified',
+          isBlocked: false,
+          stripeIdentityState: state.stripeIdentityState,
+          stripeIdentityCheckedAt: state.stripeIdentityCheckedAt,
+          user: { stripeConnectAccountId: 'acct_test' },
+        }),
+        update: async ({ data }: { data: { stripeIdentityState?: string; stripeIdentityCheckedAt?: Date } }) => {
+          writes.push(data);
+          state.stripeIdentityState = data.stripeIdentityState ?? state.stripeIdentityState;
+          state.stripeIdentityCheckedAt = data.stripeIdentityCheckedAt ?? state.stripeIdentityCheckedAt;
+          return data;
+        },
+      },
+    };
+    const stale = await ensureCourierIdentityFreshForListing(db as never, 'profile_verified', {
+      now,
+      retrieve: async () => {
+        reads += 1;
+        return verified;
+      },
+    });
+    assert.equal(stale.ok, true);
+    assert.equal(reads, 1);
+    assert.equal(writes[0]?.stripeIdentityState, 'VERIFIED');
+
+    const fresh = await ensureCourierIdentityFreshForListing(db as never, 'profile_verified', {
+      now,
+      retrieve: async () => {
+        reads += 1;
+        return verified;
+      },
+    });
+    assert.equal(fresh.ok, true);
+    assert.equal(reads, 1);
+
+    const revoked = await ensureCourierIdentityFreshForListing(db as never, 'profile_verified', {
+      now: new Date(now.getTime() + 16 * 60 * 1000),
+      retrieve: async () => ({
+        ...verified,
+        individual: { verification: { status: 'unverified', details_code: null } },
+      }),
+    });
+    assert.equal(revoked.ok, false);
+    assert.notEqual(writes.at(-1)?.stripeIdentityState, 'VERIFIED');
   });
 });

@@ -6,7 +6,7 @@ import {
   classifyCourierStripeIdentity,
   type CourierStripeAccount,
 } from '@/lib/delivery/courier-identity';
-import { paidIdentityDenial } from '@/lib/delivery/courier-paid-identity';
+import { paidIdentityAllowsDelivery, paidIdentityDenial } from '@/lib/delivery/courier-paid-identity';
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -102,10 +102,55 @@ export async function enforcePaidDeliveryIdentity(
 const MATCH_IDENTITY_REFRESH_LIMIT = 8;
 
 /**
- * Matching reads a 15-minute cache. A verified Connect account stays invisible
- * until that cache is written. This reuses the paid identity read for profiles
- * whose cache is missing or older than the match window. It does not mark a
- * courier verified unless Stripe says individual.verification.status is verified.
+ * Customer search uses a fresh verified cache. Older or missing identity is
+ * read from Stripe for that courier before the list is built. A cache older
+ * than 15 minutes does not hide someone Stripe still verifies.
+ * Stripe is not called again while the cache is still fresh.
+ */
+export async function ensureCourierIdentityFreshForListing(
+  db: Db,
+  profileId: string,
+  options?: {
+    now?: Date;
+    retrieve?: (accountId: string) => Promise<CourierStripeAccount | null>;
+  },
+) {
+  const now = options?.now ?? new Date();
+  const profile = await db.deliveryProfile.findUnique({
+    where: { id: profileId },
+    select: {
+      isBlocked: true,
+      stripeIdentityState: true,
+      stripeIdentityCheckedAt: true,
+      user: { select: { stripeConnectAccountId: true } },
+    },
+  });
+  if (!profile?.user?.stripeConnectAccountId || profile.isBlocked) {
+    return paidIdentityDenial({
+      state: profile?.stripeIdentityState,
+      checkedAt: profile?.stripeIdentityCheckedAt,
+      now,
+      suspended: profile?.isBlocked,
+    });
+  }
+  if (
+    paidIdentityAllowsDelivery({
+      state: profile.stripeIdentityState,
+      checkedAt: profile.stripeIdentityCheckedAt,
+      now,
+      suspended: false,
+    })
+  ) {
+    return { ok: true as const };
+  }
+  return enforcePaidDeliveryIdentity(db, profileId, options);
+}
+
+/**
+ * Optional batch refresh. PostgreSQL orders null timestamps last, and the
+ * default cap is 8, so this pass can miss a suitable courier. Customer search
+ * uses ensureCourierIdentityFreshForListing on the couriers it actually
+ * considers. A courier is verified only when Stripe says so.
  */
 export async function refreshStaleCourierIdentityForMatching(
   db: Db,

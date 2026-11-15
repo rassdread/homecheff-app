@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { refreshStaleCourierIdentityForMatching } from '@/lib/delivery/courier-identity-sync';
+import { ensureCourierIdentityFreshForListing } from '@/lib/delivery/courier-identity-sync';
 import { deliveryDisabledBody } from '@/lib/delivery/delivery-deployment-gate';
 import {
   courierListedInPilot,
@@ -15,7 +15,7 @@ import {
 } from '@/lib/delivery/delivery-pilot-access';
 import { calculateDistance } from '@/lib/geocoding';
 import { getRouteDistance, isVerifiedRoadDistance } from '@/lib/google-maps-distance';
-import { delivererMatchingWhere } from '@/lib/delivery/delivery-eligibility';
+import { delivererCandidateWhere } from '@/lib/delivery/delivery-eligibility';
 import { resolveDelivererPosition } from '@/lib/delivery/delivery-position';
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 import { resolveDeliveryTimeAvailability } from '@/lib/delivery/delivery-time-availability';
@@ -59,15 +59,12 @@ export async function POST(req: NextRequest) {
       : null;
 
     await expireExpiredTemporaryOnline(prisma);
-    await refreshStaleCourierIdentityForMatching(prisma, {
-      country: countryFilter,
-      includeProfile: (profile) => courierListedInPilot(profile.id, profile.userId),
-    });
 
-    // Find active delivery profiles with GPS coordinates
+    // Find active delivery profiles with GPS coordinates.
+    // Identity is refreshed per courier after the range and schedule filters.
     const availableProfiles = await prisma.deliveryProfile.findMany({
       where: {
-        ...delivererMatchingWhere(),
+        ...delivererCandidateWhere(),
         user: {
           lat: { not: null },
           lng: { not: null },
@@ -179,7 +176,7 @@ export async function POST(req: NextRequest) {
     const requestedDate = deliveryDate ? new Date(deliveryDate) : new Date();
     const probeAt = Number.isNaN(requestedDate.getTime()) ? new Date() : requestedDate;
 
-    const availableProfilesFiltered = profilesInRange.filter((profile) =>
+    const scheduledProfiles = profilesInRange.filter((profile) =>
       courierListedInPilot(profile.id, profile.user?.id) &&
       resolveDeliveryTimeAvailability(
         {
@@ -194,6 +191,12 @@ export async function POST(req: NextRequest) {
         probeAt,
       ).available,
     );
+    const availableProfilesFiltered: typeof scheduledProfiles = [];
+    for (const profile of scheduledProfiles) {
+      if ((await ensureCourierIdentityFreshForListing(prisma, profile.id)).ok) {
+        availableProfilesFiltered.push(profile);
+      }
+    }
 
     const isAvailable = availableProfilesFiltered.length > 0;
     const availableCount = availableProfilesFiltered.length;

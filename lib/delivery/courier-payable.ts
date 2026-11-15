@@ -43,7 +43,7 @@ export async function recordAgreementAcceptance(
 export async function ensureCourierPayable(
   prisma: PrismaClient,
   deliveryProfileId: string,
-  options?: { requireAgreement?: boolean },
+  options?: { requireAgreement?: boolean; live?: boolean },
 ): Promise<PayableResult> {
   const profile = await prisma.deliveryProfile.findUnique({
     where: { id: deliveryProfileId },
@@ -71,7 +71,8 @@ export async function ensureCourierPayable(
     checkedAt,
   });
 
-  if (!gate.ready && gate.stale && accountId) {
+  const readStripe = Boolean(accountId) && (options?.live === true || (!gate.ready && gate.stale));
+  if (readStripe && accountId) {
     const stripe = stripeClient();
     if (!stripe) {
       return {

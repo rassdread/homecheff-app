@@ -7105,6 +7105,7 @@
     "ebike": "E-bike",
     "scooter": "Scooter",
     "car": "Auto",
+    "van": "Bestelbus",
     "vehicle": "Voertuig",
     "onSameIsland": "Op hetzelfde eiland",
     "kmFromSeller": "{distance} km van verkoper",

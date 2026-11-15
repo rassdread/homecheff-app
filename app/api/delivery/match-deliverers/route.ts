@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getRouteDistance, isVerifiedRoadDistance } from "@/lib/google-maps-distance";
-import { delivererMatchingWhere, isCommerciallyMatchableDeliverer } from "@/lib/delivery/delivery-eligibility";
-import { refreshStaleCourierIdentityForMatching } from "@/lib/delivery/courier-identity-sync";
+import { delivererCandidateWhere, isCommerciallyMatchableDeliverer } from "@/lib/delivery/delivery-eligibility";
+import { ensureCourierIdentityFreshForListing } from "@/lib/delivery/courier-identity-sync";
 import { deliveryDisabledBody } from "@/lib/delivery/delivery-deployment-gate";
 import {
   courierListedInPilot,
@@ -98,15 +98,11 @@ export async function GET(req: NextRequest) {
     const sellerCountry =
       normalizeCountryCode(product.seller.User?.country) || 'NL';
 
-    await refreshStaleCourierIdentityForMatching(prisma, {
-      country: sellerCountry,
-      includeProfile: (profile) => courierListedInPilot(profile.id, profile.userId),
-    });
-
-    // Get all active delivery profiles from the same country/island
+    // Get all active delivery profiles from the same country/island.
+    // A stale identity is read from Stripe for the couriers this search keeps.
     const deliveryProfiles = await prisma.deliveryProfile.findMany({
       where: {
-        ...delivererMatchingWhere(),
+        ...delivererCandidateWhere(),
         user: {
           lat: { not: null },
           lng: { not: null },
@@ -325,6 +321,7 @@ export async function GET(req: NextRequest) {
 
     const payableDeliverers: typeof filteredAndSortedDeliverers = [];
     for (const delivery of filteredAndSortedDeliverers) {
+      if (!(await ensureCourierIdentityFreshForListing(prisma, delivery.id)).ok) continue;
       if (await courierCanBeListedForPaidJob(prisma, delivery.id)) {
         payableDeliverers.push(delivery);
       }

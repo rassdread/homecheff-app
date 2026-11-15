@@ -73,7 +73,7 @@ export function readTransportCargo(value: unknown): TransportCargo | null {
 }
 
 async function courierCanTakePaidJob(deliveryProfileId: string) {
-  const payable = await ensureCourierPayable(prisma, deliveryProfileId);
+  const payable = await ensureCourierPayable(prisma, deliveryProfileId, { live: true });
   if (!payable.ok) return payable;
   const profile = await prisma.deliveryProfile.findUnique({
     where: { id: deliveryProfileId },

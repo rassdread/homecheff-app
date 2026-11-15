@@ -137,6 +137,8 @@ export default function DelivererSelector({
         return <Truck className="w-4 h-4" />;
       case 'CAR':
         return <Car className="w-4 h-4" />;
+      case 'VAN':
+        return <Truck className="w-4 h-4" />;
       default:
         return <Truck className="w-4 h-4" />;
     }
@@ -152,6 +154,8 @@ export default function DelivererSelector({
         return t('delivererSelector.scooter');
       case 'CAR':
         return t('delivererSelector.car');
+      case 'VAN':
+        return t('delivererSelector.van');
       default:
         return t('delivererSelector.vehicle');
     }
