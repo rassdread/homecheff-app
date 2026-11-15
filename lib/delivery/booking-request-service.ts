@@ -247,6 +247,30 @@ async function resolveAuthoritativeQuote(
   return { ok: true, routeDistanceKm, quotedFeeCents: null };
 }
 
+function isOpenBookingConflict(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: string }).code === 'P2002'
+  );
+}
+
+async function reuseOpenBooking(
+  prisma: PrismaClient,
+  input: { buyerId: string; productId?: string | null; deliveryProfileId: string },
+) {
+  if (!input.productId) return null;
+  return prisma.deliveryBookingRequest.findFirst({
+    where: {
+      buyerId: input.buyerId,
+      productId: input.productId,
+      deliveryProfileId: input.deliveryProfileId,
+      status: 'PENDING',
+    },
+  });
+}
+
 export async function createDeliveryBookingRequest(
   prisma: PrismaClient,
   input: {
@@ -477,22 +501,34 @@ export async function createDeliveryBookingRequest(
     };
   }
 
-  const request = await prisma.deliveryBookingRequest.create({
-    data: {
-      buyerId: input.buyerId,
-      deliveryProfileId: profile.id,
-      productId: input.productId || null,
-      status: 'PENDING',
-      acceptanceModeSnapshot: ACCEPTANCE_MODE_MANUAL,
-      expiresAt,
-      quotedFeeCents,
-      routeDistanceKm,
-      buyerLat: input.buyerLat ?? null,
-      buyerLng: input.buyerLng ?? null,
-      notes: input.notes ?? null,
-      updatedAt: new Date(),
-    },
-  });
+  let request;
+  try {
+    request = await prisma.deliveryBookingRequest.create({
+      data: {
+        buyerId: input.buyerId,
+        deliveryProfileId: profile.id,
+        productId: input.productId || null,
+        status: 'PENDING',
+        acceptanceModeSnapshot: ACCEPTANCE_MODE_MANUAL,
+        expiresAt,
+        quotedFeeCents,
+        routeDistanceKm,
+        buyerLat: input.buyerLat ?? null,
+        buyerLng: input.buyerLng ?? null,
+        notes: input.notes ?? null,
+        updatedAt: new Date(),
+      },
+    });
+  } catch (error) {
+    const existing = isOpenBookingConflict(error) ? await reuseOpenBooking(prisma, input) : null;
+    if (!existing) throw error;
+    return {
+      ok: true as const,
+      request: existing,
+      acceptanceMode: existing.acceptanceModeSnapshot,
+      confirmed: false as const,
+    };
+  }
 
   try {
     await NotificationService.send({

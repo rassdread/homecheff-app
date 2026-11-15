@@ -54,6 +54,12 @@ test('paid lists use the booking payout gate after distance and schedule', () =>
     'ensureCourierPayable(prisma, deliveryProfileId, { live: true })',
   );
   const existingPending = bookingRoute.indexOf('const samePending');
-  assert.ok(liveFollowUp > 0 && existingPending > liveFollowUp);
+  const bookingCreate = bookingRoute.indexOf('createDeliveryBookingRequest(');
+  assert.ok(liveFollowUp > 0 && existingPending > liveFollowUp && bookingCreate > existingPending);
+  assert.match(book, /isOpenBookingConflict/);
+  assert.match(book, /reuseOpenBooking/);
+  const notConfirmed = checkout.indexOf('DELIVERY_BOOKING_NOT_CONFIRMED');
+  const stripeSession = checkout.indexOf('checkout.sessions.create');
+  assert.ok(notConfirmed > 0 && stripeSession > notConfirmed);
   assert.doesNotMatch(quoteFn.slice(quoteFn.indexOf('courierCanBeListedForPaidJob(')), /live: true/);
 });

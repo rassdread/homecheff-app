@@ -287,6 +287,7 @@ export default function CheckoutPage() {
   const [bookingRequestId, setBookingRequestId] = useState<string | null>(null);
   const [bookingStatus, setBookingStatus] = useState<string | null>(null);
   const [bookingBusy, setBookingBusy] = useState(false);
+  const bookingFlightRef = useRef(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [reservationRemainingMs, setReservationRemainingMs] = useState<number | null>(null);
   const [paymentRemainingMs, setPaymentRemainingMs] = useState<number | null>(null);
@@ -595,6 +596,8 @@ export default function CheckoutPage() {
 
   const requestCourierBooking = useCallback(
     async (d: Deliverer) => {
+      if (bookingFlightRef.current) return;
+      bookingFlightRef.current = true;
       const previousBookingId = bookingRequestId;
       const renewExpiredPending =
         bookingStatus === 'PENDING' &&
@@ -634,6 +637,9 @@ export default function CheckoutPage() {
             setActualDeliveryFee(null);
             setBookingRequestId(null);
             setBookingStatus(null);
+            setReservationRemainingMs(null);
+            setPaymentRemainingMs(null);
+            setReservationPhase(null);
             updateDraft({ selectedDeliveryProfileId: '', bookingRequestId: '' });
             setBookingError(
               language === 'en'
@@ -662,6 +668,7 @@ export default function CheckoutPage() {
       } catch {
         setBookingError(tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'));
       } finally {
+        bookingFlightRef.current = false;
         setBookingBusy(false);
       }
     },
@@ -1065,6 +1072,11 @@ export default function CheckoutPage() {
   const namedCourierReservationExpired =
     isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) &&
     (bookingStatus === 'EXPIRED' || reservationRemainingMs === 0);
+  const namedCourierPaymentLocked =
+    namedProviderSelectionEnabled &&
+    isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) &&
+    bookingStatus !== 'ACCEPTED' &&
+    bookingStatus !== 'AUTO_CONFIRMED';
 
   const handleCheckout = async () => {
     setCheckoutError(null);
@@ -2152,6 +2164,7 @@ export default function CheckoutPage() {
                       !checkoutDraft.selectedDelivery ||
                       isLocalProviderUnavailable ||
                       namedCourierReservationExpired ||
+                      namedCourierPaymentLocked ||
                       deliveryPriceUnknown ||
                       (buyerTotalCents <= 0 && selectedHc <= 0)
                     }

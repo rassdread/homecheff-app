@@ -124,6 +124,10 @@ export async function POST(req: NextRequest) {
           reservation: reservationTiming(hold),
         });
       }
+    }
+
+    const fulfillBooking = async () => {
+    if (productId && typeof productId === 'string') {
       const samePending = await prisma.deliveryBookingRequest.findFirst({
         where: {
           buyerId: buyer.id,
@@ -158,6 +162,32 @@ export async function POST(req: NextRequest) {
         buyerId: buyer.id,
       });
       if (!replaced.ok) {
+        const recovered =
+          productId && typeof productId === 'string'
+            ? await prisma.deliveryBookingRequest.findFirst({
+                where: {
+                  buyerId: buyer.id,
+                  productId,
+                  deliveryProfileId,
+                  status: 'PENDING',
+                },
+              })
+            : null;
+        if (recovered && recovered.id !== replacesBookingRequestId) {
+          const hold = await prisma.stockReservation.findFirst({
+            where: { bookingRequestId: recovered.id, status: 'PENDING' },
+          });
+          return NextResponse.json({
+            success: true,
+            bookingRequestId: recovered.id,
+            status: recovered.status,
+            acceptanceMode: recovered.acceptanceModeSnapshot,
+            confirmed: false,
+            expiresAt: recovered.expiresAt,
+            quotedFeeCents: recovered.quotedFeeCents,
+            reservation: reservationTiming(hold),
+          });
+        }
         return NextResponse.json(
           { error: replaced.error, code: replaced.code },
           { status: replaced.status },
@@ -251,6 +281,9 @@ export async function POST(req: NextRequest) {
       quotedFeeCents: result.request.quotedFeeCents,
       reservation: reservationTiming(storedHold),
     });
+    };
+
+    return await fulfillBooking();
   } catch (error) {
     console.error('create booking request', error);
     return NextResponse.json({ error: 'Failed to create booking request' }, { status: 500 });

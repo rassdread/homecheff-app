@@ -105,6 +105,10 @@ test('checkout keeps the tested wait and applies the refresh decision without a 
   assert.doesNotMatch(page, /\[bookingRequestId, onStatus\]/);
   assert.match(page, /Vraag opnieuw aan/);
   assert.match(page, /namedCourierReservationExpired/);
+  assert.match(page, /if \(bookingFlightRef\.current\) return;/);
+  assert.match(page, /namedCourierPaymentLocked/);
+  assert.match(page, /setReservationRemainingMs\(null\)/);
+  assert.match(page, /setReservationPhase\(null\)/);
   assert.match(page, /if \(reservationExpired && selectedDeliverer\?\.id === d\.id\) return;/);
   assert.doesNotMatch(decision, /booking-requests|fetch\(/);
 });
