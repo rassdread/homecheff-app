@@ -33,14 +33,14 @@ export const RESERVATION_COPY = {
     accepted: 'Bezorger heeft bevestigd. Rond je betaling af.',
     rejected: 'Deze bezorger is niet beschikbaar. Kies een andere bezorgoptie.',
     expired:
-      'De reservering is verlopen. Controleer opnieuw of het product beschikbaar is.',
+      'De gekozen bezorger blijft geselecteerd. De reservering is verlopen. Vraag opnieuw aan om verder te gaan.',
   },
   en: {
     reserved: 'Product temporarily reserved.',
     accepted: 'Courier confirmed. Complete your payment.',
     rejected: 'This courier is not available. Choose another delivery option.',
     expired:
-      'The reservation has expired. Check again whether the product is available.',
+      'The selected courier stays selected. The reservation has expired. Send a new request to continue.',
   },
 } as const;
 

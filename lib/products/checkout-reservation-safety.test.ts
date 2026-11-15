@@ -630,7 +630,7 @@ describe('checkout reservation safety', () => {
     );
     assert.equal(
       RESERVATION_COPY.nl.expired,
-      'De reservering is verlopen. Controleer opnieuw of het product beschikbaar is.',
+      'De gekozen bezorger blijft geselecteerd. De reservering is verlopen. Vraag opnieuw aan om verder te gaan.',
     );
     assert.match(RESERVATION_COPY.en.reserved, /reserved/i);
     assert.match(RESERVATION_COPY.en.accepted, /payment/i);

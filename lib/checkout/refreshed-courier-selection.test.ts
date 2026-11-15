@@ -103,5 +103,8 @@ test('checkout keeps the tested wait and applies the refresh decision without a 
   assert.match(page, /onStatusRef\.current = onStatus/);
   assert.match(page, /const id = setInterval\(tick, 3000\)/);
   assert.doesNotMatch(page, /\[bookingRequestId, onStatus\]/);
+  assert.match(page, /Vraag opnieuw aan/);
+  assert.match(page, /namedCourierReservationExpired/);
+  assert.match(page, /if \(reservationExpired && selectedDeliverer\?\.id === d\.id\) return;/);
   assert.doesNotMatch(decision, /booking-requests|fetch\(/);
 });

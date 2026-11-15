@@ -590,6 +590,95 @@ export default function CheckoutPage() {
     updateDraft,
   ]);
 
+  const reservationExpired =
+    bookingStatus === 'EXPIRED' || reservationRemainingMs === 0;
+
+  const requestCourierBooking = useCallback(
+    async (d: Deliverer) => {
+      const previousBookingId = bookingRequestId;
+      const renewExpiredPending =
+        bookingStatus === 'PENDING' &&
+        reservationRemainingMs === 0 &&
+        selectedDeliverer?.id === d.id;
+      updateDraft({ selectedDeliveryProfileId: d.id });
+      setSelectedDeliverer(d);
+      setBookingError(null);
+      setBookingBusy(true);
+      try {
+        const res = await fetch('/api/delivery/booking-requests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deliveryProfileId: d.id,
+            productId: checkoutItems[0]?.productId,
+            quantity: checkoutItems[0]?.quantity ?? 1,
+            buyerLat: checkoutDraft.coordinates?.lat,
+            buyerLng: checkoutDraft.coordinates?.lng,
+            routeDistanceKm: d.totalDeliveryDistance,
+            quotedFeeCents: d.quotedFeeCents ?? d.calculatedDeliveryPrice ?? null,
+            replacesBookingRequestId:
+              previousBookingId &&
+              ((selectedDeliverer?.id && selectedDeliverer.id !== d.id) ||
+                renewExpiredPending)
+                ? previousBookingId
+                : undefined,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          if (shownCourierLeftPaidList(data.code)) {
+            setDroppedPaidCourierIds((current) =>
+              current.includes(d.id) ? current : [...current, d.id],
+            );
+            setSelectedDeliverer(null);
+            setActualDeliveryFee(null);
+            setBookingRequestId(null);
+            setBookingStatus(null);
+            updateDraft({ selectedDeliveryProfileId: '', bookingRequestId: '' });
+            setBookingError(
+              language === 'en'
+                ? 'This courier can no longer take this order. Choose again.'
+                : 'Deze bezorger kan deze opdracht niet meer aannemen. Kies opnieuw.',
+            );
+            return;
+          }
+          if (data.code === 'COURIER_ALREADY_ACCEPTED' && data.bookingRequestId) {
+            setBookingRequestId(data.bookingRequestId);
+            updateDraft({ bookingRequestId: data.bookingRequestId });
+            setBookingStatus('ACCEPTED');
+          }
+          setBookingError(
+            data.error ||
+              tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'),
+          );
+          return;
+        }
+        setBookingRequestId(data.bookingRequestId);
+        updateDraft({ bookingRequestId: data.bookingRequestId ?? '' });
+        setBookingStatus(data.status);
+        setReservationRemainingMs(data.reservation?.remainingMs ?? null);
+        setPaymentRemainingMs(data.reservation?.paymentRemainingMs ?? null);
+        setReservationPhase(data.reservation?.phase ?? null);
+      } catch {
+        setBookingError(tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'));
+      } finally {
+        setBookingBusy(false);
+      }
+    },
+    [
+      bookingRequestId,
+      bookingStatus,
+      checkoutDraft.coordinates?.lat,
+      checkoutDraft.coordinates?.lng,
+      checkoutItems,
+      language,
+      reservationRemainingMs,
+      selectedDeliverer?.id,
+      tOr,
+      updateDraft,
+    ],
+  );
+
   // Get current location for delivery
   const getLocation = async () => {
     try {
@@ -973,6 +1062,9 @@ export default function CheckoutPage() {
   const isLocalProviderUnavailable =
     isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) &&
     (!checkoutDraft.coordinates || deliveryQuoteCents == null);
+  const namedCourierReservationExpired =
+    isLocalProviderCheckoutSelection(checkoutDraft.selectedDelivery) &&
+    (bookingStatus === 'EXPIRED' || reservationRemainingMs === 0);
 
   const handleCheckout = async () => {
     setCheckoutError(null);
@@ -999,6 +1091,11 @@ export default function CheckoutPage() {
 
     if (isLocalProviderUnavailable) {
       setCheckoutError(t('checkout.teenDeliveryUnavailable'));
+      return;
+    }
+
+    if (namedCourierReservationExpired) {
+      setCheckoutError(reservationCopy.expired);
       return;
     }
 
@@ -1661,68 +1758,8 @@ export default function CheckoutPage() {
                               checkoutDraft.selectedDeliveryProfileId || selectedDeliverer?.id
                             }
                             onSelectDeliverer={async (d) => {
-                              const previousBookingId = bookingRequestId;
-                              updateDraft({ selectedDeliveryProfileId: d.id });
-                              setSelectedDeliverer(d);
-                              setBookingError(null);
-                              setBookingBusy(true);
-                              try {
-                                const res = await fetch('/api/delivery/booking-requests', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({
-                                    deliveryProfileId: d.id,
-                                    productId: checkoutItems[0]?.productId,
-                                    quantity: checkoutItems[0]?.quantity ?? 1,
-                                    buyerLat: checkoutDraft.coordinates?.lat,
-                                    buyerLng: checkoutDraft.coordinates?.lng,
-                                    routeDistanceKm: d.totalDeliveryDistance,
-                                    quotedFeeCents:
-                                      d.quotedFeeCents ?? d.calculatedDeliveryPrice ?? null,
-                                    replacesBookingRequestId:
-                                      previousBookingId &&
-                                      selectedDeliverer?.id &&
-                                      selectedDeliverer.id !== d.id
-                                        ? previousBookingId
-                                        : undefined,
-                                  }),
-                                });
-                                const data = await res.json();
-                                if (!res.ok) {
-                                  if (shownCourierLeftPaidList(data.code)) {
-                                    setDroppedPaidCourierIds((current) =>
-                                      current.includes(d.id) ? current : [...current, d.id],
-                                    );
-                                    setSelectedDeliverer(null);
-                                    setActualDeliveryFee(null);
-                                    setBookingRequestId(null);
-                                    setBookingStatus(null);
-                                    updateDraft({ selectedDeliveryProfileId: '', bookingRequestId: '' });
-                                    setBookingError(null);
-                                    return;
-                                  }
-                                  if (data.code === 'COURIER_ALREADY_ACCEPTED' && data.bookingRequestId) {
-                                    setBookingRequestId(data.bookingRequestId);
-                                    updateDraft({ bookingRequestId: data.bookingRequestId });
-                                    setBookingStatus('ACCEPTED');
-                                  }
-                                  setBookingError(
-                                    data.error ||
-                                      tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'),
-                                  );
-                                  return;
-                                }
-                                setBookingRequestId(data.bookingRequestId);
-                                updateDraft({ bookingRequestId: data.bookingRequestId ?? '' });
-                                setBookingStatus(data.status);
-                                setReservationRemainingMs(data.reservation?.remainingMs ?? null);
-                                setPaymentRemainingMs(data.reservation?.paymentRemainingMs ?? null);
-                                setReservationPhase(data.reservation?.phase ?? null);
-                              } catch (e) {
-                                setBookingError(tOr('surfaceLang.bookingFailed', 'Booking request failed', 'Boekingsaanvraag mislukt'));
-                              } finally {
-                                setBookingBusy(false);
-                              }
+                              if (reservationExpired && selectedDeliverer?.id === d.id) return;
+                              await requestCourierBooking(d);
                             }}
                           />
                           )
@@ -1740,8 +1777,22 @@ export default function CheckoutPage() {
                         {bookingError && (
                           <p className="text-sm text-red-700">{bookingError}</p>
                         )}
-                        {reservationRemainingMs === 0 && (
-                          <p className="text-sm text-amber-900 font-medium">{reservationCopy.expired}</p>
+                        {reservationExpired && (
+                          <div className="space-y-2">
+                            <p className="text-sm text-amber-900 font-medium">{reservationCopy.expired}</p>
+                            {selectedDeliverer && (
+                              <button
+                                type="button"
+                                disabled={bookingBusy}
+                                className="text-sm px-3 py-2 rounded-lg border border-amber-300 bg-white text-amber-950"
+                                onClick={() => {
+                                  void requestCourierBooking(selectedDeliverer);
+                                }}
+                              >
+                                {tOr('checkout.reservation.requestAgain', 'Request again', 'Vraag opnieuw aan')}
+                              </button>
+                            )}
+                          </div>
                         )}
                         {reservationPhase === 'AWAITING_COURIER' && reservationRemainingMs !== 0 && (
                           <p className="text-sm text-blue-800">
@@ -1781,10 +1832,7 @@ export default function CheckoutPage() {
                         {bookingStatus === 'REJECTED' && reservationRemainingMs !== 0 && (
                           <p className="text-sm text-amber-800">{reservationCopy.rejected}</p>
                         )}
-                        {bookingStatus === 'EXPIRED' && (
-                          <p className="text-sm text-amber-900">{reservationCopy.expired}</p>
-                        )}
-                        {bookingRequestId && bookingStatus !== 'CONSUMED' && reservationRemainingMs !== 0 && (
+                        {bookingRequestId && bookingStatus !== 'CONSUMED' && bookingStatus !== 'EXPIRED' && reservationRemainingMs !== 0 && (
                           <div className="flex flex-wrap gap-2">
                             <button
                               type="button"
@@ -2103,6 +2151,7 @@ export default function CheckoutPage() {
                       isProcessing ||
                       !checkoutDraft.selectedDelivery ||
                       isLocalProviderUnavailable ||
+                      namedCourierReservationExpired ||
                       deliveryPriceUnknown ||
                       (buyerTotalCents <= 0 && selectedHc <= 0)
                     }
