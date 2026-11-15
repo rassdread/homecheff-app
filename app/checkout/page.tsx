@@ -61,6 +61,8 @@ function ManualBookingPoller({
   }) => void;
 }) {
   const { tOr } = useTranslation();
+  const onStatusRef = useRef(onStatus);
+  onStatusRef.current = onStatus;
   useEffect(() => {
     let cancelled = false;
     const tick = async () => {
@@ -68,7 +70,7 @@ function ManualBookingPoller({
         const res = await fetch(`/api/delivery/booking-requests/${bookingRequestId}`);
         const data = await res.json();
         if (!cancelled && data.status) {
-          onStatus({
+          onStatusRef.current({
             status: data.status,
             remainingMs: data.reservation?.remainingMs ?? null,
             paymentRemainingMs: data.reservation?.paymentRemainingMs ?? null,
@@ -85,7 +87,7 @@ function ManualBookingPoller({
       cancelled = true;
       clearInterval(id);
     };
-  }, [bookingRequestId, onStatus]);
+  }, [bookingRequestId]);
 
   return (
     <p className="text-sm text-amber-800 flex items-center gap-2">
@@ -112,6 +114,7 @@ type DeliveryOption = {
 type CheckoutDraft = {
   selectedDelivery: string;
   selectedDeliveryProfileId: string;
+  bookingRequestId: string;
   street: string;
   houseNumber: string;
   postalCode: string;
@@ -156,6 +159,7 @@ export default function CheckoutPage() {
   const checkoutDraftDefaults = useMemo<CheckoutDraft>(() => ({
     selectedDelivery: '',
     selectedDeliveryProfileId: '',
+    bookingRequestId: '',
     street: '',
     houseNumber: '',
     postalCode: '',
@@ -288,6 +292,29 @@ export default function CheckoutPage() {
   const [paymentRemainingMs, setPaymentRemainingMs] = useState<number | null>(null);
   const [reservationPhase, setReservationPhase] = useState<string | null>(null);
   const reservationCopy = language === 'en' ? RESERVATION_COPY.en : RESERVATION_COPY.nl;
+  const restoredBookingRef = useRef(false);
+
+  useEffect(() => {
+    if (!isCheckoutHydrated || restoredBookingRef.current) return;
+    const storedId = checkoutDraft.bookingRequestId;
+    if (!storedId) return;
+    restoredBookingRef.current = true;
+    setBookingRequestId(storedId);
+    let cancelled = false;
+    void fetch(`/api/delivery/booking-requests/${storedId}`)
+      .then(async (res) => {
+        const data = await res.json().catch(() => null);
+        if (cancelled || !res.ok || !data?.status) return;
+        setBookingStatus(data.status);
+        setReservationRemainingMs(data.reservation?.remainingMs ?? null);
+        setPaymentRemainingMs(data.reservation?.paymentRemainingMs ?? null);
+        setReservationPhase(data.reservation?.phase ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isCheckoutHydrated, checkoutDraft.bookingRequestId]);
 
   useEffect(() => {
     fetch('/api/delivery/alignment-flags')
@@ -485,6 +512,7 @@ export default function CheckoutPage() {
     availability,
     deliverers: matchedDeliverers,
     loading: availabilityLoading,
+    matchSettled,
   } = useDeliveryAvailability(buyerForMatch, checkoutProductId);
   const [droppedPaidCourierIds, setDroppedPaidCourierIds] = useState<string[]>([]);
   const payableMatchedDeliverers = useMemo(
@@ -506,7 +534,7 @@ export default function CheckoutPage() {
       matchStatus:
         !buyerForMatch || !checkoutProductId
           ? 'idle'
-          : availabilityLoading
+          : availabilityLoading || !matchSettled
             ? 'loading'
             : 'settled',
       matchedDeliverers: payableMatchedDeliverers,
@@ -515,8 +543,10 @@ export default function CheckoutPage() {
     if (!decision.courierId || decision.deliveryFeeCents == null) {
       setSelectedDeliverer(null);
       setActualDeliveryFee(null);
-      if (checkoutDraft.selectedDeliveryProfileId) {
-        updateDraft({ selectedDeliveryProfileId: '' });
+      setBookingRequestId(null);
+      setBookingStatus(null);
+      if (checkoutDraft.selectedDeliveryProfileId || checkoutDraft.bookingRequestId) {
+        updateDraft({ selectedDeliveryProfileId: '', bookingRequestId: '' });
       }
       return;
     }
@@ -551,9 +581,11 @@ export default function CheckoutPage() {
     buyerForMatch,
     checkoutDraft.selectedDelivery,
     checkoutDraft.selectedDeliveryProfileId,
+    checkoutDraft.bookingRequestId,
     checkoutItems.length,
     checkoutProductId,
     deliveryFlagsLoaded,
+    matchSettled,
     payableMatchedDeliverers,
     updateDraft,
   ]);
@@ -1663,12 +1695,15 @@ export default function CheckoutPage() {
                                     );
                                     setSelectedDeliverer(null);
                                     setActualDeliveryFee(null);
-                                    updateDraft({ selectedDeliveryProfileId: '' });
+                                    setBookingRequestId(null);
+                                    setBookingStatus(null);
+                                    updateDraft({ selectedDeliveryProfileId: '', bookingRequestId: '' });
                                     setBookingError(null);
                                     return;
                                   }
                                   if (data.code === 'COURIER_ALREADY_ACCEPTED' && data.bookingRequestId) {
                                     setBookingRequestId(data.bookingRequestId);
+                                    updateDraft({ bookingRequestId: data.bookingRequestId });
                                     setBookingStatus('ACCEPTED');
                                   }
                                   setBookingError(
@@ -1678,6 +1713,7 @@ export default function CheckoutPage() {
                                   return;
                                 }
                                 setBookingRequestId(data.bookingRequestId);
+                                updateDraft({ bookingRequestId: data.bookingRequestId ?? '' });
                                 setBookingStatus(data.status);
                                 setReservationRemainingMs(data.reservation?.remainingMs ?? null);
                                 setPaymentRemainingMs(data.reservation?.paymentRemainingMs ?? null);
@@ -1774,6 +1810,7 @@ export default function CheckoutPage() {
                                 });
                                 if (!res.ok) return;
                                 setBookingRequestId(null);
+                                updateDraft({ bookingRequestId: '' });
                                 setBookingStatus(null);
                                 setSelectedDeliverer(null);
                                 setReservationRemainingMs(null);

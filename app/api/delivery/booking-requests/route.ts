@@ -9,6 +9,7 @@ import {
   createDeliveryBookingRequest,
   markBookingSuperseded,
 } from '@/lib/delivery/booking-request-service';
+import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
 import {
   attachBookingToHold,
   openPaymentWindowForBooking,
@@ -66,6 +67,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'deliveryProfileId required', code: 'DELIVERY_PROVIDER_REQUIRED' },
         { status: 400 }
+      );
+    }
+
+    const payableNow = await ensureCourierPayable(prisma, deliveryProfileId, { live: true });
+    if (!payableNow.ok) {
+      return NextResponse.json(
+        { error: payableNow.error, code: payableNow.code },
+        { status: payableNow.status },
       );
     }
     const bookingAccess = evaluateDeliveryAccess({

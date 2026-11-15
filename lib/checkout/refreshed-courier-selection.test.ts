@@ -97,5 +97,11 @@ test('checkout keeps the tested wait and applies the refresh decision without a 
     /checkoutDraft\.selectedDelivery === 'local_provider' &&\s*!deliveryFlagsLoaded/,
   );
   assert.match(page, /decideRefreshedCourierSelection\(/);
+  assert.match(page, /availabilityLoading \|\| !matchSettled/);
+  assert.match(page, /bookingRequestId: ''/);
+  assert.match(page, /updateDraft\(\{ bookingRequestId: data\.bookingRequestId \?\? '' \}\)/);
+  assert.match(page, /onStatusRef\.current = onStatus/);
+  assert.match(page, /const id = setInterval\(tick, 3000\)/);
+  assert.doesNotMatch(page, /\[bookingRequestId, onStatus\]/);
   assert.doesNotMatch(decision, /booking-requests|fetch\(/);
 });

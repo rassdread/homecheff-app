@@ -46,8 +46,14 @@ test('paid lists use the booking payout gate after distance and schedule', () =>
   const book = read('lib/delivery/booking-request-service.ts');
   const proposal = read('lib/delivery/transport-proposal-service.ts');
   const checkout = read('app/api/checkout/route.ts');
+  const bookingRoute = read('app/api/delivery/booking-requests/route.ts');
   assert.match(book, /ensureCourierPayable\(prisma, profile\.id, \{ live: true \}\)/);
   assert.match(proposal, /ensureCourierPayable\(prisma, deliveryProfileId, \{ live: true \}\)/);
   assert.match(checkout, /ensureCourierPayable\(prisma, selectedProviderId\)/);
+  const liveFollowUp = bookingRoute.indexOf(
+    'ensureCourierPayable(prisma, deliveryProfileId, { live: true })',
+  );
+  const existingPending = bookingRoute.indexOf('const samePending');
+  assert.ok(liveFollowUp > 0 && existingPending > liveFollowUp);
   assert.doesNotMatch(quoteFn.slice(quoteFn.indexOf('courierCanBeListedForPaidJob(')), /live: true/);
 });

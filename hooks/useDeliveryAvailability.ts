@@ -39,9 +39,13 @@ export function useDeliveryAvailability(
   });
   const [deliverers, setDeliverers] = useState<CheckoutMatchedDeliverer[]>([]);
   const [loading, setLoading] = useState(false);
+  const [settledKey, setSettledKey] = useState<string | null>(null);
+  const requestKey =
+    buyer && productId ? `${productId}:${buyer.lat}:${buyer.lng}` : null;
 
   useEffect(() => {
     if (!buyer || !productId) {
+      setSettledKey(null);
       setDeliverers([]);
       setAvailability({
         isAvailable: false,
@@ -54,6 +58,7 @@ export function useDeliveryAvailability(
     }
 
     const controller = new AbortController();
+    const key = `${productId}:${buyer.lat}:${buyer.lng}`;
     const load = async () => {
       setLoading(true);
       setDeliverers([]);
@@ -96,7 +101,10 @@ export function useDeliveryAvailability(
           message: 'Fout bij controleren beschikbaarheid',
         });
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+          setSettledKey(key);
+        }
       }
     };
 
@@ -104,5 +112,10 @@ export function useDeliveryAvailability(
     return () => controller.abort();
   }, [buyer?.lat, buyer?.lng, productId]);
 
-  return { availability, deliverers, loading };
+  return {
+    availability,
+    deliverers,
+    loading,
+    matchSettled: requestKey !== null && settledKey === requestKey,
+  };
 }
