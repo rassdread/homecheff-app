@@ -345,6 +345,12 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
       icon: <Navigation className="w-5 h-5" aria-hidden />,
       maxRange: 50,
     },
+    {
+      id: 'VAN',
+      label: t('delivery.transportation.van', { defaultValue: 'Bestelbus' }),
+      icon: <Navigation className="w-5 h-5" aria-hidden />,
+      maxRange: 50,
+    },
   ];
 
   const dayOptions = [
