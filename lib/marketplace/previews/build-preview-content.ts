@@ -6,6 +6,7 @@ import { buildPreviewAcceptedValues } from './build-preview-accepted';
 import { buildPreviewFulfillment } from './build-preview-fulfillment';
 import { buildPreviewPaymentBlock } from './build-preview-payment';
 import { buildPreviewTrustExpansion } from './build-preview-trust';
+import { toPublicPlaceLabel } from '@/lib/geo/public-place';
 
 function formatDateTime(iso: string | null): string | null {
   if (!iso) return null;
@@ -111,14 +112,14 @@ export function buildMarketplacePreviewContent(
       return {
         ...shared,
         description: model.description,
-        availabilityNote: model.place,
+        availabilityNote: toPublicPlaceLabel(model.place),
       };
     case 'WORKSHOP':
       return {
         ...shared,
         description: model.description,
         workshopDate: formatDateTime(model.availabilityDate),
-        workshopLocation: model.place,
+        workshopLocation: toPublicPlaceLabel(model.place),
         capacityRemaining: model.capacityRemaining,
       };
     case 'COACHING':

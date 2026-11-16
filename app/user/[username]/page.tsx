@@ -15,7 +15,8 @@ import { loadPublicContactChannelsForUser } from "@/lib/profile/load-public-cont
 import { buildProfilePageJsonLd } from '@/lib/seo/schema-builders';
 import { getDisplayName } from "@/lib/displayName";
 import { publicListingEligibilityWhere, isCertificationFixtureUser } from "@/lib/marketplace/public-listing-eligibility";
-import { redactMinorPublicProfile, requiresMinorPublicPrivacy } from "@/lib/age/minor-privacy";
+import { redactMinorPublicProfile } from "@/lib/age/minor-privacy";
+import { resolvePublicListingLocality } from "@/lib/geo/item-location";
 import { toPublicPlaceLabel } from "@/lib/geo/public-place";
 import { presentContactChannelsForViewer } from "@/lib/profile/maker-contact-preferences";
 
@@ -158,6 +159,7 @@ export default async function PublicProfilePage({
     bio: true,
     quote: true,
     place: true,
+    city: true,
     gender: true,
     interests: true,
     profileImage: true,
@@ -217,6 +219,7 @@ export default async function PublicProfilePage({
             stock: true,
             maxStock: true,
             pickupAddress: true,
+            placeName: true,
             Image: { select: { id: true, fileUrl: true, sortOrder: true }, take: 1, orderBy: { sortOrder: "asc" as const } },
           },
           orderBy: { createdAt: "desc" as const },
@@ -400,11 +403,11 @@ export default async function PublicProfilePage({
         ? product.createdAt.toISOString()
         : String(product.createdAt),
     priceCents: product.priceCents,
-    place: requiresMinorPublicPrivacy(user)
-      ? user.place || null
-      : toPublicPlaceLabel(product.pickupAddress) ||
-        toPublicPlaceLabel(user.place) ||
-        null,
+    place: resolvePublicListingLocality({
+      placeName: product.placeName,
+      city: user.city,
+      place: user.place,
+    }),
     category:
       product.category === 'CHEFF'
         ? 'CHEFF'
@@ -459,6 +462,11 @@ export default async function PublicProfilePage({
             delete safe.dateOfBirth;
             delete safe.email;
             delete safe.phoneNumber;
+            delete safe.city;
+            delete safe.address;
+            delete safe.postalCode;
+            delete safe.lat;
+            delete safe.lng;
             safe.place = toPublicPlaceLabel(
               typeof safe.place === 'string' ? safe.place : null,
             );
@@ -470,6 +478,9 @@ export default async function PublicProfilePage({
               seller.products = seller.products.map((product) => {
                 const next = { ...product };
                 delete next.pickupAddress;
+                delete next.pickupLat;
+                delete next.pickupLng;
+                delete next.placeName;
                 return next;
               });
             }

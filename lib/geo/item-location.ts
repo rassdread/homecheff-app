@@ -7,7 +7,12 @@ import { resolveSellerCoords, type Coords } from '@/lib/delivery/delivery-positi
 import { DISTANCE_UNKNOWN_LABEL } from '@/lib/geo/local-discovery';
 import { formatMarketplaceDistanceKm } from '@/lib/geo/distance-format';
 import { safeDistanceKm } from '@/lib/geocoding';
-import { looksLikePreciseAddress, toPublicPlaceLabel } from '@/lib/geo/public-place';
+import {
+  confirmedPublicLocality,
+  looksLikePreciseAddress,
+  toPublicPlaceLabel,
+  type PublicLocalityConfirmation,
+} from '@/lib/geo/public-place';
 
 export type { Coords };
 
@@ -28,6 +33,8 @@ export type ProductLocationInput = {
   pickupAddress?: string | null;
   pickupLat?: number | null;
   pickupLng?: number | null;
+  /** Plaatsnaam on the listing: the public city or neighbourhood, when the seller filled it in. */
+  placeName?: string | null;
   seller?: SellerLocationInput | null;
 };
 
@@ -115,16 +122,35 @@ export function resolveDisplayPlace(
   return normalized ?? unknownLabel;
 }
 
+/**
+ * Public city or neighbourhood for a listing tile.
+ * Order: the listing's own plaatsnaam, then the profile woonplaats.
+ * A legacy place value is used only when the place resolver confirmed it as a
+ * place or neighbourhood. Streets and unconfirmed or ambiguous text are omitted.
+ * Pickup addresses stay on the server for distance and delivery.
+ */
+export function resolvePublicListingLocality(input: {
+  placeName?: string | null;
+  city?: string | null;
+  place?: string | null;
+  placeConfirmation?: PublicLocalityConfirmation | null;
+}): string | null {
+  const fromListing = publicCity(input.placeName);
+  if (fromListing) return fromListing;
+  const fromCity = publicCity(input.city);
+  if (fromCity) return fromCity;
+  return publicCity(confirmedPublicLocality(input.place, input.placeConfirmation));
+}
+
 export function resolveProductPlaceLabel(
   product: ProductLocationInput & {
     seller?: (SellerLocationInput & { User?: UserPlaceInput | null }) | null;
   }
 ): string | null {
-  return resolveItemPlaceLabel({
-    pickupAddress: product.pickupAddress,
-    user: product.seller?.User ?? null,
-    place: product.seller?.User?.place,
+  return resolvePublicListingLocality({
+    placeName: product.placeName,
     city: product.seller?.User?.city,
+    place: product.seller?.User?.place,
   });
 }
 
@@ -286,4 +312,15 @@ export function formatItemPlaceDistanceLine(input: {
   if (hasPlace && !hasDistance) return `${placeLabel} · ${unknownDistance}`;
   if (!hasPlace && hasDistance) return `${unknownPlace} · ${distanceStr}`;
   return unknownPlace;
+}
+
+/** Location under the seller name. Empty when there is no public city or neighbourhood. */
+export function formatPublicTileLocationLine(input: {
+  place?: string | null;
+  distanceKm?: number | null;
+}): string {
+  const place = publicCity(input.place);
+  if (!place) return '';
+  if (!isUsableDistanceKm(input.distanceKm)) return place;
+  return `${place} · ${formatMarketplaceDistanceKm(input.distanceKm)}`;
 }

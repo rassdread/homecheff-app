@@ -48,13 +48,42 @@ function testPlaceLabels() {
   assert.equal(
     resolveProductPlaceLabel({
       pickupAddress: 'Test 1, Rotterdam',
+      placeName: null,
       seller: { User: { place: 'Nederland', city: 'Amsterdam' } },
     }),
-    'Rotterdam'
+    'Amsterdam'
+  );
+  assert.equal(
+    resolveProductPlaceLabel({
+      pickupAddress: 'Damrak 10, 1012 LG Amsterdam',
+      placeName: 'Amsterdam-Noord',
+      seller: { User: { place: 'Damrak' } },
+    }),
+    'Amsterdam-Noord'
+  );
+  assert.equal(
+    resolveProductPlaceLabel({
+      pickupAddress: 'Damrak 12, Amsterdam',
+      seller: { User: { place: 'Molenstraat' } },
+    }),
+    null
+  );
+  assert.equal(
+    resolveProductPlaceLabel({
+      pickupAddress: 'Damrak 14, Amsterdam',
+      seller: { User: { place: 'Atelierstraat 9', city: 'Haarlem' } },
+    }),
+    'Haarlem'
   );
   assert.equal(
     resolveProductPlaceLabel({
       seller: { User: { place: 'Den Haag', city: 'NL' } },
+    }),
+    null
+  );
+  assert.equal(
+    resolveProductPlaceLabel({
+      seller: { User: { place: 'Rokin', city: 'Den Haag' } },
     }),
     'Den Haag'
   );

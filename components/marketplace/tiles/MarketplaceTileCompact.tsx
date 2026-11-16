@@ -11,12 +11,14 @@ import {
 } from '@/lib/marketplace/tiles';
 import { MarketplacePreviewShell } from '@/components/marketplace/previews';
 import {
+  TileCompanyIdentity,
   TileMedia,
   TilePersonRow,
   TileSettlementRow,
   TileTrustCue,
   TileValueExchangeBlock,
 } from '@/components/marketplace/tiles/primitives';
+import { businessListingCardClass } from '@/lib/marketplace/listing-publisher';
 
 export type MarketplaceTileCompactProps = {
   model: MarketplaceTileModel;
@@ -51,7 +53,10 @@ export default function MarketplaceTileCompact({
       locale={locale}
       enabled={enablePreview}
     >
-      <article className="feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex h-auto flex-col self-start overflow-hidden">
+      <article
+        className={`feed-card-geo hc-dorpsplein-card hc-feed-card hc-card-lift flex h-auto flex-col self-start overflow-hidden${businessListingCardClass(model.publisher)}`}
+        data-listing-publisher={model.publisher?.kind ?? 'private'}
+      >
       <TileMedia
         href={model.href}
         alt={model.imageAlt}
@@ -81,6 +86,7 @@ export default function MarketplaceTileCompact({
             {title}
           </h3>
         </Link>
+        <TileCompanyIdentity model={model} t={t} />
         <TileValueExchangeBlock
           model={model}
           t={t}

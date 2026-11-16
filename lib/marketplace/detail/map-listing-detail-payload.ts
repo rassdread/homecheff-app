@@ -3,6 +3,7 @@
  * Public pages receive a city label, not the stored pickup address.
  */
 
+import { resolvePublicListingLocality } from '@/lib/geo/item-location';
 import { toPublicPlaceLabel } from '@/lib/geo/public-place';
 
 export type MappedListingDetail = {
@@ -170,13 +171,11 @@ export function mapListingDetailPayload(data: {
     pickupAddress: null,
     pickupLat: null,
     pickupLng: null,
-    publicPlace: toPublicPlaceLabel(
-      data.product.pickupAddress ||
-        data.product.seller?.User?.city ||
-        data.product.seller?.User?.place ||
-        data.product.User?.city ||
-        data.product.User?.place,
-    ),
+    publicPlace: resolvePublicListingLocality({
+      placeName: data.product.placeName,
+      city: data.product.seller?.User?.city || data.product.User?.city,
+      place: data.product.seller?.User?.place || data.product.User?.place,
+    }),
     sellerCanDeliver: Boolean(data.product.sellerCanDeliver),
     deliveryRadiusKm: data.product.deliveryRadiusKm ?? null,
     allergens: Array.isArray(data.product.allergens)

@@ -17,6 +17,7 @@ import type { ListingKind } from '@/lib/marketplace/contracts/listing-kind-contr
 import { resolveFulfillmentFlags } from '@/lib/marketplace/previews/resolve-fulfillment-flags';
 import { resolveTileValueExchangeFields } from './resolve-tile-value-exchange';
 import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
+import { toPublicPlaceLabel } from '@/lib/geo/public-place';
 import type {
   MarketplaceTileMode,
   MarketplaceTileModel,
@@ -137,7 +138,7 @@ export function mapProfileListingToTileModel(
     homeCheffCheckoutConfigured: settlement.homeCheffCheckoutConfigured,
 
     person: options.owner,
-    place: d?.city ?? item.place ?? null,
+    place: toPublicPlaceLabel(d?.city ?? item.place),
     distanceKm: d?.distanceKm ?? null,
 
     trust: mapDiscoveryTrustToTileTrust(trustContract),

@@ -25,6 +25,8 @@ import { mapDiscoveryTrustToTileTrust } from './map-trust';
 import { resolveFulfillmentFlags } from '@/lib/marketplace/previews/resolve-fulfillment-flags';
 import { resolveTileValueExchangeFields } from './resolve-tile-value-exchange';
 import { resolveSettlementOptions } from '@/lib/marketplace/settlement/settlement-options';
+import { resolveListingCompanyPublisher } from '@/lib/marketplace/listing-publisher';
+import { toPublicPlaceLabel } from '@/lib/geo/public-place';
 
 let legacyWarned = false;
 
@@ -92,6 +94,13 @@ export function mapGeoFeedCardToTileModel(
   if (!d) warnMissingDiscovery(item.id);
 
   const trustContract = d?.trust ?? EMPTY_DISCOVERY_TRUST_CONTRACT;
+  const publisher = resolveListingCompanyPublisher({
+    publishedAsCompany: item.sellerPublishedAsCompany === true,
+    companyName: item.sellerCompanyName,
+    logoUrl: item.sellerCompanyLogoUrl,
+    verified: item.sellerBusinessVerified,
+    plan: trustContract.businessPlan,
+  });
   const listingIntent =
     (getDiscoveryListingIntent(item) as 'OFFER' | 'REQUEST' | null) ?? null;
 
@@ -166,8 +175,9 @@ export function mapGeoFeedCardToTileModel(
           viewerIsFan: item.viewerIsFan,
         }
       : null,
+    publisher,
 
-    place: d?.city ?? item.place ?? null,
+    place: toPublicPlaceLabel(d?.city ?? item.place),
     distanceKm: d?.distanceKm ?? item.distanceKm ?? null,
 
     trust: mapDiscoveryTrustToTileTrust(trustContract),

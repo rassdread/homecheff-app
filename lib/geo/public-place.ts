@@ -4,18 +4,53 @@
  * delivery and post-accept exchange. Public text is city or neighbourhood.
  */
 
-const STREET_SUFFIX =
-  /\b(straat|laan|weg|plein|singel|kade|gracht|hof|dreef|baan|steeg|pad|dijk|plantsoen|boulevard|avenue|street|road|lane|court|drive)\b/i;
+/** Endings of Dutch and English street names, including compounds such as Molenstraat. */
+const STREET_ENDINGS = [
+  'straat',
+  'laan',
+  'weg',
+  'plein',
+  'singel',
+  'kade',
+  'gracht',
+  'dreef',
+  'steeg',
+  'pad',
+  'dijk',
+  'plantsoen',
+  'burgwal',
+  'wal',
+  'rak',
+  'boulevard',
+  'avenue',
+  'street',
+  'road',
+  'lane',
+  'court',
+  'drive',
+  'alley',
+  'passage',
+  'allee',
+  'hof',
+  'baan',
+  'erf',
+];
 
 const NL_POSTCODE = /\b\d{4}\s?[A-Za-z]{2}\b/;
 const LEADING_POSTCODE = /^\d{4}(?:\s?[A-Za-z]{2})?\s+/;
 const HOUSE_NUMBER = /(?:^|\s)\d{1,4}[A-Za-z]?(?:\s|$)/;
 
+function looksLikeStreetToken(token: string): boolean {
+  const word = token.toLowerCase().replace(/[^a-zà-ÿ]/g, '');
+  if (!word || word === 'irak') return false;
+  return STREET_ENDINGS.some((suffix) => word.endsWith(suffix) && word.length > suffix.length);
+}
+
 export function looksLikePreciseAddress(value: string | null | undefined): boolean {
   const text = value?.trim() ?? '';
   if (!text) return false;
   if (NL_POSTCODE.test(text)) return true;
-  if (STREET_SUFFIX.test(text)) return true;
+  if (text.split(/[\s,.-]+/).some(looksLikeStreetToken)) return true;
   if (HOUSE_NUMBER.test(text) && /[A-Za-zÀ-ÿ]{3,}/.test(text)) return true;
   return false;
 }
@@ -25,6 +60,42 @@ function cityFromSegment(segment: string): string | null {
   if (!stripped) return null;
   if (looksLikePreciseAddress(stripped)) return null;
   return stripped;
+}
+
+const LOCALITY_KINDS = new Set([
+  'locality',
+  'postal_town',
+  'neighborhood',
+  'sublocality',
+  'sublocality_level_1',
+]);
+
+const STREET_KINDS = new Set([
+  'route',
+  'street_address',
+  'premise',
+  'intersection',
+]);
+
+/**
+ * Outcome of the existing place resolver (resolved, ambiguous, none, error).
+ * A legacy place value is public only when that source resolved one place or neighbourhood.
+ */
+export type PublicLocalityConfirmation =
+  | { status: 'resolved'; kinds?: string[] | null; label?: string | null }
+  | { status: 'ambiguous' | 'none' | 'error' };
+
+/** Null when the resolver did not confirm a place or neighbourhood. */
+export function confirmedPublicLocality(
+  raw: string | null | undefined,
+  confirmation: PublicLocalityConfirmation | null | undefined,
+): string | null {
+  if (!confirmation || confirmation.status !== 'resolved') return null;
+  const kinds = confirmation.kinds ?? [];
+  if (kinds.length === 0) return null;
+  if (kinds.some((kind) => STREET_KINDS.has(kind))) return null;
+  if (!kinds.some((kind) => LOCALITY_KINDS.has(kind))) return null;
+  return toPublicPlaceLabel(confirmation.label ?? raw);
 }
 
 /** City or neighbourhood. Null when the only available text is a street or address. */
@@ -46,14 +117,19 @@ const PRECISE_KEYS = [
   'pickupLat',
   'pickupLng',
   'pickupAddress',
+  'address',
+  'postalCode',
+  'street',
+  'houseNumber',
+  'placeName',
 ] as const;
 
 function redactNestedUser(user: Record<string, unknown>): Record<string, unknown> {
   const next = { ...user };
   delete next.lat;
   delete next.lng;
-  if (typeof next.place === 'string') {
-    next.place = toPublicPlaceLabel(next.place);
+  if ('place' in next) {
+    next.place = null;
   }
   if (typeof next.city === 'string') {
     next.city = toPublicPlaceLabel(next.city);

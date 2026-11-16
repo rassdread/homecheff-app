@@ -36,6 +36,8 @@ export type FeedSellerHydrated = {
   lng: number | null;
   kvk: string | null;
   companyName: string | null;
+  /** HomeCheff admin flag on the user's Business row. Not implied by KvK. */
+  businessVerified: boolean;
   User: {
     id: string;
     name: string | null;
@@ -76,19 +78,26 @@ export async function batchHydrateFeedSellers(
     where: { id: { in: unique } },
     select: {
       ...FEED_SELLER_PROFILE_SELECT,
-      User: { select: FEED_SELLER_USER_SELECT },
+      User: {
+        select: {
+          ...FEED_SELLER_USER_SELECT,
+          Business: { select: { verified: true } },
+        },
+      },
     },
   });
 
   for (const row of rows) {
     if (!row.User) continue;
+    const { Business, ...user } = row.User;
     out.set(row.id, {
       id: row.id,
       lat: row.lat,
       lng: row.lng,
       kvk: row.kvk,
       companyName: row.companyName,
-      User: withCanonicalAvatar(row.User),
+      businessVerified: Business?.verified === true,
+      User: withCanonicalAvatar(user),
     });
   }
   return out;

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import UserCircleAvatar from '@/components/ui/UserCircleAvatar';
 import { getDisplayName } from '@/lib/displayName';
 import { useTranslation } from '@/hooks/useTranslation';
-import { formatItemPlaceDistanceLine } from '@/lib/geo/item-location';
+import { formatPublicTileLocationLine } from '@/lib/geo/item-location';
 import { formatFansCountLabel } from '@/lib/follow/format-fans-count';
 import { useMakerFollowState } from '@/hooks/useMakerFollowState';
 import type { MarketplaceTileModel, TranslateFn } from '@/lib/marketplace/tiles';
@@ -39,11 +39,9 @@ export default function TilePersonRow({
     displayNameOption: person.displayNameOption,
   }, language);
 
-  const locationLine = formatItemPlaceDistanceLine({
+  const locationLine = formatPublicTileLocationLine({
     place: model.place,
     distanceKm: model.distanceKm,
-    unknownPlaceLabel: t('feed.unknownPlace'),
-    unknownDistanceLabel: t('feed.unknownDistance'),
   });
 
   const profileHref =
@@ -83,7 +81,7 @@ export default function TilePersonRow({
         >
           {displayName ?? fallbackName}
         </Link>
-        <p className="truncate text-[11px] text-gray-500">
+        <p className="text-[11px] leading-snug text-gray-500">
           {formatFansCountLabel(fansCount, t)}
           {locationLine ? ` · ${locationLine}` : ''}
         </p>

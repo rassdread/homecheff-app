@@ -44,12 +44,14 @@ export type FeedProductRow = {
   pickupAddress: string | null;
   pickupLat: number | null;
   pickupLng: number | null;
+  placeName: string | null;
   seller: {
     id: string;
     lat: number | null;
     lng: number | null;
     kvk: string | null;
     companyName: string | null;
+    businessVerified: boolean;
     User: {
       id: string;
       name: string | null;
@@ -112,6 +114,7 @@ const PRODUCT_BODY_SELECT = {
   pickupAddress: true,
   pickupLat: true,
   pickupLng: true,
+  placeName: true,
   sellerId: true,
   Image: {
     select: { sortOrder: true },
@@ -247,6 +250,7 @@ function attachSeller(
     lng: s.lng,
     kvk: s.kvk,
     companyName: s.companyName,
+    businessVerified: s.businessVerified,
     User: s.User,
   };
 }
@@ -305,6 +309,7 @@ async function hydrateProductsIdsFirst(
       pickupAddress: body.pickupAddress,
       pickupLat: body.pickupLat,
       pickupLng: body.pickupLng,
+      placeName: body.placeName,
       seller: attachSeller(body.sellerId, sellers),
       Image: body.Image,
       Video: body.Video,

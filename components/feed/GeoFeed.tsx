@@ -438,6 +438,10 @@ type FeedItem = {
   sellerAvatar?: string | null;
   sellerDisplayFullName?: boolean | null;
   sellerDisplayNameOption?: string | null;
+  sellerPublishedAsCompany?: boolean;
+  sellerCompanyName?: string | null;
+  sellerBusinessVerified?: boolean;
+  sellerCompanyLogoUrl?: string | null;
   sellerFansCount?: number;
   viewerIsFan?: boolean;
   isFavorited?: boolean;
@@ -560,6 +564,10 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
         avatar?: string | null;
         displayFullName?: boolean | null;
         displayNameOption?: string | null;
+        isBusiness?: boolean;
+        companyName?: string | null;
+        businessVerified?: boolean;
+        companyLogoUrl?: string | null;
       }
     | undefined;
 
@@ -576,6 +584,14 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     user?.displayFullName ?? seller?.displayFullName ?? null;
   const sellerDisplayNameOption =
     user?.displayNameOption ?? seller?.displayNameOption ?? null;
+  const sellerPublishedAsCompany =
+    seller?.isBusiness === true || raw.isBusiness === true;
+  const companyNameRaw = seller?.companyName ?? raw.companyName;
+  const sellerCompanyName =
+    typeof companyNameRaw === 'string' ? companyNameRaw : null;
+  const sellerBusinessVerified = seller?.businessVerified === true;
+  const sellerCompanyLogoUrl =
+    typeof seller?.companyLogoUrl === 'string' ? seller.companyLogoUrl : null;
 
   const sellerBadgesRaw = raw.sellerBadges;
   const sellerBadges = Array.isArray(sellerBadgesRaw)
@@ -666,6 +682,10 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     sellerAvatar,
     sellerDisplayFullName,
     sellerDisplayNameOption,
+    sellerPublishedAsCompany,
+    sellerCompanyName,
+    sellerBusinessVerified,
+    sellerCompanyLogoUrl,
     type: (raw.type as string) ?? null,
     isRecipe: raw.isRecipe as boolean | null | undefined,
     isInspiration: raw.isInspiration as boolean | null | undefined,
@@ -1002,6 +1022,10 @@ function toCardItem(
     sellerAvatar: it.sellerAvatar,
     sellerDisplayFullName: it.sellerDisplayFullName,
     sellerDisplayNameOption: it.sellerDisplayNameOption,
+    sellerPublishedAsCompany: it.sellerPublishedAsCompany,
+    sellerCompanyName: it.sellerCompanyName,
+    sellerBusinessVerified: it.sellerBusinessVerified,
+    sellerCompanyLogoUrl: it.sellerCompanyLogoUrl,
     sellerFansCount: it.sellerFansCount,
     viewerIsFan: it.viewerIsFan,
     isFavorited: it.isFavorited,

@@ -6,6 +6,7 @@ import type {
   DiscoveryListingIntent,
   DiscoveryReadModel,
 } from '../contracts/discovery-read-model';
+import { toPublicPlaceLabel } from '@/lib/geo/public-place';
 import {
   buildCapabilityBlock,
   cityFromPlace,
@@ -86,10 +87,7 @@ export function mapProductToDiscoveryReadModel(
   source: ProductDiscoverySource,
   enrichment?: DiscoveryEnrichment,
 ): DiscoveryReadModel {
-  const place =
-    source.place?.trim() ||
-    source.pickupAddress?.trim()?.split(',').pop()?.trim() ||
-    null;
+  const place = toPublicPlaceLabel(source.place);
   const images = resolveImages(source);
   const coverImage = images[0] ?? null;
 

@@ -985,6 +985,7 @@ async function handleFeedGet(
         : undefined,
       isBusiness: !!(product.seller.kvk && product.seller.companyName),
       companyName: product.seller.companyName || null,
+      businessVerified: product.seller.businessVerified === true,
       kvk: product.seller.kvk || null
     } : undefined,
     isBusiness: !!(product.seller?.kvk && product.seller?.companyName),

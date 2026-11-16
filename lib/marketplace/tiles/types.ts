@@ -34,6 +34,7 @@ export type MarketplaceTilePerson = {
 };
 
 import type { BusinessPlanId } from '@/lib/business/visibility-profile';
+import type { ListingCompanyPublisher } from '@/lib/marketplace/listing-publisher';
 
 export type MarketplaceTileTrust = {
   productReviewCount: number;
@@ -88,6 +89,8 @@ export type MarketplaceTileModel = {
   homeCheffCheckoutConfigured: boolean;
 
   person: MarketplaceTilePerson | null;
+  /** Set only when this listing was published for its seller's company. */
+  publisher?: ListingCompanyPublisher | null;
   place: string | null;
   distanceKm: number | null;
 

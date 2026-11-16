@@ -36,6 +36,11 @@ export type GeoFeedCardItem = {
   sellerAvatar?: string | null;
   sellerDisplayFullName?: boolean | null;
   sellerDisplayNameOption?: string | null;
+  /** This listing's seller profile has both KvK and a company name. */
+  sellerPublishedAsCompany?: boolean;
+  sellerCompanyName?: string | null;
+  sellerBusinessVerified?: boolean;
+  sellerCompanyLogoUrl?: string | null;
   sellerFansCount?: number;
   viewerIsFan?: boolean;
   isFavorited?: boolean;
