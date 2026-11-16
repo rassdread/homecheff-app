@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { isBottomNavigationHidden } from '@/lib/bottomNavRoutes';
+import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { useLandscapeWorkPosture } from '@/components/adaptive-workspace/WorkspaceChromeProvider';
 import { cn } from '@/lib/utils';
 
@@ -18,12 +19,12 @@ import { cn } from '@/lib/utils';
 export default function AppPageChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const landscape = useLandscapeWorkPosture();
+  const nativeShell = useIsNativeAppMounted();
   const navHidden = isBottomNavigationHidden(pathname);
   /** Berichten: eigen hoogte/padding (split-view, fixed chat) — dubbele marge met tabbalk voorkomen. */
   const messagesOwnInset = Boolean(pathname?.startsWith('/messages'));
-  const desktopHeaderReplacesBar = landscape.usableWidthPx >= 1280;
   const bottomNavVisible =
-    !navHidden && !(landscape.bottomNavCollapsed && desktopHeaderReplacesBar);
+    !navHidden && !(landscape.bottomNavCollapsed && nativeShell);
   const applyNavBottomPad = bottomNavVisible && !messagesOwnInset;
 
   return (
@@ -34,7 +35,7 @@ export default function AppPageChrome({ children }: { children: ReactNode }) {
       data-messages-route={messagesOwnInset ? 'true' : 'false'}
       className={cn(
         'min-w-0 w-full max-w-full',
-        applyNavBottomPad && 'max-xl:pb-[var(--hc-bottom-nav-offset)]'
+        applyNavBottomPad && 'max-xl:pb-[var(--hc-bottom-nav-offset)] xl:pb-[var(--hc-bottom-nav-offset)]'
       )}
     >
       {children}

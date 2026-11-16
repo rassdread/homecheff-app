@@ -13,11 +13,11 @@ describe('home returns from the delivery panel in one click', () => {
     assert.equal(homeClickShouldLeaveDeliveryView('/bezorging/aanvragen', ''), false);
   });
 
-  it('keeps the web tab bar below the desktop header, including landscape', () => {
-    assert.equal(bottomNavBarVisibleClass(false, true, 390), 'max-xl:block xl:hidden');
-    assert.equal(bottomNavBarVisibleClass(false, true, 1100), 'max-xl:block xl:hidden');
-    assert.equal(bottomNavBarVisibleClass(false, true, 1440), 'hidden');
-    assert.equal(bottomNavBarVisibleClass(false, false, 390), 'max-xl:block xl:hidden');
+  it('keeps the web tab bar on a wide desktop, including landscape', () => {
+    assert.equal(bottomNavBarVisibleClass(false, true, 390), 'block');
+    assert.equal(bottomNavBarVisibleClass(false, true, 1280), 'block');
+    assert.equal(bottomNavBarVisibleClass(false, true, 3440), 'block');
+    assert.equal(bottomNavBarVisibleClass(false, false, 390), 'block');
     assert.equal(bottomNavBarVisibleClass(true, true, 390), 'hidden');
   });
 

@@ -1,40 +1,29 @@
 /**
- * Bottom nav visibility — web hides tab bar at lg+; native/PWA keeps it.
- * Component stays mounted for quick-add event listeners.
+ * Bottom nav visibility. The web bar stays at every width.
+ * Native landscape collapses it. The component stays mounted for quick-add listeners.
  *
- * WX 1B.4: Landscape Work Posture collapses the bottom button menu
- * (portrait navigation affordance). Driven by AvailableSpace posture,
- * not by device/UA classes.
+ * WX 1B.4: Landscape Work Posture collapses the native bottom button menu.
+ * Driven by AvailableSpace posture, not by device/UA classes.
  */
-
-/** Wrapper around the fixed tab bar (not modals/inputs). */
-export function bottomNavBarWrapperClass(isNativeShell: boolean): string {
-  if (isNativeShell) return 'block';
-  /** Align with NavBar xl split — compact tabs until desktop nav has room. */
-  return 'max-xl:block xl:hidden';
-}
 
 /**
  * Visual visibility for the fixed tab bar.
- * Landscape Work Posture always collapses the bar (nav remains via NavBar).
+ * Native landscape collapses the bar. The web bar stays, including wide desktop windows.
  */
-/** Desktop header replaces the tab bar at the NavBar `xl` split. */
 export const BOTTOM_NAV_DESKTOP_HEADER_MIN_PX = 1280;
 
 /**
- * Landscape work posture collapses the native tab bar.
- * On the web, the five-item bar stays visible below the desktop header.
- * A landscape window is not enough to hide it there: that header is still `xl:hidden`.
+ * The five-item bar stays on the web at every width. The desktop header does not replace it.
+ * Native landscape still collapses the bar.
  */
 export function bottomNavBarVisibleClass(
   isNativeShell: boolean,
   landscapeWorkCollapsed: boolean,
-  usableWidthPx = 0,
+  _usableWidthPx = 0,
 ): string {
-  const desktopHeaderReplacesBar =
-    !isNativeShell && usableWidthPx >= BOTTOM_NAV_DESKTOP_HEADER_MIN_PX;
-  if (landscapeWorkCollapsed && (isNativeShell || desktopHeaderReplacesBar)) return 'hidden';
-  return bottomNavBarWrapperClass(isNativeShell);
+  if (isNativeShell && landscapeWorkCollapsed) return 'hidden';
+  if (isNativeShell) return 'block';
+  return 'block';
 }
 
 /** Flow spacer below content — only when tab bar is visible. */

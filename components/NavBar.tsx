@@ -499,7 +499,7 @@ export default function NavBar() {
             data-wx-desktop-nav=""
             className="hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto xl:flex xl:gap-1"
           >
-            {!workspaceHeader ? (
+            {!workspaceHeader && nativeShell ? (
             <Link
               href="/"
               prefetch={false}
@@ -530,7 +530,7 @@ export default function NavBar() {
             </Link>
             ) : null}
             {/* Account destinations only exist for signed-in users; guests get Inloggen/Aanmelden. */}
-            {user && !railOwnsWork ? (
+            {user && !railOwnsWork && nativeShell ? (
               <Link
                 href={dashboardHref}
                 prefetch={false}
@@ -547,6 +547,7 @@ export default function NavBar() {
             <div className="hidden xl:flex items-center gap-0.5 shrink-0">
               {user && !railOwnsWork ? (
                 <>
+                  {nativeShell ? (
                   <Link
                     href="/messages"
                     prefetch={false}
@@ -562,6 +563,7 @@ export default function NavBar() {
                       </span>
                     ) : null}
                   </Link>
+                  ) : null}
                   {!quietOnboarding ? (
                   <Link
                     href="/mijn-hcp"
@@ -577,7 +579,7 @@ export default function NavBar() {
                 </>
               ) : null}
               {/* WX 1A.1 / WDL P6 — primary action; never truncate */}
-              {!quietOnboarding && !railOwnsWork ? (
+              {!quietOnboarding && !railOwnsWork && nativeShell ? (
               <button
                 type="button"
                 data-wx-primary-action=""

@@ -162,7 +162,8 @@ test('a small parcel is expected to fit one pannier and a cabinet does not', () 
   const cabinet = selectVehicleForJob([bike], {
     cargo: { lengthCm: 180, widthCm: 80, heightCm: 70, weightKg: 40 },
   });
-  assert.equal(cabinet.ok && cabinet.fitLabel, 'Even afstemmen');
+  assert.equal(cabinet.ok, false);
+  if (!cabinet.ok) assert.equal(cabinet.code, 'TOO_SMALL');
   const cooled = selectVehicleForJob([bike, van], {
     cargo: { lengthCm: 180, widthCm: 80, heightCm: 70, weightKg: 40 },
     requiredFeatures: ['ACTIVE_COOLING'],
@@ -202,6 +203,16 @@ test('a small parcel is expected to fit one pannier and a cabinet does not', () 
     cargo: { lengthCm: 180, widthCm: 80, heightCm: 70, weightKg: 40 },
   });
   assert.equal(knownCar.ok, false);
+  const switched = selectVehicleForJob([bike, van], {
+    cargo: { lengthCm: 180, widthCm: 80, heightCm: 70, weightKg: 40 },
+  });
+  assert.equal(switched.ok, true);
+  if (switched.ok) {
+    assert.equal(switched.vehicle.id, 'van');
+    assert.equal(switched.label, 'Middelgrote bestelbus · actieve koeling · laadklep');
+    assert.equal(switched.fitLabel, 'Even afstemmen');
+    assert.equal(switched.needsFitQuestion, true);
+  }
   const pair = selectVehicleForJob([bike], {
     cargo: { lengthCm: 20, widthCm: 12, heightCm: 8, weightKg: 3 },
     itemCount: 2,

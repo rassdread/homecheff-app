@@ -116,8 +116,9 @@ export default function BottomNavigation() {
   const landscapeWork = useLandscapeWorkPosture();
   const { count: messagesUnreadCount } = useCommsUnread(sessionStatus === 'authenticated');
   const shouldHide = isBottomNavigationHidden(pathname);
-  /** WX 1B.4: bottom button menu is a portrait affordance, collapse in Landscape Work Posture. */
+  /** WX 1B.4: native landscape collapses the bar. The web bar stays clickable on a wide desktop. */
   const landscapeCollapsed = landscapeWork.bottomNavCollapsed;
+  const barCollapsed = isNativeShell && landscapeCollapsed;
   /** Geen flow-spacer onder berichten: layout reserveert zelf (voorkomt dubbele “witte band”). */
   const suppressFlowSpacer =
     landscapeCollapsed ||
@@ -1697,12 +1698,12 @@ export default function BottomNavigation() {
           WX 1B.4: Landscape Work Posture collapses the visual bar (listeners/quick-add stay mounted). */}
       <div
         data-hc-bottom-nav-shell=""
-        data-wx-bottom-nav-collapsed={landscapeCollapsed ? '1' : '0'}
+        data-wx-bottom-nav-collapsed={barCollapsed ? '1' : '0'}
         data-wx-landscape-work={landscapeWork.workPostureActive ? '1' : '0'}
-        aria-hidden={landscapeCollapsed ? true : undefined}
-        {...(landscapeCollapsed ? ({ inert: '' } as Record<string, string>) : {})}
+        aria-hidden={barCollapsed ? true : undefined}
+        {...(barCollapsed ? ({ inert: '' } as Record<string, string>) : {})}
         className={cn(
-          bottomNavBarVisibleClass(isNativeShell, landscapeCollapsed, landscapeWork.usableWidthPx),
+          bottomNavBarVisibleClass(isNativeShell, barCollapsed, landscapeWork.usableWidthPx),
           'fixed inset-x-0 bottom-0 z-[65] max-w-[100vw] overflow-x-hidden pointer-events-none',
           isNativeShell
             ? 'bg-transparent md:bg-transparent md:px-4'

@@ -114,6 +114,12 @@ function judgeInterior(cargo: CargoSize, space: ReturnType<typeof interiorSpace>
   return 'expected';
 }
 
+function envelopeCannotHold(cargo: CargoSize, ref: VehicleReference): boolean {
+  const shell = [ref.envelopeLengthCm, ref.envelopeWidthCm, ref.envelopeHeightCm].filter((value): value is number => value != null).sort((a, b) => b - a);
+  const dims = [cargo.lengthCm, cargo.widthCm, cargo.heightCm].filter((value) => value > 0).sort((a, b) => b - a);
+  return dims.length > 0 && shell.length === 3 && dims.some((size, index) => size > shell[index]!);
+}
+
 function judgeEnvelope(cargo: CargoSize, ref: VehicleReference): FitJudgement {
   const shell = [ref.envelopeLengthCm, ref.envelopeWidthCm, ref.envelopeHeightCm].filter((value): value is number => value != null).sort((a, b) => b - a);
   const dims = [cargo.lengthCm, cargo.widthCm, cargo.heightCm].filter((value) => value > 0).sort((a, b) => b - a);
@@ -139,6 +145,8 @@ function categoryJudgement(vehicle: CourierVehicle, cargo: CargoSize, rows: Vehi
   if (envelopes.length > 0 && interiors.length === 0) {
     const judged = envelopes.map((row) => judgeEnvelope(cargo, row));
     if (judged.includes('expected')) return 'expected';
+    // A missing 9 kg label is not a proven bag limit. A piece that exceeds every bag shell is not a bag.
+    if (envelopes.every((row) => envelopeCannotHold(cargo, row))) return 'too_small';
     if (judged.every((item) => item === 'too_small')) return guideline('too_small');
     return 'confirm';
   }
