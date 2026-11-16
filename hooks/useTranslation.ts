@@ -7,6 +7,10 @@ import { useSsrLanguage } from '@/components/i18n/SsrLanguageProvider';
 import { useSession } from 'next-auth/react';
 import { interpolateTranslation } from '@/lib/i18n/interpolate';
 import {
+  loadSharedAccountLanguage,
+  rememberSharedAccountLanguage,
+} from '@/lib/i18n/shared-account-language';
+import {
   ECOSYSTEM_LOCALE_COOKIE,
   ECOSYSTEM_LOCALE_PREF_COOKIE,
   MARKETPLACE_LEGACY_LOCALE_COOKIE,
@@ -16,6 +20,13 @@ import {
 } from '@/lib/ecosystem-locale';
 
 export type Language = 'nl' | 'en';
+
+function accountLanguageKey(user: object | null | undefined): string {
+  if (!user) return '';
+  if ('id' in user && typeof user.id === 'string' && user.id) return user.id;
+  if ('email' in user && typeof user.email === 'string' && user.email) return user.email;
+  return '';
+}
 
 export interface Translations {
   [key: string]: any;
@@ -185,51 +196,34 @@ export function useTranslation() {
     };
   }, []);
 
-  // Fetch user's language preference from database (non-blocking)
+  // Fetch user's language preference from database (non-blocking).
+  // Every mounted useTranslation() used to start its own GET. One settings or
+  // product page then fired dozens of identical reads in a few seconds.
   useEffect(() => {
     const fetchUserLanguagePreference = async () => {
       if (sessionStatus === 'loading') {
         return; // Wait for session to load
       }
 
-      // Mark as loaded immediately for non-authenticated users
-      if (sessionStatus !== 'authenticated' || !session?.user) {
+      const userKey = accountLanguageKey(session?.user);
+      if (sessionStatus !== 'authenticated' || !userKey) {
         setUserLanguagePreference(null);
         setUserPreferenceLoaded(true);
         return;
       }
 
-      // For authenticated users, fetch in background (don't block translation loading)
-      try {
-        const response = await fetch('/api/user/language', {
-          cache: 'no-store',
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const data = await response.json();
-          if (data.language && (data.language === 'nl' || data.language === 'en')) {
-            setUserLanguagePreference(data.language);
-            // Verbose info-log alleen achter expliciete debug-flag — anders spamt het
-            // de console bij elke remount/refetch (bv. tijdens quick-add flow).
-            if (
-              typeof process !== 'undefined' &&
-              process.env.NODE_ENV !== 'production' &&
-              process.env.NEXT_PUBLIC_DEBUG_I18N === 'true'
-            ) {
-              // eslint-disable-next-line no-console
-              console.debug(`[i18n] Loaded user language preference: ${data.language}`);
-            }
-          } else {
-            setUserLanguagePreference(null);
-          }
-        } else {
-          setUserLanguagePreference(null);
-        }
-      } catch {
-        setUserLanguagePreference(null);
-      } finally {
-        setUserPreferenceLoaded(true);
+      const preference = await loadSharedAccountLanguage(userKey);
+      setUserLanguagePreference(preference);
+      if (
+        preference &&
+        typeof process !== 'undefined' &&
+        process.env.NODE_ENV !== 'production' &&
+        process.env.NEXT_PUBLIC_DEBUG_I18N === 'true'
+      ) {
+        // eslint-disable-next-line no-console
+        console.debug(`[i18n] Loaded user language preference: ${preference}`);
       }
+      setUserPreferenceLoaded(true);
     };
 
     fetchUserLanguagePreference();
@@ -640,6 +634,8 @@ export function useTranslation() {
           });
           if (response.ok) {
             console.log(`[i18n] Saved user language preference to database: ${newLanguage}`);
+            const userKey = accountLanguageKey(session?.user);
+            if (userKey) rememberSharedAccountLanguage(userKey, newLanguage);
             setUserLanguagePreference(newLanguage);
           } else {
             console.error('[i18n] Failed to save user language preference:', response.status);
