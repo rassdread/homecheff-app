@@ -49,7 +49,14 @@ describe('marketplace delivery discovery', () => {
     assert.match(nl, /"action": "Bezorging aanvragen"/);
     assert.match(geo, /homeCheffDeliveryEnabled && deliveryAreaCovered && !deliveryRequestOpen/);
     assert.match(geo, /setDeliveryAreaCovered\(data\.deliveryCoverage === true\)/);
+    assert.match(geo, /deliveryCoverage\?: boolean/);
     assert.match(geo, /deliveryCoverageKeyRef\.current !== requestKey/);
+    const prefetch = between(geo, 'const prefetchNextMarketplacePage', 'const prepareRecirculationIfNeeded');
+    assert.equal(prefetch.includes('setDeliveryAreaCovered'), false);
+    const loadMore = between(geo, 'const loadMoreFeed = useCallback', 'const continueInspiration');
+    assert.equal(loadMore.includes('setDeliveryAreaCovered'), false);
+    const discoveryPage = between(geo, 'const loadDiscoveryPage', 'const suggestionRowsForPaint');
+    assert.equal(discoveryPage.includes('setDeliveryAreaCovered'), false);
     assert.match(geo, /onClose=\{closeDeliveryRequest\}/);
   });
 

@@ -403,6 +403,20 @@ const SHOW_CAPACITOR_PUSH_DEBUG =
 
 type AuthorBadgeChip = { key: string; name: string; icon: string };
 
+/**
+ * First-page `/api/feed` JSON read by the home feed.
+ * The main body always sends `deliveryCoverage` as a boolean.
+ * The anonymous national origin-cache body omits it. Later pages carry the
+ * boolean too, but pagination readers do not apply it to the tile.
+ */
+type HomeFeedPageResponse = {
+  items?: unknown;
+  discovery?: DiscoveryFeedPayload;
+  pagination?: { hasMore?: boolean; total?: number; nextSkip?: number };
+  debug?: Record<string, unknown>;
+  deliveryCoverage?: boolean;
+};
+
 type FeedItem = {
   id: string;
   title: string | null;
@@ -2952,12 +2966,7 @@ export default function GeoFeed({
 
     const run = async () => {
       try {
-        let data: {
-          items?: unknown;
-          discovery?: DiscoveryFeedPayload;
-          pagination?: { hasMore?: boolean; total?: number; nextSkip?: number };
-          debug?: Record<string, unknown>;
-        } | null = null;
+        let data: HomeFeedPageResponse | null = null;
 
         // Opportunistic hint only — bounded wait; never block canonical fetch.
         const early = await takeHomeFeedEarlyBootstrap(requestKey);
@@ -2968,12 +2977,7 @@ export default function GeoFeed({
           return;
         }
         if (early?.ok && early.json && typeof early.json === "object") {
-          data = early.json as {
-            items?: unknown;
-            discovery?: DiscoveryFeedPayload;
-            pagination?: { hasMore?: boolean; total?: number; nextSkip?: number };
-            debug?: Record<string, unknown>;
-          };
+          data = early.json as HomeFeedPageResponse;
           feedPerfMark("feed:early-bootstrap-hit");
         } else {
           feedPerfMark("feed:early-bootstrap-miss");
@@ -2993,12 +2997,7 @@ export default function GeoFeed({
             setFilterResultPhase(FEED_RESULT_PHASE.ERROR);
             return;
           }
-          data = joined.json as {
-            items?: unknown;
-            discovery?: DiscoveryFeedPayload;
-            pagination?: { hasMore?: boolean; total?: number; nextSkip?: number };
-            debug?: Record<string, unknown>;
-          };
+          data = joined.json as HomeFeedPageResponse;
         }
         if (!data) {
           setDiscoveryFeed(null);
