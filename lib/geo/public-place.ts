@@ -128,6 +128,7 @@ function redactNestedUser(user: Record<string, unknown>): Record<string, unknown
   const next = { ...user };
   delete next.lat;
   delete next.lng;
+  delete next.stripeConnectAccountId;
   if ('place' in next) {
     next.place = null;
   }

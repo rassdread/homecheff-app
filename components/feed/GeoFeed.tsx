@@ -1410,6 +1410,8 @@ export default function GeoFeed({
   feedChipRef.current = feedChip;
   const [deliveryRequestOpen, setDeliveryRequestOpen] = useState(false);
   const [homeCheffDeliveryEnabled, setHomeCheffDeliveryEnabled] = useState(false);
+  const [deliveryAreaCovered, setDeliveryAreaCovered] = useState(false);
+  const deliveryCoverageKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("bezorging") === "1") {
       setDeliveryRequestOpen(true);
@@ -1437,7 +1439,8 @@ export default function GeoFeed({
     setDeliveryRequestOpen(false);
     markDeliveryRequestClosed();
   }, []);
-  const showDeliveryFeedTile = homeCheffDeliveryEnabled && !deliveryRequestOpen;
+  const showDeliveryFeedTile =
+    homeCheffDeliveryEnabled && deliveryAreaCovered && !deliveryRequestOpen;
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 350);
   const [sortBy, setSortBy] = useState<
@@ -2707,6 +2710,10 @@ export default function GeoFeed({
     );
 
     const requestKey = params.toString();
+    if (deliveryCoverageKeyRef.current !== requestKey) {
+      deliveryCoverageKeyRef.current = requestKey;
+      setDeliveryAreaCovered(false);
+    }
     const prevKey = latestFeedRequestKeyRef.current;
     const isFilterTransition =
       Boolean(prevKey) &&
@@ -3040,6 +3047,7 @@ export default function GeoFeed({
           feedPerfMarkFeedRequestEnd();
           const rawItems = (data.items || []) as Record<string, unknown>[];
           setApiRawItems(rawItems);
+          setDeliveryAreaCovered(data.deliveryCoverage === true);
           if (isGeoFeedDiagnosticsEnabled()) {
             const cities = rawItems
               .map((it) =>

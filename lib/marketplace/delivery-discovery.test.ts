@@ -47,7 +47,9 @@ describe('marketplace delivery discovery', () => {
     assert.match(nl, /"title": "Iets laten bezorgen\?"/);
     assert.match(nl, /"body": "Verstuur een pakket of laat iets groots ophalen, zoals een kast\."/);
     assert.match(nl, /"action": "Bezorging aanvragen"/);
-    assert.match(geo, /homeCheffDeliveryEnabled && !deliveryRequestOpen/);
+    assert.match(geo, /homeCheffDeliveryEnabled && deliveryAreaCovered && !deliveryRequestOpen/);
+    assert.match(geo, /setDeliveryAreaCovered\(data\.deliveryCoverage === true\)/);
+    assert.match(geo, /deliveryCoverageKeyRef\.current !== requestKey/);
     assert.match(geo, /onClose=\{closeDeliveryRequest\}/);
   });
 

@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { ListingCategory, ProductCategory, type Prisma } from "@prisma/client";
 import { getCorsHeaders } from "@/lib/apiCors";
 import { isStripeTestId } from "@/lib/stripe";
+import { deliveryAreaCovered } from "@/lib/delivery/delivery-area-coverage";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { NEXTAUTH_SESSION_COOKIE_NAME } from "@/lib/auth/session-cookie-name";
@@ -1549,7 +1550,17 @@ async function handleFeedGet(
     ...buildFeedResponseCacheHeaders(cachePolicy),
   };
 
+  let deliveryCoverage = false;
+  if (!opts.originBuild && viewerGeo) {
+    try {
+      deliveryCoverage = await deliveryAreaCovered(prisma, viewerGeo);
+    } catch {
+      deliveryCoverage = false;
+    }
+  }
+
   const body = {
+    deliveryCoverage,
     filters: {
       q,
       vertical,

@@ -133,9 +133,11 @@ const stripped = stripPreciseLocationFromPublicItem({
   pickupLng: 4.3,
   pickupAddress: 'Karel Doormanlaan 15',
   distanceKm: 0.5,
-  seller: { lat: 51.9, lng: 4.3, User: { place: 'Karel Doormanlaan 15', lat: 1, lng: 2 } },
+  seller: { lat: 51.9, lng: 4.3, User: { place: 'Karel Doormanlaan 15', lat: 1, lng: 2, stripeConnectAccountId: 'acct_test' } },
+  User: { place: 'Amsterdam', stripeConnectAccountId: 'acct_test' },
 });
 assert.equal(stripped.place, 'Vlaardingen');
+assert.equal('stripeConnectAccountId' in (stripped.User as object), false);
 assert.equal(stripped.distanceKm, 0.5);
 assert.equal('lat' in stripped, false);
 assert.equal('pickupAddress' in stripped, false);
