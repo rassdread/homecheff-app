@@ -414,6 +414,10 @@ type HomeFeedPageResponse = {
   discovery?: DiscoveryFeedPayload;
   pagination?: { hasMore?: boolean; total?: number; nextSkip?: number };
   debug?: Record<string, unknown>;
+  filters: {
+    lat: number | null;
+    lng: number | null;
+  };
   deliveryCoverage?: boolean;
 };
 
