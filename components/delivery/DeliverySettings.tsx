@@ -28,6 +28,8 @@ import {
   aggregateRequirementNotice,
   noticesForDeliveryMissing,
 } from '@/lib/account/profile-requirement-notice';
+import { CourierVehicleEditor } from '@/components/delivery/CourierVehicleEditor';
+import type { CourierVehicle, StoredCapacity } from '@/lib/delivery/courier-vehicles';
 
 interface DeliveryProfile {
   id: string;
@@ -67,6 +69,8 @@ interface DeliveryProfile {
   maxWeightKg?: number | null;
   vehicleCapacityStatus?: Partial<Record<'length' | 'width' | 'height' | 'weight', string>>;
   vehicleCapacityLegacy?: boolean;
+  vehicles?: CourierVehicle[];
+  legacyCapacity?: StoredCapacity | null;
   user: {
     id: string;
     name: string | null;
@@ -122,6 +126,9 @@ interface DeliverySettingsProps {
 export default function DeliverySettings({ deliveryProfile }: DeliverySettingsProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const [vehicles, setVehicles] = useState<CourierVehicle[]>(deliveryProfile.vehicles || []);
+  const [legacyCapacity, setLegacyCapacity] = useState<StoredCapacity | null>(deliveryProfile.legacyCapacity ?? null);
+  const [legacyAssigned, setLegacyAssigned] = useState(false);
   const [formData, setFormData] = useState({
     transportation: deliveryProfile.transportation || [],
     maxDistance: deliveryProfile.maxDistance || 5,
@@ -422,6 +429,8 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
         homeLat: formData.homeLat,
         homeLng: formData.homeLng,
         homeAddress: formData.homeAddress || null,
+        vehicles,
+        legacyCapacityAssigned: legacyAssigned,
         ...(formData.capacityDirty
           ? {
               vehicleCapacityStatus: formData.vehicleCapacityStatus,
@@ -444,6 +453,9 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
 
       if (response.ok && data?.success && data?.persisted && data?.profile) {
         applyPersistedProfile(data.profile, data.user);
+        if (Array.isArray(data.profile.vehicles)) setVehicles(data.profile.vehicles);
+        if (data.profile.legacyCapacityUnassigned !== true) setLegacyCapacity(null);
+        setLegacyAssigned(false);
         if (data.completion?.isComplete) {
           setCompletionHint(null);
         } else {
@@ -623,71 +635,12 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
               <h2 className="text-xl font-semibold text-gray-900">Vervoersmiddelen</h2>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {transportationOptions.map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => handleTransportationChange(option.id)}
-                  className={`p-4 rounded-xl border-2 transition-all ${
-                    formData.transportation.includes(option.id)
-                      ? 'border-primary-brand bg-primary-50 text-primary-brand'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    {option.icon}
-                    <span className="text-sm font-medium">{option.label}</span>
-                    <span className="text-xs text-gray-600">Max {option.maxRange}km</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className="mt-6 space-y-3">
-              <h3 className="text-sm font-semibold text-gray-900">Laadruimte</h3>
-              <p className="text-xs text-gray-600">
-                Kilogrammen worden als grammen opgeslagen. Een lege maat is niet nul en niet onbeperkt. Een eerder opgeslagen waarde blijft staan tot je een status kiest.
-              </p>
-              {([
-                ['length', 'Maximale lengte (cm)', 'maxLengthCm'],
-                ['width', 'Maximale breedte (cm)', 'maxWidthCm'],
-                ['height', 'Maximale hoogte (cm)', 'maxHeightCm'],
-                ['weight', 'Maximaal gewicht (kg)', 'maxWeightKg'],
-              ] as const).map(([axis, label, field]) => (
-                <div key={axis} className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <label className="text-sm text-gray-700">
-                    {label}
-                    <input
-                      className="mt-1 min-h-11 w-full rounded-lg border px-3 py-2"
-                      inputMode="numeric"
-                      value={formData[field]}
-                      disabled={formData.vehicleCapacityStatus[axis] !== 'set'}
-                      onChange={(event) => setFormData((prev) => ({ ...prev, [field]: event.target.value, capacityDirty: true }))}
-                    />
-                  </label>
-                  <label className="text-sm text-gray-700">
-                    Status
-                    <select
-                      className="mt-1 min-h-11 w-full rounded-lg border px-3 py-2"
-                      value={formData.vehicleCapacityStatus[axis]}
-                      onChange={(event) => setFormData((prev) => ({
-                        ...prev,
-                        capacityDirty: true,
-                        vehicleCapacityStatus: { ...prev.vehicleCapacityStatus, [axis]: event.target.value },
-                      }))}
-                    >
-                      <option value="">Eerder opgeslagen of nog niet gekozen</option>
-                      <option value="unset">Niet ingevuld</option>
-                      <option value="unknown">Onbekend</option>
-                      <option value="not_applicable">Niet van toepassing</option>
-                      <option value="set">Gemeten</option>
-                    </select>
-                  </label>
-                </div>
-              ))}
-              {formData.storedWeightGrams && formData.maxWeightKg === '' ? (
-                <p className="text-xs text-gray-600">Opgeslagen gewicht: {formData.storedWeightGrams} gram. Dit blijft bewaard tot je hele kilogrammen bevestigt.</p>
-              ) : null}
-            </div>
+            <CourierVehicleEditor
+              vehicles={vehicles}
+              onChange={setVehicles}
+              legacyCapacity={legacyCapacity}
+              onLegacyAssigned={() => setLegacyAssigned(true)}
+            />
           </div>
 
           {/* Work Area */}

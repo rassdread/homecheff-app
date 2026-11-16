@@ -20,6 +20,7 @@ import { planDistanceSettingsWrite } from '@/lib/delivery/distance-semantics';
 import { enforcePaidDeliveryIdentity } from '@/lib/delivery/courier-identity-sync';
 import { courierIdentityMessage } from '@/lib/delivery/courier-identity';
 import { normalizeVehicleCapacity } from '@/lib/delivery/transport-job';
+import { parseCourierVehicles, transportationModesForVehicles, vehiclesFromProfile } from '@/lib/delivery/courier-vehicles';
 
 export const dynamic = 'force-dynamic';
 
@@ -75,6 +76,7 @@ const PROFILE_SELECT = {
   maxWidthCm: true,
   maxHeightCm: true,
   vehicleCapacityStatus: true,
+  legacyCapacityUnassigned: true,
 } as const;
 
 const USER_LOCATION_SELECT = {
@@ -266,6 +268,16 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: built.error, code: 'DELIVERY_SETTINGS_INVALID' }, { status: 400 });
     }
 
+    const fleetWrite = Array.isArray(body.vehicles)
+      ? (body.vehicles.length === 0 ? [] : parseCourierVehicles(body.vehicles))
+      : null;
+    if (Array.isArray(body.vehicles) && fleetWrite == null) {
+      return NextResponse.json(
+        { error: 'Controleer de voertuigen. Een voertuig met tassen heeft een keuze wie ze meeneemt.', code: 'DELIVERY_SETTINGS_INVALID' },
+        { status: 400 },
+      );
+    }
+
     const capacityTouched = ['vehicleCapacityStatus', 'maxLengthCm', 'maxWidthCm', 'maxHeightCm', 'maxWeightKg'].some(
       (key) => body[key] !== undefined,
     );
@@ -388,10 +400,12 @@ export async function PUT(req: NextRequest) {
             : undefined,
           availableDays: patch.availableDays,
           availableTimeSlots: patch.availableTimeSlots,
-          transportation:
-            patch.transportation !== undefined
+          transportation: fleetWrite
+            ? (transportationModesForVehicles(fleetWrite) as typeof existing.transportation)
+            : patch.transportation !== undefined
               ? (patch.transportation as typeof existing.transportation)
               : undefined,
+          legacyCapacityUnassigned: body.legacyCapacityAssigned === true ? false : undefined,
           deliveryRegions: patch.deliveryRegions,
           deliveryMode: patch.deliveryMode,
           bio: patch.bio,
@@ -460,6 +474,30 @@ export async function PUT(req: NextRequest) {
         });
       }
 
+      if (fleetWrite) {
+        await tx.deliveryVehicle.deleteMany({ where: { deliveryProfileId: existing.id } });
+        if (fleetWrite.length > 0) {
+          await tx.deliveryVehicle.createMany({
+            data: fleetWrite.map((vehicle, sortOrder) => ({
+              ...(vehicle.id ? { id: vehicle.id } : {}),
+              deliveryProfileId: existing.id,
+              referenceId: vehicle.referenceId ?? null,
+              family: vehicle.family,
+              variant: vehicle.variant,
+              carrying: vehicle.carrying,
+              carryingProvider: vehicle.carryingProvider,
+              features: vehicle.features,
+              maxLengthCm: vehicle.maxLengthCm,
+              maxWidthCm: vehicle.maxWidthCm,
+              maxHeightCm: vehicle.maxHeightCm,
+              maxWeightKg: vehicle.maxWeightKg,
+              capacityStatus: vehicle.capacityStatus,
+              sortOrder,
+            })),
+          });
+        }
+      }
+
       return updated;
     });
 
@@ -473,7 +511,28 @@ export async function PUT(req: NextRequest) {
     });
 
     const saved = persisted || updatedDeliveryProfile;
+    const vehicles = saved
+      ? await prisma.deliveryVehicle.findMany({
+          where: { deliveryProfileId: saved.id },
+          orderBy: { sortOrder: 'asc' },
+        })
+      : [];
     const payload = jsonProfile(saved, freshUser);
+    if (payload.profile) {
+      Object.assign(payload.profile, {
+        vehicles: vehiclesFromProfile({
+          transportation: saved.transportation,
+          vehicles,
+          legacyCapacityUnassigned: saved.legacyCapacityUnassigned,
+          maxLengthCm: saved.maxLengthCm,
+          maxWidthCm: saved.maxWidthCm,
+          maxHeightCm: saved.maxHeightCm,
+          maxWeightGrams: saved.maxWeightGrams,
+          vehicleCapacityStatus: saved.vehicleCapacityStatus,
+        }).vehicles,
+        legacyCapacityUnassigned: saved.legacyCapacityUnassigned === true,
+      });
+    }
 
     if (!payload.profile) {
       return NextResponse.json(

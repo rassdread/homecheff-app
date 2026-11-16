@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { createStandaloneQuote } from '@/lib/delivery/standalone-delivery';
 import { publicJobView, transportCheckoutAmounts, transportProposalsEnabled } from '@/lib/delivery/transport-job';
 import { readTransportCargo, sendTransportProposal } from '@/lib/delivery/transport-proposal-service';
+import { vehiclePublicLabel, vehiclesFromProfile } from '@/lib/delivery/courier-vehicles';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,16 +16,33 @@ export async function GET() {
   const rows = await prisma.standaloneDeliveryRequest.findMany({
     where: {
       jobKind: 'TRANSPORT',
-      status: 'PROPOSAL',
-      OR: [
-        { requesterUserId: userId },
-        ...(profile ? [{ deliveryProfileId: profile.id }] : []),
+      AND: [
+        {
+          OR: [
+            { status: 'PROPOSAL' },
+            { cargoFitRequired: true, cargoFitConfirmedAt: null, status: { in: ['AWAITING_PAYMENT', 'BOOKING_REQUESTED'] } },
+          ],
+        },
+        {
+          OR: [
+            { requesterUserId: userId },
+            ...(profile ? [{ deliveryProfileId: profile.id }] : []),
+          ],
+        },
       ],
     },
     orderBy: { createdAt: 'desc' },
     take: 20,
     include: { proposals: { orderBy: { version: 'desc' }, take: 1 } },
   });
+  const vehicleIds = rows.map((row) => row.matchedVehicleId).filter((id): id is string => Boolean(id));
+  const storedVehicles = vehicleIds.length
+    ? await prisma.deliveryVehicle.findMany({ where: { id: { in: vehicleIds } } })
+    : [];
+  const vehicleLabels = new Map(storedVehicles.map((vehicle) => {
+    const parsed = vehiclesFromProfile({ vehicles: [vehicle] }).vehicles[0];
+    return [vehicle.id, parsed ? vehiclePublicLabel(parsed) : 'voertuig'] as const;
+  }));
   return NextResponse.json({
     proposals: rows.map((row) => {
       const latest = row.proposals[0];
@@ -44,6 +62,11 @@ export async function GET() {
         note: latest?.note ?? null,
         expiresAt: latest?.expiresAt ?? row.proposalExpiresAt,
         itemDescription: row.itemDescription,
+        status: row.status,
+        matchedVehicleId: row.matchedVehicleId,
+        cargoFitRequired: row.cargoFitRequired,
+        cargoFitConfirmedAt: row.cargoFitConfirmedAt,
+        vehicleLabel: row.matchedVehicleId ? vehicleLabels.get(row.matchedVehicleId) ?? null : null,
         photoIds: Array.isArray((row.cargo as { photoIds?: unknown } | null)?.photoIds)
           ? (row.cargo as { photoIds: unknown[] }).photoIds.filter((id): id is string => typeof id === 'string')
           : [],
@@ -67,6 +90,13 @@ export async function POST(req: NextRequest) {
   }
   const cargo = readTransportCargo(body.cargo);
   if (!cargo) return NextResponse.json({ error: 'De opdrachtgegevens zijn onvolledig.', code: 'CARGO_REQUIRED' }, { status: 400 });
+  const requiredFeatures = [
+    ...(Array.isArray(body.requiredFeatures) ? body.requiredFeatures : []),
+    ...(body.cargo && typeof body.cargo === 'object' && Array.isArray((body.cargo as { requiredFeatures?: unknown }).requiredFeatures)
+      ? (body.cargo as { requiredFeatures: unknown[] }).requiredFeatures
+      : []),
+  ].filter((item): item is 'ACTIVE_COOLING' => item === 'ACTIVE_COOLING');
+  const cargoForMatch = { ...cargo, requiredFeatures };
   const requestedRaw = body.requestedPickupAt;
   const listed = await createStandaloneQuote({
     requesterUserId: userId,
@@ -78,6 +108,8 @@ export async function POST(req: NextRequest) {
     dropoffLat: Number(body.dropoffLat),
     dropoffLng: Number(body.dropoffLng),
     requestedPickupAt: typeof requestedRaw === 'string' && requestedRaw.trim() ? new Date(requestedRaw) : null,
+    cargo: cargoForMatch,
+    requiredFeatures,
   }, false);
   if (!listed.ok) return NextResponse.json({ error: listed.error, code: listed.code }, { status: listed.status });
   const selected = listed.couriers.find((courier) => courier.id === String(body.deliveryProfileId || ''));
@@ -99,7 +131,7 @@ export async function POST(req: NextRequest) {
     note: typeof body.note === 'string' ? body.note : cargo.note,
     negotiable: body.negotiable === true,
     action: body.action === 'QUESTION' ? 'QUESTION' : 'OFFER',
-    cargo,
+    cargo: cargoForMatch,
     routeDistanceKm: listed.routeDistanceKm,
   });
   if (!sent.ok) return NextResponse.json({ error: sent.error, code: sent.code }, { status: sent.status });

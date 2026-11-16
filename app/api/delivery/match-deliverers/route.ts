@@ -24,6 +24,7 @@ import { auth } from "@/lib/auth";
 import { isProviderVisibleToBuyer } from "@/lib/delivery/delivery-cert-scope";
 import { expireExpiredTemporaryOnline } from "@/lib/delivery/delivery-online-session";
 import { interpretStoredCapacity } from "@/lib/delivery/transport-job";
+import { routeVehicleCode, selectVehicleForJob, vehicleNeedForProduct, vehiclesFromProfile } from "@/lib/delivery/courier-vehicles";
 import { resolveDeliveryTimeAvailability } from "@/lib/delivery/delivery-time-availability";
 import { courierCanBeListedForPaidJob } from "@/lib/delivery/courier-payable";
 import {
@@ -67,6 +68,11 @@ export async function GET(req: NextRequest) {
         sellerId: true,
         pickupLat: true,
         pickupLng: true,
+        lengthCm: true,
+        widthCm: true,
+        heightCm: true,
+        weightKg: true,
+        weightGrams: true,
         seller: {
           select: {
             lat: true,
@@ -154,6 +160,24 @@ export async function GET(req: NextRequest) {
         maxWidthCm: true,
         maxHeightCm: true,
         vehicleCapacityStatus: true,
+        legacyCapacityUnassigned: true,
+        vehicles: {
+          orderBy: { sortOrder: 'asc' },
+          select: {
+            id: true,
+            referenceId: true,
+            family: true,
+            variant: true,
+            carrying: true,
+            carryingProvider: true,
+            features: true,
+            maxLengthCm: true,
+            maxWidthCm: true,
+            maxHeightCm: true,
+            maxWeightKg: true,
+            capacityStatus: true,
+          },
+        },
         availableDays: true,
         user: {
           select: {
@@ -426,14 +450,37 @@ export async function GET(req: NextRequest) {
           (delivery.preparationTimeMinutes ?? 15) +
           Math.round((delivery.totalDeliveryDistance || 0) * 3);
 
+        const fleet = vehiclesFromProfile({
+          transportation: delivery.transportation,
+          vehicles: delivery.vehicles,
+          legacyCapacityUnassigned: delivery.legacyCapacityUnassigned,
+          maxLengthCm: delivery.maxLengthCm,
+          maxWidthCm: delivery.maxWidthCm,
+          maxHeightCm: delivery.maxHeightCm,
+          maxWeightGrams: delivery.maxWeightGrams,
+          vehicleCapacityStatus: delivery.vehicleCapacityStatus,
+        });
+        const productWeightKg = product.weightKg ?? (product.weightGrams != null ? product.weightGrams / 1000 : null);
+        const need = vehicleNeedForProduct({
+          lengthCm: product.lengthCm,
+          widthCm: product.widthCm,
+          heightCm: product.heightCm,
+          weightKg: productWeightKg,
+        });
+        const chosen = fleet.vehicles.length ? selectVehicleForJob(fleet.vehicles, need) : null;
+        if (chosen && !chosen.ok && (need.cargo || (need.pieces && need.pieces.length > 0))) return null;
+
         return {
           id: delivery.id,
           userId: delivery.user.id,
           name: delivery.user.name,
           place: delivery.user.place,
           profileImage: delivery.user.profileImage,
-          vehicleType: delivery.transportation[0] || 'BIKE',
-          vehicle: delivery.transportation[0] || 'BIKE',
+          vehicleType: chosen?.ok ? routeVehicleCode(chosen.vehicle) : delivery.transportation[0] || 'BIKE',
+          vehicle: chosen?.ok ? routeVehicleCode(chosen.vehicle) : delivery.transportation[0] || 'BIKE',
+          vehicleLabel: chosen?.ok ? chosen.label : null,
+          matchedVehicleLabel: chosen?.ok ? chosen.label : null,
+          fitLabel: chosen?.ok ? chosen.fitLabel : null,
           deliveryRadius: delivery.maxDistance,
           distanceToSeller: delivery.distanceToSeller,
           distanceToBuyer: delivery.distanceToBuyer,
@@ -486,7 +533,7 @@ export async function GET(req: NextRequest) {
           estimatedArrivalMinutes: etaMinutes,
           isAutoConfirmEligible: autoCheck.ok && delivery.acceptanceMode === ACCEPTANCE_MODE_AUTO,
         };
-      }),
+      }).filter((row) => row != null),
       totalMatches: payableDeliverers.length
     });
 

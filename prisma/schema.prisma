@@ -2218,6 +2218,9 @@ model DeliveryProfile {
   liftAssistance                 Boolean?
   /// Per axis: unset, unknown, not_applicable, or set. The gram and centimetre columns have no status of their own.
   vehicleCapacityStatus          Json?
+  /// True when one older measurement set belongs to more than one vehicle.
+  legacyCapacityUnassigned       Boolean                   @default(false)
+  vehicles                       DeliveryVehicle[]
   standaloneDeliveryRequests     StandaloneDeliveryRequest[]
   preparationTimeMinutes         Int      @default(15)
   estimatedPickupDelayMinutes    Int      @default(10)
@@ -2368,6 +2371,10 @@ model DeliveryBookingRequest {
   buyerLat                 Float?
   buyerLng                 Float?
   notes                    String?
+  matchedVehicleId         String?
+  cargoFitRequired         Boolean         @default(false)
+  cargoFitConfirmedAt      DateTime?
+  cargoFitFingerprint      String?
   respondedAt              DateTime?
   /// Set when the buyer replaces or cancels this request before payment.
   cancelledAt              DateTime?
@@ -2673,6 +2680,10 @@ model StandaloneDeliveryRequest {
   deliveryOrderId         String?  @unique
   /// SIMPLE keeps the existing package quote. TRANSPORT uses a proposal before booking.
   jobKind                 String   @default("SIMPLE")
+  matchedVehicleId        String?
+  cargoFitRequired        Boolean  @default(false)
+  cargoFitConfirmedAt     DateTime?
+  cargoFitFingerprint     String?
   cargo                   Json?
   proposalExpiresAt       DateTime?
   createdAt               DateTime @default(now())
@@ -2696,6 +2707,7 @@ model DeliveryTransportProposal {
   action       String
   priceCents   Int?
   note         String?
+  cargoFitConfirmed Boolean               @default(false)
   status       String
   expiresAt    DateTime
   createdAt    DateTime                  @default(now())
@@ -2771,6 +2783,30 @@ model HomeCheffCollection {
   updatedAt            DateTime @updatedAt
 
   @@map("HomeCheffCollection")
+}
+
+/// One saved vehicle. Two rows may share a family. Measurements belong to this row only.
+model DeliveryVehicle {
+  id                String          @id @default(cuid())
+  deliveryProfileId String
+  referenceId       String?
+  family            String
+  variant           String?
+  carrying          String[]        @default([])
+  carryingProvider  String?
+  features          String[]        @default([])
+  maxLengthCm       Int?
+  maxWidthCm        Int?
+  maxHeightCm       Int?
+  maxWeightKg       Int?
+  capacityStatus    Json?
+  sortOrder         Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  deliveryProfile   DeliveryProfile @relation(fields: [deliveryProfileId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryProfileId])
+  @@map("DeliveryVehicle")
 }
 
 model VehiclePhoto {

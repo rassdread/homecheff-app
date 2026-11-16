@@ -5,6 +5,7 @@ import DeliverySettings from '@/components/delivery/DeliverySettings';
 import { DELIVERY_START_HREF } from '@/lib/delivery/delivery-profile-completion';
 import { getDeliveryProfileCompletionFromRow } from '@/lib/delivery/delivery-profile-completion';
 import { gramsToKilograms, interpretStoredCapacity } from '@/lib/delivery/transport-job';
+import { legacyCapacityOffer, vehiclesFromProfile } from '@/lib/delivery/courier-vehicles';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -35,6 +36,7 @@ export default async function DeliverySettingsPage() {
           dateOfBirth: true,
         },
       },
+      vehicles: { orderBy: { sortOrder: 'asc' } },
     },
   });
 
@@ -70,6 +72,17 @@ export default async function DeliverySettingsPage() {
     homeAddress:
       deliveryProfile.homeAddress || deliveryProfile.user.place || null,
     completion,
+    vehicles: vehiclesFromProfile({
+      transportation: deliveryProfile.transportation,
+      vehicles: deliveryProfile.vehicles,
+      legacyCapacityUnassigned: deliveryProfile.legacyCapacityUnassigned,
+      maxLengthCm: deliveryProfile.maxLengthCm,
+      maxWidthCm: deliveryProfile.maxWidthCm,
+      maxHeightCm: deliveryProfile.maxHeightCm,
+      maxWeightGrams: deliveryProfile.maxWeightGrams,
+      vehicleCapacityStatus: deliveryProfile.vehicleCapacityStatus,
+    }).vehicles,
+    legacyCapacity: legacyCapacityOffer(deliveryProfile),
   };
 
   return <DeliverySettings deliveryProfile={deliveryProfileWithDefaults} />;

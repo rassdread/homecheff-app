@@ -25,6 +25,7 @@ import type { DiscoveryDirection } from "@/components/feed/DiscoveryDirectionTog
 import FeedFilterSections from "@/components/feed/FeedFilterSections";
 import AcceptedValueChip from "@/components/marketplace/AcceptedValueChip";
 import dynamic from "next/dynamic";
+import FeedMobileFilterSheet from "@/components/feed/FeedMobileFilterSheet";
 import FeedSearchContextBar from "@/components/feed/FeedSearchContextBar";
 import DiscoveryContinuityBand from "@/components/feed/DiscoveryContinuityBand";
 import FeedMobileToolbar from "@/components/feed/FeedMobileToolbar";
@@ -1098,10 +1099,6 @@ const CATEGORY_CHIP_OPTIONS = DISCOVERY_CATEGORY_CHIP_OPTIONS;
 /** Heavy filter chrome — not required to paint the first feed card. */
 const FeedSidebarFilters = dynamic(
   () => import("@/components/feed/FeedSidebarFilters"),
-  { ssr: false },
-);
-const FeedMobileFilterSheet = dynamic(
-  () => import("@/components/feed/FeedMobileFilterSheet"),
   { ssr: false },
 );
 

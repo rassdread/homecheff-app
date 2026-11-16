@@ -1,0 +1,219 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {
+  applyLegacyCapacity,
+  fitQuestionEffect,
+  legacyFleet,
+  parseCourierVehicles,
+  selectVehicleForJob,
+  transportationModesForVehicles,
+  vehiclePublicLabel,
+  type CourierVehicle,
+} from './courier-vehicles';
+
+function vehicle(partial: Partial<CourierVehicle> & Pick<CourierVehicle, 'family'>): CourierVehicle {
+  return {
+    variant: null,
+    carrying: [],
+    carryingProvider: null,
+    features: [],
+    maxLengthCm: null,
+    maxWidthCm: null,
+    maxHeightCm: null,
+    maxWeightKg: null,
+    capacityStatus: { length: 'unset', width: 'unset', height: 'unset', weight: 'unset' },
+    ...partial,
+  };
+}
+
+test('an existing Auto stays Auto until a body style is chosen', () => {
+  const fleet = legacyFleet({ transportation: ['CAR'] });
+  assert.equal(fleet.legacyUnassigned, false);
+  assert.equal(fleet.vehicles[0]?.variant, null);
+  assert.equal(vehiclePublicLabel(fleet.vehicles[0]!), 'Auto');
+});
+
+test('one stored measurement set stays on the only vehicle', () => {
+  const fleet = legacyFleet({
+    transportation: ['CAR'],
+    capacity: {
+      maxLengthCm: 120,
+      maxWidthCm: null,
+      maxHeightCm: null,
+      maxWeightKg: null,
+      status: { length: 'set', width: 'unset', height: 'unset', weight: 'unset' },
+    },
+  });
+  assert.equal(fleet.vehicles[0]?.maxLengthCm, 120);
+  assert.equal(fleet.legacyUnassigned, false);
+});
+
+test('several vehicles do not inherit one old measurement set', () => {
+  const fleet = legacyFleet({
+    transportation: ['BIKE', 'VAN'],
+    capacity: {
+      maxLengthCm: 300,
+      status: { length: 'set', width: 'unset', height: 'unset', weight: 'unset' },
+    },
+  });
+  assert.equal(fleet.legacyUnassigned, true);
+  assert.equal(fleet.vehicles[0]?.maxLengthCm, null);
+  assert.equal(fleet.vehicles[1]?.maxLengthCm, null);
+  assert.equal(vehiclePublicLabel(fleet.vehicles[1]!), 'Bestelbus');
+  const assigned = fleet.vehicles.map((item, index) =>
+    index === 1 ? applyLegacyCapacity(item, { maxLengthCm: 300, status: { length: 'set' } }) : item,
+  );
+  assert.equal(assigned[1]?.maxLengthCm, 300);
+  assert.equal(assigned[0]?.maxLengthCm, null);
+});
+
+test('a hatchback with a folding seat does not invent cargo space', () => {
+  const hatch = vehicle({
+    family: 'CAR',
+    variant: 'HATCHBACK',
+    features: ['FOLD_REAR_SEAT'],
+  });
+  assert.equal(hatch.maxLengthCm, null);
+  assert.equal(vehiclePublicLabel(hatch), 'Hatchback · achterbank neerklapbaar');
+  const missing = selectVehicleForJob([hatch], {
+    cargo: { lengthCm: 180, widthCm: 80, heightCm: 70, weightKg: 40 },
+  });
+  assert.equal(missing.ok && missing.needsFitQuestion, true);
+  const tooSmall = selectVehicleForJob(
+    [{ ...hatch, maxLengthCm: 100, capacityStatus: { ...hatch.capacityStatus, length: 'set' } }],
+    { cargo: { lengthCm: 180, widthCm: 40, heightCm: 40, weightKg: 10 } },
+  );
+  assert.equal(tooSmall.ok, false);
+  if (!tooSmall.ok) assert.equal(tooSmall.code, 'TOO_SMALL');
+});
+
+test('an e-bike with panniers keeps its own gear after a round trip', () => {
+  const saved = parseCourierVehicles([
+    {
+      family: 'EBIKE',
+      variant: 'ORDINARY',
+      carrying: ['PANNIERS'],
+      carryingProvider: 'COURIER',
+      features: ['INSULATED'],
+      capacityStatus: { length: 'unset', width: 'unset', height: 'unset', weight: 'unset' },
+    },
+  ]);
+  assert.ok(saved);
+  assert.equal(vehiclePublicLabel(saved[0]!), 'Gewone fiets · geïsoleerde tas of box · fietstassen');
+  assert.deepEqual(transportationModesForVehicles(saved), ['EBIKE']);
+  const again = parseCourierVehicles(saved);
+  assert.equal(again?.[0]?.carrying[0], 'PANNIERS');
+  assert.equal(again?.[0]?.features.includes('ACTIVE_COOLING'), false);
+});
+
+test('a cooling job uses only the cooled van when the courier also has a bike', () => {
+  const bike = vehicle({ id: 'bike', family: 'BIKE', variant: 'ORDINARY' });
+  const van = vehicle({
+    id: 'van',
+    family: 'BUS',
+    variant: 'MEDIUM',
+    features: ['ACTIVE_COOLING', 'TAIL_LIFT'],
+  });
+  const chosen = selectVehicleForJob([bike, van], { requiredFeatures: ['ACTIVE_COOLING'] });
+  assert.equal(chosen.ok, true);
+  if (chosen.ok) {
+    assert.equal(chosen.vehicle.id, 'van');
+    assert.equal(chosen.label, 'Middelgrote bestelbus · actieve koeling · laadklep');
+    assert.equal(chosen.needsFitQuestion, false);
+  }
+  const packageJob = selectVehicleForJob([bike, van], {});
+  assert.equal(packageJob.ok && packageJob.vehicle.id, 'bike');
+});
+
+test('two vehicles of the same kind stay separate', () => {
+  const parsed = parseCourierVehicles([
+    { family: 'CAR', variant: 'HATCHBACK', features: ['FOLD_REAR_SEAT'], capacityStatus: { length: 'unset', width: 'unset', height: 'unset', weight: 'unset' } },
+    { family: 'CAR', variant: 'SEDAN', capacityStatus: { length: 'set', width: 'unset', height: 'unset', weight: 'unset' }, maxLengthCm: 160 },
+  ]);
+  assert.equal(parsed?.length, 2);
+  assert.equal(parsed?.[0]?.maxLengthCm, null);
+  assert.equal(parsed?.[1]?.maxLengthCm, 160);
+  assert.deepEqual(transportationModesForVehicles(parsed || []), ['CAR']);
+});
+
+test('a small parcel is expected to fit one pannier and a cabinet does not', () => {
+  const bike = vehicle({
+    id: 'bike',
+    family: 'BIKE',
+    variant: 'ORDINARY',
+    carrying: ['PANNIERS'],
+    carryingProvider: 'COURIER',
+  });
+  const van = vehicle({
+    id: 'van',
+    family: 'BUS',
+    variant: 'MEDIUM',
+    features: ['ACTIVE_COOLING', 'TAIL_LIFT'],
+  });
+  const small = selectVehicleForJob([bike, van], {
+    cargo: { lengthCm: 20, widthCm: 12, heightCm: 8, weightKg: 3 },
+  });
+  assert.equal(small.ok, true);
+  if (small.ok) {
+    assert.equal(small.vehicle.id, 'bike');
+    assert.equal(small.fitLabel, 'Past naar verwachting');
+    assert.equal(small.needsFitQuestion, false);
+  }
+  const cabinet = selectVehicleForJob([bike], {
+    cargo: { lengthCm: 180, widthCm: 80, heightCm: 70, weightKg: 40 },
+  });
+  assert.equal(cabinet.ok && cabinet.fitLabel, 'Even afstemmen');
+  const cooled = selectVehicleForJob([bike, van], {
+    cargo: { lengthCm: 180, widthCm: 80, heightCm: 70, weightKg: 40 },
+    requiredFeatures: ['ACTIVE_COOLING'],
+  });
+  assert.equal(cooled.ok, true);
+  if (cooled.ok) {
+    assert.equal(cooled.vehicle.id, 'van');
+    assert.equal(cooled.label, 'Middelgrote bestelbus · actieve koeling · laadklep');
+    assert.equal(cooled.fitLabel, 'Even afstemmen');
+  }
+  const nineGeneric = selectVehicleForJob([bike], {
+    cargo: { lengthCm: 20, widthCm: 12, heightCm: 8, weightKg: 9 },
+  });
+  assert.equal(nineGeneric.ok && nineGeneric.fitLabel, 'Even afstemmen');
+  const heavyBags = selectVehicleForJob([bike], {
+    cargo: { lengthCm: 20, widthCm: 12, heightCm: 8, weightKg: 10 },
+  });
+  assert.equal(heavyBags.ok && heavyBags.fitLabel, 'Even afstemmen');
+  const knownBag = selectVehicleForJob([{ ...bike, referenceId: 'ortlieb-backroller' }], {
+    cargo: { lengthCm: 20, widthCm: 12, heightCm: 8, weightKg: 10 },
+  });
+  assert.equal(knownBag.ok, false);
+  const secondBag = selectVehicleForJob(
+    [
+      { ...bike, id: 'left', referenceId: 'ortlieb-backroller' },
+      { ...bike, id: 'right', referenceId: 'ortlieb-backroller' },
+    ],
+    { cargo: { lengthCm: 20, widthCm: 12, heightCm: 8, weightKg: 10 } },
+  );
+  assert.equal(secondBag.ok, false);
+  const hatch = vehicle({ family: 'CAR', variant: 'HATCHBACK' });
+  const genericCar = selectVehicleForJob([hatch], {
+    cargo: { lengthCm: 180, widthCm: 80, heightCm: 70, weightKg: 40 },
+  });
+  assert.equal(genericCar.ok && genericCar.fitLabel, 'Even afstemmen');
+  const knownCar = selectVehicleForJob([{ ...hatch, referenceId: 'corsa-2019' }], {
+    cargo: { lengthCm: 180, widthCm: 80, heightCm: 70, weightKg: 40 },
+  });
+  assert.equal(knownCar.ok, false);
+  const pair = selectVehicleForJob([bike], {
+    cargo: { lengthCm: 20, widthCm: 12, heightCm: 8, weightKg: 3 },
+    itemCount: 2,
+  });
+  assert.equal(pair.ok && pair.fitLabel, 'Even afstemmen');
+});
+
+test('asking whether the load fits does not start a booking', () => {
+  const effect = fitQuestionEffect('van');
+  assert.equal(effect.action, 'QUESTION');
+  assert.equal(effect.bookingRequestId, null);
+  assert.equal(effect.createsBooking, false);
+  assert.equal(effect.sendsCourierMail, false);
+  assert.equal(effect.matchedVehicleId, 'van');
+});

@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { deliveryDisabledBody } from '@/lib/delivery/delivery-deployment-gate';
 import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
 import { bookStandaloneCourier } from '@/lib/delivery/standalone-delivery';
+import { readTransportCargo } from '@/lib/delivery/transport-proposal-service';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +41,10 @@ export async function POST(req: NextRequest) {
     dropoffLng: Number((body as { dropoffLng?: unknown }).dropoffLng),
     requestedPickupAt:
       typeof requestedRaw === 'string' && requestedRaw.trim() ? new Date(requestedRaw) : null,
+    cargo: readTransportCargo((body as { cargo?: unknown }).cargo),
+    requiredFeatures: Array.isArray((body as { requiredFeatures?: unknown }).requiredFeatures)
+      ? ((body as { requiredFeatures: unknown[] }).requiredFeatures.filter((item) => item === 'ACTIVE_COOLING') as string[])
+      : [],
   });
   if (!result.ok) {
     return NextResponse.json({ error: result.error, code: result.code }, { status: result.status });

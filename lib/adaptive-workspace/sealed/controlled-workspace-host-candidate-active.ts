@@ -120,6 +120,10 @@ export const CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_ID =
 export const CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_CONTRACT_ID =
   "feed.discovery.adaptive-workspace.host-candidate-active.contract.v1" as const;
 
+/** Older contracts still import this name. */
+export const CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVATION_CONTRACT_ID =
+  CONTROLLED_WORKSPACE_HOST_CANDIDATE_ACTIVE_CONTRACT_ID;
+
 
 export type ControlledWorkspaceHostCandidateActiveState =
   | "CANDIDATE_ACTIVE_NOT_EXECUTABLE"

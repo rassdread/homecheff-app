@@ -40,6 +40,9 @@ export async function POST(req: NextRequest) {
     dropoffLng: Number(body.dropoffLng),
     requestedPickupAt,
     cargo: readTransportCargo(body.cargo),
+    requiredFeatures: Array.isArray(body.requiredFeatures)
+      ? body.requiredFeatures.filter((item: unknown) => item === 'ACTIVE_COOLING')
+      : [],
   });
   if (!result.ok) {
     return NextResponse.json({ error: result.error, code: result.code }, { status: result.status });

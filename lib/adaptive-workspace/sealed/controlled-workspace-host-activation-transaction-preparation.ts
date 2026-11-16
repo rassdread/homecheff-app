@@ -78,6 +78,10 @@ export const CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_ID =
 export const CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_CONTRACT_ID =
   "feed.discovery.adaptive-workspace.host-activation-transaction-preparation.contract.v1" as const;
 
+export {
+  CONTROLLED_WORKSPACE_HOST_ACTIVATION_TRANSACTION_PREPARATION_AUTHORIZATION_ID,
+} from "./controlled-workspace-host-activation-transaction-preparation-authorization";
+
 
 export type ControlledWorkspaceHostActivationTransactionPreparationState =
   | "TRANSACTION_PREPARED_NOT_COMMITTED"

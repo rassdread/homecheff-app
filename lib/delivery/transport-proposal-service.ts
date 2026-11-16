@@ -30,6 +30,7 @@ import {
   type ProposalAction,
   type TransportCargo,
 } from '@/lib/delivery/transport-job';
+import { selectVehicleForJob, vehicleNeedForCargo, vehiclesFromProfile } from '@/lib/delivery/courier-vehicles';
 
 const PAYMENT_WINDOW_MS = 20 * 60 * 1000;
 const PROPOSAL_TTL_MS = 48 * 60 * 60 * 1000;
@@ -79,6 +80,7 @@ async function courierCanTakePaidJob(deliveryProfileId: string) {
     where: { id: deliveryProfileId },
     include: {
       user: { select: { id: true, name: true, lat: true, lng: true, dateOfBirth: true } },
+      vehicles: { orderBy: { sortOrder: 'asc' } },
     },
   });
   if (!profile?.user) {
@@ -232,15 +234,41 @@ export async function sendTransportProposal(input: {
   }
   const ready = await courierCanTakePaidJob(input.deliveryProfileId);
   if (!ready.ok) return ready;
-  const fit = fitCargo(input.cargo, ready.profile);
-  if (fit !== 'fit') {
+  const fleet = vehiclesFromProfile({
+    transportation: ready.profile.transportation,
+    vehicles: ready.profile.vehicles,
+    legacyCapacityUnassigned: ready.profile.legacyCapacityUnassigned,
+    maxLengthCm: ready.profile.maxLengthCm,
+    maxWidthCm: ready.profile.maxWidthCm,
+    maxHeightCm: ready.profile.maxHeightCm,
+    maxWeightGrams: ready.profile.maxWeightGrams,
+    vehicleCapacityStatus: ready.profile.vehicleCapacityStatus,
+  });
+  const requiredFeatures = Array.isArray((input.cargo as { requiredFeatures?: unknown }).requiredFeatures)
+    ? (input.cargo as { requiredFeatures: unknown[] }).requiredFeatures.filter((item): item is string => item === 'ACTIVE_COOLING')
+    : [];
+  const chosen = fleet.vehicles.length
+    ? selectVehicleForJob(fleet.vehicles, vehicleNeedForCargo({ ...input.cargo, requiredFeatures }))
+    : null;
+  if (chosen && !chosen.ok) {
     return {
       ok: false as const,
       status: 422,
-      code: fit === 'too_small' || fit === 'wrong_type' ? 'VEHICLE_TOO_SMALL' : 'VEHICLE_CAPACITY_UNKNOWN',
+      code: chosen.code === 'TOO_SMALL' ? 'VEHICLE_TOO_SMALL' : 'VEHICLE_CAPACITY_UNKNOWN',
+      error: chosen.code === 'MISSING_FEATURE'
+        ? 'Geen voertuig met de gevraagde koeling.'
+        : 'De lading past niet bij een bekend voertuig van deze bezorger.',
+    };
+  }
+  if (!chosen && fitCargo(input.cargo, ready.profile) !== 'fit') {
+    return {
+      ok: false as const,
+      status: 422,
+      code: 'VEHICLE_CAPACITY_UNKNOWN',
       error: 'De lading past niet bij de bekende voertuigcapaciteit. Een ontbrekende maat is geen onbeperkt voertuig.',
     };
   }
+  const needsFit = chosen?.ok === true && chosen.needsFitQuestion;
   const storedPrice = input.action === 'QUESTION' ? 0 : input.priceCents || 0;
   const split = splitDeliveryCommission(storedPrice);
   const buyerFee = calculateStripeFeeForBuyer(storedPrice);
@@ -274,7 +302,9 @@ export async function sendTransportProposal(input: {
       paymentStatus: 'UNPAID',
       status: 'PROPOSAL',
       jobKind: 'TRANSPORT',
-      cargo: input.cargo as Prisma.InputJsonValue,
+      matchedVehicleId: chosen?.ok ? chosen.vehicle.id ?? null : null,
+      cargoFitRequired: needsFit,
+      cargo: { ...input.cargo, requiredFeatures } as Prisma.InputJsonValue,
       proposalExpiresAt: new Date(version.expiresAt),
       updatedAt: now,
     },
@@ -301,7 +331,15 @@ export async function sendTransportProposal(input: {
   }
   return {
     ok: true as const,
-    request: { id: requestId, status: 'PROPOSAL', version: 1, paymentAvailable: false },
+    request: {
+      id: requestId,
+      status: 'PROPOSAL',
+      version: 1,
+      paymentAvailable: false,
+      matchedVehicleId: chosen?.ok ? chosen.vehicle.id ?? null : null,
+      matchedVehicleLabel: chosen?.ok ? chosen.label : null,
+      needsFitQuestion: needsFit,
+    },
   };
 }
 
@@ -380,6 +418,10 @@ export async function respondToTransportProposal(input: {
     routeDistanceKm?: number;
     requestedPickupAt?: Date | null;
     cargo?: Prisma.InputJsonValue;
+    matchedVehicleId?: string | null;
+    cargoFitRequired?: boolean;
+    cargoFitConfirmedAt?: Date | null;
+    cargoFitFingerprint?: string | null;
   } = {};
   let pickupLat = row.pickupLat;
   let pickupLng = row.pickupLng;
@@ -390,16 +432,42 @@ export async function respondToTransportProposal(input: {
   if (input.action === 'REVISE' && input.revision) {
     const deliveryProfile = await prisma.deliveryProfile.findUnique({
       where: { id: row.deliveryProfileId },
-      include: { user: { select: { lat: true, lng: true, dateOfBirth: true } } },
+      include: {
+        user: { select: { lat: true, lng: true, dateOfBirth: true } },
+        vehicles: { orderBy: { sortOrder: 'asc' } },
+      },
     });
     if (!deliveryProfile?.user) {
       return { ok: false as const, status: 422, code: 'NO_COURIER', error: 'Bezorger is niet meer beschikbaar.' };
     }
     if (input.revision.cargo) {
-      if (fitCargo(input.revision.cargo, deliveryProfile) !== 'fit') {
+      const fleet = vehiclesFromProfile({
+        transportation: deliveryProfile.transportation,
+        vehicles: deliveryProfile.vehicles,
+        legacyCapacityUnassigned: deliveryProfile.legacyCapacityUnassigned,
+        maxLengthCm: deliveryProfile.maxLengthCm,
+        maxWidthCm: deliveryProfile.maxWidthCm,
+        maxHeightCm: deliveryProfile.maxHeightCm,
+        maxWeightGrams: deliveryProfile.maxWeightGrams,
+        vehicleCapacityStatus: deliveryProfile.vehicleCapacityStatus,
+      });
+      const requiredFeatures = Array.isArray((input.revision.cargo as { requiredFeatures?: unknown }).requiredFeatures)
+        ? (input.revision.cargo as { requiredFeatures: unknown[] }).requiredFeatures.filter((item): item is string => item === 'ACTIVE_COOLING')
+        : [];
+      const chosen = fleet.vehicles.length
+        ? selectVehicleForJob(fleet.vehicles, vehicleNeedForCargo({ ...input.revision.cargo, requiredFeatures }))
+        : null;
+      if (chosen && !chosen.ok) {
         return { ok: false as const, status: 422, code: 'VEHICLE_TOO_SMALL', error: 'De lading past niet meer bij dit voertuig.' };
       }
-      revisionData.cargo = input.revision.cargo as Prisma.InputJsonValue;
+      if (!chosen && fitCargo(input.revision.cargo, deliveryProfile) !== 'fit') {
+        return { ok: false as const, status: 422, code: 'VEHICLE_TOO_SMALL', error: 'De lading past niet meer bij dit voertuig.' };
+      }
+      revisionData.cargo = { ...input.revision.cargo, requiredFeatures } as Prisma.InputJsonValue;
+      revisionData.matchedVehicleId = chosen?.ok ? chosen.vehicle.id ?? null : null;
+      revisionData.cargoFitRequired = chosen?.ok === true && chosen.needsFitQuestion;
+      revisionData.cargoFitConfirmedAt = null;
+      revisionData.cargoFitFingerprint = null;
     }
     const nextPickupLat = input.revision.pickupLat;
     const nextPickupLng = input.revision.pickupLng;
@@ -511,6 +579,12 @@ export async function respondToTransportProposal(input: {
       bookingStatus = 'ACCEPTED';
     } else {
       bookingStatus = booking.request.status;
+    }
+    if (row.cargoFitRequired && bookingId) {
+      await prisma.deliveryBookingRequest.update({
+        where: { id: bookingId },
+        data: { cargoFitRequired: true, matchedVehicleId: row.matchedVehicleId },
+      });
     }
   }
 
@@ -624,7 +698,7 @@ export async function respondToTransportProposal(input: {
       id: row.id,
       status: decision.paymentAllowed ? 'AWAITING_PAYMENT' : opened.status,
       version: opened.version,
-      paymentAvailable: decision.paymentAllowed,
+      paymentAvailable: decision.paymentAllowed && (row.cargoFitRequired !== true || row.cargoFitConfirmedAt != null),
       bookingStatus,
       agreedPriceCents: decision.agreedPriceCents,
     },

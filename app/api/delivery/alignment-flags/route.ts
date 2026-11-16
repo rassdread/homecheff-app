@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 import { isHomeCheffDeliveryEnabled } from '@/lib/delivery/delivery-deployment-gate';
+import { transportProposalsEnabled } from '@/lib/delivery/transport-job';
 import {
   callerMaySeeDeliveryUi,
   evaluateDeliveryAccess,
@@ -35,5 +36,6 @@ export async function GET() {
     providerPricingEnabled: deliveryAvailableToCaller && flags.providerPricingEnabled,
     namedProviderCopyEnabled: deliveryAvailableToCaller && flags.namedProviderCopyEnabled,
     firstAcceptPoolRuntimeEnabled: flags.firstAcceptPoolRuntimeEnabled,
+    transportProposalsEnabled: transportProposalsEnabled(),
   });
 }

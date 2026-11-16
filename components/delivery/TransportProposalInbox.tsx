@@ -18,6 +18,10 @@ type Proposal = {
   photoIds?: string[];
   pickupArea: string;
   deliveryArea: string;
+  status?: string;
+  cargoFitRequired?: boolean;
+  cargoFitConfirmedAt?: string | null;
+  vehicleLabel?: string | null;
 };
 
 function eur(cents: number | null) {
@@ -54,6 +58,20 @@ export function TransportProposalInbox() {
       document.removeEventListener('visibilitychange', tick);
     };
   }, []);
+
+  async function confirmFit(row: Proposal) {
+    setMessage('');
+    const response = await fetch('/api/delivery/standalone/fit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestId: row.id }),
+    });
+    const data = await response.json().catch(() => null);
+    setMessage(response.ok
+      ? 'Bevestigd. De klant kan nu betalen voor de afgesproken prijs.'
+      : data?.error || 'Bevestigen lukte niet');
+    await load();
+  }
 
   async function respond(row: Proposal, action: 'ACCEPT' | 'REJECT' | 'COUNTER' | 'QUESTION') {
     setMessage('');
@@ -107,6 +125,11 @@ export function TransportProposalInbox() {
             {row.buyerTotalCents != null ? <p>Totaal voor de klant {eur(row.buyerTotalCents)}</p> : null}
             {row.courierCents != null ? <p>Voor de bezorger {eur(row.courierCents)}</p> : null}
             {row.note && <p className="text-gray-600">{row.note}</p>}
+            {row.role === 'COURIER' && row.cargoFitRequired && !row.cargoFitConfirmedAt ? (
+              <button type="button" className="mt-2 min-h-11 w-full rounded-lg bg-emerald-800 px-3 py-2 font-semibold text-white" onClick={() => confirmFit(row)}>
+                Deze lading past in {row.vehicleLabel || 'dit voertuig'}
+              </button>
+            ) : null}
             <div className="mt-2 grid gap-2">
               {row.authorRole !== row.role && row.action !== 'QUESTION' && (
                 <>

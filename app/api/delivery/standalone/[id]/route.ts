@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { readHcDeliveryRefundMarker } from '@/lib/hc/marketplace-hc-delivery-refund-pure';
 import { standaloneRefundView } from '@/lib/delivery/standalone-cancellation';
 import { customerRefundStatus, REFUND_STATUS_COPY } from '@/lib/delivery/delivery-refund-review';
+import { fitStillConfirmed } from '@/lib/delivery/standalone-delivery';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,7 +54,10 @@ export async function GET(
     routeDistanceKm: row.routeDistanceKm,
     itemDescription: row.itemDescription,
     requestedPickupAt: row.requestedPickupAt,
-    paymentAvailable: booking?.status === 'ACCEPTED' || booking?.status === 'AUTO_CONFIRMED',
+    jobKind: row.jobKind,
+    matchedVehicleId: row.matchedVehicleId,
+    cargoFitRequired: row.cargoFitRequired,
+    paymentAvailable: (booking?.status === 'ACCEPTED' || booking?.status === 'AUTO_CONFIRMED') && await fitStillConfirmed(row),
     booking,
     delivery: job ? { id: job.id, status: job.status, deliveryProfileId: job.deliveryProfileId, deliveredAt: job.deliveredAt, pickedUpAt: job.pickedUpAt } : null,
     refund: standaloneRefundView(readHcDeliveryRefundMarker(job?.notes)),

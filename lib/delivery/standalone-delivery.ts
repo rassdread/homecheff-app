@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import type { Prisma } from '@prisma/client';
 import type Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
 import { financialStripeSecret, stripe } from '@/lib/stripe';
@@ -34,6 +35,13 @@ import { pickupOverlapsBooking, suggestedPickupTimes } from '@/lib/delivery/stan
 import { assertCourierBookableAt } from '@/lib/delivery/standalone-availability';
 import { standaloneBookingNotes } from '@/lib/delivery/standalone-booking-meta';
 import type { ProviderAcceptanceProfile } from '@/lib/delivery/provider-acceptance';
+import {
+  cargoFitFingerprint,
+  routeVehicleCode,
+  selectVehicleForJob,
+  vehicleNeedForCargo,
+  vehiclesFromProfile,
+} from '@/lib/delivery/courier-vehicles';
 
 const PAYMENT_WINDOW_MS = 20 * 60 * 1000;
 const FULFILLABLE_STATUSES = new Set(['AWAITING_PAYMENT', 'CHECKOUT', 'PAID']);
@@ -60,6 +68,7 @@ export type StandaloneQuoteInput = {
   /** Null means as soon as possible. */
   requestedPickupAt?: Date | null;
   cargo?: TransportCargo | null;
+  requiredFeatures?: string[];
 };
 
 type CourierCard = {
@@ -81,7 +90,109 @@ type CourierCard = {
   availabilityBadge: { code: string; labelNl: string; labelEn: string };
   verification: boolean;
   vehicleCapacity?: ReturnType<typeof interpretStoredCapacity>;
+  matchedVehicleId?: string | null;
+  matchedVehicleLabel?: string | null;
+  fitLabel?: string | null;
+  needsFitQuestion?: boolean;
 };
+
+export async function fitStillConfirmed(row: {
+  deliveryProfileId: string;
+  matchedVehicleId: string | null;
+  cargoFitRequired: boolean;
+  cargoFitConfirmedAt: Date | null;
+  cargoFitFingerprint: string | null;
+  cargo: unknown;
+}): Promise<boolean> {
+  if (!row.cargoFitRequired) return true;
+  if (!row.cargoFitConfirmedAt || !row.cargoFitFingerprint || !row.matchedVehicleId) return false;
+  const vehicle = await prisma.deliveryVehicle.findFirst({
+    where: { id: row.matchedVehicleId, deliveryProfileId: row.deliveryProfileId },
+  });
+  if (!vehicle) return false;
+  const parsed = vehiclesFromProfile({ vehicles: [vehicle] }).vehicles[0];
+  if (!parsed) return false;
+  const cargo = row.cargo && typeof row.cargo === 'object' ? row.cargo as Record<string, unknown> : {};
+  const items = Array.isArray(cargo.items)
+    ? cargo.items as Array<{ lengthCm?: number; widthCm?: number; heightCm?: number; weightKg?: number }>
+    : [];
+  const required = Array.isArray(cargo.requiredFeatures)
+    ? cargo.requiredFeatures.filter((item): item is string => typeof item === 'string')
+    : [];
+  const fingerprint = cargoFitFingerprint({
+    vehicle: parsed,
+    items: items.map((item) => ({
+      lengthCm: Number(item.lengthCm) || 0,
+      widthCm: Number(item.widthCm) || 0,
+      heightCm: Number(item.heightCm) || 0,
+      weightKg: Number(item.weightKg) || 0,
+    })),
+    itemCount: Number(cargo.itemCount) || items.length || 1,
+    requiredFeatures: required,
+  });
+  return fingerprint === row.cargoFitFingerprint;
+}
+
+export async function confirmCargoFit(input: { actorUserId: string; requestId: string }) {
+  const row = await prisma.standaloneDeliveryRequest.findUnique({ where: { id: input.requestId } });
+  if (!row) return { ok: false as const, status: 404, code: 'NOT_FOUND', error: 'Aanvraag niet gevonden.' };
+  const owner = await prisma.deliveryProfile.findUnique({
+    where: { id: row.deliveryProfileId },
+    select: { userId: true },
+  });
+  if (owner?.userId !== input.actorUserId) {
+    return { ok: false as const, status: 403, code: 'FORBIDDEN', error: 'Alleen de gekozen bezorger kan bevestigen dat de lading past.' };
+  }
+  if (!row.cargoFitRequired || !row.matchedVehicleId) {
+    return { ok: false as const, status: 409, code: 'CARGO_FIT_NOT_REQUIRED', error: 'Deze lading hoeft niet apart bevestigd te worden.' };
+  }
+  const stored = await prisma.deliveryVehicle.findFirst({
+    where: { id: row.matchedVehicleId, deliveryProfileId: row.deliveryProfileId },
+  });
+  const vehicle = stored ? vehiclesFromProfile({ vehicles: [stored] }).vehicles[0] : null;
+  if (!vehicle) {
+    return { ok: false as const, status: 409, code: 'VEHICLE_GONE', error: 'Het gekozen voertuig staat niet meer op het profiel.' };
+  }
+  const cargo = row.cargo && typeof row.cargo === 'object' ? row.cargo as Record<string, unknown> : {};
+  const items = Array.isArray(cargo.items)
+    ? (cargo.items as Array<{ lengthCm?: number; widthCm?: number; heightCm?: number; weightKg?: number }>).map((item) => ({
+        lengthCm: Number(item.lengthCm) || 0,
+        widthCm: Number(item.widthCm) || 0,
+        heightCm: Number(item.heightCm) || 0,
+        weightKg: Number(item.weightKg) || 0,
+      }))
+    : [];
+  const required = Array.isArray(cargo.requiredFeatures)
+    ? cargo.requiredFeatures.filter((item): item is string => typeof item === 'string')
+    : [];
+  const choice = selectVehicleForJob([vehicle], vehicleNeedForCargo({
+    items,
+    itemCount: Number(cargo.itemCount) || items.length || 1,
+    totalWeightKg: Number(cargo.totalWeightKg) || 0,
+    requiredFeatures: required,
+  }));
+  if (!choice.ok) {
+    return { ok: false as const, status: 409, code: 'VEHICLE_NO_LONGER_FITS', error: 'Dit voertuig past niet meer bij deze lading. Een eerdere bevestiging geldt niet opnieuw.' };
+  }
+  const fingerprint = cargoFitFingerprint({
+    vehicle,
+    items,
+    itemCount: Number(cargo.itemCount) || items.length || 1,
+    requiredFeatures: required,
+  });
+  const now = new Date();
+  await prisma.standaloneDeliveryRequest.update({
+    where: { id: row.id },
+    data: { cargoFitConfirmedAt: now, cargoFitFingerprint: fingerprint, updatedAt: now },
+  });
+  if (row.bookingRequestId) {
+    await prisma.deliveryBookingRequest.update({
+      where: { id: row.bookingRequestId },
+      data: { cargoFitConfirmedAt: now, cargoFitFingerprint: fingerprint, cargoFitRequired: true, matchedVehicleId: row.matchedVehicleId },
+    });
+  }
+  return { ok: true as const, paymentAvailable: true, fingerprint };
+}
 
 function asAcceptanceProfile(profile: {
   id: string;
@@ -161,6 +272,7 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput, include
         },
         select: { pickupAt: true, deliverAt: true, estimatedDurationMinutes: true },
       },
+      vehicles: { orderBy: { sortOrder: 'asc' } },
     },
   });
   if (profiles.length === 0) {
@@ -168,7 +280,7 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput, include
   }
 
   const couriers: CourierCard[] = [];
-  const unavailable: Array<{ id: string; name: string; code: string; pickupTimes: string[] }> = [];
+  const unavailable: Array<{ id: string; name: string; code: string; pickupTimes: string[]; matchedVehicleLabel: string | null }> = [];
 
   for (const profile of profiles) {
     const eligible = isCommerciallyMatchableDeliverer({
@@ -179,7 +291,20 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput, include
       profileAge: profile.age,
     });
     if (!eligible) continue;
-    if (input.cargo && input.cargo.items.some(item => item.lengthCm > 0 || item.widthCm > 0 || item.heightCm > 0 || item.weightKg > 0)
+    const need = vehicleNeedForCargo(input.cargo ? { ...input.cargo, requiredFeatures: input.requiredFeatures } : null);
+    const fleet = vehiclesFromProfile({
+      transportation: profile.transportation,
+      vehicles: profile.vehicles,
+      legacyCapacityUnassigned: profile.legacyCapacityUnassigned,
+      maxLengthCm: profile.maxLengthCm,
+      maxWidthCm: profile.maxWidthCm,
+      maxHeightCm: profile.maxHeightCm,
+      maxWeightGrams: profile.maxWeightGrams,
+      vehicleCapacityStatus: profile.vehicleCapacityStatus,
+    });
+    const matched = fleet.vehicles.length > 0 ? selectVehicleForJob(fleet.vehicles, need) : null;
+    if (matched && !matched.ok) continue;
+    if (!matched && input.cargo && input.cargo.items.some(item => item.lengthCm > 0 || item.widthCm > 0 || item.heightCm > 0 || item.weightKg > 0)
       && fitCargo(input.cargo, profile) !== 'fit') continue;
     if (!courierListedInPilot(profile.id, profile.user?.id)) continue;
     const distanceMode = distanceSemanticsMode(profile.distanceSemanticsVersion);
@@ -231,16 +356,20 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput, include
     if (!(await courierCanBeListedForPaidJob(prisma, profile.id))) continue;
     if (!available) {
       const pickupTimes = suggestedPickupTimes(acceptance, requestedAt, now, quote.routeDistanceKm, route.duration, profile.calendarEntries);
-      if (pickupTimes.length) unavailable.push({ id: profile.id, name, code: bookable.ok ? 'DELIVERY_CAPACITY_FULL' : bookable.code, pickupTimes });
+      if (pickupTimes.length) unavailable.push({ id: profile.id, name, code: bookable.ok ? 'DELIVERY_CAPACITY_FULL' : bookable.code, pickupTimes, matchedVehicleLabel: matched?.ok ? matched.label : null });
       continue;
     }
-    const vehicle = profile.transportation[0] || 'BIKE';
+    const vehicle = matched?.ok ? routeVehicleCode(matched.vehicle) : profile.transportation[0] || 'BIKE';
     couriers.push({
       id: profile.id,
       userId: profile.user.id,
       name,
       place: '',
       vehicleType: vehicle,
+      matchedVehicleId: matched?.ok ? matched.vehicle.id ?? null : null,
+      matchedVehicleLabel: matched?.ok ? matched.label : null,
+      fitLabel: matched?.ok ? matched.fitLabel : null,
+      needsFitQuestion: matched?.ok ? matched.needsFitQuestion : false,
       deliveryRadius: profile.maxDistance,
       distanceToSeller: 0,
       distanceToBuyer: quote.routeDistanceKm,
@@ -364,9 +493,20 @@ export async function bookStandaloneCourier(input: StandaloneQuoteInput & { deli
       bookingRequestId: booking.request.id,
       paymentStatus: 'UNPAID',
       status: booking.confirmed ? 'AWAITING_PAYMENT' : 'BOOKING_REQUESTED',
+      matchedVehicleId: selected.matchedVehicleId || null,
+      cargoFitRequired: selected.needsFitQuestion === true,
+      cargo: input.cargo
+        ? ({ ...input.cargo, requiredFeatures: input.requiredFeatures || [] } as Prisma.InputJsonValue)
+        : undefined,
       updatedAt: now,
     },
   });
+  if (selected.needsFitQuestion) {
+    await prisma.deliveryBookingRequest.update({
+      where: { id: booking.request.id },
+      data: { matchedVehicleId: selected.matchedVehicleId || null, cargoFitRequired: true },
+    });
+  }
 
   return {
     ok: true as const,
@@ -375,7 +515,7 @@ export async function bookStandaloneCourier(input: StandaloneQuoteInput & { deli
       status: row.status,
       bookingRequestId: booking.request.id,
       bookingStatus: booking.request.status,
-      paymentAvailable: booking.confirmed === true,
+      paymentAvailable: booking.confirmed === true && selected.needsFitQuestion !== true,
       quotedFeeCents: row.quotedFeeCents,
       stripeFeeCents: row.stripeFeeCents,
       buyerTotalCents: row.buyerTotalCents,
@@ -489,6 +629,17 @@ export async function createStandaloneCheckout(input: {
   }
   if (booking.status !== 'ACCEPTED' && booking.status !== 'AUTO_CONFIRMED') {
     return { ok: false as const, status: 409, code: 'DELIVERY_BOOKING_REQUIRED', error: 'Betalen kan pas nadat de gekozen bezorger heeft bevestigd.' };
+  }
+  if (row.cargoFitRequired) {
+    const fresh = await fitStillConfirmed(row);
+    if (!fresh) {
+      return {
+        ok: false as const,
+        status: 409,
+        code: 'CARGO_FIT_REQUIRED',
+        error: 'Betalen kan pas nadat de bezorger heeft bevestigd dat deze lading in dit voertuig past.',
+      };
+    }
   }
   const payable = await ensureCourierPayable(prisma, row.deliveryProfileId);
   if (!payable.ok) return payable;

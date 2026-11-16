@@ -28,6 +28,9 @@ export interface Deliverer {
   providerType?: string;
   providerKind?: 'INDIVIDUAL' | 'COMPANY';
   vehicleType: string;
+  vehicleLabel?: string | null;
+  matchedVehicleLabel?: string | null;
+  fitLabel?: string | null;
   deliveryRadius: number;
   distanceToSeller: number;
   distanceToBuyer: number;
@@ -348,8 +351,16 @@ export default function DelivererSelector({
                       </div>
                       <div className="flex items-center space-x-1">
                         {getVehicleIcon(deliverer.vehicleType)}
-                        <span>{getVehicleName(deliverer.vehicleType)}</span>
+                        <span>{deliverer.matchedVehicleLabel || deliverer.vehicleLabel || getVehicleName(deliverer.vehicleType)}</span>
                       </div>
+                      {deliverer.fitLabel ? (
+                        <p className="w-full text-sm text-gray-700">
+                          {deliverer.fitLabel}
+                          {deliverer.fitLabel === 'Past naar verwachting'
+                            ? '. Dit is een inschatting op basis van richtmaten, geen garantie dat de lading past.'
+                            : ''}
+                        </p>
+                      ) : null}
                       <div className="flex items-center space-x-1">
                         <Star className="w-3 h-3 text-yellow-500" />
                         <span>
