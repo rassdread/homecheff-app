@@ -1165,6 +1165,9 @@ export default function DeliveryDashboard() {
                                     message: err.error || 'Bevestig de planning.',
                                   });
                                 }
+                                if (res.status === 409) {
+                                  await fetchDeliveryData(true);
+                                }
                                 setFeedback({
                                   type: 'error',
                                   message:

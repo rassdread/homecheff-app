@@ -8,6 +8,7 @@ import {
   cancelPendingBookingForReplacement,
   createDeliveryBookingRequest,
   markBookingSuperseded,
+  retireUnpaidBookingForDestinationChange,
 } from '@/lib/delivery/booking-request-service';
 import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
 import {
@@ -57,7 +58,36 @@ export async function POST(req: NextRequest) {
       notes,
       replacesBookingRequestId,
       quantity,
+      destinationChange,
     } = body;
+
+    if (destinationChange === true) {
+      const lat = typeof buyerLat === 'number' ? buyerLat : Number(buyerLat);
+      const lng = typeof buyerLng === 'number' ? buyerLng : Number(buyerLng);
+      if (typeof replacesBookingRequestId !== 'string' || !replacesBookingRequestId) {
+        return NextResponse.json(
+          { error: 'Boekingsaanvraag ontbreekt.', code: 'DELIVERY_BOOKING_REQUIRED' },
+          { status: 400 },
+        );
+      }
+      const retired = await retireUnpaidBookingForDestinationChange(prisma, {
+        requestId: replacesBookingRequestId,
+        buyerId: buyer.id,
+        buyerLat: lat,
+        buyerLng: lng,
+      });
+      if (!retired.ok) {
+        return NextResponse.json(
+          { error: retired.error, code: retired.code },
+          { status: retired.status },
+        );
+      }
+      return NextResponse.json({
+        success: true,
+        retired: retired.retired,
+        status: retired.status,
+      });
+    }
     const requestedQuantity =
       typeof quantity === 'number' && Number.isInteger(quantity) && quantity > 0
         ? quantity

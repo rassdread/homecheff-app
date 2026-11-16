@@ -18,6 +18,7 @@ import { calculateStripeFeeForBuyer } from '@/lib/fees';
 import { knownCheckoutDeliveryFeeCents } from '@/lib/checkout/known-delivery-fee';
 import { quoteFromMatchedCourier } from '@/lib/checkout/matched-courier-quote';
 import { decideRefreshedCourierSelection } from '@/lib/checkout/refreshed-courier-selection';
+import { sameConfirmedDestination } from '@/lib/delivery/booking-destination-change';
 import { shownCourierLeftPaidList } from '@/lib/delivery/paid-courier-selection';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
@@ -902,6 +903,20 @@ export default function CheckoutPage() {
         houseNumber = match[2];
       }
     }
+
+    const nextPoint =
+      typeof addressData.lat === 'number' &&
+      typeof addressData.lng === 'number' &&
+      Number.isFinite(addressData.lat) &&
+      Number.isFinite(addressData.lng)
+        ? { lat: addressData.lat, lng: addressData.lng }
+        : null;
+    const previousPoint = checkoutDraft.coordinates;
+    const adoptedDifferentDropoff = Boolean(
+      nextPoint &&
+        bookingRequestId &&
+        !sameConfirmedDestination(previousPoint, nextPoint),
+    );
     
     updateDraft({
       street,
@@ -909,11 +924,31 @@ export default function CheckoutPage() {
       postalCode: addressData.postalCode || '',
       city: addressData.city || '',
       country: addressData.country || 'NL',
-      coordinates: addressData.lat && addressData.lng ? { lat: addressData.lat, lng: addressData.lng } : null,
-      addressValidated: !!(addressData.lat && addressData.lng),
+      coordinates: nextPoint,
+      addressValidated: Boolean(nextPoint),
+      ...(adoptedDifferentDropoff
+        ? { selectedDeliveryProfileId: '', bookingRequestId: '' }
+        : {}),
     });
     setLocationError(null);
-  }, [updateDraft]);
+    if (!adoptedDifferentDropoff || !nextPoint || !bookingRequestId) return;
+
+    const retiredId = bookingRequestId;
+    setSelectedDeliverer(null);
+    setActualDeliveryFee(null);
+    setBookingRequestId(null);
+    setBookingStatus(null);
+    void fetch('/api/delivery/booking-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        destinationChange: true,
+        replacesBookingRequestId: retiredId,
+        buyerLat: nextPoint.lat,
+        buyerLng: nextPoint.lng,
+      }),
+    });
+  }, [bookingRequestId, checkoutDraft.coordinates, updateDraft]);
   
   const handleAddressGeocode = useCallback((addressData: AddressData) => {
     if (addressData.lat && addressData.lng) {

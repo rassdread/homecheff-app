@@ -30,6 +30,7 @@ import { normalizeCountryCode } from '@/lib/gamification/country-code';
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 import { notifyReservationBuyer } from '@/lib/delivery/reservation-notifications';
 import { openPaymentWindowForBooking } from '@/lib/products/courier-stock-hold';
+import { planUnpaidDestinationChange } from '@/lib/delivery/booking-destination-change';
 import { readStandaloneBookingMeta } from '@/lib/delivery/standalone-booking-meta';
 import { assertCourierBookableAt } from '@/lib/delivery/standalone-availability';
 import {
@@ -635,6 +636,14 @@ export async function acceptDeliveryBookingRequest(
   if (request.status === 'EXPIRED') {
     return { ok: false as const, status: 410, error: 'Aanvraag verlopen', code: 'DELIVERY_BOOKING_EXPIRED' };
   }
+  if (request.status === 'CANCELLED') {
+    return {
+      ok: false as const,
+      status: 409,
+      code: 'DELIVERY_DESTINATION_CHANGED',
+      error: 'Het afleveradres is gewijzigd. Deze aanvraag geldt niet meer.',
+    };
+  }
   if (request.status !== 'PENDING') {
     return { ok: false as const, status: 409, error: 'Aanvraag is al afgehandeld' };
   }
@@ -823,6 +832,18 @@ export async function acceptDeliveryBookingRequest(
     throw error;
   }
   if (!claimed) {
+    const current = await prisma.deliveryBookingRequest.findUnique({
+      where: { id: params.requestId },
+      select: { status: true },
+    });
+    if (current?.status === 'CANCELLED') {
+      return {
+        ok: false as const,
+        status: 409,
+        code: 'DELIVERY_DESTINATION_CHANGED',
+        error: 'Het afleveradres is gewijzigd. Deze aanvraag geldt niet meer.',
+      };
+    }
     return { ok: false as const, status: 409, error: 'Aanvraag is al afgehandeld' };
   }
 
@@ -886,6 +907,92 @@ export async function rejectDeliveryBookingRequest(
     where: { id: request.id },
   });
   return { ok: true as const, request: fresh ?? request };
+}
+
+/**
+ * The buyer adopted a different confirmed drop-off before payment.
+ * Pending and already-accepted unpaid bookings for the old drop-off are
+ * cancelled. The product hold stays on its original deadline. A payment
+ * window opened by an accept that won the race is put back.
+ */
+export async function retireUnpaidBookingForDestinationChange(
+  prisma: PrismaClient,
+  params: { requestId: string; buyerId: string; buyerLat: number; buyerLng: number },
+) {
+  if (!Number.isFinite(params.buyerLat) || !Number.isFinite(params.buyerLng)) {
+    return {
+      ok: false as const,
+      status: 400,
+      code: 'DELIVERY_DESTINATION_REQUIRED',
+      error: 'Bevestigd afleveradres ontbreekt.',
+    };
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const locked = await tx.$queryRaw<
+      Array<{ id: string; status: string; buyerId: string; buyerLat: number | null; buyerLng: number | null }>
+    >`
+      SELECT id, status, "buyerId", "buyerLat", "buyerLng"
+      FROM "DeliveryBookingRequest"
+      WHERE id = ${params.requestId}
+      FOR UPDATE
+    `;
+    const request = locked[0];
+    if (!request) {
+      return { ok: false as const, status: 404, code: 'NOT_FOUND', error: 'Aanvraag niet gevonden' };
+    }
+    if (request.buyerId !== params.buyerId) {
+      return { ok: false as const, status: 403, code: 'NOT_OWNED', error: 'Niet geautoriseerd' };
+    }
+    const plan = planUnpaidDestinationChange({
+      status: request.status,
+      currentLat: request.buyerLat,
+      currentLng: request.buyerLng,
+      nextLat: params.buyerLat,
+      nextLng: params.buyerLng,
+    });
+    if (plan === 'keep') {
+      return { ok: true as const, retired: false, status: request.status };
+    }
+
+    const now = new Date();
+    const updated = await tx.deliveryBookingRequest.updateMany({
+      where: {
+        id: request.id,
+        buyerId: params.buyerId,
+        status: { in: ['PENDING', 'ACCEPTED', 'AUTO_CONFIRMED'] },
+      },
+      data: { status: 'CANCELLED', cancelledAt: now, updatedAt: now },
+    });
+    if (updated.count !== 1) {
+      return { ok: true as const, retired: false, status: request.status };
+    }
+    await tx.deliveryCalendarEntry.updateMany({
+      where: {
+        bookingRequestId: request.id,
+        deliveryOrderId: null,
+        status: 'CONFIRMED',
+      },
+      data: { status: 'CANCELLED' },
+    });
+    const holds = await tx.stockReservation.findMany({
+      where: { bookingRequestId: request.id, status: 'PENDING' },
+    });
+    for (const hold of holds) {
+      if (hold.phase !== 'AWAITING_PAYMENT') continue;
+      const holdUntil = hold.holdUntil ?? hold.expiresAt;
+      await tx.stockReservation.update({
+        where: { id: hold.id },
+        data: {
+          phase: 'AWAITING_COURIER',
+          paymentDeadline: null,
+          expiresAt: holdUntil,
+          holdUntil,
+        },
+      });
+    }
+    return { ok: true as const, retired: true, status: 'CANCELLED' as const };
+  });
 }
 
 export async function cancelPendingBookingForReplacement(
