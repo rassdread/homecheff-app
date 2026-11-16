@@ -40,6 +40,11 @@ function numberOrNull(value: unknown): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function coolingFeatures(cargo: object): string[] {
+  if (!('requiredFeatures' in cargo) || !Array.isArray(cargo.requiredFeatures)) return [];
+  return cargo.requiredFeatures.filter((item): item is string => item === 'ACTIVE_COOLING');
+}
+
 export function readTransportCargo(value: unknown): TransportCargo | null {
   if (!value || typeof value !== 'object') return null;
   const raw = value as Record<string, unknown>;
@@ -244,9 +249,7 @@ export async function sendTransportProposal(input: {
     maxWeightGrams: ready.profile.maxWeightGrams,
     vehicleCapacityStatus: ready.profile.vehicleCapacityStatus,
   });
-  const requiredFeatures = Array.isArray((input.cargo as { requiredFeatures?: unknown }).requiredFeatures)
-    ? (input.cargo as { requiredFeatures: unknown[] }).requiredFeatures.filter((item): item is string => item === 'ACTIVE_COOLING')
-    : [];
+  const requiredFeatures = coolingFeatures(input.cargo);
   const chosen = fleet.vehicles.length
     ? selectVehicleForJob(fleet.vehicles, vehicleNeedForCargo({ ...input.cargo, requiredFeatures }))
     : null;
@@ -451,9 +454,7 @@ export async function respondToTransportProposal(input: {
         maxWeightGrams: deliveryProfile.maxWeightGrams,
         vehicleCapacityStatus: deliveryProfile.vehicleCapacityStatus,
       });
-      const requiredFeatures = Array.isArray((input.revision.cargo as { requiredFeatures?: unknown }).requiredFeatures)
-        ? (input.revision.cargo as { requiredFeatures: unknown[] }).requiredFeatures.filter((item): item is string => item === 'ACTIVE_COOLING')
-        : [];
+      const requiredFeatures = coolingFeatures(input.revision.cargo);
       const chosen = fleet.vehicles.length
         ? selectVehicleForJob(fleet.vehicles, vehicleNeedForCargo({ ...input.revision.cargo, requiredFeatures }))
         : null;

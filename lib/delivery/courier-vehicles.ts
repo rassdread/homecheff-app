@@ -2,7 +2,7 @@
  * Per-vehicle courier fleet. Example model names are labels only.
  * They never become a length, width, height or weight.
  */
-import { assessCargoFit, vehicleReferences } from './vehicle-references';
+import { assessCargoFit, vehicleReferences, type FitJudgement } from './vehicle-references';
 import { emptyCapacityStatus, type CapacityAxis, type CapacityMark } from '@/lib/delivery/transport-job';
 
 export const VEHICLE_FAMILIES = ['BIKE', 'EBIKE', 'SCOOTER', 'CAR', 'BUS', 'TRAILER'] as const;
@@ -344,7 +344,7 @@ export function vehicleNeedForProduct(product: { lengthCm: number | null; widthC
   return cargoProvided(cargo) ? { cargo, itemCount: quantity } : {};
 }
 
-function fitPhrase(judgement: 'expected' | 'measured' | 'confirm' | 'unspecified'): string | null {
+function fitPhrase(judgement: FitJudgement): string | null {
   if (judgement === 'expected') return 'Past naar verwachting';
   if (judgement === 'measured') return 'Past volgens de opgegeven maten';
   if (judgement === 'confirm') return 'Even afstemmen';
