@@ -21,8 +21,9 @@ export default function AppPageChrome({ children }: { children: ReactNode }) {
   const navHidden = isBottomNavigationHidden(pathname);
   /** Berichten: eigen hoogte/padding (split-view, fixed chat) — dubbele marge met tabbalk voorkomen. */
   const messagesOwnInset = Boolean(pathname?.startsWith('/messages'));
+  const desktopHeaderReplacesBar = landscape.usableWidthPx >= 1280;
   const bottomNavVisible =
-    !navHidden && !landscape.bottomNavCollapsed;
+    !navHidden && !(landscape.bottomNavCollapsed && desktopHeaderReplacesBar);
   const applyNavBottomPad = bottomNavVisible && !messagesOwnInset;
 
   return (
@@ -33,7 +34,7 @@ export default function AppPageChrome({ children }: { children: ReactNode }) {
       data-messages-route={messagesOwnInset ? 'true' : 'false'}
       className={cn(
         'min-w-0 w-full max-w-full',
-        applyNavBottomPad && 'max-lg:pb-[var(--hc-bottom-nav-offset)]'
+        applyNavBottomPad && 'max-xl:pb-[var(--hc-bottom-nav-offset)]'
       )}
     >
       {children}

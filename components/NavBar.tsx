@@ -24,6 +24,7 @@ import { useIsNativeAppMounted } from '@/lib/native/useIsNativeAppMounted';
 import { devBadgeLog } from '@/lib/devBadgeLog';
 import { cn } from '@/lib/utils';
 import { navDebug } from '@/lib/nav-debug';
+import { homeClickShouldLeaveDeliveryView, markDeliveryRequestClosed } from '@/lib/navigation/home-feed-entry';
 import { useAppUpdateStatus } from '@/components/app/AppUpdateStatusProvider';
 import {
   ADMIN_WORKSPACE_HREF,
@@ -503,7 +504,13 @@ export default function NavBar() {
               href="/"
               prefetch={false}
               className={cn(desktopNavGhostClass, 'hidden 2xl:inline-flex')}
-              onClick={() => navDebug('navbar:desktop', { href: '/' })}
+              onClick={(event) => {
+                navDebug('navbar:desktop', { href: '/' });
+                if (homeClickShouldLeaveDeliveryView(pathname || '/', window.location.search)) {
+                  event.preventDefault();
+                  markDeliveryRequestClosed();
+                }
+              }}
             >
               <Home className={desktopNavIconClass} aria-hidden />
               <span className="whitespace-nowrap">{t('navbar.home')}</span>
@@ -833,9 +840,13 @@ export default function NavBar() {
                 href="/"
                 prefetch={false}
                 className={mobileNavRowClass}
-                onClick={() => {
+                onClick={(event) => {
                   closeMobileMenu();
                   navDebug('navbar:mobile', { href: '/' });
+                  if (homeClickShouldLeaveDeliveryView(pathname || '/', window.location.search)) {
+                    event.preventDefault();
+                    markDeliveryRequestClosed();
+                  }
                 }}
               >
                 <Home className="w-4 h-4 shrink-0" aria-hidden />

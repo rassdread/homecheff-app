@@ -18,11 +18,22 @@ export function bottomNavBarWrapperClass(isNativeShell: boolean): string {
  * Visual visibility for the fixed tab bar.
  * Landscape Work Posture always collapses the bar (nav remains via NavBar).
  */
+/** Desktop header replaces the tab bar at the NavBar `xl` split. */
+export const BOTTOM_NAV_DESKTOP_HEADER_MIN_PX = 1280;
+
+/**
+ * Landscape work posture collapses the native tab bar.
+ * On the web, the five-item bar stays visible below the desktop header.
+ * A landscape window is not enough to hide it there: that header is still `xl:hidden`.
+ */
 export function bottomNavBarVisibleClass(
   isNativeShell: boolean,
   landscapeWorkCollapsed: boolean,
+  usableWidthPx = 0,
 ): string {
-  if (landscapeWorkCollapsed) return 'hidden';
+  const desktopHeaderReplacesBar =
+    !isNativeShell && usableWidthPx >= BOTTOM_NAV_DESKTOP_HEADER_MIN_PX;
+  if (landscapeWorkCollapsed && (isNativeShell || desktopHeaderReplacesBar)) return 'hidden';
   return bottomNavBarWrapperClass(isNativeShell);
 }
 

@@ -43,7 +43,7 @@ assert.doesNotMatch(impactSrc, /5\.75rem|6\.75rem|hc-bottom-nav-offset/);
 assert.doesNotMatch(engineSrc, /hc-bottom-nav|safe-area-inset-bottom|pb-10/);
 assert.doesNotMatch(holidaySrc, /hc-bottom-nav|safe-area-inset-bottom/);
 assert.doesNotMatch(scenarioSrc, /hc-bottom-nav|safe-area-inset-bottom/);
-assert.match(chromeSrc, /max-lg:pb-\[var\(--hc-bottom-nav-offset\)\]/);
+assert.match(chromeSrc, /max-xl:pb-\[var\(--hc-bottom-nav-offset\)\]/);
 assert.match(
   globalsSrc,
   /--hc-bottom-nav-offset:\s*calc\(\s*var\(--hc-bottom-nav-height\)\s*\+\s*env\(safe-area-inset-bottom,\s*0px\)/,

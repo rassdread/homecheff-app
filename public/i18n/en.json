@@ -9621,6 +9621,11 @@
       "setupConnectCta": "Complete payment account",
       "connectError": "Something went wrong. Please try again."
     },
+    "deliveryFeedTile": {
+      "title": "Need something delivered?",
+      "body": "Send a parcel or have something large collected, such as a cabinet.",
+      "action": "Request delivery"
+    },
     "canonical": {
       "view": {
         "all": "All",

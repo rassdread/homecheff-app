@@ -9623,6 +9623,11 @@
       "setupConnectCta": "Betaalaccount afronden",
       "connectError": "Er ging iets mis. Probeer het opnieuw."
     },
+    "deliveryFeedTile": {
+      "title": "Iets laten bezorgen?",
+      "body": "Verstuur een pakket of laat iets groots ophalen, zoals een kast.",
+      "action": "Bezorging aanvragen"
+    },
     "canonical": {
       "view": {
         "all": "Alles",

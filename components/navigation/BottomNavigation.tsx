@@ -14,6 +14,13 @@ import {
   scrollToHomeFeed,
   type GuestBottomNavPanelId,
 } from '@/lib/guest/guest-explanation-panels';
+import {
+  CLOSE_DELIVERY_REQUEST_EVENT,
+  OPEN_DELIVERY_REQUEST_EVENT,
+  deliveryRequestSearchOpen,
+  homeClickShouldLeaveDeliveryView,
+  markDeliveryRequestClosed,
+} from '@/lib/navigation/home-feed-entry';
 import { compressDataUrl } from '@/lib/imageOptimization';
 import { useTranslation } from '@/hooks/useTranslation';
 import { QUICK_ADD_OPEN_EVENT } from '@/lib/quickAddOpen';
@@ -373,7 +380,20 @@ export default function BottomNavigation() {
     return pathname.startsWith(href);
   };
 
-  const isFeedDiscoverActive = pathname === '/';
+  const [deliveryViewOpen, setDeliveryViewOpen] = useState(false);
+  useEffect(() => {
+    const sync = () => setDeliveryViewOpen(deliveryRequestSearchOpen(window.location.search));
+    sync();
+    window.addEventListener(OPEN_DELIVERY_REQUEST_EVENT, sync);
+    window.addEventListener(CLOSE_DELIVERY_REQUEST_EVENT, sync);
+    window.addEventListener('popstate', sync);
+    return () => {
+      window.removeEventListener(OPEN_DELIVERY_REQUEST_EVENT, sync);
+      window.removeEventListener(CLOSE_DELIVERY_REQUEST_EVENT, sync);
+      window.removeEventListener('popstate', sync);
+    };
+  }, []);
+  const isFeedDiscoverActive = pathname === '/' && !deliveryViewOpen;
   const isProfileTabActive =
     pathname === '/profile' || Boolean(pathname?.startsWith('/profile/'));
 
@@ -1682,7 +1702,7 @@ export default function BottomNavigation() {
         aria-hidden={landscapeCollapsed ? true : undefined}
         {...(landscapeCollapsed ? ({ inert: '' } as Record<string, string>) : {})}
         className={cn(
-          bottomNavBarVisibleClass(isNativeShell, landscapeCollapsed),
+          bottomNavBarVisibleClass(isNativeShell, landscapeCollapsed, landscapeWork.usableWidthPx),
           'fixed inset-x-0 bottom-0 z-[65] max-w-[100vw] overflow-x-hidden pointer-events-none',
           isNativeShell
             ? 'bg-transparent md:bg-transparent md:px-4'
@@ -1734,6 +1754,11 @@ export default function BottomNavigation() {
               className={navTabClasses(isFeedDiscoverActive, isNativeShell)}
               onClick={(e) => {
                 navDebug('bottom-nav:tap', { tab: 'home', href: '/', path: pathname });
+                if (homeClickShouldLeaveDeliveryView(pathname || '/', window.location.search)) {
+                  e.preventDefault();
+                  markDeliveryRequestClosed();
+                  return;
+                }
                 if (pathname === '/') {
                   e.preventDefault();
                   scrollToHomeFeed();

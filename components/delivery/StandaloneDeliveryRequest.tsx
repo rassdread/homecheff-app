@@ -59,10 +59,12 @@ export function StandaloneDeliveryRequest({
   embedded = false,
   transportEnabled = false,
   initialRequestId = '',
+  onClose,
 }: {
   embedded?: boolean;
   transportEnabled?: boolean;
   initialRequestId?: string;
+  onClose?: () => void;
 }) {
   const { t } = useTranslation();
   const search = useSearchParams();
@@ -464,6 +466,11 @@ export function StandaloneDeliveryRequest({
 
   return (
     <Shell className={embedded ? 'mx-auto max-w-xl px-1 py-2 pb-28' : 'mx-auto max-w-xl px-4 py-8 pb-40'} data-delivery-request="standalone">
+      {embedded && onClose ? (
+        <button type="button" className="mb-3 min-h-11 text-sm font-semibold text-emerald-800 underline" onClick={onClose}>
+          Terug naar de feed
+        </button>
+      ) : null}
       <h1 className="text-2xl font-bold text-gray-900">Bezorging aanvragen</h1>
       <p className="mt-2 text-sm text-gray-600">
         Lokale bezorging zonder HomeCheff-product. Jij kiest de bezorger. Het ophaalmoment is een verzoek, geen gegarandeerde aankomst.

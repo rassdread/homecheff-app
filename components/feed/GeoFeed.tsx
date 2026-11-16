@@ -30,6 +30,13 @@ import FeedSearchContextBar from "@/components/feed/FeedSearchContextBar";
 import DiscoveryContinuityBand from "@/components/feed/DiscoveryContinuityBand";
 import FeedMobileToolbar from "@/components/feed/FeedMobileToolbar";
 import { StandaloneDeliveryRequest } from "@/components/delivery/StandaloneDeliveryRequest";
+import DeliveryRequestFeedTile from "@/components/feed/DeliveryRequestFeedTile";
+import {
+  CLOSE_DELIVERY_REQUEST_EVENT,
+  markDeliveryRequestClosed,
+  markDeliveryRequestOpen,
+  rememberFeedScroll,
+} from "@/lib/navigation/home-feed-entry";
 import { useWorkspaceFeedPresentationBridge } from "@/components/adaptive-workspace/WorkspaceFeedPresentationBridge";
 import { requestPlaceInputFocus } from "@/lib/feed/place-input-focus-request";
 import { useLandscapeWorkPosture } from "@/components/adaptive-workspace/WorkspaceChromeProvider";
@@ -1378,11 +1385,35 @@ export default function GeoFeed({
   );
   feedChipRef.current = feedChip;
   const [deliveryRequestOpen, setDeliveryRequestOpen] = useState(false);
+  const [homeCheffDeliveryEnabled, setHomeCheffDeliveryEnabled] = useState(false);
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("bezorging") === "1") {
       setDeliveryRequestOpen(true);
     }
+    let stop = false;
+    fetch("/api/delivery/alignment-flags")
+      .then((response) => response.json())
+      .then((data) => {
+        if (!stop) setHomeCheffDeliveryEnabled(Boolean(data?.homeCheffDeliveryEnabled));
+      })
+      .catch(() => undefined);
+    const close = () => setDeliveryRequestOpen(false);
+    window.addEventListener(CLOSE_DELIVERY_REQUEST_EVENT, close);
+    return () => {
+      stop = true;
+      window.removeEventListener(CLOSE_DELIVERY_REQUEST_EVENT, close);
+    };
   }, []);
+  const openDeliveryRequest = useCallback(() => {
+    rememberFeedScroll();
+    setDeliveryRequestOpen(true);
+    markDeliveryRequestOpen();
+  }, []);
+  const closeDeliveryRequest = useCallback(() => {
+    setDeliveryRequestOpen(false);
+    markDeliveryRequestClosed();
+  }, []);
+  const showDeliveryFeedTile = homeCheffDeliveryEnabled && !deliveryRequestOpen;
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 350);
   const [sortBy, setSortBy] = useState<
@@ -6689,12 +6720,7 @@ export default function GeoFeed({
           data-marketplace-delivery="entry"
           aria-pressed={deliveryRequestOpen}
           className={viewChipBtn(deliveryRequestOpen)}
-          onClick={() => {
-            setDeliveryRequestOpen(true);
-            const url = new URL(window.location.href);
-            url.searchParams.set("bezorging", "1");
-            window.history.replaceState(null, "", `${url.pathname}${url.search}#homecheff-feed`);
-          }}
+          onClick={openDeliveryRequest}
         >
           {t("marketplace.canonical.view.delivery")}
         </button>
@@ -6950,12 +6976,7 @@ export default function GeoFeed({
         feedChip={feedChip}
         onFeedChipChange={selectFeedView}
         deliveryRequestOpen={deliveryRequestOpen}
-        onOpenDeliveryRequest={() => {
-          setDeliveryRequestOpen(true);
-          const url = new URL(window.location.href);
-          url.searchParams.set("bezorging", "1");
-          window.history.replaceState(null, "", `${url.pathname}${url.search}#homecheff-feed`);
-        }}
+        onOpenDeliveryRequest={openDeliveryRequest}
         appliedCategory={appliedCategory}
         onCategoryChange={selectVerticalChip}
         appliedScope={appliedScope}
@@ -7187,11 +7208,23 @@ export default function GeoFeed({
   );
 
 
+  const deliveryFeedTileEl = showDeliveryFeedTile ? (
+    <DeliveryRequestFeedTile
+      title={t("marketplace.deliveryFeedTile.title")}
+      body={t("marketplace.deliveryFeedTile.body")}
+      actionLabel={t("marketplace.deliveryFeedTile.action")}
+      onOpen={openDeliveryRequest}
+    />
+  ) : null;
+
   const buildFeedGridNodes = (
     rows: readonly (typeof feedRowsToRender)[number][],
+    options?: { deliveryTile?: boolean },
   ): ReactNode[] => {
     const nodes: ReactNode[] = [];
     let feedItemIndex = 0;
+    let saleCount = 0;
+    let deliveryTilePlaced = false;
     let firstTilePriorityPending = true;
     const isLoggedIn = !!session?.user;
     const insertedPromoIds = new Set<HomePromotionId>();
@@ -7292,7 +7325,16 @@ export default function GeoFeed({
           />
         );
         feedItemIndex += 1;
+        saleCount += 1;
         pushInsertIfNeeded();
+        if (options?.deliveryTile && !deliveryTilePlaced && saleCount === 1 && deliveryFeedTileEl) {
+          deliveryTilePlaced = true;
+          nodes.push(
+            <div key="delivery-request-feed-tile" className="contents">
+              {deliveryFeedTileEl}
+            </div>,
+          );
+        }
         return;
       }
       const slot = row.slot;
@@ -7353,11 +7395,12 @@ export default function GeoFeed({
 
   const feedResultsBlock = deliveryRequestOpen ? (
     <div className="rounded-xl border border-emerald-100 bg-white p-3" data-marketplace-delivery-panel="1">
-      <StandaloneDeliveryRequest embedded />
+      <StandaloneDeliveryRequest embedded onClose={closeDeliveryRequest} />
     </div>
   ) : (
     <>
       {searchContextBarEl}
+      {displayCount === 0 && deliveryFeedTileEl}
       {showFeedSkeleton ? (
         <FeedTileGridLoadingSkeleton tiles={isMobileFeedUi ? 2 : 4} compact={isMobileFeedUi} />
       ) : emptyFilterSearching ? (
@@ -7430,7 +7473,7 @@ export default function GeoFeed({
                         />
                       </div>
                     ) : null}
-                    {buildFeedGridNodes(exactForPaint as typeof feedRowsToRender)}
+                    {buildFeedGridNodes(exactForPaint as typeof feedRowsToRender, { deliveryTile: true })}
                   </div>
                 ) : null}
                 <DiscoveryContinuityBand
@@ -7947,6 +7990,7 @@ export default function GeoFeed({
                 (locationFilterActive && radiusPresentation.exactRows
                   ? radiusPresentation.exactRows
                   : feedRowsToRender) as typeof feedRowsToRender,
+                { deliveryTile: displayCount > 0 },
               )}
         </div>
         {feedHasMore ? (

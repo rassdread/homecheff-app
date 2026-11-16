@@ -5,6 +5,7 @@ import { describe, it } from 'node:test';
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
 const geo = read('../../components/feed/GeoFeed.tsx');
+const tile = read('../../components/feed/DeliveryRequestFeedTile.tsx');
 const toolbar = read('../../components/feed/FeedMobileToolbar.tsx');
 const request = read('../../components/delivery/StandaloneDeliveryRequest.tsx');
 const cleanup = read('../session-cleanup.ts');
@@ -35,11 +36,26 @@ describe('marketplace delivery discovery', () => {
     assert.match(en, /"delivery": "Delivery"/);
   });
 
+  it('places one delivery tile after the first offer and hides it while the form is open', () => {
+    assert.match(tile, /data-marketplace-delivery="feed-tile"/);
+    assert.match(geo, /DeliveryRequestFeedTile/);
+    assert.match(geo, /saleCount === 1 && deliveryFeedTileEl/);
+    assert.match(geo, /displayCount === 0 && deliveryFeedTileEl/);
+    assert.match(geo, /deliveryTile: true/);
+    assert.match(geo, /deliveryTile: displayCount > 0/);
+    assert.equal(geo.includes('recirculatedRows as typeof feedRowsToRender,\n                { deliveryTile'), false);
+    assert.match(nl, /"title": "Iets laten bezorgen\?"/);
+    assert.match(nl, /"body": "Verstuur een pakket of laat iets groots ophalen, zoals een kast\."/);
+    assert.match(nl, /"action": "Bezorging aanvragen"/);
+    assert.match(geo, /homeCheffDeliveryEnabled && !deliveryRequestOpen/);
+    assert.match(geo, /onClose=\{closeDeliveryRequest\}/);
+  });
+
   it('opens the existing standalone request and restores the feed from another view', () => {
     const results = between(geo, 'const feedResultsBlock', 'searchContextBarEl');
     assert.match(results, /deliveryRequestOpen \?/);
     assert.match(results, /data-marketplace-delivery-panel="1"/);
-    assert.match(results, /<StandaloneDeliveryRequest embedded \/>/);
+    assert.match(results, /<StandaloneDeliveryRequest embedded/);
     const select = between(geo, 'const selectFeedView', 'const handlePlaceInput');
     assert.match(select, /setDeliveryRequestOpen\(false\)/);
     assert.match(select, /searchParams\.delete\("bezorging"\)/);
