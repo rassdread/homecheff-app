@@ -267,10 +267,21 @@ export function resolvePublicAvailabilityBadge(params: {
   labelNl: string;
   labelEn: string;
 } {
+  if (params.temporaryOffline || params.isActive === false) {
+    return {
+      code: 'UNAVAILABLE',
+      labelNl: 'Niet beschikbaar',
+      labelEn: 'Unavailable',
+    };
+  }
+  // An open roster can still take a manual confirmation request while the
+  // courier is offline. Only an automatic mode that fails its own checks
+  // is actually unable to accept.
+  const automatic = params.acceptanceMode === ACCEPTANCE_MODE_AUTO;
   if (
-    params.temporaryOffline ||
-    params.isActive === false ||
-    params.isOnline === false
+    params.isOnline === false &&
+    automatic &&
+    params.autoConfirmOk === false
   ) {
     return {
       code: 'UNAVAILABLE',
@@ -278,10 +289,14 @@ export function resolvePublicAvailabilityBadge(params: {
       labelEn: 'Unavailable',
     };
   }
-  if (
-    params.acceptanceMode === ACCEPTANCE_MODE_AUTO &&
-    params.autoConfirmOk !== false
-  ) {
+  if (params.isOnline === false && !automatic && params.acceptanceMode !== ACCEPTANCE_MODE_MANUAL) {
+    return {
+      code: 'UNAVAILABLE',
+      labelNl: 'Niet beschikbaar',
+      labelEn: 'Unavailable',
+    };
+  }
+  if (automatic && params.autoConfirmOk !== false) {
     return {
       code: 'DIRECT_BOOKABLE',
       labelNl: 'Direct boekbaar',

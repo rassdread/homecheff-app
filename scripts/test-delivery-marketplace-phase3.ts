@@ -152,6 +152,23 @@ test('public badges map acceptance modes', () => {
     }).code,
     'UNAVAILABLE'
   );
+  assert.equal(
+    resolvePublicAvailabilityBadge({
+      acceptanceMode: ACCEPTANCE_MODE_MANUAL,
+      isActive: true,
+      isOnline: false,
+    }).labelNl,
+    'Handmatige bevestiging'
+  );
+  assert.equal(
+    resolvePublicAvailabilityBadge({
+      acceptanceMode: ACCEPTANCE_MODE_AUTO,
+      isActive: true,
+      isOnline: false,
+      autoConfirmOk: false,
+    }).code,
+    'UNAVAILABLE'
+  );
 });
 
 test('DelivererSelector is wired into checkout page', () => {

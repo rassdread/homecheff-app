@@ -621,6 +621,10 @@ describe('checkout reservation safety', () => {
   it('TEST_22 Dutch and English reservation copy is exact', () => {
     assert.equal(RESERVATION_COPY.nl.reserved, 'Product tijdelijk gereserveerd.');
     assert.equal(
+      RESERVATION_COPY.nl.needsDeliveryOption,
+      'Het product blijft gereserveerd. Kies nog een geldige bezorgoptie.',
+    );
+    assert.equal(
       RESERVATION_COPY.nl.accepted,
       'Bezorger heeft bevestigd. Rond je betaling af.',
     );

@@ -30,6 +30,8 @@ export type SellerStockLabel = 'AVAILABLE' | 'TEMPORARILY_RESERVED' | 'SOLD';
 export const RESERVATION_COPY = {
   nl: {
     reserved: 'Product tijdelijk gereserveerd.',
+    needsDeliveryOption:
+      'Het product blijft gereserveerd. Kies nog een geldige bezorgoptie.',
     accepted: 'Bezorger heeft bevestigd. Rond je betaling af.',
     rejected: 'Deze bezorger is niet beschikbaar. Kies een andere bezorgoptie.',
     expired:
@@ -37,6 +39,8 @@ export const RESERVATION_COPY = {
   },
   en: {
     reserved: 'Product temporarily reserved.',
+    needsDeliveryOption:
+      'The product stays reserved. Choose a valid delivery option.',
     accepted: 'Courier confirmed. Complete your payment.',
     rejected: 'This courier is not available. Choose another delivery option.',
     expired:

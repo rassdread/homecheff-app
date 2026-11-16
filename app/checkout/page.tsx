@@ -1814,6 +1814,14 @@ export default function CheckoutPage() {
                               : ''}
                           </p>
                         )}
+                        {reservationPhase === 'AWAITING_COURIER' &&
+                          reservationRemainingMs !== 0 &&
+                          !selectedDeliverer &&
+                          deliveryQuoteCents == null && (
+                          <p className="text-sm text-amber-900">
+                            {reservationCopy.needsDeliveryOption}
+                          </p>
+                        )}
                         {bookingStatus === 'AUTO_CONFIRMED' && (
                           <p className="text-sm text-green-700 font-medium">
                             {reservationCopy.accepted}
