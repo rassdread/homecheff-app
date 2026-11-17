@@ -435,7 +435,7 @@ export function CourierVehicleEditor({
 }
 
 function keptReference(
-  referenceId: string | null,
+  referenceId: string | null | undefined,
   bodyModels: VehicleReference[],
   carrying: CourierVehicle['carrying'],
   provider: CarryingProvider | null,
