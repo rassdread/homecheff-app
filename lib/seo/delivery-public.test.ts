@@ -25,7 +25,10 @@ test('cookieless delivery pages follow the URL language', () => {
 test('public delivery pages are reachable pairs and private screens stay out of the sitemap', () => {
   const sitemap = readFileSync('lib/seo/sitemapXml.ts', 'utf8');
   const robots = readFileSync('app/robots.ts', 'utf8');
-  for (const path of Object.values(COURIER_PUBLIC_PATHS).concat(Object.values(CUSTOMER_PUBLIC_PATHS))) {
+  for (const path of [
+    ...Object.values(COURIER_PUBLIC_PATHS),
+    ...Object.values(CUSTOMER_PUBLIC_PATHS),
+  ]) {
     assert.equal(sitemap.includes(`"${path}"`), true, path);
     assert.equal(robots.includes(path), false, path);
   }
