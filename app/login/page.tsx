@@ -26,6 +26,7 @@ import { useAndroidBridgePresent } from "@/lib/native/useAndroidBridgePresent";
 import { useGoogleLoginUiMode } from "@/lib/native/useGoogleLoginUiMode";
 import { useGoogleLoginUiResolved } from "@/lib/native/useGoogleLoginUiResolved";
 import { NativeGoogleSignInButton } from "@/components/auth/NativeGoogleSignInButton";
+import { GOOGLE_ACCOUNT_CHOOSER_PARAMS } from "@/lib/auth/google-account-chooser";
 import { logGoogleLoginDiag } from "@/lib/auth/google-login-diagnostics";
 
 /**
@@ -98,17 +99,9 @@ function LoginForm() {
         : '/';
   const oauthError = searchParams?.get('error');
   const prefillEmail = searchParams?.get('email');
-  /** SP.2B.3 — when arriving from SSO switch / interactive IdP login */
-  const ssoInteraction = searchParams?.get('ssoInteraction');
-  const oauthPrompt = searchParams?.get('prompt');
+  /** SP.2B.3 — one-choice IdP: product already chose Google. */
   const ssoIntent = searchParams?.get('intent');
   const autoGoogle = searchParams?.get('autoGoogle') === '1' || ssoIntent === 'google';
-  const preferGoogleAccountPicker =
-    oauthPrompt === 'select_account' ||
-    ssoInteraction === 'select_account' ||
-    ssoInteraction === 'login' ||
-    ssoInteraction === 'claim' ||
-    autoGoogle;
 
   // Native app: standaard aan laten staan (geen “onthoud mij”-UI); sessie voelt persistent.
   useEffect(() => {
@@ -551,21 +544,17 @@ function LoginForm() {
       if (provider === "google") {
         logGoogleLoginDiag("google_login_web_start", {
           surface: "login",
-          ...(preferGoogleAccountPicker ? { prompt: "select_account" } : {}),
+          prompt: GOOGLE_ACCOUNT_CHOOSER_PARAMS.prompt,
         });
       }
 
-      const authorizationParams =
-        provider === "google" && preferGoogleAccountPicker
-          ? { prompt: "select_account" as const }
-          : undefined;
       await signIn(
         provider,
         {
           callbackUrl: buildSocialSuccessCallbackUrl(callbackUrl),
           redirect: true,
         },
-        authorizationParams,
+        provider === "google" ? GOOGLE_ACCOUNT_CHOOSER_PARAMS : undefined,
       );
     } catch (error) {
       if (provider === "google") {

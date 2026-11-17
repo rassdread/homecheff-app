@@ -30,6 +30,7 @@ import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import { useAndroidBridgePresent } from "@/lib/native/useAndroidBridgePresent";
 import { useGoogleLoginUiMode } from "@/lib/native/useGoogleLoginUiMode";
 import { useGoogleLoginUiResolved } from "@/lib/native/useGoogleLoginUiResolved";
+import { GOOGLE_ACCOUNT_CHOOSER_PARAMS } from "@/lib/auth/google-account-chooser";
 import { logGoogleLoginDiag } from "@/lib/auth/google-login-diagnostics";
 import {
   REGISTER_DRAFT_STORAGE_KEY,
@@ -664,12 +665,16 @@ function RegisterPageContent() {
         logGoogleLoginDiag("google_login_web_start", { surface: "register" });
       }
       markMetaRegisterIntent();
-      await signIn(provider, {
-        callbackUrl: buildSocialSuccessCallbackUrl(
-          searchParams?.get('callbackUrl') || searchParams?.get('returnUrl'),
-        ),
-        redirect: true,
-      });
+      await signIn(
+        provider,
+        {
+          callbackUrl: buildSocialSuccessCallbackUrl(
+            searchParams?.get('callbackUrl') || searchParams?.get('returnUrl'),
+          ),
+          redirect: true,
+        },
+        provider === "google" ? GOOGLE_ACCOUNT_CHOOSER_PARAMS : undefined,
+      );
     } catch (error) {
       if (provider === "google") {
         logGoogleLoginDiag("google_login_web_failed", { surface: "register" });

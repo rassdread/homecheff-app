@@ -14,6 +14,7 @@ import { trackLogin, trackRegistration } from '@/components/GoogleAnalytics';
 import { trackMetaCompleteRegistration } from '@/lib/meta/browser';
 import { logGoogleLoginDiag } from '@/lib/auth/google-login-diagnostics';
 import { parseGoogleSignInError } from '@/lib/auth/parse-google-sign-in-error';
+import { GOOGLE_ACCOUNT_CHOOSER_PARAMS } from '@/lib/auth/google-account-chooser';
 import { buildSocialSuccessCallbackUrl } from '@/lib/auth/post-auth-redirect';
 
 import {
@@ -150,10 +151,14 @@ export function NativeGoogleSignInButton({
     logGoogleLoginDiag('google_login_web_start', { preferNative });
     try {
       setRememberPreference(rememberMe);
-      await signIn('google', {
-        callbackUrl: socialSuccessUrl,
-        redirect: true,
-      });
+      await signIn(
+        'google',
+        {
+          callbackUrl: socialSuccessUrl,
+          redirect: true,
+        },
+        GOOGLE_ACCOUNT_CHOOSER_PARAMS,
+      );
       return true;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);

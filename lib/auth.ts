@@ -26,6 +26,7 @@ import {
   previewGoogleOAuthBlockReason,
   resolvePreviewGoogleOAuthClient,
 } from "./auth/preview-google-oauth";
+import { GOOGLE_ACCOUNT_CHOOSER_PARAMS } from "./auth/google-account-chooser";
 import { NEXTAUTH_SESSION_COOKIE_NAME } from "./auth/session-cookie-name";
 import { withPrismaRetry } from "./auth/prisma-retry";
 import { sanitizePostAuthRelativeUrl } from "./auth/post-auth-redirect";
@@ -124,6 +125,7 @@ export const authOptions: NextAuthOptions = {
             authorization: {
               params: {
                 scope: "openid email profile",
+                ...GOOGLE_ACCOUNT_CHOOSER_PARAMS,
               },
             },
             profile(profile) {
