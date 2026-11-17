@@ -75,6 +75,10 @@ assert.match(hreflangHub['en-US'], /\/careers$/);
 assert.equal(hreflangHub['en-US'], hreflangHub['x-default']);
 
 assert.match(nav, /careersPath\('hub', language\)/);
+assert.doesNotMatch(
+  nav,
+  /!workspaceHeader \? \(\s*<Link[\s\S]{0,280}data-hc-public-careers-nav/,
+);
 assert.match(nav, /data-hc-public-careers-nav/);
 assert.doesNotMatch(nav, /\{user \? \(\s*<Link\s+href=\{PUBLIC_CAREERS_PATH\}/);
 assert.match(nav, /PUBLIC_EARN_CHILD_LINKS\.map/);

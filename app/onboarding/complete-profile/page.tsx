@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
+  completeProfileDestination,
   fetchOnboardingFlags,
   needsProfileOnboardingFromFlags,
   onboardingFlagsFromSessionUser,
@@ -31,6 +32,14 @@ export default function CompleteProfilePage() {
   const finishingRef = useRef(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || window.location.hash !== '#voorwaarden') return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById('voorwaarden')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
     if (status === 'loading') return;
     if (status === 'unauthenticated') {
       router.replace('/login?callbackUrl=/onboarding/complete-profile');
@@ -50,13 +59,29 @@ export default function CompleteProfilePage() {
         flags = await fetchOnboardingFlags();
       }
       const resolved = flags ?? onboardingFlagsFromSessionUser(u);
+      const stay = completeProfileDestination({
+        needsOnboarding: needsProfileOnboardingFromFlags(resolved),
+        termsAccepted: resolved.termsAccepted,
+        hash: window.location.hash,
+        finishing: finishingRef.current,
+      });
+      if (stay == null && !needsProfileOnboardingFromFlags(resolved)) {
+        return;
+      }
       if (!needsProfileOnboardingFromFlags(resolved)) {
-        if (finishingRef.current) return;
         const intentUrl = consumeAndResolvePostAuthUrl({
           username: u.username,
           socialOnboardingCompleted: true,
         });
-        router.replace(intentUrl || '/');
+        router.replace(
+          completeProfileDestination({
+            needsOnboarding: false,
+            termsAccepted: resolved.termsAccepted,
+            hash: window.location.hash,
+            finishing: finishingRef.current,
+            intentUrl,
+          }) || '/',
+        );
         return;
       }
       trackOnboardingEvent('ONBOARDING_STARTED', { surface: 'complete_profile' });
@@ -156,7 +181,7 @@ export default function CompleteProfilePage() {
             />
             <p className="mt-1 text-xs text-slate-500">{t('register.usernamePublicHandleHint')}</p>
           </div>
-          <label className="flex items-start gap-2 text-sm text-slate-700">
+          <label id="voorwaarden" className="flex scroll-mt-28 items-start gap-2 text-sm text-slate-700">
             <input
               type="checkbox"
               checked={acceptTerms}

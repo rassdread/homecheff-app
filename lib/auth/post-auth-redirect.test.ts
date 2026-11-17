@@ -4,10 +4,12 @@ import { describe, it } from 'node:test';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  completeProfileDestination,
   needsProfileOnboardingFromFlags,
   pathAfterMinimalProfile,
   resolvePathAfterSocialAuth,
 } from './post-auth-redirect';
+import { parseAndValidateDeliverySignupFields } from '@/lib/delivery/delivery-signup-validation';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -34,6 +36,67 @@ describe('path after the required profile gate', () => {
   it('rejects an external redirect', () => {
     assert.equal(pathAfterMinimalProfile('https://example.com'), '/');
     assert.equal(pathAfterMinimalProfile('//evil.example'), '/');
+  });
+});
+
+describe('open terms stay on #voorwaarden', () => {
+  const finished = { needsOnboarding: false, hash: '#voorwaarden' };
+
+  it('keeps a finished profile with open terms on the section, including a fresh visit', () => {
+    assert.equal(
+      completeProfileDestination({ ...finished, termsAccepted: false }),
+      null,
+    );
+    assert.equal(
+      completeProfileDestination({ ...finished, termsAccepted: false, intentUrl: '/sell/new' }),
+      null,
+    );
+  });
+
+  it('still redirects someone who already accepted the terms', () => {
+    assert.equal(
+      completeProfileDestination({ ...finished, termsAccepted: true }),
+      '/',
+    );
+    assert.equal(
+      completeProfileDestination({
+        ...finished,
+        termsAccepted: true,
+        intentUrl: '/messages',
+      }),
+      '/messages',
+    );
+  });
+
+  it('does not accept terms while deciding to stay', () => {
+    const page = readFileSync(join(root, 'app/onboarding/complete-profile/page.tsx'), 'utf8');
+    assert.match(page, /completeProfileDestination\(/);
+    assert.match(page, /window\.location\.hash !== '#voorwaarden'/);
+    assert.match(page, /id="voorwaarden"/);
+    assert.doesNotMatch(
+      page.slice(0, page.indexOf('handleSubmit')),
+      /acceptTerms:\s*true/,
+    );
+  });
+});
+
+describe('courier date of birth stays the submitted date', () => {
+  it('stores the submitted birth date instead of a separately typed age', () => {
+    const parsed = parseAndValidateDeliverySignupFields(
+      {
+        age: 40,
+        dateOfBirth: '1992-04-03',
+        transportation: ['BIKE'],
+        preferredRadius: 8,
+        maxDistance: 15,
+        acceptDeliveryAgreement: true,
+      },
+      { requireAccountFields: false },
+    );
+    assert.equal(parsed.ok, true);
+    if (!parsed.ok) return;
+    assert.equal(parsed.data.dateOfBirth?.toISOString().slice(0, 10), '1992-04-03');
+    assert.notEqual(parsed.data.age, 40);
   });
 });
 

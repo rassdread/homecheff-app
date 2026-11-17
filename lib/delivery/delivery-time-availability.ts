@@ -47,6 +47,13 @@ const SLOT_HOURS: Record<string, { start: number; end: number }> = {
   evening: { start: 18, end: 23 },
 };
 
+const DAY_SPECIFIC_SLOT =
+  /^(maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag)@(\d{2}:\d{2})-(\d{2}:\d{2})$/;
+
+export function hasDaySpecificSlots(slots: string[] | null | undefined): boolean {
+  return (slots ?? []).some((slot) => DAY_SPECIFIC_SLOT.test(slot.trim().toLowerCase()));
+}
+
 const EN_TO_NL: Record<string, string> = {
   monday: 'maandag',
   tuesday: 'dinsdag',
@@ -183,17 +190,34 @@ function toDate(value: Date | string | null | undefined): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-export function scheduledWindowsMinutes(profile: DeliveryScheduleProfile): Array<{
+export function scheduledWindowsMinutes(
+  profile: DeliveryScheduleProfile,
+  weekday?: string | null,
+): Array<{
   start: number;
   end: number;
 }> {
+  const slots = profile.availableTimeSlots ?? [];
+  if (hasDaySpecificSlots(slots)) {
+    const day = weekday ? normalizeDeliveryWeekday(weekday) : null;
+    if (!day) return [];
+    const windows: Array<{ start: number; end: number }> = [];
+    for (const slot of slots) {
+      const match = DAY_SPECIFIC_SLOT.exec(slot.trim().toLowerCase());
+      if (!match || match[1] !== day) continue;
+      const start = parseHmToMinutes(match[2]);
+      const end = parseHmToMinutes(match[3]);
+      if (start != null && end != null && end > start) windows.push({ start, end });
+    }
+    return windows;
+  }
+
   const windows: Array<{ start: number; end: number }> = [];
   const workStart = parseHmToMinutes(profile.workStartTime);
   const workEnd = parseHmToMinutes(profile.workEndTime);
   if (workStart != null && workEnd != null && workEnd > workStart) {
     windows.push({ start: workStart, end: workEnd });
   }
-  const slots = profile.availableTimeSlots ?? [];
   for (const slot of slots) {
     const key = slot.trim().toLowerCase();
     const mapped = SLOT_HOURS[key];
@@ -201,7 +225,7 @@ export function scheduledWindowsMinutes(profile: DeliveryScheduleProfile): Array
       windows.push({ start: mapped.start * 60, end: mapped.end * 60 });
       continue;
     }
-    if (slot.includes('-')) {
+    if (slot.includes('-') && !slot.includes('@')) {
       const [a, b] = slot.split('-');
       const start = parseHmToMinutes(a) ?? Number.parseInt(a, 10) * 60;
       const end = parseHmToMinutes(b) ?? Number.parseInt(b, 10) * 60;
@@ -211,6 +235,27 @@ export function scheduledWindowsMinutes(profile: DeliveryScheduleProfile): Array
     }
   }
   return windows;
+}
+
+export function storedPickupWindowLabels(profile: DeliveryScheduleProfile): string[] {
+  const slots = profile.availableTimeSlots ?? [];
+  if (hasDaySpecificSlots(slots)) {
+    return slots.flatMap((slot) => {
+      const match = DAY_SPECIFIC_SLOT.exec(slot.trim().toLowerCase());
+      if (!match) return [];
+      return [`${match[1]} ${match[2]}–${match[3]}`];
+    });
+  }
+  const days = (profile.availableDays ?? [])
+    .map((day) => normalizeDeliveryWeekday(String(day)))
+    .filter((day): day is string => Boolean(day));
+  const windows = scheduledWindowsMinutes(profile);
+  return days.flatMap((day) =>
+    windows.map(
+      (window) =>
+        `${day} ${String(Math.floor(window.start / 60)).padStart(2, '0')}:${String(window.start % 60).padStart(2, '0')}–${String(Math.floor(window.end / 60)).padStart(2, '0')}:${String(window.end % 60).padStart(2, '0')}`,
+    ),
+  );
 }
 
 export function isWithinScheduledAvailability(
@@ -227,8 +272,11 @@ export function isWithinScheduledAvailability(
     return { active: false, untilMinutes: null };
   }
   const minutes = minutesNowInTimeZone(now, timeZone);
-  const windows = scheduledWindowsMinutes(profile);
+  const windows = scheduledWindowsMinutes(profile, today);
   if (windows.length === 0) {
+    if (hasDaySpecificSlots(profile.availableTimeSlots)) {
+      return { active: false, untilMinutes: null };
+    }
     if (days.length > 0) return { active: true, untilMinutes: 23 * 60 + 59 };
     return { active: false, untilMinutes: null };
   }
@@ -276,7 +324,8 @@ export function nextScheduledAt(
       .map((d) => normalizeDeliveryWeekday(String(d)))
       .filter((d): d is string => Boolean(d));
     if (days.length > 0 && !days.includes(day)) continue;
-    const windows = scheduledWindowsMinutes(profile);
+    const windows = scheduledWindowsMinutes(profile, day);
+    if (hasDaySpecificSlots(profile.availableTimeSlots) && windows.length === 0) continue;
     const minutes = addDays === 0 ? minutesNowInTimeZone(now, timeZone) : 0;
     const start =
       windows.length === 0

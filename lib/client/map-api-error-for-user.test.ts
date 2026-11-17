@@ -83,7 +83,7 @@ describe('userCopyKeysForMissingRequirements', () => {
     ]);
     assert.ok(copy);
     assert.equal(copy!.ctaKey, 'accountRequirementsUx.termsAccepted.cta');
-    assert.equal(copy!.actionHref, '/profile');
+    assert.equal(copy!.actionHref, '/onboarding/complete-profile#voorwaarden');
   });
 
   it('maps stripe to onboard action kind', () => {

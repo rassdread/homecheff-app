@@ -39,6 +39,33 @@ export {
   DELIVERY_SIGNUP_NL,
 } from '@/lib/delivery/delivery-signup-validation';
 
+async function persistSignupVehicles(
+  tx: Prisma.TransactionClient,
+  deliveryProfileId: string,
+  data: ParsedDeliverySignup,
+) {
+  if (data.vehicles.length === 0) return;
+  const existing = await tx.deliveryVehicle.count({ where: { deliveryProfileId } });
+  if (existing > 0) return;
+  await tx.deliveryVehicle.createMany({
+    data: data.vehicles.map((vehicle, index) => ({
+      deliveryProfileId,
+      family: vehicle.family,
+      variant: vehicle.variant,
+      referenceId: vehicle.referenceId ?? null,
+      carrying: vehicle.carrying,
+      carryingProvider: vehicle.carryingProvider,
+      features: vehicle.features,
+      maxLengthCm: vehicle.maxLengthCm,
+      maxWidthCm: vehicle.maxWidthCm,
+      maxHeightCm: vehicle.maxHeightCm,
+      maxWeightKg: vehicle.maxWeightKg,
+      capacityStatus: vehicle.capacityStatus,
+      sortOrder: index,
+    })),
+  });
+}
+
 function profileCreateData(
   userId: string,
   data: ParsedDeliverySignup
@@ -46,6 +73,8 @@ function profileCreateData(
   return {
     user: { connect: { id: userId } },
     age: data.age,
+    companyDisplayName:
+      data.providerType === 'DELIVERY_BUSINESS' ? data.companyName : null,
     transportation: data.transportation,
     maxDistance: data.maxDistance,
     preferredRadius: data.preferredRadius,
@@ -148,13 +177,14 @@ async function completeForExistingUser(
       age: true,
       isActive: true,
       providerType: true,
+      companyDisplayName: true,
     },
   });
 
   if (existingProfile) {
     const recorded = await prisma.deliveryProfile.findUnique({
       where: { id: existingProfile.id },
-      select: { deliveryAgreementAcceptedAt: true },
+      select: { deliveryAgreementAcceptedAt: true, companyDisplayName: true },
     });
     if (!recorded?.deliveryAgreementAcceptedAt && data.acceptDeliveryAgreement) {
       await prisma.deliveryProfile.update({
@@ -165,6 +195,18 @@ async function completeForExistingUser(
         deliveryProfileId: existingProfile.id,
         userId: user.id,
         language: 'nl',
+      });
+    }
+    if (!recorded?.companyDisplayName?.trim() && data.companyName) {
+      await prisma.deliveryProfile.update({
+        where: { id: existingProfile.id },
+        data: { companyDisplayName: data.companyName },
+      });
+    }
+    if (!user.dateOfBirth && data.dateOfBirth) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { dateOfBirth: data.dateOfBirth },
       });
     }
     return successPayload({
@@ -198,12 +240,18 @@ async function completeForExistingUser(
           userId: user.id,
           language: 'nl',
         });
+        await persistSignupVehicles(tx, deliveryProfile.id, data);
 
         const business = await ensureBusinessForUser(tx, user.id, data);
 
         const updatedUser = await tx.user.update({
           where: { id: user.id },
-          data: marketplaceUserPatchForDeliveryProfile(user.role, data.contactPhone),
+          data: {
+            ...marketplaceUserPatchForDeliveryProfile(user.role, data.contactPhone),
+            ...(!user.dateOfBirth && data.dateOfBirth
+              ? { dateOfBirth: data.dateOfBirth }
+              : {}),
+          },
           select: {
             id: true,
             name: true,
@@ -302,7 +350,7 @@ export async function runDeliverySignup(params: {
 
   const ageGate = assertCommercialCourierAgeForActivation({
     claimedAge: data.age,
-    dateOfBirth: null,
+    dateOfBirth: data.dateOfBirth,
   });
   if (!ageGate.ok) {
     const body = delivererAcceptDenialResponse(ageGate);
@@ -417,6 +465,7 @@ export async function runDeliverySignup(params: {
           buyerRoles: [],
           ...(data.contactPhone ? { phoneNumber: data.contactPhone } : {}),
           ...(data.homeAddress ? { address: data.homeAddress } : {}),
+          ...(data.dateOfBirth ? { dateOfBirth: data.dateOfBirth } : {}),
         },
       });
 
@@ -434,6 +483,7 @@ export async function runDeliverySignup(params: {
         userId: user.id,
         language: 'nl',
       });
+      await persistSignupVehicles(tx, deliveryProfile.id, data);
 
       const business = await ensureBusinessForUser(tx, user.id, data);
 

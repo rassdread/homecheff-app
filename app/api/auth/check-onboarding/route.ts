@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
       select: {
         username: true,
         socialOnboardingCompleted: true,
+        termsAccepted: true,
       }
     });
 
@@ -31,6 +32,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       hasTempUsername,
       onboardingCompleted,
+      termsAccepted: dbUser.termsAccepted === true,
       username: dbUser.username
     });
   } catch (error) {

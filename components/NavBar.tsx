@@ -516,7 +516,7 @@ export default function NavBar() {
               <span className="whitespace-nowrap">{t('navbar.home')}</span>
             </Link>
             ) : null}
-            {!quietOnboarding && !workspaceHeader ? (
+            {!quietOnboarding ? (
             <Link
               href={careersHref}
               prefetch={false}

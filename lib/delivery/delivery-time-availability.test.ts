@@ -4,8 +4,10 @@ import {
   DELIVERY_MARKET_TIMEZONE,
   endOfDayUtc,
   isTemporaryOnlineOverrideActive,
+  isWithinScheduledAvailability,
   resolveDeliveryTimeAvailability,
   resolveOnlineUntil,
+  storedPickupWindowLabels,
   zonedLocalToUtc,
 } from '@/lib/delivery/delivery-time-availability';
 import {
@@ -162,5 +164,51 @@ describe('delivery temporary online vs scheduled availability', () => {
     );
     assert.equal(notice?.ctaLabelNl, 'Bezorgtarieven instellen');
     assert.equal(isGenericProfileWarning(notice?.titleNl), false);
+  });
+});
+
+describe('per-day courier windows', () => {
+  const splitDay = {
+    availableDays: ['maandag', 'donderdag'],
+    availableTimeSlots: [
+      'maandag@09:00-12:00',
+      'maandag@14:00-17:00',
+      'donderdag@14:00-18:30',
+    ],
+    workStartTime: null,
+    workEndTime: null,
+    temporaryOffline: false,
+  };
+
+  it('is available Monday at 10:00, not at 13:00, and not on Tuesday', () => {
+    const mondayMorning = zonedLocalToUtc('2026-09-14T10:00:00', DELIVERY_MARKET_TIMEZONE)!;
+    const mondayGap = zonedLocalToUtc('2026-09-14T13:00:00', DELIVERY_MARKET_TIMEZONE)!;
+    const tuesday = zonedLocalToUtc('2026-09-15T10:00:00', DELIVERY_MARKET_TIMEZONE)!;
+    assert.equal(isWithinScheduledAvailability(splitDay, mondayMorning).active, true);
+    assert.equal(isWithinScheduledAvailability(splitDay, mondayGap).active, false);
+    assert.equal(isWithinScheduledAvailability(splitDay, tuesday).active, false);
+    assert.equal(
+      resolveDeliveryTimeAvailability(splitDay, tuesday).available,
+      false,
+    );
+  });
+
+  it('lists the stored windows and leaves Tuesday out', () => {
+    assert.deepEqual(storedPickupWindowLabels(splitDay), [
+      'maandag 09:00–12:00',
+      'maandag 14:00–17:00',
+      'donderdag 14:00–18:30',
+    ]);
+  });
+
+  it('keeps a legacy morning slot available inside its mapped hours', () => {
+    const now = zonedLocalToUtc('2026-09-14T11:00:00', DELIVERY_MARKET_TIMEZONE)!;
+    assert.equal(
+      isWithinScheduledAvailability(
+        { availableDays: ['maandag'], availableTimeSlots: ['morning'] },
+        now,
+      ).active,
+      true,
+    );
   });
 });

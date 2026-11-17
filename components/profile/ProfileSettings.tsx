@@ -77,7 +77,11 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
   ({ user, onSave, onEditStateChange, scrollToSection }, ref) => {
   const { t, language } = useTranslation();
   const en = language === 'en';
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(
+    scrollToSection === 'username' ||
+      scrollToSection === 'name' ||
+      scrollToSection === 'location',
+  );
   
   // Notify parent when edit state changes
   useEffect(() => {
@@ -85,12 +89,28 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
   }, [isEditing, onEditStateChange]);
 
   useEffect(() => {
-    if (scrollToSection !== 'roles') return;
-    const el = document.getElementById('settings-seller-roles');
-    if (!el) return;
-    window.requestAnimationFrame(() => {
+    const sectionId =
+      scrollToSection === 'roles'
+        ? 'settings-seller-roles'
+        : scrollToSection === 'username'
+          ? 'settings-username'
+          : scrollToSection === 'name'
+            ? 'settings-name'
+            : scrollToSection === 'location'
+              ? 'settings-location'
+              : null;
+    if (!sectionId) return;
+    const reveal = () => {
+      const el = document.getElementById(sectionId);
+      if (!el) return;
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+      const finePointer = window.matchMedia('(pointer: fine) and (min-width: 768px)').matches;
+      if (!finePointer) return;
+      const field = el.querySelector<HTMLElement>('input, textarea, select');
+      field?.focus({ preventScroll: true });
+    };
+    const frame = window.requestAnimationFrame(reveal);
+    return () => window.cancelAnimationFrame(frame);
   }, [scrollToSection]);
   interface AddressLookupState {
     isLookingUp: boolean;
@@ -565,11 +585,12 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
       <div className="space-y-6">
         {/* Basic Info */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div id="settings-name" className="scroll-mt-28">
+            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="settings-name-input">
               {t('profileSettings.fullName')}
             </label>
             <input
+              id="settings-name-input"
               type="text"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
@@ -577,11 +598,12 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div id="settings-username" className="scroll-mt-28">
+            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="settings-username-input">
               {t('profileSettings.username')}
             </label>
             <input
+              id="settings-username-input"
               type="text"
               value={formData.username}
               disabled={!isEditing || !canRenameUsername}
@@ -665,12 +687,13 @@ const ProfileSettings = forwardRef<ProfileSettingsRef, ProfileSettingsProps>(
         </div>
 
         {/* Location */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div id="settings-location" className="scroll-mt-28">
+          <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="settings-location-input">
             <MapPin className="w-4 h-4 inline mr-1" />
             {t('profileSettings.location')}
           </label>
           <input
+            id="settings-location-input"
             type="text"
             value={formData.place}
             onChange={(e) =>

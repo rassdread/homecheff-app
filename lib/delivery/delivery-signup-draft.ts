@@ -3,6 +3,7 @@
  * Password and other secrets are never written.
  */
 import { normalizeDeliveryWeekday } from '@/lib/delivery/delivery-time-availability';
+import { parseCourierVehicles, type CourierVehicle } from '@/lib/delivery/courier-vehicles';
 import type { DeliveryAddressParts } from '@/lib/delivery/delivery-registration-address';
 
 export const DELIVERY_SIGNUP_DRAFT_KEY = 'hc_delivery_signup_draft_v1';
@@ -19,6 +20,7 @@ export type DeliverySignupDraft = {
   username: string;
   age: number;
   transportation: string[];
+  vehicles: CourierVehicle[];
   availableDays: string[];
   availableTimeSlots: string[];
   bio: string;
@@ -83,8 +85,9 @@ export function sanitizeDeliverySignupDraft(raw: unknown, now = Date.now()): Del
     username: asString(value.username, 40),
     age: Number.isFinite(Number(value.age)) ? Number(value.age) : 18,
     transportation: Array.isArray(value.transportation)
-      ? value.transportation.filter((item): item is string => typeof item === 'string').slice(0, 4)
+      ? value.transportation.filter((item): item is string => typeof item === 'string').slice(0, 8)
       : [],
+    vehicles: parseCourierVehicles((value as { vehicles?: unknown }).vehicles) || [],
     availableDays: days,
     availableTimeSlots: slots,
     bio: asString(value.bio, 2000),

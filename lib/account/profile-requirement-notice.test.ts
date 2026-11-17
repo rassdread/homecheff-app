@@ -96,7 +96,7 @@ describe('profile requirements engine — exact missing reasons', () => {
     );
     assert.equal(result.notice?.titleNl, 'Kies een definitieve gebruikersnaam.');
     assert.equal(result.notice?.ctaLabelNl, 'Gebruikersnaam kiezen');
-    assert.equal(result.targetRoute, '/profile');
+    assert.equal(result.targetRoute, '/settings?tab=profile&section=username');
   });
 
   it('Stripe is not blocking for postItem', () => {

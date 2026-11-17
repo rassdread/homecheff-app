@@ -45,3 +45,28 @@ test('only offers real wall-clock times on the Amsterdam spring clock change', (
   const slots = suggestedPickupTimes(sunday, before, before, 3, 30, []);
   assert.deepEqual(slots, []); // The only Sunday in these eight dates has no 02:00 hour.
 });
+
+test('offers each stored window on the chosen days and skips a day that is off', () => {
+  const split = {
+    ...courier,
+    availableDays: ['maandag', 'donderdag'],
+    availableTimeSlots: ['maandag@09:00-12:00', 'maandag@14:00-17:00', 'donderdag@14:00-18:30'],
+    workStartTime: null,
+    workEndTime: null,
+    breakWindows: [],
+  };
+  const monday = new Date('2026-09-14T06:00:00Z');
+  const slots = suggestedPickupTimes(split, monday, monday, 2, 5, []);
+  const labels = slots.map((slot) =>
+    new Intl.DateTimeFormat('nl-NL', {
+      timeZone: 'Europe/Amsterdam',
+      weekday: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(slot)),
+  );
+  assert.ok(labels.some((label) => label.includes('09:00') && label.toLowerCase().includes('ma')));
+  assert.ok(labels.some((label) => label.includes('14:00') && label.toLowerCase().includes('ma')));
+  assert.ok(labels.some((label) => label.includes('14:00') && label.toLowerCase().includes('do')));
+  assert.equal(labels.some((label) => label.toLowerCase().includes('di')), false);
+});

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { Bike, MapPin, Clock, Users, CheckCircle, ArrowRight, User, Mail, Lock, Eye, EyeOff, FileText, X, Zap, Car } from 'lucide-react';
+import { MapPin, Users, CheckCircle, ArrowRight, User, Mail, Lock, Eye, EyeOff, FileText, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import DeliveryAgreementModal from '@/components/delivery/DeliveryAgreementModal';
@@ -25,6 +25,25 @@ import {
   consumeSameTabCredentialNavigation,
   markSameTabCredentialNavigation,
 } from '@/lib/auth/session-identity-channel';
+import DateOfBirthFields, {
+  emptyDateOfBirthParts,
+  isoFromParts,
+  partsFromIso,
+  type DateOfBirthParts,
+} from '@/components/account/DateOfBirthFields';
+import { calculateAgeFromDob } from '@/lib/delivery/delivery-age';
+import { CourierVehicleEditor } from '@/components/delivery/CourierVehicleEditor';
+import { CourierDayScheduleEditor } from '@/components/delivery/CourierDayScheduleEditor';
+import {
+  transportationModesForVehicles,
+  vehiclePublicLabel,
+  type CourierVehicle,
+} from '@/lib/delivery/courier-vehicles';
+import {
+  decodeDaySchedule,
+  encodeDaySchedule,
+  scheduleReady,
+} from '@/lib/delivery/day-schedule';
 
 interface DeliverySignupData {
   // Account creation
@@ -36,6 +55,7 @@ interface DeliverySignupData {
   // Delivery profile
   age: number;
   transportation: string[];
+  vehicles: CourierVehicle[];
   maxDistance: number;
   availableDays: string[];
   availableTimeSlots: string[];
@@ -88,6 +108,8 @@ export default function DeliverySignupPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [resumeLoginHint, setResumeLoginHint] = useState(false);
   const [submitLock, setSubmitLock] = useState(false);
+  const [dobParts, setDobParts] = useState<DateOfBirthParts>(emptyDateOfBirthParts);
+  const [lockedDob, setLockedDob] = useState<string | null>(null);
   const [emailValidation, setEmailValidation] = useState<ValidationState>({
     isValid: null,
     message: "",
@@ -103,6 +125,7 @@ export default function DeliverySignupPage() {
     // Delivery profile
     age: 18,
     transportation: [],
+    vehicles: [],
     maxDistance: 0,
     availableDays: [],
     availableTimeSlots: [],
@@ -133,12 +156,33 @@ export default function DeliverySignupPage() {
     contactPhone: '',
   });
 
-  const transportationOptions = [
-    { id: 'BIKE', label: t('deliverySignup.transportation.bike'), icon: <Bike className="w-5 h-5" />, maxRange: 5 },
-    { id: 'EBIKE', label: t('deliverySignup.transportation.ebike'), icon: <Zap className="w-5 h-5" />, maxRange: 10 },
-    { id: 'SCOOTER', label: t('deliverySignup.transportation.scooter'), icon: <Bike className="w-5 h-5" />, maxRange: 15 },
-    { id: 'CAR', label: t('deliverySignup.transportation.car'), icon: <Car className="w-5 h-5" />, maxRange: 25 }
-  ];
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    let cancelled = false;
+    void fetch('/api/profile/date-of-birth', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { dateOfBirth?: string } | null) => {
+        if (cancelled || typeof data?.dateOfBirth !== 'string') return;
+        const years = calculateAgeFromDob(data.dateOfBirth);
+        if (!years.ok) return;
+        setLockedDob(data.dateOfBirth);
+        setDobParts(partsFromIso(data.dateOfBirth));
+        setFormData((prev) => ({ ...prev, age: years.ageYears }));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [status]);
+
+  useEffect(() => {
+    if (lockedDob) return;
+    const iso = isoFromParts(dobParts);
+    if (!iso) return;
+    const years = calculateAgeFromDob(iso);
+    if (!years.ok) return;
+    setFormData((prev) => (prev.age === years.ageYears ? prev : { ...prev, age: years.ageYears }));
+  }, [dobParts, lockedDob]);
 
   const dayOptions = CANONICAL_DELIVERY_DAYS.map((id, index) => ({
     id,
@@ -155,37 +199,21 @@ export default function DeliverySignupPage() {
     ),
   }));
 
-  const timeSlotOptions = [
-    { id: 'morning', label: t('deliverySignup.timeSlots.morning') },
-    { id: 'afternoon', label: t('deliverySignup.timeSlots.afternoon') },
-    { id: 'evening', label: t('deliverySignup.timeSlots.evening') }
-  ];
-
-  const handleTransportationChange = (transport: string) => {
-    setFormData(prev => ({
-      ...prev,
-      transportation: prev.transportation.includes(transport)
-        ? prev.transportation.filter(t => t !== transport)
-        : [...prev.transportation, transport]
-    }));
-  };
-
   const handleDayChange = (day: string) => {
-    setFormData(prev => ({
-      ...prev,
-      availableDays: prev.availableDays.includes(day)
+    setFormData(prev => {
+      const availableDays = prev.availableDays.includes(day)
         ? prev.availableDays.filter(d => d !== day)
-        : [...prev.availableDays, day]
-    }));
-  };
-
-  const handleTimeSlotChange = (slot: string) => {
-    setFormData(prev => ({
-      ...prev,
-      availableTimeSlots: prev.availableTimeSlots.includes(slot)
-        ? prev.availableTimeSlots.filter(s => s !== slot)
-        : [...prev.availableTimeSlots, slot]
-    }));
+        : [...prev.availableDays, day];
+      const schedule = decodeDaySchedule(prev.availableTimeSlots, prev.availableDays);
+      if (availableDays.includes(day) && (schedule[day]?.length ?? 0) === 0) {
+        schedule[day] = [{ start: '09:00', end: '17:00' }];
+      }
+      return {
+        ...prev,
+        availableDays,
+        availableTimeSlots: encodeDaySchedule(availableDays, schedule),
+      };
+    });
   };
 
   // Email validatie functie
@@ -317,7 +345,9 @@ export default function DeliverySignupPage() {
       const homeAddress = buildHomeAddress();
       const sharedProfile = {
         age: formData.age,
+        ...(lockedDob ? {} : { dateOfBirth: isoFromParts(dobParts) }),
         transportation: formData.transportation,
+        vehicles: formData.vehicles,
         maxDistance: formData.maxDistance,
         availableDays: formData.availableDays,
         availableTimeSlots: formData.availableTimeSlots,
@@ -442,6 +472,7 @@ export default function DeliverySignupPage() {
         username: draft.username || prev.username,
         age: draft.age || prev.age,
         transportation: draft.transportation.length ? draft.transportation : prev.transportation,
+        vehicles: draft.vehicles.length ? draft.vehicles : prev.vehicles,
         availableDays: draft.availableDays,
         availableTimeSlots: draft.availableTimeSlots,
         bio: draft.bio,
@@ -490,6 +521,7 @@ export default function DeliverySignupPage() {
       username: formData.username,
       age: formData.age,
       transportation: formData.transportation,
+      vehicles: formData.vehicles,
       availableDays: formData.availableDays,
       availableTimeSlots: formData.availableTimeSlots,
       bio: formData.bio,
@@ -644,14 +676,17 @@ export default function DeliverySignupPage() {
           formData.password.length >= 6 &&
           /^[a-zA-Z0-9_]{3,20}$/.test(formData.username.trim())
         );
-      case 3:
-        return formData.age >= 18;
+      case 3: {
+        if (lockedDob) return formData.age >= 18;
+        const years = calculateAgeFromDob(isoFromParts(dobParts));
+        return years.ok && years.ageYears >= 18;
+      }
       case 4:
         return formData.transportation.length > 0;
       case 5:
         return formData.availableDays.length > 0;
       case 6:
-        return formData.availableTimeSlots.length > 0;
+        return scheduleReady(formData.availableDays, formData.availableTimeSlots);
       case 7:
         return (
           formData.preferredRadius >= 0.5 &&
@@ -904,30 +939,38 @@ export default function DeliverySignupPage() {
                 </div>
                 
                 <div className="space-y-4">
-                  <label className="block text-sm font-medium text-gray-700" htmlFor="delivery-age">
-                    {t('deliverySignup.howOld')}
-                  </label>
-                  <select
-                    id="delivery-age"
-                    value={formData.age}
-                    onChange={(e) => setFormData(prev => ({ ...prev, age: parseInt(e.target.value) }))}
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-brand focus:border-transparent"
-                  >
-                    {Array.from({ length: 82 }, (_, i) => i + 18).map(age => (
-                      <option key={age} value={age}>{age} {t('deliverySignup.yearsOld')}</option>
-                    ))}
-                  </select>
-                  <p className="text-sm font-medium text-gray-800">
-                    {t('deliverySignup.currentAge').replace('{age}', String(formData.age))}
+                  <p className="text-sm font-medium text-gray-800" id="leeftijd">
+                    Geboortedatum
                   </p>
-                  
-                  {formData.age < 18 && (
-                    <div className="bg-red-50 text-red-800 p-4 rounded-xl">
-                      <p className="text-sm">
-                        {t('deliverySignup.ageRequired')}
-                      </p>
-                    </div>
+                  {lockedDob ? (
+                    <p className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800">
+                      Je geboortedatum staat al op je account. Je hoeft die niet opnieuw in te vullen.
+                    </p>
+                  ) : (
+                    <DateOfBirthFields
+                      idPrefix="delivery-dob"
+                      value={dobParts}
+                      onChange={setDobParts}
+                    />
                   )}
+                  {(() => {
+                    const years = lockedDob
+                      ? calculateAgeFromDob(lockedDob)
+                      : calculateAgeFromDob(isoFromParts(dobParts));
+                    if (!years.ok) return null;
+                    if (years.ageYears < 18) {
+                      return (
+                        <div className="bg-red-50 text-red-800 p-4 rounded-xl">
+                          <p className="text-sm">{t('deliverySignup.ageRequired')}</p>
+                        </div>
+                      );
+                    }
+                    return (
+                      <p className="text-sm font-medium text-gray-800">
+                        {t('deliverySignup.currentAge').replace('{age}', String(years.ageYears))}
+                      </p>
+                    );
+                  })()}
                   <Button
                     onClick={nextStep}
                     className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 text-base"
@@ -945,24 +988,14 @@ export default function DeliverySignupPage() {
                 <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
                   {t('deliverySignup.howDeliver')}
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {transportationOptions.map((option) => (
-                    <button
-                      key={option.id}
-                      onClick={() => handleTransportationChange(option.id)}
-                      className={`p-4 rounded-xl border-2 transition-all ${
-                        formData.transportation.includes(option.id)
-                          ? 'border-primary-brand bg-primary-50 text-primary-brand'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        {option.icon}
-                        <span className="text-sm font-medium">{option.label}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                <CourierVehicleEditor
+                  vehicles={formData.vehicles}
+                  onChange={(next) => setFormData((prev) => ({
+                    ...prev,
+                    vehicles: next,
+                    transportation: transportationModesForVehicles(next),
+                  }))}
+                />
               </div>
             )}
 
@@ -997,24 +1030,13 @@ export default function DeliverySignupPage() {
                 <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
                   {t('deliverySignup.whichTimeSlots')}
                 </h3>
-                <div className="space-y-3">
-                  {timeSlotOptions.map((slot) => (
-                    <button
-                      key={slot.id}
-                      onClick={() => handleTimeSlotChange(slot.id)}
-                      className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
-                        formData.availableTimeSlots.includes(slot.id)
-                          ? 'border-primary-brand bg-primary-50 text-primary-brand'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Clock className="w-5 h-5" />
-                        <span className="font-medium">{slot.label}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                <CourierDayScheduleEditor
+                  days={formData.availableDays}
+                  slots={formData.availableTimeSlots}
+                  onSlotsChange={(availableTimeSlots) =>
+                    setFormData((prev) => ({ ...prev, availableTimeSlots }))
+                  }
+                />
               </div>
             )}
 
@@ -1179,9 +1201,9 @@ export default function DeliverySignupPage() {
                     <h4 className="font-semibold text-blue-900 mb-2">{t('deliverySignup.yourProfile')}:</h4>
                     <ul className="text-sm text-blue-800 space-y-1">
                       <li>• {formData.age} {t('deliverySignup.yearsOld')}</li>
-                      <li>• {t('deliverySignup.transportation')}: {formData.transportation.map(transport => 
-                        transportationOptions.find(opt => opt.id === transport)?.label
-                      ).join(', ')}</li>
+                      <li>• {t('deliverySignup.transportation')}: {formData.vehicles.length
+                        ? formData.vehicles.map((vehicle) => vehiclePublicLabel(vehicle)).join(', ')
+                        : formData.transportation.join(', ')}</li>
                       <li>• {t('deliverySignup.pickupRadius')}: {formData.preferredRadius} km</li>
                       <li>• {t('deliverySignup.transportDistance')}: {formData.maxDistance} km</li>
                       <li>• {t('deliverySignup.available')}: {formData.availableDays.map((id) => dayOptions.find((day) => day.id === id)?.label || id).join(', ')}</li>

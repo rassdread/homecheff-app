@@ -13,6 +13,7 @@ function pathSkipsUsernameBanner(pathname: string | null): boolean {
   if (pathname.startsWith('/auth/')) return true;
   if (pathname.startsWith('/verify-email')) return true;
   if (pathname.startsWith('/profile')) return true;
+  if (pathname.startsWith('/settings')) return true;
   if (pathname.startsWith('/onboarding/')) return true;
   if (pathname.startsWith('/affiliate')) return true;
   if (pathname.startsWith('/verdiensten')) return true;
@@ -35,7 +36,7 @@ export default function AccountFinalizeBanner() {
     <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-950">
       <p className="font-medium">{t('accountRequirementsGate.subtitleUsername')}</p>
       <Link
-        href="/profile"
+        href="/settings?tab=profile&section=username"
         className="mt-2 inline-block font-semibold text-emerald-800 underline underline-offset-2"
       >
         {t('accountRequirementsUx.username.cta')}

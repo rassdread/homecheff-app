@@ -85,7 +85,7 @@ export function buildDeliveryActivationChecklist(input: {
       id: 'companyDisplayName',
       labelNl: 'Vul een bedrijfsnaam in',
       labelEn: 'Enter the company name',
-      href: DELIVERY_SETTINGS_HREF,
+      href: `${DELIVERY_SETTINGS_HREF}#bedrijfsnaam`,
     });
   }
 

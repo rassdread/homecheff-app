@@ -171,7 +171,7 @@ export function mapDeliveryProfileToLane(
     titleNl: notice?.titleNl || 'Stel de ontbrekende bezorggegevens in.',
     bodyNl: notice?.bodyNl || (completion.ok ? '' : completion.message),
     ctaLabelNl: notice?.ctaLabelNl || 'Bezorginstellingen openen',
-    ctaHref: DELIVERY_SETTINGS,
+    ctaHref: notice?.targetRoute || DELIVERY_SETTINGS,
     showActionWarning: true,
   };
 }

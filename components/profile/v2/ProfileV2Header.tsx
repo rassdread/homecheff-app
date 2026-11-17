@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Calendar,
@@ -35,6 +35,8 @@ type Props = {
   onAvatarPreview?: (url: string) => void;
   onViewAanbod?: () => void;
   avatarPreviewUrl?: string | null;
+  /** Open the existing photo editor. Does not upload or replace a photo. */
+  openPhotoEditor?: boolean;
 };
 
 const ROLE_EMOJI: Record<string, string> = {
@@ -117,11 +119,20 @@ export default function ProfileV2Header({
   onAvatarPreview,
   onViewAanbod,
   avatarPreviewUrl,
+  openPhotoEditor = false,
 }: Props) {
   const { t, language } = useTranslation();
   const [photoEditorOpen, setPhotoEditorOpen] = useState(false);
   const { viewerIsOwner, user, stats, hcp, publicContact, ecosystemChipKeys } =
     ctx;
+  useEffect(() => {
+    if (!openPhotoEditor || !viewerIsOwner) return;
+    setPhotoEditorOpen(true);
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById('profile-photo')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [openPhotoEditor, viewerIsOwner]);
   const canEditPhoto = Boolean(viewerIsOwner && onPhotoChange);
   const displayName = getDisplayName(user);
   const avatarSrc =
@@ -167,7 +178,7 @@ export default function ProfileV2Header({
       <div className="hc-profile-v2-hero-body px-4 pb-6 pt-2 sm:px-6 sm:pt-3 xl:px-8 xl:pt-4">
         <div className="hc-profile-v2-hero-main">
           <div className="hc-profile-v2-avatar-column">
-            <div className="hc-profile-v2-avatar-overlap">
+            <div id="profile-photo" className="hc-profile-v2-avatar-overlap scroll-mt-28">
               <ProfileAvatar
                 src={avatarSrc}
                 alt={

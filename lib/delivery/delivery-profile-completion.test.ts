@@ -256,7 +256,7 @@ describe('action center delivery incomplete CTA', () => {
     assert.ok(incomplete);
     assert.equal(incomplete?.title, 'Vul je bezorgtarief in voordat je bezorgopdrachten kunt aannemen.');
     assert.equal(incomplete?.actionLabel, 'Bezorgtarief instellen');
-    assert.equal(incomplete?.actionHref, '/delivery/settings');
+    assert.equal(incomplete?.actionHref, '/delivery/settings#bezorgtarief');
     assert.equal(/Bezorgprofiel afronden|Rond je bezorgprofiel af|Profiel bijwerken/.test(incomplete?.title || ''), false);
   });
 

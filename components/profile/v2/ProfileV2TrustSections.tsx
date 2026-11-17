@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Clock, MapPin, Truck } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -180,6 +180,17 @@ export function ProfileV2TrustPhotoSections({ ctx }: { ctx: ProfileV2Context }) 
   const hasDelivery = Boolean(user.DeliveryProfile);
   const vehiclePhotos = normalizeVehiclePhotos(user.DeliveryProfile?.vehiclePhotos);
 
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.location.hash !== '#werkruimte-fotos') return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById('werkruimte-fotos')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
   if (activeSections.length === 0 && !hasDelivery) {
     return (
       <ProfileV2EmptyState
@@ -197,7 +208,7 @@ export function ProfileV2TrustPhotoSections({ ctx }: { ctx: ProfileV2Context }) 
   }
 
   return (
-    <div className="space-y-8">
+    <div id="werkruimte-fotos" className="scroll-mt-28 space-y-8">
       {activeSections.length > 0 ? (
         <div className="space-y-6">
           <div>

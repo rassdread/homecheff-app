@@ -9,7 +9,7 @@ import {
   parseAndValidateDeliverySignupFields,
   VALID_TRANSPORTATION_MODES,
 } from './delivery-signup-validation';
-import { COMMERCIAL_DELIVERY_MIN_AGE } from './delivery-age';
+import { calculateAgeFromDob, COMMERCIAL_DELIVERY_MIN_AGE } from './delivery-age';
 
 describe('delivery signup validation', () => {
   it('F: missing required fields → inline fieldErrors', () => {
@@ -124,10 +124,66 @@ describe('delivery signup validation', () => {
     ]);
     assert.deepEqual([...VALID_TRANSPORTATION_MODES].sort(), [
       'BIKE',
+      'BOX_TRUCK',
       'CAR',
       'EBIKE',
+      'ESTATE',
       'SCOOTER',
+      'TRAILER',
+      'VAN',
     ]);
+  });
+
+  it('uses a submitted date of birth and still accepts a claimed age when it is absent', () => {
+    const adult = parseAndValidateDeliverySignupFields(
+      {
+        age: 17,
+        dateOfBirth: '1990-01-15',
+        transportation: ['BIKE'],
+        preferredRadius: 8,
+        maxDistance: 15,
+        acceptDeliveryAgreement: true,
+      },
+      { requireAccountFields: false },
+    );
+    assert.equal(adult.ok, true);
+    if (!adult.ok) return;
+    const years = calculateAgeFromDob(adult.data.dateOfBirth!);
+    assert.equal(years.ok, true);
+    if (!years.ok) return;
+    assert.equal(adult.data.age, years.ageYears);
+    assert.ok(adult.data.age >= COMMERCIAL_DELIVERY_MIN_AGE);
+
+    const claimedOnly = parseAndValidateDeliverySignupFields(
+      {
+        age: 22,
+        transportation: ['BIKE'],
+        preferredRadius: 8,
+        maxDistance: 15,
+        acceptDeliveryAgreement: true,
+      },
+      { requireAccountFields: false },
+    );
+    assert.equal(claimedOnly.ok, true);
+    if (!claimedOnly.ok) return;
+    assert.equal(claimedOnly.data.dateOfBirth, null);
+    assert.equal(claimedOnly.data.age, 22);
+
+    const child = parseAndValidateDeliverySignupFields(
+      {
+        age: 30,
+        dateOfBirth: '2015-01-15',
+        transportation: ['BIKE'],
+        preferredRadius: 8,
+        maxDistance: 15,
+        acceptDeliveryAgreement: true,
+      },
+      { requireAccountFields: false },
+    );
+    assert.equal(child.ok, false);
+    if (child.ok) return;
+    assert.equal(child.result.code, 'UNDERAGE');
+    assert.ok(child.result.fieldErrors?.dateOfBirth);
   });
 
   it('existing-user path does not require account fields', () => {

@@ -602,7 +602,7 @@ function buildAffiliateActions(input: UserActionCenterInput): UserActionItem[] {
         'You have commission ready to pay out.',
       ),
       actionLabel: taskText(language, 'Bekijk uitbetaling', 'View payout'),
-      actionHref: AFFILIATE_HREF,
+      actionHref: '/affiliate/dashboard/verdiensten',
     });
   }
 
@@ -625,7 +625,7 @@ function buildAffiliateActions(input: UserActionCenterInput): UserActionItem[] {
         'Review your partner network and earnings.',
       ),
       actionLabel: taskText(language, 'Open partners', 'Open partners'),
-      actionHref: AFFILIATE_HREF,
+      actionHref: '/affiliate/dashboard/netwerk',
     });
   }
 

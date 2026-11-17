@@ -20,6 +20,10 @@ import ShiftNotificationSettings from './ShiftNotificationSettings';
 import AddSellerRolesSettings from './AddSellerRolesSettings';
 import HelpSettings from '@/components/onboarding/HelpSettings';
 import DateOfBirthSettingsCard from '@/components/account/DateOfBirthSettingsCard';
+import { CourierVehicleEditor } from '@/components/delivery/CourierVehicleEditor';
+import { CourierDayScheduleEditor } from '@/components/delivery/CourierDayScheduleEditor';
+import { decodeDaySchedule, encodeDaySchedule } from '@/lib/delivery/day-schedule';
+import type { CourierVehicle } from '@/lib/delivery/courier-vehicles';
 import { useTranslation } from '@/hooks/useTranslation';
 import { getCurrentLocation } from '@/lib/geolocation';
 import { DELIVERY_PROFILE_UPDATED_EVENT } from '@/lib/delivery/delivery-profile-canonical';
@@ -28,8 +32,7 @@ import {
   aggregateRequirementNotice,
   noticesForDeliveryMissing,
 } from '@/lib/account/profile-requirement-notice';
-import { CourierVehicleEditor } from '@/components/delivery/CourierVehicleEditor';
-import type { CourierVehicle, StoredCapacity } from '@/lib/delivery/courier-vehicles';
+import type { StoredCapacity } from '@/lib/delivery/courier-vehicles';
 
 interface DeliveryProfile {
   id: string;
@@ -46,6 +49,8 @@ interface DeliveryProfile {
   homeLat?: number | null;
   homeLng?: number | null;
   homeAddress?: string | null;
+  providerType?: string;
+  companyDisplayName?: string | null;
   isActive: boolean;
   pricingEnabled?: boolean;
   baseFeeCents?: number | null;
@@ -138,6 +143,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     availableDays: deliveryProfile.availableDays || [],
     availableTimeSlots: deliveryProfile.availableTimeSlots || [],
     bio: deliveryProfile.bio || '',
+    companyDisplayName: deliveryProfile.companyDisplayName || '',
     isActive: deliveryProfile.isActive || false,
     pricingEnabled: deliveryProfile.pricingEnabled ?? false,
     baseFeeEuro: centsToEuroInput(deliveryProfile.baseFeeCents),
@@ -170,7 +176,7 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     homeLng: deliveryProfile.homeLng ?? deliveryProfile.user?.lng ?? null as number | null,
     homeAddress: deliveryProfile.homeAddress || deliveryProfile.user?.place || '',
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -234,6 +240,10 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
       availableDays: (profile.availableDays as string[]) || [],
       availableTimeSlots: slots,
       bio: (profile.bio as string) || '',
+      companyDisplayName:
+        typeof profile.companyDisplayName === 'string'
+          ? profile.companyDisplayName
+          : prev.companyDisplayName,
       isActive: Boolean(profile.isActive),
       pricingEnabled: Boolean(profile.pricingEnabled),
       baseFeeEuro: centsToEuroInput(profile.baseFeeCents as number | null),
@@ -327,39 +337,6 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     };
   }, []);
 
-  const transportationOptions = [
-    {
-      id: 'BIKE',
-      label: t('delivery.transportation.bike', { defaultValue: 'Fiets' }),
-      icon: <Bike className="w-5 h-5" aria-hidden />,
-      maxRange: 10,
-    },
-    {
-      id: 'EBIKE',
-      label: t('delivery.transportation.ebike', { defaultValue: 'E-bike' }),
-      icon: <Bike className="w-5 h-5" aria-hidden />,
-      maxRange: 20,
-    },
-    {
-      id: 'SCOOTER',
-      label: t('delivery.transportation.scooter', { defaultValue: 'Scooter' }),
-      icon: <Navigation className="w-5 h-5" aria-hidden />,
-      maxRange: 30,
-    },
-    {
-      id: 'CAR',
-      label: t('delivery.transportation.car', { defaultValue: 'Auto' }),
-      icon: <Navigation className="w-5 h-5" aria-hidden />,
-      maxRange: 50,
-    },
-    {
-      id: 'VAN',
-      label: t('delivery.transportation.van', { defaultValue: 'Bestelbus' }),
-      icon: <Navigation className="w-5 h-5" aria-hidden />,
-      maxRange: 50,
-    },
-  ];
-
   const dayOptions = [
     { id: 'maandag', label: 'Maandag' },
     { id: 'dinsdag', label: 'Dinsdag' },
@@ -370,24 +347,6 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
     { id: 'zondag', label: 'Zondag' }
   ];
 
-  const timeSlotOptions = [
-    { id: 'morning', label: 'Ochtend (9:00-12:00)' },
-    { id: 'afternoon', label: 'Middag (12:00-17:00)' },
-    { id: 'evening', label: 'Avond (17:00-21:00)' }
-  ];
-
-  const handleTransportationChange = (transportId: string) => {
-    setFormData(prev => {
-      const newTransportation = prev.transportation.includes(transportId)
-        ? prev.transportation.filter(t => t !== transportId)
-        : [...prev.transportation, transportId];
-
-      return {
-        ...prev,
-        transportation: newTransportation,
-      };
-    });
-  };
 
   const handleSave = async (opts?: { continueAfter?: boolean }) => {
     if (saveLockRef.current || loading) return;
@@ -426,11 +385,11 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
         maxDeliveriesPerSlot: formData.maxDeliveriesPerSlot,
         preparationTimeMinutes: formData.preparationTimeMinutes,
         estimatedPickupDelayMinutes: formData.estimatedPickupDelayMinutes,
+        vehicles,
+        legacyCapacityAssigned: legacyAssigned,
         homeLat: formData.homeLat,
         homeLng: formData.homeLng,
         homeAddress: formData.homeAddress || null,
-        vehicles,
-        legacyCapacityAssigned: legacyAssigned,
         ...(formData.capacityDirty
           ? {
               vehicleCapacityStatus: formData.vehicleCapacityStatus,
@@ -440,6 +399,10 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
               maxWeightKg: formData.vehicleCapacityStatus.weight === 'set' ? Number(formData.maxWeightKg) : null,
             }
           : {}),
+        companyDisplayName:
+          deliveryProfile.providerType === 'DELIVERY_BUSINESS'
+            ? formData.companyDisplayName
+            : undefined,
       };
 
       const response = await fetch('/api/delivery/settings', {
@@ -525,6 +488,19 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
       setSaveError('Locatie kon niet worden opgehaald. Sta locatie toe of vul je adres in.');
     }
   };
+
+  useEffect(() => {
+    const id = window.location.hash.replace('#', '');
+    if (!id) return;
+    const frame = window.requestAnimationFrame(() => {
+      const el = document.getElementById(id);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const finePointer = window.matchMedia('(pointer: fine) and (min-width: 768px)').matches;
+      if (!finePointer) return;
+      el?.querySelector<HTMLElement>('input, textarea, select')?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -628,8 +604,28 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
             </div>
           </div>
 
+          {deliveryProfile.providerType === 'DELIVERY_BUSINESS' ? (
+            <div id="bedrijfsnaam" className="bg-white rounded-xl shadow-sm border p-6 scroll-mt-24">
+              <h2 className="text-xl font-semibold text-gray-900">Bedrijfsnaam</h2>
+              <p className="mt-1 text-sm text-gray-600">
+                Klanten zien deze naam bij je bezorgprofiel. Een al ingevulde naam hoef je niet opnieuw te bedenken.
+              </p>
+              <label className="mt-4 block text-sm font-medium text-gray-700" htmlFor="delivery-company-name">
+                Bedrijfsnaam
+              </label>
+              <input
+                id="delivery-company-name"
+                type="text"
+                value={formData.companyDisplayName}
+                onChange={(e) => setFormData((prev) => ({ ...prev, companyDisplayName: e.target.value }))}
+                className="mt-2 w-full rounded-xl border border-gray-300 px-3 py-2"
+                autoComplete="organization"
+              />
+            </div>
+          ) : null}
+
           {/* Transportation */}
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div id="vervoersmiddelen" className="bg-white rounded-xl shadow-sm border p-6 scroll-mt-24">
             <div className="flex items-center gap-3 mb-6">
               <Bike className="w-6 h-6 text-primary-600" />
               <h2 className="text-xl font-semibold text-gray-900">Vervoersmiddelen</h2>
@@ -1177,13 +1173,33 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Maximum bezorgafstand (km)
+                  <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-pickup-radius">
+                    Ophaalradius (km)
+                  </label>
+                  <input
+                    id="settings-pickup-radius"
+                    type="number"
+                    min="0.5"
+                    step="0.5"
+                    value={formData.preferredRadius}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        preferredRadius: Number(e.target.value) || 0,
+                      }))
+                    }
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-primary-brand focus:outline-none focus:ring-1 focus:ring-primary-brand"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="settings-max-distance">
+                    Maximale transportafstand (km)
                   </label>
                   <input
                     type="number"
                     min="0.5"
                     step="0.5"
+                    id="settings-max-distance"
                     value={formData.maxDistance}
                     disabled={formData.distanceSemanticsVersion !== 1}
                     onChange={(e) => {
@@ -1256,12 +1272,27 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                     <button
                       key={day.id}
                       onClick={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          availableDays: prev.availableDays.includes(day.id)
+                        setFormData(prev => {
+                          const availableDays = prev.availableDays.includes(day.id)
                             ? prev.availableDays.filter(d => d !== day.id)
-                            : [...prev.availableDays, day.id]
-                        }));
+                            : [...prev.availableDays, day.id];
+                          const schedule = decodeDaySchedule(
+                            prev.availableTimeSlots,
+                            prev.availableDays,
+                            prev.workStartTime,
+                            prev.workEndTime,
+                          );
+                          if (availableDays.includes(day.id) && (schedule[day.id]?.length ?? 0) === 0) {
+                            schedule[day.id] = [{ start: '09:00', end: '17:00' }];
+                          }
+                          return {
+                            ...prev,
+                            availableDays,
+                            availableTimeSlots: encodeDaySchedule(availableDays, schedule),
+                            workStartTime: '',
+                            workEndTime: '',
+                          };
+                        });
                       }}
                       className={`p-3 rounded-lg border transition-all ${
                         formData.availableDays.includes(day.id)
@@ -1275,33 +1306,20 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Tijdsloten
-                </label>
-                <div className="space-y-2">
-                  {timeSlotOptions.map((slot) => (
-                    <button
-                      key={slot.id}
-                      onClick={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          availableTimeSlots: prev.availableTimeSlots.includes(slot.id)
-                            ? prev.availableTimeSlots.filter(t => t !== slot.id)
-                            : [...prev.availableTimeSlots, slot.id]
-                        }));
-                      }}
-                      className={`w-full p-3 rounded-lg border transition-all text-left ${
-                        formData.availableTimeSlots.includes(slot.id)
-                          ? 'border-primary-brand bg-primary-50 text-primary-brand'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      {slot.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <CourierDayScheduleEditor
+                days={formData.availableDays}
+                slots={formData.availableTimeSlots}
+                workStartTime={formData.workStartTime}
+                workEndTime={formData.workEndTime}
+                onSlotsChange={(availableTimeSlots) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    availableTimeSlots,
+                    workStartTime: '',
+                    workEndTime: '',
+                  }))
+                }
+              />
             </div>
           </div>
 

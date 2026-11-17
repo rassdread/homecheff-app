@@ -1,7 +1,7 @@
 import { assertCourierBookableAt } from './standalone-availability';
 import type { ProviderAcceptanceProfile } from './provider-acceptance';
 import {
-  DELIVERY_MARKET_TIMEZONE, minutesNowInTimeZone, normalizeDeliveryWeekday,
+  DELIVERY_MARKET_TIMEZONE, hasDaySpecificSlots, minutesNowInTimeZone, normalizeDeliveryWeekday,
   parseHmToMinutes, scheduledWindowsMinutes, weekdayNlInTimeZone, zonedLocalToUtc,
 } from './delivery-time-availability';
 
@@ -32,9 +32,8 @@ export function suggestedPickupTimes(
 ): string[] {
   if (profile.temporaryOffline) return [];
   const days = (profile.availableDays ?? []).map(normalizeDeliveryWeekday);
-  const windows = scheduledWindowsMinutes(profile);
-  if (!windows.length && days.length) windows.push({ start: 0, end: 1440 });
-  if (!windows.length) return [];
+  const specific = hasDaySpecificSlots(profile.availableTimeSlots);
+  const globalWindows = specific ? [] : scheduledWindowsMinutes(profile);
   const firstDay = localDay.format(new Date(Math.max(now.getTime(), requested.getTime())));
   const date = new Date(firstDay + 'T12:00:00Z');
   const preferred = minutesNowInTimeZone(requested, DELIVERY_MARKET_TIMEZONE);
@@ -50,12 +49,18 @@ export function suggestedPickupTimes(
   const options: string[] = [];
   let shownDays = 0;
   for (let i = 0; i < 8 && shownDays < 3; i++, date.setUTCDate(date.getUTCDate() + 1)) {
-    if (days.length && !days.includes(weekdayNlInTimeZone(date, DELIVERY_MARKET_TIMEZONE))) continue;
+    const weekday = weekdayNlInTimeZone(date, DELIVERY_MARKET_TIMEZONE);
+    if (days.length && !days.includes(weekday)) continue;
+    const windows = specific ? scheduledWindowsMinutes(profile, weekday) : [...globalWindows];
+    if (!specific && !windows.length && days.length) windows.push({ start: 0, end: 1440 });
+    if (!windows.length) continue;
     const day = date.toISOString().slice(0, 10);
-    const starts = new Set<number>([preferred, ...breakEnds]);
-    for (const window of windows) {
-      starts.add(window.start);
-      for (let m = Math.ceil(window.start / 60) * 60; m < window.end && m < 1440; m += 60) starts.add(m);
+    const starts = new Set<number>(specific ? windows.map((window) => window.start) : [preferred, ...breakEnds]);
+    if (!specific) {
+      for (const window of windows) {
+        starts.add(window.start);
+        for (let m = Math.ceil(window.start / 60) * 60; m < window.end && m < 1440; m += 60) starts.add(m);
+      }
     }
     for (const instant of resumes) {
       if (!instant || !Number.isFinite(instant.getTime())) continue;

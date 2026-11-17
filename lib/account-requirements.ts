@@ -58,13 +58,13 @@ const MISSING_EMAIL: MissingRequirement = {
 const MISSING_USERNAME: MissingRequirement = {
   key: 'username',
   label: 'Kies een definitieve gebruikersnaam',
-  actionHref: '/profile',
+  actionHref: '/settings?tab=profile&section=username',
 };
 
 const MISSING_TERMS: MissingRequirement = {
   key: 'termsAccepted',
   label: 'Accepteer de algemene voorwaarden',
-  actionHref: '/profile',
+  actionHref: '/onboarding/complete-profile#voorwaarden',
 };
 
 /** UI opens seller-specific Connect Account Link; href is a safe fallback only. */

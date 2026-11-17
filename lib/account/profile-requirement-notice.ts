@@ -83,7 +83,7 @@ const ACCOUNT_CATALOG: Record<MissingRequirementKey, ProfileRequirementNotice> =
     bodyNl:
       'Een tijdelijke of ontbrekende gebruikersnaam is niet genoeg om actief deel te nemen op HomeCheff.',
     ctaLabelNl: 'Gebruikersnaam kiezen',
-    targetRoute: '/profile',
+    targetRoute: '/settings?tab=profile&section=username',
   },
   termsAccepted: {
     code: 'termsAccepted',
@@ -92,7 +92,7 @@ const ACCOUNT_CATALOG: Record<MissingRequirementKey, ProfileRequirementNotice> =
     titleNl: 'Accepteer de algemene voorwaarden.',
     bodyNl: 'Je moet de voorwaarden accepteren voordat je iets kunt aanbieden.',
     ctaLabelNl: 'Voorwaarden accepteren',
-    targetRoute: '/profile',
+    targetRoute: '/onboarding/complete-profile#voorwaarden',
   },
   stripeOnboarding: {
     code: 'stripeOnboarding',
@@ -117,7 +117,7 @@ const PROFILE_RECOMMENDED: Record<
     titleNl: 'Vul je naam in.',
     bodyNl: 'Met je naam herkennen anderen je sneller in de community.',
     ctaLabelNl: 'Naam invullen',
-    targetRoute: '/profile',
+    targetRoute: '/settings?tab=profile&section=name',
   },
   profilePhoto: {
     code: 'profilePhoto',
@@ -126,7 +126,7 @@ const PROFILE_RECOMMENDED: Record<
     titleNl: 'Voeg een profielfoto toe om je profiel compleet te maken.',
     bodyNl: 'Een foto helpt anderen je te herkennen. Je kunt zonder foto wel verder.',
     ctaLabelNl: 'Foto toevoegen',
-    targetRoute: '/profile',
+    targetRoute: '/profile?photo=1',
   },
   location: {
     code: 'location',
@@ -136,7 +136,7 @@ const PROFILE_RECOMMENDED: Record<
     bodyNl:
       'Met een woonplaats zien kopers wat er bij hen in de buurt is. Aanbieden blijft mogelijk.',
     ctaLabelNl: 'Woonplaats toevoegen',
-    targetRoute: '/profile',
+    targetRoute: '/settings?tab=profile&section=location',
   },
 };
 
@@ -152,7 +152,7 @@ const SELLER_LOCATION: Record<
     bodyNl:
       'Stad helpt kopers in de buurt. Dit is geen blokkade. Je mag eerst plaatsen.',
     ctaLabelNl: 'Woonplaats toevoegen',
-    targetRoute: '/profile',
+    targetRoute: '/settings?tab=profile&section=location',
   },
   sellerCountry: {
     code: 'sellerCountry',
@@ -161,7 +161,7 @@ const SELLER_LOCATION: Record<
     titleNl: 'Voeg je land toe.',
     bodyNl: 'Land helpt bij lokale zichtbaarheid. Aanbieden blijft mogelijk.',
     ctaLabelNl: 'Land toevoegen',
-    targetRoute: '/profile',
+    targetRoute: '/settings?tab=profile&section=location',
   },
   sellerPostalCode: {
     code: 'sellerPostalCode',
@@ -170,7 +170,7 @@ const SELLER_LOCATION: Record<
     titleNl: 'Voeg je postcode toe.',
     bodyNl: 'In Nederland helpt een postcode kopers in jouw buurt. Aanbieden blijft mogelijk.',
     ctaLabelNl: 'Postcode toevoegen',
-    targetRoute: '/profile',
+    targetRoute: '/settings?tab=profile&section=location',
   },
 };
 
@@ -202,7 +202,7 @@ const DELIVERY_CATALOG: Record<string, ProfileRequirementNotice> = {
     bodyNl:
       'Zonder startlocatie en bezorgstraal kunnen we je niet matchen op opdrachten in jouw buurt.',
     ctaLabelNl: 'Werkgebied instellen',
-    targetRoute: DELIVERY_SETTINGS_HREF,
+    targetRoute: `${DELIVERY_SETTINGS_HREF}#werkgebied`,
   },
   availability: {
     code: 'deliveryAvailability',
@@ -211,7 +211,7 @@ const DELIVERY_CATALOG: Record<string, ProfileRequirementNotice> = {
     titleNl: 'Stel je bezorgtijden in om als bezorger beschikbaar te worden.',
     bodyNl: 'Kies minstens één beschikbare dag en een tijdvak of werktijden.',
     ctaLabelNl: 'Bezorgtijden instellen',
-    targetRoute: DELIVERY_SETTINGS_HREF,
+    targetRoute: `${DELIVERY_SETTINGS_HREF}#beschikbaarheid`,
   },
   pricing: {
     code: 'deliveryPricing',
@@ -220,7 +220,7 @@ const DELIVERY_CATALOG: Record<string, ProfileRequirementNotice> = {
     titleNl: 'Vul je bezorgtarief in voordat je bezorgopdrachten kunt aannemen.',
     bodyNl: 'Basisprijs, prijs per km en minimumprijs zijn verplicht voor matching.',
     ctaLabelNl: 'Bezorgtarief instellen',
-    targetRoute: DELIVERY_SETTINGS_HREF,
+    targetRoute: `${DELIVERY_SETTINGS_HREF}#bezorgtarief`,
   },
   companyDisplayName: {
     code: 'deliveryCompanyName',
@@ -229,7 +229,7 @@ const DELIVERY_CATALOG: Record<string, ProfileRequirementNotice> = {
     titleNl: 'Vul een bedrijfsnaam in voor je bezorgprofiel.',
     bodyNl: 'Een bezorgbedrijf heeft een herkenbare naam nodig voordat klanten je kunnen kiezen.',
     ctaLabelNl: 'Bedrijfsnaam invullen',
-    targetRoute: DELIVERY_SETTINGS_HREF,
+    targetRoute: `${DELIVERY_SETTINGS_HREF}#bedrijfsnaam`,
   },
 };
 

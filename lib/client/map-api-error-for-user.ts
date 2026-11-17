@@ -47,14 +47,14 @@ const REQUIREMENT_COPY: Record<MissingRequirementKey, AccountRequirementUserCopy
     titleKey: 'accountRequirementsUx.username.title',
     bodyKey: 'accountRequirementsUx.username.body',
     ctaKey: 'accountRequirementsUx.username.cta',
-    actionHref: '/profile',
+    actionHref: '/settings?tab=profile&section=username',
     actionKind: 'link',
   },
   termsAccepted: {
     titleKey: 'accountRequirementsUx.termsAccepted.title',
     bodyKey: 'accountRequirementsUx.termsAccepted.body',
     ctaKey: 'accountRequirementsUx.termsAccepted.cta',
-    actionHref: '/profile',
+    actionHref: '/onboarding/complete-profile#voorwaarden',
     actionKind: 'link',
   },
   stripeOnboarding: {

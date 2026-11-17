@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useUserBootstrap } from '@/components/user/UserBootstrapProvider';
+import { needsDefinitiveUsername } from '@/lib/account-requirements';
 import { cn } from '@/lib/utils';
 
 function clampPct(n: number): number {
@@ -16,8 +17,8 @@ export default function HomeProfileProgressCard({ className }: { className?: str
   const { t } = useTranslation();
   const { profile } = useUserBootstrap();
 
-  const { pct, hint } = useMemo(() => {
-    if (!session?.user) return { pct: 0, hint: '' as const };
+  const { pct, hint, href } = useMemo(() => {
+    if (!session?.user) return { pct: 0, hint: '' as const, href: '/profile' };
     let score = 0;
     const max = 5;
     const u = session.user as {
@@ -44,7 +45,26 @@ export default function HomeProfileProgressCard({ className }: { className?: str
         : p >= 60
           ? 'home.profileProgress.almost'
           : 'home.profileProgress.start';
-    return { pct: p, hint: hintKey };
+    const hasPhoto = Boolean(u.image || profile?.profileImage || profile?.image);
+    const hasName = Boolean(u.name?.trim());
+    const hasUsername = !needsDefinitiveUsername(profile?.username);
+    const hasPlace = Boolean(
+      (profile?.lat != null &&
+        profile?.lng != null &&
+        Number.isFinite(Number(profile.lat)) &&
+        Number.isFinite(Number(profile.lng))) ||
+      (profile?.place && profile.place.trim().length > 1),
+    );
+    const nextHref = !hasPhoto
+      ? '/profile?photo=1'
+      : !hasUsername
+        ? '/settings?tab=profile&section=username'
+        : !hasName
+          ? '/settings?tab=profile&section=name'
+          : !hasPlace
+            ? '/settings?tab=profile&section=location'
+            : '/settings?tab=profile&section=roles';
+    return { pct: p, hint: hintKey, href: nextHref };
   }, [session?.user, profile]);
 
   if (!session?.user || pct >= 100) return null;
@@ -72,7 +92,7 @@ export default function HomeProfileProgressCard({ className }: { className?: str
         />
       </div>
       <Link
-        href="/profile"
+        href={href}
         prefetch={false}
         className="mt-3 inline-flex text-sm font-semibold text-emerald-800 hover:text-emerald-950"
       >

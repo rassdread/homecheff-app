@@ -24,7 +24,29 @@ const AUTH_PATH_DENYLIST = [
 export type OnboardingFlags = {
   hasTempUsername: boolean;
   onboardingCompleted: boolean;
+  /** Present when check-onboarding read it. Null means the response did not say. */
+  termsAccepted?: boolean | null;
 };
+
+export type CompleteProfileVisit = {
+  needsOnboarding: boolean;
+  termsAccepted: boolean | null | undefined;
+  hash: string;
+  finishing?: boolean;
+  intentUrl?: string | null;
+};
+
+/**
+ * Finished onboarding with open terms stays on the current URL, so #voorwaarden
+ * survives a refresh. Someone who already accepted the terms still leaves.
+ * Returns null to stay. Does not accept terms.
+ */
+export function completeProfileDestination(visit: CompleteProfileVisit): string | null {
+  if (visit.needsOnboarding || visit.finishing) return null;
+  if (visit.hash === '#voorwaarden' && visit.termsAccepted === false) return null;
+  const intent = typeof visit.intentUrl === 'string' ? visit.intentUrl.trim() : '';
+  return intent || '/';
+}
 
 export function clearRegisterDraftStorage(): void {
   if (typeof window === 'undefined') return;
@@ -48,10 +70,12 @@ export async function fetchOnboardingFlags(
     const data = (await response.json()) as {
       hasTempUsername?: boolean;
       onboardingCompleted?: boolean;
+      termsAccepted?: boolean;
     };
     return {
       hasTempUsername: Boolean(data.hasTempUsername),
       onboardingCompleted: data.onboardingCompleted === true,
+      termsAccepted: typeof data.termsAccepted === 'boolean' ? data.termsAccepted : null,
     };
   } catch {
     return null;

@@ -5,7 +5,11 @@
 
 import type { TransportationMode } from '@prisma/client';
 import { tryNormalizeEmail } from '@/lib/auth/normalize-email';
-import { COMMERCIAL_DELIVERY_MIN_AGE } from '@/lib/delivery/delivery-age';
+import {
+  calculateAgeFromDob,
+  COMMERCIAL_DELIVERY_MIN_AGE,
+  parseSubmittedDateOfBirth,
+} from '@/lib/delivery/delivery-age';
 import {
   DISTANCE_SEMANTICS_V1,
   validateConfigurableDistanceKm,
@@ -14,12 +18,21 @@ import {
   composeDeliveryHomeAddress,
   validateDeliveryAddressParts,
 } from '@/lib/delivery/delivery-registration-address';
+import {
+  parseCourierVehicles,
+  transportationModesForVehicles,
+  type CourierVehicle,
+} from '@/lib/delivery/courier-vehicles';
 
 export const VALID_TRANSPORTATION_MODES = [
   'BIKE',
   'EBIKE',
   'SCOOTER',
   'CAR',
+  'ESTATE',
+  'VAN',
+  'BOX_TRUCK',
+  'TRAILER',
 ] as const satisfies readonly TransportationMode[];
 
 export type DeliveryProviderType = 'INDEPENDENT' | 'DELIVERY_BUSINESS';
@@ -30,7 +43,10 @@ export type DeliverySignupInput = {
   password?: string;
   username?: string;
   age?: unknown;
+  /** Account date of birth. When present, this replaces the legacy age number. */
+  dateOfBirth?: unknown;
   transportation?: unknown;
+  vehicles?: unknown;
   maxDistance?: unknown;
   availableDays?: unknown;
   availableTimeSlots?: unknown;
@@ -179,7 +195,9 @@ export function filterValidTransportation(raw: unknown): TransportationMode[] {
 
 export type ParsedDeliverySignup = {
   age: number;
+  dateOfBirth: Date | null;
   transportation: TransportationMode[];
+  vehicles: CourierVehicle[];
   maxDistance: number;
   preferredRadius: number;
   distanceSemanticsVersion: typeof DISTANCE_SEMANTICS_V1;
@@ -213,14 +231,39 @@ export function parseAndValidateDeliverySignupFields(
   const providerType = normalizeProviderType(input.providerType);
   const NL = DELIVERY_SIGNUP_NL;
 
-  const age = asFiniteNumber(input.age);
-  if (age == null || age < COMMERCIAL_DELIVERY_MIN_AGE) {
+  let age = asFiniteNumber(input.age);
+  let dateOfBirth: Date | null = null;
+  const dobSubmitted = input.dateOfBirth != null && input.dateOfBirth !== '';
+  if (dobSubmitted) {
+    const parsedDob = parseSubmittedDateOfBirth(input.dateOfBirth);
+    if (!parsedDob.ok) {
+      fieldErrors.dateOfBirth = 'Vul een geldige geboortedatum in.';
+    } else {
+      const years = calculateAgeFromDob(parsedDob.stored);
+      if (!years.ok) {
+        fieldErrors.dateOfBirth = 'Vul een geldige geboortedatum in.';
+      } else if (years.ageYears < COMMERCIAL_DELIVERY_MIN_AGE) {
+        age = years.ageYears;
+        fieldErrors.dateOfBirth =
+          'Commerciële bezorging via HomeCheff is beschikbaar vanaf 18 jaar.';
+      } else {
+        dateOfBirth = parsedDob.stored;
+        age = years.ageYears;
+      }
+    }
+  } else if (age == null || age < COMMERCIAL_DELIVERY_MIN_AGE) {
     fieldErrors.age =
       'Commerciële bezorging via HomeCheff is beschikbaar vanaf 18 jaar.';
   }
 
-  const transportation = filterValidTransportation(input.transportation);
-  if (transportation.length === 0) {
+  const parsedVehicles = input.vehicles == null ? [] : parseCourierVehicles(input.vehicles);
+  if (input.vehicles != null && !parsedVehicles) {
+    fieldErrors.transportation = 'Controleer het voertuig. Kies wie een draagmiddel regelt, of vul een gemeten maat in.';
+  }
+  const transportation = parsedVehicles && parsedVehicles.length > 0
+    ? filterValidTransportation(transportationModesForVehicles(parsedVehicles))
+    : filterValidTransportation(input.transportation);
+  if (transportation.length === 0 && !fieldErrors.transportation) {
     fieldErrors.transportation = NL.transport;
   }
 
@@ -312,7 +355,9 @@ export function parseAndValidateDeliverySignupFields(
     ok: true,
     data: {
       age: age!,
+      dateOfBirth,
       transportation,
+      vehicles: parsedVehicles || [],
       maxDistance,
       preferredRadius,
       distanceSemanticsVersion: DISTANCE_SEMANTICS_V1,
@@ -321,7 +366,7 @@ export function parseAndValidateDeliverySignupFields(
           ? String(input.deliveryMode)
           : 'FIXED',
       availableDays: asStringArray(input.availableDays).slice(0, 14),
-      availableTimeSlots: asStringArray(input.availableTimeSlots).slice(0, 12),
+      availableTimeSlots: asStringArray(input.availableTimeSlots).slice(0, 21),
       bio: normalizeOptionalString(input.bio, 2000),
       homeLat,
       homeLng,
