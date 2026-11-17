@@ -8,6 +8,7 @@ import CommunityDeliveryPanel from './CommunityDeliveryPanel';
 import DeliveryAgreementModal from './DeliveryAgreementModal';
 import GoOnlineDurationSheet, { type GoOnlineNotice } from './GoOnlineDurationSheet';
 import { useTranslation } from '@/hooks/useTranslation';
+import { describeActiveOrigin } from '@/lib/delivery/delivery-position';
 import {
   buildDeliveryActivationChecklist,
   type DeliveryActivationChecklistItem,
@@ -164,6 +165,7 @@ export default function DeliveryDashboard() {
   const originStateRef = useRef<'idle' | 'busy' | 'gps' | 'denied' | 'home'>('idle');
   const [originState, setOriginState] = useState<'idle' | 'busy' | 'gps' | 'denied' | 'home'>('idle');
   const [originPlace, setOriginPlace] = useState<string | null>(null);
+  const [originPreference, setOriginPreference] = useState<'FIXED' | 'DYNAMIC'>('FIXED');
   originStateRef.current = originState;
   const [initialLoad, setInitialLoad] = useState(true);
   const [acceptingOrder, setAcceptingOrder] = useState<string | null>(null);
@@ -380,6 +382,7 @@ export default function DeliveryDashboard() {
               return;
             }
             setOriginPlace(typeof data.place === 'string' ? data.place : null);
+            setOriginPreference('DYNAMIC');
             setOriginState('gps');
             setGpsEnabled(true);
             if (originExpiryRef.current) window.clearTimeout(originExpiryRef.current);
@@ -424,6 +427,7 @@ export default function DeliveryDashboard() {
       if (originExpiryRef.current) window.clearTimeout(originExpiryRef.current);
       originExpiryRef.current = null;
       setOriginPlace(typeof data.place === 'string' ? data.place : null);
+      setOriginPreference('FIXED');
       setOriginState('home');
       setGpsEnabled(false);
     } catch {
@@ -454,6 +458,7 @@ export default function DeliveryDashboard() {
           }, Math.max(250, Math.min(wait, 20 * 60 * 1000)));
         }
         if (origin && originStateRef.current !== 'busy' && originStateRef.current !== 'denied') {
+          setOriginPreference(origin.preference === 'DYNAMIC' ? 'DYNAMIC' : 'FIXED');
           setOriginState(origin.active === 'gps' ? 'gps' : 'home');
           setOriginPlace(typeof origin.place === 'string' ? origin.place : null);
           setGpsEnabled(origin.active === 'gps');
@@ -829,16 +834,20 @@ export default function DeliveryDashboard() {
           </div>
         )}
         <div className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-800">
-          {originState === 'gps' ? (
-            <p className="font-medium text-gray-900">
-              Je zoekt nu rond {originPlace || 'je huidige locatie'}.
-            </p>
-          ) : null}
-          {originState === 'home' ? (
-            <p className="font-medium text-gray-900">
-              Je zoekt nu rond je vaste adres{originPlace ? ` in ${originPlace}` : ''}.
-            </p>
-          ) : null}
+          {originState === 'gps' || originState === 'home'
+            ? describeActiveOrigin({
+                preference: originPreference,
+                active: originState,
+                place: originPlace,
+              }).map((line, index) => (
+                <p
+                  key={line}
+                  className={index === 0 ? 'font-medium text-gray-900' : 'mt-1 text-sm text-gray-600'}
+                >
+                  {line}
+                </p>
+              ))
+            : null}
           {originState === 'denied' ? (
             <p className="font-medium text-red-700">GPS is niet actief.</p>
           ) : null}
@@ -852,7 +861,7 @@ export default function DeliveryDashboard() {
               <LocateFixed className="h-4 w-4" aria-hidden />
               {originState === 'denied' ? 'Opnieuw proberen' : 'Gebruik mijn huidige locatie'}
             </button>
-            {originState === 'denied' || originState === 'gps' || gpsEnabled ? (
+            {originState === 'denied' || originState === 'gps' || gpsEnabled || originPreference === 'DYNAMIC' ? (
               <button
                 type="button"
                 onClick={() => void useFixedOrigin()}

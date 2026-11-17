@@ -5165,9 +5165,10 @@
     "personalInfo": "Personal Information",
     "deliveryMode": "Where do you want to pick up jobs?",
     "fixedArea": "From my saved address",
-    "aroundHouse": "The pickup radius applies around the address you set.",
+    "aroundHouse": "Your pickup radius applies around the address you set.",
     "flexible": "From my current location (GPS)",
-    "multipleAreas": "Use your phone's location to find pickup jobs near you.",
+    "multipleAreas": "On your dashboard, tap Use my current location. While you are online and your location is current, you can get pickup jobs in that area.",
+    "currentLocationAction": "Use my current location",
     "workArea": "Work area",
     "transportation": {
       "bike": "Bike",

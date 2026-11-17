@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { MapPin, LocateFixed, Users, CheckCircle, ArrowRight, User, Mail, Lock, Eye, EyeOff, FileText, X } from 'lucide-react';
+import { MapPin, Users, CheckCircle, ArrowRight, User, Mail, Lock, Eye, EyeOff, FileText, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import DeliveryAgreementModal from '@/components/delivery/DeliveryAgreementModal';
@@ -33,6 +33,7 @@ import DateOfBirthFields, {
 } from '@/components/account/DateOfBirthFields';
 import { calculateAgeFromDob } from '@/lib/delivery/delivery-age';
 import { CourierVehicleEditor } from '@/components/delivery/CourierVehicleEditor';
+import { DeliveryOriginChoice } from '@/components/delivery/DeliveryOriginChoice';
 import { CourierDayScheduleEditor } from '@/components/delivery/CourierDayScheduleEditor';
 import {
   transportationModesForVehicles,
@@ -1054,41 +1055,10 @@ export default function DeliverySignupPage() {
                     </p>
                   </div>
 
-                  <div className="space-y-4">
-                    <label className="block text-sm font-medium text-gray-700">
-                      {t('deliverySignup.deliveryMode')}
-                    </label>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, deliveryMode: 'FIXED' }))}
-                        className={`p-4 rounded-xl border-2 transition-all ${
-                          formData.deliveryMode === 'FIXED'
-                            ? 'border-primary-brand bg-primary-50 text-primary-brand'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="flex flex-col items-center gap-2">
-                          <MapPin className="w-5 h-5" />
-                          <span className="text-sm font-medium">{t('deliverySignup.fixedArea')}</span>
-                          <span className="text-xs text-gray-600">{t('deliverySignup.aroundHouse')}</span>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, deliveryMode: 'DYNAMIC' }))}
-                        className={`p-4 rounded-xl border-2 transition-all ${
-                          formData.deliveryMode === 'DYNAMIC'
-                            ? 'border-primary-brand bg-primary-50 text-primary-brand'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="flex flex-col items-center gap-2">
-                          <LocateFixed className="w-5 h-5" aria-hidden />
-                          <span className="text-sm font-medium">{t('deliverySignup.flexible')}</span>
-                          <span className="text-xs text-gray-600">{t('deliverySignup.multipleAreas')}</span>
-                        </div>
-                      </button>
-                    </div>
-                  </div>
+                  <DeliveryOriginChoice
+                    value={formData.deliveryMode}
+                    onChange={(deliveryMode) => setFormData((prev) => ({ ...prev, deliveryMode }))}
+                  />
 
                   <div className="space-y-4">
                     <div>

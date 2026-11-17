@@ -1367,6 +1367,7 @@ export async function GET(req: NextRequest) {
       stats,
       origin: {
         active: originStatus.active,
+        preference: deliveryProfile?.deliveryMode === 'DYNAMIC' ? 'DYNAMIC' : 'FIXED',
         place: originPlace,
         gpsExpiresAt: originStatus.gpsExpiresAt,
       },

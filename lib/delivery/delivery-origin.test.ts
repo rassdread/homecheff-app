@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { activeOriginStatus, directOrderReach, resolveDelivererPosition } from './delivery-position';
+import { activeOriginStatus, describeActiveOrigin, directOrderReach, resolveDelivererPosition } from './delivery-position';
 
 const profile = {
   gpsTrackingEnabled: true,
@@ -34,4 +34,29 @@ test('a fresh phone location expires and a later pickup stays at home', () => {
     maxTransportKm: 25,
   });
   assert.deepEqual(reach, { direct: true, planned: false });
+  assert.deepEqual(
+    describeActiveOrigin({ preference: 'DYNAMIC', active: status.active, place: 'Amsterdam' }),
+    ['Je zoekt nu rond Amsterdam.'],
+  );
+  const expired = activeOriginStatus(profile, new Date('2026-11-17T12:16:00.000Z').getTime());
+  assert.deepEqual(
+    describeActiveOrigin({ preference: 'DYNAMIC', active: expired.active, place: 'Vlaardingen' }),
+    [
+      'Je zoekt nu rond je vaste adres in Vlaardingen.',
+      'Je voorkeur is je huidige locatie. Tik op Gebruik mijn huidige locatie zodra je online bent en je locatie actueel is.',
+    ],
+  );
+  const chosenGps = { ...profile, gpsTrackingEnabled: false, currentLat: null, currentLng: null, lastGpsUpdate: null };
+  assert.equal(activeOriginStatus(chosenGps, now).active, 'home');
+  assert.deepEqual(
+    describeActiveOrigin({ preference: 'DYNAMIC', active: 'home', place: 'Vlaardingen' }),
+    [
+      'Je zoekt nu rond je vaste adres in Vlaardingen.',
+      'Je voorkeur is je huidige locatie. Tik op Gebruik mijn huidige locatie zodra je online bent en je locatie actueel is.',
+    ],
+  );
+  assert.deepEqual(
+    describeActiveOrigin({ preference: 'FIXED', active: 'home', place: 'Vlaardingen' }),
+    ['Je zoekt nu rond je vaste adres in Vlaardingen.'],
+  );
 });

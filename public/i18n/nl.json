@@ -6145,9 +6145,10 @@
     "personalInfo": "Persoonlijke Informatie",
     "deliveryMode": "Vanaf welke plek wil je opdrachten ophalen?",
     "fixedArea": "Vanaf mijn vaste adres",
-    "aroundHouse": "De ophaalradius geldt rond het ingestelde adres.",
+    "aroundHouse": "Je ophaalradius geldt rond je ingestelde adres.",
     "flexible": "Vanaf mijn huidige locatie (GPS)",
-    "multipleAreas": "Gebruik de locatie van je telefoon om ophaalopdrachten bij jou in de buurt te vinden.",
+    "multipleAreas": "Tik op je dashboard op Gebruik mijn huidige locatie. Zolang je online bent en je locatie actueel is, kun je ophaalopdrachten in die buurt krijgen.",
+    "currentLocationAction": "Gebruik mijn huidige locatie",
     "workArea": "Werkgebied",
     "transportation": {
       "bike": "Fiets",

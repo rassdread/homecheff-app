@@ -9,7 +9,6 @@ import {
   Save,
   ArrowLeft,
   Shield,
-  Navigation,
   Settings as SettingsIcon,
   Euro
 } from 'lucide-react';
@@ -21,6 +20,7 @@ import AddSellerRolesSettings from './AddSellerRolesSettings';
 import HelpSettings from '@/components/onboarding/HelpSettings';
 import DateOfBirthSettingsCard from '@/components/account/DateOfBirthSettingsCard';
 import { CourierVehicleEditor } from '@/components/delivery/CourierVehicleEditor';
+import { DeliveryOriginChoice } from '@/components/delivery/DeliveryOriginChoice';
 import { CourierDayScheduleEditor } from '@/components/delivery/CourierDayScheduleEditor';
 import { decodeDaySchedule, encodeDaySchedule } from '@/lib/delivery/day-schedule';
 import type { CourierVehicle } from '@/lib/delivery/courier-vehicles';
@@ -713,103 +713,10 @@ export default function DeliverySettings({ deliveryProfile }: DeliverySettingsPr
                 })()}
               </div>
 
-              <div className="space-y-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  {t('delivery.deliveryModeLabel')}
-                </label>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => setFormData(prev => ({ ...prev, deliveryMode: 'FIXED' }))}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      formData.deliveryMode === 'FIXED'
-                        ? 'border-primary-brand bg-primary-50 text-primary-brand'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <MapPin className="w-5 h-5" aria-hidden />
-                      <span className="text-sm font-medium">
-                        {t('delivery.fixedArea', { defaultValue: 'Vast gebied' })}
-                      </span>
-                      <span className="text-xs text-gray-600">
-                        {t('delivery.aroundHouse', { defaultValue: 'Rondom huis' })}
-                      </span>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, deliveryMode: 'DYNAMIC' }))}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      formData.deliveryMode === 'DYNAMIC'
-                        ? 'border-primary-brand bg-primary-50 text-primary-brand'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <Navigation className="w-5 h-5" aria-hidden />
-                      <span className="text-sm font-medium">
-                        {t('delivery.dynamicGps', { defaultValue: 'Dynamisch GPS' })}
-                      </span>
-                      <span className="text-xs text-gray-600">
-                        {t('delivery.liveLocationTracking', {
-                          defaultValue: 'Live GPS-tracking',
-                        })}
-                      </span>
-                    </div>
-                  </button>
-                </div>
-                
-                {formData.deliveryMode === 'DYNAMIC' && (
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
-                    <div className="flex items-start gap-3">
-                      <Navigation className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" aria-hidden />
-                      <div>
-                        {(() => {
-                          const title = t('delivery.dynamicGpsTitle', {
-                            defaultValue: 'Dynamische GPS-modus',
-                          });
-                          const bullets = [
-                            t('delivery.dynamicGpsBullet1', {
-                              defaultValue: 'Je werkgebied volgt je live locatie',
-                            }),
-                            t('delivery.dynamicGpsBullet2', {
-                              defaultValue: 'Opdrachten binnen je straal',
-                            }),
-                            t('delivery.dynamicGpsBullet3', {
-                              defaultValue: 'Ideaal als je onderweg bent',
-                            }),
-                            t('delivery.dynamicGpsBullet4', {
-                              defaultValue: 'GPS moet aan staan tijdens ritten',
-                            }),
-                            t('delivery.dynamicGpsBullet5', {
-                              defaultValue: 'Batterijvriendelijk bij korte updates',
-                            }),
-                          ].filter((b) => Boolean(b?.trim()));
-                          if (!title && bullets.length === 0) return null;
-                          return (
-                            <>
-                              {title ? (
-                                <p className="text-sm font-medium text-blue-900 mb-2">
-                                  🛰️ {title}
-                                </p>
-                              ) : null}
-                              {bullets.length > 0 ? (
-                                <ul className="text-xs text-blue-800 space-y-1">
-                                  {bullets.map((b, i) => (
-                                    <li key={b}>
-                                      {i === bullets.length - 1 ? '⚡' : '✓'} {b}
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : null}
-                            </>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <DeliveryOriginChoice
+                value={formData.deliveryMode === 'DYNAMIC' ? 'DYNAMIC' : 'FIXED'}
+                onChange={(deliveryMode) => setFormData((prev) => ({ ...prev, deliveryMode }))}
+              />
 
               <div className="space-y-4">
                 {formData.distanceSemanticsVersion === 1 ? (

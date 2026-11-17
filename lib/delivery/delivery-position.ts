@@ -92,6 +92,30 @@ export function activeOriginStatus(
 }
 
 /**
+ * Dashboard copy for the chosen preference versus the origin that is active now.
+ * `active` comes from activeOriginStatus, so a missing, offline, or expired GPS
+ * fix stays on the saved address.
+ */
+export function describeActiveOrigin(input: {
+  preference: 'FIXED' | 'DYNAMIC';
+  active: 'gps' | 'home';
+  place?: string | null;
+}): string[] {
+  const place = input.place?.trim() || null;
+  if (input.active === 'gps') {
+    return [`Je zoekt nu rond ${place || 'je huidige locatie'}.`];
+  }
+  const home = `Je zoekt nu rond je vaste adres${place ? ` in ${place}` : ''}.`;
+  if (input.preference === 'DYNAMIC') {
+    return [
+      home,
+      'Je voorkeur is je huidige locatie. Tik op Gebruik mijn huidige locatie zodra je online bent en je locatie actueel is.',
+    ];
+  }
+  return [home];
+}
+
+/**
  * Deliverer position for matching:
  * fresh GPS → homeLat/lng → User.lat/lng.
  * A later planned pickup passes immediate: false and skips today's GPS.
