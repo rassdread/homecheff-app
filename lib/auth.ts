@@ -27,6 +27,7 @@ import {
   resolvePreviewGoogleOAuthClient,
 } from "./auth/preview-google-oauth";
 import { GOOGLE_ACCOUNT_CHOOSER_PARAMS } from "./auth/google-account-chooser";
+import { stripRevokedAuthToken } from "./auth/session-revocation";
 import { NEXTAUTH_SESSION_COOKIE_NAME } from "./auth/session-cookie-name";
 import { withPrismaRetry } from "./auth/prisma-retry";
 import { sanitizePostAuthRelativeUrl } from "./auth/post-auth-redirect";
@@ -300,6 +301,10 @@ export const authOptions: NextAuthOptions = {
         if (canonicalEmail) {
           minimalToken.email = canonicalEmail.substring(0, 100);
         }
+        minimalToken.sid =
+          typeof globalThis.crypto?.randomUUID === "function"
+            ? globalThis.crypto.randomUUID()
+            : `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
         // MINIMAL TOKEN: Only store absolute essentials
         // For Edge browser: Use shortest possible values
         minimalToken.role = u.role; // 'BUYER', 'SELLER', etc. - short
@@ -351,6 +356,9 @@ export const authOptions: NextAuthOptions = {
         if ((token as any).socialOnboardingCompleted) minimalToken.socialOnboardingCompleted = true;
         if ((token as any).onboardingChecked) minimalToken.onboardingChecked = true;
         if ((token as any).suspended) minimalToken.suspended = true;
+        if (typeof (token as any).sid === "string" && (token as any).sid.trim()) {
+          minimalToken.sid = String((token as any).sid).trim();
+        }
         
         // Preserve firstName/lastName only during onboarding (for new social users)
         // Remove after onboarding to keep token size minimal
@@ -450,11 +458,15 @@ export const authOptions: NextAuthOptions = {
           console.log(`✅ [EDGE DEBUG] Token size: ${tokenSize} bytes (safe for Edge)`);
         }
       }
-      
+
+      if (await stripRevokedAuthToken(minimalToken)) {
+        return minimalToken;
+      }
+
       return minimalToken;
     },
     async session({ session, token }) {
-      if ((token as { deleted?: boolean }).deleted) {
+      if ((token as { deleted?: boolean }).deleted || (token as { revoked?: boolean }).revoked) {
         return { ...session, user: undefined as any, expires: new Date(0).toISOString() };
       }
       if (session.user && token) {
@@ -618,6 +630,9 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).needsOnboarding = (token as any).needsOnboarding || false;
         (session.user as any).tempUsername = (token as any).tempUsername || false;
         (session.user as any).socialProvider = (token as any).socialProvider;
+      }
+      if (await stripRevokedAuthToken(token as Record<string, unknown>)) {
+        return { ...session, user: undefined as any, expires: new Date(0).toISOString() };
       }
       return session;
     },

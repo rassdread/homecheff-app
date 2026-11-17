@@ -31,7 +31,10 @@ ok("CROSS_TAB_ACCOUNT_SWITCH_INVALIDATION");
 
 const cleanup = read("lib/session-cleanup.ts");
 assert.match(cleanup, /postMarketplaceAuthChannel/);
+assert.match(cleanup, /markBrowserLogout/);
 assert.match(cleanup, /type: 'logout'/);
+assert.match(guard, /storage_logout/);
+assert.match(guard, /readBrowserLogoutAt\(\) >= startedAt/);
 ok("LOGOUT_BROADCAST");
 
 const products = read("app/api/products/[id]/route.ts");

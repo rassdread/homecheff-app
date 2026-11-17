@@ -4,6 +4,8 @@
  * Never trust channel payload for authorization — always re-fetch server session.
  */
 
+export const BROWSER_LOGOUT_STORAGE_KEY = "hc_tab_logout_at";
+
 export const MARKETPLACE_AUTH_CHANNEL = "homecheff-marketplace-auth";
 export const MARKETPLACE_AUTH_USER_STORAGE_KEY = "hc_marketplace_auth_user_id";
 
@@ -11,6 +13,25 @@ export type MarketplaceAuthChannelMessage =
   | { type: "logout" }
   | { type: "login"; userId: string }
   | { type: "identity"; userId: string | null };
+
+export function markBrowserLogout(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(BROWSER_LOGOUT_STORAGE_KEY, String(Date.now()));
+  } catch {
+    /* private mode */
+  }
+}
+
+export function readBrowserLogoutAt(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const value = Number(localStorage.getItem(BROWSER_LOGOUT_STORAGE_KEY));
+    return Number.isFinite(value) ? value : 0;
+  } catch {
+    return 0;
+  }
+}
 
 export function postMarketplaceAuthChannel(
   message: MarketplaceAuthChannelMessage,

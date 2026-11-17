@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCorsHeaders } from "@/lib/apiCors";
 import { buildForceLogoutClearHeaders } from "@/lib/auth/force-logout-cookies";
+import { revokePresentedAuthSession } from "@/lib/auth/session-revocation";
 import { logSsoEvent } from "@/lib/identity/sso/metrics";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +14,7 @@ export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   logSsoEvent("ecosystem_logout", { product: "marketplace" });
+  await revokePresentedAuthSession(req);
   const headers = buildForceLogoutClearHeaders(req);
   headers.set("Content-Type", "application/json");
   return new NextResponse(
@@ -23,6 +25,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   logSsoEvent("ecosystem_logout", { product: "marketplace", via: "get" });
+  await revokePresentedAuthSession(req);
   const headers = buildForceLogoutClearHeaders(req);
   const returnTo = req.nextUrl.searchParams.get("returnTo");
   const safe =

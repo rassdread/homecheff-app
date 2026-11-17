@@ -553,15 +553,6 @@ export async function performLogout(target: string = '/'): Promise<void> {
     /* never block logout on cleanup errors */
   }
 
-  try {
-    const { postMarketplaceAuthChannel } = await import(
-      '@/lib/auth/session-identity-channel'
-    );
-    postMarketplaceAuthChannel({ type: 'logout' });
-  } catch {
-    /* ignore */
-  }
-
   // 1) Server-side cookie-purge (HttpOnly cookies kun je alleen server-side wissen).
   // Een hangend verzoek mag de navigatie niet tegenhouden.
   const requestSessionEnd = async (path: string): Promise<boolean> => {
@@ -588,6 +579,16 @@ export async function performLogout(target: string = '/'): Promise<void> {
     await requestSessionEnd('/api/auth/force-logout');
   }
 
+  try {
+    const { markBrowserLogout, postMarketplaceAuthChannel } = await import(
+      '@/lib/auth/session-identity-channel'
+    );
+    markBrowserLogout();
+    postMarketplaceAuthChannel({ type: 'logout' });
+  } catch {
+    /* ignore */
+  }
+
   // 2) Best-effort NextAuth signOut zonder redirect (synchroniseert client-side session-state).
   await Promise.race([
     (async () => {
@@ -604,6 +605,12 @@ export async function performLogout(target: string = '/'): Promise<void> {
   // 3) Belt-and-braces: extra non-HttpOnly cookie-namen (CSRF/callback) lokaal overschrijven.
   try {
     clearNextAuthData();
+  } catch {
+    /* ignore */
+  }
+  try {
+    const { markBrowserLogout } = await import('@/lib/auth/session-identity-channel');
+    markBrowserLogout();
   } catch {
     /* ignore */
   }

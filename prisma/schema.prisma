@@ -830,6 +830,18 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
+/// One browser session that must not be written back after Uitloggen.
+/// sid "*" retires older cookies that have no browser session id yet.
+model AuthSessionRevocation {
+  id        String   @id @default(cuid())
+  userId    String
+  sid       String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, sid])
+  @@index([createdAt])
+}
+
 model AdminAction {
   id        String   @id
   adminId   String

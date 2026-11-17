@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCorsHeaders } from "@/lib/apiCors";
 import { buildForceLogoutClearHeaders } from "@/lib/auth/force-logout-cookies";
+import { revokePresentedAuthSession } from "@/lib/auth/session-revocation";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,6 +17,7 @@ export const runtime = "nodejs";
  */
 
 export async function POST(req: NextRequest) {
+  await revokePresentedAuthSession(req);
   const headers = buildForceLogoutClearHeaders(req);
   headers.set("Content-Type", "application/json");
   return new NextResponse(JSON.stringify({ ok: true }), {
@@ -25,6 +27,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  await revokePresentedAuthSession(req);
   const headers = buildForceLogoutClearHeaders(req);
   headers.set("Location", "/");
   return new NextResponse(null, { status: 303, headers });
