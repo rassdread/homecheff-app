@@ -21,8 +21,7 @@ const dutch = {
   fixedArea: 'Vanaf mijn vaste adres',
   aroundHouse: 'Je ophaalradius geldt rond je ingestelde adres.',
   flexible: 'Vanaf mijn huidige locatie (GPS)',
-  multipleAreas:
-    'Tik op je dashboard op Gebruik mijn huidige locatie. Zolang je online bent en je locatie actueel is, kun je ophaalopdrachten in die buurt krijgen.',
+  multipleAreas: 'Werk je locatie bij op het dashboard.',
   currentLocationAction: 'Gebruik mijn huidige locatie',
 };
 
@@ -33,21 +32,22 @@ test('the shared Dutch choice names the pickup origin', () => {
   }
   assert.equal(copy.fixedArea.includes('Vast Gebied'), false);
   assert.equal(copy.multipleAreas.includes('Meerdere gebieden'), false);
-  assert.equal(copy.multipleAreas.includes(copy.currentLocationAction), true);
+  assert.equal(copy.originExplain.includes('Amsterdam'), true);
+  assert.equal(copy.originExplain.includes('15 minuten'), true);
+  assert.equal(copy.originExplain.includes(copy.currentLocationAction), true);
 });
 
 test('the shared English choice uses the same keys', () => {
   const copy = JSON.parse(readFileSync('public/i18n/en.json', 'utf8')).deliverySignup;
-  assert.equal(copy.deliveryMode, 'Where do you want to pick up jobs?');
-  assert.equal(copy.fixedArea, 'From my saved address');
-  assert.equal(copy.aroundHouse, 'Your pickup radius applies around the address you set.');
+  assert.equal(copy.deliveryMode, 'Where would you like to pick up deliveries?');
+  assert.equal(copy.fixedArea, 'From my usual address');
+  assert.equal(copy.aroundHouse, 'Your pickup radius applies around this address.');
   assert.equal(copy.flexible, 'From my current location (GPS)');
-  assert.equal(
-    copy.multipleAreas,
-    'On your dashboard, tap Use my current location. While you are online and your location is current, you can get pickup jobs in that area.',
-  );
+  assert.equal(copy.multipleAreas, 'Update your location on the dashboard.');
   assert.equal(copy.currentLocationAction, 'Use my current location');
-  assert.equal(copy.multipleAreas.includes(copy.currentLocationAction), true);
+  assert.equal(copy.originExplain.includes('Amsterdam'), true);
+  assert.equal(copy.originExplain.includes('15 minutes'), true);
+  assert.equal(copy.originExplain.includes(copy.currentLocationAction), true);
 });
 
 test('signup and settings render the same origin choice', () => {
@@ -64,6 +64,7 @@ test('signup and settings render the same origin choice', () => {
     'deliverySignup.flexible',
     'deliverySignup.multipleAreas',
     'deliverySignup.currentLocationAction',
+    'deliverySignup.originExplain',
   ]) {
     assert.equal(choice.includes(`t('${key}')`), true, key);
   }

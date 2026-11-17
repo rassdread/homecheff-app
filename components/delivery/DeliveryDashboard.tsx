@@ -112,6 +112,7 @@ export default function DeliveryDashboard() {
     overrideActive?: boolean;
     statusTitleNl?: string;
     statusBodyNl?: string;
+    statusBodyEn?: string;
     untilLabel?: string | null;
     onlineUntil?: string | null;
   } | null>(null);
@@ -821,8 +822,10 @@ export default function DeliveryDashboard() {
           {availability?.statusBodyNl ? (
             <span className="pl-3.5 text-xs font-medium">
               {isTemporarilyOnline && availability.untilLabel
-                ? `Online tot ${availability.untilLabel}`
-                : availability.statusBodyNl}
+                ? t('deliverySignup.onlineUntil', { time: availability.untilLabel })
+                : language === 'en' && availability.statusBodyEn
+                  ? availability.statusBodyEn
+                  : availability.statusBodyNl}
             </span>
           ) : null}
         </div>
@@ -839,17 +842,28 @@ export default function DeliveryDashboard() {
                 preference: originPreference,
                 active: originState,
                 place: originPlace,
-              }).map((line, index) => (
-                <p
-                  key={line}
-                  className={index === 0 ? 'font-medium text-gray-900' : 'mt-1 text-sm text-gray-600'}
-                >
-                  {line}
-                </p>
-              ))
+              }).map((line, index) => {
+                const text = line.id === 'aroundGps'
+                  ? t('deliverySignup.aroundGps', { place: line.place })
+                  : line.id === 'aroundHere'
+                    ? t('deliverySignup.aroundHere')
+                    : line.id === 'aroundHome'
+                      ? line.place
+                        ? t('deliverySignup.aroundHome', { place: line.place })
+                        : t('deliverySignup.aroundHomePlain')
+                      : t('deliverySignup.preferGps');
+                return (
+                  <p
+                    key={line.id}
+                    className={index === 0 ? 'font-medium text-gray-900' : 'mt-1 text-sm text-gray-600'}
+                  >
+                    {text}
+                  </p>
+                );
+              })
             : null}
           {originState === 'denied' ? (
-            <p className="font-medium text-red-700">GPS is niet actief.</p>
+            <p className="font-medium text-red-700">{t('deliverySignup.gpsInactive')}</p>
           ) : null}
           <div className="mt-2 flex flex-col gap-2">
             <button
@@ -859,7 +873,7 @@ export default function DeliveryDashboard() {
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary-600 px-3 py-2 font-semibold text-white disabled:opacity-60"
             >
               <LocateFixed className="h-4 w-4" aria-hidden />
-              {originState === 'denied' ? 'Opnieuw proberen' : 'Gebruik mijn huidige locatie'}
+              {originState === 'denied' ? t('deliverySignup.retryLocation') : t('deliverySignup.currentLocationAction')}
             </button>
             {originState === 'denied' || originState === 'gps' || gpsEnabled || originPreference === 'DYNAMIC' ? (
               <button
@@ -868,7 +882,7 @@ export default function DeliveryDashboard() {
                 disabled={originState === 'busy'}
                 className="inline-flex min-h-11 items-center justify-center rounded-lg border px-3 py-2 font-medium"
               >
-                Gebruik mijn vaste adres
+                {t('deliverySignup.useFixedAddress')}
               </button>
             ) : null}
           </div>

@@ -210,20 +210,36 @@ function measurement(value: unknown, mark: CapacityMark): number | null {
   return parsed;
 }
 
-export function vehiclePublicLabel(vehicle: CourierVehicle): string {
-  const variant = vehicle.variant
+export function vehiclePublicLabel(
+  vehicle: CourierVehicle,
+  labelFor?: (key: string, fallback: string) => string,
+): string {
+  const text = labelFor ?? ((_key, fallback) => fallback);
+  const variantFallback = vehicle.variant
     ? VARIANTS[vehicle.family].find((item) => item.id === vehicle.variant)?.label
+    : null;
+  const variant = variantFallback
+    ? text(`variant.${vehicle.family}.${vehicle.variant}`, variantFallback)
     : null;
   const model = vehicle.referenceId
     ? catalogReferences(vehicle).find((item) => item.id === vehicle.referenceId)?.name ?? null
     : null;
-  const head = [variant || LEGACY_FAMILY_LABEL[vehicle.family] || FAMILY_LABEL[vehicle.family], model]
-    .filter((part): part is string => Boolean(part))
-    .join(' · ');
+  const familyFallback = LEGACY_FAMILY_LABEL[vehicle.family] || FAMILY_LABEL[vehicle.family];
+  const family = text(
+    LEGACY_FAMILY_LABEL[vehicle.family] ? `legacyFamily.${vehicle.family}` : `family.${vehicle.family}`,
+    familyFallback,
+  );
+  const head = [variant || family, model].filter((part): part is string => Boolean(part)).join(' · ');
   const extras = [
-    ...vehicle.features.map((id) => FEATURES[id]?.label).filter((label): label is string => Boolean(label)),
-    ...vehicle.carrying.map((id) => CARRYING[vehicle.family].find((item) => item.id === id)?.label).filter((label): label is string => Boolean(label)),
-  ];
+    ...vehicle.features.map((id) => {
+      const fallback = FEATURES[id]?.label;
+      return fallback ? text(`feature.${id}`, fallback) : null;
+    }),
+    ...vehicle.carrying.map((id) => {
+      const fallback = CARRYING[vehicle.family].find((item) => item.id === id)?.label;
+      return fallback ? text(`carrying.${id}`, fallback) : null;
+    }),
+  ].filter((label): label is string => Boolean(label));
   return [head, ...extras].join(' · ');
 }
 

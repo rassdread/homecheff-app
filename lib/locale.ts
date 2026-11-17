@@ -11,6 +11,7 @@ import {
   resolveEcosystemLanguage,
   type EcosystemLanguage,
 } from '@/lib/ecosystem-locale';
+import { PUBLIC_DELIVERY_PATH_LANGUAGE } from '@/lib/seo/delivery-public';
 
 export type Language = EcosystemLanguage;
 
@@ -75,10 +76,17 @@ export type ColdStartLanguageInput = {
  * missing or invalid, fall through to English so international visitors are
  * not shown Dutch by accident.
  */
+function publicPathLanguage(pathname: string): Language | null {
+  if (PUBLIC_DELIVERY_PATH_LANGUAGE[pathname]) return PUBLIC_DELIVERY_PATH_LANGUAGE[pathname];
+  if (pathname === '/werken-bij' || pathname.startsWith('/werken-bij/')) return 'nl';
+  if (pathname === '/careers' || pathname.startsWith('/careers/')) return 'en';
+  if (pathname.startsWith('/en/') || pathname === '/en') return 'en';
+  return null;
+}
+
 export function resolveColdStartLanguage(input: ColdStartLanguageInput): Language {
   const pathname = input.pathname || '';
-  const pathLanguage =
-    pathname.startsWith('/en/') || pathname === '/en' ? 'en' : null;
+  const pathLanguage = publicPathLanguage(pathname);
 
   const host = (input.host || '').toLowerCase();
   // Legacy .nl host → treat as NL market when nothing else is set

@@ -32,6 +32,8 @@ export type DeliverySignupDraft = {
 };
 
 const SLOT_IDS = new Set(['morning', 'afternoon', 'evening']);
+const DAY_WINDOW_SLOT =
+  /^(maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag)@\d{2}:\d{2}-\d{2}:\d{2}$/;
 
 function storage(): Storage | null {
   if (typeof window === 'undefined') return null;
@@ -71,7 +73,11 @@ export function sanitizeDeliverySignupDraft(raw: unknown, now = Date.now()): Del
         .filter((day): day is string => Boolean(day))
     : [];
   const slots = Array.isArray(value.availableTimeSlots)
-    ? value.availableTimeSlots.filter((slot): slot is string => typeof slot === 'string' && SLOT_IDS.has(slot))
+    ? value.availableTimeSlots.filter(
+        (slot): slot is string =>
+          typeof slot === 'string' &&
+          (SLOT_IDS.has(slot) || DAY_WINDOW_SLOT.test(slot.trim().toLowerCase())),
+      )
     : [];
   const mode = value.deliveryMode === 'DYNAMIC' ? 'DYNAMIC' : 'FIXED';
   return {

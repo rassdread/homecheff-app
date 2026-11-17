@@ -9,9 +9,10 @@ import { getProgrammaticSeoMeta } from "@/lib/i18n/translations";
 export async function buildProgrammaticLandingMetadata(
   path: string,
   namespace: string,
-  vars?: Record<string, string>
+  vars?: Record<string, string>,
+  options?: { language?: 'nl' | 'en'; languages?: Record<string, string> },
 ): Promise<Metadata> {
-  const lang = await getCurrentLanguage();
+  const lang = options?.language ?? await getCurrentLanguage();
   const { title, description } = getProgrammaticSeoMeta(namespace, lang, vars);
   const currentDomain = await getCurrentDomain();
   const canonical = `${currentDomain}${path}`;
@@ -21,7 +22,7 @@ export async function buildProgrammaticLandingMetadata(
     description,
     alternates: {
       canonical,
-      languages: seoHreflangLanguagesOnEu(path),
+      languages: options?.languages ?? seoHreflangLanguagesOnEu(path),
     },
     openGraph: {
       title,

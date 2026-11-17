@@ -37,6 +37,7 @@ export type DeliveryTimeAvailability = {
   untilLabel: string | null;
   statusTitleNl: string;
   statusBodyNl: string;
+  statusBodyEn: string;
   nextAvailableAt: string | null;
   nextAvailableLabelNl: string | null;
 };
@@ -366,6 +367,7 @@ export function resolveDeliveryTimeAvailability(
       untilLabel,
       statusTitleNl: 'ONLINE',
       statusBodyNl: `Beschikbaar tot ${untilLabel}`,
+      statusBodyEn: `Available until ${untilLabel}`,
       nextAvailableAt: null,
       nextAvailableLabelNl: null,
     };
@@ -384,6 +386,7 @@ export function resolveDeliveryTimeAvailability(
       untilLabel,
       statusTitleNl: 'ONLINE',
       statusBodyNl: `Volgens je rooster beschikbaar tot ${untilLabel}`,
+      statusBodyEn: `Available on your schedule until ${untilLabel}`,
       nextAvailableAt: null,
       nextAvailableLabelNl: null,
     };
@@ -391,6 +394,7 @@ export function resolveDeliveryTimeAvailability(
 
   const next = nextScheduledAt(profile, now, timeZone);
   let nextLabel: string | null = null;
+  let nextLabelEn: string | null = null;
   if (next) {
     const todayYmd = ymdInTimeZone(now, timeZone);
     const nextYmd = ymdInTimeZone(next, timeZone);
@@ -400,6 +404,9 @@ export function resolveDeliveryTimeAvailability(
     nextLabel = sameDay
       ? `vandaag ${hm}`
       : `${weekdayNlInTimeZone(next, timeZone)} ${hm}`;
+    nextLabelEn = sameDay
+      ? `today ${hm}`
+      : `${new Intl.DateTimeFormat('en-GB', { weekday: 'long', timeZone }).format(next)} ${hm}`;
   }
 
   return {
@@ -414,6 +421,9 @@ export function resolveDeliveryTimeAvailability(
     statusBodyNl: nextLabel
       ? `Volgende beschikbaarheid: ${nextLabel}`
       : 'Je bent nu niet beschikbaar voor bezorgopdrachten.',
+    statusBodyEn: nextLabelEn
+      ? `Next availability: ${nextLabelEn}`
+      : 'You are not available for deliveries right now.',
     nextAvailableAt: next?.toISOString() ?? null,
     nextAvailableLabelNl: nextLabel,
   };

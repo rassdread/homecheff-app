@@ -69,6 +69,7 @@ export function DeliveryOriginChoice({
           </button>
         ))}
       </div>
+      <p className="text-sm text-gray-600">{t('deliverySignup.originExplain')}</p>
     </div>
   );
 }

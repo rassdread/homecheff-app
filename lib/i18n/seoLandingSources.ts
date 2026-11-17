@@ -715,20 +715,20 @@ const uniqueProductsPage: Record<string, Bi> = {
 
 const deliveryPartnerPage: Record<string, Bi> = {
   metaTitle: {
-    nl: "Bezorger worden bij HomeCheff | Flexibel bijverdienen",
-    en: "Become a HomeCheff delivery partner | Flexible side income",
+    nl: "Bezorger worden",
+    en: "Become a delivery driver",
   },
   metaDescription: {
-    nl: "Lokaal bezorgen, flexibele ritten, community, praktische uitleg zonder juridische beloftes.",
-    en: "Local delivery, flexible runs, community, practical overview without legal promises.",
+    nl: "Word bezorger bij HomeCheff. Voeg voertuigen toe, kies dagen met tijdvakken, en haal op vanaf je vaste adres of je huidige locatie.",
+    en: "Become a delivery driver with HomeCheff. Add vehicles, set days and time windows, and pick up from your usual address or your current location.",
   },
   title: {
-    nl: "Bezorger worden: flexibel bijverdienen met lokale ritten",
-    en: "Become a delivery partner: flexible side income with local runs",
+    nl: "Bezorger worden",
+    en: "Become a delivery driver",
   },
   intro: {
-    nl: "Bezorgers maken het verschil voor makers die geen auto of tijd hebben, en voor kopers die wél willen maar niet kunnen ophalen. Het is geen “passief inkomen”, wél een concrete bijdrage in de buurt met duidelijke ritten en afspraken.",
-    en: "Delivery partners matter for makers without a car or time, and for buyers who want food but cannot pick up. It is not passive income, but a concrete neighbourhood contribution with clear runs and agreements.",
+    nl: "Open Werken bij HomeCheff en kies Start als bezorger. Je vult je voertuigen, je dagen en de plek waar je opdrachten ophaalt zelf in. HomeCheff is geen werkgever en belooft geen inkomen.",
+    en: "Open Careers and choose Start as a delivery driver. You enter your vehicles, your days and the place you pick up deliveries. HomeCheff is not an employer and does not promise income.",
   },
   sec1Title: {
     nl: "Wat doe je als bezorger?",
@@ -774,33 +774,13 @@ const deliveryPartnerPage: Record<string, Bi> = {
     nl: "Stappenplan",
     en: "Step-by-step plan",
   },
-  step1: {
-    nl: "Check of bezorgen bij jou past (tijd, vervoer).",
-    en: "Check delivery fits you (time, transport).",
-  },
-  step2: {
-    nl: "Maak je profiel aan en kies bezorg-rol waar beschikbaar.",
-    en: "Create your profile and pick delivery role where available.",
-  },
-  step3: {
-    nl: "Start met korte ritten dichtbij huis.",
-    en: "Start with short runs close to home.",
-  },
-  step4: {
-    nl: "Communiceer duidelijk bij vertraging of drukte.",
-    en: "Communicate clearly if delayed or busy.",
-  },
-  step5: {
-    nl: "Breid uit als je betrouwbaarheid hebt opgebouwd.",
-    en: "Expand once you have built reliability.",
-  },
   mistakesTitle: {
     nl: "Veelgemaakte fouten",
     en: "Common mistakes",
   },
   mistakesBody: {
-    nl: "Te veel ritten accepteren zonder buffer, onduidelijke afspraken, geen backup bij ziekte. Zeg nee als het niet past.",
-    en: "Taking too many runs without buffer, unclear handoffs, no backup when ill. Say no when it does not fit.",
+    nl: "De ophaalradius en de maximale ritafstand door elkaar halen, of een tijdelijke telefoonlocatie aanzien voor je vaste adres. Geplande ritten blijven op je vaste adres.",
+    en: "Mixing up the pickup radius and the maximum trip distance, or treating a temporary phone location as your usual address. Planned trips stay on your usual address.",
   },
   authorityDropshippingTitle: {
     nl: "Waarom mensen stoppen met dropshipping",
@@ -835,13 +815,81 @@ const deliveryPartnerPage: Record<string, Bi> = {
     en: " for makers you help with runs.",
   },
   cta: {
-    nl: "Meld je aan als bezorger op HomeCheff",
-    en: "Sign up as a delivery partner on HomeCheff",
+    nl: "Start als bezorger",
+    en: "Start as a delivery driver",
   },
   ctaSub: {
-    nl: "Registreer en volg de onboarding voor bezorgers in jouw regio.",
-    en: "Register and follow delivery onboarding for your area.",
+    nl: "Je komt op het aanmeldformulier. Daarna regel je de overeenkomst en Stripe op je dashboard.",
+    en: "This opens the signup form. Afterwards you arrange the agreement and Stripe on your dashboard.",
   },
+  vehiclesTitle: {
+    nl: "Meerdere voertuigen",
+    en: "More than one vehicle",
+  },
+  vehiclesBody: {
+    nl: "Je kunt meer dan één voertuig toevoegen. Het model is optioneel. Staat jouw model er niet bij, of wijkt het af, dan vul je zelf lengte, breedte, hoogte en gewicht in. De getallen blijven in cm en kg staan. Merknamen en modelcodes veranderen niet.",
+    en: "You can add more than one vehicle. The model is optional. If your model is not listed, or it differs, you enter length, width, height and weight yourself. The numbers stay in cm and kg. Brand names and model codes do not change.",
+  },
+  scheduleTitle: {
+    nl: "Dagen en tijdvakken",
+    en: "Days and time windows",
+  },
+  scheduleBody: {
+    nl: "Je kiest eerst de dagen waarop je werkt. Elke gekozen dag kan meer dan één tijdvak hebben, bijvoorbeeld ochtend en avond. Een uitgezette dag levert geen ophaalmomenten op.",
+    en: "First choose the days you work. Each chosen day can have more than one time window, for example morning and evening. A day that is off does not offer pickup times.",
+  },
+  radiusTitle: {
+    nl: "Ophaalradius en maximale ritafstand",
+    en: "Pickup radius and maximum trip distance",
+  },
+  radiusBody: {
+    nl: "De ophaalradius is hoe ver van je ophaalplek je een opdracht ophaalt. De maximale ritafstand is hoe lang de hele rit mag zijn. Dat zijn twee aparte velden.",
+    en: "The pickup radius is how far from your pickup place you collect a job. The maximum trip distance is how long the whole trip may be. Those are two separate fields.",
+  },
+  payoutTitle: {
+    nl: "Overeenkomst en Stripe",
+    en: "Agreement and Stripe",
+  },
+  payoutBody: {
+    nl: "De bezorgerovereenkomst regel je tijdens het aanmelden. Uitbetalingen zet je klaar via Stripe op je dashboard. HomeCheff noemt geen uitbetaaldatum en is geen werkgever.",
+    en: "You arrange the courier agreement during signup. You set up payouts with Stripe on your dashboard. HomeCheff does not name a payout date and is not an employer.",
+  },
+  gpsTitle: {
+    nl: "Vast adres of huidige locatie",
+    en: "Usual address or current location",
+  },
+  gpsBody: {
+    nl: "In je instellingen kies je: Vanaf mijn vaste adres, of Vanaf mijn huidige locatie (GPS). De telefoonlocatie zet je aan op het dashboard met Gebruik mijn huidige locatie. Na een rit naar Amsterdam kun je daar je locatie bijwerken om een volgende opdracht in de buurt op te halen. Blijft een nieuwe locatie 15 minuten uit, dan geldt je vaste adres weer. Geplande ritten gebruiken altijd je vaste adres. Er zijn geen aparte stadspagina’s voor een tijdelijke locatie.",
+    en: "In your settings you choose: From my usual address, or From my current location (GPS). You turn on the phone location on the dashboard with Use my current location. After a trip to Amsterdam you can update your location there to pick up the next delivery nearby. If there is no new location for 15 minutes, your usual address applies again. Planned trips always use your usual address. There are no separate city pages for a temporary location.",
+  },
+  step1: {
+    nl: "Open Werken bij HomeCheff en kies Start als bezorger.",
+    en: "Open Careers and choose Start as a delivery driver.",
+  },
+  step2: {
+    nl: "Voeg een of meer voertuigen toe. Het model is optioneel. Eigen maten vul je zelf in.",
+    en: "Add one or more vehicles. The model is optional. Enter your own measurements if you need them.",
+  },
+  step3: {
+    nl: "Kies je dagen. Elke dag kan meer dan één tijdvak hebben.",
+    en: "Choose your days. Each day can have more than one time window.",
+  },
+  step4: {
+    nl: "Kies vast adres of huidige locatie, en vul de ophaalradius en de maximale ritafstand apart in.",
+    en: "Choose your usual address or your current location, and enter the pickup radius and the maximum trip distance separately.",
+  },
+  step5: {
+    nl: "Rond de overeenkomst af. Op het dashboard zet je Stripe klaar en, als je dat koos, je huidige locatie.",
+    en: "Finish the agreement. On the dashboard you set up Stripe and, if you chose it, your current location.",
+  },
+  linkCustomerNl: { nl: "Pakket laten bezorgen", en: "Pakket laten bezorgen" },
+  linkCustomerEn: { nl: "Local parcel delivery", en: "Local parcel delivery" },
+  linkCourierNl: { nl: "Bezorger worden", en: "Bezorger worden" },
+  linkCourierEn: { nl: "Become a delivery driver", en: "Become a delivery driver" },
+  linkSignup: { nl: "Start als bezorger", en: "Start as a delivery driver" },
+  linkRequest: { nl: "Bezorging aanvragen", en: "Request a delivery" },
+  linkFaq: { nl: "Veelgestelde vragen", en: "Frequently asked questions" },
+  linkWerken: { nl: "Werken bij HomeCheff", en: "Careers at HomeCheff" },
 };
 
 const dropshippingAlternativePage: Record<string, Bi> = {
@@ -995,6 +1043,89 @@ const dropshippingAlternativePage: Record<string, Bi> = {
   },
 };
 
+const localDeliveryPage: Record<string, Bi> = {
+  metaTitle: {
+    nl: "Pakket laten bezorgen of een kast laten vervoeren",
+    en: "Local parcel delivery and bulky transport",
+  },
+  metaDescription: {
+    nl: "Laat een pakket bezorgen of vervoer een kast. Kies Pakket of Transport, een ophaalmoment, en een bezorger die bij gewicht, maten en koeling past.",
+    en: "Local parcel delivery, or transport a bulky item such as a cupboard. Choose Parcel or Transport, a pickup time, and a courier who fits the weight, size and cooling.",
+  },
+  title: {
+    nl: "Pakket laten bezorgen of een kast laten vervoeren",
+    en: "Local parcel delivery, or transport a bulky item",
+  },
+  intro: {
+    nl: "Je vraagt een lokale bezorger voor een pakket of voor iets groters. Je kiest het moment, de maten en de bezorger. Een bezorger is er alleen als iemand in de buurt beschikbaar is.",
+    en: "You ask a local courier for a parcel or for something larger. You choose the time, the measurements and the courier. A courier appears only when someone nearby is available.",
+  },
+  parcelTitle: { nl: "Pakket en Transport", en: "Parcel and Transport" },
+  parcelBody: {
+    nl: "Kies Pakket voor een gewone zending. Kies Transport als het voorwerp groot of zwaar is, of als je eerst wilt overleggen. Bij Transport kun je een privéfoto toevoegen en een bedrag invullen zodra je een prijsvoorstel wilt sturen. Je kunt ook eerst alleen een vraag stellen.",
+    en: "Choose Parcel for an ordinary shipment. Choose Transport when the item is large or heavy, or when you want to agree the details first. For Transport you can add a private photo and enter an amount when you want to send a price proposal. You can also ask a question first.",
+  },
+  timeTitle: { nl: "Ophaalmoment of een ander moment", en: "A pickup time, or another time" },
+  timeBody: {
+    nl: "Vul een gewenst ophaalmoment in, of laat het leeg voor zo snel mogelijk. Een later moment gebruikt de dagen en tijdvakken van de bezorger, ook als die nu offline is. Staat iemand niet op dat moment vrij, dan zie je andere ophaalmomenten uit het rooster.",
+    en: "Enter a preferred pickup time, or leave it empty for as soon as possible. A later time uses the courier's days and time windows, even if they are offline now. If nobody is free then, you see other pickup times from the schedule.",
+  },
+  matchTitle: { nl: "Welke bezorger je ziet", en: "Which courier you see" },
+  matchBody: {
+    nl: "HomeCheff toont bezorgers van wie het voertuig bij het gewicht en bij lengte, breedte en hoogte past. Vink je actieve koeling aan, dan verschijnt alleen een bezorger die dat aanbiedt. Een voertuig met een bekende maximale belading die te laag is, verdwijnt uit de lijst.",
+    en: "HomeCheff shows couriers whose vehicle fits the weight and the length, width and height. If you tick active cooling, only a courier who offers it appears. A vehicle with a known payload ceiling that is too low drops off the list.",
+  },
+  fitTitle: { nl: "Even afstemmen", en: "Needs a check" },
+  fitBody: {
+    nl: "Even afstemmen betekent dat de bezorger nog moet bevestigen dat de lading past. Past naar verwachting is een inschatting op richtmaten, geen garantie. Past volgens de opgegeven maten betekent dat jouw maten binnen de maten van de bezorger vallen.",
+    en: "Needs a check means the courier still has to confirm the load fits. Expected to fit is an estimate from guide sizes, not a guarantee. Fits the measurements you entered means your sizes fall within the courier's sizes.",
+  },
+  startTitle: { nl: "Waar je begint", en: "Where you start" },
+  startBody: {
+    nl: "Open Bezorging aanvragen. Daar kies je het ophaaladres, het afleveradres, Pakket of Transport, en daarna een bezorger. In de checkout van een product zie je dezelfde bezorgerkaart.",
+    en: "Open Request a delivery. There you choose the pickup address, the drop-off address, Parcel or Transport, and then a courier. A product checkout shows the same courier card.",
+  },
+  stepsTitle: { nl: "Zo vraag je een bezorging aan", en: "How you request a delivery" },
+  step1: {
+    nl: "Open Bezorging aanvragen en vul ophaaladres en afleveradres in.",
+    en: "Open Request a delivery and enter the pickup address and the drop-off address.",
+  },
+  step2: {
+    nl: "Kies Pakket of Transport. Vul gewicht en maten in. Bij Transport kun je koeling, een vraag, een foto en een prijsvoorstel toevoegen.",
+    en: "Choose Parcel or Transport. Enter weight and measurements. For Transport you can add cooling, a question, a photo and a price proposal.",
+  },
+  step3: {
+    nl: "Kies een ophaalmoment, of laat het leeg voor zo snel mogelijk.",
+    en: "Choose a pickup time, or leave it empty for as soon as possible.",
+  },
+  step4: {
+    nl: "Bekijk de bezorgers. Lees of de lading past of dat de bezorger moet bevestigen.",
+    en: "Look at the couriers. Read whether the load fits or the courier still has to confirm.",
+  },
+  step5: {
+    nl: "Stel een vraag, stuur een voorstel, of vraag de pakketbezorging aan.",
+    en: "Ask a question, send a proposal, or request the parcel delivery.",
+  },
+  mistakesTitle: { nl: "Goed om te weten", en: "Good to know" },
+  mistakesBody: {
+    nl: "Een bezorger verschijnt niet als gewicht, maten of koeling niet passen. Even afstemmen is nog geen bevestiging. Het ophaalmoment is een verzoek, geen gegarandeerde aankomst.",
+    en: "A courier does not appear when the weight, measurements or cooling do not fit. Needs a check is not a confirmation yet. The pickup time is a request, not a guaranteed arrival.",
+  },
+  cta: { nl: "Bezorging aanvragen", en: "Request a delivery" },
+  ctaSub: {
+    nl: "Je komt op het formulier. Wil je zelf bezorgen, ga dan naar Bezorger worden.",
+    en: "This opens the form. If you want to deliver yourself, go to Become a delivery driver.",
+  },
+  linkCustomerNl: { nl: "Pakket laten bezorgen", en: "Pakket laten bezorgen" },
+  linkCustomerEn: { nl: "Local parcel delivery", en: "Local parcel delivery" },
+  linkCourierNl: { nl: "Bezorger worden", en: "Bezorger worden" },
+  linkCourierEn: { nl: "Become a delivery driver", en: "Become a delivery driver" },
+  linkSignup: { nl: "Start als bezorger", en: "Start as a delivery driver" },
+  linkRequest: { nl: "Bezorging aanvragen", en: "Request a delivery" },
+  linkFaq: { nl: "Veelgestelde vragen", en: "Frequently asked questions" },
+  linkWerken: { nl: "Werken bij HomeCheff", en: "Careers at HomeCheff" },
+};
+
 export const PROGRAMMATIC_PAGE_SOURCES: Record<string, Record<string, Bi>> = {
   seoSharedFaq,
   homeEarningPage,
@@ -1002,6 +1133,7 @@ export const PROGRAMMATIC_PAGE_SOURCES: Record<string, Record<string, Bi>> = {
   localProductsPage,
   uniqueProductsPage,
   deliveryPartnerPage,
+  localDeliveryPage,
   dropshippingAlternativePage,
   ...PHASE2_PROGRAMMATIC_SOURCES,
 };

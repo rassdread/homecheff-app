@@ -188,6 +188,11 @@ export const SEO_LANDING_BLOCKS = {
   ],
 
   deliveryPartnerPage: [
+    { type: "section", titleKey: "vehiclesTitle", bodyKey: "vehiclesBody" },
+    { type: "section", titleKey: "scheduleTitle", bodyKey: "scheduleBody" },
+    { type: "section", titleKey: "radiusTitle", bodyKey: "radiusBody" },
+    { type: "section", titleKey: "payoutTitle", bodyKey: "payoutBody" },
+    { type: "section", titleKey: "gpsTitle", bodyKey: "gpsBody" },
     { type: "section", titleKey: "sec1Title", bodyKey: "sec1Body" },
     { type: "section", titleKey: "sec2Title", bodyKey: "sec2Body" },
     { type: "section", titleKey: "sec3Title", bodyKey: "sec3Body" },
@@ -207,15 +212,36 @@ export const SEO_LANDING_BLOCKS = {
     {
       type: "linkRow",
       links: [
-        { href: "/verdienen-zonder-dropshipping", labelKey: "linkVerdienenZonder" },
-        { href: "/", labelKey: "linkHome" },
-        { href: "/growth", labelKey: "linkGrowth" },
-        { href: "/eten-verkopen-vanuit-huis", labelKey: "linkEtenVanuitHuisDeliv" },
+        { href: "/delivery/signup", labelKey: "linkSignup" },
+        { href: "/pakket-laten-bezorgen", labelKey: "linkCustomerNl" },
+        { href: "/en/local-parcel-delivery", labelKey: "linkCustomerEn" },
+        { href: "/werken-bij", labelKey: "linkWerken" },
+        { href: "/faq", labelKey: "linkFaq" },
       ],
     },
     { type: "steps", titleKey: "stepsTitle", stepKeys: ["step1", "step2", "step3", "step4", "step5"] },
     { type: "mistakes", titleKey: "mistakesTitle", bodyKey: "mistakesBody" },
     FAQ_BLOCK,
+    { type: "cta" },
+  ],
+
+  localDeliveryPage: [
+    { type: "section", titleKey: "parcelTitle", bodyKey: "parcelBody" },
+    { type: "section", titleKey: "timeTitle", bodyKey: "timeBody" },
+    { type: "section", titleKey: "matchTitle", bodyKey: "matchBody" },
+    { type: "section", titleKey: "fitTitle", bodyKey: "fitBody" },
+    { type: "section", titleKey: "startTitle", bodyKey: "startBody" },
+    {
+      type: "linkRow",
+      links: [
+        { href: "/bezorging/aanvragen", labelKey: "linkRequest" },
+        { href: "/bezorger-worden", labelKey: "linkCourierNl" },
+        { href: "/en/become-a-delivery-driver", labelKey: "linkCourierEn" },
+        { href: "/faq", labelKey: "linkFaq" },
+      ],
+    },
+    { type: "steps", titleKey: "stepsTitle", stepKeys: ["step1", "step2", "step3", "step4", "step5"] },
+    { type: "mistakes", titleKey: "mistakesTitle", bodyKey: "mistakesBody" },
     { type: "cta" },
   ],
 

@@ -42,7 +42,7 @@ export const verdienHubNl = {
       "title": "Bezorgen",
       "proposition": "Bezorg flexibel in jouw omgeving.",
       "forWhom": "Bezorgers vanaf 18 jaar.",
-      "howStart": "Meld je aan en bepaal zelf je beschikbaarheid.",
+      "howStart": "Kies je voertuigen, je dagen en of je ophaalt vanaf je vaste adres of je huidige locatie.",
       "cta": "Start als bezorger",
       "share": "Nodig een bezorger uit"
     },
@@ -166,7 +166,7 @@ export const verdienHubEn = {
       "title": "Deliver",
       "proposition": "Deliver flexibly in your area.",
       "forWhom": "Couriers aged 18+.",
-      "howStart": "Sign up and set your own availability.",
+      "howStart": "Add your vehicles, your days, and whether you pick up from your usual address or your current location.",
       "cta": "Start as a courier",
       "share": "Invite a courier"
     },

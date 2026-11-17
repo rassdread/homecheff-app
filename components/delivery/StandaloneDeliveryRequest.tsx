@@ -471,19 +471,19 @@ export function StandaloneDeliveryRequest({
     <Shell className={embedded ? 'mx-auto max-w-xl px-1 py-2 pb-28' : 'mx-auto max-w-xl px-4 py-8 pb-40'} data-delivery-request="standalone">
       {embedded && onClose ? (
         <button type="button" className="mb-3 min-h-11 text-sm font-semibold text-emerald-800 underline" onClick={onClose}>
-          Terug naar de feed
+          {t('deliveryFlow.backToFeed', { defaultValue: 'Terug naar de feed' })}
         </button>
       ) : null}
-      <h1 className="text-2xl font-bold text-gray-900">Bezorging aanvragen</h1>
+      <h1 className="text-2xl font-bold text-gray-900">{t('deliveryFlow.requestTitle', { defaultValue: 'Bezorging aanvragen' })}</h1>
       <p className="mt-2 text-sm text-gray-600">
-        Lokale bezorging zonder HomeCheff-product. Jij kiest de bezorger. Het ophaalmoment is een verzoek, geen gegarandeerde aankomst.
+        {t('deliveryFlow.requestIntro', { defaultValue: 'Lokale bezorging zonder HomeCheff-product. Jij kiest de bezorger. Het ophaalmoment is een verzoek, geen gegarandeerde aankomst.' })}
       </p>
       <p className="mt-2 text-sm text-gray-600">
-        Dit is een bezorgverzoek, geen aanmelding als bezorger.{' '}
-        <a className="font-medium text-emerald-800 underline" href="/delivery/signup">Word zelf bezorger</a>
+        {t('deliveryFlow.requestNotSignup', { defaultValue: 'Dit is een bezorgverzoek, geen aanmelding als bezorger.' })}{' '}
+        <a className="font-medium text-emerald-800 underline" href="/bezorger-worden">{t('deliveryFlow.becomeCourier', { defaultValue: 'Word zelf bezorger' })}</a>
       </p>
-      {paid && <p className="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">Betaling ontvangen. {statusText}</p>}
-      {cancelled && <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Betaling geannuleerd. Er is geen actieve bezorgopdracht.</p>}
+      {paid && <p className="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{t('deliveryFlow.paidNotice', { defaultValue: 'Betaling ontvangen.' })} {statusText}</p>}
+      {cancelled && <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">{t('deliveryFlow.cancelledNotice', { defaultValue: 'Betaling geannuleerd. Er is geen actieve bezorgopdracht.' })}</p>}
       {statusText && !paid && !cancelled && <p className="mt-4 text-sm text-gray-700">{statusText}</p>}
 
       {deliveryOpen ? (
@@ -503,7 +503,7 @@ export function StandaloneDeliveryRequest({
         />
       </label>
       <label className="mt-4 block text-sm font-medium text-gray-800">
-        Afleveradres
+        {t('deliveryFlow.dropoffAddress', { defaultValue: 'Afleveradres' })}
         <GooglePlacesAutocomplete
           value={deliveryAddress}
           className="mt-1 w-full"
@@ -517,20 +517,20 @@ export function StandaloneDeliveryRequest({
         />
       </label>
       <label className="mt-4 block text-sm font-medium text-gray-800">
-        Gewenst ophaalmoment
+        {t('deliveryFlow.pickupTime', { defaultValue: 'Gewenst ophaalmoment' })}
         <input className="mt-1 w-full rounded-lg border px-3 py-2" type="datetime-local" value={requestedPickupAt} onChange={(event) => {
           clearQuote();
           setSelectedPickupIso(null);
           setRequestedPickupAt(event.target.value);
         }} />
-        <span className="mt-1 block text-xs text-gray-500">Laat leeg voor zo snel mogelijk. Een later moment gebruikt de beschikbaarheid van de bezorger, ook als die nu offline is.</span>
+        <span className="mt-1 block text-xs text-gray-500">{t('deliveryFlow.pickupHint', { defaultValue: 'Laat leeg voor zo snel mogelijk. Een later moment gebruikt de beschikbaarheid van de bezorger, ook als die nu offline is.' })}</span>
       </label>
       {transportOn ? (
         <div className="mt-4 rounded-xl border p-3">
-          <p className="text-sm font-medium text-gray-800">Soort opdracht</p>
+          <p className="text-sm font-medium text-gray-800">{t('deliveryFlow.jobKind', { defaultValue: 'Soort opdracht' })}</p>
           <div className="mt-2 grid grid-cols-2 gap-2">
-            <button type="button" className={`min-h-11 rounded-lg border px-3 py-2 ${jobKind === 'SIMPLE' ? 'bg-emerald-700 text-white' : ''}`} onClick={() => { if (jobKind !== 'SIMPLE') clearQuote(); setJobKind('SIMPLE'); }}>Pakket</button>
-            <button type="button" className={`min-h-11 rounded-lg border px-3 py-2 ${jobKind === 'TRANSPORT' ? 'bg-emerald-700 text-white' : ''}`} onClick={() => { if (jobKind !== 'TRANSPORT') clearQuote(); setJobKind('TRANSPORT'); }}>Transport</button>
+            <button type="button" className={`min-h-11 rounded-lg border px-3 py-2 ${jobKind === 'SIMPLE' ? 'bg-emerald-700 text-white' : ''}`} onClick={() => { if (jobKind !== 'SIMPLE') clearQuote(); setJobKind('SIMPLE'); }}>{t('deliveryFlow.parcel', { defaultValue: 'Pakket' })}</button>
+            <button type="button" className={`min-h-11 rounded-lg border px-3 py-2 ${jobKind === 'TRANSPORT' ? 'bg-emerald-700 text-white' : ''}`} onClick={() => { if (jobKind !== 'TRANSPORT') clearQuote(); setJobKind('TRANSPORT'); }}>{t('deliveryFlow.transport', { defaultValue: 'Transport' })}</button>
           </div>
         </div>
       ) : null}
@@ -543,10 +543,10 @@ export function StandaloneDeliveryRequest({
         </div>
         {transport ? (
           <>
-            <p className="text-xs text-gray-600">Je kunt eerst een vraag stellen aan een bezorger. Vul een bedrag in zodra je een voorstel wilt sturen.</p>
+            <p className="text-xs text-gray-600">{t('deliveryFlow.askFirst', { defaultValue: 'Je kunt eerst een vraag stellen aan een bezorger. Vul een bedrag in zodra je een voorstel wilt sturen.' })}</p>
             <label className="flex min-h-11 items-center gap-2 text-sm">
               <input type="checkbox" checked={needsCooling} onChange={(event) => { clearQuote(); setNeedsCooling(event.target.checked); }} />
-              Actieve koeling nodig
+              {t('deliveryFlow.needsCooling', { defaultValue: 'Actieve koeling nodig' })}
             </label>
             <input className="min-h-11 rounded-lg border px-3 py-2" inputMode="decimal" aria-label="Voorstel in euro" placeholder="Jouw voorstel in euro" value={proposalEuro} onChange={(event) => setProposalEuro(event.target.value)} />
             <label className="text-sm text-gray-700">
@@ -576,7 +576,7 @@ export function StandaloneDeliveryRequest({
       {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
       <div className="mt-4 space-y-3">
       <button type="button" className="w-full rounded-lg bg-emerald-700 px-4 py-3 font-semibold text-white disabled:opacity-60" disabled={busy} onClick={() => void calculate()}>
-        Toon beschikbare bezorgers
+        {t('deliveryFlow.showCouriers', { defaultValue: 'Toon beschikbare bezorgers' })}
       </button>
       {history.length > 0 && (
         <div className="rounded-xl border bg-white p-3 text-sm">
@@ -601,7 +601,7 @@ export function StandaloneDeliveryRequest({
               <StartChatButton
                 sellerId={deliverer.userId}
                 sellerName={deliverer.displayName || deliverer.name}
-                label="Stel een vraag"
+                label={t('deliveryFlow.askQuestion', { defaultValue: 'Stel een vraag' })}
                 courierQuestion
                 showSuccessMessage
               />
@@ -611,10 +611,10 @@ export function StandaloneDeliveryRequest({
                 disabled={busy || (transport && !validProposalPrice)}
                 onClick={() => transport ? sendProposal(deliverer) : chooseCourier(deliverer)}
               >
-                {transport ? 'Stuur voorstel' : 'Vraag pakketbezorging aan'}
+                {transport ? t('deliveryFlow.sendProposal', { defaultValue: 'Stuur voorstel' }) : t('deliveryFlow.requestParcel', { defaultValue: 'Vraag pakketbezorging aan' })}
                 {transport && validProposalPrice ? ` · ${eur(proposalCents)}` : ''}
               </button>
-              {transport && !validProposalPrice && <p className="w-full text-sm text-gray-600">Vul bij ‘Jouw voorstel in euro’ een bedrag in om een voorstel te sturen.</p>}
+              {transport && !validProposalPrice && <p className="w-full text-sm text-gray-600">{t('deliveryFlow.proposalRequired', { defaultValue: 'Vul bij ‘Jouw voorstel in euro’ een bedrag in om een voorstel te sturen.' })}</p>}
             </div>
           )}
         />
@@ -623,15 +623,23 @@ export function StandaloneDeliveryRequest({
         <section className="space-y-2 rounded-xl border bg-white p-4" aria-label="Lading te zwaar">
           {rejected.map((courier) => (
             <p key={courier.id} className="text-sm text-gray-800">
-              {courier.name}: {courier.reason}
+              {courier.name}: {courier.reason === 'Lading te zwaar voor dit voertuig'
+                ? t('deliveryFlow.fitTooHeavy', { defaultValue: courier.reason })
+                : courier.reason === 'Even afstemmen'
+                  ? t('deliveryFlow.fitConfirm', { defaultValue: courier.reason })
+                  : courier.reason === 'Past naar verwachting'
+                    ? t('deliveryFlow.fitExpected', { defaultValue: courier.reason })
+                    : courier.reason === 'Past volgens de opgegeven maten'
+                      ? t('deliveryFlow.fitMeasured', { defaultValue: courier.reason })
+                      : courier.reason}
             </p>
           ))}
         </section>
       )}
       {couriers && unavailable.length > 0 && (
         <section className="space-y-3 rounded-xl border bg-white p-4" aria-label="Andere ophaalmomenten">
-          <h2 className="font-semibold text-gray-900">Andere ophaalmomenten</h2>
-          <p className="text-sm text-gray-600">Deze bezorgers hebben op andere tijden ruimte volgens hun rooster. Kies een moment om de beschikbaarheid opnieuw te bekijken.</p>
+          <h2 className="font-semibold text-gray-900">{t('deliveryFlow.otherTimes', { defaultValue: 'Andere ophaalmomenten' })}</h2>
+          <p className="text-sm text-gray-600">{t('deliveryFlow.otherTimesHint', { defaultValue: 'Deze bezorgers hebben op andere tijden ruimte volgens hun rooster. Kies een moment om de beschikbaarheid opnieuw te bekijken.' })}</p>
           {unavailable.map(courier => (
             <div key={courier.id}>
               <p className="text-sm font-medium">{courier.name}{courier.matchedVehicleLabel ? ` · ${courier.matchedVehicleLabel}` : ''}</p>
@@ -653,7 +661,7 @@ export function StandaloneDeliveryRequest({
         </section>
       )}
       {couriers?.length === 0 && !unavailable.length && (
-        <p className="text-sm text-gray-600">Ook in de komende week vanaf het gekozen moment is geen ander ophaalmoment gevonden. Je kunt zelf een andere datum of tijd proberen.</p>
+        <p className="text-sm text-gray-600">{t('deliveryFlow.noOtherTime', { defaultValue: 'Ook in de komende week vanaf het gekozen moment is geen ander ophaalmoment gevonden. Je kunt zelf een andere datum of tijd proberen.' })}</p>
       )}
       {booked && (
         <div className="rounded-xl border bg-white p-4 text-sm shadow-sm">
@@ -664,7 +672,7 @@ export function StandaloneDeliveryRequest({
           <p className="font-semibold">Totaal {eur(booked.buyerTotalCents)}</p>
           <p className="mt-2 text-gray-600">{booked.paymentAvailable ? 'Bevestigd. Je kunt betalen.' : 'Wacht op bevestiging van deze bezorger. Er wordt nog niets afgeschreven.'}</p>
           <button type="button" className="mt-3 w-full rounded-lg bg-gray-900 px-4 py-3 font-semibold text-white disabled:opacity-60" disabled={busy || !booked.paymentAvailable} onClick={pay}>
-            Bevestig en betaal
+            {t('deliveryFlow.confirmPay', { defaultValue: 'Bevestig en betaal' })}
           </button>
         </div>
       )}

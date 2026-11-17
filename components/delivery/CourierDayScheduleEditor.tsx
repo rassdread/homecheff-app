@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 import { CANONICAL_DELIVERY_DAYS } from '@/lib/delivery/delivery-profile-canonical';
 import {
   QUICK_DAY_WINDOWS,
@@ -39,6 +40,22 @@ export function CourierDayScheduleEditor({
 }: Props) {
   const schedule = decodeDaySchedule(slots, days, workStartTime, workEndTime);
   const [copyTargets, setCopyTargets] = useState<Record<string, string[]>>({});
+  const { t } = useTranslation();
+  const flow = (key: string, fallback: string) => t(`deliveryFlow.${key}`, { defaultValue: fallback }) || fallback;
+  const dayName = (day: string) => flow(`day.${day}`, DAY_LABELS[day] ?? day);
+  const scheduleError = (message: string | null) => {
+    if (!message) return null;
+    const key = message.startsWith('Kies minstens')
+      ? 'errWindow'
+      : message.startsWith('Vul een geldige')
+        ? 'errTime'
+        : message.startsWith('De eindtijd')
+          ? 'errOrder'
+          : message.startsWith('Deze tijdvakken')
+            ? 'errOverlap'
+            : null;
+    return key ? flow(key, message) : message;
+  };
   const selected = CANONICAL_DELIVERY_DAYS.filter((day) => days.includes(day));
 
   const commit = (next: DaySchedule) => {
@@ -52,7 +69,7 @@ export function CourierDayScheduleEditor({
   if (selected.length === 0) {
     return (
       <p className="text-sm text-gray-600">
-        Kies eerst de dagen waarop je werkt. Een uitgezette dag levert geen ophaalmomenten op.
+        {flow('pickDaysFirst', 'Kies eerst de dagen waarop je werkt. Een uitgezette dag levert geen ophaalmomenten op.')}
       </p>
     );
   }
@@ -65,7 +82,7 @@ export function CourierDayScheduleEditor({
         const targets = copyTargets[day] ?? [];
         return (
           <section key={day} className="rounded-xl border border-gray-200 p-4" data-day={day}>
-            <h4 className="font-semibold text-gray-900">{DAY_LABELS[day] ?? day}</h4>
+            <h4 className="font-semibold text-gray-900">{dayName(day)}</h4>
             <div className="mt-3 flex flex-wrap gap-2">
               {QUICK_DAY_WINDOWS.map((quick) => (
                 <button
@@ -77,7 +94,7 @@ export function CourierDayScheduleEditor({
                     updateDay(day, [{ start: quick.start, end: quick.end }, ...rest]);
                   }}
                 >
-                  {quick.label}
+                  {flow(`window.${quick.id}`, quick.label)}
                 </button>
               ))}
             </div>
@@ -85,11 +102,11 @@ export function CourierDayScheduleEditor({
               {windows.map((window, index) => (
                 <div key={`${day}-${index}`} className="flex flex-wrap items-center gap-2">
                   <label className="text-sm text-gray-700">
-                    Begin
+                    {flow('start', 'Begin')}
                     <input
                       type="time"
                       value={window.start}
-                      aria-label={`${DAY_LABELS[day]} tijdvak ${index + 1} begin`}
+                      aria-label={`${dayName(day)} ${index + 1} ${flow('start', 'Begin')}`}
                       className="ml-2 rounded-lg border border-gray-300 px-2 py-2"
                       onChange={(event) => {
                         const next = windows.map((item, itemIndex) =>
@@ -100,11 +117,11 @@ export function CourierDayScheduleEditor({
                     />
                   </label>
                   <label className="text-sm text-gray-700">
-                    Einde
+                    {flow('end', 'Einde')}
                     <input
                       type="time"
                       value={window.end}
-                      aria-label={`${DAY_LABELS[day]} tijdvak ${index + 1} einde`}
+                      aria-label={`${dayName(day)} ${index + 1} ${flow('end', 'Einde')}`}
                       className="ml-2 rounded-lg border border-gray-300 px-2 py-2"
                       onChange={(event) => {
                         const next = windows.map((item, itemIndex) =>
@@ -120,7 +137,7 @@ export function CourierDayScheduleEditor({
                       className="min-h-11 text-sm text-gray-600 underline"
                       onClick={() => updateDay(day, windows.filter((_, itemIndex) => itemIndex !== index))}
                     >
-                      Verwijder tijdvak
+                      {flow('removeWindow', 'Verwijder tijdvak')}
                     </button>
                   ) : null}
                 </div>
@@ -132,16 +149,16 @@ export function CourierDayScheduleEditor({
                 className="mt-3 min-h-11 text-sm font-medium text-primary-brand"
                 onClick={() => updateDay(day, [...windows, { start: '14:00', end: '17:00' }])}
               >
-                Tweede tijdvak toevoegen
+                {flow('addWindow', 'Tweede tijdvak toevoegen')}
               </button>
             ) : null}
             {error ? (
               <p className="mt-2 text-sm text-red-700" role="alert">
-                {error}
+                {scheduleError(error)}
               </p>
             ) : null}
             <fieldset className="mt-4 space-y-2">
-              <legend className="text-sm font-medium text-gray-800">Kopieer naar andere dagen</legend>
+              <legend className="text-sm font-medium text-gray-800">{flow('copyLegend', 'Kopieer naar andere dagen')}</legend>
               <div className="flex flex-wrap gap-3">
                 {selected
                   .filter((other) => other !== day)
@@ -159,7 +176,7 @@ export function CourierDayScheduleEditor({
                           }));
                         }}
                       />
-                      {DAY_LABELS[other]}
+                      {dayName(other)}
                     </label>
                   ))}
               </div>
@@ -172,7 +189,7 @@ export function CourierDayScheduleEditor({
                   setCopyTargets((prev) => ({ ...prev, [day]: [] }));
                 }}
               >
-                Kopieer naar andere dagen
+                {flow('copyAction', 'Kopieer naar andere dagen')}
               </button>
             </fieldset>
           </section>

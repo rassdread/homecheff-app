@@ -18,15 +18,11 @@ import {
 import { catalogReferences, referenceHeadline, type VehicleReference } from '@/lib/delivery/vehicle-references';
 import type { CapacityAxis, CapacityMark } from '@/lib/delivery/transport-job';
 import { VehicleSilhouette } from '@/components/delivery/VehicleSilhouette';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const TILE = 'min-w-0 rounded-xl border-2 p-3 transition-all text-left sm:p-4';
 const TILE_ON = 'border-primary-brand bg-primary-50 text-primary-brand';
 const TILE_OFF = 'border-gray-200 hover:border-gray-300';
-
-function variantLabel(vehicle: CourierVehicle): string {
-  return variantChoices(vehicle.family).find((item) => item.id === vehicle.variant)?.label
-    ?? vehiclePublicLabel(vehicle);
-}
 
 function readyToKeep(vehicle: CourierVehicle): boolean {
   if (variantChoices(vehicle.family).length > 0 && !vehicle.variant) return false;
@@ -51,6 +47,9 @@ export function CourierVehicleEditor({
   const [step, setStep] = useState<'family' | 'variant' | 'details'>('family');
   const baseline = useRef<CourierVehicle[] | null>(null);
   const draftKey = useRef<string | null>(null);
+  const { t, language } = useTranslation();
+  const flow = (key: string, fallback: string) => t(`deliveryFlow.${key}`, { defaultValue: fallback }) || fallback;
+  const named = (vehicle: CourierVehicle) => vehiclePublicLabel(vehicle, flow);
 
   function publish(nextDraft: CourierVehicle | null) {
     const base = baseline.current;
@@ -160,7 +159,7 @@ export function CourierVehicleEditor({
           <div className="flex items-start gap-3">
             <VehicleSilhouette family={vehicle.family} variant={vehicle.variant} className="mt-0.5 h-8 w-16 shrink-0 text-gray-800" />
             <div>
-              <p className="font-medium text-gray-900">{vehiclePublicLabel(vehicle)}</p>
+              <p className="font-medium text-gray-900">{named(vehicle)}</p>
               {vehicle.referenceId ? (
                 <p className="text-sm text-gray-600">{catalogReferences(vehicle).find((ref) => ref.id === vehicle.referenceId)?.name}</p>
               ) : null}
@@ -169,10 +168,10 @@ export function CourierVehicleEditor({
           {vehicle.variant == null && variantChoices(vehicle.family).length > 0 ? (
             <p className="mt-1 text-sm text-gray-600">
               {vehicle.family === 'CAR'
-                ? 'Auto blijft staan tot je Hatchback, Sedan of Stationwagen kiest.'
+                ? flow('carNeedsVariant', 'Auto blijft staan tot je Hatchback, Sedan of Stationwagen kiest.')
                 : vehicle.family === 'BUS'
-                  ? 'Bestelbus blijft staan tot je een formaat kiest.'
-                  : 'Kies een uitvoering wanneer je die wilt vastleggen.'}
+                  ? flow('busNeedsVariant', 'Bestelbus blijft staan tot je een formaat kiest.')
+                  : flow('chooseVariantLater', 'Kies een uitvoering wanneer je die wilt vastleggen.')}
             </p>
           ) : null}
           <div className="mt-3 flex flex-wrap gap-2">
@@ -203,7 +202,7 @@ export function CourierVehicleEditor({
                 }
               }}
             >
-              Verwijderen
+              {flow('remove', 'Verwijderen')}
             </button>
             {legacyCapacity ? (
               <button
@@ -216,7 +215,7 @@ export function CourierVehicleEditor({
                   onLegacyAssigned?.();
                 }}
               >
-                Deze maten horen bij dit voertuig
+                {flow('assignSizes', 'Deze maten horen bij dit voertuig')}
               </button>
             ) : null}
           </div>
@@ -226,12 +225,12 @@ export function CourierVehicleEditor({
 
       {legacyCapacity ? (
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950">
-          Je hebt één oude set maten en meerdere voertuigen. Kies bij welk voertuig die horen. Tot die keuze worden de maten bij geen enkel voertuig gebruikt.
+          {flow('legacySizes', 'Je hebt één oude set maten en meerdere voertuigen. Kies bij welk voertuig die horen. Tot die keuze worden de maten bij geen enkel voertuig gebruikt.')}
         </p>
       ) : null}
 
       <button type="button" className="min-h-11 rounded-lg bg-primary-600 px-4 font-semibold text-white disabled:opacity-60" onClick={beginAdd} disabled={adding}>
-        Voertuig toevoegen
+        {flow('addVehicle', 'Voertuig toevoegen')}
       </button>
 
       {adding && step === 'family' && draft == null ? (
@@ -241,18 +240,18 @@ export function CourierVehicleEditor({
               <button key={choice.id} type="button" className={`${TILE} ${TILE_OFF}`} onClick={() => chooseFamily(choice.id)}>
                 <span className="flex flex-col items-center gap-2 text-center">
                   <VehicleSilhouette family={choice.id} className="h-8 w-16 text-gray-800" />
-                  <span className="break-words text-sm font-medium">{choice.label}</span>
+                  <span className="break-words text-sm font-medium">{flow(`family.${choice.id}`, choice.label)}</span>
                 </span>
               </button>
             ))}
           </div>
-          <button type="button" className="min-h-11 rounded-lg border px-3 text-sm" onClick={cancel}>Annuleren</button>
+          <button type="button" className="min-h-11 rounded-lg border px-3 text-sm" onClick={cancel}>{flow('cancel', 'Annuleren')}</button>
         </div>
       ) : null}
 
       {draft && step === 'variant' ? (
         <div className="space-y-3">
-          <p className="text-sm font-medium text-gray-800">Kies de uitvoering</p>
+          <p className="text-sm font-medium text-gray-800">{flow('chooseVariant', 'Kies de uitvoering')}</p>
           <div className="grid min-w-0 grid-cols-2 gap-2">
             {variantChoices(draft.family).map((choice) => (
               <button
@@ -263,12 +262,12 @@ export function CourierVehicleEditor({
               >
                 <span className="flex flex-col items-center gap-2 text-center">
                   <VehicleSilhouette family={draft.family} variant={choice.id} className="h-8 w-16" />
-                  <span className="break-words text-sm font-medium">{choice.label}</span>
+                  <span className="break-words text-sm font-medium">{flow(`variant.${draft.family}.${choice.id}`, choice.label)}</span>
                 </span>
               </button>
             ))}
           </div>
-          <button type="button" className="min-h-11 rounded-lg border px-3 text-sm" onClick={cancel}>Annuleren</button>
+          <button type="button" className="min-h-11 rounded-lg border px-3 text-sm" onClick={cancel}>{flow('cancel', 'Annuleren')}</button>
         </div>
       ) : null}
 
@@ -277,13 +276,13 @@ export function CourierVehicleEditor({
           <div className="flex items-center gap-3">
             <VehicleSilhouette family={draft.family} variant={draft.variant} className="h-10 w-20 shrink-0 text-gray-900" />
             <div>
-              <p className="text-sm text-gray-600">Welk model heb je? (optioneel)</p>
-              <p className="font-medium text-gray-900">{variantLabel(draft)}</p>
+              <p className="text-sm text-gray-600">{flow('whichModel', 'Welk model heb je? (optioneel)')}</p>
+              <p className="font-medium text-gray-900">{named(draft)}</p>
             </div>
           </div>
           {variantChoices(draft.family).length > 0 ? (
             <button type="button" className="text-sm font-medium text-primary-brand underline" onClick={() => setStep('variant')}>
-              Andere uitvoering
+              {flow('otherVariant', 'Andere uitvoering')}
             </button>
           ) : null}
           {bodyModels.length > 0 ? (
@@ -294,20 +293,20 @@ export function CourierVehicleEditor({
             />
           ) : draft.family === 'BIKE' || draft.family === 'EBIKE' || draft.family === 'SCOOTER' ? (
             <p className="text-sm text-gray-600">
-              Het merk van de fiets of scooter bepaalt de laadruimte niet. Kies hieronder de tas, krat of box, of vul zelf de bruikbare maten in.
+              {flow('bikeNoBrand', 'Het merk van de fiets of scooter bepaalt de laadruimte niet. Kies hieronder de tas, krat of box, of vul zelf de bruikbare maten in.')}
             </p>
           ) : (
             <p className="text-sm text-gray-600">
-              Voor deze uitvoering staan geen vaste bakmaten in de catalogus. Vul de bruikbare maten in, of ga verder zonder model. Dan volgt even afstemmen.
+              {flow('noCatalog', 'Voor deze uitvoering staan geen vaste bakmaten in de catalogus. Vul de bruikbare maten in, of ga verder zonder model. Dan volgt even afstemmen.')}
             </p>
           )}
           {!selectedReference && bodyModels.length > 0 ? (
             <p className="text-sm text-gray-600">
-              Zonder exact model legt HomeCheff geen vaste binnenmaten vast. Past een lading niet eenduidig, dan volgt even afstemmen.
+              {flow('noExactModel', 'Zonder exact model legt HomeCheff geen vaste binnenmaten vast. Past een lading niet eenduidig, dan volgt even afstemmen.')}
             </p>
           ) : null}
           <div>
-            <p className="font-medium text-gray-900">Wat biedt dit voertuig?</p>
+            <p className="font-medium text-gray-900">{flow('whatOffers', 'Wat biedt dit voertuig?')}</p>
             <div className="mt-2 grid gap-2">
               {features.map((feature) => (
                 <label key={feature.id} className="flex min-h-11 items-center gap-2 text-sm">
@@ -316,15 +315,15 @@ export function CourierVehicleEditor({
                     checked={draft.features.includes(feature.id)}
                     onChange={() => updateDraft({ ...draft, features: toggle(draft.features, feature.id) })}
                   />
-                  {feature.label}
+                  {flow(`feature.${feature.id}`, feature.label)}
                 </label>
               ))}
             </div>
           </div>
           {carrying.length > 0 ? (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-800">Wat neem je mee?</p>
-              <p className="text-sm text-gray-600">De tas, het krat of de box draagt de lading. Zeg ook wie dat meeneemt. De buitenmaten van een tas zeggen niet dat een doos erin past.</p>
+              <p className="text-sm font-medium text-gray-800">{flow('whatCarry', 'Wat neem je mee?')}</p>
+              <p className="text-sm text-gray-600">{flow('carryHint', 'De tas, het krat of de box draagt de lading. Zeg ook wie dat meeneemt. De buitenmaten van een tas zeggen niet dat een doos erin past.')}</p>
               {carrying.map((item) => (
                 <label key={item.id} className="flex min-h-11 items-center gap-2 text-sm">
                   <input
@@ -341,7 +340,7 @@ export function CourierVehicleEditor({
                       });
                     }}
                   />
-                  {item.label}
+                  {flow(`carrying.${item.id}`, item.label)}
                 </label>
               ))}
               {draft.carrying.length > 0 ? (
@@ -360,7 +359,7 @@ export function CourierVehicleEditor({
                         });
                       }}
                     >
-                      <span className="block text-center text-sm">{provider.label}</span>
+                      <span className="block text-center text-sm">{flow(`provider.${provider.id}`, provider.label)}</span>
                     </button>
                   ))}
                 </div>
@@ -375,17 +374,17 @@ export function CourierVehicleEditor({
                 onSelect={(referenceId) => updateDraft({ ...draft, referenceId })}
               />
               {!selectedReference ? (
-                <p className="text-sm text-gray-600">Zonder tas of box blijven de maten onbekend. Vul ze zelf in, of er volgt even afstemmen.</p>
+                <p className="text-sm text-gray-600">{flow('noBag', 'Zonder tas of box blijven de maten onbekend. Vul ze zelf in, of er volgt even afstemmen.')}</p>
               ) : null}
             </>
           ) : null}
           <details className="space-y-2">
-            <summary className="text-sm font-medium text-gray-800">Mijn voertuig wijkt af</summary>
+            <summary className="text-sm font-medium text-gray-800">{flow('differs', 'Mijn voertuig wijkt af')}</summary>
             {([
-              ['length', 'Lengte (cm)', 'maxLengthCm'],
-              ['width', 'Breedte (cm)', 'maxWidthCm'],
-              ['height', 'Hoogte (cm)', 'maxHeightCm'],
-              ['weight', 'Gewicht (kg)', 'maxWeightKg'],
+              ['length', flow('length', 'Lengte (cm)'), 'maxLengthCm'],
+              ['width', flow('width', 'Breedte (cm)'), 'maxWidthCm'],
+              ['height', flow('height', 'Hoogte (cm)'), 'maxHeightCm'],
+              ['weight', flow('weight', 'Gewicht (kg)'), 'maxWeightKg'],
             ] as const).map(([axis, label, field]) => (
               <div key={axis} className="grid grid-cols-2 gap-2">
                 <label className="text-sm text-gray-700">
@@ -395,14 +394,14 @@ export function CourierVehicleEditor({
                     value={draft.capacityStatus[axis]}
                     onChange={(event) => setAxis(axis, event.target.value as CapacityMark)}
                   >
-                    <option value="unset">Niet ingevuld</option>
-                    <option value="unknown">Onbekend</option>
-                    <option value="not_applicable">Niet van toepassing</option>
-                    <option value="set">Gemeten</option>
+                    <option value="unset">{flow('unset', 'Niet ingevuld')}</option>
+                    <option value="unknown">{flow('unknown', 'Onbekend')}</option>
+                    <option value="not_applicable">{flow('notApplicable', 'Niet van toepassing')}</option>
+                    <option value="set">{flow('measured', 'Gemeten')}</option>
                   </select>
                 </label>
                 <label className="text-sm text-gray-700">
-                  Getal
+                  {flow('number', 'Getal')}
                   <input
                     className="mt-1 w-full rounded-lg border px-3 py-2 disabled:bg-gray-100"
                     inputMode="numeric"
@@ -423,10 +422,10 @@ export function CourierVehicleEditor({
             disabled={!readyToKeep(draft)}
             onClick={closeKept}
           >
-            Bewaar voertuig
+            {flow('saveVehicle', 'Bewaar voertuig')}
           </button>
           <button type="button" className="min-h-11 w-full rounded-lg border px-4 text-sm" onClick={cancel}>
-            Annuleren
+            {flow('cancel', 'Annuleren')}
           </button>
         </div>
       ) : null}
@@ -457,6 +456,8 @@ function ModelChoices({
   selectedId: string | null;
   onSelect: (referenceId: string | null) => void;
 }) {
+  const { t, language } = useTranslation();
+  const flow = (key: string, fallback: string) => t(`deliveryFlow.${key}`, { defaultValue: fallback }) || fallback;
   return (
     <div className="grid min-w-0 gap-2" role="radiogroup" aria-label="Model">
       <button
@@ -466,7 +467,7 @@ function ModelChoices({
         className={`${TILE} ${selectedId === null ? TILE_ON : TILE_OFF}`}
         onClick={() => onSelect(null)}
       >
-        <span className="block text-sm font-medium">Mijn model staat er niet bij</span>
+        <span className="block text-sm font-medium">{flow('modelMissing', 'Mijn model staat er niet bij')}</span>
       </button>
       {models.map((ref) => {
         const selected = selectedId === ref.id;
@@ -480,7 +481,7 @@ function ModelChoices({
               onClick={() => onSelect(ref.id)}
             >
               <span className="block break-words text-sm font-medium">{ref.name}</span>
-              {selected ? <span className="mt-1 block break-words text-sm font-normal text-gray-800">{referenceHeadline(ref)}</span> : null}
+              {selected ? <span className="mt-1 block break-words text-sm font-normal text-gray-800">{referenceHeadline(ref, language === 'en' ? 'en' : 'nl')}</span> : null}
             </button>
             {selected ? <ReferenceDetails reference={ref} /> : null}
           </div>

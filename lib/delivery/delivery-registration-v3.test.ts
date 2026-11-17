@@ -147,6 +147,18 @@ describe('delivery signup draft', () => {
     assert.equal(draft?.availableDays.includes('maandag'), true);
     assert.equal(draft?.availableDays.includes('vrijdag'), true);
     assert.equal(draft?.bio, 'call my phone later');
+    const windows = sanitizeDeliverySignupDraft({
+      version: 1,
+      savedAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      currentStep: 6,
+      availableDays: ['maandag'],
+      availableTimeSlots: ['maandag@09:00-12:00', 'maandag@17:00-21:00', 'not-a-slot'],
+      vehicles: [{ family: 'CAR', variant: 'HATCHBACK', features: [], carrying: [] }],
+    });
+    assert.deepEqual(windows?.availableTimeSlots, ['maandag@09:00-12:00', 'maandag@17:00-21:00']);
+    assert.equal(windows?.vehicles[0]?.family, 'CAR');
+    assert.equal(windows?.vehicles[0]?.variant, 'HATCHBACK');
   });
 
   it('expires a draft after seven days', () => {

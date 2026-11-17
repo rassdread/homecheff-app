@@ -78,10 +78,18 @@ export function commercialCtaForNamespace(
   }
   if (ns === 'deliveryPartnerPage') {
     return {
-      primaryHref: '/delivery/start',
-      primaryLabel: COPY.deliver[lang],
-      secondaryHref: '/bezorger-worden',
-      secondaryLabel: lang === 'nl' ? 'Lees hoe bezorgen werkt' : 'Read how delivery works',
+      primaryHref: '/delivery/signup',
+      primaryLabel: lang === 'nl' ? 'Start als bezorger' : 'Start as a delivery driver',
+      secondaryHref: lang === 'nl' ? '/pakket-laten-bezorgen' : '/en/local-parcel-delivery',
+      secondaryLabel: lang === 'nl' ? 'Pakket laten bezorgen' : 'Local parcel delivery',
+    };
+  }
+  if (ns === 'localDeliveryPage') {
+    return {
+      primaryHref: '/bezorging/aanvragen',
+      primaryLabel: lang === 'nl' ? 'Bezorging aanvragen' : 'Request a delivery',
+      secondaryHref: lang === 'nl' ? '/bezorger-worden' : '/en/become-a-delivery-driver',
+      secondaryLabel: lang === 'nl' ? 'Bezorger worden' : 'Become a delivery driver',
     };
   }
   if (ns === 'growthLandingPage') {

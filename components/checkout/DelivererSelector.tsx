@@ -164,25 +164,44 @@ export default function DelivererSelector({
     }
   };
 
+  const phrase = (label: string) => {
+    const key = label === 'Even afstemmen'
+      ? 'fitConfirm'
+      : label === 'Past naar verwachting'
+        ? 'fitExpected'
+        : label === 'Past volgens de opgegeven maten'
+          ? 'fitMeasured'
+          : label === 'Lading te zwaar voor dit voertuig'
+            ? 'fitTooHeavy'
+            : null;
+    return key ? t(`deliveryFlow.${key}`, { defaultValue: label }) : label;
+  };
+
   const modeBadge = (d: Deliverer) => {
     const isAuto = d.acceptanceMode === 'AUTO_CONFIRM' || d.confirmationMode === 'AUTO_CONFIRM';
-    if (d.availabilityBadge?.code === 'UNAVAILABLE') {
+    const badge = d.availabilityBadge;
+    const badgeText = badge
+      ? language === 'en'
+        ? badge.labelEn || t('deliveryFlow.badgeUnavailable')
+        : badge.labelNl || t('deliveryFlow.badgeUnavailable')
+      : null;
+    if (badge?.code === 'UNAVAILABLE') {
       return (
         <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
-          🔴 Niet beschikbaar
+          🔴 {badgeText}
         </span>
       );
     }
     if (isAuto) {
       return (
         <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-          🟢 Direct bevestigd
+          🟢 {t('deliveryFlow.badgeAuto', { defaultValue: 'Direct bevestigd' })}
         </span>
       );
     }
     return (
       <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
-        🟡 Handmatige bevestiging
+        🟡 {t('deliveryFlow.badgeManual', { defaultValue: 'Handmatige bevestiging' })}
       </span>
     );
   };
@@ -355,9 +374,9 @@ export default function DelivererSelector({
                       </div>
                       {deliverer.fitLabel ? (
                         <p className="w-full text-sm text-gray-700">
-                          {deliverer.fitLabel}
+                          {phrase(deliverer.fitLabel)}
                           {deliverer.fitLabel === 'Past naar verwachting'
-                            ? '. Dit is een inschatting op basis van richtmaten, geen garantie dat de lading past.'
+                            ? ` ${t('deliveryFlow.fitExpectedNote', { defaultValue: 'Dit is een inschatting op basis van richtmaten, geen garantie dat de lading past.' })}`
                             : ''}
                         </p>
                       ) : null}

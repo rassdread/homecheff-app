@@ -30,18 +30,21 @@ function cm(value: number): string {
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1).replace('.', ',');
 }
 
-export function referenceHeadline(ref: VehicleReference): string {
+export function referenceHeadline(ref: VehicleReference, language: 'nl' | 'en' = 'nl'): string {
+  const en = language === 'en';
   const parts = [
-    ref.lengthCm != null ? `${cm(ref.lengthCm)} cm laadlengte` : null,
-    ref.foldedLengthCm != null ? `${cm(ref.foldedLengthCm)} cm met neergeklapte bank` : null,
-    ref.widthCm != null ? `${cm(ref.widthCm)} cm bruikbare breedte` : null,
-    ref.heightCm != null ? `${cm(ref.heightCm)} cm binnenhoogte` : null,
+    ref.lengthCm != null ? `${cm(ref.lengthCm)} cm ${en ? 'load length' : 'laadlengte'}` : null,
+    ref.foldedLengthCm != null ? `${cm(ref.foldedLengthCm)} cm ${en ? 'with the seat folded' : 'met neergeklapte bank'}` : null,
+    ref.widthCm != null ? `${cm(ref.widthCm)} cm ${en ? 'usable width' : 'bruikbare breedte'}` : null,
+    ref.heightCm != null ? `${cm(ref.heightCm)} cm ${en ? 'interior height' : 'binnenhoogte'}` : null,
   ].filter(Boolean);
   if (parts.length > 0) return parts.join(' · ');
   if (ref.envelopeLengthCm != null && ref.envelopeWidthCm != null && ref.envelopeHeightCm != null) {
-    return `Buitenmaten ${cm(ref.envelopeLengthCm)} × ${cm(ref.envelopeWidthCm)} × ${cm(ref.envelopeHeightCm)} cm. Dat zegt niet dat een doos erin past.`;
+    return en
+      ? `Outside size ${cm(ref.envelopeLengthCm)} × ${cm(ref.envelopeWidthCm)} × ${cm(ref.envelopeHeightCm)} cm. That does not mean a box fits inside.`
+      : `Buitenmaten ${cm(ref.envelopeLengthCm)} × ${cm(ref.envelopeWidthCm)} × ${cm(ref.envelopeHeightCm)} cm. Dat zegt niet dat een doos erin past.`;
   }
-  return 'Een of meer maten zijn nog niet bekend.';
+  return en ? 'One or more measurements are not known yet.' : 'Een of meer maten zijn nog niet bekend.';
 }
 
 export function referenceSummary(ref: VehicleReference): string {

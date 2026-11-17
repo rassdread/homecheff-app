@@ -1,4 +1,9 @@
+import type { Metadata } from 'next';
 import { auth } from '@/lib/auth';
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import DeliveryDashboard from '@/components/delivery/DeliveryDashboard';

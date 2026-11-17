@@ -12,11 +12,13 @@ export default function ProgrammaticSeoLandingPage({
   namespace,
   interpolation,
   pagePath,
+  contentLanguage,
 }: {
   namespace: SeoLandingNs;
   /** Vervangt `{{city}}` enz. in vertalingen (stad-pagina’s). */
   interpolation?: Record<string, string>;
   pagePath?: string;
+  contentLanguage?: 'nl' | 'en';
 }) {
   const blocks = SEO_LANDING_BLOCKS[namespace];
   const foodContextVariant = shouldShowFoodCategoryContextForProgrammaticNs(namespace)
@@ -29,6 +31,7 @@ export default function ProgrammaticSeoLandingPage({
       blocks={blocks}
       interpolation={interpolation}
       pagePath={pagePath}
+      contentLanguage={contentLanguage}
       foodContextVariant={foodContextVariant}
     />
   );

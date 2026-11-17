@@ -96,22 +96,23 @@ export function activeOriginStatus(
  * `active` comes from activeOriginStatus, so a missing, offline, or expired GPS
  * fix stays on the saved address.
  */
+export type OriginDashboardLine =
+  | { id: 'aroundGps'; place: string }
+  | { id: 'aroundHere' }
+  | { id: 'aroundHome'; place: string | null }
+  | { id: 'preferGps' };
+
 export function describeActiveOrigin(input: {
   preference: 'FIXED' | 'DYNAMIC';
   active: 'gps' | 'home';
   place?: string | null;
-}): string[] {
+}): OriginDashboardLine[] {
   const place = input.place?.trim() || null;
   if (input.active === 'gps') {
-    return [`Je zoekt nu rond ${place || 'je huidige locatie'}.`];
+    return place ? [{ id: 'aroundGps', place }] : [{ id: 'aroundHere' }];
   }
-  const home = `Je zoekt nu rond je vaste adres${place ? ` in ${place}` : ''}.`;
-  if (input.preference === 'DYNAMIC') {
-    return [
-      home,
-      'Je voorkeur is je huidige locatie. Tik op Gebruik mijn huidige locatie zodra je online bent en je locatie actueel is.',
-    ];
-  }
+  const home: OriginDashboardLine = { id: 'aroundHome', place };
+  if (input.preference === 'DYNAMIC') return [home, { id: 'preferGps' }];
   return [home];
 }
 
