@@ -35,7 +35,8 @@ import {
   Package,
   Printer,
   Download,
-  Wallet
+  Wallet,
+  LocateFixed,
 } from 'lucide-react';
 import OperationsShell from '@/components/operations/OperationsShell';
 import ConnectPayoutBanner from '@/components/stripe/ConnectPayoutBanner';
@@ -159,6 +160,11 @@ export default function DeliveryDashboard() {
   // payload is byte-identical, so the dashboard/order cards don't re-render every
   // 30s for unchanged data.
   const lastDeliveryPayloadRef = useRef<string | null>(null);
+  const originExpiryRef = useRef<number | null>(null);
+  const originStateRef = useRef<'idle' | 'busy' | 'gps' | 'denied' | 'home'>('idle');
+  const [originState, setOriginState] = useState<'idle' | 'busy' | 'gps' | 'denied' | 'home'>('idle');
+  const [originPlace, setOriginPlace] = useState<string | null>(null);
+  originStateRef.current = originState;
   const [initialLoad, setInitialLoad] = useState(true);
   const [acceptingOrder, setAcceptingOrder] = useState<string | null>(null);
   const [gpsEnabled, setGpsEnabled] = useState(false);
@@ -350,6 +356,81 @@ export default function DeliveryDashboard() {
     }
   };
 
+  const useCurrentOrigin = () => {
+    if (!navigator.geolocation) {
+      setOriginState('denied');
+      return;
+    }
+    setOriginState('busy');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        void (async () => {
+          try {
+            const response = await fetch('/api/delivery/update-gps', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+              }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              setOriginState('denied');
+              return;
+            }
+            setOriginPlace(typeof data.place === 'string' ? data.place : null);
+            setOriginState('gps');
+            setGpsEnabled(true);
+            if (originExpiryRef.current) window.clearTimeout(originExpiryRef.current);
+            const expiresAt = typeof data.gpsExpiresAt === 'string' ? data.gpsExpiresAt : null;
+            if (expiresAt) {
+              const wait = new Date(expiresAt).getTime() - Date.now() + 500;
+              originExpiryRef.current = window.setTimeout(() => {
+                void fetchDeliveryData(true);
+              }, Math.max(250, Math.min(wait, 20 * 60 * 1000)));
+            }
+          } catch {
+            setOriginState('denied');
+          }
+        })();
+      },
+      () => {
+        setOriginState('denied');
+        setGpsEnabled(false);
+        void fetch('/api/delivery/update-gps', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ useFixedAddress: true }),
+        });
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 },
+    );
+  };
+
+  const useFixedOrigin = async () => {
+    setOriginState('busy');
+    try {
+      const response = await fetch('/api/delivery/update-gps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ useFixedAddress: true }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setOriginState('denied');
+        return;
+      }
+      if (originExpiryRef.current) window.clearTimeout(originExpiryRef.current);
+      originExpiryRef.current = null;
+      setOriginPlace(typeof data.place === 'string' ? data.place : null);
+      setOriginState('home');
+      setGpsEnabled(false);
+    } catch {
+      setOriginState('denied');
+    }
+  };
+
   const fetchDeliveryData = async (isRefresh = false) => {
     try {
       // Only show loading on initial load, not on refreshes
@@ -362,9 +443,25 @@ export default function DeliveryDashboard() {
       
       if (response.ok) {
         setLoadError(null);
+        const origin = data.origin && typeof data.origin === 'object' ? data.origin : null;
+        const expiresAt = typeof origin?.gpsExpiresAt === 'string' ? origin.gpsExpiresAt : null;
+        if (originExpiryRef.current) window.clearTimeout(originExpiryRef.current);
+        originExpiryRef.current = null;
+        if (expiresAt) {
+          const wait = new Date(expiresAt).getTime() - Date.now() + 500;
+          originExpiryRef.current = window.setTimeout(() => {
+            void fetchDeliveryData(true);
+          }, Math.max(250, Math.min(wait, 20 * 60 * 1000)));
+        }
+        if (origin && originStateRef.current !== 'busy' && originStateRef.current !== 'denied') {
+          setOriginState(origin.active === 'gps' ? 'gps' : 'home');
+          setOriginPlace(typeof origin.place === 'string' ? origin.place : null);
+          setGpsEnabled(origin.active === 'gps');
+        }
         // On a background refresh, bail out early if nothing changed — avoids a
         // full re-render of the dashboard + every order card each poll cycle.
         const signature = JSON.stringify({
+          origin,
           stats: data.stats,
           recentOrders: data.recentOrders,
           currentOrder: data.currentOrder,
@@ -731,6 +828,42 @@ export default function DeliveryDashboard() {
             <span className="sm:hidden">GPS</span>
           </div>
         )}
+        <div className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-800">
+          {originState === 'gps' ? (
+            <p className="font-medium text-gray-900">
+              Je zoekt nu rond {originPlace || 'je huidige locatie'}.
+            </p>
+          ) : null}
+          {originState === 'home' ? (
+            <p className="font-medium text-gray-900">
+              Je zoekt nu rond je vaste adres{originPlace ? ` in ${originPlace}` : ''}.
+            </p>
+          ) : null}
+          {originState === 'denied' ? (
+            <p className="font-medium text-red-700">GPS is niet actief.</p>
+          ) : null}
+          <div className="mt-2 flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={useCurrentOrigin}
+              disabled={originState === 'busy'}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary-600 px-3 py-2 font-semibold text-white disabled:opacity-60"
+            >
+              <LocateFixed className="h-4 w-4" aria-hidden />
+              {originState === 'denied' ? 'Opnieuw proberen' : 'Gebruik mijn huidige locatie'}
+            </button>
+            {originState === 'denied' || originState === 'gps' || gpsEnabled ? (
+              <button
+                type="button"
+                onClick={() => void useFixedOrigin()}
+                disabled={originState === 'busy'}
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border px-3 py-2 font-medium"
+              >
+                Gebruik mijn vaste adres
+              </button>
+            ) : null}
+          </div>
+        </div>
       </div>
       {!isSeller && (
         isTemporarilyOnline ? (

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { MapPin, Users, CheckCircle, ArrowRight, User, Mail, Lock, Eye, EyeOff, FileText, X } from 'lucide-react';
+import { MapPin, LocateFixed, Users, CheckCircle, ArrowRight, User, Mail, Lock, Eye, EyeOff, FileText, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import DynamicAddressFields, { AddressData } from '@/components/ui/DynamicAddressFields';
 import DeliveryAgreementModal from '@/components/delivery/DeliveryAgreementModal';
@@ -742,7 +742,7 @@ export default function DeliverySignupPage() {
   }
 
   return (
-    <div className="w-screen max-w-[100vw] overflow-x-clip min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 pb-[calc(8rem+var(--hc-cookie-banner-offset,0px)+env(safe-area-inset-bottom,0px))]">
+    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 pb-[calc(8rem+var(--hc-cookie-banner-offset,0px)+env(safe-area-inset-bottom,0px))]">
       <div className="container mx-auto px-4 pt-2 pb-6 sm:py-8">
         {/* Header */}
         <div className="mb-2 text-center sm:mb-8">
@@ -790,7 +790,7 @@ export default function DeliverySignupPage() {
 
         {/* Form Steps */}
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-lg p-5 sm:p-8">
+          <div className="min-w-0 bg-white rounded-2xl shadow-lg p-4 sm:p-8">
             
             {/* Step 1: Personal Information */}
             {currentStep === 1 && (
@@ -1058,7 +1058,7 @@ export default function DeliverySignupPage() {
                     <label className="block text-sm font-medium text-gray-700">
                       {t('deliverySignup.deliveryMode')}
                     </label>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <button
                         onClick={() => setFormData(prev => ({ ...prev, deliveryMode: 'FIXED' }))}
                         className={`p-4 rounded-xl border-2 transition-all ${
@@ -1082,7 +1082,7 @@ export default function DeliverySignupPage() {
                         }`}
                       >
                         <div className="flex flex-col items-center gap-2">
-                          <Users className="w-5 h-5" />
+                          <LocateFixed className="w-5 h-5" aria-hidden />
                           <span className="text-sm font-medium">{t('deliverySignup.flexible')}</span>
                           <span className="text-xs text-gray-600">{t('deliverySignup.multipleAreas')}</span>
                         </div>
@@ -1334,7 +1334,7 @@ export default function DeliverySignupPage() {
               {currentStep < 9 ? (
                 <Button
                   onClick={nextStep}
-                  className="flex min-h-12 items-center gap-2"
+                  className="flex min-h-12 max-w-full min-w-0 items-center gap-2"
                 >
                   {t('deliverySignup.next')}
                   <ArrowRight className="w-4 h-4" />
@@ -1354,7 +1354,7 @@ export default function DeliverySignupPage() {
                     void handleSubmit();
                   }}
                   disabled={isLoading || submitLock}
-                  className="flex min-h-12 items-center gap-2"
+                  className="flex min-h-12 max-w-full min-w-0 items-center gap-2"
                 >
                   {isLoading ? t('deliverySignup.loading') : 
                    !isStepValid() ? t('deliverySignup.acceptToContinue') : 

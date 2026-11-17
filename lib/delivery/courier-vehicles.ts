@@ -2,7 +2,7 @@
  * Per-vehicle courier fleet. Example model names are labels only.
  * They never become a length, width, height or weight.
  */
-import { assessCargoFit, vehicleReferences, type FitJudgement } from './vehicle-references';
+import { assessCargoFit, catalogReferences, type FitJudgement } from './vehicle-references';
 import { emptyCapacityStatus, type CapacityAxis, type CapacityMark } from '@/lib/delivery/transport-job';
 
 export const VEHICLE_FAMILIES = ['BIKE', 'EBIKE', 'SCOOTER', 'CAR', 'BUS', 'TRAILER'] as const;
@@ -78,14 +78,14 @@ const VARIANTS: Record<VehicleFamily, Array<{ id: string; label: string; hint?: 
     { id: 'DELIVERY', label: 'Bezorger-scooter' },
   ],
   CAR: [
-    { id: 'HATCHBACK', label: 'Hatchback', hint: 'bijvoorbeeld Mini of Corsa' },
+    { id: 'HATCHBACK', label: 'Hatchback' },
     { id: 'SEDAN', label: 'Sedan' },
     { id: 'STATION', label: 'Stationwagen' },
   ],
   BUS: [
-    { id: 'SMALL', label: 'Kleine bestelbus', hint: 'Caddy-formaat' },
-    { id: 'MEDIUM', label: 'Middelgrote bestelbus', hint: 'Trafic-formaat' },
-    { id: 'LARGE', label: 'Grote bestelbus', hint: 'Sprinter-formaat' },
+    { id: 'SMALL', label: 'Kleine bestelbus' },
+    { id: 'MEDIUM', label: 'Middelgrote bestelbus' },
+    { id: 'LARGE', label: 'Grote bestelbus' },
     { id: 'MOVING', label: 'Verhuiswagen met laadbak' },
   ],
   TRAILER: [],
@@ -214,7 +214,12 @@ export function vehiclePublicLabel(vehicle: CourierVehicle): string {
   const variant = vehicle.variant
     ? VARIANTS[vehicle.family].find((item) => item.id === vehicle.variant)?.label
     : null;
-  const head = variant || LEGACY_FAMILY_LABEL[vehicle.family] || FAMILY_LABEL[vehicle.family];
+  const model = vehicle.referenceId
+    ? catalogReferences(vehicle).find((item) => item.id === vehicle.referenceId)?.name ?? null
+    : null;
+  const head = [variant || LEGACY_FAMILY_LABEL[vehicle.family] || FAMILY_LABEL[vehicle.family], model]
+    .filter((part): part is string => Boolean(part))
+    .join(' · ');
   const extras = [
     ...vehicle.features.map((id) => FEATURES[id]?.label).filter((label): label is string => Boolean(label)),
     ...vehicle.carrying.map((id) => CARRYING[vehicle.family].find((item) => item.id === id)?.label).filter((label): label is string => Boolean(label)),
@@ -432,7 +437,7 @@ export function parseCourierVehicle(value: unknown): CourierVehicle | null {
     capacityStatus: status,
   };
   if (raw.referenceId != null) {
-    if (!vehicleReferences(vehicle).some(ref => ref.id === raw.referenceId)) return null;
+    if (!catalogReferences(vehicle).some(ref => ref.id === raw.referenceId)) return null;
     vehicle.referenceId = String(raw.referenceId);
   }
   if (carrying.length > 0 && !vehicle.carryingProvider) return null;

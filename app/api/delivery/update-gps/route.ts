@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { localityFromAddress, placeLabelForCoordinates } from '@/lib/delivery/gps-place-label';
+import { DELIVERY_GPS_MAX_AGE_MS } from '@/lib/delivery/delivery-position';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +33,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    if (body?.useFixedAddress === true) {
+      const profile = await prisma.deliveryProfile.update({
+        where: { userId: user.id },
+        data: { gpsTrackingEnabled: false, deliveryMode: 'FIXED' },
+        select: { homeAddress: true },
+      });
+      return NextResponse.json({
+        success: true,
+        active: 'home',
+        place: localityFromAddress(profile.homeAddress),
+      });
+    }
+
     const lat = Number(body.lat);
     const lng = Number(body.lng);
 
@@ -50,13 +65,16 @@ export async function POST(req: NextRequest) {
         lastLocationUpdate: now,
         lastGpsUpdate: now,
         gpsTrackingEnabled: true,
+        deliveryMode: 'DYNAMIC',
       },
     });
+    const place = await placeLabelForCoordinates(lat, lng);
 
     return NextResponse.json({
       success: true,
-      location: { lat, lng },
-      message: 'GPS locatie bijgewerkt',
+      active: 'gps',
+      place,
+      gpsExpiresAt: new Date(now.getTime() + DELIVERY_GPS_MAX_AGE_MS).toISOString(),
     });
   } catch (error) {
     console.error('Error updating GPS location:', error);
@@ -66,3 +84,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+

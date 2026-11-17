@@ -153,7 +153,7 @@ describe('existing user return and age gate', () => {
 describe('mobile registration layout', () => {
   it('fits all 9 steps and clears the cookie bar on the signup pages', () => {
     const signup = read('app/delivery/signup/page.tsx');
-    assert.match(signup, /w-screen max-w-\[100vw\]/);
+    assert.match(signup, /w-full max-w-full overflow-x-hidden/);
     assert.match(signup, /grid-cols-9/);
     assert.doesNotMatch(signup, /sticky bottom-/);
     assert.doesNotMatch(signup, /w-12 h-1/);
@@ -164,7 +164,7 @@ describe('mobile registration layout', () => {
     assert.match(company, /--hc-cookie-banner-offset/);
     assert.doesNotMatch(company, /sticky bottom-/);
     const start = read('app/delivery/start/page.tsx');
-    assert.match(company, /w-screen max-w-\[100vw\]/);
+    assert.match(company, /w-full max-w-full overflow-x-hidden/);
     assert.match(company, /pb-\[calc\(8rem\+var\(--hc-cookie-banner-offset,0px\)\+env\(safe-area-inset-bottom,0px\)\)\]/);
     assert.match(start, /w-screen max-w-\[100vw\]/);
     assert.match(start, /pb-\[calc\(8rem\+env\(safe-area-inset-bottom,0px\)\)\]/);

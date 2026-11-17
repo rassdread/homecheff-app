@@ -4,12 +4,14 @@ import {
   applyLegacyCapacity,
   fitQuestionEffect,
   legacyFleet,
+  parseCourierVehicle,
   parseCourierVehicles,
   selectVehicleForJob,
   transportationModesForVehicles,
   vehiclePublicLabel,
   type CourierVehicle,
 } from './courier-vehicles';
+import { catalogReferences, referenceHeadline } from './vehicle-references';
 
 function vehicle(partial: Partial<CourierVehicle> & Pick<CourierVehicle, 'family'>): CourierVehicle {
   return {
@@ -136,7 +138,7 @@ test('two vehicles of the same kind stay separate', () => {
   assert.deepEqual(transportationModesForVehicles(parsed || []), ['CAR']);
 });
 
-test('a small parcel is expected to fit one pannier and a cabinet does not', () => {
+test('a pannier outer size does not prove a box fits and a cabinet does not', () => {
   const bike = vehicle({
     id: 'bike',
     family: 'BIKE',
@@ -156,8 +158,8 @@ test('a small parcel is expected to fit one pannier and a cabinet does not', () 
   assert.equal(small.ok, true);
   if (small.ok) {
     assert.equal(small.vehicle.id, 'bike');
-    assert.equal(small.fitLabel, 'Past naar verwachting');
-    assert.equal(small.needsFitQuestion, false);
+    assert.equal(small.fitLabel, 'Even afstemmen');
+    assert.equal(small.needsFitQuestion, true);
   }
   const cabinet = selectVehicleForJob([bike], {
     cargo: { lengthCm: 180, widthCm: 80, heightCm: 70, weightKg: 40 },
@@ -181,7 +183,8 @@ test('a small parcel is expected to fit one pannier and a cabinet does not', () 
   const heavyBags = selectVehicleForJob([bike], {
     cargo: { lengthCm: 20, widthCm: 12, heightCm: 8, weightKg: 10 },
   });
-  assert.equal(heavyBags.ok && heavyBags.fitLabel, 'Even afstemmen');
+  assert.equal(heavyBags.ok, false);
+  if (!heavyBags.ok) assert.equal(heavyBags.code, 'TOO_SMALL');
   const knownBag = selectVehicleForJob([{ ...bike, referenceId: 'ortlieb-backroller' }], {
     cargo: { lengthCm: 20, widthCm: 12, heightCm: 8, weightKg: 10 },
   });
@@ -202,7 +205,7 @@ test('a small parcel is expected to fit one pannier and a cabinet does not', () 
   const knownCar = selectVehicleForJob([{ ...hatch, referenceId: 'corsa-2019' }], {
     cargo: { lengthCm: 180, widthCm: 80, heightCm: 70, weightKg: 40 },
   });
-  assert.equal(knownCar.ok, false);
+  assert.equal(knownCar.ok && knownCar.fitLabel, 'Even afstemmen');
   const switched = selectVehicleForJob([bike, van], {
     cargo: { lengthCm: 180, widthCm: 80, heightCm: 70, weightKg: 40 },
   });
@@ -218,6 +221,50 @@ test('a small parcel is expected to fit one pannier and a cabinet does not', () 
     itemCount: 2,
   });
   assert.equal(pair.ok && pair.fitLabel, 'Even afstemmen');
+});
+
+test('a named van shows its model and uses payload only for that exact execution', () => {
+  const named = parseCourierVehicle({
+    family: 'BUS',
+    variant: 'MEDIUM',
+    referenceId: 'trafic-l1',
+    features: [],
+    carrying: [],
+    capacityStatus: { length: 'unset', width: 'unset', height: 'unset', weight: 'unset' },
+  });
+  assert.equal(named && vehiclePublicLabel(named), 'Middelgrote bestelbus · Renault Trafic L1H1');
+  const pie = { lengthCm: 28, widthCm: 28, heightCm: 8, weightKg: 1.2 };
+  const heavy = { lengthCm: 28, widthCm: 28, heightCm: 8, weightKg: 1000 };
+  const label = (referenceId: string, cargo: typeof pie) => {
+    const parsed = parseCourierVehicle({
+      family: 'BUS',
+      variant: referenceId.startsWith('trafic') ? 'MEDIUM' : 'LARGE',
+      referenceId,
+      features: [],
+      carrying: [],
+      capacityStatus: { length: 'unset', width: 'unset', height: 'unset', weight: 'unset' },
+    });
+    const result = selectVehicleForJob([parsed!], { cargo });
+    return result.ok ? result.fitLabel : 'rejected';
+  };
+  assert.equal(label('trafic-l1', pie), 'Even afstemmen');
+  assert.equal(label('trafic-l2', pie), 'Even afstemmen');
+  assert.equal(label('jumper-l2h2', pie), 'Even afstemmen');
+  assert.equal(label('jumper-l2h2-30t-120', pie), 'Past naar verwachting');
+  assert.equal(label('jumper-l2h2-30t-120', heavy), 'Even afstemmen');
+  const own = parseCourierVehicle({
+    family: 'BUS',
+    variant: 'MEDIUM',
+    referenceId: 'trafic-l2',
+    features: [],
+    carrying: [],
+    maxWeightKg: 1,
+    capacityStatus: { length: 'unset', width: 'unset', height: 'unset', weight: 'set' },
+  });
+  assert.equal(selectVehicleForJob([own!], { cargo: pie }).ok, false);
+  const corolla = catalogReferences({ variant: 'STATION', carrying: [], carryingProvider: null }).find((item) => item.id === 'corolla-touring-2023');
+  assert.equal(corolla?.heightCm ?? null, null);
+  assert.match(referenceHeadline(corolla!), /102 cm laadlengte/);
 });
 
 test('asking whether the load fits does not start a booking', () => {

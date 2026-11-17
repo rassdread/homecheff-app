@@ -300,7 +300,7 @@ export default function DeliveryCompanySignupPage() {
   }
 
   return (
-    <div className="min-h-screen w-screen max-w-[100vw] overflow-x-clip bg-gradient-to-br from-sky-50 via-white to-slate-50">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-gradient-to-br from-sky-50 via-white to-slate-50">
       <div className="mx-auto max-w-2xl px-4 pt-3 pb-[calc(8rem+var(--hc-cookie-banner-offset,0px)+env(safe-area-inset-bottom,0px))] sm:pt-8">
         <div className="mb-2 text-center sm:mb-8">
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-sky-700 text-white sm:mb-4 sm:h-16 sm:w-16">

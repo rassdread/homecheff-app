@@ -310,7 +310,8 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput, include
     const distanceMode = distanceSemanticsMode(profile.distanceSemanticsVersion);
     if (distanceMode === 'unsupported') continue;
     if (distanceMode === 'v1') {
-      const position = resolveDelivererPosition(profile);
+      const immediate = requestedAt.getTime() - now.getTime() < 90_000;
+      const position = resolveDelivererPosition(profile, now.getTime(), { immediate });
       const providerCountry = (profile.user.country || '').trim().toUpperCase();
       if (!position) continue;
       const decision = version1DistanceEligible({

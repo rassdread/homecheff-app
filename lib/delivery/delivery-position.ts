@@ -76,17 +76,36 @@ function isGpsFresh(lastGpsUpdate: Date | null, nowMs = Date.now()): boolean {
   return nowMs - new Date(lastGpsUpdate).getTime() <= DELIVERY_GPS_MAX_AGE_MS;
 }
 
+/** What the open dashboard may show. Coordinates stay on the server. */
+export function activeOriginStatus(
+  profile: DelivererPositionInput,
+  nowMs = Date.now(),
+): { active: 'gps' | 'home'; gpsExpiresAt: string | null } {
+  const position = resolveDelivererPosition(profile, nowMs);
+  if (position?.source !== 'gps' || !profile.lastGpsUpdate) {
+    return { active: 'home', gpsExpiresAt: null };
+  }
+  return {
+    active: 'gps',
+    gpsExpiresAt: new Date(new Date(profile.lastGpsUpdate).getTime() + DELIVERY_GPS_MAX_AGE_MS).toISOString(),
+  };
+}
+
 /**
  * Deliverer position for matching:
  * fresh GPS → homeLat/lng → User.lat/lng.
+ * A later planned pickup passes immediate: false and skips today's GPS.
  */
 export function resolveDelivererPosition(
   profile: DelivererPositionInput,
-  nowMs = Date.now()
+  nowMs = Date.now(),
+  options: { immediate?: boolean } = {},
 ): DelivererPosition | null {
   const gpsFresh = isGpsFresh(profile.lastGpsUpdate, nowMs);
+  const allowLiveGps = options.immediate !== false;
 
   if (
+    allowLiveGps &&
     profile.gpsTrackingEnabled &&
     profile.isOnline &&
     profile.currentLat != null &&
@@ -127,4 +146,34 @@ export function resolveDelivererPosition(
   }
 
   return null;
+}
+
+/**
+ * Direct orders use the pickup radius around the active origin.
+ * A later planned pickup uses the saved home, never today's GPS fix.
+ * maxTransportKm is the pickup-to-dropoff route, not the distance from the courier to the buyer.
+ */
+export function directOrderReach(input: {
+  activeSource: DelivererPositionSource | null;
+  distanceFromActiveKm: number | null;
+  distanceFromHomeKm: number | null;
+  routeKm: number | null;
+  pickupRadiusKm: number;
+  maxTransportKm: number;
+  nationalCoverage?: boolean;
+}): { direct: boolean; planned: boolean } {
+  if (input.nationalCoverage) {
+    const hasOrigin = input.distanceFromActiveKm != null || input.distanceFromHomeKm != null;
+    return { direct: hasOrigin, planned: hasOrigin };
+  }
+  if (input.routeKm != null && input.routeKm > input.maxTransportKm) {
+    return { direct: false, planned: false };
+  }
+  const within = (km: number | null) => km != null && km <= input.pickupRadiusKm;
+  const homeOk = within(input.distanceFromHomeKm);
+  const activeOk = within(input.distanceFromActiveKm);
+  return {
+    direct: input.activeSource === 'gps' ? activeOk : homeOk,
+    planned: homeOk,
+  };
 }

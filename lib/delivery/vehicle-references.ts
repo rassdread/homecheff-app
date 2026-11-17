@@ -6,6 +6,7 @@ export type VehicleReference = {
   group: string;
   name: string;
   source: string;
+  sourcePage?: string;
   configuration: string;
   role: 'interior' | 'envelope';
   lengthCm?: number;
@@ -22,6 +23,46 @@ export type VehicleReference = {
 
 const references = catalog as VehicleReference[];
 
+function cm(value: number): string {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1).replace('.', ',');
+}
+
+export function referenceHeadline(ref: VehicleReference): string {
+  const parts = [
+    ref.lengthCm != null ? `${cm(ref.lengthCm)} cm laadlengte` : null,
+    ref.foldedLengthCm != null ? `${cm(ref.foldedLengthCm)} cm met neergeklapte bank` : null,
+    ref.widthCm != null ? `${cm(ref.widthCm)} cm bruikbare breedte` : null,
+    ref.heightCm != null ? `${cm(ref.heightCm)} cm binnenhoogte` : null,
+  ].filter(Boolean);
+  if (parts.length > 0) return parts.join(' · ');
+  if (ref.envelopeLengthCm != null && ref.envelopeWidthCm != null && ref.envelopeHeightCm != null) {
+    return `Buitenmaten ${cm(ref.envelopeLengthCm)} × ${cm(ref.envelopeWidthCm)} × ${cm(ref.envelopeHeightCm)} cm. Dat zegt niet dat een doos erin past.`;
+  }
+  return 'Een of meer maten zijn nog niet bekend.';
+}
+
+export function referenceSummary(ref: VehicleReference): string {
+  const betweenArches = ref.group === 'SMALL' || ref.group === 'MEDIUM' || ref.group === 'LARGE';
+  const parts = [
+    ref.lengthCm != null ? `${cm(ref.lengthCm)} cm laadlengte` : null,
+    ref.widthCm != null ? `${cm(ref.widthCm)} cm ${betweenArches ? 'tussen de wielkasten' : 'smalste breedte'}` : null,
+    ref.heightCm != null ? `${cm(ref.heightCm)} cm binnenhoogte` : null,
+    ref.openingWidthCm != null && ref.openingHeightCm != null
+      ? `deuropening ${cm(ref.openingWidthCm)} × ${cm(ref.openingHeightCm)} cm`
+      : null,
+    ref.weightKg != null ? `${cm(ref.weightKg)} kg laadvermogen` : null,
+  ];
+  return parts.filter(Boolean).join(', ');
+}
+
+export function catalogReferences(vehicle: Pick<CourierVehicle, 'variant' | 'carrying' | 'carryingProvider'>): VehicleReference[] {
+  const groups = new Set<string>();
+  if (vehicle.carryingProvider === 'COURIER') vehicle.carrying.forEach((item) => groups.add(item));
+  if (groups.size === 0 && vehicle.variant) groups.add(vehicle.variant);
+  return references.filter((entry) => groups.has(entry.group));
+}
+
 export type FitJudgement = 'expected' | 'measured' | 'confirm' | 'too_small' | 'unspecified';
 
 function cargoProvided(cargo: CargoSize | null | undefined): cargo is CargoSize {
@@ -30,12 +71,8 @@ function cargoProvided(cargo: CargoSize | null | undefined): cargo is CargoSize 
 }
 
 export function vehicleReferences(vehicle: CourierVehicle): VehicleReference[] {
-  const groups = new Set<string>();
-  if (vehicle.carryingProvider === 'COURIER') vehicle.carrying.forEach((item) => groups.add(item));
-  if (groups.size === 0 && vehicle.variant && !(vehicle.family === 'BUS' && vehicle.features.includes('ACTIVE_COOLING'))) {
-    groups.add(vehicle.variant);
-  }
-  const rows = references.filter((entry) => groups.has(entry.group));
+  if (vehicle.family === 'BUS' && vehicle.features.includes('ACTIVE_COOLING')) return [];
+  const rows = catalogReferences(vehicle);
   return vehicle.referenceId ? rows.filter((entry) => entry.id === vehicle.referenceId) : rows;
 }
 
@@ -114,46 +151,26 @@ function judgeInterior(cargo: CargoSize, space: ReturnType<typeof interiorSpace>
   return 'expected';
 }
 
-function envelopeCannotHold(cargo: CargoSize, ref: VehicleReference): boolean {
-  const shell = [ref.envelopeLengthCm, ref.envelopeWidthCm, ref.envelopeHeightCm].filter((value): value is number => value != null).sort((a, b) => b - a);
-  const dims = [cargo.lengthCm, cargo.widthCm, cargo.heightCm].filter((value) => value > 0).sort((a, b) => b - a);
-  return dims.length > 0 && shell.length === 3 && dims.some((size, index) => size > shell[index]!);
-}
-
 function judgeEnvelope(cargo: CargoSize, ref: VehicleReference): FitJudgement {
   const shell = [ref.envelopeLengthCm, ref.envelopeWidthCm, ref.envelopeHeightCm].filter((value): value is number => value != null).sort((a, b) => b - a);
   const dims = [cargo.lengthCm, cargo.widthCm, cargo.heightCm].filter((value) => value > 0).sort((a, b) => b - a);
-  if (dims.length > 0 && shell.length === 3) {
-    if (dims.some((size, index) => size > shell[index]!)) return 'too_small';
-    if (dims.some((size, index) => size > shell[index]! * 0.7)) return 'confirm';
-  } else if (dims.length > 0) return 'confirm';
-  if (cargo.weightKg > 0) {
-    if (ref.weightKg == null) return 'confirm';
-    if (cargo.weightKg > ref.weightKg) return 'too_small';
-    if (cargo.weightKg >= ref.weightKg * 0.8) return 'confirm';
-  }
-  if (dims.length === 0) return cargo.weightKg > 0 ? 'confirm' : 'unspecified';
-  return 'expected';
+  if (dims.length > 0 && shell.length === 3 && dims.some((size, index) => size > shell[index]!)) return 'too_small';
+  if (cargo.weightKg > 0 && ref.weightKg != null && cargo.weightKg > ref.weightKg) return 'too_small';
+  return 'confirm';
 }
 
 function categoryJudgement(vehicle: CourierVehicle, cargo: CargoSize, rows: VehicleReference[]): FitJudgement {
-  const knownLimit = Boolean(vehicle.referenceId);
-  const guideline = (judgement: FitJudgement): FitJudgement =>
-    !knownLimit && judgement === 'too_small' ? 'confirm' : judgement;
   const interiors = rows.filter((row) => row.role === 'interior');
   const envelopes = rows.filter((row) => row.role === 'envelope');
   if (envelopes.length > 0 && interiors.length === 0) {
     const judged = envelopes.map((row) => judgeEnvelope(cargo, row));
-    if (judged.includes('expected')) return 'expected';
-    // A missing 9 kg label is not a proven bag limit. A piece that exceeds every bag shell is not a bag.
-    if (envelopes.every((row) => envelopeCannotHold(cargo, row))) return 'too_small';
-    if (judged.every((item) => item === 'too_small')) return guideline('too_small');
+    if (judged.every((item) => item === 'too_small')) return 'too_small';
     return 'confirm';
   }
   if (interiors.length === 0) return 'confirm';
   const folded = vehicle.features.includes('FOLD_REAR_SEAT');
   const perSample = interiors.map((row) => judgeInterior(cargo, interiorSpace(row, folded)));
-  if (interiors.length === 1) return guideline(perSample[0]!);
+  if (interiors.length === 1) return perSample[0] === 'too_small' ? 'confirm' : perSample[0]!;
   const shortest = interiors.reduce((best, row) => {
     const space = interiorSpace(row, folded);
     const length = space.length ?? Number.POSITIVE_INFINITY;
@@ -161,7 +178,7 @@ function categoryJudgement(vehicle: CourierVehicle, cargo: CargoSize, rows: Vehi
   }, { length: Number.POSITIVE_INFINITY, row: interiors[0]! }).row;
   const conservative = judgeInterior(cargo, interiorSpace(shortest, folded));
   if (conservative === 'expected') return 'expected';
-  return guideline(conservative);
+  return 'confirm';
 }
 
 export function assessCargoFit(vehicle: CourierVehicle, cargo: CargoSize | null | undefined): FitJudgement {

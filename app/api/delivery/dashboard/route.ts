@@ -9,7 +9,8 @@ import { calculateDistance } from '@/lib/geocoding';
 import { getRouteDistance } from '@/lib/google-maps-distance';
 import { Stripe } from 'stripe';
 import { financialStripeSecret } from '@/lib/stripe';
-import { resolveDelivererPosition, resolveDeliveryPickupCoords, resolveSellerCoords } from '@/lib/delivery/delivery-position';
+import { activeOriginStatus, resolveDelivererPosition, resolveDeliveryPickupCoords, resolveSellerCoords } from '@/lib/delivery/delivery-position';
+import { localityFromAddress, placeLabelForCoordinates } from '@/lib/delivery/gps-place-label';
 import { expireExpiredTemporaryOnline } from '@/lib/delivery/delivery-online-session';
 import { resolveDeliveryTimeAvailability } from '@/lib/delivery/delivery-time-availability';
 import { readStandaloneBookingMeta } from '@/lib/delivery/standalone-booking-meta';
@@ -91,6 +92,7 @@ export async function GET(req: NextRequest) {
         lastGpsUpdate: true,
         homeLat: true,
         homeLng: true,
+        homeAddress: true,
         deliveryOrders: {
           include: {
             order: {
@@ -1352,8 +1354,22 @@ export async function GET(req: NextRequest) {
       };
     }
 
+    const originStatus = deliveryProfile
+      ? activeOriginStatus(deliveryProfile)
+      : { active: 'home' as const, gpsExpiresAt: null };
+    const originPlace = originStatus.active === 'gps'
+      && deliveryProfile?.currentLat != null
+      && deliveryProfile.currentLng != null
+      ? await placeLabelForCoordinates(deliveryProfile.currentLat, deliveryProfile.currentLng)
+      : localityFromAddress(deliveryProfile?.homeAddress);
+
     return NextResponse.json({
       stats,
+      origin: {
+        active: originStatus.active,
+        place: originPlace,
+        gpsExpiresAt: originStatus.gpsExpiresAt,
+      },
       courierMoney,
       isOnline: timeAvailability?.available ?? false,
       isTemporarilyOnline: timeAvailability?.source === 'TEMPORARY_ONLINE_OVERRIDE',
