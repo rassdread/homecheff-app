@@ -38,6 +38,7 @@ export function useDeliveryAvailability(
     message: 'Locatie niet beschikbaar',
   });
   const [deliverers, setDeliverers] = useState<CheckoutMatchedDeliverer[]>([]);
+  const [weightRejections, setWeightRejections] = useState<Array<{ id: string; name: string; reason: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [settledKey, setSettledKey] = useState<string | null>(null);
   const requestKey =
@@ -47,6 +48,7 @@ export function useDeliveryAvailability(
     if (!buyer || !productId) {
       setSettledKey(null);
       setDeliverers([]);
+      setWeightRejections([]);
       setAvailability({
         isAvailable: false,
         estimatedTime: 0,
@@ -62,24 +64,27 @@ export function useDeliveryAvailability(
     const load = async () => {
       setLoading(true);
       setDeliverers([]);
+      setWeightRejections([]);
       try {
         const response = await fetch(checkoutCourierMatchPath(productId, buyer), {
           signal: controller.signal,
         });
         const data = await response.json();
         if (!response.ok || data?.success !== true) {
-          setDeliverers([]);
-          setAvailability({
-            isAvailable: false,
-            estimatedTime: 0,
-            deliveryFee: 0,
-            availableCount: 0,
-            message: 'Geen bezorgers beschikbaar in jouw regio op dit moment',
-          });
+        setDeliverers([]);
+        setWeightRejections([]);
+        setAvailability({
+          isAvailable: false,
+          estimatedTime: 0,
+          deliveryFee: 0,
+          availableCount: 0,
+          message: 'Geen bezorgers beschikbaar in jouw regio op dit moment',
+        });
           return;
         }
         const matched = Array.isArray(data.matchedDeliverers) ? data.matchedDeliverers : [];
         setDeliverers(matched);
+        setWeightRejections(Array.isArray(data.weightRejections) ? data.weightRejections : []);
         setAvailability({
           isAvailable: matched.length > 0,
           estimatedTime: 0,
@@ -93,6 +98,7 @@ export function useDeliveryAvailability(
       } catch (error) {
         if ((error as Error)?.name === 'AbortError') return;
         setDeliverers([]);
+        setWeightRejections([]);
         setAvailability({
           isAvailable: false,
           estimatedTime: 0,
@@ -115,6 +121,7 @@ export function useDeliveryAvailability(
   return {
     availability,
     deliverers,
+    weightRejections,
     loading,
     matchSettled: requestKey !== null && settledKey === requestKey,
   };

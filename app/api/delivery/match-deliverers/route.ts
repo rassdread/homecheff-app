@@ -24,7 +24,7 @@ import { auth } from "@/lib/auth";
 import { isProviderVisibleToBuyer } from "@/lib/delivery/delivery-cert-scope";
 import { expireExpiredTemporaryOnline } from "@/lib/delivery/delivery-online-session";
 import { interpretStoredCapacity } from "@/lib/delivery/transport-job";
-import { routeVehicleCode, selectVehicleForJob, vehicleNeedForProduct, vehiclesFromProfile } from "@/lib/delivery/courier-vehicles";
+import { CARGO_TOO_HEAVY_NL, routeVehicleCode, selectVehicleForJob, vehicleNeedForProduct, vehiclesFromProfile } from "@/lib/delivery/courier-vehicles";
 import { resolveDeliveryTimeAvailability } from "@/lib/delivery/delivery-time-availability";
 import { courierCanBeListedForPaidJob } from "@/lib/delivery/courier-payable";
 import {
@@ -351,6 +351,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    const weightRejections: Array<{ id: string; name: string; reason: string }> = [];
     return NextResponse.json({
       success: true,
       product: {
@@ -468,7 +469,16 @@ export async function GET(req: NextRequest) {
           weightKg: productWeightKg,
         });
         const chosen = fleet.vehicles.length ? selectVehicleForJob(fleet.vehicles, need) : null;
-        if (chosen && !chosen.ok && (need.cargo || (need.pieces && need.pieces.length > 0))) return null;
+        if (chosen && !chosen.ok && (need.cargo || (need.pieces && need.pieces.length > 0))) {
+          if (chosen.code === 'TOO_HEAVY') {
+            weightRejections.push({
+              id: delivery.id,
+              name: delivery.user.name || 'Bezorger',
+              reason: CARGO_TOO_HEAVY_NL,
+            });
+          }
+          return null;
+        }
 
         return {
           id: delivery.id,
@@ -534,6 +544,7 @@ export async function GET(req: NextRequest) {
           isAutoConfirmEligible: autoCheck.ok && delivery.acceptanceMode === ACCEPTANCE_MODE_AUTO,
         };
       }).filter((row) => row != null),
+      weightRejections,
       totalMatches: payableDeliverers.length
     });
 

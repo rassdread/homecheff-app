@@ -7,6 +7,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { getDeliveryAlignmentFlags } from '@/lib/delivery/delivery-alignment-flags';
 import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
+import { decideProductCargo, decideStoredCargo } from '@/lib/delivery/cargo-weight-gate';
 import { assertDelivererCanAccept } from '@/lib/delivery/delivery-eligibility';
 import { enforcePaidDeliveryIdentity } from '@/lib/delivery/courier-identity-sync';
 import { servicePilotDenial } from '@/lib/delivery/delivery-pilot-access';
@@ -686,6 +687,44 @@ export async function acceptDeliveryBookingRequest(
       if (!bookable.ok) {
         return { ok: false as const, status: 422, error: bookable.error, code: bookable.code };
       }
+    }
+  }
+
+  const linkedCargo = await prisma.standaloneDeliveryRequest.findFirst({
+    where: { bookingRequestId: request.id },
+    select: { cargo: true },
+  });
+  const reserved = request.productId
+    ? await prisma.stockReservation.findFirst({
+        where: { bookingRequestId: request.id },
+        select: { quantity: true },
+      })
+    : null;
+  const weight = linkedCargo?.cargo
+    ? await decideStoredCargo(prisma, request.deliveryProfileId, linkedCargo.cargo)
+    : request.productId
+      ? await decideProductCargo(prisma, {
+          deliveryProfileId: request.deliveryProfileId,
+          productId: request.productId,
+          quantity: reserved?.quantity ?? 1,
+        })
+      : null;
+  if (weight && !weight.ok) return weight;
+  if (weight?.ok && weight.vehicleId && weight.vehicleId !== request.matchedVehicleId) {
+    await prisma.deliveryBookingRequest.update({
+      where: { id: request.id },
+      data: {
+        matchedVehicleId: weight.vehicleId,
+        cargoFitRequired: weight.needsFitQuestion,
+        cargoFitConfirmedAt: weight.needsFitQuestion ? null : request.cargoFitConfirmedAt,
+        cargoFitFingerprint: weight.needsFitQuestion ? null : request.cargoFitFingerprint,
+      },
+    });
+    request.matchedVehicleId = weight.vehicleId;
+    request.cargoFitRequired = weight.needsFitQuestion;
+    if (weight.needsFitQuestion) {
+      request.cargoFitConfirmedAt = null;
+      request.cargoFitFingerprint = null;
     }
   }
 

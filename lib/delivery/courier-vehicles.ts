@@ -356,12 +356,15 @@ function fitPhrase(judgement: FitJudgement): string | null {
   return null;
 }
 
+export const CARGO_TOO_HEAVY_NL = 'Lading te zwaar voor dit voertuig';
+
 export function selectVehicleForJob(
   vehicles: CourierVehicle[],
   need: JobVehicleNeed = {},
-): { ok: true; vehicle: CourierVehicle; label: string; needsFitQuestion: boolean; fitLabel: string | null } | { ok: false; code: 'NO_VEHICLE' | 'TOO_SMALL' | 'MISSING_FEATURE' } {
+): { ok: true; vehicle: CourierVehicle; label: string; needsFitQuestion: boolean; fitLabel: string | null } | { ok: false; code: 'NO_VEHICLE' | 'TOO_SMALL' | 'TOO_HEAVY' | 'MISSING_FEATURE' } {
   const required = need.requiredFeatures || [];
   let sawTooSmall = false;
+  let sawTooHeavy = false;
   let sawFeatureMiss = false;
   const pieces = need.pieces?.length ? need.pieces : need.cargo ? [need.cargo] : [];
   const several = (need.itemCount ?? pieces.length) > 1;
@@ -372,6 +375,10 @@ export function selectVehicleForJob(
       continue;
     }
     const judgements = pieces.length ? pieces.map((piece) => assessCargoFit(vehicle, piece)) : ['unspecified' as const];
+    if (judgements.includes('too_heavy')) {
+      sawTooHeavy = true;
+      continue;
+    }
     if (judgements.includes('too_small')) {
       sawTooSmall = true;
       continue;
@@ -386,9 +393,10 @@ export function selectVehicleForJob(
   }
   if (matches.length === 0) {
     if (vehicles.length === 0) return { ok: false, code: 'NO_VEHICLE' };
+    if (sawTooHeavy && !sawTooSmall && !sawFeatureMiss) return { ok: false, code: 'TOO_HEAVY' };
     if (sawTooSmall && !sawFeatureMiss) return { ok: false, code: 'TOO_SMALL' };
-    if (sawFeatureMiss && !sawTooSmall) return { ok: false, code: 'MISSING_FEATURE' };
-    return { ok: false, code: sawTooSmall ? 'TOO_SMALL' : 'MISSING_FEATURE' };
+    if (sawFeatureMiss && !sawTooSmall && !sawTooHeavy) return { ok: false, code: 'MISSING_FEATURE' };
+    return { ok: false, code: sawTooHeavy ? 'TOO_HEAVY' : sawTooSmall ? 'TOO_SMALL' : 'MISSING_FEATURE' };
   }
   const chosen = matches.sort((a, b) => b.rank - a.rank)[0]!;
   return {

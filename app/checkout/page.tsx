@@ -513,6 +513,7 @@ export default function CheckoutPage() {
   const {
     availability,
     deliverers: matchedDeliverers,
+    weightRejections,
     loading: availabilityLoading,
     matchSettled,
   } = useDeliveryAvailability(buyerForMatch, checkoutProductId);
@@ -1796,6 +1797,16 @@ export default function CheckoutPage() {
                           availabilityLoading ? (
                             <p className="text-sm text-blue-700">{t('checkout.checkingAvailability')}</p>
                           ) : (
+                          <>
+                          {weightRejections.length > 0 && (
+                            <section className="space-y-1" aria-label="Lading te zwaar">
+                              {weightRejections.map((courier) => (
+                                <p key={courier.id} className="text-sm text-gray-800">
+                                  {courier.name}: {courier.reason}
+                                </p>
+                              ))}
+                            </section>
+                          )}
                           <DelivererSelector
                             productId={checkoutItems[0].productId}
                             buyerLat={checkoutDraft.coordinates.lat}
@@ -1809,6 +1820,7 @@ export default function CheckoutPage() {
                               await requestCourierBooking(d);
                             }}
                           />
+                          </>
                           )
                         ) : (
                           <p className="text-sm text-gray-600">

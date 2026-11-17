@@ -184,11 +184,12 @@ test('a pannier outer size does not prove a box fits and a cabinet does not', ()
     cargo: { lengthCm: 20, widthCm: 12, heightCm: 8, weightKg: 10 },
   });
   assert.equal(heavyBags.ok, false);
-  if (!heavyBags.ok) assert.equal(heavyBags.code, 'TOO_SMALL');
+  if (!heavyBags.ok) assert.equal(heavyBags.code, 'TOO_HEAVY');
   const knownBag = selectVehicleForJob([{ ...bike, referenceId: 'ortlieb-backroller' }], {
     cargo: { lengthCm: 20, widthCm: 12, heightCm: 8, weightKg: 10 },
   });
   assert.equal(knownBag.ok, false);
+  if (!knownBag.ok) assert.equal(knownBag.code, 'TOO_HEAVY');
   const secondBag = selectVehicleForJob(
     [
       { ...bike, id: 'left', referenceId: 'ortlieb-backroller' },
@@ -251,7 +252,55 @@ test('a named van shows its model and uses payload only for that exact execution
   assert.equal(label('trafic-l2', pie), 'Even afstemmen');
   assert.equal(label('jumper-l2h2', pie), 'Even afstemmen');
   assert.equal(label('jumper-l2h2-30t-120', pie), 'Past naar verwachting');
-  assert.equal(label('jumper-l2h2-30t-120', heavy), 'Even afstemmen');
+  assert.equal(label('jumper-l2h2-30t-120', heavy), 'rejected');
+  assert.equal(label('jumper-l2h2-30t-120', { ...pie, weightKg: 925 }), 'Even afstemmen');
+  assert.equal(label('jumper-l2h2-30t-120', { ...pie, weightKg: 925.1 }), 'rejected');
+  assert.equal(label('trafic-l2', heavy), 'Even afstemmen');
+  const raised = parseCourierVehicle({
+    family: 'BUS',
+    variant: 'LARGE',
+    referenceId: 'jumper-l2h2-30t-120',
+    features: [],
+    carrying: [],
+    maxWeightKg: 2000,
+    capacityStatus: { length: 'set', width: 'set', height: 'set', weight: 'set' },
+    maxLengthCm: 400,
+    maxWidthCm: 160,
+    maxHeightCm: 200,
+  });
+  const raisedChoice = selectVehicleForJob([raised!], { cargo: heavy });
+  assert.equal(raisedChoice.ok, false);
+  if (!raisedChoice.ok) assert.equal(raisedChoice.code, 'TOO_HEAVY');
+  const measuredVan = parseCourierVehicle({
+    id: 'measured-van',
+    family: 'BUS',
+    variant: 'LARGE',
+    features: [],
+    carrying: [],
+    maxLengthCm: 400,
+    maxWidthCm: 160,
+    maxHeightCm: 200,
+    maxWeightKg: 1200,
+    capacityStatus: { length: 'set', width: 'set', height: 'set', weight: 'set' },
+  });
+  const jumper = parseCourierVehicle({
+    id: 'jumper',
+    family: 'BUS',
+    variant: 'LARGE',
+    referenceId: 'jumper-l2h2-30t-120',
+    features: [],
+    carrying: [],
+    capacityStatus: { length: 'unset', width: 'unset', height: 'unset', weight: 'unset' },
+  });
+  const second = selectVehicleForJob([jumper!, measuredVan!], { cargo: heavy });
+  assert.equal(second.ok, true);
+  if (second.ok) {
+    assert.equal(second.vehicle.id, 'measured-van');
+    assert.equal(second.fitLabel, 'Past volgens de opgegeven maten');
+  }
+  const exact = catalogReferences({ variant: 'LARGE', carrying: [], carryingProvider: null }).find((item) => item.id === 'jumper-l2h2-30t-120');
+  assert.equal(exact?.weightBound, 'ceiling');
+  assert.equal(exact?.weightKg, 925);
   const own = parseCourierVehicle({
     family: 'BUS',
     variant: 'MEDIUM',
@@ -261,7 +310,9 @@ test('a named van shows its model and uses payload only for that exact execution
     maxWeightKg: 1,
     capacityStatus: { length: 'unset', width: 'unset', height: 'unset', weight: 'set' },
   });
-  assert.equal(selectVehicleForJob([own!], { cargo: pie }).ok, false);
+  const ownChoice = selectVehicleForJob([own!], { cargo: pie });
+  assert.equal(ownChoice.ok, false);
+  if (!ownChoice.ok) assert.equal(ownChoice.code, 'TOO_HEAVY');
   const corolla = catalogReferences({ variant: 'STATION', carrying: [], carryingProvider: null }).find((item) => item.id === 'corolla-touring-2023');
   assert.equal(corolla?.heightCm ?? null, null);
   assert.match(referenceHeadline(corolla!), /102 cm laadlengte/);

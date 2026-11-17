@@ -53,5 +53,6 @@ export async function POST(req: NextRequest) {
     requestedPickupAt: result.requestedPickupAt,
     couriers: result.couriers,
     unavailable: result.unavailable,
+    rejected: result.rejected,
   });
 }

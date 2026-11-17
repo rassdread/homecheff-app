@@ -38,10 +38,12 @@ import type { ProviderAcceptanceProfile } from '@/lib/delivery/provider-acceptan
 import {
   cargoFitFingerprint,
   routeVehicleCode,
+  CARGO_TOO_HEAVY_NL,
   selectVehicleForJob,
   vehicleNeedForCargo,
   vehiclesFromProfile,
 } from '@/lib/delivery/courier-vehicles';
+import { decideStoredCargo } from '@/lib/delivery/cargo-weight-gate';
 
 const PAYMENT_WINDOW_MS = 20 * 60 * 1000;
 const FULFILLABLE_STATUSES = new Set(['AWAITING_PAYMENT', 'CHECKOUT', 'PAID']);
@@ -172,6 +174,9 @@ export async function confirmCargoFit(input: { actorUserId: string; requestId: s
     requiredFeatures: required,
   }));
   if (!choice.ok) {
+    if (choice.code === 'TOO_HEAVY') {
+      return { ok: false as const, status: 409, code: 'VEHICLE_TOO_HEAVY', error: CARGO_TOO_HEAVY_NL };
+    }
     return { ok: false as const, status: 409, code: 'VEHICLE_NO_LONGER_FITS', error: 'Dit voertuig past niet meer bij deze lading. Een eerdere bevestiging geldt niet opnieuw.' };
   }
   const fingerprint = cargoFitFingerprint({
@@ -281,6 +286,7 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput, include
 
   const couriers: CourierCard[] = [];
   const unavailable: Array<{ id: string; name: string; code: string; pickupTimes: string[]; matchedVehicleLabel: string | null }> = [];
+  const rejected: Array<{ id: string; name: string; reason: string }> = [];
 
   for (const profile of profiles) {
     const eligible = isCommerciallyMatchableDeliverer({
@@ -303,7 +309,16 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput, include
       vehicleCapacityStatus: profile.vehicleCapacityStatus,
     });
     const matched = fleet.vehicles.length > 0 ? selectVehicleForJob(fleet.vehicles, need) : null;
-    if (matched && !matched.ok) continue;
+    if (matched && !matched.ok) {
+      if (matched.code === 'TOO_HEAVY') {
+        rejected.push({
+          id: profile.id,
+          name: profile.user.name?.trim() || 'Bezorgaanbieder',
+          reason: CARGO_TOO_HEAVY_NL,
+        });
+      }
+      continue;
+    }
     if (!matched && input.cargo && input.cargo.items.some(item => item.lengthCm > 0 || item.widthCm > 0 || item.heightCm > 0 || item.weightKg > 0)
       && fitCargo(input.cargo, profile) !== 'fit') continue;
     if (!courierListedInPilot(profile.id, profile.user?.id)) continue;
@@ -404,6 +419,7 @@ export async function createStandaloneQuote(input: StandaloneQuoteInput, include
     requestedPickupAt: input.requestedPickupAt?.toISOString() ?? null,
     couriers,
     unavailable,
+    rejected,
   };
 }
 
@@ -412,6 +428,9 @@ export async function bookStandaloneCourier(input: StandaloneQuoteInput & { deli
   if (!listed.ok) return listed;
   const selected = listed.couriers.find((courier) => courier.id === input.deliveryProfileId);
   if (!selected) {
+    if (listed.rejected.some((courier) => courier.id === input.deliveryProfileId)) {
+      return { ok: false as const, status: 422, code: 'VEHICLE_TOO_HEAVY', error: CARGO_TOO_HEAVY_NL };
+    }
     return {
       ok: false as const,
       status: 422,
@@ -630,6 +649,24 @@ export async function createStandaloneCheckout(input: {
   }
   if (booking.status !== 'ACCEPTED' && booking.status !== 'AUTO_CONFIRMED') {
     return { ok: false as const, status: 409, code: 'DELIVERY_BOOKING_REQUIRED', error: 'Betalen kan pas nadat de gekozen bezorger heeft bevestigd.' };
+  }
+  const weight = await decideStoredCargo(prisma, row.deliveryProfileId, row.cargo);
+  if (!weight.ok) return weight;
+  if (weight.vehicleId && weight.vehicleId !== row.matchedVehicleId) {
+    await prisma.standaloneDeliveryRequest.update({
+      where: { id: row.id },
+      data: {
+        matchedVehicleId: weight.vehicleId,
+        cargoFitRequired: weight.needsFitQuestion,
+        cargoFitConfirmedAt: null,
+        cargoFitFingerprint: null,
+        updatedAt: new Date(),
+      },
+    });
+    row.matchedVehicleId = weight.vehicleId;
+    row.cargoFitRequired = weight.needsFitQuestion;
+    row.cargoFitConfirmedAt = null;
+    row.cargoFitFingerprint = null;
   }
   if (row.cargoFitRequired) {
     const fresh = await fitStillConfirmed(row);

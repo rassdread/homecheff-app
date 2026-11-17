@@ -3,6 +3,7 @@ import { normalizeFulfillmentInput } from '@/lib/delivery/delivery-fulfillment-v
 import { deliveryDisabledBody } from '@/lib/delivery/delivery-deployment-gate';
 import { deliveryAccessDeniedBody, evaluateDeliveryAccess, publicDeliveryIsClosed } from '@/lib/delivery/delivery-pilot-access';
 import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
+import { decideProductCargo } from '@/lib/delivery/cargo-weight-gate';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -637,6 +638,23 @@ export async function POST(req: NextRequest) {
       const payable = await ensureCourierPayable(prisma, selectedProviderId);
       if (!payable.ok) {
         return NextResponse.json({ error: payable.error, code: payable.code }, { status: payable.status });
+      }
+      for (const item of items as Array<{ productId?: string; quantity?: number }>) {
+        if (!item.productId) continue;
+        const weight = await decideProductCargo(prisma, {
+          deliveryProfileId: selectedProviderId,
+          productId: item.productId,
+          quantity: item.quantity,
+        });
+        if (!weight.ok) {
+          return NextResponse.json({ error: weight.error, code: weight.code }, { status: weight.status });
+        }
+        if (weight.vehicleId && booking.matchedVehicleId !== weight.vehicleId) {
+          await prisma.deliveryBookingRequest.update({
+            where: { id: booking.id },
+            data: { matchedVehicleId: weight.vehicleId },
+          });
+        }
       }
       const lockedPrice = lockedBookingCheckoutPrice({
         quotedFeeCents: booking.quotedFeeCents,

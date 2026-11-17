@@ -709,14 +709,15 @@
     "group": "LARGE",
     "name": "Citroën Jumper L2H2 3.0T, diesel 120",
     "source": "https://www.citroen.fr/content/dam/citroen/france/showroom/b2b/technical-file/10-26/CT-CITROEN-JUMPER-E-JUMPER-OCTOBRE-2026.pdf",
-    "configuration": "Alleen fourgon tôlé L2H2 3.0T, diesel 120 ch, handgeschakeld, code 2CXE3IHOGKB0A014. Dezelfde laadruimte als de L2H2. Charge utile is 925 kg: MTAC 3000 kg min de minimale CEE-leegmassa zonder bestuurder. Geldt niet voor een andere massa of motor.",
+    "configuration": "Alleen fourgon tôlé L2H2 3.0T, diesel 120 ch, handgeschakeld, code 2CXE3IHOGKB0A014. Dezelfde laadruimte als de L2H2. 925 kg is de maximale nuttige last: MTAC 3000 kg min de minimale CEE-leegmassa van 2075 kg, zonder bestuurder en zonder opties. Opties en de bestuurder maken de praktisch beschikbare last lager. Boven 925 kg past de lading ook in die lichtste uitvoering niet. Geldt niet voor een andere massa of motor.",
     "role": "interior",
     "lengthCm": 312,
     "widthCm": 142.2,
     "heightCm": 193.2,
     "openingWidthCm": 156.2,
     "openingHeightCm": 179,
-    "weightKg": 925
+    "weightKg": 925,
+    "weightBound": "ceiling"
   },
   {
     "id": "jumper-l3h2",
@@ -762,9 +763,10 @@
     "group": "PANNIERS",
     "name": "ORTLIEB Back-Roller City, één tas",
     "source": "https://www.ortlieb.com/de_en/back-roller-city+F5003",
-    "configuration": "Per tas. Hoogte, bovenbreedte en diepte zijn buitenmaten. Twee tassen zijn twee vakken. 20 liter en de buitenmaten zeggen niet dat een doos erin past. Het draagvermogen is 9 kg per tas.",
+    "configuration": "Per tas. Hoogte, bovenbreedte en diepte zijn buitenmaten. Twee tassen zijn twee vakken. 20 liter en de buitenmaten zeggen niet dat een doos erin past. 9 kg is het maximum per tas.",
     "role": "envelope",
     "weightKg": 9,
+    "weightBound": "ceiling",
     "envelopeLengthCm": 42,
     "envelopeWidthCm": 32,
     "envelopeHeightCm": 17
@@ -774,9 +776,10 @@
     "group": "PANNIERS",
     "name": "ORTLIEB Back-Roller Classic, één tas",
     "source": "https://de.ortlieb.com/cdn/shop/files/datasheet-de-back-roller.pdf",
-    "configuration": "Per tas. Twee tassen zijn twee vakken en worden niet opgeteld. 20 liter is geen bewijs dat een doos past.",
+    "configuration": "Per tas. Twee tassen zijn twee vakken en worden niet opgeteld. 20 liter is geen bewijs dat een doos past. 9 kg is het maximum per tas.",
     "role": "envelope",
     "weightKg": 9,
+    "weightBound": "ceiling",
     "envelopeLengthCm": 42,
     "envelopeWidthCm": 32,
     "envelopeHeightCm": 17

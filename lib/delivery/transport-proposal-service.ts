@@ -30,7 +30,8 @@ import {
   type ProposalAction,
   type TransportCargo,
 } from '@/lib/delivery/transport-job';
-import { selectVehicleForJob, vehicleNeedForCargo, vehiclesFromProfile } from '@/lib/delivery/courier-vehicles';
+import { CARGO_TOO_HEAVY_NL, selectVehicleForJob, vehicleNeedForCargo, vehiclesFromProfile } from '@/lib/delivery/courier-vehicles';
+import { decideStoredCargo } from '@/lib/delivery/cargo-weight-gate';
 
 const PAYMENT_WINDOW_MS = 20 * 60 * 1000;
 const PROPOSAL_TTL_MS = 48 * 60 * 60 * 1000;
@@ -254,6 +255,9 @@ export async function sendTransportProposal(input: {
     ? selectVehicleForJob(fleet.vehicles, vehicleNeedForCargo({ ...input.cargo, requiredFeatures }))
     : null;
   if (chosen && !chosen.ok) {
+    if (chosen.code === 'TOO_HEAVY') {
+      return { ok: false as const, status: 422, code: 'VEHICLE_TOO_HEAVY', error: CARGO_TOO_HEAVY_NL };
+    }
     return {
       ok: false as const,
       status: 422,
@@ -459,6 +463,9 @@ export async function respondToTransportProposal(input: {
         ? selectVehicleForJob(fleet.vehicles, vehicleNeedForCargo({ ...input.revision.cargo, requiredFeatures }))
         : null;
       if (chosen && !chosen.ok) {
+        if (chosen.code === 'TOO_HEAVY') {
+          return { ok: false as const, status: 422, code: 'VEHICLE_TOO_HEAVY', error: CARGO_TOO_HEAVY_NL };
+        }
         return { ok: false as const, status: 422, code: 'VEHICLE_TOO_SMALL', error: 'De lading past niet meer bij dit voertuig.' };
       }
       if (!chosen && fitCargo(input.revision.cargo, deliveryProfile) !== 'fit') {
@@ -522,6 +529,19 @@ export async function respondToTransportProposal(input: {
   let bookingId: string | null = null;
   let bookingStatus: string | null = null;
   if (decision.paymentAllowed && decision.agreedPriceCents != null) {
+    const weight = await decideStoredCargo(prisma, row.deliveryProfileId, revisionData.cargo ?? row.cargo);
+    if (!weight.ok) return weight;
+    if (weight.vehicleId) {
+      revisionData.matchedVehicleId = weight.vehicleId;
+      revisionData.cargoFitRequired = weight.needsFitQuestion;
+      if (weight.vehicleId !== row.matchedVehicleId || weight.needsFitQuestion) {
+        revisionData.cargoFitConfirmedAt = null;
+        revisionData.cargoFitFingerprint = null;
+        row.cargoFitConfirmedAt = null;
+        row.cargoFitRequired = weight.needsFitQuestion;
+      }
+      row.matchedVehicleId = weight.vehicleId;
+    }
     const ready = await courierCanTakePaidJob(row.deliveryProfileId);
     if (!ready.ok) return ready;
     const planned = await scheduleView({
@@ -646,6 +666,7 @@ export async function respondToTransportProposal(input: {
           bookingRequestId: bookingId,
           status: 'AWAITING_PAYMENT',
           quoteExpiresAt: new Date(now.getTime() + PAYMENT_WINDOW_MS),
+          ...revisionData,
           updatedAt: now,
         },
       });

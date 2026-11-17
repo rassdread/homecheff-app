@@ -82,6 +82,7 @@ export function StandaloneDeliveryRequest({
   const quoteSequence = useRef(0);
   const [couriers, setCouriers] = useState<Deliverer[] | null>(null);
   const [unavailable, setUnavailable] = useState<Array<{ id: string; name: string; pickupTimes: string[]; matchedVehicleLabel?: string | null }>>([]);
+  const [rejected, setRejected] = useState<Array<{ id: string; name: string; reason: string }>>([]);
   const [booked, setBooked] = useState<Booked | null>(null);
   const [statusText, setStatusText] = useState('');
   const [error, setError] = useState('');
@@ -305,6 +306,7 @@ export function StandaloneDeliveryRequest({
     setError('');
     setCouriers(null);
     setUnavailable([]);
+    setRejected([]);
     setBooked(null);
     if (!selectedPlace(pickupLat, pickupLng) || !selectedPlace(dropoffLat, dropoffLng)) {
       setError('Kies een ophaal- en afleveradres uit de adreslijst.');
@@ -333,6 +335,7 @@ export function StandaloneDeliveryRequest({
       }
       setCouriers(data.couriers || []);
       setUnavailable(data.unavailable || []);
+      setRejected(Array.isArray(data.rejected) ? data.rejected : []);
       window.sessionStorage.removeItem(DELIVERY_DRAFT_KEY);
     } catch {
       if (sequence === quoteSequence.current) setError('Beschikbaarheid ophalen lukte niet. Probeer het opnieuw.');
@@ -615,6 +618,15 @@ export function StandaloneDeliveryRequest({
             </div>
           )}
         />
+      )}
+      {couriers && rejected.length > 0 && (
+        <section className="space-y-2 rounded-xl border bg-white p-4" aria-label="Lading te zwaar">
+          {rejected.map((courier) => (
+            <p key={courier.id} className="text-sm text-gray-800">
+              {courier.name}: {courier.reason}
+            </p>
+          ))}
+        </section>
       )}
       {couriers && unavailable.length > 0 && (
         <section className="space-y-3 rounded-xl border bg-white p-4" aria-label="Andere ophaalmomenten">

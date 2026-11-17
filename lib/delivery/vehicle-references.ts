@@ -16,6 +16,8 @@ export type VehicleReference = {
   openingWidthCm?: number;
   openingHeightCm?: number;
   weightKg?: number;
+  /** ceiling = bevestigde bovengrens. guide = schatting, geen afwijzing. */
+  weightBound?: 'ceiling' | 'guide';
   envelopeLengthCm?: number;
   envelopeWidthCm?: number;
   envelopeHeightCm?: number;
@@ -51,7 +53,9 @@ export function referenceSummary(ref: VehicleReference): string {
     ref.openingWidthCm != null && ref.openingHeightCm != null
       ? `deuropening ${cm(ref.openingWidthCm)} × ${cm(ref.openingHeightCm)} cm`
       : null,
-    ref.weightKg != null ? `${cm(ref.weightKg)} kg laadvermogen` : null,
+    ref.weightKg != null
+      ? `${cm(ref.weightKg)} kg ${ref.weightBound === 'ceiling' ? 'maximale nuttige last' : 'geschat laadvermogen'}`
+      : null,
   ];
   return parts.filter(Boolean).join(', ');
 }
@@ -63,7 +67,7 @@ export function catalogReferences(vehicle: Pick<CourierVehicle, 'variant' | 'car
   return references.filter((entry) => groups.has(entry.group));
 }
 
-export type FitJudgement = 'expected' | 'measured' | 'confirm' | 'too_small' | 'unspecified';
+export type FitJudgement = 'expected' | 'measured' | 'confirm' | 'too_small' | 'too_heavy' | 'unspecified';
 
 function cargoProvided(cargo: CargoSize | null | undefined): cargo is CargoSize {
   if (!cargo) return false;
@@ -113,7 +117,21 @@ function interiorSpace(ref: VehicleReference, folded: boolean) {
     openingWidth: ref.openingWidthCm ?? null,
     openingHeight: ref.openingHeightCm ?? null,
     weight: ref.weightKg ?? null,
+    weightBound: ref.weightBound ?? null,
   };
+}
+
+function boundRows(vehicle: CourierVehicle): VehicleReference[] {
+  const rows = catalogReferences(vehicle);
+  return vehicle.referenceId ? rows.filter((entry) => entry.id === vehicle.referenceId) : rows;
+}
+
+/** Highest confirmed maximum. Missing on a mixed or unmarked group, so an estimate cannot reject the whole group. */
+function confirmedCeilingKg(rows: VehicleReference[]): number | null {
+  const interiors = rows.filter((row) => row.role === 'interior');
+  const pool = interiors.length > 0 ? interiors : rows.filter((row) => row.role === 'envelope');
+  if (pool.length === 0 || !pool.every((row) => row.weightBound === 'ceiling' && row.weightKg != null)) return null;
+  return Math.max(...pool.map((row) => row.weightKg!));
 }
 
 function judgeInterior(cargo: CargoSize, space: ReturnType<typeof interiorSpace>): FitJudgement {
@@ -143,7 +161,7 @@ function judgeInterior(cargo: CargoSize, space: ReturnType<typeof interiorSpace>
     if (space.weight == null) unknown = true;
     else {
       const mark = within(cargo.weightKg, space.weight);
-      if (mark === 'over') return 'too_small';
+      if (mark === 'over') return space.weightBound === 'ceiling' ? 'too_heavy' : 'too_small';
       if (mark === 'tight') tight = true;
     }
   }
@@ -155,7 +173,9 @@ function judgeEnvelope(cargo: CargoSize, ref: VehicleReference): FitJudgement {
   const shell = [ref.envelopeLengthCm, ref.envelopeWidthCm, ref.envelopeHeightCm].filter((value): value is number => value != null).sort((a, b) => b - a);
   const dims = [cargo.lengthCm, cargo.widthCm, cargo.heightCm].filter((value) => value > 0).sort((a, b) => b - a);
   if (dims.length > 0 && shell.length === 3 && dims.some((size, index) => size > shell[index]!)) return 'too_small';
-  if (cargo.weightKg > 0 && ref.weightKg != null && cargo.weightKg > ref.weightKg) return 'too_small';
+  if (cargo.weightKg > 0 && ref.weightKg != null && cargo.weightKg > ref.weightKg) {
+    return ref.weightBound === 'ceiling' ? 'too_heavy' : 'too_small';
+  }
   return 'confirm';
 }
 
@@ -164,12 +184,14 @@ function categoryJudgement(vehicle: CourierVehicle, cargo: CargoSize, rows: Vehi
   const envelopes = rows.filter((row) => row.role === 'envelope');
   if (envelopes.length > 0 && interiors.length === 0) {
     const judged = envelopes.map((row) => judgeEnvelope(cargo, row));
-    if (judged.every((item) => item === 'too_small')) return 'too_small';
+    if (judged.every((item) => item === 'too_heavy')) return 'too_heavy';
+    if (judged.every((item) => item === 'too_small' || item === 'too_heavy')) return 'too_small';
     return 'confirm';
   }
   if (interiors.length === 0) return 'confirm';
   const folded = vehicle.features.includes('FOLD_REAR_SEAT');
   const perSample = interiors.map((row) => judgeInterior(cargo, interiorSpace(row, folded)));
+  if (perSample.every((item) => item === 'too_heavy')) return 'too_heavy';
   if (interiors.length === 1) return perSample[0] === 'too_small' ? 'confirm' : perSample[0]!;
   const shortest = interiors.reduce((best, row) => {
     const space = interiorSpace(row, folded);
@@ -189,10 +211,15 @@ export function assessCargoFit(vehicle: CourierVehicle, cargo: CargoSize | null 
     ownAxis(vehicle.maxHeightCm, vehicle.capacityStatus.height, cargo.heightCm),
     ownAxis(vehicle.maxWeightKg, vehicle.capacityStatus.weight, cargo.weightKg),
   ];
-  if (own.includes('over')) return 'too_small';
+  if (own.slice(0, 3).includes('over')) return 'too_small';
+  if (own[3] === 'over') return 'too_heavy';
   const positive = [cargo.lengthCm, cargo.widthCm, cargo.heightCm, cargo.weightKg].filter((value) => value > 0).length;
   const measured = own.filter((item) => item === 'fit').length;
-  if (measured === positive) return 'measured';
+  if (measured === positive) {
+    const ceiling = confirmedCeilingKg(boundRows(vehicle));
+    if (cargo.weightKg > 0 && ceiling != null && cargo.weightKg > ceiling) return 'too_heavy';
+    return 'measured';
+  }
   if (vehicle.carryingProvider === 'CUSTOMER' || vehicle.carryingProvider === 'DISCUSS') return 'confirm';
   if (vehicle.family === 'BUS' && vehicle.features.includes('ACTIVE_COOLING')) return 'confirm';
   const rows = vehicleReferences(vehicle);

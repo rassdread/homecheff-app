@@ -11,6 +11,7 @@ import {
   retireUnpaidBookingForDestinationChange,
 } from '@/lib/delivery/booking-request-service';
 import { ensureCourierPayable } from '@/lib/delivery/courier-payable';
+import { decideProductCargo } from '@/lib/delivery/cargo-weight-gate';
 import {
   attachBookingToHold,
   openPaymentWindowForBooking,
@@ -254,6 +255,18 @@ export async function POST(req: NextRequest) {
           holdUntil: reserved.reservation.holdUntil,
           expiresAt: reserved.reservation.expiresAt,
         };
+      }
+    }
+
+    if (productId && typeof productId === 'string' && typeof deliveryProfileId === 'string') {
+      const weight = await decideProductCargo(prisma, {
+        deliveryProfileId,
+        productId,
+        quantity: requestedQuantity,
+      });
+      if (!weight.ok) {
+        if (hold?.created) await releaseUnattachedHold(prisma, hold.id);
+        return NextResponse.json({ error: weight.error, code: weight.code }, { status: weight.status });
       }
     }
 
