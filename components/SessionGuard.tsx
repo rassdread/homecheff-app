@@ -15,6 +15,7 @@ import {
   BROWSER_LOGOUT_STORAGE_KEY,
   MARKETPLACE_AUTH_CHANNEL,
   consumeSameTabCredentialNavigation,
+  LOGOUT_NAVIGATION_KEY,
   readBrowserLogoutAt,
   rememberMarketplaceAuthUserId,
   type MarketplaceAuthChannelMessage,
@@ -82,21 +83,38 @@ export default function SessionGuard() {
 
   const leaveStaleDocument = () => {
     if (readBrowserLogoutAt() < pageOpenedAtRef.current) return;
-    if (reloadingRef.current) return;
-    reloadingRef.current = true;
+    try {
+      if (sessionStorage.getItem(LOGOUT_NAVIGATION_KEY) === '1') return;
+    } catch {
+      /* ignore */
+    }
     clearIdentityBoundClientResidue();
     const path = window.location.pathname;
+    if (path.startsWith('/login') || path.startsWith('/register')) return;
+    if (reloadingRef.current) return;
+    reloadingRef.current = true;
     const protectedPath =
       path.startsWith('/profile') ||
       path.startsWith('/settings') ||
       path.startsWith('/mijn-homecheff') ||
       path.startsWith('/admin');
-    if (protectedPath && !path.startsWith('/login')) {
-      const next = `/login?callbackUrl=${encodeURIComponent(path + window.location.search)}`;
-      window.location.assign(next);
-      return;
-    }
-    window.location.reload();
+    const go = () => {
+      if (protectedPath) {
+        window.location.replace(
+          `/login?callbackUrl=${encodeURIComponent(path + window.location.search)}`,
+        );
+        return;
+      }
+      window.location.reload();
+    };
+    fetch('/api/auth/session', { cache: 'no-store', credentials: 'include' })
+      .then((response) => {
+        if (!response.ok && response.status >= 500) throw new Error('unavailable');
+        go();
+      })
+      .catch(() => {
+        reloadingRef.current = false;
+      });
   };
 
   const applyIdentityChange = (nextUserId: string | null, reason: string) => {
@@ -178,6 +196,7 @@ export default function SessionGuard() {
     const onFocus = () => void sync('focus');
     const onPageShow = (ev: PageTransitionEvent) => {
       if (ev.persisted) void sync('bfcache');
+      leaveStaleDocument();
     };
     const onOnline = () => {
       reloadingRef.current = false;

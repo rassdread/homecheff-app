@@ -6,6 +6,9 @@
 
 export const BROWSER_LOGOUT_STORAGE_KEY = "hc_tab_logout_at";
 
+/** Set in the tab that is already navigating away after Uitloggen. */
+export const LOGOUT_NAVIGATION_KEY = "hc_logout_nav";
+
 export const MARKETPLACE_AUTH_CHANNEL = "homecheff-marketplace-auth";
 export const MARKETPLACE_AUTH_USER_STORAGE_KEY = "hc_marketplace_auth_user_id";
 

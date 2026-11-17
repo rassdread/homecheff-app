@@ -314,11 +314,15 @@ export default function NavBar() {
       }
     }
 
-    if (isProfileDropdownOpen) {
+    if (!isProfileDropdownOpen) return;
+    let remove = () => {};
+    const timer = window.setTimeout(() => {
       document.addEventListener('click', handleClickOutside);
-    }
+      remove = () => document.removeEventListener('click', handleClickOutside);
+    }, 0);
     return () => {
-      document.removeEventListener('click', handleClickOutside);
+      window.clearTimeout(timer);
+      remove();
     };
   }, [isProfileDropdownOpen]);
 
@@ -720,6 +724,10 @@ export default function NavBar() {
                 <div className="relative z-[100] min-w-0" ref={profileDropdownRef}>
                   <button
                     ref={profileButtonRef}
+                    type="button"
+                    data-hc-account-menu=""
+                    aria-haspopup="menu"
+                    aria-expanded={isProfileDropdownOpen}
                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                     className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-50 transition-all duration-200 min-w-0 max-w-full"
                   >

@@ -224,6 +224,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               "(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){document.documentElement.classList.add('hc-native-capacitor');}}catch(e){}})();",
           }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){var KEY='hc_tab_logout_at';function stale(){try{var t=Number(localStorage.getItem(KEY)||0);return !!t&&t>=performance.timeOrigin;}catch(e){return false;}}function leave(){if(!stale())return;var p=location.pathname;if(p.indexOf('/login')===0||p.indexOf('/register')===0)return;var guarded=p.indexOf('/profile')===0||p.indexOf('/settings')===0||p.indexOf('/mijn-homecheff')===0||p.indexOf('/admin')===0;if(guarded){location.replace('/login?callbackUrl='+encodeURIComponent(p+location.search));return;}location.reload();}leave();window.addEventListener('pageshow',leave);})();",
+          }}
+        />
         <link
           rel="icon"
           href={`/favicon.ico${FAVICON_ASSET_Q}`}

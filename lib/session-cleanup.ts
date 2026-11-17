@@ -14,6 +14,11 @@ import { PENDING_INTENT_STORAGE_KEY } from '@/lib/onboarding/pending-intent';
 import { clearAllNativePersistedCaches } from '@/lib/native/nativePersistedCache';
 import { NATIVE_SHELL_STORAGE_KEY } from '@/lib/native/nativeShellKeys';
 import { PX4A_ITEM_FORM_DRAFT_KEY } from '@/lib/studio/px4a-item-form-draft';
+import {
+  LOGOUT_NAVIGATION_KEY,
+  markBrowserLogout,
+  postMarketplaceAuthChannel,
+} from '@/lib/auth/session-identity-channel';
 
 // Clear all user-specific data from localStorage and sessionStorage
 export function clearAllUserData(): void {
@@ -579,16 +584,6 @@ export async function performLogout(target: string = '/'): Promise<void> {
     await requestSessionEnd('/api/auth/force-logout');
   }
 
-  try {
-    const { markBrowserLogout, postMarketplaceAuthChannel } = await import(
-      '@/lib/auth/session-identity-channel'
-    );
-    markBrowserLogout();
-    postMarketplaceAuthChannel({ type: 'logout' });
-  } catch {
-    /* ignore */
-  }
-
   // 2) Best-effort NextAuth signOut zonder redirect (synchroniseert client-side session-state).
   await Promise.race([
     (async () => {
@@ -609,8 +604,9 @@ export async function performLogout(target: string = '/'): Promise<void> {
     /* ignore */
   }
   try {
-    const { markBrowserLogout } = await import('@/lib/auth/session-identity-channel');
+    sessionStorage.setItem(LOGOUT_NAVIGATION_KEY, '1');
     markBrowserLogout();
+    postMarketplaceAuthChannel({ type: 'logout' });
   } catch {
     /* ignore */
   }

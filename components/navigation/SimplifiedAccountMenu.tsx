@@ -255,12 +255,6 @@ export default function SimplifiedAccountMenu({
 
       <div className="border-t border-gray-100 my-1" />
 
-      {includeLegalLinks ? (
-        <NavbarLegalContactLinks variant="dropdown" onNavigate={onNavigate} />
-      ) : null}
-
-      {includeLegalLinks ? <div className="border-t border-gray-100 my-1" /> : null}
-
       <button
         type="button"
         onClick={(event) => {
@@ -273,6 +267,10 @@ export default function SimplifiedAccountMenu({
         <LogOut className="h-4 w-4 shrink-0" aria-hidden />
         <span>{t('navbar.logout') || (isNl ? 'Uitloggen' : 'Log out')}</span>
       </button>
+
+      {includeLegalLinks ? (
+        <NavbarLegalContactLinks variant="dropdown" onNavigate={onNavigate} />
+      ) : null}
     </div>
   );
 }
