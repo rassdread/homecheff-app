@@ -222,10 +222,12 @@ export default function NavBar() {
     'xl:rounded-xl xl:px-4 xl:py-2 xl:text-sm',
   );
 
-  const user =
+  const sessionUser =
     session && 'user' in session
-      ? (session.user as typeof session['user'] & { image?: string })
+      ? (session.user as typeof session['user'] & { id?: string; image?: string })
       : undefined;
+  const user =
+    sessionUser && (sessionUser.id || sessionUser.email) ? sessionUser : undefined;
   const quietOnboarding = pathname === '/onboarding/complete-profile';
   const presentation = useHomePresentationMode();
   const workspaceHeader =

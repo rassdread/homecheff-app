@@ -27,7 +27,7 @@ import {
   resolvePreviewGoogleOAuthClient,
 } from "./auth/preview-google-oauth";
 import { GOOGLE_ACCOUNT_CHOOSER_PARAMS } from "./auth/google-account-chooser";
-import { stripRevokedAuthToken } from "./auth/session-revocation";
+import { emptySessionIfEnded, stripRevokedAuthToken } from "./auth/session-revocation";
 import { NEXTAUTH_SESSION_COOKIE_NAME } from "./auth/session-cookie-name";
 import { withPrismaRetry } from "./auth/prisma-retry";
 import { sanitizePostAuthRelativeUrl } from "./auth/post-auth-redirect";
@@ -282,6 +282,9 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, user, account, trigger }) {
+      if (token?.revoked === true) {
+        return { revoked: true };
+      }
       // CRITICAL: Remove all large data from token to prevent REQUEST_HEADER_TOO_LARGE
       // Edge browser has strict cookie size limits (4096 bytes per cookie)
       // NextAuth may add name, picture, etc. from OAuth providers - remove them explicitly
@@ -466,9 +469,10 @@ export const authOptions: NextAuthOptions = {
       return minimalToken;
     },
     async session({ session, token }) {
-      if ((token as { deleted?: boolean }).deleted || (token as { revoked?: boolean }).revoked) {
-        return { ...session, user: undefined as any, expires: new Date(0).toISOString() };
-      }
+      const ended = emptySessionIfEnded(
+        token as { revoked?: unknown; deleted?: unknown } | null,
+      );
+      if (ended) return ended;
       if (session.user && token) {
         if ((token as { id?: string }).id) {
           try {
@@ -477,7 +481,7 @@ export const authOptions: NextAuthOptions = {
               select: { accountDeletedAt: true },
             });
             if (tomb?.accountDeletedAt) {
-              return { ...session, user: undefined as any, expires: new Date(0).toISOString() };
+              return {};
             }
           } catch (error) {
             console.error('Error checking tombstone in session callback:', error);
@@ -632,7 +636,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).socialProvider = (token as any).socialProvider;
       }
       if (await stripRevokedAuthToken(token as Record<string, unknown>)) {
-        return { ...session, user: undefined as any, expires: new Date(0).toISOString() };
+        return {};
       }
       return session;
     },

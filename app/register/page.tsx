@@ -411,7 +411,10 @@ function RegisterPageContent() {
         return;
       }
 
-      if (status !== "authenticated" || !session?.user) {
+      const accountKey = session?.user
+        ? String((session.user as { id?: string }).id || session.user.email || "")
+        : "";
+      if (status !== "authenticated" || !accountKey) {
         setIsCheckingOnboarding(false);
         return;
       }

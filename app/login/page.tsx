@@ -213,6 +213,7 @@ function LoginForm() {
     sessionStatus === 'authenticated' && session?.user
       ? String((session.user as { id?: string }).id || session.user.email || '')
       : '';
+  const hasSignedInAccount = authenticatedUserId.length > 0;
   useEffect(() => {
     if (!authenticatedUserId || !session?.user) return;
     const u = session.user as {
@@ -585,7 +586,7 @@ function LoginForm() {
   }
 
   // If already authenticated, show loading while redirecting
-  if (sessionStatus === 'authenticated' && session?.user) {
+  if (hasSignedInAccount) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center">
         <div className="text-center">

@@ -72,6 +72,17 @@ export async function presentedAuthSessionIsRevoked(
   }
 }
 
+/**
+ * NextAuth treats any non-empty JSON body as a session. An ended token must
+ * therefore answer with an empty object, or Inloggen stays on Laden.
+ */
+export function emptySessionIfEnded(
+  token: { revoked?: unknown; deleted?: unknown } | null | undefined,
+): Record<string, never> | null {
+  if (token?.revoked === true || token?.deleted === true) return {};
+  return null;
+}
+
 /** Mutates the token NextAuth is about to write back into the cookie. */
 export async function stripRevokedAuthToken(token: AuthTokenClaims): Promise<boolean> {
   const revoked = await presentedAuthSessionIsRevoked(token);

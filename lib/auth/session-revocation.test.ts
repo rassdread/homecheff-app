@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   LEGACY_AUTH_SESSION_SID,
   browserSessionKey,
+  emptySessionIfEnded,
   isBrowserSessionRevoked,
   stripAuthTokenClaims,
 } from "./session-revocation";
@@ -57,6 +58,21 @@ test("a stored revocation strips that browser session before it is written back"
   assert.equal("email" in legacy, false);
   await prisma.authSessionRevocation.deleteMany({ where: { userId } });
   await prisma.$disconnect();
+});
+
+test("an ended token is an empty logged-out session", () => {
+  assert.deepEqual(emptySessionIfEnded({ revoked: true }), {});
+  assert.deepEqual(emptySessionIfEnded({ deleted: true }), {});
+  assert.equal(emptySessionIfEnded({}), null);
+  assert.equal(emptySessionIfEnded(null), null);
+
+  const auth = readFileSync(resolve(process.cwd(), "lib/auth.ts"), "utf8");
+  const jwtStart = auth.indexOf("async jwt({ token, user, account, trigger })");
+  const minimalToken = auth.indexOf("const minimalToken", jwtStart);
+  assert.ok(jwtStart > 0 && minimalToken > jwtStart);
+  assert.ok(auth.indexOf("token?.revoked === true", jwtStart) < minimalToken);
+  assert.match(auth, /emptySessionIfEnded/);
+  assert.equal(auth.includes("expires: new Date(0)"), false);
 });
 
 test("a revoked token keeps no account claims to write back", () => {
