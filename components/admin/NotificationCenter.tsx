@@ -549,8 +549,6 @@ export default function NotificationCenter() {
   const selectedSet = new Set(selectedIds);
   const selectedCount = selectedIds.filter((id) => directory.some((recipient) => recipient.id === id)).length;
 
-  const verificationChoices: VerificationStatus[] =
-    verificationKind === 'commerce_review' ? ['verified', 'unverified', 'pending'] : ['verified', 'unverified'];
   const currentSelection = selection();
   const filterChips = selectionFilterChips(currentSelection);
   const plainSummary = selectionPlainSummary(currentSelection);
