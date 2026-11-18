@@ -11,6 +11,7 @@ import {
   onboardingFlagsFromSessionUser,
 } from "@/lib/auth/post-auth-redirect";
 import { consumeAndResolvePostAuthUrl, savePendingIntent } from "@/lib/onboarding/pending-intent";
+import { destinationAfterAuth, keepOnlyMatchingPendingIntent } from "@/lib/auth/guest-auth-entry";
 import { deliveryRegistrationReturnFromCallback } from "@/lib/auth/delivery-registration-return";
 import { applySessionMode, setRememberPreference } from "@/lib/session-mode";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -70,7 +71,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status: sessionStatus, update: updateSession } = useSession();
-  const { t, isReady, isLoading } = useTranslation();
+  const { t, tOr, isReady, isLoading } = useTranslation();
   const nativeMounted = useIsNativeAppMounted();
   const googleLoginMode = useGoogleLoginUiMode();
   const androidBridgePresent = useAndroidBridgePresent();
@@ -102,6 +103,10 @@ function LoginForm() {
   /** SP.2B.3 — one-choice IdP: product already chose Google. */
   const ssoIntent = searchParams?.get('intent');
   const autoGoogle = searchParams?.get('autoGoogle') === '1' || ssoIntent === 'google';
+
+  useEffect(() => {
+    keepOnlyMatchingPendingIntent(callbackUrl);
+  }, [callbackUrl]);
 
   // Native app: standaard aan laten staan (geen “onthoud mij”-UI); sessie voelt persistent.
   useEffect(() => {
@@ -202,7 +207,7 @@ function LoginForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefillEmail]);
 
-  // Al ingelogd: pending intent wint van generieke callback; anders callback of home.
+  // Al ingelogd: de gekozen terugkeer wint. Een oudere plaatsing blijft alleen als die dezelfde pagina is.
   // Depend on stable user id — not the whole session object — to avoid replace loops.
   const authenticatedUserId =
     sessionStatus === 'authenticated' && session?.user
@@ -226,9 +231,9 @@ function LoginForm() {
       router.replace('/onboarding/complete-profile');
       return;
     }
+    keepOnlyMatchingPendingIntent(callbackUrl);
     const intentUrl = consumeAndResolvePostAuthUrl(u);
-    const target =
-      intentUrl || (callbackUrl && callbackUrl !== '/' ? callbackUrl : '/');
+    const target = destinationAfterAuth(callbackUrl, intentUrl);
     // Never replace back onto /login (would spin).
     if (target === '/login' || target.startsWith('/login?')) {
       router.replace('/');
@@ -416,6 +421,7 @@ function LoginForm() {
       const redirectDelay = isSafariOnIOS ? 500 : isIOSDevice ? 400 : 200;
       await new Promise(resolve => setTimeout(resolve, redirectDelay));
       
+      keepOnlyMatchingPendingIntent(callbackUrl);
       const intentUrl = currentSession?.user
         ? consumeAndResolvePostAuthUrl(
             currentSession.user as {
@@ -424,13 +430,10 @@ function LoginForm() {
             },
           )
         : null;
+      const chosenReturn = destinationAfterAuth(callbackUrl, intentUrl);
       let finalRedirectUrl: string;
-      if (intentUrl) {
-        finalRedirectUrl = isSsoProductReturnPath(intentUrl)
-          ? intentUrl
-          : intentUrl.includes('welcome=')
-            ? intentUrl
-            : intentUrl + (intentUrl.includes('?') ? '&' : '?') + 'welcome=true';
+      if (isSsoProductReturnPath(chosenReturn)) {
+        finalRedirectUrl = chosenReturn;
       } else if (callbackUrl && callbackUrl !== '/' && isSsoProductReturnPath(callbackUrl)) {
         // Let the authenticated useEffect hard-navigate to /auth/sso/start once.
         // Navigating here AND in useEffect double-issues authorize codes.
@@ -444,9 +447,9 @@ function LoginForm() {
         return;
       } else {
         finalRedirectUrl =
-          callbackUrl && callbackUrl !== '/'
-            ? callbackUrl +
-              (callbackUrl.includes('?') ? '&' : '?') +
+          chosenReturn && chosenReturn !== '/'
+            ? chosenReturn +
+              (chosenReturn.includes('?') ? '&' : '?') +
               'welcome=true'
             : '/?welcome=true';
       }
@@ -587,7 +590,7 @@ function LoginForm() {
       <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-primary-brand border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Je bent al ingelogd, doorverwijzen...</p>
+          <p className="text-gray-600">{tOr('login.alreadySignedIn', 'You are already signed in. Sending you on…', 'Je bent al ingelogd. Je gaat verder…')}</p>
         </div>
       </div>
     );
@@ -623,7 +626,7 @@ function LoginForm() {
                 })()}
                 className="text-primary-brand hover:text-primary-700 font-medium text-sm"
               >
-                {t('login.register')}
+                {tOr('login.register', 'Sign up', 'Aanmelden')}
               </Link>
             </div>
           </div>

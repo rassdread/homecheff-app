@@ -13,6 +13,7 @@ import {
   sanitizePostAuthRelativeUrl,
 } from '@/lib/auth/post-auth-redirect';
 import { consumeAndResolvePostAuthUrl } from '@/lib/onboarding/pending-intent';
+import { keepOnlyMatchingPendingIntent } from '@/lib/auth/guest-auth-entry';
 import { trackOnboardingEvent } from '@/lib/onboarding/onboarding-analytics';
 import { consumeSocialRegistrationForMeta } from '@/lib/meta/browser';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -127,6 +128,7 @@ function SocialSuccessInner() {
       const nextParam = searchParams?.get('next');
       const safeNext = sanitizePostAuthRelativeUrl(nextParam);
       if (safeNext) {
+        keepOnlyMatchingPendingIntent(safeNext);
         target = safeNext;
       } else {
         const s = await getSession();

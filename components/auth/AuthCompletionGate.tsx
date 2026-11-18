@@ -53,8 +53,7 @@ export default function AuthCompletionGate() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { language } = useTranslation();
-  const en = language === 'en';
+  const { tOr } = useTranslation();
   const [noticeDismissed, setNoticeDismissed] = useState(false);
   const lastIntentKey = useRef<string | null>(null);
   const lastReplaceRef = useRef<{ to: string; at: number } | null>(null);
@@ -156,11 +155,13 @@ export default function AuthCompletionGate() {
         className="pointer-events-auto mx-auto flex max-w-3xl items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-950 shadow-sm"
       >
         <p className="min-w-0 flex-1 leading-relaxed">
-          {en
-            ? 'Your profile is not complete yet. You can keep using the feed, listings and search.'
-            : 'Je profiel is nog niet compleet. Je kunt de feed, listings en zoeken gewoon blijven gebruiken.'}{' '}
+          {tOr(
+            'auth.profileIncomplete',
+            'Your profile is not complete yet. You can keep using the feed, listings and search.',
+            'Je profiel is nog niet compleet. Je kunt de feed, het aanbod en zoeken gewoon blijven gebruiken.',
+          )}{' '}
           <Link href="/settings" className="font-semibold underline">
-            {en ? 'Complete profile' : 'Profiel aanvullen'}
+            {tOr('auth.completeProfile', 'Complete profile', 'Profiel aanvullen')}
           </Link>
         </p>
         <button
@@ -168,7 +169,7 @@ export default function AuthCompletionGate() {
           className="shrink-0 rounded-md px-2 py-1 text-xs font-semibold text-amber-950 hover:bg-amber-100"
           onClick={() => setNoticeDismissed(true)}
         >
-          {en ? 'Close' : 'Sluiten'}
+          {tOr('auth.dismissNotice', 'Close', 'Sluiten')}
         </button>
       </div>
     </div>

@@ -43,6 +43,7 @@ import {
   sanitizePostAuthRelativeUrl,
 } from "@/lib/auth/post-auth-redirect";
 import { clearPendingIntent, consumeAndResolvePostAuthUrl, getPendingIntent } from "@/lib/onboarding/pending-intent";
+import { keepOnlyMatchingPendingIntent } from "@/lib/auth/guest-auth-entry";
 import {
   isPersonalAffiliateJoinReturn,
   resolveAffiliateSignupRedirect,
@@ -197,7 +198,7 @@ function RegisterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status, update: updateSession } = useSession();
-  const { t, language } = useTranslation();
+  const { t, tOr, language } = useTranslation();
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const registrationRedirectingRef = React.useRef(false);
@@ -211,6 +212,14 @@ function RegisterPageContent() {
 
   // Get inviteToken from URL (for sub-affiliate signup)
   const inviteToken = searchParams?.get('inviteToken');
+  const authReturn =
+    searchParams?.get('callbackUrl') || searchParams?.get('returnUrl');
+
+  useEffect(() => {
+    if (authReturn && !isPersonalAffiliateJoinReturn(authReturn)) {
+      keepOnlyMatchingPendingIntent(authReturn);
+    }
+  }, [authReturn]);
 
   const resolveEmailSignupFallbackUrl = React.useCallback(
     (dataRedirect: unknown) => {
@@ -437,6 +446,9 @@ function RegisterPageContent() {
       const returnTarget = sanitizePostAuthRelativeUrl(
         searchParams?.get('callbackUrl') || searchParams?.get('returnUrl'),
       );
+      if (returnTarget && !isPersonalAffiliateJoinReturn(returnTarget)) {
+        keepOnlyMatchingPendingIntent(returnTarget);
+      }
       const pending = getPendingIntent();
       const affiliateReturn =
         isPersonalAffiliateJoinReturn(returnTarget) || pending?.type === 'join_affiliate';
@@ -1652,7 +1664,7 @@ function RegisterPageContent() {
                 <div className="mt-6 text-sm text-gray-500 text-center">
                   <p className="mb-2">
                     <Link href="/sell" className="text-emerald-700 hover:text-emerald-800 font-medium">
-                      Wil je HomeCheff zakelijk gebruiken?
+                      {tOr('register.businessUse', 'Want to use HomeCheff for your business?', 'Wil je HomeCheff zakelijk gebruiken?')}
                     </Link>
                   </p>
                   <p>{t('register.alreadyHaveAccount')}{' '}

@@ -499,7 +499,10 @@
     "hasAccount": "Al een account?",
     "loginMethod": "Inlogmethode",
     "loginWithEmail": "Inloggen met email",
-    "loginWithUsername": "Inloggen met gebruikersnaam"
+    "loginWithUsername": "Inloggen met gebruikersnaam",
+    "profileIncomplete": "Je profiel is nog niet compleet. Je kunt de feed, het aanbod en zoeken gewoon blijven gebruiken.",
+    "completeProfile": "Profiel aanvullen",
+    "dismissNotice": "Sluiten"
   },
   "cart": {
     "title": "Winkelwagen",
@@ -2708,7 +2711,8 @@
     "title": "Inloggen",
     "subtitle": "Eén account voor alle HomeCheff-onderdelen.",
     "noAccount": "Nog geen account?",
-    "register": "Registreren",
+    "register": "Aanmelden",
+    "alreadySignedIn": "Je bent al ingelogd. Je gaat verder…",
     "email": "Email adres",
     "username": "Gebruikersnaam",
     "emailPlaceholder": "je@email.com",
@@ -4145,6 +4149,7 @@
     "or": "of",
     "signUpWithEmail": "Aanmelden met email",
     "alreadyHaveAccount": "Al een account?",
+    "businessUse": "Wil je HomeCheff zakelijk gebruiken?",
     "login": "Inloggen",
     "chooseRoles": "Kies je rollen",
     "chooseRolesSubtitle": "Kies wat bij jou past, veel mensen combineren rollen om hun passie te delen",

@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import SafeImage from '@/components/ui/SafeImage';
 import { useSession } from 'next-auth/react';
-import { usePathname, useRouter } from 'next/navigation';
-import { deliveryGuestAuthHrefs } from '@/lib/auth/delivery-guest-auth';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { guestAuthEntryHrefs } from '@/lib/auth/guest-auth-entry';
 import type { EcosystemProductId } from '@/lib/ecosystem-navigation/contract';
 import { Button } from '@/components/ui/Button';
 import Logo from '@/components/Logo';
@@ -55,13 +55,17 @@ import { useOverlayHistoryBack } from '@/hooks/useOverlayHistoryBack';
 
 export default function NavBar() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const pathname = usePathname();
   const ecosystemCurrentProduct: EcosystemProductId =
     pathname?.startsWith('/affiliate') || pathname?.startsWith('/verdiensten')
       ? 'affiliate'
       : 'homecheff';
-  const { t, language } = useTranslation();
+  const { t, tOr, language } = useTranslation();
+  const searchParams = useSearchParams();
+  const guestHrefs = guestAuthEntryHrefs(
+    pathname,
+    searchParams?.toString() ? `?${searchParams.toString()}` : '',
+  );
   const careersHref = careersPath('hub', language);
   const appUpdateStatus = useAppUpdateStatus();
   const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
@@ -197,24 +201,24 @@ export default function NavBar() {
   /** Icons cost ~20px each; hide below xl so Dutch labels stay fully readable at lg. */
   const desktopNavIconClass = 'hidden xl:inline-block w-4 h-4 shrink-0';
 
-  /** Guest auth CTAs — altijd zichtbaar; denser at lg so primary nav labels stay readable. */
+  /** Guest auth CTAs — in the header at 360 and 390, not only inside the menu. */
   const guestAuthLoginClass = cn(
-    'inline-flex shrink-0 items-center justify-center rounded-xl font-medium transition-colors touch-manipulation no-underline whitespace-nowrap',
+    'inline-flex shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white font-semibold text-gray-900 transition-colors touch-manipulation no-underline whitespace-nowrap',
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
-    'bg-transparent text-gray-700 hover:bg-primary-50 hover:text-primary-brand',
-    'min-h-[40px] px-2.5 py-2 text-xs min-[400px]:px-3 min-[400px]:text-sm',
-    'sm:min-h-[44px] sm:px-3.5 sm:py-2.5 sm:text-sm',
-    'lg:rounded-xl lg:px-2.5 lg:py-2 lg:text-[13px] lg:min-h-0',
-    'xl:rounded-2xl xl:px-4 xl:py-2.5 xl:text-sm',
+    'hover:bg-primary-50 hover:text-primary-brand',
+    'min-h-[36px] px-1.5 py-1.5 text-[12px] leading-none',
+    'min-[390px]:px-2 min-[390px]:text-[13px]',
+    'sm:min-h-[40px] sm:px-3 sm:text-sm',
+    'xl:rounded-xl xl:px-4 xl:py-2 xl:text-sm',
   );
   const guestAuthRegisterClass = cn(
-    'inline-flex shrink-0 items-center justify-center rounded-xl font-semibold transition-all touch-manipulation no-underline whitespace-nowrap',
+    'inline-flex shrink-0 items-center justify-center rounded-lg font-semibold transition-all touch-manipulation no-underline whitespace-nowrap',
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand',
     'hc-btn-secondary',
-    'min-h-[40px] px-2.5 py-2 text-xs min-[400px]:px-3 min-[400px]:text-sm',
-    'sm:min-h-[44px] sm:px-3.5 sm:py-2.5 sm:text-sm',
-    'lg:rounded-xl lg:px-2.5 lg:py-2 lg:text-[13px] lg:min-h-0',
-    'xl:rounded-2xl xl:px-4 xl:py-2.5 xl:text-sm',
+    'min-h-[36px] px-1.5 py-1.5 text-[12px] leading-none',
+    'min-[390px]:px-2 min-[390px]:text-[13px]',
+    'sm:min-h-[40px] sm:px-3 sm:text-sm',
+    'xl:rounded-xl xl:px-4 xl:py-2 xl:text-sm',
   );
 
   const user =
@@ -681,35 +685,29 @@ export default function NavBar() {
                 <div className="h-9 w-9 animate-pulse rounded-full bg-gray-100" />
               </div>
             ) : null}
-            {status === 'unauthenticated' && !user && (
+            {!user && (
               <>
                 <Link
-                  href="/login"
+                  href={guestHrefs.login}
                   prefetch={false}
+                  data-hc-guest-login=""
                   className={guestAuthLoginClass}
-                  onClick={(event) => {
-                    const hrefs = deliveryGuestAuthHrefs(pathname, window.location.search);
-                    navDebug('navbar:auth-cta', { href: hrefs?.login || '/login' });
-                    if (!hrefs) return;
-                    event.preventDefault();
-                    router.push(hrefs.login);
+                  onClick={() => {
+                    navDebug('navbar:auth-cta', { href: guestHrefs.login });
                   }}
                 >
-                  {t('navbar.login')}
+                  {tOr('navbar.login', 'Log in', 'Inloggen')}
                 </Link>
                 <Link
-                  href="/register"
+                  href={guestHrefs.register}
                   prefetch={false}
+                  data-hc-guest-register=""
                   className={guestAuthRegisterClass}
-                  onClick={(event) => {
-                    const hrefs = deliveryGuestAuthHrefs(pathname, window.location.search);
-                    navDebug('navbar:auth-cta', { href: hrefs?.register || '/register' });
-                    if (!hrefs) return;
-                    event.preventDefault();
-                    router.push(hrefs.register);
+                  onClick={() => {
+                    navDebug('navbar:auth-cta', { href: guestHrefs.register });
                   }}
                 >
-                  {t('navbar.register')}
+                  {tOr('navbar.register', 'Sign up', 'Aanmelden')}
                 </Link>
               </>
             )}
@@ -970,40 +968,34 @@ export default function NavBar() {
                 <LanguageSwitcher />
               </div>
 
-              {status === 'unauthenticated' && !user && (
+              {!user && (
                 <>
                   <Link
-                    href="/login"
+                    href={guestHrefs.login}
                     prefetch={false}
+                    data-hc-guest-login=""
                     className={cn(mobileNavRowClass, 'text-gray-700 hover:text-primary-brand')}
-                    onClick={(event) => {
+                    onClick={() => {
                       setIsMobileMenuOpen(false);
-                      const hrefs = deliveryGuestAuthHrefs(pathname, window.location.search);
-                      navDebug('navbar:mobile', { href: hrefs?.login || '/login' });
-                      if (!hrefs) return;
-                      event.preventDefault();
-                      router.push(hrefs.login);
+                      navDebug('navbar:mobile', { href: guestHrefs.login });
                     }}
                   >
-                    {t('navbar.login')}
+                    {tOr('navbar.login', 'Log in', 'Inloggen')}
                   </Link>
                   <Link
-                    href="/register"
+                    href={guestHrefs.register}
                     prefetch={false}
+                    data-hc-guest-register=""
                     className={cn(
                       mobileNavRowClass,
                       'hc-btn-secondary justify-center font-semibold'
                     )}
-                    onClick={(event) => {
+                    onClick={() => {
                       setIsMobileMenuOpen(false);
-                      const hrefs = deliveryGuestAuthHrefs(pathname, window.location.search);
-                      navDebug('navbar:mobile', { href: hrefs?.register || '/register' });
-                      if (!hrefs) return;
-                      event.preventDefault();
-                      router.push(hrefs.register);
+                      navDebug('navbar:mobile', { href: guestHrefs.register });
                     }}
                   >
-                    {t('navbar.register')}
+                    {tOr('navbar.register', 'Sign up', 'Aanmelden')}
                   </Link>
                 </>
               )}

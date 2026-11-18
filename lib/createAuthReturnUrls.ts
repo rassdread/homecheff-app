@@ -7,8 +7,9 @@ export function getCreateAuthReturnUrls(
   }
   const cu =
     callbackPath ?? `${window.location.pathname}${window.location.search}`;
+  const encoded = encodeURIComponent(cu);
   return {
-    login: `/login?callbackUrl=${encodeURIComponent(cu)}`,
-    register: `/register?returnUrl=${encodeURIComponent(cu)}`,
+    login: `/login?callbackUrl=${encoded}`,
+    register: `/register?callbackUrl=${encoded}&returnUrl=${encoded}`,
   };
 }

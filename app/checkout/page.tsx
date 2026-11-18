@@ -132,6 +132,8 @@ type CheckoutDraft = {
 export default function CheckoutPage() {
   const { t, tOr, language } = useTranslation();
   const searchParams = useSearchParams();
+  const checkoutQuery = searchParams.toString();
+  const checkoutLoginReturn = `/checkout${checkoutQuery ? `?${checkoutQuery}` : ''}`;
   const dealCommunityOrderId = searchParams.get('communityOrderId');
   const checkoutSellerId = searchParams.get('sellerId');
   const hcCancelledOrderId = searchParams.get('orderId');
@@ -1392,7 +1394,7 @@ export default function CheckoutPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('checkout.loginRequired')}</h1>
           <p className="text-gray-600 mb-8">{t('checkout.loginRequiredMessage')}</p>
-          <Link href="/login">
+          <Link href={`/login?callbackUrl=${encodeURIComponent(checkoutLoginReturn)}`}>
             <Button>{t('checkout.login')}</Button>
           </Link>
         </div>

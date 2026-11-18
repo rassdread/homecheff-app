@@ -276,7 +276,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ToastNotification />
           <UserValidation />
           <OnlineStatusTracker />
-          <NavBar />
+          <Suspense fallback={<NavBarShell />}>
+            <NavBar />
+          </Suspense>
           <AppPageChrome>
             <main id="main-content" tabIndex={-1} className="min-w-0 outline-none">
               {children}
