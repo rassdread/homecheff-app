@@ -89,7 +89,12 @@ test("logout records the browser session and tabs share that logout", () => {
     cleanup.lastIndexOf("markBrowserLogout()") >
       cleanup.indexOf("requestSessionEnd('/api/auth/ecosystem-logout')"),
   );
+  assert.match(cleanup, /void Promise\.race/);
   assert.match(cleanup, /setTimeout\(resolve, 1500\)/);
+  assert.ok(
+    cleanup.indexOf("await requestSessionEnd('/api/auth/ecosystem-logout')") <
+      cleanup.indexOf("await Promise.race"),
+  );
   assert.match(auth, /stripRevokedAuthToken/);
   assert.match(auth, /minimalToken\.sid/);
   assert.ok(
@@ -101,7 +106,7 @@ test("logout records the browser session and tabs share that logout", () => {
   assert.match(guard, /leaveStaleDocument/);
   assert.match(guard, /\/login\?callbackUrl=/);
   assert.match(guard, /fetch\('\/api\/auth\/session'/);
-  assert.match(cleanup, /markBrowserLogout\(\);\n    postMarketplaceAuthChannel/);
+  assert.match(cleanup, /markBrowserLogout\(\);\s*postMarketplaceAuthChannel/);
   assert.match(guard, /readBrowserLogoutAt\(\) >= startedAt/);
   assert.match(middleware, /www\.homecheff\.eu/);
   assert.match(middleware, /homecheff\.nl/);

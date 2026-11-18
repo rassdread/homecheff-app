@@ -3027,6 +3027,8 @@
     "combinedEarnings": "My earnings",
     "multiRole": "Multi-role user",
     "logout": "Logout",
+    "loggingOut": "Logging out…",
+    "logoutFailed": "Logging out did not finish. Try again.",
     "cart": "Shopping Cart",
     "profileImage": "Profile Picture",
     "werkenBij": "Careers",

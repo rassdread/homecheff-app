@@ -71,6 +71,7 @@ export default function NavBar() {
   const { profile: bootstrapProfile, ensureProfile } = useUserBootstrap();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [logoutPhase, setLogoutPhase] = useState<'idle' | 'working' | 'error'>('idle');
   const { count: unreadCount } = useCommsUnread(status === 'authenticated');
   const { openCreateFlow } = useCreateFlow();
   const { requireAuthAction, guestAuthPanel } = useGuestAuthGate();
@@ -422,11 +423,10 @@ export default function NavBar() {
   }, [isProfileDropdownOpen, fetchUserProfile]);
 
   const handleLogout = async () => {
-    // performLogout() doet: lokale cleanup → POST /api/auth/force-logout (wist alle cookie-varianten
-    // server-side, incl. host-only, .homecheff.eu, __Secure-/__Host- prefixes en chunked .0/.1) →
-    // NextAuth signOut zonder redirect → hard navigation. Dit lost het Safari-probleem op waarbij
-    // het oude sessie-cookie bleef staan na een gewone signOut.
-    await performLogout('/');
+    if (logoutPhase === 'working') return;
+    setLogoutPhase('working');
+    const result = await performLogout('/');
+    if (result !== 'done') setLogoutPhase('error');
   };
 
   useEffect(() => {
@@ -484,8 +484,8 @@ export default function NavBar() {
           shortLandscapeChrome ? 'px-2.5 sm:px-3' : 'px-3 sm:px-5 lg:px-6 xl:px-8',
           suppressNavbarChrome && 'hidden',
         )}
-        aria-hidden={suppressNavbarChrome}
-      >
+      aria-hidden={suppressNavbarChrome}
+    >
         <div
           className={cn(
             'flex items-center justify-between min-w-0 gap-1 sm:gap-2 overflow-hidden',
@@ -777,10 +777,9 @@ export default function NavBar() {
                         adminHref={ADMIN_WORKSPACE_HREF}
                         rowClassName="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         onNavigate={() => setIsProfileDropdownOpen(false)}
+                        logoutPhase={logoutPhase}
                         onLogout={() => {
-                          const logout = handleLogout();
-                          setIsProfileDropdownOpen(false);
-                          void logout;
+                          void handleLogout();
                         }}
                       />
                     </div>,
@@ -1034,10 +1033,9 @@ export default function NavBar() {
                       setIsMobileMenuOpen(false);
                       navDebug('navbar:mobile', { section: 'account-menu' });
                     }}
+                    logoutPhase={logoutPhase}
                     onLogout={() => {
-                      const logout = handleLogout();
-                      setIsMobileMenuOpen(false);
-                      void logout;
+                      void handleLogout();
                     }}
                   />
 
@@ -1106,6 +1104,37 @@ export default function NavBar() {
             }
             return panel;
           })()}
+      {portalContainer && logoutPhase !== 'idle'
+        ? createPortal(
+            <div
+              role={logoutPhase === 'error' ? 'alert' : 'status'}
+              data-hc-logout-status={logoutPhase}
+              className="pointer-events-auto fixed left-1/2 top-16 z-[130] flex max-w-[calc(100vw-1.5rem)] -translate-x-1/2 items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-lg"
+            >
+              <span>
+                {logoutPhase === 'working'
+                  ? tOr('navbar.loggingOut', 'Logging out…', 'Uitloggen…')
+                  : tOr(
+                      'navbar.logoutFailed',
+                      'Logging out did not finish. Try again.',
+                      'Uitloggen is niet gelukt. Probeer het opnieuw.',
+                    )}
+              </span>
+              {logoutPhase === 'error' ? (
+                <button
+                  type="button"
+                  className="shrink-0 font-semibold text-red-700 underline"
+                  onClick={() => {
+                    void handleLogout();
+                  }}
+                >
+                  {tOr('navbar.logout', 'Logout', 'Uitloggen')}
+                </button>
+              ) : null}
+            </div>,
+            portalContainer,
+          )
+        : null}
       {guestAuthPanel}
     </header>
   );

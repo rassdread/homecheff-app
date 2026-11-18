@@ -42,6 +42,7 @@ type Props = {
   rowClassName: string;
   onNavigate: () => void;
   onLogout: () => void | Promise<void>;
+  logoutPhase?: 'idle' | 'working' | 'error';
   /** When true, hide Berichten (already on bottom nav) */
   hideMessages?: boolean;
   /**
@@ -66,10 +67,11 @@ export default function SimplifiedAccountMenu({
   rowClassName,
   onNavigate,
   onLogout,
+  logoutPhase = 'idle',
   hideMessages = false,
   includeLegalLinks = true,
 }: Props) {
-  const { t, language } = useTranslation();
+  const { t, tOr, language } = useTranslation();
   const isNl = language === 'nl';
   const [moreOpen, setMoreOpen] = useState(false);
   const fullName = displayUser ? getDisplayName(displayUser) : '';
@@ -255,17 +257,33 @@ export default function SimplifiedAccountMenu({
 
       <div className="border-t border-gray-100 my-1" />
 
+      {logoutPhase === 'error' ? (
+        <p className="px-4 py-2 text-sm text-red-700" role="alert">
+          {tOr(
+            'navbar.logoutFailed',
+            'Logging out did not finish. Try again.',
+            'Uitloggen is niet gelukt. Probeer het opnieuw.',
+          )}
+        </p>
+      ) : null}
       <button
         type="button"
+        data-hc-logout=""
+        aria-busy={logoutPhase === 'working'}
+        disabled={logoutPhase === 'working'}
         onClick={(event) => {
           event.stopPropagation();
           void onLogout();
         }}
-        className={cn(rowClassName, 'w-full text-left text-red-600 hover:bg-red-50 min-h-[44px]')}
+        className={cn(rowClassName, 'w-full text-left text-red-600 hover:bg-red-50 min-h-[44px] disabled:opacity-70')}
         role="menuitem"
       >
         <LogOut className="h-4 w-4 shrink-0" aria-hidden />
-        <span>{t('navbar.logout') || (isNl ? 'Uitloggen' : 'Log out')}</span>
+        <span>
+          {logoutPhase === 'working'
+            ? tOr('navbar.loggingOut', 'Logging out…', 'Uitloggen…')
+            : t('navbar.logout') || (isNl ? 'Uitloggen' : 'Log out')}
+        </span>
       </button>
 
       {includeLegalLinks ? (

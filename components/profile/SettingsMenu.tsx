@@ -126,11 +126,9 @@ export default function SettingsMenu({ isOpen, onClose, activeSection, setActive
 
           {/* Footer */}
           <div className="p-6 border-t border-gray-200">
-            <button 
+            <button
+              type="button"
               onClick={() => {
-                // performLogout doet lokale cleanup + server-side cookie purge (cruciaal op
-                // Safari, daar blijft het oude sessie-cookie anders staan na signOut) +
-                // hard navigation naar /.
                 void performLogout('/');
               }}
               className="w-full flex items-center justify-center space-x-2 p-3 text-red-600 hover:bg-red-50 rounded-xl transition-colors"

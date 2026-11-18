@@ -1671,6 +1671,8 @@
     "deliveryDashboard": "Bezorger Dashboard",
     "multiRole": "Multi-rol gebruiker",
     "logout": "Uitloggen",
+    "loggingOut": "Uitloggen…",
+    "logoutFailed": "Uitloggen is niet gelukt. Probeer het opnieuw.",
     "cart": "Winkelwagen",
     "profileImage": "Profielfoto",
     "werkenBij": "Werken bij HomeCheff",
