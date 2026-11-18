@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
@@ -11,7 +11,29 @@ import DeliveryRegistrationNotice from '@/components/delivery/DeliveryRegistrati
 import { useTranslation } from '@/hooks/useTranslation';
 import { CANONICAL_DELIVERY_DAYS } from '@/lib/delivery/delivery-profile-canonical';
 import { trackDeliverySignupFunnel } from '@/lib/delivery/delivery-signup-funnel';
-import { newDeliveryFlowId } from '@/lib/delivery/delivery-signup-draft';
+import {
+  DELIVERY_SIGNUP_LEAVE_HREF,
+  DELIVERY_TYPE_CHOICE_HREF,
+  canPersistSignupDraft,
+  clearDeliveryCompanySignupDraft,
+  companyCredentialsReady,
+  companyStepComplete,
+  ensureGuestSignupSessionId,
+  firstIncompleteWizardStep,
+  newDeliveryFlowId,
+  readDeliveryCompanySignupDraft,
+  readSignupStep,
+  resolveWizardStep,
+  signupBackTarget,
+  signupDraftOwnerAction,
+  writeDeliveryCompanySignupDraft,
+  type CompanyWizardProgress,
+  type SignupDraftOwner,
+} from '@/lib/delivery/delivery-signup-draft';
+import {
+  DeliverySignupRecovery,
+  useSignupStepHistory,
+} from '@/components/delivery/DeliverySignupRecovery';
 import {
   consumeSameTabCredentialNavigation,
   markSameTabCredentialNavigation,
@@ -55,6 +77,55 @@ const DAY_LABEL_KEYS = [
   'deliverySignup.days.sunday',
 ] as const;
 
+function emptyCompanyForm(current?: FormState): FormState {
+  return {
+    name: '',
+    email: '',
+    password: '',
+    username: '',
+    companyName: '',
+    kvkNumber: '',
+    vatNumber: '',
+    contactPhone: current?.contactPhone ?? '',
+    age: 18,
+    transportation: [],
+    availableDays: [],
+    availableTimeSlots: [],
+    preferredRadius: 0,
+    maxDistance: 0,
+    homeAddress: '',
+    acceptDeliveryAgreement: false,
+  };
+}
+
+function companyDraftBody(data: FormState, currentStep: number, flowId: string, accountStepCompleted: boolean) {
+  return {
+    currentStep,
+    flowId,
+    name: data.name,
+    email: data.email,
+    username: data.username,
+    companyName: data.companyName,
+    kvkNumber: data.kvkNumber,
+    vatNumber: data.vatNumber,
+    age: data.age,
+    transportation: data.transportation,
+    vehicles: [],
+    availableDays: data.availableDays,
+    availableTimeSlots: data.availableTimeSlots,
+    preferredRadius: data.preferredRadius,
+    maxDistance: data.maxDistance,
+    homeAddress: data.homeAddress,
+    acceptDeliveryAgreement: data.acceptDeliveryAgreement,
+    accountStepCompleted,
+  };
+}
+
+function readRequestedCompanyStep() {
+  if (typeof window === 'undefined') return null;
+  return readSignupStep(window.location.search, 5);
+}
+
 export default function DeliveryCompanySignupPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -63,15 +134,29 @@ export default function DeliveryCompanySignupPage() {
   const individualHref = searchParams?.toString()
     ? `/delivery/signup?${searchParams.toString()}`
     : '/delivery/signup';
-  const flowId = useState(() => newDeliveryFlowId())[0];
+  const flowIdRef = useRef('');
+  if (!flowIdRef.current) flowIdRef.current = newDeliveryFlowId();
   const funnel = (stepNumber: number) => ({
     registrationType: 'company' as const,
     language,
-    flowId,
+    flowId: flowIdRef.current,
     step: stepNumber,
   });
   const [step, setStep] = useState(1);
   const [showAgreement, setShowAgreement] = useState(false);
+  const [draftReady, setDraftReady] = useState(false);
+  const [resumedDraft, setResumedDraft] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [restartOpen, setRestartOpen] = useState(false);
+  const skipDraftWrite = useRef(false);
+  const leavingRef = useRef(false);
+  const ownerRef = useRef<SignupDraftOwner | null>(null);
+  const blockWriteRef = useRef(true);
+  const guestStartedRef = useRef(false);
+  const desiredStepRef = useRef(1);
+  const accountStepRef = useRef(false);
+  const existingRef = useRef(false);
+  const [accountStepCompleted, setAccountStepCompleted] = useState(false);
   const [isExistingUser, setIsExistingUser] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitLock, setSubmitLock] = useState(false);
@@ -95,14 +180,182 @@ export default function DeliveryCompanySignupPage() {
     homeAddress: '',
     acceptDeliveryAgreement: false,
   });
+  const formRef = useRef(form);
+  formRef.current = form;
+  const sessionUserId =
+    status === 'authenticated' && typeof (session?.user as { id?: string } | undefined)?.id === 'string'
+      ? (session?.user as { id: string }).id
+      : null;
+  existingRef.current = isExistingUser;
+
+  const progressOf = (data: FormState, accountDone: boolean, existing: boolean): CompanyWizardProgress => ({
+    firstStep: existing ? 2 : 1,
+    name: data.name,
+    email: data.email,
+    password: data.password,
+    username: data.username,
+    accountStepCompleted: accountDone,
+    companyName: data.companyName,
+    kvkNumber: data.kvkNumber,
+    ageVerified: data.age >= 18,
+    transportationCount: data.transportation.length,
+    availableDays: data.availableDays,
+    availableTimeSlots: data.availableTimeSlots,
+    homeAddress: data.homeAddress,
+    acceptDeliveryAgreement: data.acceptDeliveryAgreement,
+  });
+  const stepDone = (stepNum: number, data: FormState, accountDone: boolean, existing: boolean) => {
+    if (!companyStepComplete(stepNum, progressOf(data, accountDone, existing))) return false;
+    if (stepNum !== 4) return true;
+    return (
+      data.preferredRadius >= 0.5 &&
+      data.preferredRadius <= 500 &&
+      data.maxDistance >= 0.5 &&
+      data.maxDistance <= 500
+    );
+  };
+  const progressRef = useRef(progressOf(form, accountStepCompleted, isExistingUser));
+  progressRef.current = progressOf(form, accountStepCompleted, isExistingUser);
+
+  const showOwnedDraft = (draft: ReturnType<typeof readDeliveryCompanySignupDraft>) => {
+    const requested = readRequestedCompanyStep();
+    if (!draft) {
+      flowIdRef.current = newDeliveryFlowId();
+      accountStepRef.current = false;
+      setAccountStepCompleted(false);
+      setResumedDraft(false);
+      const first = existingRef.current ? 2 : 1;
+      const desired = requested ?? first;
+      desiredStepRef.current = desired;
+      setStep(resolveWizardStep(desired, first, 5, () => false));
+      return;
+    }
+    flowIdRef.current = draft.flowId;
+    accountStepRef.current = draft.accountStepCompleted;
+    setAccountStepCompleted(draft.accountStepCompleted);
+    const nextForm: FormState = {
+      ...formRef.current,
+      password: '',
+      contactPhone: '',
+      name: draft.name,
+      email: draft.email,
+      username: draft.username,
+      companyName: draft.companyName,
+      kvkNumber: draft.kvkNumber,
+      vatNumber: draft.vatNumber,
+      age: draft.age || formRef.current.age,
+      transportation: draft.transportation,
+      availableDays: draft.availableDays,
+      availableTimeSlots: draft.availableTimeSlots,
+      preferredRadius: draft.preferredRadius,
+      maxDistance: draft.maxDistance,
+      homeAddress: draft.homeAddress,
+      acceptDeliveryAgreement: draft.acceptDeliveryAgreement,
+    };
+    setForm(nextForm);
+    const desired = requested ?? draft.currentStep;
+    desiredStepRef.current = desired;
+    const first = existingRef.current ? 2 : 1;
+    setStep(resolveWizardStep(desired, first, 5, (item) => stepDone(item, nextForm, draft.accountStepCompleted, existingRef.current)));
+    const companyProgress =
+      Boolean(draft.companyName || draft.kvkNumber) ||
+      draft.transportation.length > 0 ||
+      draft.availableDays.length > 0 ||
+      draft.acceptDeliveryAgreement ||
+      draft.preferredRadius > 0 ||
+      draft.maxDistance > 0 ||
+      (!existingRef.current && Boolean(draft.homeAddress));
+    const identityProgress = Boolean(draft.name || draft.email || draft.username);
+    setResumedDraft(existingRef.current ? companyProgress : companyProgress || identityProgress);
+  };
 
   useEffect(() => {
-    if (status !== 'authenticated' || !session?.user?.email) return;
+    const action = signupDraftOwnerAction({
+      sessionStatus: status,
+      userId: sessionUserId,
+      bound: ownerRef.current,
+      guestSessionStartedHere: guestStartedRef.current,
+    });
+    if (action === 'wait') {
+      blockWriteRef.current = true;
+      return;
+    }
+    if (action === 'keep') {
+      blockWriteRef.current = false;
+      return;
+    }
+    const guestHasProgress =
+      Boolean(formRef.current.companyName || formRef.current.kvkNumber || formRef.current.homeAddress) ||
+      formRef.current.transportation.length > 0 ||
+      formRef.current.availableDays.length > 0 ||
+      formRef.current.acceptDeliveryAgreement ||
+      Boolean(formRef.current.name || formRef.current.email || formRef.current.username) ||
+      accountStepRef.current;
+    if (action === 'adopt' && sessionUserId && ownerRef.current?.kind === 'guest' && guestHasProgress) {
+      const nextOwner: SignupDraftOwner = { kind: 'user', userId: sessionUserId };
+      blockWriteRef.current = true;
+      skipDraftWrite.current = true;
+      writeDeliveryCompanySignupDraft(
+        nextOwner,
+        companyDraftBody(formRef.current, step, flowIdRef.current || newDeliveryFlowId(), accountStepRef.current),
+      );
+      if (ownerRef.current) clearDeliveryCompanySignupDraft(ownerRef.current);
+      ownerRef.current = nextOwner;
+      guestStartedRef.current = false;
+      blockWriteRef.current = false;
+      return;
+    }
+    blockWriteRef.current = true;
+    skipDraftWrite.current = true;
+    const nextOwner: SignupDraftOwner | null =
+      status === 'authenticated' && sessionUserId
+        ? { kind: 'user', userId: sessionUserId }
+        : (() => {
+            const sessionId = ensureGuestSignupSessionId();
+            return sessionId ? { kind: 'guest', sessionId } : null;
+          })();
+    if (!nextOwner) return;
+    if (nextOwner.kind === 'guest') existingRef.current = false;
+    if (ownerRef.current) {
+      setIsExistingUser(false);
+      setForm((prev) => ({
+        ...prev,
+        name: '',
+        email: '',
+        password: '',
+        username: '',
+        companyName: '',
+        kvkNumber: '',
+        vatNumber: '',
+        contactPhone: '',
+        age: 18,
+        transportation: [],
+        availableDays: [],
+        availableTimeSlots: [],
+        preferredRadius: 0,
+        maxDistance: 0,
+        homeAddress: '',
+        acceptDeliveryAgreement: false,
+      }));
+    }
+    showOwnedDraft(readDeliveryCompanySignupDraft(nextOwner));
+    ownerRef.current = nextOwner;
+    guestStartedRef.current = nextOwner.kind === 'guest';
+    setDraftReady(true);
+    blockWriteRef.current = false;
+    // Re-bind only when the signed-in user changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, sessionUserId]);
+
+  useEffect(() => {
+    if (status !== 'authenticated' || !session?.user?.email || !sessionUserId) return;
+    const requestedUserId = sessionUserId;
     let cancelled = false;
     (async () => {
       try {
         const res = await fetch('/api/user/me');
         if (!res.ok || cancelled) return;
+        if (ownerRef.current?.kind !== 'user' || ownerRef.current.userId !== requestedUserId) return;
         const payload = await res.json();
         const user = payload.user || payload;
         setIsExistingUser(true);
@@ -114,7 +367,10 @@ export default function DeliveryCompanySignupPage() {
           homeAddress: user.address || prev.homeAddress,
           contactPhone: user.phoneNumber || prev.contactPhone,
         }));
-        setStep((s) => (s < 2 ? 2 : s));
+        setStep((current) => {
+          if (desiredStepRef.current < 2) desiredStepRef.current = 2;
+          return current < 2 ? 2 : current;
+        });
       } catch {
         /* ignore */
       }
@@ -122,7 +378,60 @@ export default function DeliveryCompanySignupPage() {
     return () => {
       cancelled = true;
     };
-  }, [session?.user?.email, status]);
+  }, [session?.user?.email, status, sessionUserId]);
+
+  useEffect(() => {
+    if (!draftReady) return;
+    const first = isExistingUser ? 2 : 1;
+    if (desiredStepRef.current < first) desiredStepRef.current = first;
+    const visible = resolveWizardStep(desiredStepRef.current, first, 5, (item) =>
+      stepDone(item, form, accountStepRef.current, isExistingUser),
+    );
+    setStep((current) => (current === visible ? current : visible));
+  }, [
+    draftReady,
+    isExistingUser,
+    accountStepCompleted,
+    form.name,
+    form.email,
+    form.password,
+    form.username,
+    form.companyName,
+    form.kvkNumber,
+    form.age,
+    form.transportation,
+    form.availableDays,
+    form.availableTimeSlots,
+    form.preferredRadius,
+    form.maxDistance,
+    form.homeAddress,
+    form.acceptDeliveryAgreement,
+  ]);
+
+  useEffect(() => {
+    if (!draftReady || leavingRef.current || blockWriteRef.current) return;
+    if (skipDraftWrite.current) {
+      skipDraftWrite.current = false;
+      return;
+    }
+    const owner = ownerRef.current;
+    if (!owner || !canPersistSignupDraft({ sessionStatus: status, bound: owner, active: owner })) return;
+    const companySpecific =
+      form.companyName.trim().length > 0 ||
+      form.kvkNumber.trim().length > 0 ||
+      form.transportation.length > 0 ||
+      form.availableDays.length > 0 ||
+      form.acceptDeliveryAgreement ||
+      form.preferredRadius > 0 ||
+      form.maxDistance > 0 ||
+      (owner.kind === 'guest' && form.homeAddress.trim().length > 0);
+    const identity = Boolean(form.name || form.email || form.username || accountStepRef.current);
+    if (owner.kind === 'user' ? !companySpecific : !(companySpecific || identity)) return;
+    writeDeliveryCompanySignupDraft(
+      owner,
+      companyDraftBody(form, step, flowIdRef.current || newDeliveryFlowId(), accountStepRef.current),
+    );
+  }, [draftReady, step, form, status]);
 
   useEffect(() => {
     trackDeliverySignupFunnel('delivery_signup_started', funnel(step));
@@ -135,6 +444,51 @@ export default function DeliveryCompanySignupPage() {
   }, [step, language]);
 
   const firstStep = isExistingUser ? 2 : 1;
+  useSignupStepHistory(
+    step,
+    (next) => {
+      desiredStepRef.current = next;
+      setStep(next);
+    },
+    5,
+    draftReady,
+    (next) => resolveWizardStep(next, firstStep, 5, (item) => stepDone(item, formRef.current, accountStepRef.current, existingRef.current)),
+  );
+
+  const hasSignupProgress =
+    resumedDraft ||
+    step > firstStep ||
+    form.companyName.trim().length > 0 ||
+    form.kvkNumber.trim().length > 0 ||
+    form.homeAddress.trim().length > 0 ||
+    form.acceptDeliveryAgreement;
+
+  const leaveSignup = (keepDraft: boolean) => {
+    leavingRef.current = true;
+    if (!keepDraft && ownerRef.current) clearDeliveryCompanySignupDraft(ownerRef.current);
+    setLeaveOpen(false);
+    router.push(DELIVERY_SIGNUP_LEAVE_HREF);
+  };
+
+  const restartSignup = () => {
+    if (ownerRef.current) clearDeliveryCompanySignupDraft(ownerRef.current);
+    flowIdRef.current = newDeliveryFlowId();
+    accountStepRef.current = false;
+    setAccountStepCompleted(false);
+    desiredStepRef.current = isExistingUser ? 2 : 1;
+    skipDraftWrite.current = true;
+    setForm((prev) => ({
+      ...emptyCompanyForm(isExistingUser ? prev : undefined),
+      name: isExistingUser ? prev.name : '',
+      email: isExistingUser ? prev.email : '',
+      username: isExistingUser ? prev.username : '',
+      contactPhone: isExistingUser ? prev.contactPhone : '',
+    }));
+    setStep(isExistingUser ? 2 : 1);
+    setError(null);
+    setResumedDraft(false);
+    setRestartOpen(false);
+  };
 
   const toggle = (key: 'transportation' | 'availableDays' | 'availableTimeSlots', value: string) => {
     setForm((prev) => {
@@ -183,7 +537,25 @@ export default function DeliveryCompanySignupPage() {
 
   const submit = async () => {
     if (submitLock || loading) return;
+    const progress = progressRef.current;
+    if (!companyCredentialsReady(progress)) {
+      desiredStepRef.current = 1;
+      setStep(1);
+      setError(t('deliveryCompanySignup.completeStep'));
+      return;
+    }
+    const missing = firstIncompleteWizardStep(progress.firstStep, 5, (item) =>
+      stepDone(item, form, accountStepRef.current, isExistingUser),
+    );
+    if (missing != null) {
+      desiredStepRef.current = missing;
+      setStep(missing);
+      setError(t('deliveryCompanySignup.completeStep'));
+      return;
+    }
     if (form.age < 18) {
+      desiredStepRef.current = 3;
+      setStep(3);
       setError(t('deliveryCompanySignup.underage'));
       return;
     }
@@ -300,12 +672,26 @@ export default function DeliveryCompanySignupPage() {
   }
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-gradient-to-br from-sky-50 via-white to-slate-50">
+    <div className="min-h-screen w-screen max-w-[100vw] overflow-x-hidden bg-gradient-to-br from-sky-50 via-white to-slate-50">
       <div className="mx-auto max-w-2xl px-4 pt-3 pb-[calc(8rem+var(--hc-cookie-banner-offset,0px)+env(safe-area-inset-bottom,0px))] sm:pt-8">
         <div className="mb-2 text-center sm:mb-8">
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-sky-700 text-white sm:mb-4 sm:h-16 sm:w-16">
             <Building2 className="h-6 w-6 sm:h-8 sm:w-8" />
           </div>
+          <DeliverySignupRecovery
+            canRestart={hasSignupProgress}
+            leaveOpen={leaveOpen}
+            restartOpen={restartOpen}
+            onAskLeave={() => setLeaveOpen(true)}
+            onAskRestart={() => setRestartOpen(true)}
+            onDismiss={() => {
+              setLeaveOpen(false);
+              setRestartOpen(false);
+            }}
+            onSaveAndLeave={() => leaveSignup(true)}
+            onDiscardAndLeave={() => leaveSignup(false)}
+            onConfirmRestart={restartSignup}
+          />
           <h1 className="max-w-full whitespace-normal break-words text-2xl font-bold text-slate-900 sm:text-3xl">
             {t('deliveryCompanySignup.title')}
           </h1>
@@ -323,6 +709,12 @@ export default function DeliveryCompanySignupPage() {
         <div className="mb-3 text-center text-sm text-slate-500 sm:mb-6">
           {t('deliveryCompanySignup.step').replace('{step}', String(step))}
         </div>
+
+        {resumedDraft ? (
+          <p className="mb-3 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-950">
+            Je eerdere invoer is teruggezet. Je kunt verdergaan of opnieuw beginnen.
+          </p>
+        ) : null}
 
         <div className="rounded-2xl bg-white p-4 shadow-lg sm:p-8">
           {step === 1 && !isExistingUser && (
@@ -565,10 +957,18 @@ export default function DeliveryCompanySignupPage() {
           >
             <Button
               variant="outline"
-              disabled={step === firstStep}
-              onClick={() => setStep((s) => Math.max(firstStep, s - 1))}
+              onClick={() => {
+                const target = signupBackTarget(step, firstStep);
+                if (target.kind === 'choice') {
+                  const query = searchParams?.toString();
+                  router.push(query ? `${DELIVERY_TYPE_CHOICE_HREF}?${query}` : DELIVERY_TYPE_CHOICE_HREF);
+                  return;
+                }
+                desiredStepRef.current = target.step;
+                setStep(target.step);
+              }}
             >
-              {t('deliveryCompanySignup.previous')}
+              {step === firstStep ? 'Terug naar keuze' : t('deliveryCompanySignup.previous')}
             </Button>
             {step < 5 ? (
               <Button
@@ -582,8 +982,14 @@ export default function DeliveryCompanySignupPage() {
                     return;
                   }
                   setError(null);
+                  if (step === 1) {
+                    accountStepRef.current = true;
+                    setAccountStepCompleted(true);
+                  }
                   trackDeliverySignupFunnel('delivery_signup_step_completed', funnel(step));
-                  setStep((s) => s + 1);
+                  const next = step + 1;
+                  desiredStepRef.current = next;
+                  setStep(resolveWizardStep(next, firstStep, 5, (item) => stepDone(item, form, step === 1 ? true : accountStepRef.current, isExistingUser)));
                 }}
                 className="inline-flex min-h-12 items-center gap-2"
               >

@@ -53,6 +53,23 @@ export type StripeReturnUiStatus =
   | 'PAYMENT_READY'
   | 'RESTRICTED';
 
+/** Incomplete return stays on the choice screen. A ready or pending account leaves it. */
+export function connectRefreshPhase(status: {
+  uiStatus?: string | null;
+  paymentReady?: boolean;
+  canCreateOnboardingLink?: boolean;
+}): 'success' | 'choose' {
+  if (
+    status.paymentReady === true ||
+    status.uiStatus === 'PAYMENT_READY' ||
+    status.uiStatus === 'PENDING_VERIFICATION' ||
+    status.canCreateOnboardingLink === false
+  ) {
+    return 'success';
+  }
+  return 'choose';
+}
+
 export function stripeIncompleteReturn(input: {
   uiStatus: StripeReturnUiStatus | 'error' | 'loading';
   canCreateLink: boolean;

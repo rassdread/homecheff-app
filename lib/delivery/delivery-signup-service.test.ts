@@ -4,6 +4,7 @@
  */
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { runDeliverySignup } from './delivery-signup-service';
 import {
   filterValidTransportation,
   parseAndValidateDeliverySignupFields,
@@ -184,6 +185,35 @@ describe('delivery signup validation', () => {
     if (child.ok) return;
     assert.equal(child.result.code, 'UNDERAGE');
     assert.ok(child.result.fieldErrors?.dateOfBirth);
+  });
+
+  it('rejects an agreement-only request before any database write', async () => {
+    const prisma = new Proxy(
+      {},
+      {
+        get() {
+          throw new Error('database touched');
+        },
+      },
+    );
+    const guest = await runDeliverySignup({
+      prisma: prisma as never,
+      input: { acceptDeliveryAgreement: true, age: 18 },
+      sessionUserId: null,
+    });
+    assert.equal(guest.ok, false);
+    if (guest.ok) return;
+    assert.equal(guest.code, 'VALIDATION');
+
+    const signedIn = await runDeliverySignup({
+      prisma: prisma as never,
+      input: { acceptDeliveryAgreement: true, age: 18 },
+      sessionUserId: 'user-existing',
+    });
+    assert.equal(signedIn.ok, false);
+    if (signedIn.ok) return;
+    assert.equal(signedIn.code, 'VALIDATION');
+    assert.ok(signedIn.fieldErrors?.transportation);
   });
 
   it('existing-user path does not require account fields', () => {

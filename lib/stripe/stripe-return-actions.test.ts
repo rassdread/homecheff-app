@@ -7,7 +7,7 @@ import {
   readStripeConnectReturnPath,
   rememberStripeConnectReturnPath,
 } from './stripe-connect-return-path';
-import { stripeIncompleteReturn, stripeReturnDestination } from './stripe-return-actions';
+import { connectRefreshPhase, stripeIncompleteReturn, stripeReturnDestination } from './stripe-return-actions';
 
 function mockSessionStorage() {
   const store = new Map<string, string>();
@@ -62,6 +62,17 @@ describe('stripe incomplete return', () => {
     assert.equal(view.autoLaunch, false);
   });
 
+  it('shows the incomplete choice screen only when Stripe is not ready and a link can still be created', () => {
+    assert.equal(
+      connectRefreshPhase({ uiStatus: 'INCOMPLETE', paymentReady: false, canCreateOnboardingLink: true }),
+      'choose',
+    );
+    assert.equal(connectRefreshPhase({ uiStatus: 'PAYMENT_READY', paymentReady: true }), 'success');
+    assert.equal(connectRefreshPhase({ uiStatus: 'PENDING_VERIFICATION' }), 'success');
+    assert.equal(connectRefreshPhase({ uiStatus: 'INCOMPLETE', canCreateOnboardingLink: false }), 'success');
+  });
+
+
   it('a courier returns to the delivery dashboard after aborting Stripe', () => {
     mockSessionStorage();
     rememberStripeConnectReturnPath('/delivery/dashboard');
@@ -101,6 +112,8 @@ describe('stripe incomplete return', () => {
     );
     assert.match(refresh, /readStripeConnectReturnPath/);
     assert.doesNotMatch(refresh, /returnPath:\s*'\/mijn-homecheff'/);
+    const effect = refresh.slice(refresh.indexOf('useEffect('), refresh.indexOf('const resume'));
+    assert.doesNotMatch(effect, /startStripeConnectOnboarding/);
     const success = readFileSync(
       new URL('../../app/seller/stripe/success/page.tsx', import.meta.url),
       'utf8',

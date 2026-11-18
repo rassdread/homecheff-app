@@ -22,7 +22,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 const TILE = 'min-w-0 rounded-xl border-2 p-3 transition-all text-left sm:p-4';
 const TILE_ON = 'border-primary-brand bg-primary-50 text-primary-brand';
-const TILE_OFF = 'border-gray-200 hover:border-gray-300';
+const TILE_OFF = 'border-gray-200 text-gray-800 hover:border-gray-300';
 
 function readyToKeep(vehicle: CourierVehicle): boolean {
   if (variantChoices(vehicle.family).length > 0 && !vehicle.variant) return false;
@@ -157,7 +157,7 @@ export function CourierVehicleEditor({
         return (
         <div key={vehicle.id || `${vehicle.family}-${index}`} className="rounded-xl border border-gray-200 p-4">
           <div className="flex items-start gap-3">
-            <VehicleSilhouette family={vehicle.family} variant={vehicle.variant} className="mt-0.5 h-5 w-5 shrink-0 text-gray-800" />
+            <VehicleSilhouette family={vehicle.family} variant={vehicle.variant} className="mt-0.5 h-9 w-20 shrink-0 text-gray-800" />
             <div>
               <p className="font-medium text-gray-900">{named(vehicle)}</p>
               {vehicle.referenceId ? (
@@ -239,7 +239,7 @@ export function CourierVehicleEditor({
             {familyChoices().map((choice) => (
               <button key={choice.id} type="button" className={`${TILE} ${TILE_OFF}`} onClick={() => chooseFamily(choice.id)}>
                 <span className="flex flex-col items-center gap-2 text-center">
-                  <VehicleSilhouette family={choice.id} className="h-8 w-8 text-gray-800" />
+                  <VehicleSilhouette family={choice.id} className="h-9 w-20 text-gray-800" />
                   <span className="break-words text-sm font-medium">{flow(`family.${choice.id}`, choice.label)}</span>
                 </span>
               </button>
@@ -261,7 +261,7 @@ export function CourierVehicleEditor({
                 onClick={() => chooseVariant(choice.id)}
               >
                 <span className="flex flex-col items-center gap-2 text-center">
-                  <VehicleSilhouette family={draft.family} variant={choice.id} className="h-8 w-8" />
+                  <VehicleSilhouette family={draft.family} variant={choice.id} className="h-9 w-20" />
                   <span className="break-words text-sm font-medium">{flow(`variant.${draft.family}.${choice.id}`, choice.label)}</span>
                 </span>
               </button>
@@ -274,7 +274,7 @@ export function CourierVehicleEditor({
       {draft && step === 'details' ? (
         <div className="space-y-4 rounded-xl border p-4">
           <div className="flex items-center gap-3">
-            <VehicleSilhouette family={draft.family} variant={draft.variant} className="h-8 w-8 shrink-0 text-gray-900" />
+            <VehicleSilhouette family={draft.family} variant={draft.variant} className="h-11 w-24 shrink-0 text-gray-900" />
             <div>
               <p className="text-sm text-gray-600">{flow('whichModel', 'Welk model heb je? (optioneel)')}</p>
               <p className="font-medium text-gray-900">{named(draft)}</p>

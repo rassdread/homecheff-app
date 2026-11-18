@@ -20,6 +20,7 @@ export default function StripeConnectSuccess() {
   const { language } = useTranslation();
   const en = language === 'en';
   const [status, setStatus] = useState<ViewState>('loading');
+  const [stripeReview, setStripeReview] = useState(false);
   const [canCreateLink, setCanCreateLink] = useState(false);
   const [returnPath, setReturnPath] = useState('/mijn-homecheff');
   const [ctaLoading, setCtaLoading] = useState(false);
@@ -43,6 +44,7 @@ export default function StripeConnectSuccess() {
           data.isCompleted || data.paymentReady ? 'PAYMENT_READY' : 'INCOMPLETE'
         );
         setStatus(ui);
+        setStripeReview(Boolean(data.stripeLinkReview));
         setCanCreateLink(Boolean(data.canCreateOnboardingLink));
 
         try {
@@ -108,7 +110,13 @@ export default function StripeConnectSuccess() {
   let primaryLabel = 'Ga naar Mijn HomeCheff';
   let primaryAction = () => router.push(continueHref());
 
-  if (ready) {
+  if (stripeReview) {
+    icon = <AlertCircle className="h-16 w-16 text-amber-600 mx-auto mb-4" />;
+    title = 'Stripe-koppeling controleren';
+    body = 'Deze Stripe-koppeling is bewust als oud account gemarkeerd. HomeCheff koppelt hem niet automatisch terug.';
+    primaryLabel = 'Ga naar Mijn HomeCheff';
+    primaryAction = () => router.push(continueHref());
+  } else if (ready) {
     icon = <CheckCircle className="h-16 w-16 text-emerald-600 mx-auto mb-4" />;
     title = 'Betaalaccount gereed';
     body =
