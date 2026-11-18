@@ -95,6 +95,14 @@ test("logout records the browser session and tabs share that logout", () => {
     cleanup.indexOf("await requestSessionEnd('/api/auth/ecosystem-logout')") <
       cleanup.indexOf("await Promise.race"),
   );
+  assert.ok(
+    cleanup.indexOf("await browserStillHasUser") >
+      cleanup.indexOf("requestSessionEnd('/api/auth/force-logout')"),
+  );
+  assert.ok(
+    cleanup.indexOf("if (!ended) return 'failed'") >
+      cleanup.indexOf("browserStillHasUser"),
+  );
   assert.match(auth, /stripRevokedAuthToken/);
   assert.match(auth, /minimalToken\.sid/);
   assert.ok(

@@ -555,6 +555,21 @@ export async function performLogout(target: string = '/'): Promise<'done' | 'fai
       new Promise((resolve) => setTimeout(resolve, 1500)),
     ]);
 
+    const browserStillHasUser = async (): Promise<boolean> => {
+      try {
+        const response = await fetch('/api/auth/session', {
+          credentials: 'include',
+          cache: 'no-store',
+        });
+        if (!response.ok) return true;
+        const body = await response.json().catch(() => null);
+        const user = body && typeof body === 'object' ? body.user : null;
+        return Boolean(user && (user.id || user.email));
+      } catch {
+        return true;
+      }
+    };
+
     const requestSessionEnd = async (path: string): Promise<boolean> => {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), SESSION_END_TIMEOUT_MS);
@@ -574,9 +589,13 @@ export async function performLogout(target: string = '/'): Promise<'done' | 'fai
       }
     };
 
-    const ended =
+    const posted =
       (await requestSessionEnd('/api/auth/ecosystem-logout')) ||
       (await requestSessionEnd('/api/auth/force-logout'));
+    // A cold dev compile can outlast the request. The handler may still revoke
+    // the session after the browser stops waiting. Trust the session endpoint
+    // before telling the user that logout failed.
+    const ended = posted || !(await browserStillHasUser());
     if (!ended) return 'failed';
 
     await Promise.race([
