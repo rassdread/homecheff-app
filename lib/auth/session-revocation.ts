@@ -15,8 +15,10 @@ export const LEGACY_AUTH_SESSION_SID = "*";
 
 export type AuthTokenClaims = Record<string, unknown>;
 
-export function browserSessionKey(token: { sid?: unknown } | null | undefined): string {
-  const sid = typeof token?.sid === "string" ? token.sid.trim() : "";
+export function browserSessionKey(token: object | null | undefined): string {
+  const sidValue =
+    token && "sid" in token ? (token as { sid?: unknown }).sid : undefined;
+  const sid = typeof sidValue === "string" ? sidValue.trim() : "";
   return sid || LEGACY_AUTH_SESSION_SID;
 }
 
