@@ -6,6 +6,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { AdminEmailPreview } from './AdminEmailPreview';
 import { adminEmailActionForRoute } from '@/lib/email/admin-bulk-message-content';
 import { NotificationHistory } from './NotificationHistory';
+import { chosenRecipients, sendBlockReason } from '@/lib/admin/notification-compose-state';
 import {
   AUDIENCE_PRESETS,
   DELIVERY_AGREEMENT_VERSION,
@@ -155,6 +156,10 @@ export default function NotificationCenter() {
   const [confirmRepeat, setConfirmRepeat] = useState(false);
   const [screen, setScreen] = useState<'compose' | 'history'>('compose');
   const [preview, setPreview] = useState<PreviewPayload | null>(null);
+  const [previewStale, setPreviewStale] = useState(false);
+  const [selectionDropped, setSelectionDropped] = useState<string | null>(null);
+  const [selectionExpanded, setSelectionExpanded] = useState(false);
+  const [attemptedSend, setAttemptedSend] = useState(false);
   const [notice, setNotice] = useState<ScreenNotice | null>(null);
   const [recipientQuery, setRecipientQuery] = useState('');
   const [addedAdmins, setAddedAdmins] = useState<AddedAdmin[]>([]);
@@ -163,6 +168,8 @@ export default function NotificationCenter() {
   const [isLoading, setIsLoading] = useState(false);
   const submitLockRef = useRef(false);
   const contentKeyRef = useRef<{ hash: string; key: string } | null>(null);
+  const selectedIdsRef = useRef(selectedIds);
+  selectedIdsRef.current = selectedIds;
 
   const selection = (): AudienceSelection => {
     return {
@@ -184,12 +191,16 @@ export default function NotificationCenter() {
 
   useEffect(() => {
     if (!listable) {
-      setDirectory([]);
+      const dropped = selectedIdsRef.current.length;
+      if (dropped > 0) {
+        setSelectionDropped(`${dropped} aangevinkte persoon of personen zijn uit de selectie gehaald. Deze doelgroep zonder filter selecteert niemand. Handmatig toegevoegde beheerders blijven staan.`);
+      }
+      setDirectory((current) => (current.length === 0 ? current : []));
       setListError(null);
       setListLoading(false);
-      setSelectedIds([]);
-      setExplicitReviewIds([]);
-      setStripeNotes([]);
+      setSelectedIds((current) => (current.length === 0 ? current : []));
+      setExplicitReviewIds((current) => (current.length === 0 ? current : []));
+      setStripeNotes((current) => (current.length === 0 ? current : []));
       return;
     }
     const controller = new AbortController();
@@ -209,15 +220,9 @@ export default function NotificationCenter() {
         pendingStep: pendingStep || null,
         excludeUserIds: [],
       },
-      message: message.trim(),
-      subject: subject.trim(),
-      title: pushTitle.trim(),
     };
-    setDirectory([]);
     setListLoading(true);
     setListError(null);
-    setPreview(null);
-    setConfirmEmailBlast(false);
     fetch('/api/admin/notifications/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -229,17 +234,20 @@ export default function NotificationCenter() {
         if (controller.signal.aborted) return;
         if (!response.ok || !data?.listOnly) {
           const text = typeof data?.message === 'string' ? data.message : 'De ontvangerslijst kon niet worden geladen.';
-          setDirectory([]);
-          setSelectedIds([]);
-          setExplicitReviewIds([]);
-          setStripeNotes([]);
           setListError(text);
           return;
         }
         const recipients = readRecipients(data.recipients);
         const ids = new Set(recipients.map((recipient) => recipient.id));
         setDirectory(recipients);
-        setSelectedIds((current) => current.filter((id) => ids.has(id)));
+        setSelectedIds((current) => {
+          const next = current.filter((id) => ids.has(id));
+          const dropped = current.length - next.length;
+          if (dropped > 0) {
+            setSelectionDropped(`${dropped} aangevinkte persoon of personen vallen buiten de nieuwe filters en gaan niet mee. Handmatig toegevoegde beheerders blijven staan.`);
+          }
+          return next;
+        });
         setExplicitReviewIds((current) => current.filter((id) => (
           ids.has(id) && recipients.some((recipient) => recipient.id === id && recipient.requiresExplicitCheck)
         )));
@@ -253,9 +261,7 @@ export default function NotificationCenter() {
       })
       .catch(() => {
         if (controller.signal.aborted) return;
-        setDirectory([]);
-        setSelectedIds([]);
-        setListError('De ontvangerslijst kon niet worden geladen.');
+        setListError('De ontvangerslijst kon niet worden geladen. De selectie en de tekst blijven staan.');
       })
       .finally(() => {
         if (!controller.signal.aborted) setListLoading(false);
@@ -276,9 +282,6 @@ export default function NotificationCenter() {
     pendingStep,
     listVersion,
     listable,
-    message,
-    subject,
-    pushTitle,
   ]);
 
   useEffect(() => {
@@ -335,8 +338,15 @@ export default function NotificationCenter() {
     };
   }, [adminQuery, sendEmail, sendNotification]);
 
+  const clearPreview = () => {
+    setPreview((current) => {
+      if (current) setPreviewStale(true);
+      return null;
+    });
+  };
+
   const invalidatePreview = () => {
-    setPreview(null);
+    clearPreview();
     setConfirmEmailBlast(false);
     setConfirmRepeat(false);
   };
@@ -374,6 +384,7 @@ export default function NotificationCenter() {
   };
 
   const loadPreview = async () => {
+    setAttemptedSend(true);
     setNotice(null);
     if (!selectionCanList(selection()) && addedAdmins.length === 0) {
       setNotice({ tone: 'error', lines: ['Alle toepasselijke rollen zonder statusfilter selecteert niemand. Kies een filter, of kies bewust Alle gebruikers.'] });
@@ -405,10 +416,11 @@ export default function NotificationCenter() {
       const data = await response.json().catch(() => null);
       const parsed = linesFrom(data, response.status);
       if (!response.ok || !data || data.previewToken == null) {
-        setPreview(null);
+        clearPreview();
         setNotice(parsed);
         return;
       }
+      setPreviewStale(false);
       setPreview({
         previewToken: data.previewToken,
         summary: Array.isArray(data.summary) ? data.summary : [],
@@ -423,8 +435,8 @@ export default function NotificationCenter() {
       });
       setNotice(null);
     } catch {
-      setPreview(null);
-      setNotice({ tone: 'error', lines: ['Het voorbeeld kon niet worden opgehaald. Er is niets verstuurd.'] });
+      clearPreview();
+      setNotice({ tone: 'error', lines: ['Het voorbeeld kon niet worden opgehaald. Er is niets verstuurd. De tekst en de ontvangers blijven staan.'] });
     } finally {
       setIsLoading(false);
     }
@@ -432,6 +444,7 @@ export default function NotificationCenter() {
 
   const handleSendMessage = async (event: React.FormEvent) => {
     event.preventDefault();
+    setAttemptedSend(true);
     if (submitLockRef.current || isLoading) return;
     if (selectedIds.length === 0 && addedAdmins.length === 0) {
       setNotice({ tone: 'error', lines: ['Vink minstens één ontvanger aan of voeg een beheerder toe. Er is niets verstuurd.'] });
@@ -458,6 +471,7 @@ export default function NotificationCenter() {
       const parsed = linesFrom(data, response.status);
       setNotice(parsed);
       if (response.ok && data?.outcome === 'sent') {
+        setAttemptedSend(false);
         setMessage('');
         setPushTitle('');
         setSubject('');
@@ -465,12 +479,13 @@ export default function NotificationCenter() {
         setAdminQuery('');
         setAdminHits([]);
         setPreview(null);
+        setPreviewStale(false);
         setConfirmEmailBlast(false);
         setConfirmRepeat(false);
         contentKeyRef.current = null;
       }
       if (data?.code === 'PREVIEW_STALE') {
-        setPreview(null);
+        clearPreview();
         setListVersion((current) => current + 1);
       }
     } catch {
@@ -499,7 +514,7 @@ export default function NotificationCenter() {
     setAgreementOpen(Boolean(next.agreementVersion));
     setAccountStatus(next.accountStatus || '');
     setPendingStep(next.pendingStep || '');
-    setPreview(null);
+    clearPreview();
     setNotice(null);
   };
 
@@ -523,7 +538,7 @@ export default function NotificationCenter() {
     setAccountStatus('');
     setPendingStep('');
     setMatchMode('all');
-    setPreview(null);
+    clearPreview();
     setConfirmEmailBlast(false);
     setConfirmRepeat(false);
     setNotice(audience === 'all'
@@ -533,7 +548,8 @@ export default function NotificationCenter() {
 
   const changeChecked = (next: string[]) => {
     setSelectedIds(next);
-    setPreview(null);
+    setSelectionDropped(null);
+    clearPreview();
     setConfirmEmailBlast(false);
   };
 
@@ -548,6 +564,36 @@ export default function NotificationCenter() {
   const visibleRecipients = searchHits.slice(pageStart, pageStart + RECIPIENT_PAGE_SIZE);
   const selectedSet = new Set(selectedIds);
   const selectedCount = selectedIds.filter((id) => directory.some((recipient) => recipient.id === id)).length;
+  const chosen = chosenRecipients({
+    selectedIds,
+    directory: directory.map((person) => ({ id: person.id, name: person.name, email: person.email })),
+    manual: addedAdmins.map((admin) => ({ id: admin.id, name: admin.name, email: admin.email })),
+  });
+  const visibleChosen = selectionExpanded ? chosen : chosen.slice(0, 5);
+  const sendBlock = sendBlockReason({
+    message,
+    sendNotification,
+    sendEmail,
+    subject,
+    recipientCount: chosen.length,
+    listable,
+    hasPreview: Boolean(preview?.previewToken),
+    previewTotal: preview?.previewToken ? preview.total : 0,
+    previewStale,
+    emailConfirmRequired: Boolean(preview?.requiresConfirm),
+    emailConfirmed: confirmEmailBlast,
+  });
+  const fieldInvalid = (field: 'message' | 'channel' | 'subject' | 'recipients' | 'preview' | 'email-confirm') => (
+    attemptedSend && sendBlock?.field === field
+  );
+  const removeChosen = (id: string) => {
+    setSelectedIds((current) => current.filter((item) => item !== id));
+    setExplicitReviewIds((current) => current.filter((item) => item !== id));
+    setAddedAdmins((current) => current.filter((admin) => admin.id !== id));
+    setSelectionDropped(null);
+    clearPreview();
+    setConfirmEmailBlast(false);
+  };
 
   const currentSelection = selection();
   const filterChips = selectionFilterChips(currentSelection);
@@ -606,7 +652,17 @@ export default function NotificationCenter() {
       )}
 
       <div className="bg-white rounded-xl shadow-sm border p-6">
-        <form onSubmit={handleSendMessage} className="space-y-6">
+        <form
+          onSubmit={handleSendMessage}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter') return;
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+            if (target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON') return;
+            event.preventDefault();
+          }}
+          className="space-y-6"
+        >
           <section className="space-y-3">
             <h3 className="text-base font-semibold text-gray-900">1. Doelgroep</h3>
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
@@ -871,6 +927,57 @@ export default function NotificationCenter() {
                 </p>
               )}
             </div>
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 space-y-2" style={{ overflowAnchor: 'none' }}>
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h4 className="text-sm font-semibold text-gray-900">Geselecteerde ontvangers</h4>
+                <p className="text-sm text-gray-900">{chosen.length} geselecteerd</p>
+              </div>
+              <p className="text-sm text-gray-800">
+                Dit zijn de mensen die meegaan. Filterresultaten zijn niet automatisch geselecteerd.
+              </p>
+              {selectionDropped && <p className="text-sm font-medium text-amber-950">{selectionDropped}</p>}
+              {chosen.length === 0 ? (
+                <p className="text-sm text-gray-700">Nog niemand. Vink iemand aan of voeg een beheerder toe.</p>
+              ) : (
+                <>
+                  <ul className="space-y-2">
+                    {visibleChosen.map((person) => (
+                      <li key={person.id} className="flex flex-wrap items-start justify-between gap-2 rounded border border-emerald-100 bg-white px-3 py-2">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{person.name}</p>
+                          <p className="text-sm text-gray-800">{person.email || 'Geen e-mailadres'}</p>
+                          <p className="text-xs text-gray-700">
+                            {person.fromAudience && person.manual
+                              ? 'Uit de doelgroep en handmatig toegevoegd'
+                              : person.manual
+                                ? 'Handmatig toegevoegd'
+                                : person.fromAudience
+                                  ? 'Uit de doelgroep'
+                                  : 'Niet meer in de filterresultaten'}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeChosen(person.id)}
+                          className="px-3 py-1 rounded border border-gray-300 text-sm text-gray-800"
+                        >
+                          Verwijderen
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  {chosen.length > 5 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectionExpanded((current) => !current)}
+                      className="text-sm font-medium text-emerald-800"
+                    >
+                      {selectionExpanded ? 'Minder tonen' : `Toon alle ${chosen.length} geselecteerde ontvangers`}
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
             {listable && (
               <>
                 <input
@@ -1019,7 +1126,8 @@ export default function NotificationCenter() {
                   invalidatePreview();
                 }}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                aria-invalid={fieldInvalid('message')}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${fieldInvalid('message') ? 'border-red-600' : 'border-gray-300'}`}
                 placeholder={t('common.typeMessageHere')}
                 maxLength={500}
               />
@@ -1200,6 +1308,7 @@ export default function NotificationCenter() {
                     type="checkbox"
                     checked={confirmEmailBlast}
                     onChange={(event) => setConfirmEmailBlast(event.target.checked)}
+                    aria-invalid={fieldInvalid('email-confirm')}
                     className="mt-1 rounded border-gray-300 text-emerald-600"
                   />
                   <span>Ik bevestig dat ik bewust e-mail naar deze doelgroep stuur.</span>
@@ -1263,7 +1372,8 @@ export default function NotificationCenter() {
                   setSubject(event.target.value);
                   invalidatePreview();
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                aria-invalid={fieldInvalid('subject')}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${fieldInvalid('subject') ? 'border-red-600' : 'border-gray-300'}`}
                 placeholder={t('admin.notificationCenter.emailSubjectPlaceholder')}
                 maxLength={100}
               />
@@ -1276,7 +1386,7 @@ export default function NotificationCenter() {
               checked={confirmRepeat}
               onChange={(event) => {
                 setConfirmRepeat(event.target.checked);
-                setPreview(null);
+                clearPreview();
               }}
               className="mt-1 rounded border-gray-300 text-emerald-600"
             />
@@ -1300,20 +1410,28 @@ export default function NotificationCenter() {
             <button
               type="button"
               onClick={loadPreview}
-              disabled={isLoading || (selectedIds.length === 0 && addedAdmins.length === 0) || (!listable && addedAdmins.length === 0)}
+              disabled={isLoading || chosen.length === 0}
               className="inline-flex items-center px-4 py-2 rounded-lg border border-emerald-700 text-emerald-800 disabled:opacity-50"
             >
-              Voorbeeld bekijken
+              {sendBlock?.refreshPreview ? 'Voorbeeld vernieuwen' : 'Voorbeeld bekijken'}
             </button>
             <button
               type="submit"
-              disabled={isLoading || !preview?.previewToken || preview.total === 0}
+              disabled={isLoading || sendBlock !== null}
+              aria-describedby="send-block-reason"
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? t('admin.notificationCenter.sending') : t('admin.notificationCenter.sendMessage')}
               <Send className="w-4 h-4 ml-2" />
             </button>
           </div>
+          <p id="send-block-reason" className="text-sm text-amber-950" role="status">
+            {isLoading
+              ? 'Bezig. Wacht op de uitslag voordat je opnieuw klikt.'
+              : sendBlock
+                ? sendBlock.action
+                : 'Het voorbeeld klopt. Verzenden gebruikt deze selectie.'}
+          </p>
           </div>
         </form>
       </div>
