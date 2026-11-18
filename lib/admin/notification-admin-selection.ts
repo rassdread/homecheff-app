@@ -140,6 +140,29 @@ export function activeStaffRejection(user: StaffAccountCheck | null): string | n
   return null;
 }
 
+export function previewAudienceProof(input: {
+  plans: readonly Pick<BroadcastChannelPlan, 'source' | 'email' | 'push' | 'inApp'>[];
+  pushReachable: number;
+  pushExcluded: number;
+  emailWithAddress: number;
+  emailWithoutAddress: number;
+}): { unique: number; fromFilters: number; manualOnly: number; both: number; line: string } {
+  const fromFilters = input.plans.filter((plan) => plan.source !== 'manual').length;
+  const manualOnly = input.plans.filter((plan) => plan.source === 'manual').length;
+  const both = input.plans.filter((plan) => plan.source === 'both').length;
+  const unique = input.plans.length;
+  const alone = unique > 0 && fromFilters === 0
+    ? ' Niemand uit de doelgroep gaat mee.'
+    : ' Niet aangevinkte filterresultaten gaan niet mee.';
+  return {
+    unique,
+    fromFilters,
+    manualOnly,
+    both,
+    line: `Unieke ontvangers in dit voorbeeld: ${unique}. Uit de filters: ${fromFilters}. Alleen handmatig toegevoegd: ${manualOnly}. Zowel filter als handmatig: ${both}. In-app ${input.plans.filter((plan) => plan.inApp).length}. Push bereikbaar ${input.pushReachable}, zonder apparaat ${input.pushExcluded}. E-mail met adres ${input.emailWithAddress}, zonder adres ${input.emailWithoutAddress}.${alone}`,
+  };
+}
+
 export function adminChannelLines(input: {
   plan: Pick<BroadcastChannelPlan, 'email' | 'push' | 'inApp'>;
   pushReachable: boolean;

@@ -4,22 +4,22 @@ import { useEffect, useRef, useState } from 'react';
 import { Send, Users, Mail, Bell, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { AdminEmailPreview } from './AdminEmailPreview';
+import { adminEmailActionForRoute } from '@/lib/email/admin-bulk-message-content';
 import { NotificationHistory } from './NotificationHistory';
 import {
   AUDIENCE_PRESETS,
   DELIVERY_AGREEMENT_VERSION,
   UNAVAILABLE_AUDIENCE_FACTS,
-  accountStatusLabel,
-  pendingStepLabel,
-  payoutConnectStatusLabel,
+  agreementVersionLabel,
   selectionCanList,
-  STRIPE_NOT_READY_LABEL,
-  stripeFilterLabel,
-  verificationFilterLabel,
+  selectionFilterChips,
+  selectionPlainSummary,
+  stripeChoiceLabel,
   type AccountStatusFilter,
   type AudienceId,
   type AudienceSelection,
   type PendingStepId,
+  type SelectionFilterChip,
   type StripeAudienceFilter,
   type VerificationKind,
   type VerificationStatus,
@@ -33,6 +33,7 @@ type PreviewRecipient = {
   connectLabel: string;
   agreementLabel: string;
   stripeStatus?: string;
+  pushReachable?: boolean;
   requiresExplicitCheck?: boolean;
   reasons?: string[];
   registeredAt: string | null;
@@ -59,6 +60,7 @@ type PreviewPayload = {
   summary: string[];
   total: number;
   found: number;
+  proof?: { unique: number; fromFilters: number; manualOnly: number; both: number; line: string };
   channels: { inApp: number; push: number; email: number };
   recipients: PreviewRecipient[];
   requiresConfirm: boolean;
@@ -88,6 +90,7 @@ function readRecipients(value: unknown): PreviewRecipient[] {
       connectLabel: typeof row.connectLabel === 'string' ? row.connectLabel : '',
       agreementLabel: typeof row.agreementLabel === 'string' ? row.agreementLabel : '',
       stripeStatus: typeof row.stripeStatus === 'string' ? row.stripeStatus : '',
+      pushReachable: row.pushReachable === true,
       requiresExplicitCheck: row.requiresExplicitCheck === true,
       reasons: Array.isArray(row.reasons) ? row.reasons.filter((reason): reason is string => typeof reason === 'string') : [],
       registeredAt: typeof row.registeredAt === 'string' ? row.registeredAt : null,
@@ -411,6 +414,7 @@ export default function NotificationCenter() {
         summary: Array.isArray(data.summary) ? data.summary : [],
         total: typeof data.total === 'number' ? data.total : 0,
         found: typeof data.found === 'number' ? data.found : directory.length,
+        proof: data.proof && typeof data.proof === 'object' ? data.proof : undefined,
         channels: data.channels || { inApp: 0, push: 0, email: 0 },
         recipients: readRecipients(data.recipients),
         requiresConfirm: Boolean(data.requiresConfirm),
@@ -490,13 +494,41 @@ export default function NotificationCenter() {
     setAudience(next.audience);
     setMatchMode(next.match);
     setStripe(next.stripe || '');
+    setVerificationKind(next.verification?.kind || '');
+    setVerificationStatus(next.verification?.status || '');
+    setAgreementOpen(Boolean(next.agreementVersion));
+    setAccountStatus(next.accountStatus || '');
+    setPendingStep(next.pendingStep || '');
+    setPreview(null);
+    setNotice(null);
+  };
+
+  const removeChip = (id: SelectionFilterChip['id']) => {
+    if (id === 'stripe') setStripe('');
+    if (id === 'verification') {
+      setVerificationKind('');
+      setVerificationStatus('');
+    }
+    if (id === 'agreement') setAgreementOpen(false);
+    if (id === 'account') setAccountStatus('');
+    if (id === 'pending') setPendingStep('');
+    invalidatePreview();
+  };
+
+  const clearFilters = () => {
+    setStripe('');
     setVerificationKind('');
     setVerificationStatus('');
     setAgreementOpen(false);
     setAccountStatus('');
     setPendingStep('');
+    setMatchMode('all');
     setPreview(null);
-    setNotice(null);
+    setConfirmEmailBlast(false);
+    setConfirmRepeat(false);
+    setNotice(audience === 'all'
+      ? { tone: 'success', lines: ['Filters gewist. De doelgroep blijft Alle gebruikers, omdat je die zelf hebt gekozen.'] }
+      : null);
   };
 
   const changeChecked = (next: string[]) => {
@@ -519,6 +551,16 @@ export default function NotificationCenter() {
 
   const verificationChoices: VerificationStatus[] =
     verificationKind === 'commerce_review' ? ['verified', 'unverified', 'pending'] : ['verified', 'unverified'];
+  const currentSelection = selection();
+  const filterChips = selectionFilterChips(currentSelection);
+  const plainSummary = selectionPlainSummary(currentSelection);
+  const withEmail = directory.filter((recipient) => recipient.email).length;
+  const withPush = directory.filter((recipient) => recipient.pushReachable).length;
+  const stripeName = (status: string | undefined) => (
+    status === 'none' || status === 'incomplete' || status === 'ready' || status === 'review' || status === 'not_ready'
+      ? stripeChoiceLabel(status)
+      : ''
+  );
 
   return (
     <div className="space-y-6">
@@ -567,58 +609,52 @@ export default function NotificationCenter() {
 
       <div className="bg-white rounded-xl shadow-sm border p-6">
         <form onSubmit={handleSendMessage} className="space-y-6">
-          <div>
-            <p className="block text-sm font-medium text-gray-700 mb-2">Veelgebruikte selecties</p>
-            <div className="grid gap-2 md:grid-cols-3">
+          <section className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-900">1. Doelgroep</h3>
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               {AUDIENCE_PRESETS.map((preset) => (
                 <button
                   key={preset.id}
                   type="button"
                   disabled={!preset.available}
                   onClick={() => applyPreset(preset.id)}
-                  className="rounded-lg border px-3 py-2 text-left text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                  className="rounded-lg border border-gray-200 px-3 py-2 text-left text-sm hover:border-emerald-700 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
                 >
-                  <span className="block font-medium">{preset.label}</span>
-                  {!preset.available && <span className="mt-1 block text-xs">Geblokkeerd: geen betrouwbaar activiteitssignaal.</span>}
+                  <span className="block font-medium text-gray-900">{preset.label}</span>
+                  <span className="mt-1 block text-xs text-gray-600">{preset.available ? preset.description : preset.reason}</span>
                 </button>
               ))}
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="audience">
-              {t('admin.notificationCenter.targetGroup')}
+            <label className="block text-sm" htmlFor="audience">
+              <span className="font-medium text-gray-700">{t('admin.notificationCenter.targetGroup')}</span>
+              <select
+                id="audience"
+                value={audience}
+                onChange={(event) => {
+                  setAudience(event.target.value as AudienceId);
+                  invalidatePreview();
+                }}
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="applicable">Alle toepasselijke rollen</option>
+                <option value="all">{t('admin.notificationCenter.allUsers')}</option>
+                <option value="sellers">{t('admin.notificationCenter.sellersOnly')}</option>
+                <option value="buyers">{t('admin.notificationCenter.buyersOnly')}</option>
+                <option value="delivery">Bezorgpartners</option>
+              </select>
             </label>
-            <select
-              id="audience"
-              value={audience}
-              onChange={(event) => {
-                setAudience(event.target.value as AudienceId);
-                invalidatePreview();
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="applicable">Alle toepasselijke rollen</option>
-              <option value="all">{t('admin.notificationCenter.allUsers')}</option>
-              <option value="sellers">{t('admin.notificationCenter.sellersOnly')}</option>
-              <option value="buyers">{t('admin.notificationCenter.buyersOnly')}</option>
-              <option value="delivery">Bezorgpartners</option>
-            </select>
-            <p className="mt-1 text-xs text-gray-500">
-              De rol is optioneel. Alle toepasselijke rollen zonder statusfilter selecteert niemand. Alle gebruikers is een aparte keuze voor een brede verzending en bevat geen beheerders. Een beheerder met een passend profiel verschijnt wel bij kopers, verkopers of bezorgpartners. Test- en systeemaccounts blijven uitgesloten. Iemand met meerdere rollen verschijnt één keer.
+            <p className="text-sm text-gray-700">
+              {audience === 'all'
+                ? 'Alle gebruikers is een bewuste keuze. Beheerders en test- en systeemaccounts blijven buiten de lijst.'
+                : 'Zonder gekozen rol selecteert Alle toepasselijke rollen niemand. Iemand met meerdere rollen telt één keer.'}
             </p>
-          </div>
+          </section>
 
-          <div>
-            <h3 className="text-sm font-medium text-gray-900">Filter op status</h3>
-            <p className="mt-1 text-xs text-gray-500">
-              De filters gelden meteen, ook zonder rol. Kies je daarna een rol, dan blijven alleen mensen uit die rol over.
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
+          <section className="space-y-4">
+            <h3 className="text-base font-semibold text-gray-900">2. Filters</h3>
+            <p className="text-sm text-gray-600">E-mail, bezorgerverificatie en verkoopreview zijn één verificatie. De laatste keuze geldt.</p>
             <label className="block text-sm">
-              <span className="font-medium text-gray-700">Filters combineren</span>
+              <span className="font-medium text-gray-700">Voorwaarden combineren</span>
               <select
                 value={matchMode}
                 onChange={(event) => {
@@ -627,158 +663,215 @@ export default function NotificationCenter() {
                 }}
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
               >
-                <option value="all">Aan alle gekozen filters</option>
-                <option value="any">Aan minstens één gekozen filter</option>
+                <option value="all">EN — alle gekozen filters</option>
+                <option value="any">OF — minstens één filter</option>
               </select>
-            </label>
-            <label className="block text-sm">
-              <span className="font-medium text-gray-700">Stripe Connect</span>
-              <select
-                value={stripe}
-                onChange={(event) => {
-                  setStripe(event.target.value as StripeAudienceFilter | '');
-                  invalidatePreview();
-                }}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
-              >
-                <option value="">Geen Stripe-filter</option>
-                <option value="not_ready">{STRIPE_NOT_READY_LABEL}</option>
-                <option value="none">{payoutConnectStatusLabel('none')}</option>
-                <option value="incomplete">{payoutConnectStatusLabel('incomplete')}</option>
-                <option value="review">{payoutConnectStatusLabel('review')}</option>
-                <option value="ready">{payoutConnectStatusLabel('ready')}</option>
-              </select>
-            </label>
-            <label className="block text-sm">
-              <span className="font-medium text-gray-700">Verificatie</span>
-              <select
-                value={verificationKind}
-                onChange={(event) => {
-                  const kind = event.target.value as VerificationKind | '';
-                  setVerificationKind(kind);
-                  setVerificationStatus('');
-                  invalidatePreview();
-                }}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
-              >
-                <option value="">Geen verificatiefilter</option>
-                <option value="email">HomeCheff-e-mailverificatie</option>
-                <option value="courier">Bezorgerverificatie</option>
-                <option value="commerce_review">Verkoopreview</option>
-              </select>
-            </label>
-            <label className="block text-sm">
-              <span className="font-medium text-gray-700">Verificatiestatus</span>
-              <select
-                value={verificationStatus}
-                disabled={!verificationKind}
-                onChange={(event) => {
-                  setVerificationStatus(event.target.value as VerificationStatus | '');
-                  invalidatePreview();
-                }}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-50"
-              >
-                <option value="">Kies een status</option>
-                {verificationChoices.map((status) => (
-                  <option key={status} value={status}>
-                    {status === 'verified' ? 'Geverifieerd' : status === 'unverified' ? 'Nog niet geverifieerd' : 'In behandeling'}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block text-sm">
-              <span className="font-medium text-gray-700">Accountstatus</span>
-              <select
-                value={accountStatus}
-                onChange={(event) => {
-                  setAccountStatus(event.target.value as AccountStatusFilter | '');
-                  invalidatePreview();
-                }}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
-              >
-                <option value="">Geen accountstatusfilter</option>
-                <option value="active">Actief</option>
-                <option value="blocked">Geblokkeerd</option>
-                <option value="courier_blocked">Bezorger geblokkeerd</option>
-              </select>
-            </label>
-            <label className="block text-sm">
-              <span className="font-medium text-gray-700">Laatste activiteit</span>
-              <select
-                disabled
-                value=""
-                className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
-              >
-                <option value="">Niet beschikbaar</option>
-              </select>
-              <span className="mt-1 block text-xs text-gray-500">
-                HomeCheff slaat geen laatste login of laatste activiteit op. 30, 60 en 90 dagen blijven uit.
+              <span className="mt-1 block text-sm text-gray-700">
+                {matchMode === 'all'
+                  ? 'EN: een ontvanger moet aan elke gekozen voorwaarde voldoen.'
+                  : 'OF: een ontvanger moet aan minstens één gekozen voorwaarde voldoen.'}
               </span>
             </label>
-            <label className="block text-sm">
-              <span className="font-medium text-gray-700">Openstaande bezorgstap</span>
-              <select
-                value={pendingStep}
-                onChange={(event) => {
-                  setPendingStep(event.target.value as PendingStepId | '');
-                  invalidatePreview();
-                }}
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
-              >
-                <option value="">Geen stapfilter</option>
-                <option value="delivery_age">Leeftijd</option>
-                <option value="delivery_pricing">Tarief</option>
-                <option value="delivery_service_area">Werkgebied</option>
-                <option value="delivery_availability">Beschikbaarheid</option>
-                <option value="delivery_company_name">Bedrijfsnaam</option>
-              </select>
-            </label>
-          </div>
 
-          <label className="flex items-start gap-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
-              checked={agreementOpen}
-              onChange={(event) => {
-                setAgreementOpen(event.target.checked);
-                invalidatePreview();
-              }}
-              className="mt-1 rounded border-gray-300 text-emerald-600"
-            />
-            <span>
-              Bezorgovereenkomst staat nog open voor versie {DELIVERY_AGREEMENT_VERSION}. Dit staat los van Stripe.
-              Acceptatie zonder versie telt niet als open en niet als geaccepteerd.
-            </span>
-          </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block text-sm">
+                <span className="font-medium text-gray-700">Stripe</span>
+                <span className="mt-1 block text-xs text-gray-600">Zelfde account voor verkoop en bezorging.</span>
+                <select
+                  value={stripe}
+                  onChange={(event) => {
+                    setStripe(event.target.value as StripeAudienceFilter | '');
+                    invalidatePreview();
+                  }}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Geen Stripe-filter</option>
+                  <option value="none">{stripeChoiceLabel('none')}</option>
+                  <option value="incomplete">{stripeChoiceLabel('incomplete')}</option>
+                  <option value="ready">{stripeChoiceLabel('ready')}</option>
+                  <option value="not_ready">{stripeChoiceLabel('not_ready')}</option>
+                  <option value="review">{stripeChoiceLabel('review')}</option>
+                </select>
+              </label>
+              <label className="block text-sm">
+                <span className="font-medium text-gray-700">E-mailverificatie</span>
+                <select
+                  value={verificationKind === 'email' ? verificationStatus : ''}
+                  onChange={(event) => {
+                    const status = event.target.value as VerificationStatus | '';
+                    if (status) {
+                      setVerificationKind('email');
+                      setVerificationStatus(status);
+                    } else if (verificationKind === 'email') {
+                      setVerificationKind('');
+                      setVerificationStatus('');
+                    }
+                    invalidatePreview();
+                  }}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Geen e-mailfilter</option>
+                  <option value="verified">E-mail geverifieerd</option>
+                  <option value="unverified">E-mail nog niet geverifieerd</option>
+                </select>
+              </label>
+              <label className="block text-sm">
+                <span className="font-medium text-gray-700">Account</span>
+                <select
+                  value={accountStatus}
+                  onChange={(event) => {
+                    setAccountStatus(event.target.value as AccountStatusFilter | '');
+                    invalidatePreview();
+                  }}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Geen accountfilter</option>
+                  <option value="active">Actief</option>
+                  <option value="blocked">Geblokkeerd</option>
+                  <option value="courier_blocked">Bezorger geblokkeerd</option>
+                </select>
+              </label>
+            </div>
 
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
-            <p className="font-medium text-gray-900">Niet beschikbaar</p>
-            <ul className="mt-2 list-disc space-y-1 pl-5">
-              {UNAVAILABLE_AUDIENCE_FACTS.map((fact) => (
-                <li key={fact}>{fact}</li>
+            <div className="rounded-lg border border-gray-200 p-3 space-y-3">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Bezorging</p>
+                <p className="text-xs text-gray-600">Geldt voor mensen met een bezorgprofiel, ook als ze nog een andere rol hebben.</p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="block text-sm">
+                  <span className="font-medium text-gray-700">Bezorgerverificatie</span>
+                  <select
+                    value={verificationKind === 'courier' ? verificationStatus : ''}
+                    onChange={(event) => {
+                      const status = event.target.value as VerificationStatus | '';
+                      if (status) {
+                        setVerificationKind('courier');
+                        setVerificationStatus(status);
+                      } else if (verificationKind === 'courier') {
+                        setVerificationKind('');
+                        setVerificationStatus('');
+                      }
+                      invalidatePreview();
+                    }}
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  >
+                    <option value="">Geen bezorgerfilter</option>
+                    <option value="verified">Bezorger geverifieerd</option>
+                    <option value="unverified">Bezorger nog niet geverifieerd</option>
+                  </select>
+                </label>
+                <label className="block text-sm">
+                  <span className="font-medium text-gray-700">Openstaande bezorgstap</span>
+                  <select
+                    value={pendingStep}
+                    onChange={(event) => {
+                      setPendingStep(event.target.value as PendingStepId | '');
+                      invalidatePreview();
+                    }}
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  >
+                    <option value="">Geen stapfilter</option>
+                    <option value="delivery_age">Leeftijd</option>
+                    <option value="delivery_pricing">Tarief</option>
+                    <option value="delivery_service_area">Werkgebied</option>
+                    <option value="delivery_availability">Beschikbaarheid</option>
+                    <option value="delivery_company_name">Bedrijfsnaam</option>
+                  </select>
+                </label>
+              </div>
+              <label className="flex items-start gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={agreementOpen}
+                  onChange={(event) => {
+                    setAgreementOpen(event.target.checked);
+                    invalidatePreview();
+                  }}
+                  className="mt-1 rounded border-gray-300 text-emerald-600"
+                />
+                <span>
+                  {agreementVersionLabel(DELIVERY_AGREEMENT_VERSION)} nog niet geaccepteerd. Dit staat los van Stripe.
+                  Een acceptatie zonder vastgelegde versie telt niet mee. Bestaande acceptaties blijven geldig.
+                </span>
+              </label>
+            </div>
+
+            {(audience === 'sellers' || audience === 'applicable' || audience === 'all' || verificationKind === 'commerce_review') && (
+              <label className="block text-sm">
+                <span className="font-medium text-gray-700">Verkoopreview</span>
+                <span className="mt-1 block text-xs text-gray-600">Alleen voor verkopers. In behandeling bestaat hier wel.</span>
+                <select
+                  value={verificationKind === 'commerce_review' ? verificationStatus : ''}
+                  onChange={(event) => {
+                    const status = event.target.value as VerificationStatus | '';
+                    if (status) {
+                      setVerificationKind('commerce_review');
+                      setVerificationStatus(status);
+                    } else if (verificationKind === 'commerce_review') {
+                      setVerificationKind('');
+                      setVerificationStatus('');
+                    }
+                    invalidatePreview();
+                  }}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Geen verkoopreview</option>
+                  <option value="verified">Verkoopreview afgerond</option>
+                  <option value="unverified">Verkoopreview nodig</option>
+                  <option value="pending">Verkoopreview in behandeling</option>
+                </select>
+              </label>
+            )}
+
+            <div className="flex flex-wrap items-center gap-2">
+              {filterChips.map((chip) => (
+                <button
+                  key={chip.id}
+                  type="button"
+                  onClick={() => removeChip(chip.id)}
+                  className="inline-flex items-center gap-1 rounded-full border border-emerald-700 bg-emerald-50 px-3 py-1 text-sm text-emerald-900"
+                >
+                  {chip.label}
+                  <span aria-hidden="true">×</span>
+                  <span className="sr-only">Verwijder filter {chip.label}</span>
+                </button>
               ))}
-            </ul>
-            <p className="mt-2 text-xs text-gray-500">
-              Laatste activiteit: 30, 60 en 90 dagen blijven geblokkeerd. Accountstatus inactief ontbreekt.
-              {audience ? ` Gekozen Stripe-label: ${stripe ? stripeFilterLabel(stripe, audience) : 'geen filter'}.` : ''}
-              {verificationKind && verificationStatus
-                ? ` ${verificationFilterLabel({ kind: verificationKind, status: verificationStatus })}.`
-                : ''}
-              {accountStatus ? ` ${accountStatusLabel(accountStatus)}.` : ''}
-              {pendingStep ? ` ${pendingStepLabel(pendingStep)}.` : ''}
-            </p>
-          </div>
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="px-3 py-1 rounded-lg border border-gray-300 text-sm text-gray-800"
+              >
+                Filters wissen
+              </button>
+            </div>
+            <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-950">{plainSummary}</p>
+            <details className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
+              <summary className="cursor-pointer font-medium text-gray-900">Technische toelichting</summary>
+              <ul className="mt-2 list-disc space-y-1 pl-5">
+                {UNAVAILABLE_AUDIENCE_FACTS.map((fact) => (
+                  <li key={fact}>{fact}</li>
+                ))}
+              </ul>
+            </details>
+          </section>
 
           <div id="notification-recipients" className="rounded-lg border border-gray-200 p-4 space-y-3">
             <div>
-              <h3 className="text-base font-medium text-gray-900">Ontvangers</h3>
-              <p className="text-sm text-gray-700">
+              <h3 className="text-base font-semibold text-gray-900">3. Ontvangers</h3>
+              <p className="text-sm text-gray-900">
                 {!listable
-                  ? 'Kies een statusfilter of een doelgroep. Alle toepasselijke rollen zonder filter selecteert niemand.'
+                  ? 'Kies een filter of een doelgroep. Alle toepasselijke rollen zonder filter selecteert niemand.'
                   : listLoading
                     ? 'Ontvangers laden…'
-                    : `${selectedCount} geselecteerd van ${directory.length} gevonden${query ? `. Zoekopdracht toont ${searchHits.length}` : ''}.`}
+                    : `Unieke filterresultaten: ${directory.length}. Aangevinkt: ${selectedCount}.`}
               </p>
+              {listable && !listLoading && directory.length > 0 && (
+                <p className="text-sm text-gray-700">
+                  E-mailadres {withEmail}, zonder e-mail {directory.length - withEmail}. Pushapparaat {withPush}, zonder apparaat {directory.length - withPush}.
+                  {query ? ` Zoekopdracht toont ${searchHits.length}.` : ''} Dit is de filterlijst. Alleen aangevinkte namen gaan mee.
+                </p>
+              )}
             </div>
             {listable && (
               <>
@@ -871,7 +964,12 @@ export default function NotificationCenter() {
                         <p className="font-medium text-gray-900">{recipient.name}</p>
                         <p className="text-sm text-gray-800">{recipient.roles.join(' · ') || 'Geen rol'}</p>
                         <p className="text-sm text-gray-600">{recipient.email || 'Geen e-mailadres'}</p>
-                        {stripe ? <p className="text-sm text-gray-900">Stripe: {recipient.connectLabel}</p> : null}
+                        {stripe ? <p className="text-sm text-gray-900">Stripe: {stripeName(recipient.stripeStatus) || recipient.connectLabel}</p> : null}
+                        <p className="text-sm text-gray-700">
+                          {recipient.email ? 'E-mailadres aanwezig.' : 'Geen e-mailadres, e-mail valt af.'}
+                          {' '}
+                          {recipient.pushReachable ? 'Pushapparaat aanwezig.' : 'Geen pushapparaat, push valt af.'}
+                        </p>
                         {recipient.requiresExplicitCheck ? (
                           <p className="text-sm text-amber-900">Apart aanvinken. Selecteer alle resultaten slaat dit account over.</p>
                         ) : null}
@@ -910,7 +1008,25 @@ export default function NotificationCenter() {
             )}
           </div>
 
-          <div>
+          <div className="space-y-4">
+            <h3 className="text-base font-semibold text-gray-900">4. Bericht en kanalen</h3>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('admin.notificationCenter.message')}
+              </label>
+              <textarea
+                value={message}
+                onChange={(event) => {
+                  setMessage(event.target.value);
+                  invalidatePreview();
+                }}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder={t('common.typeMessageHere')}
+                maxLength={500}
+              />
+              <div className="mt-1 text-sm text-gray-500">{message.length}/500 {t('common.characters')}</div>
+            </div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t('admin.notificationCenter.deliveryMethod')}
             </label>
@@ -949,7 +1065,7 @@ export default function NotificationCenter() {
               <div>
                 <h3 className="text-base font-medium text-gray-900">Beheerder toevoegen</h3>
                 <p className="text-sm text-gray-700">
-                  Zoek jezelf of een andere beheerder op naam of e-mailadres. Die persoon mag buiten de doelgroep vallen.
+                  Zoek jezelf of een andere beheerder op naam of e-mailadres. Vink niemand in de lijst aan en voeg alleen jezelf toe. Het voorbeeld toont dan één unieke ontvanger en nul uit de filters. Die persoon mag buiten de doelgroep vallen.
                   Een nieuwe verzending begint zonder toegevoegde beheerders. E-mail gebruikt hetzelfde onderwerp, dezelfde tekst en dezelfde HomeCheff-opmaak.
                   Push gebruikt dezelfde titel, tekst en interne bestemming, en maakt ook een in-appmelding aan.
                 </p>
@@ -1125,7 +1241,9 @@ export default function NotificationCenter() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   <option value="/notifications">{t('admin.notificationCenter.routeInbox')}</option>
-                  <option value="/settings/app">{t('admin.notificationCenter.routeAppSettings')}</option>
+                  <option value="/delivery/dashboard">Stripe en bezorginstellingen</option>
+                  <option value="/delivery/settings">Bezorginstellingen</option>
+                  <option value="/sell/new">Aanbod plaatsen</option>
                   <option value="/app">{t('admin.notificationCenter.routeBetaApp')}</option>
                   <option value="/mijn-hcp">{t('admin.notificationCenter.routeMijnHcp')}</option>
                   <option value="/profile">{t('admin.notificationCenter.routeProfile')}</option>
@@ -1154,24 +1272,6 @@ export default function NotificationCenter() {
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('admin.notificationCenter.message')}
-            </label>
-            <textarea
-              value={message}
-              onChange={(event) => {
-                setMessage(event.target.value);
-                invalidatePreview();
-              }}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              placeholder={t('common.typeMessageHere')}
-              maxLength={500}
-            />
-            <div className="mt-1 text-sm text-gray-500">{message.length}/500 {t('common.characters')}</div>
-          </div>
-
           <label className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
             <input
               type="checkbox"
@@ -1188,6 +1288,8 @@ export default function NotificationCenter() {
             </span>
           </label>
 
+          <div className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-900">5. Voorbeeld en verzending</h3>
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
@@ -1214,6 +1316,7 @@ export default function NotificationCenter() {
               <Send className="w-4 h-4 ml-2" />
             </button>
           </div>
+          </div>
         </form>
       </div>
 
@@ -1222,14 +1325,20 @@ export default function NotificationCenter() {
       {preview && (
         <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4" role="status">
           <h3 className="text-lg font-medium text-gray-900">Definitieve selectie</h3>
+          {preview.proof && (
+            <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-950">
+              Unieke ontvangers: {preview.proof.unique}. Uit de filters: {preview.proof.fromFilters}. Alleen handmatig toegevoegd: {preview.proof.manualOnly}.
+              {preview.proof.fromFilters === 0 ? ' Niemand uit de doelgroep gaat mee.' : ' Niet aangevinkte filterresultaten gaan niet mee.'}
+            </p>
+          )}
           <ul className="space-y-1 text-sm text-gray-800">
-            {preview.lines.map((line, index) => (
+            {(preview.proof ? preview.lines.filter((line) => line !== preview.proof?.line) : preview.lines).map((line, index) => (
               <li key={`${index}-${line}`}>{line}</li>
             ))}
           </ul>
           <p className="text-sm text-gray-900">
-            {preview.total} aangevinkt van {preview.found} gevonden. In-app {preview.channels.inApp}. Push-bereikbaar {preview.channels.push}. E-mailadres {preview.channels.email}.
-            Elk aangevinkt account telt één keer per kanaal. Niet aangevinkte filterresultaten krijgen niets.
+            In-app {preview.channels.inApp}. Push-bereikbaar {preview.channels.push}. E-mail met adres {preview.channels.email}.
+            Geaccepteerd door de mail- of pushdienst is niet hetzelfde als afgeleverd.
           </p>
           {preview.error && <p className="text-sm text-red-800">{preview.error}</p>}
           {!preview.previewToken && (
@@ -1243,7 +1352,7 @@ export default function NotificationCenter() {
                 <p className="font-medium text-gray-900">{recipient.name}</p>
                 <p className="text-gray-800">{recipient.roles.join(' · ') || 'Geen rol'}</p>
                 <p className="text-gray-600">{recipient.email || 'Geen e-mailadres'}</p>
-                {recipient.connectLabel ? <p className="text-gray-900">Stripe: {recipient.connectLabel}</p> : null}
+                {recipient.stripeStatus ? <p className="text-gray-900">Stripe: {stripeName(recipient.stripeStatus) || recipient.connectLabel}</p> : null}
                 {recipient.requiresExplicitCheck ? (
                   <p className="text-amber-900">Apart aangevinkt. Selecteer alle resultaten neemt dit account niet mee.</p>
                 ) : null}
@@ -1260,7 +1369,7 @@ export default function NotificationCenter() {
         </div>
       )}
           {sendEmail && message.trim() && (
-            <AdminEmailPreview subject={subject} message={message} />
+            <AdminEmailPreview subject={subject} message={message} action={adminEmailActionForRoute(linkPreset)} />
           )}
         </div>
       )}

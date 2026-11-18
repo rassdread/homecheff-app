@@ -14,6 +14,7 @@ import {
   activeStaffRejection,
   adminChannelLines,
   mergeBroadcastRecipients,
+  previewAudienceProof,
   narrowManualAdmins,
   parseManualAdmins,
   relevantContentDecisions,
@@ -193,6 +194,21 @@ describe('the same admin selected both ways', () => {
       ],
     );
     assert.deepEqual(decisions.map((decision) => `${decision.userId}:${decision.channel}`), ['admin-both:push', 'email-only:email']);
+  });
+
+  it('proves a manually added admin is the only recipient', () => {
+    const proof = previewAudienceProof({
+      plans: [{ source: 'manual', email: true, push: true, inApp: true }],
+      pushReachable: 0,
+      pushExcluded: 1,
+      emailWithAddress: 1,
+      emailWithoutAddress: 0,
+    });
+    assert.equal(proof.unique, 1);
+    assert.equal(proof.fromFilters, 0);
+    assert.equal(proof.manualOnly, 1);
+    assert.match(proof.line, /Niemand uit de doelgroep gaat mee/);
+    assert.match(proof.line, /zonder apparaat 1/);
   });
 
   it('shows push, missing devices and the in-app notice in the preview and history', () => {

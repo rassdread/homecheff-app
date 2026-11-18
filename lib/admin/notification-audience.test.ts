@@ -3,9 +3,20 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, it } from 'node:test';
 import { deriveConnectAccountStatusFromDb } from '@/lib/stripe/connect-account-status';
+import { DELIVERY_AGREEMENT_DOCUMENT_ID, deliveryAgreementAcceptanceData } from '@/lib/delivery/delivery-agreement';
+import {
+  DELIVERY_AGREEMENT_VERSION as AGREEMENT_SNAPSHOT_VERSION,
+  agreementAcceptanceRow,
+} from '@/lib/delivery/delivery-agreement-version';
 import { getDeliveryProfileCompletionFromRow } from '@/lib/delivery/delivery-profile-completion';
 import {
   DELIVERY_AGREEMENT_VERSION,
+  agreementVersionLabel,
+  describeSelection,
+  emptySelection,
+  selectionFilterChips,
+  selectionPlainSummary,
+  stripeChoiceLabel,
   agreementState,
   checkedRecipients,
   inclusionReasons,
@@ -568,6 +579,93 @@ describe('delivery activation is only an open step when the existing check says 
     assert.ok(missing.missing.includes('pricing'));
     assert.ok(missing.missing.includes('serviceArea'));
     assert.equal(missing.missing.includes('dateOfBirth'), false);
+  });
+});
+
+describe('signup agreement id matches the notification filter', () => {
+  it('recognizes the id both signup forms store and keeps older or missing versions on the existing rules', () => {
+    const stored = deliveryAgreementAcceptanceData(new Date('2026-01-15T00:00:00.000Z'));
+    assert.equal(stored.deliveryAgreementDocumentId, DELIVERY_AGREEMENT_DOCUMENT_ID);
+    assert.equal(DELIVERY_AGREEMENT_VERSION, stored.deliveryAgreementDocumentId);
+    const service = readFileSync(resolve(process.cwd(), 'lib/delivery/delivery-signup-service.ts'), 'utf8');
+    const privateSignup = readFileSync(resolve(process.cwd(), 'app/delivery/signup/page.tsx'), 'utf8');
+    const companySignup = readFileSync(resolve(process.cwd(), 'app/delivery/company/signup/page.tsx'), 'utf8');
+    assert.match(service, /\.\.\.deliveryAgreementAcceptanceData\(\)/);
+    assert.match(privateSignup, /\/api\/delivery\/signup/);
+    assert.match(companySignup, /\/api\/delivery\/signup/);
+    const current = user({
+      id: 'current-acceptance',
+      role: 'DELIVERY',
+      delivery: {
+        ...deliveryOpen,
+        agreementAcceptedAt: new Date('2026-01-15T00:00:00.000Z'),
+        agreementDocumentId: stored.deliveryAgreementDocumentId,
+      },
+    });
+    const openFilter = selection({ audience: 'delivery', agreementVersion: DELIVERY_AGREEMENT_VERSION });
+    assert.equal(agreementState(current), 'accepted');
+    assert.equal(matchesAudience(current, openFilter), false);
+    const older = user({
+      id: 'older-acceptance',
+      role: 'DELIVERY',
+      delivery: {
+        ...deliveryOpen,
+        agreementAcceptedAt: new Date('2024-01-01T00:00:00.000Z'),
+        agreementDocumentId: 'old-version',
+      },
+    });
+    assert.equal(agreementState(older), 'open');
+    assert.equal(matchesAudience(older, openFilter), true);
+    const missing = user({
+      id: 'missing-version',
+      role: 'DELIVERY',
+      delivery: {
+        ...deliveryOpen,
+        agreementAcceptedAt: new Date('2024-01-01T00:00:00.000Z'),
+        agreementDocumentId: null,
+      },
+    });
+    assert.equal(agreementState(missing), 'unknown_version');
+    assert.equal(matchesAudience(missing, openFilter), false);
+    const history = agreementAcceptanceRow({
+      deliveryProfileId: 'profile-1',
+      userId: 'current-acceptance',
+      language: 'nl',
+      acceptedAt: new Date('2026-01-15T00:00:00.000Z'),
+    });
+    assert.equal(history.documentId, stored.deliveryAgreementDocumentId);
+    assert.equal(history.version, AGREEMENT_SNAPSHOT_VERSION);
+    assert.notEqual(history.version, stored.deliveryAgreementDocumentId);
+  });
+});
+
+describe('agreement display keeps the stored acceptance id', () => {
+  it('shows a name and still treats the stored i18n id as accepted', () => {
+    assert.equal(DELIVERY_AGREEMENT_VERSION, 'i18n:deliverySignup.legalModalTitle');
+    assert.equal(agreementVersionLabel(DELIVERY_AGREEMENT_VERSION), 'Huidige bezorgovereenkomst');
+    const accepted = user({
+      id: 'accepted-current',
+      role: 'DELIVERY',
+      delivery: {
+        ...deliveryOpen,
+        agreementAcceptedAt: new Date('2024-02-02T00:00:00.000Z'),
+        agreementDocumentId: 'i18n:deliverySignup.legalModalTitle',
+      },
+    });
+    const open = selection({ audience: 'delivery', agreementVersion: DELIVERY_AGREEMENT_VERSION });
+    assert.equal(agreementState(accepted), 'accepted');
+    assert.equal(matchesAudience(accepted, open), false);
+    const described = describeSelection(open).join(' ');
+    assert.match(described, /Huidige bezorgovereenkomst/);
+    assert.equal(described.includes('i18n:'), false);
+    assert.equal(stripeChoiceLabel('none'), 'Stripe niet gekoppeld');
+    assert.equal(stripeChoiceLabel('incomplete'), 'Stripe nog niet afgerond');
+    assert.equal(stripeChoiceLabel('ready'), 'Stripe afgerond');
+    const summary = selectionPlainSummary(emptySelection('applicable'));
+    assert.match(summary, /selecteert niemand/);
+    assert.match(summary, /niet automatisch/);
+    assert.deepEqual(selectionFilterChips(selection({ audience: 'delivery', stripe: 'none', match: 'all' })).map((chip) => chip.label), ['Stripe niet gekoppeld']);
+    assert.match(selectionPlainSummary(selection({ audience: 'all' })), /bewust gekozen/);
   });
 });
 

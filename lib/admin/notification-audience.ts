@@ -151,6 +151,27 @@ export function payoutConnectStatusLabel(status: PayoutConnectStatus): string {
 
 export const STRIPE_NOT_READY_LABEL = 'Stripe nog niet gereed voor uitbetalingen';
 
+/** Short names for the existing Stripe filters. The status codes stay the same. */
+export function stripeChoiceLabel(status: StripeAudienceFilter): string {
+  if (status === 'none') return 'Stripe niet gekoppeld';
+  if (status === 'incomplete') return 'Stripe nog niet afgerond';
+  if (status === 'ready') return 'Stripe afgerond';
+  if (status === 'review') return 'Stripe-koppeling controleren';
+  return 'Stripe nog niet gereed';
+}
+
+/**
+ * The stored agreement id stays the i18n key that was accepted.
+ * Admins see this name. The key is not a version they can edit.
+ */
+export const DELIVERY_AGREEMENT_DISPLAY_NAME = 'Huidige bezorgovereenkomst';
+
+export function agreementVersionLabel(version: string | null | undefined): string {
+  if (!version) return 'Geen overeenkomstfilter';
+  if (version === DELIVERY_AGREEMENT_VERSION) return DELIVERY_AGREEMENT_DISPLAY_NAME;
+  return 'Andere opgeslagen overeenkomstversie';
+}
+
 export function stripeStatusMatches(status: PayoutConnectStatus, filter: StripeAudienceFilter): boolean {
   if (filter === 'not_ready') return status !== 'ready';
   return status === filter;
@@ -468,6 +489,7 @@ export function emptySelection(audience: AudienceId): AudienceSelection {
 export type AudiencePreset = {
   id: string;
   label: string;
+  description: string;
   available: boolean;
   reason: string | null;
   selection: AudienceSelection | null;
@@ -475,15 +497,41 @@ export type AudiencePreset = {
 
 export const AUDIENCE_PRESETS: AudiencePreset[] = [
   {
+    id: 'delivery_stripe_none',
+    label: 'Bezorgers: Stripe niet gekoppeld',
+    description: 'Nog geen Stripe-account. Verkoop en bezorging delen hetzelfde account.',
+    available: true,
+    reason: null,
+    selection: { ...emptySelection('delivery'), stripe: 'none' },
+  },
+  {
     id: 'delivery_stripe_incomplete',
-    label: 'Bezorgers met onvolledige Stripe Connect',
+    label: 'Bezorgers: Stripe nog niet afgerond',
+    description: 'Stripe is gestart, de uitbetaling is nog niet afgerond.',
     available: true,
     reason: null,
     selection: { ...emptySelection('delivery'), stripe: 'incomplete' },
   },
   {
+    id: 'delivery_stripe_ready',
+    label: 'Bezorgers: Stripe afgerond',
+    description: 'Het gedeelde Stripe-account is gereed voor uitbetalingen.',
+    available: true,
+    reason: null,
+    selection: { ...emptySelection('delivery'), stripe: 'ready' },
+  },
+  {
+    id: 'delivery_agreement_open',
+    label: 'Bezorgers: overeenkomst nog open',
+    description: 'De getoonde bezorgovereenkomst is nog niet geaccepteerd.',
+    available: true,
+    reason: null,
+    selection: { ...emptySelection('delivery'), agreementVersion: DELIVERY_AGREEMENT_VERSION },
+  },
+  {
     id: 'sellers_without_stripe',
-    label: 'Verkopers zonder Stripe',
+    label: 'Verkopers: Stripe niet gekoppeld',
+    description: 'Verkopers zonder Stripe-account op hun profiel.',
     available: true,
     reason: null,
     selection: { ...emptySelection('sellers'), stripe: 'none' },
@@ -491,8 +539,9 @@ export const AUDIENCE_PRESETS: AudiencePreset[] = [
   {
     id: 'buyers_inactive_60',
     label: 'Kopers die 60 dagen niet actief zijn',
+    description: 'Laatste activiteit wordt niet bijgehouden.',
     available: false,
-    reason: ACTIVITY_UNAVAILABLE_MESSAGE,
+    reason: 'Laatste activiteit is niet beschikbaar. Registratiedatum, updatedAt en locatie-updates tellen niet mee.',
     selection: null,
   },
 ];
@@ -667,6 +716,66 @@ export function pendingStepLabel(step: PendingStepId): string {
   return labels[step];
 }
 
+export type SelectionFilterChip = { id: 'stripe' | 'verification' | 'agreement' | 'account' | 'pending'; label: string };
+
+export function selectionFilterChips(selection: AudienceSelection): SelectionFilterChip[] {
+  const chips: SelectionFilterChip[] = [];
+  if (selection.stripe) chips.push({ id: 'stripe', label: stripeChoiceLabel(selection.stripe) });
+  if (selection.verification) {
+    const filter = selection.verification;
+    const label = filter.kind === 'email'
+      ? (filter.status === 'verified' ? 'E-mail geverifieerd' : 'E-mail nog niet geverifieerd')
+      : filter.kind === 'courier'
+        ? (filter.status === 'verified' ? 'Bezorger geverifieerd' : 'Bezorger nog niet geverifieerd')
+        : filter.status === 'verified'
+          ? 'Verkoopreview afgerond'
+          : filter.status === 'pending'
+            ? 'Verkoopreview in behandeling'
+            : 'Verkoopreview nodig';
+    chips.push({ id: 'verification', label });
+  }
+  if (selection.agreementVersion) chips.push({ id: 'agreement', label: 'Overeenkomst nog open' });
+  if (selection.accountStatus === 'active') chips.push({ id: 'account', label: 'Account actief' });
+  if (selection.accountStatus === 'blocked') chips.push({ id: 'account', label: 'Account geblokkeerd' });
+  if (selection.accountStatus === 'courier_blocked') chips.push({ id: 'account', label: 'Bezorger geblokkeerd' });
+  if (selection.pendingStep) {
+    const short: Record<PendingStepId, string> = {
+      delivery_age: 'Leeftijd ontbreekt',
+      delivery_pricing: 'Tarief ontbreekt',
+      delivery_service_area: 'Werkgebied ontbreekt',
+      delivery_availability: 'Beschikbaarheid ontbreekt',
+      delivery_company_name: 'Bedrijfsnaam ontbreekt',
+    };
+    chips.push({ id: 'pending', label: short[selection.pendingStep] });
+  }
+  return chips;
+}
+
+export function selectionPlainSummary(selection: AudienceSelection): string {
+  const who =
+    selection.audience === 'applicable'
+      ? 'Mensen met een passende rol'
+      : selection.audience === 'all'
+        ? 'Alle gebruikers behalve beheerders'
+        : selection.audience === 'buyers'
+          ? 'Kopers'
+          : selection.audience === 'sellers'
+            ? 'Verkopers'
+            : 'Bezorgpartners';
+  const chips = selectionFilterChips(selection);
+  if (selection.audience === 'applicable' && chips.length === 0) {
+    return 'Er is nog geen filter gekozen. Alle toepasselijke rollen zonder filter selecteert niemand. Alle gebruikers wordt niet automatisch gekozen.';
+  }
+  if (selection.audience === 'all' && chips.length === 0) {
+    return 'Alle gebruikers is bewust gekozen, zonder extra filter. Beheerders en test- en systeemaccounts blijven buiten de lijst.';
+  }
+  if (chips.length === 0) {
+    return `${who}, zonder extra filter. Iemand met meerdere rollen telt één keer.`;
+  }
+  const joiner = selection.match === 'any' ? ' of ' : ' en ';
+  return `${who} die voldoen aan ${chips.map((chip) => chip.label).join(joiner)}. Iemand met meerdere rollen telt één keer.`;
+}
+
 export function describeSelection(selection: AudienceSelection): string[] {
   const lines = [
     `Doelgroep: ${audienceLabel(selection.audience)}.`,
@@ -683,7 +792,7 @@ export function describeSelection(selection: AudienceSelection): string[] {
   if (selection.verification) lines.push(`Verificatie: ${verificationFilterLabel(selection.verification)}.`);
   if (selection.agreementVersion) {
     lines.push(
-      `Openstaande acceptatie: bezorgovereenkomst ${selection.agreementVersion}. Alleen een opgeslagen andere versie of geen acceptatie telt als open. Acceptatie zonder versie blijft apart en telt niet mee.`,
+      `Openstaande acceptatie: ${agreementVersionLabel(selection.agreementVersion)}. Alleen een andere opgeslagen versie of geen acceptatie telt als open. Acceptatie zonder versie blijft apart en telt niet mee. Bestaande acceptaties van deze overeenkomst blijven geldig.`,
     );
   }
   if (selection.accountStatus) lines.push(`Accountstatus: ${accountStatusLabel(selection.accountStatus)}.`);

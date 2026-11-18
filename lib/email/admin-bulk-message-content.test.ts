@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { renderAdminBulkMessage, resolveAdminEmailAction } from "./admin-bulk-message-content";
+import { adminEmailActionForRoute, renderAdminBulkMessage, resolveAdminEmailAction } from "./admin-bulk-message-content";
 
 function ok(msg: string) {
   console.log("  ✓", msg);
@@ -99,6 +99,30 @@ if (!half.ok) {
 const onlyUrl = resolveAdminEmailAction("", "https://homecheff.eu/delivery");
 assert.equal(onlyUrl.ok, false);
 ok("a HomeCheff button is optional, one field is rejected, and a Stripe link is refused");
+
+const courierButton = adminEmailActionForRoute("/delivery/dashboard");
+assert.equal(courierButton?.label, "Stripe en bezorginstellingen openen");
+assert.equal(courierButton?.url, "https://homecheff.eu/delivery/dashboard");
+const listingButton = adminEmailActionForRoute("/sell/new");
+assert.equal(listingButton?.label, "Aanbod plaatsen");
+assert.equal(listingButton?.url, "https://homecheff.eu/sell/new");
+assert.equal(adminEmailActionForRoute("https://stripe.com/setup"), null);
+const letterWithButton = renderAdminBulkMessage({
+  recipientName: "Sanne",
+  message: "Rond je Stripe-stappen af.",
+  action: courierButton,
+});
+assert.match(letterWithButton.html, /Stripe en bezorginstellingen openen/);
+assert.match(letterWithButton.html, /https:\/\/homecheff\.eu\/delivery\/dashboard/);
+assert.match(letterWithButton.text, /https:\/\/homecheff\.eu\/delivery\/dashboard/);
+assert.equal(adminEmailActionForRoute("/delivery/dashboard/")?.label, "Stripe en bezorginstellingen openen");
+const centerUi = readFileSync(resolve(process.cwd(), "components/admin/NotificationCenter.tsx"), "utf8");
+assert.equal(centerUi.includes('value="/settings/app"'), false);
+assert.match(centerUi, /value="\/delivery\/dashboard"/);
+assert.match(centerUi, /value="\/sell\/new"/);
+ok("the notification destination becomes a HomeCheff button");
+const noticeRoute = readFileSync(resolve(process.cwd(), "app/api/admin/notifications/send/route.ts"), "utf8");
+assert.match(noticeRoute, /adminEmailActionForRoute\(safeRoute\)/);
 
 const route = readFileSync(
   resolve(process.cwd(), "app/api/admin/send-bulk-message/route.ts"),

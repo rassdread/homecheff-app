@@ -8,7 +8,7 @@ import { evaluateAdminEmailBlast } from '@/lib/email/admin-blast-guard';
 import { sendTransactionalEmail } from '@/lib/email/idempotent-send';
 import { EMAIL_PRIORITY } from '@/lib/email/priority';
 import { getTransactionalFrom } from '@/lib/email-from';
-import { renderAdminBulkMessage } from '@/lib/email/admin-bulk-message-content';
+import { adminEmailActionForRoute, renderAdminBulkMessage } from '@/lib/email/admin-bulk-message-content';
 import {
   UNAVAILABLE_AUDIENCE_FACTS,
   agreementState,
@@ -37,6 +37,7 @@ import {
   activeStaffRejection,
   adminChannelLines,
   mergeBroadcastRecipients,
+  previewAudienceProof,
   narrowManualAdmins,
   parseManualAdmins,
   relevantContentDecisions,
@@ -109,6 +110,7 @@ function recipientView(user: AudienceCandidate, selection: AudienceSelection) {
     stripeStatus: payoutConnectStatus(user),
     requiresExplicitCheck: requiresExplicitStripeCheck(user),
     agreementLabel: agreementStateLabel(agreementState(user)),
+    pushReachable: user.pushReachable,
     reasons: inclusionReasons(user, selection),
     registeredAt: Number.isNaN(created.getTime()) ? null : created.toISOString(),
   };
@@ -390,9 +392,15 @@ export async function POST(req: NextRequest) {
       push: plans.filter((plan) => plan.push && userById.get(plan.userId)?.pushReachable).length,
       email: emailUsers.length,
     };
+    const proof = previewAudienceProof({
+      plans,
+      pushReachable: channels.push,
+      pushExcluded: plans.filter((plan) => plan.push && !userById.get(plan.userId)?.pushReachable).length,
+      emailWithAddress: emailUsers.length,
+      emailWithoutAddress: plans.filter((plan) => plan.email && !userById.get(plan.userId)?.email).length,
+    });
     const previewRecipient = (user: AudienceCandidate) => {
       const plan = planById.get(user.id)!;
-      const staff = user.role === 'ADMIN' || user.role === 'SUPERADMIN' || plan.source !== 'audience';
       const reasons = plan.source === 'manual'
         ? ['Handmatig toegevoegde beheerder, buiten de doelgroep']
         : plan.source === 'both'
@@ -401,9 +409,7 @@ export async function POST(req: NextRequest) {
       return {
         ...recipientView(user, selection),
         reasons,
-        channelLines: staff
-          ? adminChannelLines({ plan, pushReachable: user.pushReachable, hasEmail: Boolean(user.email) })
-          : [],
+        channelLines: adminChannelLines({ plan, pushReachable: user.pushReachable, hasEmail: Boolean(user.email) }),
         alreadySent: relevantDecisions
           .filter((decision) => decision.userId === user.id && (decision.action === 'skip' || decision.action === 'repeat') && decision.at)
           .map((decision) => ({
@@ -416,7 +422,8 @@ export async function POST(req: NextRequest) {
 
     if (dryRun) {
       const lines = [
-        `Definitieve selectie: ${chosen.length} ontvanger(s), waarvan ${matched.length} binnen de filters. In-app ${channels.inApp}, push-bereikbaar ${channels.push}, e-mailadres ${channels.email}. Dezelfde persoon telt één keer per kanaal.`,
+        proof.line,
+        `Filters vonden ${matched.length} unieke gebruiker(s). Alleen de ${chosen.length} naam of namen hieronder zijn geselecteerd.`,
         ...summary,
         ...(manualAdmins.length > 0
           ? [`${manualAdmins.length} beheerder(s) handmatig toegevoegd. Kanalen worden samengevoegd als dezelfde persoon ook is aangevinkt.`]
@@ -431,6 +438,7 @@ export async function POST(req: NextRequest) {
         unavailable: UNAVAILABLE_AUDIENCE_FACTS,
         total: chosen.length,
         found: matched.length,
+        proof,
         channels,
         duplicateLines: contentLines,
         recipients: chosen.map(previewRecipient),
@@ -597,6 +605,7 @@ export async function POST(req: NextRequest) {
               const letter = renderAdminBulkMessage({
                 recipientName: user.name || '',
                 message,
+                action: adminEmailActionForRoute(safeRoute),
               });
               const result = await sendTransactionalEmail({
                 from: getTransactionalFrom(),

@@ -130,6 +130,26 @@ function actionHtml(action: AdminEmailAction): string {
   </p>`;
 }
 
+const NOTIFICATION_ROUTE_LABELS: Record<string, string> = {
+  "/notifications": "Meldingen openen",
+  "/delivery/dashboard": "Stripe en bezorginstellingen openen",
+  "/delivery/settings": "Bezorginstellingen openen",
+  "/sell/new": "Aanbod plaatsen",
+  "/app": "HomeCheff-app openen",
+  "/mijn-hcp": "Mijn HCP openen",
+  "/profile": "Profiel openen",
+};
+
+/** The internal destination chosen for in-app and push, as a HomeCheff mail button. */
+export function adminEmailActionForRoute(route: string): AdminEmailAction | null {
+  const path = route.trim();
+  if (!path.startsWith("/") || path.startsWith("//")) return null;
+  const pathname = (path.split("?")[0] || path).replace(/\/+$/, "") || "/";
+  const label = NOTIFICATION_ROUTE_LABELS[pathname] || "Openen in HomeCheff";
+  const resolved = resolveAdminEmailAction(label, `https://homecheff.eu${path}`);
+  return resolved.ok ? resolved.action : null;
+}
+
 export function renderAdminBulkMessage(input: {
   recipientName: string;
   message: string;
