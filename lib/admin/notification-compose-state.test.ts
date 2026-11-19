@@ -52,15 +52,14 @@ describe('send stays closed until the preview matches the form', () => {
   it('names the missing preview when every other field is filled', () => {
     const block = sendBlockReason({ ...ready, hasPreview: false });
     assert.equal(block?.field, 'preview');
-    assert.match(block?.action || '', /Bekijk het voorbeeld/);
+    assert.equal(block?.action, 'admin.notificationCenter.ui.blockNeedPreview');
     assert.equal(sendBlockReason(ready), null);
   });
 
   it('asks for a fresh preview after the selection or message changes', () => {
     const block = sendBlockReason({ ...ready, hasPreview: false, previewTotal: 0, previewStale: true });
     assert.equal(block?.refreshPreview, true);
-    assert.match(block?.action || '', /Voorbeeld vernieuwen/);
-    assert.match(block?.action || '', /blijven staan/);
+    assert.equal(block?.action, 'admin.notificationCenter.ui.blockStale');
   });
 
   it('points at the empty field instead of a silent disabled button', () => {
@@ -83,8 +82,9 @@ describe('typing does not reload the recipient list', () => {
     assert.doesNotMatch(effect, /subject,/);
     assert.doesNotMatch(effect, /pushTitle,/);
     assert.doesNotMatch(effect, /setDirectory\(\[\]\)/);
-    assert.match(ui, /Geselecteerde ontvangers/);
-    assert.match(ui, /Voorbeeld vernieuwen/);
+    assert.match(ui, /copy\('selectedHeading'\)/);
+    assert.match(ui, /copy\('refreshPreview'\)/);
     assert.match(ui, /id="send-block-reason"/);
+    assert.doesNotMatch(ui, /Geselecteerde ontvangers/);
   });
 });

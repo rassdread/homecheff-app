@@ -1,3 +1,5 @@
+import { uiCopy, type UiLanguage } from '@/lib/admin/notification-copy';
+
 export type ChosenRecipient = {
   id: string;
   name: string;
@@ -22,7 +24,7 @@ export function chosenRecipients(input: {
   selectedIds: readonly string[];
   directory: readonly DirectoryPerson[];
   manual: readonly ManualPerson[];
-}): ChosenRecipient[] {
+}, lang: UiLanguage = 'nl'): ChosenRecipient[] {
   const directoryById = new Map(input.directory.map((person) => [person.id, person]));
   const manualById = new Map(input.manual.map((person) => [person.id, person]));
   const order = [...input.selectedIds, ...input.manual.map((person) => person.id)];
@@ -37,7 +39,7 @@ export function chosenRecipients(input: {
     const person = fromDirectory || manual;
     rows.push({
       id,
-      name: person?.name || 'Onbekende ontvanger',
+      name: person?.name || uiCopy(lang, 'admin.notificationCenter.ui.unknownRecipient'),
       email: person?.email ?? null,
       fromAudience: input.selectedIds.includes(id) && Boolean(fromDirectory),
       manual: Boolean(manual),
@@ -63,21 +65,21 @@ export function sendBlockReason(input: {
     return {
       field: 'message',
       refreshPreview: false,
-      action: 'Vul een bericht in. Het veld Bericht is nog leeg.',
+      action: 'admin.notificationCenter.ui.blockEmptyMessage',
     };
   }
   if (!input.sendNotification && !input.sendEmail) {
     return {
       field: 'channel',
       refreshPreview: false,
-      action: 'Kies in-appmelding en push, of e-mail. Zonder kanaal kan er niets worden verstuurd.',
+      action: 'admin.notificationCenter.ui.blockChannel',
     };
   }
   if (input.sendEmail && !input.subject.trim()) {
     return {
       field: 'subject',
       refreshPreview: false,
-      action: 'Vul een onderwerp in. Het veld Onderwerp is verplicht voor e-mail.',
+      action: 'admin.notificationCenter.ui.blockSubject',
     };
   }
   if (input.recipientCount === 0) {
@@ -85,8 +87,8 @@ export function sendBlockReason(input: {
       field: 'recipients',
       refreshPreview: false,
       action: input.listable
-        ? 'Vink iemand aan of voeg een beheerder toe. Filterresultaten gaan niet automatisch mee.'
-        : 'Kies een filter of voeg een beheerder toe. Alle toepasselijke rollen zonder filter selecteert niemand.',
+        ? 'admin.notificationCenter.ui.blockRecipientsList'
+        : 'admin.notificationCenter.ui.blockRecipientsFilter',
     };
   }
   if (!input.hasPreview || input.previewTotal === 0) {
@@ -94,17 +96,17 @@ export function sendBlockReason(input: {
       field: 'preview',
       refreshPreview: input.previewStale || input.previewTotal === 0,
       action: input.previewStale
-        ? 'Het voorbeeld is verouderd. Klik op Voorbeeld vernieuwen. Tekst en ontvangers blijven staan.'
+        ? 'admin.notificationCenter.ui.blockStale'
         : input.previewTotal === 0 && input.hasPreview
-          ? 'Het voorbeeld bevat geen ontvangers. Pas de selectie aan en klik op Voorbeeld vernieuwen.'
-          : 'Bekijk het voorbeeld. Verzenden blijft dicht tot het voorbeeld klopt met deze selectie.',
+          ? 'admin.notificationCenter.ui.blockEmptyPreview'
+          : 'admin.notificationCenter.ui.blockNeedPreview',
     };
   }
   if (input.emailConfirmRequired && !input.emailConfirmed) {
     return {
       field: 'email-confirm',
       refreshPreview: false,
-      action: 'Vink de bevestiging voor e-mail aan. Daarna kun je dit voorbeeld verzenden.',
+      action: 'admin.notificationCenter.ui.blockEmailConfirm',
     };
   }
   return null;

@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client';
+import { uiCopy, type UiLanguage } from '@/lib/admin/notification-copy';
 
 /**
  * Per-recipient broadcast ledger decisions.
@@ -172,58 +173,56 @@ export type BroadcastSendCounts = {
 
 export type BroadcastOutcome = 'sent' | 'partial' | 'failed' | 'already_sent';
 
-export function formatBroadcastResult(counts: BroadcastSendCounts): {
+export function formatBroadcastResult(counts: BroadcastSendCounts, lang: UiLanguage = 'nl'): {
   success: boolean;
   outcome: BroadcastOutcome;
   lines: string[];
   message: string;
   httpStatus: number;
 } {
+  const text = (key: string, params?: Record<string, string | number>) =>
+    uiCopy(lang, `admin.notificationCenter.ui.${key}`, params);
   const lines: string[] = [];
   if (counts.inAppRequested) {
     lines.push(
       counts.notificationsCreated > 0
-        ? `In-app: ${counts.notificationsCreated} melding(en) aangemaakt.`
-        : 'In-app: geen nieuwe melding aangemaakt.',
+        ? text('inAppCreatedCount', { count: counts.notificationsCreated })
+        : text('inAppNone'),
     );
     if (counts.notificationsSkipped > 0) {
-      lines.push(
-        `In-app: ${counts.notificationsSkipped} ontvanger(s) hadden deze melding al en zijn niet opnieuw aangeschreven.`,
-      );
+      lines.push(text('inAppSkipped', { count: counts.notificationsSkipped }));
     }
   } else {
-    lines.push('In-app: niet gekozen.');
+    lines.push(text('inAppNotChosen'));
   }
 
   if (counts.pushRequested) {
-    lines.push(
-      `Push: ${counts.pushOffered} aangeboden aan de pushdienst, ${counts.pushFailed} mislukt, ${counts.pushNoToken} zonder geschikt apparaat. Aflevering op het toestel is niet bevestigd.`,
-    );
+    lines.push(text('pushCounts', {
+      offered: counts.pushOffered,
+      failed: counts.pushFailed,
+      noToken: counts.pushNoToken,
+    }));
     if (counts.pushSkipped > 0) {
-      lines.push(
-        `Push: ${counts.pushSkipped} ontvanger(s) waren al aangeboden en zijn niet opnieuw aangeschreven.`,
-      );
+      lines.push(text('pushSkipped', { count: counts.pushSkipped }));
     }
   } else {
-    lines.push('Push: niet gekozen.');
+    lines.push(text('pushNotChosen'));
   }
 
   if (counts.emailRequested) {
-    lines.push(
-      `E-mail: ${counts.emailsAccepted} geaccepteerd door de maildienst, ${counts.emailsFailed} geweigerd, ${counts.emailsSuppressed} niet aangeboden. Acceptatie is geen afleverbevestiging.`,
-    );
+    lines.push(text('emailCounts', {
+      accepted: counts.emailsAccepted,
+      failed: counts.emailsFailed,
+      suppressed: counts.emailsSuppressed,
+    }));
     if (counts.emailsSkipped > 0) {
-      lines.push(
-        `E-mail: ${counts.emailsSkipped} ontvanger(s) waren al geaccepteerd en zijn niet opnieuw aangeschreven.`,
-      );
+      lines.push(text('emailSkipped', { count: counts.emailsSkipped }));
     }
     if (counts.emailsUnconfirmed > 0) {
-      lines.push(
-        `E-mail: ${counts.emailsUnconfirmed} eerdere poging(en) zijn niet opnieuw verstuurd omdat de maildienst de acceptatie niet heeft bevestigd.`,
-      );
+      lines.push(text('emailUnconfirmed', { count: counts.emailsUnconfirmed }));
     }
   } else {
-    lines.push('E-mail: niet gekozen.');
+    lines.push(text('emailNotChosen'));
   }
 
   const newWork =
@@ -247,12 +246,12 @@ export function formatBroadcastResult(counts: BroadcastSendCounts): {
   else if (newWork === 0 && problems > 0) outcome = 'failed';
   else if (requested === 0) outcome = 'failed';
 
-  if (outcome === 'partial') lines.push('Gedeeltelijk gelukt. Ontvangers die het bericht al kregen, zijn overgeslagen.');
+  if (outcome === 'partial') lines.push(text('partialDone'));
   if (outcome === 'already_sent') {
-    lines.push('Geen nieuwe berichten. Een herhaling heeft niemand opnieuw aangeschreven.');
+    lines.push(text('alreadySentNone'));
   }
   if (outcome === 'failed' && lines.length > 0) {
-    lines.push('Niets is als geaccepteerd of aangemaakt bevestigd.');
+    lines.push(text('nothingConfirmed'));
   }
 
   const message = lines.filter((line) => line.trim().length > 0).join('\n');
@@ -261,8 +260,8 @@ export function formatBroadcastResult(counts: BroadcastSendCounts): {
   return {
     success: outcome === 'sent',
     outcome,
-    lines: safeLines.length > 0 ? safeLines : ['De verzending gaf geen leesbare uitslag.'],
-    message: message.trim() || 'De verzending gaf geen leesbare uitslag.',
+    lines: safeLines.length > 0 ? safeLines : [text('noReadableResult')],
+    message: message.trim() || text('noReadableResult'),
     httpStatus,
   };
 }

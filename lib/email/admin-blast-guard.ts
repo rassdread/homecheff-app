@@ -1,3 +1,5 @@
+import { uiCopy, type UiLanguage } from '@/lib/admin/notification-copy';
+
 /**
  * Production-safe limits for admin email broadcasts.
  * Legitimate admin mail remains possible; accidental full-audience blasts need confirmation.
@@ -32,7 +34,9 @@ export function evaluateAdminEmailBlast(input: {
   targetType: string;
   confirmEmailBlast?: boolean;
   idempotencyKey?: string | null;
+  lang?: UiLanguage;
 }): AdminEmailBlastGate {
+  const lang = input.lang === 'en' ? 'en' : 'nl';
   if (!input.sendEmail) {
     return { ok: true, emailRecipientCount: 0, requiresConfirm: false };
   }
@@ -46,7 +50,7 @@ export function evaluateAdminEmailBlast(input: {
     return {
       ok: false,
       code: 'HARD_LIMIT',
-      error: `Te veel e-mailontvangers (${count}). Maximum per actie is ${hardMax}. Gebruik een gerichtere doelgroep of een aparte marketingstream.`,
+      error: uiCopy(lang, 'admin.notificationCenter.ui.blastHard', { count, max: hardMax }),
       emailRecipientCount: count,
       softMax: ADMIN_EMAIL_SOFT_MAX,
       hardMax,
@@ -57,7 +61,7 @@ export function evaluateAdminEmailBlast(input: {
     return {
       ok: false,
       code: 'CONFIRM_REQUIRED',
-      error: `Bevestig e-mailverzending naar ${count} ontvangers (confirmEmailBlast: true). Dit verbruikt transactionele e-mailcapaciteit.`,
+      error: uiCopy(lang, 'admin.notificationCenter.ui.blastConfirm', { count }),
       emailRecipientCount: count,
       softMax: ADMIN_EMAIL_SOFT_MAX,
       hardMax,
@@ -68,7 +72,7 @@ export function evaluateAdminEmailBlast(input: {
     return {
       ok: false,
       code: 'MISSING_IDEMPOTENCY',
-      error: 'Idempotency-Key header is verplicht voor grote e-mailbroadcasts (voorkomt dubbele submit).',
+      error: uiCopy(lang, 'admin.notificationCenter.ui.blastIdempotency'),
       emailRecipientCount: count,
       softMax: ADMIN_EMAIL_SOFT_MAX,
       hardMax,

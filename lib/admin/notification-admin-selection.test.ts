@@ -268,7 +268,7 @@ describe('the same admin selected both ways', () => {
     assert.equal(route.split('renderAdminBulkMessage(').length - 1, 1);
     assert.equal(route.split('sendAdminBroadcastFcmByUser(').length - 1, 1);
     assert.match(route, /stampChannels/);
-    assert.match(ui, /Beheerder toevoegen/);
+    assert.match(ui, /copy\('addAdmin'\)/);
     assert.match(ui, /addedAdmins/);
   });
 });

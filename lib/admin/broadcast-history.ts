@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import { uiCopy, type UiLanguage } from '@/lib/admin/notification-copy';
 
 export type DeliveryChannel = 'inApp' | 'push' | 'email';
 
@@ -152,23 +153,23 @@ export function pushAlsoCreatesInApp(channels: readonly DeliveryChannel[]): bool
   return channels.includes('push') && channels.includes('inApp');
 }
 
-export function channelDisplayName(channel: DeliveryChannel): string {
-  if (channel === 'inApp') return 'In-app';
-  if (channel === 'push') return 'Push';
-  return 'E-mail';
+export function channelDisplayName(channel: DeliveryChannel, lang: UiLanguage = 'nl'): string {
+  if (channel === 'inApp') return uiCopy(lang, 'admin.notificationCenter.ui.inAppName');
+  if (channel === 'push') return uiCopy(lang, 'admin.notificationCenter.ui.pushName');
+  return uiCopy(lang, 'admin.notificationCenter.ui.emailName');
 }
 
-export function channelOutcomeLabel(channel: DeliveryChannel, status: HistoryOutcome): string {
-  if (status === 'delivered') return 'Afgeleverd';
-  if (channel === 'inApp' && status === 'created') return 'In-appmelding aangemaakt';
-  if (channel === 'push' && status === 'accepted') return 'Push geaccepteerd door de pushdienst';
-  if (channel === 'email' && status === 'accepted') return 'E-mail geaccepteerd door maildienst';
-  if (status === 'skipped_duplicate') return 'Overgeslagen als duplicaat';
-  if (status === 'failed') return 'Mislukt';
-  if (status === 'unconfirmed') return 'Uitkomst onbekend';
-  if (status === 'no_token') return 'Geen geldig pushapparaat geregistreerd';
-  if (status === 'suppressed') return 'Niet aangeboden';
-  return 'Niet geregistreerd';
+export function channelOutcomeLabel(channel: DeliveryChannel, status: HistoryOutcome, lang: UiLanguage = 'nl'): string {
+  if (status === 'delivered') return uiCopy(lang, 'admin.notificationCenter.ui.delivered');
+  if (channel === 'inApp' && status === 'created') return uiCopy(lang, 'admin.notificationCenter.ui.inAppCreated');
+  if (channel === 'push' && status === 'accepted') return uiCopy(lang, 'admin.notificationCenter.ui.pushAccepted');
+  if (channel === 'email' && status === 'accepted') return uiCopy(lang, 'admin.notificationCenter.ui.emailAccepted');
+  if (status === 'skipped_duplicate') return uiCopy(lang, 'admin.notificationCenter.ui.skippedDuplicate');
+  if (status === 'failed') return uiCopy(lang, 'admin.notificationCenter.ui.failed');
+  if (status === 'unconfirmed') return uiCopy(lang, 'admin.notificationCenter.ui.outcomeUnknown');
+  if (status === 'no_token') return uiCopy(lang, 'admin.notificationCenter.ui.noPushDevice');
+  if (status === 'suppressed') return uiCopy(lang, 'admin.notificationCenter.ui.notOffered');
+  return uiCopy(lang, 'admin.notificationCenter.ui.notRecorded');
 }
 
 export function outcomeWasReceived(status: HistoryOutcome): boolean {
@@ -177,6 +178,8 @@ export function outcomeWasReceived(status: HistoryOutcome): boolean {
 
 export type HistoryChannelStatus = {
   channel: string;
+  channelId: DeliveryChannel;
+  code: HistoryOutcome;
   status: string;
   received: boolean;
 };
@@ -184,12 +187,15 @@ export type HistoryChannelStatus = {
 export function describeChannelOutcomes(
   channels: DeliveryChannel[],
   state: Partial<Record<DeliveryChannel, HistoryOutcome>>,
+  lang: UiLanguage = 'nl',
 ): HistoryChannelStatus[] {
   return channels.map((channel) => {
     const outcome = state[channel] ?? 'missing';
     return {
-      channel: channelDisplayName(channel),
-      status: channelOutcomeLabel(channel, outcome),
+      channel: channelDisplayName(channel, lang),
+      channelId: channel,
+      code: outcome,
+      status: channelOutcomeLabel(channel, outcome, lang),
       received: outcomeWasReceived(outcome),
     };
   });
@@ -221,10 +227,10 @@ export function withinHistoryPeriod(at: string, from: string | null, to: string 
   return true;
 }
 
-export function recipientCountLabel(count: number, incomplete: boolean): string {
-  if (count === 0 && incomplete) return 'Ontvangers niet geregistreerd';
-  if (count === 1) return '1 ontvanger';
-  return `${count} ontvangers`;
+export function recipientCountLabel(count: number, incomplete: boolean, lang: UiLanguage = 'nl'): string {
+  if (count === 0 && incomplete) return uiCopy(lang, 'admin.notificationCenter.ui.recipientsUnrecorded');
+  if (count === 1) return uiCopy(lang, 'admin.notificationCenter.ui.oneRecipient');
+  return uiCopy(lang, 'admin.notificationCenter.ui.manyRecipients', { count });
 }
 
 export function readStoredBroadcastNotice(payload: unknown): {

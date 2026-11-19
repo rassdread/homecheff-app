@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { uiCopy, uiLanguageFromRequest } from '@/lib/admin/notification-copy';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { listBroadcastHistory, readBroadcastHistory } from '@/lib/admin/load-broadcast-history';
@@ -28,15 +29,16 @@ async function requireAdmin() {
 }
 
 export async function GET(req: NextRequest) {
+  const lang = uiLanguageFromRequest(req);
   const session = await requireAdmin();
   if (!session) {
-    return NextResponse.json({ error: 'Alleen een beheerder kan de verzendgeschiedenis bekijken.' }, { status: 401 });
+    return NextResponse.json({ error: uiCopy(lang, 'admin.notificationCenter.ui.historyAdminOnly') }, { status: 401 });
   }
   const id = req.nextUrl.searchParams.get('id')?.trim() || '';
   if (id) {
-    const detail = await readBroadcastHistory(prisma, id);
+    const detail = await readBroadcastHistory(prisma, id, lang);
     if (!detail) {
-      return NextResponse.json({ error: 'Deze verzending staat niet in de registratie.' }, { status: 404 });
+      return NextResponse.json({ error: uiCopy(lang, 'admin.notificationCenter.ui.historyMissing') }, { status: 404 });
     }
     return NextResponse.json(detail);
   }
@@ -44,9 +46,9 @@ export async function GET(req: NextRequest) {
   const from = dayParam(req.nextUrl.searchParams.get('from'));
   const to = dayParam(req.nextUrl.searchParams.get('to'));
   const channel = channelParam(req.nextUrl.searchParams.get('channel'));
-  const sends = await listBroadcastHistory(prisma, { query: q, from, to, channel });
+  const sends = await listBroadcastHistory(prisma, { query: q, from, to, channel, lang });
   return NextResponse.json({
     sends,
-    note: 'Alleen geregistreerde verzendingen uit Groei en Community staan hier. Oudere berichten zonder registratie kunnen ontbreken.',
+    note: uiCopy(lang, 'admin.notificationCenter.ui.historyScope'),
   });
 }

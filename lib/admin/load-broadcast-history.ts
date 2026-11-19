@@ -1,7 +1,7 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { audienceLabel, type AudienceId } from '@/lib/admin/notification-audience';
+import { uiCopy, uiKnown, type UiLanguage } from '@/lib/admin/notification-copy';
 import {
-  HISTORY_INCOMPLETE_NOTE,
   campaignRecordId,
   channelDisplayName,
   channelsFromLedgerMeta,
@@ -20,7 +20,6 @@ import {
   isDeliveryChannel,
   planContentDeliveries,
   priorDeliveryId,
-  PUSH_CREATES_IN_APP_NOTE,
   pushAlsoCreatesInApp,
   type ContentDeliveryDecision,
   type DeliveryChannel,
@@ -171,12 +170,14 @@ export async function recordBroadcastCampaign(
     audience: string;
     channels: { inApp: boolean; push: boolean; email: boolean };
     at: string;
+    lang?: UiLanguage;
   },
 ): Promise<void> {
   const id = campaignRecordId(input.campaignId);
+  const lang = input.lang === 'en' ? 'en' : 'nl';
   const audience = (['applicable', 'all', 'buyers', 'sellers', 'delivery'] as AudienceId[]).includes(input.audience as AudienceId)
-    ? audienceLabel(input.audience as AudienceId)
-    : input.audience || 'Gekozen ontvangers';
+    ? audienceLabel(input.audience as AudienceId, lang)
+    : input.audience || uiCopy(lang, 'admin.notificationCenter.ui.chosenAudience');
   const meta: Prisma.InputJsonValue = {
     kind: CAMPAIGN_KIND,
     source: input.source,
@@ -288,6 +289,7 @@ function buildSend(input: {
   subject: string;
   message: string;
   audience: string;
+  lang: UiLanguage;
   channels: DeliveryChannel[];
   incomplete: boolean;
   notices: NoticeRow[];
@@ -317,27 +319,27 @@ function buildSend(input: {
     if (intended.includes('push')) state.push = pushOutcome(ledger?.push) ?? 'missing';
     return {
       id: userId,
-      name: user?.name || user?.username || 'Gebruiker',
+      name: user?.name || user?.username || uiCopy(input.lang, 'admin.notificationCenter.ui.userFallback'),
       email: user?.email || null,
-      channels: describeChannelOutcomes(intended, state),
-      note: pushAlsoCreatesInApp(intended) ? PUSH_CREATES_IN_APP_NOTE : null,
+      channels: describeChannelOutcomes(intended, state, input.lang),
+      note: pushAlsoCreatesInApp(intended) ? uiCopy(input.lang, 'admin.notificationCenter.ui.pushAlsoInApp') : null,
     };
   }).sort((left, right) => left.name.localeCompare(right.name, 'nl'));
   const list: HistoryListSend = {
     id: input.id,
     subject: input.subject,
     at: input.at,
-    audience: input.audience,
-    channels: input.channels.map(channelDisplayName),
+    audience: uiKnown(input.lang, input.audience),
+    channels: input.channels.map((channel) => channelDisplayName(channel, input.lang)),
     channelIds: input.channels,
     recipientCount: userIds.length,
     incomplete: input.incomplete,
-    note: input.incomplete ? HISTORY_INCOMPLETE_NOTE : null,
+    note: input.incomplete ? uiCopy(input.lang, 'admin.notificationCenter.ui.historyIncomplete') : null,
   };
   return { list, message: input.message, recipients };
 }
 
-async function loadBroadcastSends(db: HistoryDb): Promise<BuiltSend[]> {
+async function loadBroadcastSends(db: HistoryDb, lang: UiLanguage = 'nl'): Promise<BuiltSend[]> {
   const [campaigns, notices, ledgers] = await Promise.all([
     db.auditLog.findMany({
       where: { action: CAMPAIGN_KIND },
@@ -413,7 +415,7 @@ async function loadBroadcastSends(db: HistoryDb): Promise<BuiltSend[]> {
       ? header.meta.subject
       : typeof header?.meta.title === 'string' && header.meta.title.trim()
         ? header.meta.title
-        : stored?.title || 'Bericht zonder onderwerp';
+        : stored?.title || uiCopy(lang, 'admin.notificationCenter.ui.missingSubject');
     const at = typeof header?.meta.at === 'string'
       ? header.meta.at
       : header?.createdAt.toISOString()
@@ -427,6 +429,7 @@ async function loadBroadcastSends(db: HistoryDb): Promise<BuiltSend[]> {
       subject,
       message,
       audience: typeof header?.meta.audience === 'string' ? header.meta.audience : 'Niet geregistreerd',
+      lang,
       channels,
       incomplete: !header || header.meta.incomplete === true,
       notices: noticesBySend.get(id) || [],
@@ -439,9 +442,9 @@ async function loadBroadcastSends(db: HistoryDb): Promise<BuiltSend[]> {
 
 export async function listBroadcastHistory(
   db: HistoryDb,
-  input: { query: string; from: string | null; to: string | null; channel: 'all' | DeliveryChannel },
+  input: { query: string; from: string | null; to: string | null; channel: 'all' | DeliveryChannel; lang?: UiLanguage },
 ): Promise<HistorySummary[]> {
-  const sends = await loadBroadcastSends(db);
+  const sends = await loadBroadcastSends(db, input.lang === 'en' ? 'en' : 'nl');
   const visible = filterHistorySends(sends.map((send) => send.list), input);
   const visibleIds = new Set(visible.map((send) => send.id));
   const membership: HistoryMembership[] = sends.flatMap((send) => {
@@ -474,8 +477,8 @@ export async function listBroadcastHistory(
   }).slice(0, 50).map((row) => toSummary(row, row.focus));
 }
 
-export async function readBroadcastHistory(db: HistoryDb, campaignId: string): Promise<HistoryDetail | null> {
-  const sends = await loadBroadcastSends(db);
+export async function readBroadcastHistory(db: HistoryDb, campaignId: string, lang: UiLanguage = 'nl'): Promise<HistoryDetail | null> {
+  const sends = await loadBroadcastSends(db, lang);
   const send = sends.find((item) => item.list.id === campaignId);
   if (!send) return null;
   return {

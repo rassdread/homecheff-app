@@ -1,3 +1,4 @@
+import { uiCopy, type UiLanguage } from '@/lib/admin/notification-copy';
 import { isReservedNonMailboxEmail } from '@/lib/admin/user-population';
 
 /**
@@ -127,15 +128,15 @@ export function mergeBroadcastRecipients(input: {
   return plans;
 }
 
-export function activeStaffRejection(user: StaffAccountCheck | null): string | null {
+export function activeStaffRejection(user: StaffAccountCheck | null, lang: UiLanguage = 'nl'): string | null {
   if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN')) {
-    return 'Een handmatig toegevoegde ontvanger is geen actief beheerdersaccount.';
+    return uiCopy(lang, 'admin.notificationCenter.ui.staffNotAdmin');
   }
   if (user.accountDeletedAt || user.suspendedAt) {
-    return 'Een handmatig toegevoegde ontvanger is geen actief beheerdersaccount.';
+    return uiCopy(lang, 'admin.notificationCenter.ui.staffNotAdmin');
   }
   if (isReservedNonMailboxEmail(user.email)) {
-    return 'Test- en systeemaccounts blijven uitgesloten.';
+    return uiCopy(lang, 'admin.notificationCenter.ui.staffReserved');
   }
   return null;
 }
@@ -146,20 +147,30 @@ export function previewAudienceProof(input: {
   pushExcluded: number;
   emailWithAddress: number;
   emailWithoutAddress: number;
-}): { unique: number; fromFilters: number; manualOnly: number; both: number; line: string } {
+}, lang: UiLanguage = 'nl'): { unique: number; fromFilters: number; manualOnly: number; both: number; line: string } {
   const fromFilters = input.plans.filter((plan) => plan.source !== 'manual').length;
   const manualOnly = input.plans.filter((plan) => plan.source === 'manual').length;
   const both = input.plans.filter((plan) => plan.source === 'both').length;
   const unique = input.plans.length;
   const alone = unique > 0 && fromFilters === 0
-    ? ' Niemand uit de doelgroep gaat mee.'
-    : ' Niet aangevinkte filterresultaten gaan niet mee.';
+    ? ` ${uiCopy(lang, 'admin.notificationCenter.ui.proofNone')}`
+    : ` ${uiCopy(lang, 'admin.notificationCenter.ui.proofUnchecked')}`;
   return {
     unique,
     fromFilters,
     manualOnly,
     both,
-    line: `Unieke ontvangers in dit voorbeeld: ${unique}. Uit de filters: ${fromFilters}. Alleen handmatig toegevoegd: ${manualOnly}. Zowel filter als handmatig: ${both}. In-app ${input.plans.filter((plan) => plan.inApp).length}. Push bereikbaar ${input.pushReachable}, zonder apparaat ${input.pushExcluded}. E-mail met adres ${input.emailWithAddress}, zonder adres ${input.emailWithoutAddress}.${alone}`,
+    line: `${uiCopy(lang, 'admin.notificationCenter.ui.proofLine', {
+      unique,
+      fromFilters,
+      manualOnly,
+      both,
+      inApp: input.plans.filter((plan) => plan.inApp).length,
+      pushReachable: input.pushReachable,
+      pushExcluded: input.pushExcluded,
+      emailWith: input.emailWithAddress,
+      emailWithout: input.emailWithoutAddress,
+    })}${alone}`,
   };
 }
 
@@ -167,24 +178,20 @@ export function adminChannelLines(input: {
   plan: Pick<BroadcastChannelPlan, 'email' | 'push' | 'inApp'>;
   pushReachable: boolean;
   hasEmail: boolean;
-}): string[] {
+}, lang: UiLanguage = 'nl'): string[] {
   const lines: string[] = [];
   if (input.plan.email) {
-    lines.push(
-      input.hasEmail
-        ? 'E-mail: zelfde onderwerp, tekst en HomeCheff-opmaak.'
-        : 'E-mail: geen e-mailadres.',
-    );
+    lines.push(uiCopy(lang, input.hasEmail
+      ? 'admin.notificationCenter.ui.emailSame'
+      : 'admin.notificationCenter.ui.emailNoAddress'));
   }
   if (input.plan.push) {
-    lines.push(
-      input.pushReachable
-        ? 'Push: zelfde titel, tekst en interne bestemming.'
-        : 'Push: geen geldig pushapparaat geregistreerd.',
-    );
+    lines.push(uiCopy(lang, input.pushReachable
+      ? 'admin.notificationCenter.ui.pushSame'
+      : 'admin.notificationCenter.ui.pushNoDevice'));
   }
   if (input.plan.inApp) {
-    lines.push('In-appmelding: wordt aangemaakt samen met push.');
+    lines.push(uiCopy(lang, 'admin.notificationCenter.ui.inAppWithPush'));
   }
   return lines;
 }

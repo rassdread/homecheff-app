@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { uiCopy, uiLanguageFromRequest, type UiLanguage } from '@/lib/admin/notification-copy';
 import { createHash } from 'crypto';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -83,8 +84,12 @@ function campaignKeyFrom(req: NextRequest, body: { idempotencyKey?: unknown } | 
   return raw;
 }
 
-function selectionFromBody(body: Record<string, unknown>): { ok: true; selection: AudienceSelection } | { ok: false; error: string } {
-  if (body.selection != null) return parseAudienceSelection(body.selection);
+function say(lang: UiLanguage, key: string, params?: Record<string, string | number>): string {
+  return uiCopy(lang, `admin.notificationCenter.ui.${key}`, params);
+}
+
+function selectionFromBody(body: Record<string, unknown>, lang: UiLanguage): { ok: true; selection: AudienceSelection } | { ok: false; error: string } {
+  if (body.selection != null) return parseAudienceSelection(body.selection, lang);
   const targetType = typeof body.targetType === 'string' ? body.targetType.trim() : '';
   const legacy: Record<string, AudienceId> = {
     all: 'all',
@@ -94,24 +99,24 @@ function selectionFromBody(body: Record<string, unknown>): { ok: true; selection
   };
   const audience = legacy[targetType];
   if (!audience) {
-    return { ok: false, error: 'Kies eerst een doelgroep. Een lege of onbekende selectie kan niet worden verstuurd.' };
+    return { ok: false, error: say(lang, 'chooseAudienceUnknown') };
   }
   return { ok: true, selection: emptySelection(audience) };
 }
 
-function recipientView(user: AudienceCandidate, selection: AudienceSelection) {
+function recipientView(user: AudienceCandidate, selection: AudienceSelection, lang: UiLanguage) {
   const created = user.createdAt instanceof Date ? user.createdAt : new Date(user.createdAt);
   return {
     id: user.id,
-    name: user.name || user.username || 'Gebruiker',
+    name: user.name || user.username || say(lang, 'userFallback'),
     email: user.email,
-    roles: audienceRoleLabels(user),
-    connectLabel: payoutConnectStatusLabel(payoutConnectStatus(user)),
+    roles: audienceRoleLabels(user, lang),
+    connectLabel: payoutConnectStatusLabel(payoutConnectStatus(user), lang),
     stripeStatus: payoutConnectStatus(user),
     requiresExplicitCheck: requiresExplicitStripeCheck(user),
-    agreementLabel: agreementStateLabel(agreementState(user)),
+    agreementLabel: agreementStateLabel(agreementState(user), lang),
     pushReachable: user.pushReachable,
-    reasons: inclusionReasons(user, selection),
+    reasons: inclusionReasons(user, selection, lang),
     registeredAt: Number.isNaN(created.getTime()) ? null : created.toISOString(),
   };
 }
@@ -159,11 +164,13 @@ async function saveLedger(campaignId: string, userId: string, ledger: RecipientL
 }
 
 export async function POST(req: NextRequest) {
+  const lang = uiLanguageFromRequest(req);
   try {
     const session = await auth();
     if (!session?.user?.email) {
+      const message = say(lang, 'notSignedIn');
       return NextResponse.json(
-        { error: 'Je bent niet aangemeld.', message: 'Je bent niet aangemeld.' },
+        { error: message, message },
         { status: 401 },
       );
     }
@@ -175,7 +182,7 @@ export async function POST(req: NextRequest) {
 
     if (adminUser?.role !== 'ADMIN' && adminUser?.role !== 'SUPERADMIN') {
       return NextResponse.json(
-        { error: 'Alleen een beheerder kan dit bericht versturen.', message: 'Alleen een beheerder kan dit bericht versturen.' },
+        { error: say(lang, 'adminOnly'), message: say(lang, 'adminOnly') },
         { status: 403 },
       );
     }
@@ -183,7 +190,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== 'object') {
       return NextResponse.json(
-        { error: 'Het verzoek kon niet worden gelezen.', message: 'Het verzoek kon niet worden gelezen.' },
+        { error: say(lang, 'unreadable'), message: say(lang, 'unreadable') },
         { status: 400 },
       );
     }
@@ -200,7 +207,7 @@ export async function POST(req: NextRequest) {
     const campaignId = campaignKeyFrom(req, record);
     const listOnly = record.listOnly === true;
 
-    const parsed = selectionFromBody(record);
+    const parsed = selectionFromBody(record, lang);
     if (!parsed.ok) {
       return NextResponse.json({ error: parsed.error, message: parsed.error }, { status: 400 });
     }
@@ -214,29 +221,29 @@ export async function POST(req: NextRequest) {
     }
     const manualAdmins = narrowManualAdmins(manualParsed.admins, { sendEmail, sendNotification });
     if (!selectionCanList(selection) && (listOnly || manualAdmins.length === 0)) {
-      const error = 'Alle toepasselijke rollen zonder statusfilter selecteert niemand. Kies een filter, of kies bewust Alle gebruikers.';
+      const error = say(lang, 'applicableNeedsFilter');
       return NextResponse.json({ error, message: error, lines: [error] }, { status: 400 });
     }
 
     if (!listOnly) {
       if (!message) {
         return NextResponse.json(
-          { error: 'Vul een bericht in.', message: 'Vul een bericht in.' },
+          { error: say(lang, 'fillMessage'), message: say(lang, 'fillMessage') },
           { status: 400 },
         );
       }
       if (!sendNotification && !sendEmail) {
         return NextResponse.json(
           {
-            error: 'Kies in-appmelding of e-mail. Een lege verzendmethode is geblokkeerd.',
-            message: 'Kies in-appmelding of e-mail. Een lege verzendmethode is geblokkeerd.',
+            error: say(lang, 'chooseChannel'),
+            message: say(lang, 'chooseChannel'),
           },
           { status: 400 },
         );
       }
       if (sendEmail && !subject) {
         return NextResponse.json(
-          { error: 'Vul een onderwerp in voor de e-mail.', message: 'Vul een onderwerp in voor de e-mail.' },
+          { error: say(lang, 'fillSubject'), message: say(lang, 'fillSubject') },
           { status: 400 },
         );
       }
@@ -245,13 +252,13 @@ export async function POST(req: NextRequest) {
     const candidates = selectionCanList(selection) ? await loadAudienceCandidates(prisma, selection) : [];
     const matched = candidates.filter((user) => matchesAudience(user, selection));
     if (matched.length > MAX_RECIPIENTS) {
-      const error = `Te veel ontvangers (${matched.length}). Het maximum per actie is ${MAX_RECIPIENTS}.`;
+      const error = say(lang, 'tooManyRecipients', { count: matched.length, max: MAX_RECIPIENTS });
       return NextResponse.json({ error, message: error }, { status: 400 });
     }
 
     if (listOnly) {
-      const listed = `${matched.length} gebruikers voldoen aan de filters. Vink aan wie het bericht krijgt.`;
-      const empty = 'Geen gebruikers voor deze filters.';
+      const listed = say(lang, 'listCount', { count: matched.length });
+      const empty = say(lang, 'noUsers');
       const priors = message
         ? await findPriorDeliveries(prisma, matched.map((user) => user.id), {
             title: titleRaw,
@@ -272,7 +279,7 @@ export async function POST(req: NextRequest) {
         listOnly: true,
         total: matched.length,
         recipients: matched.map((user) => ({
-          ...recipientView(user, selection),
+          ...recipientView(user, selection, lang),
           alreadySent: content.decisions
             .filter((decision) => decision.userId === user.id && decision.action === 'skip' && decision.at)
             .map((decision) => ({
@@ -282,8 +289,8 @@ export async function POST(req: NextRequest) {
             })),
         })),
         message: matched.length === 0 ? empty : listed,
-        lines: [matched.length === 0 ? empty : listed, ...stripeCountLines(countStripeStatuses(matched), selection.stripe)],
-        stripeCountLines: stripeCountLines(countStripeStatuses(matched), selection.stripe),
+        lines: [matched.length === 0 ? empty : listed, ...stripeCountLines(countStripeStatuses(matched), selection.stripe, lang)],
+        stripeCountLines: stripeCountLines(countStripeStatuses(matched), selection.stripe, lang),
         stripeCounts: countStripeStatuses(matched),
       });
     }
@@ -296,7 +303,7 @@ export async function POST(req: NextRequest) {
     const requestedIds = includeUserIds.filter((id): id is string => typeof id === 'string');
     const checked = requestedIds.length === 0
       ? { ok: true as const, recipients: [] as AudienceCandidate[] }
-      : checkedRecipients(matched, requestedIds);
+      : checkedRecipients(matched, requestedIds, lang);
     if (!checked.ok) {
       return NextResponse.json(
         { error: checked.error, message: checked.error, lines: [checked.error], code: checked.code === 'outside' ? 'PREVIEW_STALE' : 'NONE_CHECKED' },
@@ -306,14 +313,14 @@ export async function POST(req: NextRequest) {
     const explicitReviewUserIds = Array.isArray(record.explicitReviewUserIds)
       ? record.explicitReviewUserIds.filter((id): id is string => typeof id === 'string')
       : [];
-    const reviewBlock = explicitReviewBlock(checked.recipients, explicitReviewUserIds);
+    const reviewBlock = explicitReviewBlock(checked.recipients, explicitReviewUserIds, lang);
     if (reviewBlock) {
       return NextResponse.json({ error: reviewBlock, message: reviewBlock, lines: [reviewBlock] }, { status: 400 });
     }
     const manualUsers = await loadActiveAdminsByIds(prisma, manualAdmins.map((admin) => admin.userId));
     const manualById = new Map(manualUsers.map((user) => [user.id, user]));
     for (const admin of manualAdmins) {
-      const rejection = activeStaffRejection(manualById.get(admin.userId) ?? null);
+      const rejection = activeStaffRejection(manualById.get(admin.userId) ?? null, lang);
       if (rejection) {
         return NextResponse.json({ error: rejection, message: rejection, lines: [rejection] }, { status: 400 });
       }
@@ -351,6 +358,7 @@ export async function POST(req: NextRequest) {
       targetType: selection.audience === 'all' && chosen.length === matched.length && manualAdmins.length === 0 ? 'all' : 'custom',
       confirmEmailBlast,
       idempotencyKey: campaignId,
+      lang,
     });
     const safeRoute = sanitizeAdminBroadcastRoute(routeRaw);
     const pushTitle = titleRaw.length > 0 ? titleRaw.slice(0, 120) : 'HomeCheff';
@@ -386,7 +394,7 @@ export async function POST(req: NextRequest) {
       explicitReviewUserIds,
       manualAdmins,
     });
-    const summary = describeSelection(selection);
+    const summary = describeSelection(selection, lang);
     const channels = {
       inApp: plans.filter((plan) => plan.inApp).length,
       push: plans.filter((plan) => plan.push && userById.get(plan.userId)?.pushReachable).length,
@@ -398,18 +406,18 @@ export async function POST(req: NextRequest) {
       pushExcluded: plans.filter((plan) => plan.push && !userById.get(plan.userId)?.pushReachable).length,
       emailWithAddress: emailUsers.length,
       emailWithoutAddress: plans.filter((plan) => plan.email && !userById.get(plan.userId)?.email).length,
-    });
+    }, lang);
     const previewRecipient = (user: AudienceCandidate) => {
       const plan = planById.get(user.id)!;
       const reasons = plan.source === 'manual'
-        ? ['Handmatig toegevoegde beheerder, buiten de doelgroep']
+        ? [say(lang, 'manualOutside')]
         : plan.source === 'both'
-          ? ['In de doelgroep en handmatig toegevoegd', ...inclusionReasons(user, selection)]
-          : inclusionReasons(user, selection);
+          ? [say(lang, 'originBothPreview'), ...inclusionReasons(user, selection, lang)]
+          : inclusionReasons(user, selection, lang);
       return {
-        ...recipientView(user, selection),
+        ...recipientView(user, selection, lang),
         reasons,
-        channelLines: adminChannelLines({ plan, pushReachable: user.pushReachable, hasEmail: Boolean(user.email) }),
+        channelLines: adminChannelLines({ plan, pushReachable: user.pushReachable, hasEmail: Boolean(user.email) }, lang),
         alreadySent: relevantDecisions
           .filter((decision) => decision.userId === user.id && (decision.action === 'skip' || decision.action === 'repeat') && decision.at)
           .map((decision) => ({
@@ -467,16 +475,16 @@ export async function POST(req: NextRequest) {
       );
     }
     if (!campaignId) {
-      const error = 'Idempotency-Key ontbreekt. Vernieuw het voorbeeld en verstuur opnieuw, zodat een herhaling niemand dubbel aanschrijft.';
+      const error = say(lang, 'missingIdempotency');
       return NextResponse.json({ error, message: error, lines: [error] }, { status: 400 });
     }
     const providedPreview = typeof record.previewToken === 'string' ? record.previewToken : '';
     if (!providedPreview || providedPreview !== previewToken) {
-      const error = 'De selectie is gewijzigd na het voorbeeld. Bekijk het voorbeeld opnieuw voordat je verstuurt.';
+      const error = say(lang, 'previewStaleError');
       return NextResponse.json({ error, message: error, lines: [error], code: 'PREVIEW_STALE' }, { status: 409 });
     }
     if (!claimBroadcastFlight(campaignId)) {
-      const error = 'Deze verzending loopt al. Wacht op de uitslag voordat je het opnieuw probeert.';
+      const error = say(lang, 'sendInProgress');
       return NextResponse.json({ error, message: error, lines: [error] }, { status: 409 });
     }
 
@@ -489,6 +497,7 @@ export async function POST(req: NextRequest) {
         title: pushTitle,
         message,
         audience: selection.audience,
+        lang,
         channels: {
           inApp: plans.some((plan) => plan.inApp),
           push: plans.some((plan) => plan.push),
@@ -660,7 +669,7 @@ export async function POST(req: NextRequest) {
         emailRequested: plans.some((plan) => plan.email),
         pushRequested: plans.some((plan) => plan.push),
         inAppRequested: plans.some((plan) => plan.inApp),
-      });
+      }, lang);
 
       console.info(
         '[admin_email_blast]',
@@ -708,7 +717,7 @@ export async function POST(req: NextRequest) {
       '[admin/notifications/send]',
       error instanceof Error ? error.message.slice(0, 200) : 'error',
     );
-    const message = 'De verzending is op de server vastgelopen. Er is niet bevestigd dat het bericht is aangeboden.';
+    const message = say(lang, 'sendCrashed');
     return NextResponse.json({ error: message, message, lines: [message] }, { status: 500 });
   }
 }

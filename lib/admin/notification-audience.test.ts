@@ -540,12 +540,12 @@ describe('notification send keeps unchecked filter matches out of the message', 
     assert.match(ui, /requiresExplicitCheck/);
     assert.match(ui, /explicitReviewUserIds/);
     assert.doesNotMatch(route, /readLedgers\(campaignId, matched/);
-    assert.match(ui, /Ontvangers bekijken/);
+    assert.match(ui, /copy\('viewRecipients'\)/);
     assert.match(ui, /id="notification-recipients"/);
-    assert.match(ui, /Selecteer alle resultaten/);
-    assert.match(ui, /Wis selectie/);
+    assert.match(ui, /copy\('selectAll'\)/);
+    assert.match(ui, /copy\('clearSelection'\)/);
     assert.match(ui, /includeUserIds: selectedIds/);
-    assert.match(ui, /Beheerder toevoegen/);
+    assert.match(ui, /copy\('addAdmin'\)/);
     assert.match(ui, /manualAdmins:/);
     assert.match(ui, /listOnly: true/);
     assert.match(ui, /scrollIntoView/);

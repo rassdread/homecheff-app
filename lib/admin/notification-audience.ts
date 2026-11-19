@@ -15,6 +15,7 @@
 
 import { DELIVERY_AGREEMENT_DOCUMENT_ID } from '@/lib/delivery/delivery-agreement';
 import { isReservedNonMailboxEmail } from '@/lib/admin/user-population';
+import { uiCopy, type UiLanguage } from '@/lib/admin/notification-copy';
 
 export const DELIVERY_AGREEMENT_VERSION = DELIVERY_AGREEMENT_DOCUMENT_ID;
 
@@ -142,22 +143,22 @@ export function payoutConnectStatus(user: {
   return 'incomplete';
 }
 
-export function payoutConnectStatusLabel(status: PayoutConnectStatus): string {
-  if (status === 'none') return 'Geen actuele Stripe-koppeling in HomeCheff';
-  if (status === 'review') return 'Stripe-koppeling controleren';
-  if (status === 'incomplete') return 'Connect onvolledig';
-  return 'Gereed voor uitbetalingen';
+export function payoutConnectStatusLabel(status: PayoutConnectStatus, lang: UiLanguage = 'nl'): string {
+  if (status === 'none') return uiCopy(lang, 'admin.notificationCenter.ui.payoutNone');
+  if (status === 'review') return uiCopy(lang, 'admin.notificationCenter.ui.payoutReview');
+  if (status === 'incomplete') return uiCopy(lang, 'admin.notificationCenter.ui.payoutIncomplete');
+  return uiCopy(lang, 'admin.notificationCenter.ui.payoutReady');
 }
 
 export const STRIPE_NOT_READY_LABEL = 'Stripe nog niet gereed voor uitbetalingen';
 
 /** Short names for the existing Stripe filters. The status codes stay the same. */
-export function stripeChoiceLabel(status: StripeAudienceFilter): string {
-  if (status === 'none') return 'Stripe niet gekoppeld';
-  if (status === 'incomplete') return 'Stripe nog niet afgerond';
-  if (status === 'ready') return 'Stripe afgerond';
-  if (status === 'review') return 'Stripe-koppeling controleren';
-  return 'Stripe nog niet gereed';
+export function stripeChoiceLabel(status: StripeAudienceFilter, lang: UiLanguage = 'nl'): string {
+  if (status === 'none') return uiCopy(lang, 'admin.notificationCenter.ui.stripeNone');
+  if (status === 'incomplete') return uiCopy(lang, 'admin.notificationCenter.ui.stripeIncomplete');
+  if (status === 'ready') return uiCopy(lang, 'admin.notificationCenter.ui.stripeReady');
+  if (status === 'review') return uiCopy(lang, 'admin.notificationCenter.ui.stripeReview');
+  return uiCopy(lang, 'admin.notificationCenter.ui.stripeNotReady');
 }
 
 /**
@@ -166,10 +167,10 @@ export function stripeChoiceLabel(status: StripeAudienceFilter): string {
  */
 export const DELIVERY_AGREEMENT_DISPLAY_NAME = 'Huidige bezorgovereenkomst';
 
-export function agreementVersionLabel(version: string | null | undefined): string {
-  if (!version) return 'Geen overeenkomstfilter';
-  if (version === DELIVERY_AGREEMENT_VERSION) return DELIVERY_AGREEMENT_DISPLAY_NAME;
-  return 'Andere opgeslagen overeenkomstversie';
+export function agreementVersionLabel(version: string | null | undefined, lang: UiLanguage = 'nl'): string {
+  if (!version) return uiCopy(lang, 'admin.notificationCenter.ui.noAgreementFilter');
+  if (version === DELIVERY_AGREEMENT_VERSION) return uiCopy(lang, 'admin.notificationCenter.ui.agreementCurrent');
+  return uiCopy(lang, 'admin.notificationCenter.ui.otherAgreement');
 }
 
 export function stripeStatusMatches(status: PayoutConnectStatus, filter: StripeAudienceFilter): boolean {
@@ -206,17 +207,17 @@ export function countStripeStatuses(
   return counts;
 }
 
-export function stripeCountLines(counts: StripeStatusCounts, filter: StripeAudienceFilter | null): string[] {
+export function stripeCountLines(counts: StripeStatusCounts, filter: StripeAudienceFilter | null, lang: UiLanguage = 'nl'): string[] {
   if (filter !== 'not_ready') return [];
   const lines = [
-    `${payoutConnectStatusLabel('none')}: ${counts.none}.`,
-    `${payoutConnectStatusLabel('incomplete')}: ${counts.incomplete}.`,
-    `${payoutConnectStatusLabel('review')}: ${counts.review}. Die blijven buiten Selecteer alle resultaten.`,
-    `Uniek totaal: ${counts.unique}. ${payoutConnectStatusLabel('ready')} blijft buiten dit resultaat.`,
+    uiCopy(lang, 'admin.notificationCenter.ui.countLine', { label: payoutConnectStatusLabel('none', lang), count: counts.none }),
+    uiCopy(lang, 'admin.notificationCenter.ui.countLine', { label: payoutConnectStatusLabel('incomplete', lang), count: counts.incomplete }),
+    uiCopy(lang, 'admin.notificationCenter.ui.countReview', { label: payoutConnectStatusLabel('review', lang), count: counts.review }),
+    uiCopy(lang, 'admin.notificationCenter.ui.countUnique', { unique: counts.unique, ready: payoutConnectStatusLabel('ready', lang) }),
   ];
   const open = counts.none + counts.incomplete + counts.review;
   if (counts.unique !== open) {
-    lines.push(`${counts.unique - open} persoon/personen staat door een ander filter in deze lijst.`);
+    lines.push(uiCopy(lang, 'admin.notificationCenter.ui.countOther', { count: counts.unique - open }));
   }
   return lines;
 }
@@ -229,6 +230,7 @@ export function explicitReviewBlock(
     stripeLinkReview?: boolean | null;
   }>,
   explicitIds: readonly string[] | null | undefined,
+  lang: UiLanguage = 'nl',
 ): string | null {
   const explicit = new Set(
     (explicitIds ?? [])
@@ -238,7 +240,7 @@ export function explicitReviewBlock(
   );
   const blocked = users.some((user) => requiresExplicitStripeCheck(user) && !explicit.has(user.id));
   if (!blocked) return null;
-  return 'Een account met Stripe-koppeling controleren moet apart aangevinkt worden. Selecteer alle resultaten neemt die accounts niet mee. Er is niets verstuurd.';
+  return uiCopy(lang, 'admin.notificationCenter.ui.explicitReviewError');
 }
 
 export function isBuyerCandidate(user: Pick<AudienceCandidate, 'role' | 'buyerRoles'>): boolean {
@@ -303,11 +305,11 @@ export function agreementState(
   return 'open';
 }
 
-export function agreementStateLabel(state: AgreementState): string {
-  if (state === 'open') return 'Bezorgovereenkomst staat open';
-  if (state === 'accepted') return 'Bezorgovereenkomst geaccepteerd voor deze versie';
-  if (state === 'unknown_version') return 'Acceptatie zonder versie';
-  return 'Geen bezorgprofiel';
+export function agreementStateLabel(state: AgreementState, lang: UiLanguage = 'nl'): string {
+  if (state === 'open') return uiCopy(lang, 'admin.notificationCenter.ui.agreementOpenState');
+  if (state === 'accepted') return uiCopy(lang, 'admin.notificationCenter.ui.agreementAccepted');
+  if (state === 'unknown_version') return uiCopy(lang, 'admin.notificationCenter.ui.agreementUnknown');
+  return uiCopy(lang, 'admin.notificationCenter.ui.noDeliveryProfile');
 }
 
 function verificationMatches(user: AudienceCandidate, filter: NonNullable<AudienceSelection['verification']>): boolean {
@@ -402,42 +404,43 @@ export function matchesAudience(user: AudienceCandidate, selection: AudienceSele
   return filters.every((filter) => filter(user));
 }
 
-function audienceMembershipLabel(audience: AudienceId): string {
-  if (audience === 'buyers') return 'Doelgroep kopers';
-  if (audience === 'sellers') return 'Doelgroep verkopers';
-  if (audience === 'delivery') return 'Doelgroep bezorgpartners';
-  return 'Doelgroep iedereen';
+function audienceMembershipLabel(audience: AudienceId, lang: UiLanguage): string {
+  if (audience === 'buyers') return uiCopy(lang, 'admin.notificationCenter.ui.reasonBuyers');
+  if (audience === 'sellers') return uiCopy(lang, 'admin.notificationCenter.ui.reasonSellers');
+  if (audience === 'delivery') return uiCopy(lang, 'admin.notificationCenter.ui.reasonCouriers');
+  return uiCopy(lang, 'admin.notificationCenter.ui.reasonEveryone');
 }
 
 /** Status labels that explain why a matching user is in the filter list. */
-export function inclusionReasons(user: AudienceCandidate, selection: AudienceSelection): string[] {
+export function inclusionReasons(user: AudienceCandidate, selection: AudienceSelection, lang: UiLanguage = 'nl'): string[] {
   const reasons: string[] = [];
   if (selection.stripe && stripeStatusMatches(payoutConnectStatus(user), selection.stripe)) {
-    reasons.push(payoutConnectStatusLabel(payoutConnectStatus(user)));
+    reasons.push(payoutConnectStatusLabel(payoutConnectStatus(user), lang));
   }
   if (selection.verification && verificationMatches(user, selection.verification)) {
-    reasons.push(verificationFilterLabel(selection.verification));
+    reasons.push(verificationFilterLabel(selection.verification, lang));
   }
   if (selection.agreementVersion && agreementState(user, selection.agreementVersion) === 'open') {
-    reasons.push('Bezorgovereenkomst staat open');
+    reasons.push(uiCopy(lang, 'admin.notificationCenter.ui.agreementOpenState'));
   }
   if (selection.accountStatus === 'active' && user.suspendedAt == null) {
-    reasons.push(accountStatusLabel('active'));
+    reasons.push(accountStatusLabel('active', lang));
   } else if (selection.accountStatus === 'blocked' && user.suspendedAt != null) {
-    reasons.push(accountStatusLabel('blocked'));
+    reasons.push(accountStatusLabel('blocked', lang));
   } else if (selection.accountStatus === 'courier_blocked' && user.delivery?.isBlocked === true) {
-    reasons.push(accountStatusLabel('courier_blocked'));
+    reasons.push(accountStatusLabel('courier_blocked', lang));
   }
   if (selection.pendingStep && pendingStepMatches(user, selection.pendingStep)) {
-    reasons.push(pendingStepLabel(selection.pendingStep));
+    reasons.push(pendingStepLabel(selection.pendingStep, lang));
   }
-  if (reasons.length === 0) reasons.push(audienceMembershipLabel(selection.audience));
+  if (reasons.length === 0) reasons.push(audienceMembershipLabel(selection.audience, lang));
   return reasons;
 }
 
 export function checkedRecipients<T extends { id: string }>(
   matched: readonly T[],
   includeUserIds: readonly string[] | null | undefined,
+  lang: UiLanguage = 'nl',
 ): { ok: true; recipients: T[] } | { ok: false; code: 'none' | 'outside'; error: string } {
   const requested = [
     ...new Set(
@@ -448,28 +451,28 @@ export function checkedRecipients<T extends { id: string }>(
     ),
   ];
   if (requested.length === 0) {
-    return { ok: false, code: 'none', error: 'Vink minstens één ontvanger aan. Er is niets verstuurd.' };
+    return { ok: false, code: 'none', error: uiCopy(lang, 'admin.notificationCenter.ui.checkOne') };
   }
   const matchedIds = new Set(matched.map((user) => user.id));
   if (requested.some((id) => !matchedIds.has(id))) {
     return {
       ok: false,
       code: 'outside',
-      error: 'Een aangevinkte gebruiker valt niet meer onder de filters. Vernieuw de lijst. Er is niets verstuurd.',
+      error: uiCopy(lang, 'admin.notificationCenter.ui.checkOutside'),
     };
   }
   const wanted = new Set(requested);
   return { ok: true, recipients: matched.filter((user) => wanted.has(user.id)) };
 }
 
-export function audienceRoleLabels(user: AudienceCandidate): string[] {
+export function audienceRoleLabels(user: AudienceCandidate, lang: UiLanguage = 'nl'): string[] {
   const labels: string[] = [];
-  if (user.role === 'SUPERADMIN') labels.push('Superadmin');
-  else if (user.role === 'ADMIN') labels.push('Beheerder');
-  if (isBuyerCandidate(user)) labels.push('Koper');
-  if (isSellerCandidate(user)) labels.push('Verkoper');
-  if (isDeliveryCandidate(user)) labels.push('Bezorger');
-  if (labels.length === 0) labels.push(user.role || 'Gebruiker');
+  if (user.role === 'SUPERADMIN') labels.push(uiCopy(lang, 'admin.notificationCenter.ui.roleSuperadmin'));
+  else if (user.role === 'ADMIN') labels.push(uiCopy(lang, 'admin.notificationCenter.ui.roleAdmin'));
+  if (isBuyerCandidate(user)) labels.push(uiCopy(lang, 'admin.notificationCenter.ui.roleBuyer'));
+  if (isSellerCandidate(user)) labels.push(uiCopy(lang, 'admin.notificationCenter.ui.roleSeller'));
+  if (isDeliveryCandidate(user)) labels.push(uiCopy(lang, 'admin.notificationCenter.ui.roleCourier'));
+  if (labels.length === 0) labels.push(user.role || uiCopy(lang, 'admin.notificationCenter.ui.roleUser'));
   return labels;
 }
 
@@ -563,27 +566,29 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export function parseAudienceSelection(
   value: unknown,
+  lang: UiLanguage = 'nl',
 ): { ok: true; selection: AudienceSelection } | { ok: false; error: string } {
+  const error = (key: string) => uiCopy(lang, `admin.notificationCenter.ui.${key}`);
   if (!isRecord(value)) {
-    return { ok: false, error: 'Kies eerst een doelgroep. Een lege selectie kan niet worden verstuurd.' };
+    return { ok: false, error: error('chooseAudience') };
   }
   if ('activityDays' in value && value.activityDays != null) {
-    return { ok: false, error: ACTIVITY_UNAVAILABLE_MESSAGE };
+    return { ok: false, error: error('activityUnavailable') };
   }
   const audience = value.audience;
   if (typeof audience !== 'string' || !AUDIENCES.has(audience as AudienceId)) {
-    return { ok: false, error: 'Kies Alle toepasselijke rollen, Alle gebruikers, kopers, verkopers of bezorgpartners.' };
+    return { ok: false, error: error('chooseRole') };
   }
   const match = value.match == null ? 'all' : value.match;
   if (match !== 'all' && match !== 'any') {
-    return { ok: false, error: 'Kies of ontvangers aan alle filters of aan minstens één filter moeten voldoen.' };
+    return { ok: false, error: error('chooseMatch') };
   }
   let stripe: StripeAudienceFilter | null = null;
   if (value.stripe != null) {
     if (typeof value.stripe !== 'string' || !STRIPE.has(value.stripe as StripeAudienceFilter)) {
       return {
         ok: false,
-        error: 'Onbekende Stripe-status. Kies nog niet gereed, geen actuele koppeling, Connect onvolledig, controleren of gereed.',
+        error: error('unknownStripe'),
       };
     }
     stripe = value.stripe as StripeAudienceFilter;
@@ -591,23 +596,20 @@ export function parseAudienceSelection(
   let verification: AudienceSelection['verification'] = null;
   if (value.verification != null) {
     if (!isRecord(value.verification)) {
-      return { ok: false, error: 'De verificatiefilter is ongeldig.' };
+      return { ok: false, error: error('badVerification') };
     }
     const kind = value.verification.kind;
     const status = value.verification.status;
     if (typeof kind !== 'string' || !VERIFICATION_KINDS.has(kind as VerificationKind)) {
-      return { ok: false, error: 'Onbekende verificatie. Kies e-mail, bezorgerprofiel of verkoopreview.' };
+      return { ok: false, error: error('unknownVerification') };
     }
     if (typeof status !== 'string' || !VERIFICATION_STATUS.has(status as VerificationStatus)) {
-      return { ok: false, error: 'Onbekende verificatiestatus.' };
+      return { ok: false, error: error('unknownVerificationStatus') };
     }
     if (status === 'pending' && kind !== 'commerce_review') {
       return {
         ok: false,
-        error:
-          kind === 'email'
-            ? 'HomeCheff-e-mailverificatie heeft geen status in behandeling.'
-            : 'Bezorgerverificatie heeft geen status in behandeling.',
+        error: kind === 'email' ? error('emailNoPending') : error('courierNoPending'),
       };
     }
     verification = { kind: kind as VerificationKind, status: status as VerificationStatus };
@@ -617,7 +619,7 @@ export function parseAudienceSelection(
     if (value.agreementVersion !== DELIVERY_AGREEMENT_VERSION) {
       return {
         ok: false,
-        error: 'Alleen de opgeslagen bezorgovereenkomstversie kan worden gekozen. Andere voorwaarden hebben geen versie.',
+        error: error('agreementVersionOnly'),
       };
     }
     agreementVersion = DELIVERY_AGREEMENT_VERSION;
@@ -627,7 +629,7 @@ export function parseAudienceSelection(
     if (typeof value.accountStatus !== 'string' || !ACCOUNT_STATUS.has(value.accountStatus as AccountStatusFilter)) {
       return {
         ok: false,
-        error: 'Onbekende accountstatus. Inactief is niet vastgelegd. Kies actief, geblokkeerd of bezorger geblokkeerd.',
+        error: error('unknownAccount'),
       };
     }
     accountStatus = value.accountStatus as AccountStatusFilter;
@@ -635,7 +637,7 @@ export function parseAudienceSelection(
   let pendingStep: PendingStepId | null = null;
   if (value.pendingStep != null) {
     if (typeof value.pendingStep !== 'string' || !PENDING.has(value.pendingStep as PendingStepId)) {
-      return { ok: false, error: 'Onbekende openstaande stap. Alleen vastgelegde bezorgactivatie-stappen zijn kiesbaar.' };
+      return { ok: false, error: error('unknownStep') };
     }
     pendingStep = value.pendingStep as PendingStepId;
   }
@@ -643,7 +645,7 @@ export function parseAudienceSelection(
     ? [...new Set(value.excludeUserIds.filter((id): id is string => typeof id === 'string' && id.trim().length > 0))]
     : [];
   if (excludeUserIds.length > 5000) {
-    return { ok: false, error: 'Er zijn te veel uitsluitingen.' };
+    return { ok: false, error: error('tooManyExclusions') };
   }
   return {
     ok: true,
@@ -660,150 +662,185 @@ export function parseAudienceSelection(
   };
 }
 
-export function audienceLabel(audience: AudienceId): string {
-  if (audience === 'applicable') return 'Alle toepasselijke rollen';
-  if (audience === 'all') return 'Alle gebruikers behalve beheerders en verwijderde accounts';
-  if (audience === 'buyers') return 'Kopers (rol koper of koperrollen, ook bij een tweede rol)';
-  if (audience === 'sellers') return 'Verkopers (verkopersrol, verkooprollen of verkoopprofiel, ook als iemand daarnaast bezorger is)';
-  return 'Bezorgpartners (bezorgprofiel of bezorgrol, ook bij een tweede rol)';
+export function audienceLabel(audience: AudienceId, lang: UiLanguage = 'nl'): string {
+  if (audience === 'applicable') return uiCopy(lang, 'admin.notificationCenter.ui.audienceLongApplicable');
+  if (audience === 'all') return uiCopy(lang, 'admin.notificationCenter.ui.audienceLongAll');
+  if (audience === 'buyers') return uiCopy(lang, 'admin.notificationCenter.ui.audienceLongBuyers');
+  if (audience === 'sellers') return uiCopy(lang, 'admin.notificationCenter.ui.audienceLongSellers');
+  return uiCopy(lang, 'admin.notificationCenter.ui.audienceLongDelivery');
 }
 
-export function stripeFilterLabel(status: StripeAudienceFilter, audience: AudienceId): string {
-  const payout =
+export function stripeFilterLabel(status: StripeAudienceFilter, audience: AudienceId, lang: UiLanguage = 'nl'): string {
+  const payout = uiCopy(
+    lang,
     audience === 'delivery'
-      ? 'bezorguitbetalingen'
+      ? 'admin.notificationCenter.ui.payoutWordDelivery'
       : audience === 'sellers'
-        ? 'verkoopuitbetalingen'
+        ? 'admin.notificationCenter.ui.payoutWordSellers'
         : audience === 'applicable'
-          ? 'verkoop- en bezorguitbetalingen'
-          : 'het Stripe-account op de gebruiker';
+          ? 'admin.notificationCenter.ui.payoutWordBoth'
+          : 'admin.notificationCenter.ui.payoutWordUser',
+  );
   if (status === 'not_ready') {
-    return `${STRIPE_NOT_READY_LABEL} voor ${payout}: geen actuele koppeling, Connect onvolledig of een koppeling om te controleren. Gereed voor uitbetalingen valt erbuiten.`;
+    return uiCopy(lang, 'admin.notificationCenter.ui.stripeNotReadyFor', {
+      label: uiCopy(lang, 'admin.notificationCenter.ui.stripeNotReadyPayout'),
+      payout,
+    });
   }
-  return `${payoutConnectStatusLabel(status)} voor ${payout}`;
+  return uiCopy(lang, 'admin.notificationCenter.ui.stripeStatusFor', {
+    status: payoutConnectStatusLabel(status, lang),
+    payout,
+  });
 }
 
-export function verificationFilterLabel(filter: NonNullable<AudienceSelection['verification']>): string {
-  const kind =
+export function verificationFilterLabel(filter: NonNullable<AudienceSelection['verification']>, lang: UiLanguage = 'nl'): string {
+  const kind = uiCopy(
+    lang,
     filter.kind === 'email'
-      ? 'HomeCheff-e-mailverificatie'
+      ? 'admin.notificationCenter.ui.verificationEmail'
       : filter.kind === 'courier'
-        ? 'Bezorgerverificatie (isVerified)'
-        : 'Verkoopreview (commerceReviewState)';
-  const status =
+        ? 'admin.notificationCenter.ui.verificationCourier'
+        : 'admin.notificationCenter.ui.verificationSales',
+  );
+  const status = uiCopy(
+    lang,
     filter.status === 'verified'
-      ? 'geverifieerd'
+      ? 'admin.notificationCenter.ui.statusVerified'
       : filter.status === 'unverified'
-        ? 'nog niet geverifieerd'
-        : 'in behandeling';
+        ? 'admin.notificationCenter.ui.statusUnverified'
+        : 'admin.notificationCenter.ui.statusPending',
+  );
   return `${kind}: ${status}`;
 }
 
-export function accountStatusLabel(status: AccountStatusFilter): string {
-  if (status === 'active') return 'Account actief (niet geschorst)';
-  if (status === 'blocked') return 'Account geblokkeerd (suspendedAt)';
-  return 'Bezorger geblokkeerd (isBlocked)';
+export function accountStatusLabel(status: AccountStatusFilter, lang: UiLanguage = 'nl'): string {
+  if (status === 'active') return uiCopy(lang, 'admin.notificationCenter.ui.accountActiveLong');
+  if (status === 'blocked') return uiCopy(lang, 'admin.notificationCenter.ui.accountBlockedLong');
+  return uiCopy(lang, 'admin.notificationCenter.ui.courierBlockedLong');
 }
 
-export function pendingStepLabel(step: PendingStepId): string {
-  const labels: Record<PendingStepId, string> = {
-    delivery_age: 'Bezorgactivatie: leeftijd ontbreekt volgens de bestaande controle',
-    delivery_pricing: 'Bezorgactivatie: tarief ontbreekt volgens de bestaande controle',
-    delivery_service_area: 'Bezorgactivatie: werkgebied ontbreekt volgens de bestaande controle',
-    delivery_availability: 'Bezorgactivatie: beschikbaarheid ontbreekt volgens de bestaande controle',
-    delivery_company_name: 'Bezorgactivatie: bedrijfsnaam ontbreekt volgens de bestaande controle',
+export function pendingStepLabel(step: PendingStepId, lang: UiLanguage = 'nl'): string {
+  const keys: Record<PendingStepId, string> = {
+    delivery_age: 'admin.notificationCenter.ui.pendingAgeLong',
+    delivery_pricing: 'admin.notificationCenter.ui.pendingPriceLong',
+    delivery_service_area: 'admin.notificationCenter.ui.pendingAreaLong',
+    delivery_availability: 'admin.notificationCenter.ui.pendingAvailabilityLong',
+    delivery_company_name: 'admin.notificationCenter.ui.pendingCompanyLong',
   };
-  return labels[step];
+  return uiCopy(lang, keys[step]);
 }
 
 export type SelectionFilterChip = { id: 'stripe' | 'verification' | 'agreement' | 'account' | 'pending'; label: string };
 
-export function selectionFilterChips(selection: AudienceSelection): SelectionFilterChip[] {
+export function selectionFilterChips(selection: AudienceSelection, lang: UiLanguage = 'nl'): SelectionFilterChip[] {
+  const text = (key: string) => uiCopy(lang, `admin.notificationCenter.ui.${key}`);
   const chips: SelectionFilterChip[] = [];
-  if (selection.stripe) chips.push({ id: 'stripe', label: stripeChoiceLabel(selection.stripe) });
+  if (selection.stripe) chips.push({ id: 'stripe', label: stripeChoiceLabel(selection.stripe, lang) });
   if (selection.verification) {
     const filter = selection.verification;
     const label = filter.kind === 'email'
-      ? (filter.status === 'verified' ? 'E-mail geverifieerd' : 'E-mail nog niet geverifieerd')
+      ? (filter.status === 'verified' ? text('emailVerified') : text('emailUnverified'))
       : filter.kind === 'courier'
-        ? (filter.status === 'verified' ? 'Bezorger geverifieerd' : 'Bezorger nog niet geverifieerd')
+        ? (filter.status === 'verified' ? text('courierVerified') : text('courierUnverified'))
         : filter.status === 'verified'
-          ? 'Verkoopreview afgerond'
+          ? text('salesReviewDone')
           : filter.status === 'pending'
-            ? 'Verkoopreview in behandeling'
-            : 'Verkoopreview nodig';
+            ? text('salesReviewPending')
+            : text('salesReviewNeeded');
     chips.push({ id: 'verification', label });
   }
-  if (selection.agreementVersion) chips.push({ id: 'agreement', label: 'Overeenkomst nog open' });
-  if (selection.accountStatus === 'active') chips.push({ id: 'account', label: 'Account actief' });
-  if (selection.accountStatus === 'blocked') chips.push({ id: 'account', label: 'Account geblokkeerd' });
-  if (selection.accountStatus === 'courier_blocked') chips.push({ id: 'account', label: 'Bezorger geblokkeerd' });
+  if (selection.agreementVersion) chips.push({ id: 'agreement', label: text('agreementOpen') });
+  if (selection.accountStatus === 'active') chips.push({ id: 'account', label: text('accountActiveChip') });
+  if (selection.accountStatus === 'blocked') chips.push({ id: 'account', label: text('accountBlockedChip') });
+  if (selection.accountStatus === 'courier_blocked') chips.push({ id: 'account', label: text('courierBlocked') });
   if (selection.pendingStep) {
     const short: Record<PendingStepId, string> = {
-      delivery_age: 'Leeftijd ontbreekt',
-      delivery_pricing: 'Tarief ontbreekt',
-      delivery_service_area: 'Werkgebied ontbreekt',
-      delivery_availability: 'Beschikbaarheid ontbreekt',
-      delivery_company_name: 'Bedrijfsnaam ontbreekt',
+      delivery_age: text('pendingAgeMissing'),
+      delivery_pricing: text('pendingPriceMissing'),
+      delivery_service_area: text('pendingAreaMissing'),
+      delivery_availability: text('pendingAvailabilityMissing'),
+      delivery_company_name: text('pendingCompanyMissing'),
     };
     chips.push({ id: 'pending', label: short[selection.pendingStep] });
   }
   return chips;
 }
 
-export function selectionPlainSummary(selection: AudienceSelection): string {
-  const who =
+export function selectionPlainSummary(selection: AudienceSelection, lang: UiLanguage = 'nl'): string {
+  const who = uiCopy(
+    lang,
     selection.audience === 'applicable'
-      ? 'Mensen met een passende rol'
+      ? 'admin.notificationCenter.ui.whoApplicable'
       : selection.audience === 'all'
-        ? 'Alle gebruikers behalve beheerders'
+        ? 'admin.notificationCenter.ui.whoAll'
         : selection.audience === 'buyers'
-          ? 'Kopers'
+          ? 'admin.notificationCenter.ui.whoBuyers'
           : selection.audience === 'sellers'
-            ? 'Verkopers'
-            : 'Bezorgpartners';
-  const chips = selectionFilterChips(selection);
+            ? 'admin.notificationCenter.ui.whoSellers'
+            : 'admin.notificationCenter.ui.whoCouriers',
+  );
+  const chips = selectionFilterChips(selection, lang);
   if (selection.audience === 'applicable' && chips.length === 0) {
-    return 'Er is nog geen filter gekozen. Alle toepasselijke rollen zonder filter selecteert niemand. Alle gebruikers wordt niet automatisch gekozen.';
+    return uiCopy(lang, 'admin.notificationCenter.ui.summaryApplicableEmpty');
   }
   if (selection.audience === 'all' && chips.length === 0) {
-    return 'Alle gebruikers is bewust gekozen, zonder extra filter. Beheerders en test- en systeemaccounts blijven buiten de lijst.';
+    return uiCopy(lang, 'admin.notificationCenter.ui.summaryAllEmpty');
   }
   if (chips.length === 0) {
-    return `${who}, zonder extra filter. Iemand met meerdere rollen telt één keer.`;
+    return uiCopy(lang, 'admin.notificationCenter.ui.summaryWho', { who });
   }
-  const joiner = selection.match === 'any' ? ' of ' : ' en ';
-  return `${who} die voldoen aan ${chips.map((chip) => chip.label).join(joiner)}. Iemand met meerdere rollen telt één keer.`;
+  const joiner = uiCopy(
+    lang,
+    selection.match === 'any' ? 'admin.notificationCenter.ui.joinerOr' : 'admin.notificationCenter.ui.joinerAnd',
+  );
+  return uiCopy(lang, 'admin.notificationCenter.ui.summaryWhoFilters', {
+    who,
+    filters: chips.map((chip) => chip.label).join(joiner),
+  });
 }
 
-export function describeSelection(selection: AudienceSelection): string[] {
+export function describeSelection(selection: AudienceSelection, lang: UiLanguage = 'nl'): string[] {
   const lines = [
-    `Doelgroep: ${audienceLabel(selection.audience)}.`,
+    uiCopy(lang, 'admin.notificationCenter.ui.describeAudience', { label: audienceLabel(selection.audience, lang) }),
     selection.audience === 'applicable' && !selectionHasStatusFilter(selection)
-      ? 'Alle toepasselijke rollen zonder statusfilter selecteert niemand.'
+      ? uiCopy(lang, 'admin.notificationCenter.ui.describeApplicableEmpty')
       : selection.match === 'all'
-        ? 'Filters: een ontvanger moet aan alle gekozen filters voldoen. Een gekozen rol geldt daarbij.'
-        : 'Filters: een ontvanger moet aan minstens één gekozen filter voldoen. Een gekozen rol geldt daarbij.',
+        ? uiCopy(lang, 'admin.notificationCenter.ui.describeMatchAll')
+        : uiCopy(lang, 'admin.notificationCenter.ui.describeMatchAny'),
   ];
-  if (selection.stripe) lines.push(`Stripe: ${stripeFilterLabel(selection.stripe, selection.audience)}.`);
+  if (selection.stripe) {
+    lines.push(uiCopy(lang, 'admin.notificationCenter.ui.describeStripe', {
+      label: stripeFilterLabel(selection.stripe, selection.audience, lang),
+    }));
+  }
   if (selection.stripe === 'not_ready' || selection.stripe === 'review') {
-    lines.push('Accounts met Stripe-koppeling controleren blijven zichtbaar en gaan niet mee in Selecteer alle resultaten. Die vink je apart aan.');
+    lines.push(uiCopy(lang, 'admin.notificationCenter.ui.describeReviewSkip'));
   }
-  if (selection.verification) lines.push(`Verificatie: ${verificationFilterLabel(selection.verification)}.`);
+  if (selection.verification) {
+    lines.push(uiCopy(lang, 'admin.notificationCenter.ui.describeVerification', {
+      label: verificationFilterLabel(selection.verification, lang),
+    }));
+  }
   if (selection.agreementVersion) {
-    lines.push(
-      `Openstaande acceptatie: ${agreementVersionLabel(selection.agreementVersion)}. Alleen een andere opgeslagen versie of geen acceptatie telt als open. Acceptatie zonder versie blijft apart en telt niet mee. Bestaande acceptaties van deze overeenkomst blijven geldig.`,
-    );
+    lines.push(uiCopy(lang, 'admin.notificationCenter.ui.describeAgreement', {
+      label: agreementVersionLabel(selection.agreementVersion, lang),
+    }));
   }
-  if (selection.accountStatus) lines.push(`Accountstatus: ${accountStatusLabel(selection.accountStatus)}.`);
-  if (selection.pendingStep) lines.push(`Openstaande stap: ${pendingStepLabel(selection.pendingStep)}.`);
+  if (selection.accountStatus) {
+    lines.push(uiCopy(lang, 'admin.notificationCenter.ui.describeAccount', {
+      label: accountStatusLabel(selection.accountStatus, lang),
+    }));
+  }
+  if (selection.pendingStep) {
+    lines.push(uiCopy(lang, 'admin.notificationCenter.ui.describePending', {
+      label: pendingStepLabel(selection.pendingStep, lang),
+    }));
+  }
   if (selection.excludeUserIds.length > 0) {
-    lines.push(`${selection.excludeUserIds.length} account(s) handmatig uitgesloten.`);
+    lines.push(uiCopy(lang, 'admin.notificationCenter.ui.describeExcluded', { count: selection.excludeUserIds.length }));
   }
-  lines.push('Registratiedatum wordt getoond als accountleeftijd en niet als laatste activiteit.');
-  lines.push(
-    'Beheerders met een passend profiel kunnen in kopers, verkopers, bezorgpartners en toepasselijke filters staan. Alle gebruikers blijft zonder beheerders. Test- en systeemaccounts blijven uitgesloten.',
-  );
+  lines.push(uiCopy(lang, 'admin.notificationCenter.ui.describeAge'));
+  lines.push(uiCopy(lang, 'admin.notificationCenter.ui.describeStaff'));
   return lines;
 }
 

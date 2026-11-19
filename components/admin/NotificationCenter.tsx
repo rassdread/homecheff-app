@@ -7,10 +7,10 @@ import { AdminEmailPreview } from './AdminEmailPreview';
 import { adminEmailActionForRoute } from '@/lib/email/admin-bulk-message-content';
 import { NotificationHistory } from './NotificationHistory';
 import { chosenRecipients, sendBlockReason } from '@/lib/admin/notification-compose-state';
+import { uiCopy } from '@/lib/admin/notification-copy';
 import {
   AUDIENCE_PRESETS,
   DELIVERY_AGREEMENT_VERSION,
-  UNAVAILABLE_AUDIENCE_FACTS,
   agreementVersionLabel,
   selectionCanList,
   selectionFilterChips,
@@ -74,8 +74,10 @@ type ScreenNotice = {
   lines: string[];
 };
 
-const FALLBACK = 'De server gaf geen leesbare uitslag. Er is niet bevestigd dat het bericht is aangeboden.';
 const RECIPIENT_PAGE_SIZE = 10;
+const DRAFT_KEY = 'hc-message-center-draft';
+
+type SelectionDrop = { count: number; reason: 'unfiltered' | 'outside' };
 
 function readRecipients(value: unknown): PreviewRecipient[] {
   if (!Array.isArray(value)) return [];
@@ -110,7 +112,7 @@ function readRecipients(value: unknown): PreviewRecipient[] {
   });
 }
 
-function linesFrom(data: unknown, status: number): ScreenNotice {
+function linesFrom(data: unknown, status: number, fallback: string): ScreenNotice {
   const record = data && typeof data === 'object' ? (data as Record<string, unknown>) : null;
   const rawLines = Array.isArray(record?.lines) ? record.lines : [];
   const lines = rawLines
@@ -119,17 +121,19 @@ function linesFrom(data: unknown, status: number): ScreenNotice {
     .filter((line) => line.length > 0);
   const message = typeof record?.message === 'string' ? record.message.trim() : '';
   const error = typeof record?.error === 'string' ? record.error.trim() : '';
-  const visible = lines.length > 0 ? lines : message ? message.split('\n').map((line) => line.trim()).filter(Boolean) : error ? [error] : [FALLBACK];
+  const visible = lines.length > 0 ? lines : message ? message.split('\n').map((line) => line.trim()).filter(Boolean) : error ? [error] : [fallback];
   const outcome = record?.outcome;
   if (status >= 200 && status < 300 && outcome === 'sent') return { tone: 'success', lines: visible };
   if (status >= 200 && status < 300 && (outcome === 'partial' || outcome === 'already_sent')) {
     return { tone: 'partial', lines: visible };
   }
-  return { tone: 'error', lines: visible.length > 0 ? visible : [FALLBACK] };
+  return { tone: 'error', lines: visible.length > 0 ? visible : [fallback] };
 }
 
 export default function NotificationCenter() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const copy = (key: string, params?: Record<string, string | number>) => t(`admin.notificationCenter.ui.${key}`, params);
+  const [draftReady, setDraftReady] = useState(false);
   const [message, setMessage] = useState('');
   const [pushTitle, setPushTitle] = useState('');
   const [linkPreset, setLinkPreset] = useState('/notifications');
@@ -157,7 +161,7 @@ export default function NotificationCenter() {
   const [screen, setScreen] = useState<'compose' | 'history'>('compose');
   const [preview, setPreview] = useState<PreviewPayload | null>(null);
   const [previewStale, setPreviewStale] = useState(false);
-  const [selectionDropped, setSelectionDropped] = useState<string | null>(null);
+  const [selectionDropped, setSelectionDropped] = useState<SelectionDrop | null>(null);
   const [selectionExpanded, setSelectionExpanded] = useState(false);
   const [attemptedSend, setAttemptedSend] = useState(false);
   const [notice, setNotice] = useState<ScreenNotice | null>(null);
@@ -190,10 +194,11 @@ export default function NotificationCenter() {
   const listable = selectionCanList(selection());
 
   useEffect(() => {
+    if (!draftReady) return;
     if (!listable) {
       const dropped = selectedIdsRef.current.length;
       if (dropped > 0) {
-        setSelectionDropped(`${dropped} aangevinkte persoon of personen zijn uit de selectie gehaald. Deze doelgroep zonder filter selecteert niemand. Handmatig toegevoegde beheerders blijven staan.`);
+        setSelectionDropped({ count: dropped, reason: 'unfiltered' });
       }
       setDirectory((current) => (current.length === 0 ? current : []));
       setListError(null);
@@ -225,7 +230,7 @@ export default function NotificationCenter() {
     setListError(null);
     fetch('/api/admin/notifications/send', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-homecheff-language': language },
       body: JSON.stringify(body),
       signal: controller.signal,
     })
@@ -233,7 +238,7 @@ export default function NotificationCenter() {
         const data = await response.json().catch(() => null);
         if (controller.signal.aborted) return;
         if (!response.ok || !data?.listOnly) {
-          const text = typeof data?.message === 'string' ? data.message : 'De ontvangerslijst kon niet worden geladen.';
+          const text = typeof data?.message === 'string' ? data.message : uiCopy(language === 'en' ? 'en' : 'nl', 'admin.notificationCenter.ui.listLoadFailed');
           setListError(text);
           return;
         }
@@ -244,7 +249,7 @@ export default function NotificationCenter() {
           const next = current.filter((id) => ids.has(id));
           const dropped = current.length - next.length;
           if (dropped > 0) {
-            setSelectionDropped(`${dropped} aangevinkte persoon of personen vallen buiten de nieuwe filters en gaan niet mee. Handmatig toegevoegde beheerders blijven staan.`);
+            setSelectionDropped({ count: dropped, reason: 'outside' });
           }
           return next;
         });
@@ -261,7 +266,7 @@ export default function NotificationCenter() {
       })
       .catch(() => {
         if (controller.signal.aborted) return;
-        setListError('De ontvangerslijst kon niet worden geladen. De selectie en de tekst blijven staan.');
+        setListError(uiCopy(language === 'en' ? 'en' : 'nl', 'admin.notificationCenter.ui.listLoadFailedKeep'));
       })
       .finally(() => {
         if (!controller.signal.aborted) setListLoading(false);
@@ -282,6 +287,8 @@ export default function NotificationCenter() {
     pendingStep,
     listVersion,
     listable,
+    draftReady,
+    language,
   ]);
 
   useEffect(() => {
@@ -323,7 +330,7 @@ export default function NotificationCenter() {
                 id: row.id,
                 name: row.name,
                 email: typeof row.email === 'string' ? row.email : null,
-                role: typeof row.role === 'string' ? row.role : 'Beheerder',
+                role: typeof row.role === 'string' ? row.role : uiCopy(language === 'en' ? 'en' : 'nl', 'admin.notificationCenter.ui.roleAdmin'),
               }];
             }),
           );
@@ -336,7 +343,101 @@ export default function NotificationCenter() {
       clearTimeout(handle);
       controller.abort();
     };
-  }, [adminQuery, sendEmail, sendNotification]);
+  }, [adminQuery, sendEmail, sendNotification, language]);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as Record<string, unknown>;
+      if (typeof draft.message === 'string') setMessage(draft.message);
+      if (typeof draft.pushTitle === 'string') setPushTitle(draft.pushTitle);
+      if (typeof draft.subject === 'string') setSubject(draft.subject);
+      if (typeof draft.linkPreset === 'string') setLinkPreset(draft.linkPreset);
+      if (draft.audience === 'applicable' || draft.audience === 'all' || draft.audience === 'buyers' || draft.audience === 'sellers' || draft.audience === 'delivery') {
+        setAudience(draft.audience);
+      }
+      if (draft.matchMode === 'all' || draft.matchMode === 'any') setMatchMode(draft.matchMode);
+      if (typeof draft.stripe === 'string') setStripe(draft.stripe as StripeAudienceFilter | '');
+      if (typeof draft.verificationKind === 'string') setVerificationKind(draft.verificationKind as VerificationKind | '');
+      if (typeof draft.verificationStatus === 'string') setVerificationStatus(draft.verificationStatus as VerificationStatus | '');
+      if (typeof draft.agreementOpen === 'boolean') setAgreementOpen(draft.agreementOpen);
+      if (typeof draft.accountStatus === 'string') setAccountStatus(draft.accountStatus as AccountStatusFilter | '');
+      if (typeof draft.pendingStep === 'string') setPendingStep(draft.pendingStep as PendingStepId | '');
+      if (Array.isArray(draft.selectedIds)) setSelectedIds(draft.selectedIds.filter((id): id is string => typeof id === 'string'));
+      if (Array.isArray(draft.explicitReviewIds)) setExplicitReviewIds(draft.explicitReviewIds.filter((id): id is string => typeof id === 'string'));
+      if (Array.isArray(draft.addedAdmins)) {
+        setAddedAdmins(draft.addedAdmins.flatMap((item) => {
+          if (!item || typeof item !== 'object') return [];
+          const row = item as Record<string, unknown>;
+          if (typeof row.id !== 'string' || typeof row.name !== 'string') return [];
+          const channels = Array.isArray(row.channels)
+            ? row.channels.filter((channel): channel is 'email' | 'push' => channel === 'email' || channel === 'push')
+            : [];
+          return [{ id: row.id, name: row.name, email: typeof row.email === 'string' ? row.email : null, channels }];
+        }));
+      }
+      if (typeof draft.sendNotification === 'boolean') setSendNotification(draft.sendNotification);
+      if (typeof draft.sendEmail === 'boolean') setSendEmail(draft.sendEmail);
+      if (typeof draft.confirmEmailBlast === 'boolean') setConfirmEmailBlast(draft.confirmEmailBlast);
+      if (typeof draft.confirmRepeat === 'boolean') setConfirmRepeat(draft.confirmRepeat);
+      if (draft.screen === 'history' || draft.screen === 'compose') setScreen(draft.screen);
+      setPreview(null);
+      setPreviewStale(true);
+    } catch {
+      sessionStorage.removeItem(DRAFT_KEY);
+    } finally {
+      setDraftReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!draftReady) return;
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
+      message,
+      pushTitle,
+      subject,
+      linkPreset,
+      audience,
+      matchMode,
+      stripe,
+      verificationKind,
+      verificationStatus,
+      agreementOpen,
+      accountStatus,
+      pendingStep,
+      selectedIds,
+      explicitReviewIds,
+      addedAdmins,
+      sendNotification,
+      sendEmail,
+      confirmEmailBlast,
+      confirmRepeat,
+      screen,
+    }));
+  }, [
+    draftReady,
+    message,
+    pushTitle,
+    subject,
+    linkPreset,
+    audience,
+    matchMode,
+    stripe,
+    verificationKind,
+    verificationStatus,
+    agreementOpen,
+    accountStatus,
+    pendingStep,
+    selectedIds,
+    explicitReviewIds,
+    addedAdmins,
+    sendNotification,
+    sendEmail,
+    confirmEmailBlast,
+    confirmRepeat,
+    screen,
+  ]);
 
   const clearPreview = () => {
     setPreview((current) => {
@@ -387,15 +488,15 @@ export default function NotificationCenter() {
     setAttemptedSend(true);
     setNotice(null);
     if (!selectionCanList(selection()) && addedAdmins.length === 0) {
-      setNotice({ tone: 'error', lines: ['Alle toepasselijke rollen zonder statusfilter selecteert niemand. Kies een filter, of kies bewust Alle gebruikers.'] });
+      setNotice({ tone: 'error', lines: [copy('applicableNeedsFilter')] });
       return;
     }
     if (selectedIds.length === 0 && addedAdmins.length === 0) {
-      setNotice({ tone: 'error', lines: ['Vink minstens één ontvanger aan of voeg een beheerder toe. Er is niets verstuurd.'] });
+      setNotice({ tone: 'error', lines: [copy('needRecipient')] });
       return;
     }
     if (!message.trim()) {
-      setNotice({ tone: 'error', lines: ['Vul een bericht in.'] });
+      setNotice({ tone: 'error', lines: [copy('fillMessage')] });
       return;
     }
     if (!sendNotification && !sendEmail) {
@@ -410,11 +511,11 @@ export default function NotificationCenter() {
     try {
       const response = await fetch('/api/admin/notifications/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': campaignKey() },
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': campaignKey(), 'x-homecheff-language': language },
         body: JSON.stringify(payload(true)),
       });
       const data = await response.json().catch(() => null);
-      const parsed = linesFrom(data, response.status);
+      const parsed = linesFrom(data, response.status, copy('fallbackNotice'));
       if (!response.ok || !data || data.previewToken == null) {
         clearPreview();
         setNotice(parsed);
@@ -436,7 +537,7 @@ export default function NotificationCenter() {
       setNotice(null);
     } catch {
       clearPreview();
-      setNotice({ tone: 'error', lines: ['Het voorbeeld kon niet worden opgehaald. Er is niets verstuurd. De tekst en de ontvangers blijven staan.'] });
+      setNotice({ tone: 'error', lines: [copy('previewFetchFailed')] });
     } finally {
       setIsLoading(false);
     }
@@ -447,15 +548,15 @@ export default function NotificationCenter() {
     setAttemptedSend(true);
     if (submitLockRef.current || isLoading) return;
     if (selectedIds.length === 0 && addedAdmins.length === 0) {
-      setNotice({ tone: 'error', lines: ['Vink minstens één ontvanger aan of voeg een beheerder toe. Er is niets verstuurd.'] });
+      setNotice({ tone: 'error', lines: [copy('needRecipient')] });
       return;
     }
     if (!preview?.previewToken) {
-      setNotice({ tone: 'error', lines: ['Bekijk eerst het voorbeeld. Verzenden blijft geblokkeerd tot het voorbeeld klopt.'] });
+      setNotice({ tone: 'error', lines: [copy('needPreviewFirst')] });
       return;
     }
     if (preview.total === 0) {
-      setNotice({ tone: 'error', lines: ['Geen ontvangers voor deze selectie. Er is niets verstuurd.'] });
+      setNotice({ tone: 'error', lines: [copy('noneForSelection')] });
       return;
     }
     setIsLoading(true);
@@ -464,11 +565,11 @@ export default function NotificationCenter() {
     try {
       const response = await fetch('/api/admin/notifications/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': campaignKey() },
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': campaignKey(), 'x-homecheff-language': language },
         body: JSON.stringify(payload(false)),
       });
       const data = await response.json().catch(() => null);
-      const parsed = linesFrom(data, response.status);
+      const parsed = linesFrom(data, response.status, copy('fallbackNotice'));
       setNotice(parsed);
       if (response.ok && data?.outcome === 'sent') {
         setAttemptedSend(false);
@@ -491,7 +592,7 @@ export default function NotificationCenter() {
     } catch {
       setNotice({
         tone: 'error',
-        lines: ['De verzending is afgebroken voordat de server een uitslag gaf. Er is niet bevestigd dat het bericht is aangeboden.'],
+        lines: [copy('sendInterrupted')],
       });
     } finally {
       setIsLoading(false);
@@ -502,7 +603,7 @@ export default function NotificationCenter() {
   const applyPreset = (id: string) => {
     const preset = AUDIENCE_PRESETS.find((item) => item.id === id);
     if (!preset?.available || !preset.selection) {
-      setNotice({ tone: 'error', lines: [preset?.reason || 'Deze selectie is niet beschikbaar.'] });
+      setNotice({ tone: 'error', lines: [copy(`presets.${id}.reason`) || copy('presetUnavailable')] });
       return;
     }
     const next = preset.selection;
@@ -542,7 +643,7 @@ export default function NotificationCenter() {
     setConfirmEmailBlast(false);
     setConfirmRepeat(false);
     setNotice(audience === 'all'
-      ? { tone: 'success', lines: ['Filters gewist. De doelgroep blijft Alle gebruikers, omdat je die zelf hebt gekozen.'] }
+      ? { tone: 'success', lines: [copy('filtersCleared')] }
       : null);
   };
 
@@ -568,7 +669,7 @@ export default function NotificationCenter() {
     selectedIds,
     directory: directory.map((person) => ({ id: person.id, name: person.name, email: person.email })),
     manual: addedAdmins.map((admin) => ({ id: admin.id, name: admin.name, email: admin.email })),
-  });
+  }, language === 'en' ? 'en' : 'nl');
   const visibleChosen = selectionExpanded ? chosen : chosen.slice(0, 5);
   const sendBlock = sendBlockReason({
     message,
@@ -596,13 +697,13 @@ export default function NotificationCenter() {
   };
 
   const currentSelection = selection();
-  const filterChips = selectionFilterChips(currentSelection);
-  const plainSummary = selectionPlainSummary(currentSelection);
+  const filterChips = selectionFilterChips(currentSelection, language === 'en' ? 'en' : 'nl');
+  const plainSummary = selectionPlainSummary(currentSelection, language === 'en' ? 'en' : 'nl');
   const withEmail = directory.filter((recipient) => recipient.email).length;
   const withPush = directory.filter((recipient) => recipient.pushReachable).length;
   const stripeName = (status: string | undefined) => (
     status === 'none' || status === 'incomplete' || status === 'ready' || status === 'review' || status === 'not_ready'
-      ? stripeChoiceLabel(status)
+      ? stripeChoiceLabel(status, language === 'en' ? 'en' : 'nl')
       : ''
   );
 
@@ -617,14 +718,14 @@ export default function NotificationCenter() {
             onClick={() => setScreen('compose')}
             className={`rounded-lg px-3 py-2 text-sm ${screen === 'compose' ? 'bg-emerald-700 text-white' : 'border border-gray-300 text-gray-700'}`}
           >
-            Nieuw bericht
+            {copy('newMessage')}
           </button>
           <button
             type="button"
             onClick={() => setScreen('history')}
             className={`rounded-lg px-3 py-2 text-sm ${screen === 'history' ? 'bg-emerald-700 text-white' : 'border border-gray-300 text-gray-700'}`}
           >
-            Verzendgeschiedenis
+            {copy('historyTab')}
           </button>
         </div>
       </div>
@@ -664,7 +765,7 @@ export default function NotificationCenter() {
           className="space-y-6"
         >
           <section className="space-y-3">
-            <h3 className="text-base font-semibold text-gray-900">1. Doelgroep</h3>
+            <h3 className="text-base font-semibold text-gray-900">{copy('stepAudience')}</h3>
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               {AUDIENCE_PRESETS.map((preset) => (
                 <button
@@ -674,8 +775,8 @@ export default function NotificationCenter() {
                   onClick={() => applyPreset(preset.id)}
                   className="rounded-lg border border-gray-200 px-3 py-2 text-left text-sm hover:border-emerald-700 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
                 >
-                  <span className="block font-medium text-gray-900">{preset.label}</span>
-                  <span className="mt-1 block text-xs text-gray-600">{preset.available ? preset.description : preset.reason}</span>
+                  <span className="block font-medium text-gray-900">{copy(`presets.${preset.id}.label`)}</span>
+                  <span className="mt-1 block text-xs text-gray-600">{preset.available ? copy(`presets.${preset.id}.description`) : copy(`presets.${preset.id}.reason`) || copy('presetUnavailable')}</span>
                 </button>
               ))}
             </div>
@@ -690,25 +791,23 @@ export default function NotificationCenter() {
                 }}
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
-                <option value="applicable">Alle toepasselijke rollen</option>
+                <option value="applicable">{copy('audienceApplicable')}</option>
                 <option value="all">{t('admin.notificationCenter.allUsers')}</option>
                 <option value="sellers">{t('admin.notificationCenter.sellersOnly')}</option>
                 <option value="buyers">{t('admin.notificationCenter.buyersOnly')}</option>
-                <option value="delivery">Bezorgpartners</option>
+                <option value="delivery">{copy('audienceDelivery')}</option>
               </select>
             </label>
             <p className="text-sm text-gray-700">
-              {audience === 'all'
-                ? 'Alle gebruikers is een bewuste keuze. Beheerders en test- en systeemaccounts blijven buiten de lijst.'
-                : 'Zonder gekozen rol selecteert Alle toepasselijke rollen niemand. Iemand met meerdere rollen telt één keer.'}
+              {audience === 'all' ? copy('audienceAllHelp') : copy('audienceApplicableHelp')}
             </p>
           </section>
 
           <section className="space-y-4">
-            <h3 className="text-base font-semibold text-gray-900">2. Filters</h3>
-            <p className="text-sm text-gray-600">E-mail, bezorgerverificatie en verkoopreview zijn één verificatie. De laatste keuze geldt.</p>
+            <h3 className="text-base font-semibold text-gray-900">{copy('stepFilters')}</h3>
+            <p className="text-sm text-gray-600">{copy('verificationOneChoice')}</p>
             <label className="block text-sm">
-              <span className="font-medium text-gray-700">Voorwaarden combineren</span>
+              <span className="font-medium text-gray-700">{copy('combineFilters')}</span>
               <select
                 value={matchMode}
                 onChange={(event) => {
@@ -717,20 +816,18 @@ export default function NotificationCenter() {
                 }}
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
               >
-                <option value="all">EN — alle gekozen filters</option>
-                <option value="any">OF — minstens één filter</option>
+                <option value="all">{copy('matchAll')}</option>
+                <option value="any">{copy('matchAny')}</option>
               </select>
               <span className="mt-1 block text-sm text-gray-700">
-                {matchMode === 'all'
-                  ? 'EN: een ontvanger moet aan elke gekozen voorwaarde voldoen.'
-                  : 'OF: een ontvanger moet aan minstens één gekozen voorwaarde voldoen.'}
+                {matchMode === 'all' ? copy('matchAllHelp') : copy('matchAnyHelp')}
               </span>
             </label>
 
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block text-sm">
-                <span className="font-medium text-gray-700">Stripe</span>
-                <span className="mt-1 block text-xs text-gray-600">Zelfde account voor verkoop en bezorging.</span>
+                <span className="font-medium text-gray-700">{copy('stripeLabel')}</span>
+                <span className="mt-1 block text-xs text-gray-600">{copy('stripeShared')}</span>
                 <select
                   value={stripe}
                   onChange={(event) => {
@@ -739,16 +836,16 @@ export default function NotificationCenter() {
                   }}
                   className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
-                  <option value="">Geen Stripe-filter</option>
-                  <option value="none">{stripeChoiceLabel('none')}</option>
-                  <option value="incomplete">{stripeChoiceLabel('incomplete')}</option>
-                  <option value="ready">{stripeChoiceLabel('ready')}</option>
-                  <option value="not_ready">{stripeChoiceLabel('not_ready')}</option>
-                  <option value="review">{stripeChoiceLabel('review')}</option>
+                  <option value="">{copy('noStripeFilter')}</option>
+                  <option value="none">{stripeChoiceLabel('none', language === 'en' ? 'en' : 'nl')}</option>
+                  <option value="incomplete">{stripeChoiceLabel('incomplete', language === 'en' ? 'en' : 'nl')}</option>
+                  <option value="ready">{stripeChoiceLabel('ready', language === 'en' ? 'en' : 'nl')}</option>
+                  <option value="not_ready">{stripeChoiceLabel('not_ready', language === 'en' ? 'en' : 'nl')}</option>
+                  <option value="review">{stripeChoiceLabel('review', language === 'en' ? 'en' : 'nl')}</option>
                 </select>
               </label>
               <label className="block text-sm">
-                <span className="font-medium text-gray-700">E-mailverificatie</span>
+                <span className="font-medium text-gray-700">{copy('emailVerification')}</span>
                 <select
                   value={verificationKind === 'email' ? verificationStatus : ''}
                   onChange={(event) => {
@@ -764,13 +861,13 @@ export default function NotificationCenter() {
                   }}
                   className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
-                  <option value="">Geen e-mailfilter</option>
-                  <option value="verified">E-mail geverifieerd</option>
-                  <option value="unverified">E-mail nog niet geverifieerd</option>
+                  <option value="">{copy('noEmailFilter')}</option>
+                  <option value="verified">{copy('emailVerified')}</option>
+                  <option value="unverified">{copy('emailUnverified')}</option>
                 </select>
               </label>
               <label className="block text-sm">
-                <span className="font-medium text-gray-700">Account</span>
+                <span className="font-medium text-gray-700">{copy('account')}</span>
                 <select
                   value={accountStatus}
                   onChange={(event) => {
@@ -779,22 +876,22 @@ export default function NotificationCenter() {
                   }}
                   className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
-                  <option value="">Geen accountfilter</option>
-                  <option value="active">Actief</option>
-                  <option value="blocked">Geblokkeerd</option>
-                  <option value="courier_blocked">Bezorger geblokkeerd</option>
+                  <option value="">{copy('noAccountFilter')}</option>
+                  <option value="active">{copy('accountActive')}</option>
+                  <option value="blocked">{copy('accountBlocked')}</option>
+                  <option value="courier_blocked">{copy('courierBlocked')}</option>
                 </select>
               </label>
             </div>
 
             <div className="rounded-lg border border-gray-200 p-3 space-y-3">
               <div>
-                <p className="text-sm font-medium text-gray-900">Bezorging</p>
-                <p className="text-xs text-gray-600">Geldt voor mensen met een bezorgprofiel, ook als ze nog een andere rol hebben.</p>
+                <p className="text-sm font-medium text-gray-900">{copy('deliverySection')}</p>
+                <p className="text-xs text-gray-600">{copy('deliverySectionHelp')}</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="block text-sm">
-                  <span className="font-medium text-gray-700">Bezorgerverificatie</span>
+                  <span className="font-medium text-gray-700">{copy('courierVerification')}</span>
                   <select
                     value={verificationKind === 'courier' ? verificationStatus : ''}
                     onChange={(event) => {
@@ -810,13 +907,13 @@ export default function NotificationCenter() {
                     }}
                     className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
                   >
-                    <option value="">Geen bezorgerfilter</option>
-                    <option value="verified">Bezorger geverifieerd</option>
-                    <option value="unverified">Bezorger nog niet geverifieerd</option>
+                    <option value="">{copy('noCourierFilter')}</option>
+                    <option value="verified">{copy('courierVerified')}</option>
+                    <option value="unverified">{copy('courierUnverified')}</option>
                   </select>
                 </label>
                 <label className="block text-sm">
-                  <span className="font-medium text-gray-700">Openstaande bezorgstap</span>
+                  <span className="font-medium text-gray-700">{copy('pendingStep')}</span>
                   <select
                     value={pendingStep}
                     onChange={(event) => {
@@ -825,12 +922,12 @@ export default function NotificationCenter() {
                     }}
                     className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
                   >
-                    <option value="">Geen stapfilter</option>
-                    <option value="delivery_age">Leeftijd</option>
-                    <option value="delivery_pricing">Tarief</option>
-                    <option value="delivery_service_area">Werkgebied</option>
-                    <option value="delivery_availability">Beschikbaarheid</option>
-                    <option value="delivery_company_name">Bedrijfsnaam</option>
+                    <option value="">{copy('noStepFilter')}</option>
+                    <option value="delivery_age">{copy('stepAge')}</option>
+                    <option value="delivery_pricing">{copy('stepPrice')}</option>
+                    <option value="delivery_service_area">{copy('stepArea')}</option>
+                    <option value="delivery_availability">{copy('stepAvailability')}</option>
+                    <option value="delivery_company_name">{copy('stepCompany')}</option>
                   </select>
                 </label>
               </div>
@@ -845,16 +942,15 @@ export default function NotificationCenter() {
                   className="mt-1 rounded border-gray-300 text-emerald-600"
                 />
                 <span>
-                  {agreementVersionLabel(DELIVERY_AGREEMENT_VERSION)} nog niet geaccepteerd. Dit staat los van Stripe.
-                  Een acceptatie zonder vastgelegde versie telt niet mee. Bestaande acceptaties blijven geldig.
+                  {copy('agreementCheckbox', { name: agreementVersionLabel(DELIVERY_AGREEMENT_VERSION, language === 'en' ? 'en' : 'nl') })}
                 </span>
               </label>
             </div>
 
             {(audience === 'sellers' || audience === 'applicable' || audience === 'all' || verificationKind === 'commerce_review') && (
               <label className="block text-sm">
-                <span className="font-medium text-gray-700">Verkoopreview</span>
-                <span className="mt-1 block text-xs text-gray-600">Alleen voor verkopers. In behandeling bestaat hier wel.</span>
+                <span className="font-medium text-gray-700">{copy('salesReview')}</span>
+                <span className="mt-1 block text-xs text-gray-600">{copy('salesReviewHelp')}</span>
                 <select
                   value={verificationKind === 'commerce_review' ? verificationStatus : ''}
                   onChange={(event) => {
@@ -870,10 +966,10 @@ export default function NotificationCenter() {
                   }}
                   className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
-                  <option value="">Geen verkoopreview</option>
-                  <option value="verified">Verkoopreview afgerond</option>
-                  <option value="unverified">Verkoopreview nodig</option>
-                  <option value="pending">Verkoopreview in behandeling</option>
+                  <option value="">{copy('noSalesReview')}</option>
+                  <option value="verified">{copy('salesReviewDone')}</option>
+                  <option value="unverified">{copy('salesReviewNeeded')}</option>
+                  <option value="pending">{copy('salesReviewPending')}</option>
                 </select>
               </label>
             )}
@@ -888,7 +984,7 @@ export default function NotificationCenter() {
                 >
                   {chip.label}
                   <span aria-hidden="true">×</span>
-                  <span className="sr-only">Verwijder filter {chip.label}</span>
+                  <span className="sr-only">{copy('removeChip', { label: chip.label })}</span>
                 </button>
               ))}
               <button
@@ -896,15 +992,15 @@ export default function NotificationCenter() {
                 onClick={clearFilters}
                 className="px-3 py-1 rounded-lg border border-gray-300 text-sm text-gray-800"
               >
-                Filters wissen
+                {copy('clearFilters')}
               </button>
             </div>
             <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-950">{plainSummary}</p>
             <details className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
-              <summary className="cursor-pointer font-medium text-gray-900">Technische toelichting</summary>
+              <summary className="cursor-pointer font-medium text-gray-900">{copy('technicalDetails')}</summary>
               <ul className="mt-2 list-disc space-y-1 pl-5">
-                {UNAVAILABLE_AUDIENCE_FACTS.map((fact) => (
-                  <li key={fact}>{fact}</li>
+                {['activityUnavailable', 'factInactive', 'factStripePending', 'factEmail', 'factCourier', 'factTerms', 'factSharedStripe', 'factUnknownCheck'].map((key) => (
+                  <li key={key}>{copy(key)}</li>
                 ))}
               </ul>
             </details>
@@ -912,32 +1008,39 @@ export default function NotificationCenter() {
 
           <div id="notification-recipients" className="rounded-lg border border-gray-200 p-4 space-y-3">
             <div>
-              <h3 className="text-base font-semibold text-gray-900">3. Ontvangers</h3>
+              <h3 className="text-base font-semibold text-gray-900">{copy('stepRecipients')}</h3>
               <p className="text-sm text-gray-900">
                 {!listable
-                  ? 'Kies een filter of een doelgroep. Alle toepasselijke rollen zonder filter selecteert niemand.'
+                  ? copy('recipientsNeedFilter')
                   : listLoading
-                    ? 'Ontvangers laden…'
-                    : `Unieke filterresultaten: ${directory.length}. Aangevinkt: ${selectedCount}.`}
+                    ? copy('recipientsLoading')
+                    : copy('filterCount', { unique: directory.length, checked: selectedCount })}
               </p>
               {listable && !listLoading && directory.length > 0 && (
                 <p className="text-sm text-gray-700">
-                  E-mailadres {withEmail}, zonder e-mail {directory.length - withEmail}. Pushapparaat {withPush}, zonder apparaat {directory.length - withPush}.
-                  {query ? ` Zoekopdracht toont ${searchHits.length}.` : ''} Dit is de filterlijst. Alleen aangevinkte namen gaan mee.
+                  {copy('filterStats', { email: withEmail, noEmail: directory.length - withEmail, push: withPush, noPush: directory.length - withPush })}
+                  {query ? ` ${copy('searchShows', { count: searchHits.length })}` : ''} {copy('filterListNote')}
                 </p>
               )}
             </div>
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 space-y-2" style={{ overflowAnchor: 'none' }}>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h4 className="text-sm font-semibold text-gray-900">Geselecteerde ontvangers</h4>
-                <p className="text-sm text-gray-900">{chosen.length} geselecteerd</p>
+                <h4 className="text-sm font-semibold text-gray-900">{copy('selectedHeading')}</h4>
+                <p className="text-sm text-gray-900">{copy('selectedCount', { count: chosen.length })}</p>
               </div>
-              <p className="text-sm text-gray-800">
-                Dit zijn de mensen die meegaan. Filterresultaten zijn niet automatisch geselecteerd.
-              </p>
-              {selectionDropped && <p className="text-sm font-medium text-amber-950">{selectionDropped}</p>}
+              <p className="text-sm text-gray-800">{copy('selectedExplain')}</p>
+              {selectionDropped && (
+                <p className="text-sm font-medium text-amber-950">
+                  {copy(
+                    selectionDropped.reason === 'unfiltered'
+                      ? (selectionDropped.count === 1 ? 'dropUnfilteredOne' : 'dropUnfilteredMany')
+                      : (selectionDropped.count === 1 ? 'dropOutsideOne' : 'dropOutsideMany'),
+                    { count: selectionDropped.count },
+                  )}
+                </p>
+              )}
               {chosen.length === 0 ? (
-                <p className="text-sm text-gray-700">Nog niemand. Vink iemand aan of voeg een beheerder toe.</p>
+                <p className="text-sm text-gray-700">{copy('selectedEmpty')}</p>
               ) : (
                 <>
                   <ul className="space-y-2">
@@ -945,15 +1048,15 @@ export default function NotificationCenter() {
                       <li key={person.id} className="flex flex-wrap items-start justify-between gap-2 rounded border border-emerald-100 bg-white px-3 py-2">
                         <div>
                           <p className="text-sm font-medium text-gray-900">{person.name}</p>
-                          <p className="text-sm text-gray-800">{person.email || 'Geen e-mailadres'}</p>
+                          <p className="text-sm text-gray-800">{person.email || copy('noEmail')}</p>
                           <p className="text-xs text-gray-700">
                             {person.fromAudience && person.manual
-                              ? 'Uit de doelgroep en handmatig toegevoegd'
+                              ? copy('originBoth')
                               : person.manual
-                                ? 'Handmatig toegevoegd'
+                                ? copy('originManual')
                                 : person.fromAudience
-                                  ? 'Uit de doelgroep'
-                                  : 'Niet meer in de filterresultaten'}
+                                  ? copy('originAudience')
+                                  : copy('originMissing')}
                           </p>
                         </div>
                         <button
@@ -961,7 +1064,7 @@ export default function NotificationCenter() {
                           onClick={() => removeChosen(person.id)}
                           className="px-3 py-1 rounded border border-gray-300 text-sm text-gray-800"
                         >
-                          Verwijderen
+                          {copy('remove')}
                         </button>
                       </li>
                     ))}
@@ -972,7 +1075,7 @@ export default function NotificationCenter() {
                       onClick={() => setSelectionExpanded((current) => !current)}
                       className="text-sm font-medium text-emerald-800"
                     >
-                      {selectionExpanded ? 'Minder tonen' : `Toon alle ${chosen.length} geselecteerde ontvangers`}
+                      {selectionExpanded ? copy('showLess') : copy('showAll', { count: chosen.length })}
                     </button>
                   )}
                 </>
@@ -987,7 +1090,7 @@ export default function NotificationCenter() {
                     setRecipientQuery(event.target.value);
                     setRecipientPage(0);
                   }}
-                  placeholder="Zoek op naam of e-mailadres"
+                  placeholder={copy('searchName')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
                 <div className="flex flex-wrap gap-2">
@@ -1002,7 +1105,7 @@ export default function NotificationCenter() {
                     disabled={directory.length === 0}
                     className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-800 disabled:opacity-50"
                   >
-                    Selecteer alle resultaten
+                    {copy('selectAll')}
                   </button>
                   {query && (
                     <button
@@ -1014,7 +1117,7 @@ export default function NotificationCenter() {
                       disabled={searchHits.length === 0}
                       className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-800 disabled:opacity-50"
                     >
-                      Selecteer zoekresultaten
+                      {copy('selectSearch')}
                     </button>
                   )}
                   <button
@@ -1026,13 +1129,11 @@ export default function NotificationCenter() {
                     disabled={selectedIds.length === 0}
                     className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-800 disabled:opacity-50"
                   >
-                    Wis selectie
+                    {copy('clearSelection')}
                   </button>
                 </div>
                 <p className="text-xs text-gray-600">
-                  {query
-                    ? 'Selecteer alle resultaten vinkt de filterresultaten aan, behalve accounts met Stripe-koppeling controleren. Die vink je apart aan. Selecteer zoekresultaten doet hetzelfde voor deze zoekopdracht. Wis selectie haalt elk vinkje weg.'
-                    : 'Selecteer alle resultaten vinkt de filterresultaten aan, ook op andere pagina’s, behalve accounts met Stripe-koppeling controleren. Die vink je apart aan. Wis selectie haalt elk vinkje weg. Zoeken of bladeren bewaart de vinkjes.'}
+                  {query ? copy('selectSearchHelp') : copy('selectAllHelp')}
                 </p>
                 {stripeNotes.length > 0 && (
                   <ul className="space-y-1 text-sm text-gray-800">
@@ -1043,7 +1144,7 @@ export default function NotificationCenter() {
                 )}
                 {listError && <p className="text-sm text-red-800">{listError}</p>}
                 {!listLoading && !listError && directory.length === 0 && (
-                  <p className="text-sm text-gray-600">Geen gebruikers voor deze filters.</p>
+                  <p className="text-sm text-gray-600">{copy('noUsers')}</p>
                 )}
                 <ul className="divide-y divide-gray-100">
                   {visibleRecipients.map((recipient) => (
@@ -1062,26 +1163,26 @@ export default function NotificationCenter() {
                             setExplicitReviewIds((current) => current.filter((id) => id !== recipient.id));
                           }
                         }}
-                        aria-label={`Selecteer ${recipient.name}`}
+                        aria-label={copy('selectPerson', { name: recipient.name })}
                         className="mt-1 rounded border-gray-300 text-emerald-600"
                       />
                       <div>
                         <p className="font-medium text-gray-900">{recipient.name}</p>
-                        <p className="text-sm text-gray-800">{recipient.roles.join(' · ') || 'Geen rol'}</p>
-                        <p className="text-sm text-gray-600">{recipient.email || 'Geen e-mailadres'}</p>
-                        {stripe ? <p className="text-sm text-gray-900">Stripe: {stripeName(recipient.stripeStatus) || recipient.connectLabel}</p> : null}
+                        <p className="text-sm text-gray-800">{recipient.roles.join(' · ') || copy('noRole')}</p>
+                        <p className="text-sm text-gray-600">{recipient.email || copy('noEmail')}</p>
+                        {stripe ? <p className="text-sm text-gray-900">{copy('stripeLine', { status: stripeName(recipient.stripeStatus) || recipient.connectLabel })}</p> : null}
                         <p className="text-sm text-gray-700">
-                          {recipient.email ? 'E-mailadres aanwezig.' : 'Geen e-mailadres, e-mail valt af.'}
+                          {recipient.email ? copy('emailPresent') : copy('emailDrops')}
                           {' '}
-                          {recipient.pushReachable ? 'Pushapparaat aanwezig.' : 'Geen pushapparaat, push valt af.'}
+                          {recipient.pushReachable ? copy('pushPresent') : copy('pushDrops')}
                         </p>
                         {recipient.requiresExplicitCheck ? (
-                          <p className="text-sm text-amber-900">Apart aanvinken. Selecteer alle resultaten slaat dit account over.</p>
+                          <p className="text-sm text-amber-900">{copy('explicitCheck')}</p>
                         ) : null}
                         <p className="text-sm text-emerald-900">{(recipient.reasons || []).join(' · ')}</p>
                         {(recipient.alreadySent || []).map((prior) => (
                           <p key={`${prior.channel}-${prior.at}`} className="text-sm text-amber-900">
-                            Dit bericht al verstuurd. {prior.label}
+                            {copy('alreadySent', { label: prior.label })}
                           </p>
                         ))}
                       </div>
@@ -1096,16 +1197,16 @@ export default function NotificationCenter() {
                       disabled={safePage === 0}
                       className="px-3 py-1 rounded border border-gray-300 disabled:opacity-50"
                     >
-                      Vorige
+                      {copy('previous')}
                     </button>
-                    <span>Pagina {safePage + 1} van {pageCount}</span>
+                    <span>{copy('page', { page: safePage + 1, total: pageCount })}</span>
                     <button
                       type="button"
                       onClick={() => setRecipientPage(Math.min(pageCount - 1, safePage + 1))}
                       disabled={safePage >= pageCount - 1}
                       className="px-3 py-1 rounded border border-gray-300 disabled:opacity-50"
                     >
-                      Volgende
+                      {copy('next')}
                     </button>
                   </div>
                 )}
@@ -1114,7 +1215,7 @@ export default function NotificationCenter() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-base font-semibold text-gray-900">4. Bericht en kanalen</h3>
+            <h3 className="text-base font-semibold text-gray-900">{copy('stepMessage')}</h3>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('admin.notificationCenter.message')}
@@ -1148,7 +1249,7 @@ export default function NotificationCenter() {
                   className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                 />
                 <Bell className="w-4 h-4 ml-2 mr-2 text-gray-600" />
-                <span className="text-sm text-gray-700">In-appmelding en push</span>
+                <span className="text-sm text-gray-700">{copy('inAppPush')}</span>
               </label>
               <label className="flex items-center">
                 <input
@@ -1169,19 +1270,15 @@ export default function NotificationCenter() {
           {(sendEmail || sendNotification) && (
             <div className="rounded-lg border border-gray-200 p-4 space-y-3">
               <div>
-                <h3 className="text-base font-medium text-gray-900">Beheerder toevoegen</h3>
-                <p className="text-sm text-gray-700">
-                  Zoek jezelf of een andere beheerder op naam of e-mailadres. Vink niemand in de lijst aan en voeg alleen jezelf toe. Het voorbeeld toont dan één unieke ontvanger en nul uit de filters. Die persoon mag buiten de doelgroep vallen.
-                  Een nieuwe verzending begint zonder toegevoegde beheerders. E-mail gebruikt hetzelfde onderwerp, dezelfde tekst en dezelfde HomeCheff-opmaak.
-                  Push gebruikt dezelfde titel, tekst en interne bestemming, en maakt ook een in-appmelding aan.
-                </p>
+                <h3 className="text-base font-medium text-gray-900">{copy('addAdmin')}</h3>
+                <p className="text-sm text-gray-700">{copy('addAdminHelp')}</p>
               </div>
               <input
                 type="search"
                 value={adminQuery}
                 onChange={(event) => setAdminQuery(event.target.value)}
-                placeholder="Zoek een beheerder op naam of e-mailadres"
-                aria-label="Beheerder zoeken"
+                placeholder={copy('adminSearchPlaceholder')}
+                aria-label={copy('adminSearchLabel')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
               {adminHits.filter((hit) => !addedAdmins.some((admin) => admin.id === hit.id)).length > 0 && (
@@ -1208,20 +1305,20 @@ export default function NotificationCenter() {
                           }}
                           className="px-3 py-2 rounded-lg border border-emerald-700 text-sm text-emerald-800"
                         >
-                          Toevoegen
+                          {copy('add')}
                         </button>
                       </li>
                     ))}
                 </ul>
               )}
               {addedAdmins.length === 0 ? (
-                <p className="text-sm text-gray-600">Nog geen beheerder toegevoegd.</p>
+                <p className="text-sm text-gray-600">{copy('noAdminYet')}</p>
               ) : (
                 <ul className="space-y-3">
                   {addedAdmins.map((admin) => (
                     <li key={admin.id} className="rounded border px-3 py-2">
                       <p className="text-sm font-medium text-gray-900">{admin.name}</p>
-                      <p className="text-sm text-gray-600">{admin.email || 'Geen e-mailadres'}</p>
+                      <p className="text-sm text-gray-600">{admin.email || copy('noEmail')}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-3">
                         {sendEmail && (
                           <label className="flex items-center gap-2 text-sm text-gray-800">
@@ -1240,7 +1337,7 @@ export default function NotificationCenter() {
                               }}
                               className="rounded border-gray-300 text-emerald-600"
                             />
-                            E-mail
+                            {copy('emailName')}
                           </label>
                         )}
                         {sendNotification && (
@@ -1260,7 +1357,7 @@ export default function NotificationCenter() {
                               }}
                               className="rounded border-gray-300 text-emerald-600"
                             />
-                            Push
+                            {copy('pushName')}
                           </label>
                         )}
                         {sendEmail && sendNotification && (
@@ -1274,7 +1371,7 @@ export default function NotificationCenter() {
                             }}
                             className="px-3 py-1 rounded border border-gray-300 text-sm text-gray-800"
                           >
-                            Beide
+                            {copy('bothChannels')}
                           </button>
                         )}
                         <button
@@ -1285,7 +1382,7 @@ export default function NotificationCenter() {
                           }}
                           className="px-3 py-1 rounded border border-gray-300 text-sm text-gray-800"
                         >
-                          Verwijderen
+                          {copy('remove')}
                         </button>
                       </div>
                     </li>
@@ -1297,11 +1394,8 @@ export default function NotificationCenter() {
 
           {sendEmail && (
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
-              <p className="font-medium">E-mailcapaciteit</p>
-              <p className="mt-1">
-                Admin-e-mail deelt de transactionele mailcapaciteit met betalingen en auth. Grote doelgroepen vragen een extra bevestiging.
-                Een e-mail telt pas als geaccepteerd wanneer de maildienst dat bevestigt, niet als afgeleverd.
-              </p>
+              <p className="font-medium">{copy('emailCapacityTitle')}</p>
+              <p className="mt-1">{copy('emailCapacityBody')}</p>
               {preview?.requiresConfirm && (
                 <label className="mt-3 flex items-start gap-2">
                   <input
@@ -1311,7 +1405,7 @@ export default function NotificationCenter() {
                     aria-invalid={fieldInvalid('email-confirm')}
                     className="mt-1 rounded border-gray-300 text-emerald-600"
                   />
-                  <span>Ik bevestig dat ik bewust e-mail naar deze doelgroep stuur.</span>
+                  <span>{copy('emailConfirm')}</span>
                 </label>
               )}
             </div>
@@ -1320,20 +1414,20 @@ export default function NotificationCenter() {
           {sendNotification && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('admin.notificationCenter.pushTitle')}
-                </label>
-                <input
-                  type="text"
-                  value={pushTitle}
-                  onChange={(event) => {
-                    setPushTitle(event.target.value);
-                    invalidatePreview();
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  placeholder={t('admin.notificationCenter.pushTitlePlaceholder')}
-                  maxLength={120}
-                />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('admin.notificationCenter.pushTitle')}
+                  </label>
+                  <input
+                    type="text"
+                    value={pushTitle}
+                    onChange={(event) => {
+                      setPushTitle(event.target.value);
+                      invalidatePreview();
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder={t('admin.notificationCenter.pushTitlePlaceholder')}
+                    maxLength={120}
+                  />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1348,9 +1442,9 @@ export default function NotificationCenter() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   <option value="/notifications">{t('admin.notificationCenter.routeInbox')}</option>
-                  <option value="/delivery/dashboard">Stripe en bezorginstellingen</option>
-                  <option value="/delivery/settings">Bezorginstellingen</option>
-                  <option value="/sell/new">Aanbod plaatsen</option>
+                  <option value="/delivery/dashboard">{copy('routeStripe')}</option>
+                  <option value="/delivery/settings">{copy('routeDeliverySettings')}</option>
+                  <option value="/sell/new">{copy('routeSell')}</option>
                   <option value="/app">{t('admin.notificationCenter.routeBetaApp')}</option>
                   <option value="/mijn-hcp">{t('admin.notificationCenter.routeMijnHcp')}</option>
                   <option value="/profile">{t('admin.notificationCenter.routeProfile')}</option>
@@ -1362,21 +1456,21 @@ export default function NotificationCenter() {
 
           {sendEmail && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('admin.notificationCenter.emailSubject')} *
-              </label>
-              <input
-                type="text"
-                value={subject}
-                onChange={(event) => {
-                  setSubject(event.target.value);
-                  invalidatePreview();
-                }}
-                aria-invalid={fieldInvalid('subject')}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${fieldInvalid('subject') ? 'border-red-600' : 'border-gray-300'}`}
-                placeholder={t('admin.notificationCenter.emailSubjectPlaceholder')}
-                maxLength={100}
-              />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('admin.notificationCenter.emailSubject')} *
+                  </label>
+                  <input
+                    type="text"
+                    value={subject}
+                    onChange={(event) => {
+                      setSubject(event.target.value);
+                      invalidatePreview();
+                    }}
+                    aria-invalid={fieldInvalid('subject')}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${fieldInvalid('subject') ? 'border-red-600' : 'border-gray-300'}`}
+                    placeholder={t('admin.notificationCenter.emailSubjectPlaceholder')}
+                    maxLength={100}
+                  />
             </div>
           )}
 
@@ -1391,13 +1485,12 @@ export default function NotificationCenter() {
               className="mt-1 rounded border-gray-300 text-emerald-600"
             />
             <span>
-              Herhaling bevestigen. Ontvangers die dit bericht al via hetzelfde kanaal kregen, krijgen het opnieuw.
-              Het voorbeeld toont hoeveel ontvangers dat zijn. Zonder dit vinkje worden die duplicaten overgeslagen.
+              {copy('repeatConfirm')}
             </span>
           </label>
 
           <div className="space-y-3">
-            <h3 className="text-base font-semibold text-gray-900">5. Voorbeeld en verzending</h3>
+            <h3 className="text-base font-semibold text-gray-900">{copy('stepPreview')}</h3>
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
@@ -1405,7 +1498,7 @@ export default function NotificationCenter() {
               disabled={!listable}
               className="inline-flex items-center px-4 py-2 rounded-lg border border-emerald-700 text-emerald-800 disabled:opacity-50"
             >
-              Ontvangers bekijken
+              {copy('viewRecipients')}
             </button>
             <button
               type="button"
@@ -1413,7 +1506,7 @@ export default function NotificationCenter() {
               disabled={isLoading || chosen.length === 0}
               className="inline-flex items-center px-4 py-2 rounded-lg border border-emerald-700 text-emerald-800 disabled:opacity-50"
             >
-              {sendBlock?.refreshPreview ? 'Voorbeeld vernieuwen' : 'Voorbeeld bekijken'}
+              {(previewStale || (preview != null && preview.total === 0)) ? copy('refreshPreview') : copy('previewButton')}
             </button>
             <button
               type="submit"
@@ -1427,10 +1520,10 @@ export default function NotificationCenter() {
           </div>
           <p id="send-block-reason" className="text-sm text-amber-950" role="status">
             {isLoading
-              ? 'Bezig. Wacht op de uitslag voordat je opnieuw klikt.'
+              ? copy('sendingBusy')
               : sendBlock
-                ? sendBlock.action
-                : 'Het voorbeeld klopt. Verzenden gebruikt deze selectie.'}
+                ? t(sendBlock.action)
+                : copy('previewMatches')}
           </p>
           </div>
         </form>
@@ -1440,11 +1533,11 @@ export default function NotificationCenter() {
         <div className={`grid items-start gap-4 ${preview && sendEmail && message.trim() ? 'xl:grid-cols-[minmax(0,1fr)_420px]' : ''}`}>
       {preview && (
         <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4" role="status">
-          <h3 className="text-lg font-medium text-gray-900">Definitieve selectie</h3>
+          <h3 className="text-lg font-medium text-gray-900">{copy('definitiveSelection')}</h3>
           {preview.proof && (
             <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-950">
-              Unieke ontvangers: {preview.proof.unique}. Uit de filters: {preview.proof.fromFilters}. Alleen handmatig toegevoegd: {preview.proof.manualOnly}.
-              {preview.proof.fromFilters === 0 ? ' Niemand uit de doelgroep gaat mee.' : ' Niet aangevinkte filterresultaten gaan niet mee.'}
+              {copy('proof', { unique: preview.proof.unique, fromFilters: preview.proof.fromFilters, manualOnly: preview.proof.manualOnly })}
+              {preview.proof.fromFilters === 0 ? ` ${copy('proofNone')}` : ` ${copy('proofUnchecked')}`}
             </p>
           )}
           <ul className="space-y-1 text-sm text-gray-800">
@@ -1453,31 +1546,31 @@ export default function NotificationCenter() {
             ))}
           </ul>
           <p className="text-sm text-gray-900">
-            In-app {preview.channels.inApp}. Push-bereikbaar {preview.channels.push}. E-mail met adres {preview.channels.email}.
-            Geaccepteerd door de mail- of pushdienst is niet hetzelfde als afgeleverd.
+            {copy('channelTotals', { inApp: preview.channels.inApp, push: preview.channels.push, email: preview.channels.email })}
+            {' '}{copy('acceptanceNotDelivery')}
           </p>
           {preview.error && <p className="text-sm text-red-800">{preview.error}</p>}
           {!preview.previewToken && (
             <p className="text-sm font-medium text-amber-900">
-              De selectie is gewijzigd. Bekijk het voorbeeld opnieuw voordat je verstuurt.
+              {copy('previewChanged')}
             </p>
           )}
           <ul className="max-h-80 space-y-2 overflow-y-auto text-sm">
             {preview.recipients.map((recipient) => (
               <li key={recipient.id} className="rounded border px-3 py-2">
                 <p className="font-medium text-gray-900">{recipient.name}</p>
-                <p className="text-gray-800">{recipient.roles.join(' · ') || 'Geen rol'}</p>
-                <p className="text-gray-600">{recipient.email || 'Geen e-mailadres'}</p>
-                {recipient.stripeStatus ? <p className="text-gray-900">Stripe: {stripeName(recipient.stripeStatus) || recipient.connectLabel}</p> : null}
+                <p className="text-gray-800">{recipient.roles.join(' · ') || copy('noRole')}</p>
+                <p className="text-gray-600">{recipient.email || copy('noEmail')}</p>
+                {recipient.stripeStatus ? <p className="text-gray-900">{copy('stripeLine', { status: stripeName(recipient.stripeStatus) || recipient.connectLabel })}</p> : null}
                 {recipient.requiresExplicitCheck ? (
-                  <p className="text-amber-900">Apart aangevinkt. Selecteer alle resultaten neemt dit account niet mee.</p>
+                  <p className="text-amber-900">{copy('explicitChecked')}</p>
                 ) : null}
                 <p className="text-emerald-900">{(recipient.reasons || []).join(' · ')}</p>
                 {(recipient.channelLines || []).map((line) => (
                   <p key={line} className="text-gray-800">{line}</p>
                 ))}
                 {(recipient.alreadySent || []).map((prior) => (
-                  <p key={`${prior.channel}-${prior.at}`} className="text-amber-900">Dit bericht al verstuurd. {prior.label}</p>
+                  <p key={`${prior.channel}-${prior.at}`} className="text-amber-900">{copy('alreadySent', { label: prior.label })}</p>
                 ))}
               </li>
             ))}
@@ -1495,8 +1588,8 @@ export default function NotificationCenter() {
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg"><Users className="w-6 h-6 text-blue-600" /></div>
             <div className="ml-4">
-              <h3 className="text-lg font-medium text-gray-900">Gebruikers</h3>
-              <p className="text-sm text-gray-500">Zelfde Stripe-status als in Gebruikersbeheer</p>
+              <h3 className="text-lg font-medium text-gray-900">{copy('usersCard')}</h3>
+              <p className="text-sm text-gray-500">{copy('usersCardHelp')}</p>
             </div>
           </div>
         </div>
@@ -1504,8 +1597,8 @@ export default function NotificationCenter() {
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg"><Mail className="w-6 h-6 text-green-600" /></div>
             <div className="ml-4">
-              <h3 className="text-lg font-medium text-gray-900">E-mail</h3>
-              <p className="text-sm text-gray-500">Alleen geaccepteerd als de maildienst dat zegt</p>
+              <h3 className="text-lg font-medium text-gray-900">{copy('emailCard')}</h3>
+              <p className="text-sm text-gray-500">{copy('emailCardHelp')}</p>
             </div>
           </div>
         </div>
@@ -1513,8 +1606,8 @@ export default function NotificationCenter() {
           <div className="flex items-center">
             <div className="p-2 bg-purple-100 rounded-lg"><AlertCircle className="w-6 h-6 text-purple-600" /></div>
             <div className="ml-4">
-              <h3 className="text-lg font-medium text-gray-900">Herhalen</h3>
-              <p className="text-sm text-gray-500">Wie het bericht al kreeg, wordt overgeslagen</p>
+              <h3 className="text-lg font-medium text-gray-900">{copy('repeatCard')}</h3>
+              <p className="text-sm text-gray-500">{copy('repeatCardHelp')}</p>
             </div>
           </div>
         </div>
