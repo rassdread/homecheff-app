@@ -98,8 +98,16 @@ async function main() {
     seller: { avatar: sampleBase64 },
     discovery: { coverImage: sampleBase64 },
   });
-  assert(sanitized.image === null, 'cover null when only base64');
-  assert(!('images' in sanitized), 'removes images array');
+  assert(
+    sanitized.image === 'https://cdn.example.com/b.jpg',
+    'cover falls through to the first safe photo',
+  );
+  assert(
+    Array.isArray(sanitized.images) &&
+      sanitized.images.length === 1 &&
+      sanitized.images[0] === 'https://cdn.example.com/b.jpg',
+    'keeps every safe photo and drops inline data',
+  );
   assert(!('ListingMedia' in sanitized), 'removes ListingMedia array');
   assert(countInlineDataMediaUrls(sanitized) === 0, 'no inline data after sanitize');
 

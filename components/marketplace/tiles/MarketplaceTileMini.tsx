@@ -45,6 +45,7 @@ export default function MarketplaceTileMini({
         href={model.href}
         alt={model.imageAlt}
         imageUrl={model.coverImage}
+        imageUrls={model.imageUrls}
         mediaRatio="1:1"
         badges={badges}
         overflowCount={overflowCount}

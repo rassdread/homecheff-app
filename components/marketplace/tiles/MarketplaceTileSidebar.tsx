@@ -34,6 +34,7 @@ export default function MarketplaceTileSidebar({
           href={model.href}
           alt={model.imageAlt}
           imageUrl={model.coverImage}
+          imageUrls={model.imageUrls}
           mediaRatio="4:3"
           showFavorite={false}
           showShare={false}

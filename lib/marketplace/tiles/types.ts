@@ -66,6 +66,8 @@ export type MarketplaceTileModel = {
   description: string | null;
 
   coverImage: string | null;
+  /** Stored photos in order. Absent or one entry shows no pager. */
+  imageUrls?: string[];
   videoUrl: string | null;
   videoPoster: string | null;
   imageAlt: string;

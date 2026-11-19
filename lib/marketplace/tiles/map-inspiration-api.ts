@@ -20,6 +20,9 @@ export function inspirationApiToCardItem(item: InspirationItem): GeoFeedCardItem
     deliveryMode: null,
     place: item.location?.place ?? null,
     photo: mainPhoto?.url ?? null,
+    photos: item.photos
+      .map((photo) => photo.url)
+      .filter((url): url is string => typeof url === 'string' && url.trim().length > 0),
     videoUrl: mainVideo?.url ?? null,
     videoThumbnail: mainVideo?.thumbnail ?? null,
     distanceKm: item.location?.distanceKm ?? undefined,

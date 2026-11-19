@@ -6,11 +6,12 @@ import {
   useRef,
   useEffect,
   useId,
+  useMemo,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
 import Link from "next/link";
-import { PlayCircle, Volume2, VolumeX } from "lucide-react";
+import { ChevronLeft, ChevronRight, PlayCircle, Volume2, VolumeX } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useIsNativeAppMounted } from "@/lib/native/useIsNativeAppMounted";
 import { navDebug } from "@/lib/nav-debug";
@@ -44,6 +45,14 @@ import {
   resumeVideoNetwork,
 } from "@/components/feed/feedVideoPlaybackCoordinator";
 import { feedPerfMarkFirstImageOnce } from "@/lib/feed/feed-performance-baseline";
+import {
+  collectFeedPhotoUrls,
+  feedPhotoIndexAfterMove,
+  feedPhotoStepFromSwipe,
+  classifyFeedPhotoGesture,
+} from "@/lib/feed/feed-photo-gallery";
+
+export { collectFeedPhotoUrls };
 
 export const FEED_MEDIA_PLACEHOLDER = "/placeholder.webp";
 
@@ -210,6 +219,8 @@ export type FeedCardPrimaryMediaProps = {
   videoUrl?: string | null;
   videoPoster?: string | null;
   imageUrl?: string | null;
+  /** Every stored photo, in order. One photo shows no pager. */
+  imageUrls?: string[] | null;
   objectFit?: "cover" | "contain" | "smart";
   /** Extra classes op de inner media-wrapper (niet op aspect-box). */
   className?: string;
@@ -291,6 +302,7 @@ export function FeedCardPrimaryMedia({
   videoUrl,
   videoPoster,
   imageUrl,
+  imageUrls,
   objectFit = "smart",
   className = "",
   badgeOverlay,
@@ -301,7 +313,27 @@ export function FeedCardPrimaryMedia({
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const wantPlayRef = useRef(false);
-  const smartFit = useSmartMediaFit(imageUrl ?? null, {
+  const photoSwipeRef = useRef(false);
+  const photoGallery = useMemo(
+    () =>
+      collectFeedPhotoUrls({
+        images: imageUrls ?? undefined,
+        image: imageUrl,
+        photo: imageUrl,
+      }),
+    [imageUrls, imageUrl],
+  );
+  const galleryKey = photoGallery.join("\n");
+  const [photoIndex, setPhotoIndex] = useState(0);
+  useEffect(() => {
+    setPhotoIndex(0);
+  }, [galleryKey]);
+  const safePhotoIndex =
+    photoGallery.length === 0
+      ? 0
+      : Math.min(photoIndex, photoGallery.length - 1);
+  const activePhoto = photoGallery[safePhotoIndex] ?? null;
+  const smartFit = useSmartMediaFit(activePhoto, {
     mode: "card",
     forceFit: objectFit === "smart" ? undefined : objectFit,
   });
@@ -369,7 +401,7 @@ export function FeedCardPrimaryMedia({
     setVideoFailed(false);
     setImgBroken(false);
     wantPlayRef.current = false;
-  }, [videoUrl, imageUrl, showVideo]);
+  }, [videoUrl, galleryKey, showVideo]);
 
   useEffect(() => {
     if (!showVideo) return;
@@ -402,15 +434,13 @@ export function FeedCardPrimaryMedia({
 
   const posterEffective =
     (hasUsableMediaUrl(videoPoster) ? videoPoster!.trim() : null) ||
-    (hasUsableMediaUrl(imageUrl) ? imageUrl!.trim() : undefined);
-  const staticPosterSrc =
-    posterEffective ||
-    (hasUsableMediaUrl(imageUrl) ? imageUrl!.trim() : FEED_MEDIA_PLACEHOLDER);
+    (activePhoto ?? undefined);
+  const staticPosterSrc = posterEffective || activePhoto || FEED_MEDIA_PLACEHOLDER;
 
   const showImage =
-    (!showVideo || videoFailed) &&
-    hasUsableMediaUrl(imageUrl) &&
-    !imgBroken;
+    (!showVideo || videoFailed) && Boolean(activePhoto) && !imgBroken;
+  const canBrowsePhotos =
+    photoGallery.length > 1 && showImage && !renderVideoElement;
 
   const onVideoError = useCallback(() => setVideoFailed(true), []);
   const onImgError = useCallback(() => setImgBroken(true), []);
@@ -469,7 +499,7 @@ export function FeedCardPrimaryMedia({
 
   const hasOpenableLightboxMedia =
     (Boolean(corsSrc) && !videoFailed) ||
-    (showImage && hasUsableMediaUrl(imageUrl));
+    (showImage && Boolean(activePhoto));
 
   const closeLightbox = useCallback(() => {
     setLightboxOpen(false);
@@ -498,11 +528,15 @@ export function FeedCardPrimaryMedia({
       setLightboxOpen(true);
       return;
     }
-    if (showImage && hasUsableMediaUrl(imageUrl)) {
+    if (showImage && activePhoto) {
       setLightboxPayload({
         kind: "image",
-        src: imageUrl!.trim(),
+        src: activePhoto,
         alt: label,
+        gallery:
+          photoGallery.length > 1
+            ? { sources: photoGallery, index: safePhotoIndex }
+            : undefined,
       });
       setLightboxOpen(true);
     }
@@ -513,7 +547,9 @@ export function FeedCardPrimaryMedia({
     corsSrc,
     videoFailed,
     showImage,
-    imageUrl,
+    activePhoto,
+    photoGallery,
+    safePhotoIndex,
     instanceId,
     fallbackVideoSrc,
     posterEffective,
@@ -528,11 +564,83 @@ export function FeedCardPrimaryMedia({
         }
       : {};
 
+  const ignorePhotoSwipeClick = useCallback(
+    (event: { preventDefault(): void; stopPropagation(): void }) => {
+      if (!photoSwipeRef.current) return false;
+      photoSwipeRef.current = false;
+      event.preventDefault();
+      event.stopPropagation();
+      return true;
+    },
+    [],
+  );
+
+  const stepPhoto = useCallback(
+    (event: { preventDefault(): void; stopPropagation(): void }, delta: -1 | 1) => {
+      event.preventDefault();
+      event.stopPropagation();
+      photoSwipeRef.current = false;
+      setPhotoIndex((current) =>
+        feedPhotoIndexAfterMove(current, photoGallery.length, delta),
+      );
+    },
+    [photoGallery.length],
+  );
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !canBrowsePhotos) return;
+    let startX = 0;
+    let startY = 0;
+    let axis: "x" | "y" | null = null;
+
+    const onStart = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      startX = event.touches[0].clientX;
+      startY = event.touches[0].clientY;
+      axis = null;
+      photoSwipeRef.current = false;
+    };
+    const onMove = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      const dx = event.touches[0].clientX - startX;
+      const dy = event.touches[0].clientY - startY;
+      const gesture = classifyFeedPhotoGesture(dx, dy);
+      if (gesture === "none") return;
+      if (!axis) axis = gesture === "horizontal" ? "x" : "y";
+      if (axis === "x") event.preventDefault();
+    };
+    const onEnd = (event: TouchEvent) => {
+      if (axis !== "x" || event.changedTouches.length !== 1) return;
+      const dx = event.changedTouches[0].clientX - startX;
+      const dy = event.changedTouches[0].clientY - startY;
+      const step = feedPhotoStepFromSwipe(dx, dy);
+      if (!step) return;
+      photoSwipeRef.current = true;
+      setPhotoIndex((current) =>
+        feedPhotoIndexAfterMove(current, photoGallery.length, step),
+      );
+    };
+
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", onEnd);
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+    };
+  }, [canBrowsePhotos, photoGallery.length]);
+
   return (
     <>
     <div
       ref={containerRef}
       className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100 feed-card-primary-media"
+      data-image-slider={canBrowsePhotos ? "" : undefined}
+      data-hc-feed-photos={photoGallery.length}
+      data-hc-feed-photo-index={canBrowsePhotos ? safePhotoIndex : undefined}
+      style={canBrowsePhotos ? { touchAction: "pan-y" } : undefined}
       {...(lightboxEligible ? hoverMediaHandlers : {})}
     >
       <div className={`absolute inset-0 z-0 ${className}`}>
@@ -585,7 +693,7 @@ export function FeedCardPrimaryMedia({
         ) : showImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={imageUrl!.trim()}
+            src={activePhoto!}
             alt={label}
             className={`absolute inset-0 h-full w-full ${fitClass}`}
             loading={imageLoading}
@@ -619,6 +727,7 @@ export function FeedCardPrimaryMedia({
           aria-label={t("feed.openMediaFullscreen")}
           disabled={!hasOpenableLightboxMedia}
           onClick={(e) => {
+            if (ignorePhotoSwipeClick(e)) return;
             e.preventDefault();
             e.stopPropagation();
             openLightbox();
@@ -631,7 +740,10 @@ export function FeedCardPrimaryMedia({
           href={href}
           className="absolute inset-0 z-10"
           aria-label={label}
-          onClick={() => navDebug('feed-tile:media-link', { href })}
+          onClick={(event) => {
+            if (ignorePhotoSwipeClick(event)) return;
+            navDebug('feed-tile:media-link', { href });
+          }}
           onMouseEnter={
             useHoverPlayback && showVideo ? onDesktopMouseEnter : undefined
           }
@@ -642,6 +754,68 @@ export function FeedCardPrimaryMedia({
           <span className="sr-only">{label}</span>
         </Link>
       )}
+
+      {canBrowsePhotos && safePhotoIndex > 0 ? (
+        <button
+          type="button"
+          className="absolute left-2 top-1/2 z-30 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white shadow-md hover:bg-black/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+          aria-label={t("feed.previousPhoto")}
+          data-hc-feed-photo-prev
+          onClick={(event) => stepPhoto(event, -1)}
+        >
+          <ChevronLeft className="h-5 w-5" aria-hidden />
+        </button>
+      ) : null}
+      {canBrowsePhotos && safePhotoIndex < photoGallery.length - 1 ? (
+        <button
+          type="button"
+          className="absolute right-2 top-1/2 z-30 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white shadow-md hover:bg-black/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+          aria-label={t("feed.nextPhoto")}
+          data-hc-feed-photo-next
+          onClick={(event) => stepPhoto(event, 1)}
+        >
+          <ChevronRight className="h-5 w-5" aria-hidden />
+        </button>
+      ) : null}
+      {canBrowsePhotos ? (
+        <div
+          className="pointer-events-none absolute bottom-2 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-black/60 px-2 py-1.5"
+          data-hc-feed-photo-indicator
+        >
+          <span className="sr-only">
+            {t("feed.photoPosition", {
+              current: safePhotoIndex + 1,
+              total: photoGallery.length,
+            })}
+          </span>
+          {photoGallery.length <= 6 ? (
+            photoGallery.map((url, index) => (
+              <button
+                key={url}
+                type="button"
+                className={`pointer-events-auto h-2 rounded-full ${
+                  index === safePhotoIndex ? "w-6 bg-white" : "w-2 bg-white/55"
+                }`}
+                aria-label={t("feed.photoPosition", {
+                  current: index + 1,
+                  total: photoGallery.length,
+                })}
+                aria-current={index === safePhotoIndex ? "true" : undefined}
+                data-hc-feed-photo-dot={index}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setPhotoIndex(index);
+                }}
+              />
+            ))
+          ) : (
+            <span className="rounded-full bg-black/60 px-2 py-1 text-xs font-medium text-white">
+              {safePhotoIndex + 1} / {photoGallery.length}
+            </span>
+          )}
+        </div>
+      ) : null}
 
       {renderVideoElement ? (
         <button

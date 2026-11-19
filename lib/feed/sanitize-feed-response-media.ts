@@ -89,23 +89,40 @@ function sanitizeVideoBlock(
   };
 }
 
+/** Safe photo URLs in stored order. Drops inline data, placeholders and duplicates. */
+export function sanitizeFeedImageList(values: unknown[]): string[] {
+  const images: string[] = [];
+  const seen = new Set<string>();
+  for (const value of values) {
+    const url = sanitizeFeedMediaUrl(value);
+    if (!url || seen.has(url)) continue;
+    seen.add(url);
+    images.push(url);
+  }
+  return images;
+}
+
 /**
- * Slim feed item for API response: one cover URL, no inline data, no duplicate galleries.
+ * Slim feed item for API response: every safe photo URL, no inline data,
+ * no duplicate ListingMedia objects.
  */
 export function sanitizeFeedItemForResponse(
   item: Record<string, unknown>,
 ): Record<string, unknown> {
-  const cover =
-    sanitizeFeedMediaUrl(item.image) ??
-    sanitizeFeedMediaUrl(item.photo) ??
-    sanitizeFeedMediaUrl(
-      Array.isArray(item.images) ? item.images[0] : null,
-    ) ??
-    sanitizeFeedMediaUrl(
-      Array.isArray(item.ListingMedia)
-        ? (item.ListingMedia[0] as { url?: string } | undefined)?.url
-        : null,
-    );
+  const listingUrls = Array.isArray(item.ListingMedia)
+    ? item.ListingMedia.map((row) =>
+        row && typeof row === 'object' && 'url' in row
+          ? (row as { url?: unknown }).url
+          : null,
+      )
+    : [];
+  const images = sanitizeFeedImageList([
+    ...(Array.isArray(item.images) ? item.images : []),
+    ...listingUrls,
+    item.image,
+    item.photo,
+  ]);
+  const cover = images[0] ?? null;
 
   const videoUrl = sanitizeFeedMediaUrl(item.videoUrl ?? item.primaryVideoUrl);
   const videoRaw = item.Video;
@@ -117,8 +134,8 @@ export function sanitizeFeedItemForResponse(
   const next: Record<string, unknown> = { ...item };
   next.image = cover;
   if ('photo' in next) next.photo = cover;
+  next.images = images;
 
-  delete next.images;
   delete next.ListingMedia;
   delete next.videos;
 

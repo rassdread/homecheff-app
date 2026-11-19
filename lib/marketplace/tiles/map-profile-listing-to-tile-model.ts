@@ -116,6 +116,9 @@ export function mapProfileListingToTileModel(
     description: item.description ?? d?.description ?? null,
 
     coverImage: cover,
+    imageUrls: (item.photos ?? [])
+      .map((photo) => photo.url)
+      .filter((url) => typeof url === 'string' && url.trim().length > 0),
     videoUrl: null,
     videoPoster: null,
     imageAlt: item.title ?? '',

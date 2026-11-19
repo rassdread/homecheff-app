@@ -61,6 +61,7 @@ export default function MarketplaceTileCompact({
         href={model.href}
         alt={model.imageAlt}
         imageUrl={model.coverImage}
+        imageUrls={model.imageUrls}
         videoUrl={model.videoUrl}
         videoPoster={model.videoPoster}
         mediaRatio={mediaRatio}

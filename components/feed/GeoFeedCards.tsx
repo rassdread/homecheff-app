@@ -22,6 +22,7 @@ export type GeoFeedCardItem = {
   deliveryMode: "PICKUP" | "DELIVERY" | "BOTH" | string | null;
   place: string | null;
   photo: string | null;
+  photos?: string[];
   videoUrl?: string | null;
   videoThumbnail?: string | null;
   distanceKm?: number;

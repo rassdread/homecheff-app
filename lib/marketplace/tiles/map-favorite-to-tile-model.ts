@@ -116,6 +116,9 @@ export function mapFavoriteRecordToTileModel(
       title: p.title ?? '',
       description: null,
       coverImage: p.Image?.[0]?.fileUrl ?? null,
+      imageUrls: (p.Image ?? [])
+        .map((image) => image.fileUrl)
+        .filter((url): url is string => typeof url === 'string' && url.trim().length > 0),
       videoUrl: null,
       videoPoster: null,
       imageAlt: p.title ?? '',
@@ -160,6 +163,9 @@ export function mapFavoriteRecordToTileModel(
       title: d.title ?? '',
       description: null,
       coverImage: d.photos?.[0]?.url ?? null,
+      imageUrls: (d.photos ?? [])
+        .map((photo) => photo.url)
+        .filter((url): url is string => typeof url === 'string' && url.trim().length > 0),
       videoUrl: null,
       videoPoster: null,
       imageAlt: d.title ?? '',

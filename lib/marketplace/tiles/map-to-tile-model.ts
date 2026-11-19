@@ -143,6 +143,7 @@ export function mapGeoFeedCardToTileModel(
     coverImage:
       (d?.coverImage && hasUsableMediaUrl(d.coverImage) ? d.coverImage : null) ??
       (item.photo && hasUsableMediaUrl(item.photo) ? item.photo : null),
+    imageUrls: (item.photos ?? []).filter((url) => hasUsableMediaUrl(url)),
     videoUrl: item.videoUrl ?? null,
     videoPoster: item.videoThumbnail ?? null,
     imageAlt: item.title ?? '',

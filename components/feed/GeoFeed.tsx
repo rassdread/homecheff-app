@@ -81,6 +81,7 @@ import {
 import { inspirationApiToCardItem } from "@/lib/marketplace/tiles/map-inspiration-api";
 import {
   pickPrimaryImageUrl,
+  collectFeedPhotoUrls,
   pickPrimaryVideoUrl,
 } from "@/components/feed/feedMedia";
 import {
@@ -441,6 +442,7 @@ type FeedItem = {
   lat: number | null;
   lng: number | null;
   photo: string | null;
+  photos?: string[];
   videoUrl: string | null;
   videoThumbnail: string | null;
   createdAt: string;
@@ -539,7 +541,8 @@ type InspSlot =
   | { kind: "feed"; item: FeedItem };
 
 function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
-  const photo = pickPrimaryImageUrl(raw);
+  const photos = collectFeedPhotoUrls(raw);
+  const photo = photos[0] ?? pickPrimaryImageUrl(raw);
   const { url: videoUrl, thumbnail: videoThumbnail } =
     pickPrimaryVideoUrl(raw);
   const createdRaw = raw.createdAt;
@@ -716,6 +719,7 @@ function normalizeFeedItem(raw: Record<string, unknown>): FeedItem {
     lat: resolvedCoords?.lat ?? null,
     lng: resolvedCoords?.lng ?? null,
     photo,
+    photos,
     videoUrl,
     videoThumbnail,
     createdAt,
@@ -1027,6 +1031,7 @@ function toCardItem(
     deliveryMode: it.deliveryMode,
     place: it.place,
     photo: it.photo,
+    photos: it.photos,
     videoUrl: it.videoUrl,
     videoThumbnail: it.videoThumbnail,
     distanceKm,
