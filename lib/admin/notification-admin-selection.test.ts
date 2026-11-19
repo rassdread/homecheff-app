@@ -226,7 +226,7 @@ describe('the same admin selected both ways', () => {
       hasEmail: true,
     });
     assert.equal(withDevice.some((line) => line.includes('geen geldig pushapparaat')), false);
-    assert.ok(withDevice.some((line) => line.includes('zelfde titel, tekst en interne bestemming')));
+    assert.ok(withDevice.some((line) => line.includes('hetzelfde onderwerp, dezelfde tekst')));
     const channels = channelsFromLedgerMeta({ channels: { email: true, push: true, inApp: true } });
     assert.ok(channels);
     assert.equal(pushAlsoCreatesInApp(channels || []), true);

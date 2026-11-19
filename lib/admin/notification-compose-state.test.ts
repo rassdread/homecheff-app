@@ -3,12 +3,13 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, it } from 'node:test';
 import { chosenRecipients, sendBlockReason } from '@/lib/admin/notification-compose-state';
+import { emptySelection, previewCanonicalPayload } from '@/lib/admin/notification-audience';
 
 const ready = {
   message: 'Hallo',
   sendNotification: true,
   sendEmail: false,
-  subject: '',
+  subject: 'Onderwerp',
   recipientCount: 1,
   listable: false,
   hasPreview: true,
@@ -65,7 +66,8 @@ describe('send stays closed until the preview matches the form', () => {
   it('points at the empty field instead of a silent disabled button', () => {
     assert.equal(sendBlockReason({ ...ready, message: '  ' })?.field, 'message');
     assert.equal(sendBlockReason({ ...ready, sendNotification: false })?.field, 'channel');
-    assert.equal(sendBlockReason({ ...ready, sendEmail: true, subject: '' })?.field, 'subject');
+    assert.equal(sendBlockReason({ ...ready, sendEmail: false, subject: '' })?.field, 'subject');
+    assert.equal(sendBlockReason({ ...ready, sendEmail: true, subject: '  ' })?.field, 'subject');
     assert.equal(sendBlockReason({ ...ready, recipientCount: 0 })?.field, 'recipients');
     assert.equal(sendBlockReason({ ...ready, emailConfirmRequired: true })?.field, 'email-confirm');
   });
@@ -82,9 +84,51 @@ describe('typing does not reload the recipient list', () => {
     assert.doesNotMatch(effect, /subject,/);
     assert.doesNotMatch(effect, /pushTitle,/);
     assert.doesNotMatch(effect, /setDirectory\(\[\]\)/);
+    assert.match(ui, /id="notice-subject"/);
+    assert.match(ui, /admin\.notificationCenter\.subjectHelp/);
+    assert.match(ui, /admin\.notificationCenter\.emailSubject/);
+    assert.doesNotMatch(ui, /pushTitle/);
+    assert.doesNotMatch(ui, /admin\.notificationCenter\.pushTitle/);
+    const nl = JSON.parse(readFileSync(resolve(process.cwd(), 'public/i18n/nl.json'), 'utf8'));
+    const en = JSON.parse(readFileSync(resolve(process.cwd(), 'public/i18n/en.json'), 'utf8'));
+    assert.equal(nl.admin.notificationCenter.emailSubject, 'Onderwerp');
+    assert.equal(en.admin.notificationCenter.emailSubject, 'Subject');
+    assert.equal(
+      nl.admin.notificationCenter.subjectHelp,
+      'Dit onderwerp wordt gebruikt voor je bericht, e-mail en pushmelding.',
+    );
+    assert.equal(
+      en.admin.notificationCenter.subjectHelp,
+      'This subject is used for your message, email and push notification.',
+    );
     assert.match(ui, /copy\('selectedHeading'\)/);
     assert.match(ui, /copy\('refreshPreview'\)/);
     assert.match(ui, /id="send-block-reason"/);
+    const route = readFileSync(resolve(process.cwd(), 'app/api/admin/notifications/send/route.ts'), 'utf8');
+    assert.match(route, /const pushTitle = subject;/);
+    assert.doesNotMatch(route, /record\.title|titleRaw/);
+    assert.match(route, /subject,\s*\n\s*message,\s*\n\s*action: noticeAction/);
+    assert.match(route, /title: pushTitle,/);
+    assert.match(route, /sendTransactionalEmail\(\{[\s\S]*subject,/);
+    const headline = 'HomeCheff — test bericht';
+    const previewFor = (subject: string) => previewCanonicalPayload({
+      selection: emptySelection('applicable'),
+      message: 'De tekst blijft staan.',
+      subject,
+      title: subject,
+      route: '/delivery/dashboard',
+      sendNotification: true,
+      sendEmail: true,
+      confirmRepeat: false,
+      recipientIds: ['sergio'],
+    });
+    assert.notEqual(previewFor(headline), previewFor('Ander onderwerp'));
+    const email = { subject: headline };
+    const push = { title: headline, body: 'De tekst blijft staan.' };
+    const letter = { subject: headline };
+    assert.equal(email.subject, headline);
+    assert.equal(push.title, headline);
+    assert.equal(letter.subject, headline);
     assert.doesNotMatch(ui, /Geselecteerde ontvangers/);
   });
 });

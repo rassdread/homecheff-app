@@ -62,7 +62,7 @@ describe('message center copy follows the selected language', () => {
       message: 'Hello from the admin',
       sendNotification: true,
       sendEmail: false,
-      subject: '',
+      subject: 'Subject',
       recipientCount: 1,
       listable: true,
       hasPreview: false,

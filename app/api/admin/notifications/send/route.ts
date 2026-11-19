@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
     const confirmRepeat = record.confirmRepeat === true;
     const dryRun = Boolean(record.dryRun);
     const subject = typeof record.subject === 'string' ? record.subject.trim() : '';
-    const titleRaw = typeof record.title === 'string' ? record.title.trim() : '';
+    const pushTitle = subject;
     const routeRaw = record.route;
     const campaignId = campaignKeyFrom(req, record);
     const listOnly = record.listOnly === true;
@@ -241,7 +241,7 @@ export async function POST(req: NextRequest) {
           { status: 400 },
         );
       }
-      if (sendEmail && !subject) {
+      if (!subject) {
         return NextResponse.json(
           { error: say(lang, 'fillSubject'), message: say(lang, 'fillSubject') },
           { status: 400 },
@@ -261,7 +261,7 @@ export async function POST(req: NextRequest) {
       const empty = say(lang, 'noUsers');
       const priors = message
         ? await findPriorDeliveries(prisma, matched.map((user) => user.id), {
-            title: titleRaw,
+            title: pushTitle,
             subject,
             message,
             channels: ['inApp', 'push', 'email'],
@@ -367,7 +367,6 @@ export async function POST(req: NextRequest) {
     }
     const noticeAction = noticeButton.action;
     const openPath = adminNoticePath(campaignId);
-    const pushTitle = titleRaw.length > 0 ? titleRaw.slice(0, 120) : 'HomeCheff';
     const requestedChannels: DeliveryChannel[] = [
       ...(plans.some((plan) => plan.inApp) ? (['inApp'] as DeliveryChannel[]) : []),
       ...(plans.some((plan) => plan.push) ? (['push'] as DeliveryChannel[]) : []),

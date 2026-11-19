@@ -136,7 +136,6 @@ export default function NotificationCenter() {
   const copy = (key: string, params?: Record<string, string | number>) => t(`admin.notificationCenter.ui.${key}`, params);
   const [draftReady, setDraftReady] = useState(false);
   const [message, setMessage] = useState('');
-  const [pushTitle, setPushTitle] = useState('');
   const [linkPreset, setLinkPreset] = useState('');
   const [buttonLabel, setButtonLabel] = useState('');
   const [subject, setSubject] = useState('');
@@ -353,7 +352,6 @@ export default function NotificationCenter() {
       if (!raw) return;
       const draft = JSON.parse(raw) as Record<string, unknown>;
       if (typeof draft.message === 'string') setMessage(draft.message);
-      if (typeof draft.pushTitle === 'string') setPushTitle(draft.pushTitle);
       if (typeof draft.subject === 'string') setSubject(draft.subject);
       if (typeof draft.linkPreset === 'string') setLinkPreset(draft.linkPreset);
       if (typeof draft.buttonLabel === 'string') setButtonLabel(draft.buttonLabel);
@@ -398,7 +396,6 @@ export default function NotificationCenter() {
     if (!draftReady) return;
     sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
       message,
-      pushTitle,
       subject,
       linkPreset,
       buttonLabel,
@@ -422,7 +419,6 @@ export default function NotificationCenter() {
   }, [
     draftReady,
     message,
-    pushTitle,
     subject,
     linkPreset,
     buttonLabel,
@@ -458,7 +454,7 @@ export default function NotificationCenter() {
   };
 
   const campaignKey = () => {
-    const hash = `${message.trim()}\n${subject.trim()}\n${pushTitle.trim()}\n${linkPreset}\n${buttonLabel.trim()}`;
+    const hash = `${message.trim()}\n${subject.trim()}\n${linkPreset}\n${buttonLabel.trim()}`;
     if (!contentKeyRef.current || contentKeyRef.current.hash !== hash) {
       contentKeyRef.current = {
         hash,
@@ -473,7 +469,6 @@ export default function NotificationCenter() {
     return {
       message: message.trim(),
       subject: subject.trim(),
-      title: pushTitle.trim() || undefined,
       route: linkPreset,
       buttonLabel: buttonLabel.trim(),
       selection: current,
@@ -514,7 +509,7 @@ export default function NotificationCenter() {
       setNotice({ tone: 'error', lines: [t('admin.notificationCenter.selectDeliveryMethod')] });
       return;
     }
-    if (sendEmail && !subject.trim()) {
+    if (!subject.trim()) {
       setNotice({ tone: 'error', lines: [t('admin.notificationCenter.enterEmailSubject')] });
       return;
     }
@@ -588,7 +583,6 @@ export default function NotificationCenter() {
       if (response.ok && data?.outcome === 'sent') {
         setAttemptedSend(false);
         setMessage('');
-        setPushTitle('');
         setSubject('');
         setAddedAdmins([]);
         setAdminQuery('');
@@ -1385,51 +1379,27 @@ export default function NotificationCenter() {
             </div>
           </div>
 
-          {(sendNotification || sendEmail) && (
-            <div className="space-y-4">
-              <h3 className="text-base font-semibold text-gray-900">{copy('stepTitles')}</h3>
-              {sendNotification && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('admin.notificationCenter.pushTitle')}
-                  </label>
-                  <input
-                    type="text"
-                    value={pushTitle}
-                    onChange={(event) => {
-                      setPushTitle(event.target.value);
-                      invalidatePreview();
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder={t('admin.notificationCenter.pushTitlePlaceholder')}
-                    maxLength={120}
-                  />
-                </div>
-              )}
-              {sendEmail && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('admin.notificationCenter.emailSubject')} *
-                  </label>
-                  <input
-                    type="text"
-                    value={subject}
-                    onChange={(event) => {
-                      setSubject(event.target.value);
-                      invalidatePreview();
-                    }}
-                    aria-invalid={fieldInvalid('subject')}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${fieldInvalid('subject') ? 'border-red-600' : 'border-gray-300'}`}
-                    placeholder={t('admin.notificationCenter.emailSubjectPlaceholder')}
-                    maxLength={100}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
           <div className="space-y-4">
             <h3 className="text-base font-semibold text-gray-900">{copy('stepMessage')}</h3>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="notice-subject">
+                {t('admin.notificationCenter.emailSubject')}
+              </label>
+              <input
+                id="notice-subject"
+                type="text"
+                value={subject}
+                onChange={(event) => {
+                  setSubject(event.target.value);
+                  invalidatePreview();
+                }}
+                aria-invalid={fieldInvalid('subject')}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${fieldInvalid('subject') ? 'border-red-600' : 'border-gray-300'}`}
+                placeholder={t('admin.notificationCenter.emailSubjectPlaceholder')}
+                maxLength={100}
+              />
+              <p className="mt-1 text-sm text-gray-500">{t('admin.notificationCenter.subjectHelp')}</p>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('admin.notificationCenter.message')}

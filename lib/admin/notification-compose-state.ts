@@ -75,7 +75,7 @@ export function sendBlockReason(input: {
       action: 'admin.notificationCenter.ui.blockChannel',
     };
   }
-  if (input.sendEmail && !input.subject.trim()) {
+  if (!input.subject.trim()) {
     return {
       field: 'subject',
       refreshPreview: false,
