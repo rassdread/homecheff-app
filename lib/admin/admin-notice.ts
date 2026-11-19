@@ -43,7 +43,17 @@ export function resolveAdminNoticeButton(label: unknown, route: unknown): AdminN
   };
 }
 
-/** The email button opens this recipient's own message, not the in-app action page. */
+/** The email button opens this recipient's HomeCheff message under Berichten. */
+export function messageEmailAction(conversationPath: string, lang: UiLanguage = 'nl') {
+  const label = uiCopy(lang, 'admin.notificationCenter.ui.openNotice');
+  const path = conversationPath.startsWith('/') ? conversationPath : '';
+  if (!path.startsWith('/messages/')) return null;
+  const resolved = resolveAdminEmailAction(label, `https://homecheff.eu${path}`);
+  if (!resolved.ok || !resolved.action) return null;
+  return resolved.action;
+}
+
+/** Older notices keep their original page. New sends use messageEmailAction. */
 export function noticeEmailAction(campaignId: string, lang: UiLanguage = 'nl') {
   if (!isAdminNoticeCampaignId(campaignId)) return null;
   const label = uiCopy(lang, 'admin.notificationCenter.ui.openNotice');

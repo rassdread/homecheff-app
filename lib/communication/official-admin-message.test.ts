@@ -10,6 +10,7 @@ import {
   buildOfficialAdminCopy,
   createOfficialAdminCopies,
   officialCopiesArePrivate,
+  officialDeliveryIds,
   readOfficialConversation,
 } from "./official-admin-message";
 
@@ -132,5 +133,31 @@ describe("official admin inbox copies", () => {
       "utf8"
     );
     assert.match(reply, /officialRepliesAreDisabled/);
+    assert.match(chat, /adminGreetingLine/);
+    assert.match(chat, /messageStartsWithGreeting/);
+    const unread = readFileSync(
+      resolve(process.cwd(), "app/api/messages/unread-count/route.ts"),
+      "utf8"
+    );
+    assert.match(unread, /unreadMessageWhere/);
+    const send = readFileSync(
+      resolve(process.cwd(), "app/api/admin/notifications/send/route.ts"),
+      "utf8"
+    );
+    assert.match(send, /createOfficialAdminCopies/);
+    assert.match(send, /officialDeliveryIds/);
+    assert.match(send, /messageEmailAction/);
+    assert.doesNotMatch(send, /prisma\.notification\.createMany/);
+  });
+
+  it("keeps a second attempt on the same private message", () => {
+    const first = officialDeliveryIds("campaign-1", "user-sergio");
+    const again = officialDeliveryIds("campaign-1", "user-sergio");
+    const other = officialDeliveryIds("campaign-1", "user-other");
+    assert.deepEqual(first, again);
+    assert.notEqual(first.conversationId, other.conversationId);
+    assert.notEqual(first.messageId, other.messageId);
+    assert.equal(first.conversationId.startsWith("c"), true);
+    assert.equal(first.messageId.startsWith("m"), true);
   });
 });

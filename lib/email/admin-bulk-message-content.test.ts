@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { adminEmailActionForRoute, renderAdminBulkMessage, resolveAdminEmailAction } from "./admin-bulk-message-content";
+import { adminEmailActionForRoute, adminGreetingLine, messageStartsWithGreeting, renderAdminBulkMessage, resolveAdminEmailAction } from "./admin-bulk-message-content";
 
 function ok(msg: string) {
   console.log("  ✓", msg);
@@ -36,6 +36,33 @@ assert.match(other.html, /Een andere vrije tekst\./);
 assert.equal(other.html.includes("Dit is een vrije tekst"), false);
 assert.equal(letter.html.includes("Een andere vrije tekst"), false);
 ok("each send uses the text it is given");
+
+const sergio = renderAdminBulkMessage({
+  recipientName: "Sergio Arrias",
+  message: "Dit is het bericht.",
+});
+assert.match(sergio.text, /^Hallo Sergio,\n\nDit is het bericht\./);
+assert.equal(sergio.text.includes("Arrias"), false);
+const noName = renderAdminBulkMessage({
+  recipientName: "Gebruiker",
+  message: "Zonder naam.",
+});
+assert.match(noName.text, /^Hallo,\n\nZonder naam\./);
+const english = renderAdminBulkMessage({
+  recipientName: "Sergio Arrias",
+  message: "The note.",
+  lang: "en",
+});
+assert.match(english.text, /^Hello Sergio,\n\nThe note\./);
+assert.match(english.html, /lang="en"/);
+assert.equal(messageStartsWithGreeting("Hello Sergio,\n\nThe note."), true);
+assert.equal(adminGreetingLine("Sergio Arrias", "nl"), "Hallo Sergio,");
+const already = renderAdminBulkMessage({
+  recipientName: "Sergio Arrias",
+  message: "Hallo Sergio,\n\nAl begroet.",
+});
+assert.equal(already.html.split("Hallo").length - 1, 1);
+ok("the greeting uses the first name, stays general when needed, and is not doubled");
 
 const unsafe = renderAdminBulkMessage({
   recipientName: "Sanne",
@@ -123,8 +150,30 @@ assert.match(centerUi, /value="\/sell\/new"/);
 ok("the notification destination becomes a HomeCheff button");
 const noticeRoute = readFileSync(resolve(process.cwd(), "app/api/admin/notifications/send/route.ts"), "utf8");
 assert.match(noticeRoute, /resolveAdminNoticeButton/);
+assert.match(noticeRoute, /messageEmailAction\(messagePath, lang\)/);
 assert.match(noticeRoute, /noticeEmailAction\(campaignId, lang\)/);
-assert.doesNotMatch(noticeRoute, /url: noticeAction\.url/);
+assert.match(noticeRoute, /createOfficialAdminCopies/);
+assert.match(noticeRoute, /allowDuringP2Pause:\s*true/);
+assert.match(noticeRoute, /body: message\.slice\(0, 500\)/);
+assert.doesNotMatch(noticeRoute, /record\.allowDuringP2Pause|body\.allowDuringP2Pause/);
+assert.doesNotMatch(noticeRoute, /prisma\.notification\.createMany/);
+const noticePage = readFileSync(
+  resolve(process.cwd(), "app/notifications/admin/[campaignId]/page.tsx"),
+  "utf8"
+);
+assert.match(noticePage, /adminGreetingLine\(viewer\?\.name, lang\)/);
+assert.match(noticePage, /messageStartsWithGreeting\(message\)/);
+const preview = readFileSync(
+  resolve(process.cwd(), "components/admin/AdminEmailPreview.tsx"),
+  "utf8"
+);
+assert.match(preview, /renderAdminBulkMessage/);
+assert.match(preview, /fictional \? 'Sanne'/);
+const center = readFileSync(
+  resolve(process.cwd(), "components/admin/NotificationCenter.tsx"),
+  "utf8"
+);
+assert.match(center, /recipientCount=\{preview\?\.recipients\?\.length \|\| chosen\.length\}/);
 
 const route = readFileSync(
   resolve(process.cwd(), "app/api/admin/send-bulk-message/route.ts"),

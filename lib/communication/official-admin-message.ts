@@ -38,7 +38,41 @@ export type OfficialAdminCopy = {
     broadcastId: string;
   };
   pushRoute: string;
+  fresh: boolean;
 };
+
+/** Stable ids so a retry of the same send reuses the same private message. */
+export function officialDeliveryIds(broadcastId: string, recipientId: string): {
+  conversationId: string;
+  participantId: string;
+  messageId: string;
+} {
+  const base = `${broadcastId}${recipientId}`.replace(/[^a-zA-Z0-9]/g, "");
+  const cut = (prefix: string) => `${prefix}${base}`.slice(0, 64);
+  return {
+    conversationId: cut("c"),
+    participantId: cut("p"),
+    messageId: cut("m"),
+  };
+}
+
+/**
+ * Unread messages in conversations this person belongs to.
+ * A HomeCheff letter still counts when the sender is the same account,
+ * because that letter was placed for them and replies stay off.
+ */
+export function unreadMessageWhere(userId: string) {
+  return {
+    readAt: null as null,
+    Conversation: {
+      ConversationParticipant: { some: { userId } },
+    },
+    OR: [
+      { senderId: { not: userId } },
+      { Conversation: { metadata: { path: ["official"], equals: true } } },
+    ],
+  };
+}
 
 const SAFE_ID = /^[a-zA-Z0-9_-]{6,}$/;
 
@@ -125,6 +159,7 @@ export function buildOfficialAdminCopy(input: {
       broadcastId: input.broadcastId,
     },
     pushRoute: officialMessageRoute(input.conversationId),
+    fresh: true,
   };
 }
 
@@ -142,7 +177,7 @@ export function officialCopiesArePrivate(copies: OfficialAdminCopy[]): boolean {
   });
 }
 
-type CopyWriter = (copy: OfficialAdminCopy) => Promise<void>;
+type CopyWriter = (copy: OfficialAdminCopy) => Promise<void | boolean>;
 
 export async function createOfficialAdminCopies(
   input: {
@@ -174,33 +209,65 @@ export async function createOfficialAdminCopies(
       participantId: ids(),
       messageId: ids(),
     });
-    await write(copy);
+    const wrote = await write(copy);
+    if (wrote === false) copy.fresh = false;
     copies.push(copy);
   }
   return copies;
 }
 
-async function writeOfficialAdminCopy(copy: OfficialAdminCopy): Promise<void> {
+function uniqueConflict(error: unknown): boolean {
+  return Boolean(
+    error &&
+      typeof error === "object" &&
+      "code" in error &&
+      (error as { code?: string }).code === "P2002"
+  );
+}
+
+async function writeOfficialAdminCopy(copy: OfficialAdminCopy): Promise<boolean> {
   const { prisma } = await import("@/lib/prisma");
-  await prisma.conversation.create({
-    data: {
-      id: copy.conversationId,
-      title: copy.subject,
-      lastMessageAt: new Date(),
-      metadata: copy.metadata,
-      ConversationParticipant: {
-        create: { id: copy.participantId, userId: copy.recipientId },
-      },
-      Message: {
-        create: {
-          id: copy.messageId,
-          senderId: copy.senderId,
-          text: copy.text,
-          messageType: "TEXT",
-        },
-      },
-    },
+  const existing = await prisma.message.findUnique({
+    where: { id: copy.messageId },
+    select: { id: true },
   });
+  if (existing) return false;
+  const message = {
+    id: copy.messageId,
+    senderId: copy.senderId,
+    text: copy.text,
+    messageType: "TEXT" as const,
+  };
+  try {
+    await prisma.conversation.create({
+      data: {
+        id: copy.conversationId,
+        title: copy.subject,
+        lastMessageAt: new Date(),
+        metadata: copy.metadata,
+        ConversationParticipant: {
+          create: { id: copy.participantId, userId: copy.recipientId },
+        },
+        Message: { create: message },
+      },
+    });
+    return true;
+  } catch (error) {
+    if (!uniqueConflict(error)) throw error;
+    const again = await prisma.message.findUnique({
+      where: { id: copy.messageId },
+      select: { id: true },
+    });
+    if (again) return false;
+    await prisma.message.create({
+      data: { ...message, conversationId: copy.conversationId },
+    });
+    await prisma.conversation.update({
+      where: { id: copy.conversationId },
+      data: { title: copy.subject, lastMessageAt: new Date(), metadata: copy.metadata },
+    });
+    return true;
+  }
 }
 
 export async function officialRepliesAreDisabled(conversationId: string): Promise<boolean> {

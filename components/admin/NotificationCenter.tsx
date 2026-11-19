@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Send, Users, Mail, Bell, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { AdminEmailPreview } from './AdminEmailPreview';
-import { adminNoticePath, resolveAdminNoticeButton } from '@/lib/admin/admin-notice';
+import { resolveAdminNoticeButton } from '@/lib/admin/admin-notice';
 import { NotificationHistory } from './NotificationHistory';
 import { chosenRecipients, sendBlockReason } from '@/lib/admin/notification-compose-state';
 import { uiCopy } from '@/lib/admin/notification-copy';
@@ -1499,6 +1499,11 @@ export default function NotificationCenter() {
               <p className="font-medium">{copy('emailPaused')}</p>
             </div>
           )}
+          {sendEmail && preview?.emailOffer === 'ready' && (
+            <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-950" role="status">
+              <p className="font-medium">{copy('emailReady')}</p>
+            </div>
+          )}
           {sendEmail && preview?.emailOffer === 'no_address' && (
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950" role="status">
               <p className="font-medium">{copy('noEmail')}</p>
@@ -1631,7 +1636,10 @@ export default function NotificationCenter() {
             <AdminEmailPreview
               subject={subject}
               message={message}
-              action={{ label: copy('openNotice'), url: `https://homecheff.eu${adminNoticePath(campaignKey())}` }}
+              lang={language === 'en' ? 'en' : 'nl'}
+              recipientName={(preview?.recipients?.[0] ?? chosen[0])?.name}
+              recipientCount={preview?.recipients?.length || chosen.length}
+              action={{ label: copy('openNotice'), url: 'https://homecheff.eu/messages/' }}
             />
           )}
         </div>

@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { markChatNotificationsReadForConversation } from '@/lib/notifications/markChatNotificationsRead';
+import { officialRepliesAreDisabled, unreadMessageWhere } from '@/lib/communication/official-admin-message';
 
 export async function PUT(
   req: NextRequest,
@@ -71,25 +72,18 @@ export async function PUT(
     });
 
     // Unread still in this conversation (for this user as recipient)
+    const officialLetter = await officialRepliesAreDisabled(message.conversationId);
     const conversationUnreadCount = await prisma.message.count({
       where: {
         conversationId: message.conversationId,
         readAt: null,
-        NOT: { senderId: user.id },
+        ...(officialLetter ? {} : { NOT: { senderId: user.id } }),
       },
     });
 
     // Total unread across all conversations — must match GET /api/messages/unread-count
     const globalUnreadCount = await prisma.message.count({
-      where: {
-        Conversation: {
-          ConversationParticipant: {
-            some: { userId: user.id },
-          },
-        },
-        readAt: null,
-        NOT: { senderId: user.id },
-      },
+      where: unreadMessageWhere(user.id),
     });
 
     if (conversationUnreadCount === 0) {

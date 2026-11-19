@@ -169,6 +169,8 @@ export async function sendAdminBroadcastFcmByUser(opts: {
   body: string;
   route: string;
   broadcastId: string;
+  /** Per-person path under Berichten. A missing entry keeps the shared route. */
+  routeByUserId?: Record<string, string>;
 }): Promise<{
   tokensAttempted: number;
   success: number;
@@ -213,21 +215,24 @@ export async function sendAdminBroadcastFcmByUser(opts: {
     };
   }
 
-  const routeParsed = parseInternalPathFromUnknownInput(opts.route) ?? '/notifications/';
+  const fallbackRoute = parseInternalPathFromUnknownInput(opts.route) ?? '/notifications/';
+  const routeFor = (userId: string) =>
+    parseInternalPathFromUnknownInput(opts.routeByUserId?.[userId] || '') || fallbackRoute;
   const title = truncate(opts.title || 'HomeCheff', 64);
   const body = truncate(opts.body || 'Bericht', 110);
-  const data: Record<string, string> = {
-    type: 'announcement',
-    route: routeParsed,
-    actionUrl: routeParsed,
-    broadcastId: opts.broadcastId,
-  };
   const webIcon = canonicalLogoUrl('notification');
   let success = 0;
   let failures = 0;
 
   for (const item of work) {
     const bucket = perUser.get(item.userId)!;
+    const route = routeFor(item.userId);
+    const data: Record<string, string> = {
+      type: 'announcement',
+      route,
+      actionUrl: route,
+      broadcastId: opts.broadcastId,
+    };
     try {
       await messaging.send({
         token: item.token,

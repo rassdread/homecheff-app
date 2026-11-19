@@ -3,7 +3,8 @@ import { uiCopy, uiLanguageFromRequest, type UiLanguage } from '@/lib/admin/noti
 import { createHash } from 'crypto';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { adminNoticePath, noticeEmailAction, resolveAdminNoticeButton } from '@/lib/admin/admin-notice';
+import { adminNoticePath, messageEmailAction, noticeEmailAction, resolveAdminNoticeButton } from '@/lib/admin/admin-notice';
+import { createOfficialAdminCopies, officialDeliveryIds } from '@/lib/communication/official-admin-message';
 import { sendAdminBroadcastFcmByUser } from '@/lib/admin/admin-broadcast-fcm';
 import { evaluateAdminEmailBlast } from '@/lib/email/admin-blast-guard';
 import { sendTransactionalEmail } from '@/lib/email/idempotent-send';
@@ -54,7 +55,6 @@ import {
 import { alreadySentLabel, duplicatePlanLines, type DeliveryChannel } from '@/lib/admin/broadcast-history';
 import {
   broadcastLedgerId,
-  broadcastNotificationId,
   claimBroadcastFlight,
   emailAttemptNumber,
   emailLedgerStatus,
@@ -177,10 +177,10 @@ export async function POST(req: NextRequest) {
 
     const adminUser = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { role: true },
+      select: { id: true, role: true },
     });
 
-    if (adminUser?.role !== 'ADMIN' && adminUser?.role !== 'SUPERADMIN') {
+    if (!adminUser || (adminUser.role !== 'ADMIN' && adminUser.role !== 'SUPERADMIN')) {
       return NextResponse.json(
         { error: say(lang, 'adminOnly'), message: say(lang, 'adminOnly') },
         { status: 403 },
@@ -446,11 +446,9 @@ export async function POST(req: NextRequest) {
         ...contentLines,
       ];
       if (!blastGate.ok) lines.push(blastGate.error);
-      const emailPausedNow = sendEmail && (process.env.EMAIL_PAUSE_P2 === '1' || process.env.EMAIL_PAUSE_P2 === 'true');
-      if (emailPausedNow) lines.push(say(lang, 'emailPaused'));
       return NextResponse.json({
         dryRun: true,
-        emailOffer: !sendEmail ? 'off' : emailPausedNow ? 'paused' : emailUsers.length === 0 ? 'no_address' : 'ready',
+        emailOffer: !sendEmail ? 'off' : emailUsers.length === 0 ? 'no_address' : 'ready',
         previewToken: blastGate.ok || blastGate.code !== 'HARD_LIMIT' ? previewToken : null,
         summary,
         unavailable: UNAVAILABLE_AUDIENCE_FACTS,
@@ -516,53 +514,78 @@ export async function POST(req: NextRequest) {
         at: sentAt,
       });
       const ledgers = await readLedgers(campaignId, chosen.map((user) => user.id));
-      const payload = {
-        title: pushTitle,
-        body: message,
-        message,
-        from: 'Admin',
-        timestamp: new Date().toISOString(),
-        link: openPath,
-        actionLabel: noticeAction?.label || '',
-        actionRoute: noticeAction?.path || '',
-        broadcastId: campaignId,
-        data: { type: 'ADMIN_ANNOUNCEMENT', route: openPath, actionUrl: openPath },
-      };
+      const inboxPending = plans.some((plan) => plan.inApp)
+        ? chosen.filter(
+            (user) => wants(user.id, 'inApp') && planInApp(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(relevantDecisions, user.id, 'inApp'),
+          )
+        : [];
+      const pushPending = plans.some((plan) => plan.push)
+        ? chosen.filter(
+            (user) => wants(user.id, 'push') && planPush(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(relevantDecisions, user.id, 'push'),
+          )
+        : [];
+      const emailPending = plans.some((plan) => plan.email)
+        ? emailUsers.filter(
+            (user) => planEmail(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(relevantDecisions, user.id, 'email'),
+          )
+        : [];
+      const deliveryIds = [...new Set([
+        ...inboxPending.map((user) => user.id),
+        ...pushPending.map((user) => user.id),
+        ...emailPending.map((user) => user.id),
+      ])];
+      const idQueue = deliveryIds.flatMap((recipientId) => {
+        const ids = officialDeliveryIds(campaignId, recipientId);
+        return [ids.conversationId, ids.participantId, ids.messageId];
+      });
+      let idCursor = 0;
+      const officialCopies = deliveryIds.length
+        ? await createOfficialAdminCopies(
+            {
+              adminUserId: adminUser.id,
+              recipientIds: deliveryIds,
+              subject,
+              message,
+              action: noticeAction ? { label: noticeAction.label, url: noticeAction.url } : null,
+              broadcastId: campaignId,
+            },
+            undefined,
+            () => {
+              const next = idQueue[idCursor];
+              idCursor += 1;
+              if (!next) throw new Error('Official message id is missing.');
+              return next;
+            },
+          )
+        : [];
+      const routeByUserId = Object.fromEntries(
+        officialCopies.map((copy) => [copy.recipientId, copy.pushRoute]),
+      );
+      const freshIds = new Set(
+        officialCopies.filter((copy) => copy.fresh).map((copy) => copy.recipientId),
+      );
 
       let notificationsCreated = 0;
       let notificationsSkipped = 0;
       if (plans.some((plan) => plan.inApp)) {
-        const pending = chosen.filter(
-          (user) => wants(user.id, 'inApp') && planInApp(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(relevantDecisions, user.id, 'inApp'),
-        );
-        notificationsSkipped = chosen.filter((user) => wants(user.id, 'inApp')).length - pending.length;
-        if (pending.length > 0) {
-          const created = await prisma.notification.createMany({
-            data: pending.map((user) => ({
-              id: broadcastNotificationId(campaignId, user.id),
-              userId: user.id,
-              type: 'ADMIN_NOTICE' as const,
-              payload,
-            })),
-            skipDuplicates: true,
+        notificationsSkipped = chosen.filter((user) => wants(user.id, 'inApp')).length - inboxPending.length;
+        for (const user of inboxPending) {
+          if (!routeByUserId[user.id]) continue;
+          if (freshIds.has(user.id)) notificationsCreated += 1;
+          else notificationsSkipped += 1;
+          const next = stampChannels(ledgerAfterInApp(ledgers.get(user.id) ?? null), planById.get(user.id));
+          ledgers.set(user.id, next);
+          await saveLedger(campaignId, user.id, next);
+          await recordPriorDelivery(prisma, {
+            userId: user.id,
+            channel: 'inApp',
+            status: 'created',
+            at: sentAt,
+            campaignId,
+            title: pushTitle,
+            subject,
+            message,
           });
-          notificationsCreated = created.count;
-          notificationsSkipped += pending.length - created.count;
-          for (const user of pending) {
-            const next = stampChannels(ledgerAfterInApp(ledgers.get(user.id) ?? null), planById.get(user.id));
-            ledgers.set(user.id, next);
-            await saveLedger(campaignId, user.id, next);
-            await recordPriorDelivery(prisma, {
-              userId: user.id,
-              channel: 'inApp',
-              status: 'created',
-              at: sentAt,
-              campaignId,
-              title: pushTitle,
-              subject,
-              message,
-            });
-          }
         }
       }
 
@@ -571,9 +594,7 @@ export async function POST(req: NextRequest) {
       let pushSkipped = 0;
       let pushNoToken = 0;
       if (plans.some((plan) => plan.push)) {
-        const pending = chosen.filter(
-          (user) => wants(user.id, 'push') && planPush(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(relevantDecisions, user.id, 'push'),
-        );
+        const pending = pushPending;
         pushSkipped = chosen.filter((user) => wants(user.id, 'push')).length - pending.length;
         if (pending.length > 0) {
           const push = await sendAdminBroadcastFcmByUser({
@@ -581,6 +602,7 @@ export async function POST(req: NextRequest) {
             title: pushTitle,
             body: message.slice(0, 500),
             route: openPath,
+            routeByUserId,
             broadcastId: campaignId,
           });
           pushOffered = push.success;
@@ -614,9 +636,7 @@ export async function POST(req: NextRequest) {
       let emailsUnconfirmed = 0;
       let emailsSkipped = 0;
       if (plans.some((plan) => plan.email)) {
-        const pending = emailUsers.filter(
-          (user) => planEmail(ledgers.get(user.id) ?? null) === 'send' && shouldSendChannel(relevantDecisions, user.id, 'email'),
-        );
+        const pending = emailPending;
         emailsSkipped = emailUsers.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'skip_done').length;
         emailsUnconfirmed = emailUsers.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'skip_unconfirmed').length;
         for (let i = 0; i < pending.length; i += EMAIL_BATCH_SIZE) {
@@ -624,10 +644,12 @@ export async function POST(req: NextRequest) {
           await Promise.all(
             batch.map(async (user) => {
               const attempt = emailAttemptNumber(ledgers.get(user.id) ?? null);
+              const messagePath = routeByUserId[user.id];
               const letter = renderAdminBulkMessage({
                 recipientName: user.name || '',
                 message,
-                action: noticeEmailAction(campaignId, lang),
+                action: (messagePath ? messageEmailAction(messagePath, lang) : null) || noticeEmailAction(campaignId, lang),
+                lang,
               });
               const result = await sendTransactionalEmail({
                 from: getTransactionalFrom(),
@@ -638,6 +660,7 @@ export async function POST(req: NextRequest) {
                 eventType: 'admin_broadcast',
                 priority: EMAIL_PRIORITY.P2,
                 route: 'admin/notifications/send',
+                allowDuringP2Pause: true,
                 idempotencyKey: `admin-broadcast:${campaignId}:${user.id}:email:${attempt}`,
                 businessEventId: campaignId,
               });

@@ -5,7 +5,9 @@ const SUPPORT_EMAIL = "support@homecheff.eu";
 const SITE_URL = "https://homecheff.eu";
 
 const LEADING_GREETING =
-  /^(hoi|hallo|hey|hé|he|hi|haai|beste|dag|goedemorgen|goedemiddag|goedenavond|goedendag)\b/i;
+  /^(hoi|hallo|hey|hé|he|hi|hello|haai|beste|dag|goedemorgen|goedemiddag|goedenavond|goedendag)\b/i;
+
+export type AdminLetterLanguage = "nl" | "en";
 
 export type AdminEmailAction = {
   label: string;
@@ -75,20 +77,37 @@ export function messageStartsWithGreeting(message: string): boolean {
   return LEADING_GREETING.test((firstLine ?? "").trim());
 }
 
-function greetingLine(recipientName: string): string {
-  const name = recipientName.trim();
-  if (!name || name === "Gebruiker") return "Hallo,";
-  return `Hallo ${name},`;
+/** First usable personal name. A missing, generic or technical value stays empty. */
+export function recipientGreetingName(raw: string | null | undefined): string {
+  const name = (raw || "").trim();
+  if (!name || name.includes("@") || /^gebruiker$/i.test(name) || /^user$/i.test(name)) return "";
+  const first = name.split(/\s+/)[0] || "";
+  if (!/^[\p{L}][\p{L}'’.-]{0,40}$/u.test(first)) return "";
+  return first;
 }
 
-function messageParagraphs(message: string, recipientName: string): string[] {
+/** Shared greeting for the letter, its preview and the message detail. */
+export function adminGreetingLine(
+  raw: string | null | undefined,
+  lang: AdminLetterLanguage = "nl"
+): string {
+  const name = recipientGreetingName(raw);
+  if (lang === "en") return name ? `Hello ${name},` : "Hello,";
+  return name ? `Hallo ${name},` : "Hallo,";
+}
+
+function messageParagraphs(
+  message: string,
+  recipientName: string,
+  lang: AdminLetterLanguage
+): string[] {
   const body = normalizeNewlines(message);
   const paragraphs = body
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
     .filter((paragraph) => paragraph.length > 0);
   if (messageStartsWithGreeting(body)) return paragraphs;
-  return [greetingLine(recipientName), ...paragraphs];
+  return [adminGreetingLine(recipientName, lang), ...paragraphs];
 }
 
 function linkify(escaped: string): string {
@@ -154,8 +173,10 @@ export function renderAdminBulkMessage(input: {
   recipientName: string;
   message: string;
   action?: AdminEmailAction | null;
+  lang?: AdminLetterLanguage;
 }): AdminBulkMessageContent {
-  const paragraphs = messageParagraphs(input.message, input.recipientName);
+  const lang = input.lang === "en" ? "en" : "nl";
+  const paragraphs = messageParagraphs(input.message, input.recipientName, lang);
   const bodyHtml = paragraphs.map(paragraphHtml).join("\n");
   const button = input.action ? actionHtml(input.action) : "";
   const bodyText = paragraphs.join("\n\n");
@@ -170,7 +191,7 @@ export function renderAdminBulkMessage(input: {
   ].join("\n");
 
   const html = `<!DOCTYPE html>
-<html lang="nl">
+<html lang="${lang}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

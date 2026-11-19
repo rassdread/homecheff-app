@@ -17,6 +17,7 @@ import { getDisplayName } from '@/lib/displayName';
 import { getPusherClient } from '@/lib/pusher';
 import EmojiPickerButton from './EmojiPicker';
 import { useTranslation } from '@/hooks/useTranslation';
+import { adminGreetingLine, messageStartsWithGreeting } from '@/lib/email/admin-bulk-message-content';
 import { mergePusherChatMessage } from '@/lib/chat/mergePusherChatMessage';
 import { dispatchConversationListActivity } from '@/lib/chat/conversationListSort';
 import { mergeServerChatMessages } from '@/lib/chat/mergeServerChatMessages';
@@ -99,7 +100,7 @@ export default function ChatBox({
   onProposalSheetAutoOpened,
   official = null,
 }: ChatBoxProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [messages, setMessages] = useState<ChatThreadMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string>('');
@@ -327,7 +328,7 @@ export default function ChatBox({
         const nowIso = new Date().toISOString();
         setMessages((prev) => {
           const next = prev.map((m) =>
-            m.senderId !== currentUserId && !m.readAt
+            !m.readAt && (official || m.senderId !== currentUserId)
               ? { ...m, readAt: nowIso }
               : m
           );
@@ -362,7 +363,7 @@ export default function ChatBox({
         /* ignore */
       }
     },
-    [currentUserId, persistThreadMsgs]
+    [currentUserId, official, persistThreadMsgs]
   );
 
   const loadMessages = useCallback(
@@ -1330,14 +1331,21 @@ export default function ChatBox({
                   {official.badge} · {official.senderLabel}
                 </p>
                 <h3 className="mt-1 text-base font-semibold text-gray-900">{official.subject}</h3>
-                {messages.map((msg) => (
-                  <p
-                    key={msg.id}
-                    className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-gray-800"
-                  >
-                    {msg.text}
-                  </p>
-                ))}
+                {messages.map((msg) => {
+                  const greeting = msg.text && !messageStartsWithGreeting(msg.text)
+                    ? adminGreetingLine(session?.user?.name, language === 'en' ? 'en' : 'nl')
+                    : '';
+                  return (
+                    <div key={msg.id}>
+                      {greeting ? (
+                        <p className="mt-3 text-[15px] font-medium text-gray-900">{greeting}</p>
+                      ) : null}
+                      <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-gray-800">
+                        {msg.text}
+                      </p>
+                    </div>
+                  );
+                })}
                 {official.action ? (
                   <a
                     href={official.action.url}

@@ -28,8 +28,9 @@ export type TransactionalEmailInput = {
   route?: string;
   /**
    * Skip EMAIL_PAUSE_P2 for one explicit admin action.
-   * Honored only together with route `admin/send-bulk-message` (hand-picked users).
-   * Welcome, review, contact, chat, shift and the notification broadcast stay paused.
+   * Honored only when this server sets it and the route is one of the two
+   * hand-composed admin sends: selected users, or the message center.
+   * A request body cannot set this. Welcome, review, contact, chat and shift stay paused.
    */
   allowDuringP2Pause?: boolean;
 };
@@ -68,6 +69,22 @@ function pruneLocal(now: number) {
 
 export function hashIdempotencyPayload(parts: string[]): string {
   return createHash("sha256").update(parts.join("|")).digest("hex").slice(0, 48);
+}
+
+const MANUAL_ADMIN_EMAIL_ROUTES = new Set([
+  "admin/send-bulk-message",
+  "admin/notifications/send",
+]);
+
+/**
+ * The pause exception is the route the server chose plus the flag that server set.
+ * Passing the flag on any other route, or omitting the flag, leaves P2 paused.
+ */
+export function manualAdminMaySendDuringP2Pause(
+  route: string | undefined,
+  allowDuringP2Pause: boolean | undefined
+): boolean {
+  return allowDuringP2Pause === true && MANUAL_ADMIN_EMAIL_ROUTES.has(route || "");
 }
 
 /**
@@ -113,9 +130,11 @@ export async function sendTransactionalEmail(
   }
 
   // Operator kill-switch: pause P2 (welcome/review/broadcast) without blocking P0/P1.
-  // The selected-user admin route is the only caller allowed through while the pause stays on.
-  const selectedUserAdminBypass =
-    input.allowDuringP2Pause === true && input.route === "admin/send-bulk-message";
+  // Only the two hand-composed admin routes may pass, and only when they set the flag themselves.
+  const selectedUserAdminBypass = manualAdminMaySendDuringP2Pause(
+    input.route,
+    input.allowDuringP2Pause
+  );
   if (
     input.priority === "P2" &&
     (process.env.EMAIL_PAUSE_P2 === "1" || process.env.EMAIL_PAUSE_P2 === "true") &&

@@ -148,24 +148,25 @@ export async function GET(
       }
     }
 
-    // Mark messages as read and delivered
+    // Mark messages as read and delivered.
+    // A HomeCheff letter can be stored under the viewer's own id; opening it still marks it read.
     const now = new Date();
+    const officialLetter = await officialRepliesAreDisabled(conversationId);
+    const othersOnly = officialLetter ? {} : { senderId: { not: user.id } };
     
-    // Mark as delivered first
     await prisma.message.updateMany({
       where: {
         conversationId,
-        senderId: { not: user.id },
+        ...othersOnly,
         deliveredAt: null
       },
       data: { deliveredAt: now }
     });
     
-    // Then mark as read
     await prisma.message.updateMany({
       where: {
         conversationId,
-        senderId: { not: user.id },
+        ...othersOnly,
         readAt: null
       },
       data: { readAt: now }

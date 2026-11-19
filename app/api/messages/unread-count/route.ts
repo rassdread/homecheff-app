@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getCorsHeaders } from '@/lib/apiCors';
+import { unreadMessageWhere } from '@/lib/communication/official-admin-message';
 
 export async function GET(req: NextRequest) {
   const cors = getCorsHeaders(req);
@@ -29,17 +30,7 @@ export async function GET(req: NextRequest) {
 
     // Count unread messages for this user
     const unreadCount = await prisma.message.count({
-      where: {
-        Conversation: {
-          ConversationParticipant: {
-            some: {
-              userId: user.id
-            }
-          }
-        },
-        readAt: null,
-        NOT: { senderId: user.id } // Exclude messages sent by the current user
-      }
+      where: unreadMessageWhere(user.id),
     });
 
     return NextResponse.json({ count: unreadCount }, { headers });

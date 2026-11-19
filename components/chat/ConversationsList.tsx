@@ -543,7 +543,7 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
         refreshFromLifecycle();
       }
     };
-    const onPageShow = (_event: PageTransitionEvent) => {
+    const onPageShow = () => {
       refreshFromLifecycle();
     };
     window.addEventListener('focus', refreshFromLifecycle);
@@ -815,9 +815,8 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
     const lm = conversation.lastMessage;
     if (
       lm &&
-      lm.User?.id &&
-      lm.User.id !== uid &&
-      !lm.readAt
+      !lm.readAt &&
+      (conversation.official || (lm.User?.id && lm.User.id !== uid))
     ) {
       const nowIso = new Date().toISOString();
       setConversations((prev) =>
@@ -866,9 +865,8 @@ export default function ConversationsList({ onSelectConversation, onMessagesRead
   const rowUnread = (c: Conversation) =>
     Boolean(
       c.lastMessage &&
-        c.lastMessage.User?.id &&
-        c.lastMessage.User.id !== getCurrentUserId() &&
-        !c.lastMessage.readAt
+        !c.lastMessage.readAt &&
+        (c.official || (c.lastMessage.User?.id && c.lastMessage.User.id !== getCurrentUserId()))
     );
 
   const avatarVisual = (c: Conversation) => {

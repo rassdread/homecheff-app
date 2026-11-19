@@ -142,7 +142,7 @@ async function main() {
   );
   assert.match(route, /requireMappedAdminCapability/);
   assert.match(route, /if \(!mappedGuard\.ok\) return mappedGuard\.response/);
-  assert.match(route, /user\?\.role !== 'ADMIN' && user\?\.role !== 'SUPERADMIN'/);
+  assert.match(route, /!user \|\| \(user\.role !== 'ADMIN' && user\.role !== 'SUPERADMIN'\)/);
   assert.match(route, /evaluateAdminEmailBlast/);
   assert.match(route, /confirmEmailBlast/);
   assert.match(route, /prisma\.notification\.create/);
@@ -222,15 +222,18 @@ async function main() {
     resolve(process.cwd(), "app/api/admin/send-message/route.ts"),
     "utf8"
   );
-  assert.doesNotMatch(broadcast, /allowDuringP2Pause/);
+  assert.match(broadcast, /allowDuringP2Pause:\s*true/);
+  assert.equal(broadcast.split("allowDuringP2Pause").length - 1, 1);
+  assert.doesNotMatch(broadcast, /record\.allowDuringP2Pause|body\.allowDuringP2Pause/);
   assert.doesNotMatch(single, /allowDuringP2Pause/);
+  assert.match(broadcast, /body: message\.slice\(0, 500\)/);
   const blast = readFileSync(
     resolve(process.cwd(), "lib/email/admin-blast-guard.ts"),
     "utf8"
   );
   assert.match(blast, /ADMIN_EMAIL_SOFT_MAX = 50/);
   assert.match(blast, /ADMIN_EMAIL_HARD_MAX_DEFAULT = 500/);
-  ok("only the selected-user route may bypass the P2 pause");
+  ok("the message center sets the same pause exception itself; other routes cannot");
 
   const saved = {
     EMAIL_PAUSE_P2: process.env.EMAIL_PAUSE_P2,
@@ -268,22 +271,35 @@ async function main() {
     if (paused.status === "suppressed") assert.equal(paused.reason, "p2_paused");
     assert.deepEqual(offered, []);
 
-    const broadcastPaused = await sendTransactionalEmail({
-      to: "broadcast@example.com",
+    const centerWithoutFlag = await sendTransactionalEmail({
+      to: "center-off@example.com",
       from: "HomeCheff <no-reply@homecheff.eu>",
       subject: "Iedereen",
       html: "<p>broadcast</p>",
       eventType: "admin_broadcast",
       priority: EMAIL_PRIORITY.P2,
       route: "admin/notifications/send",
+    });
+    assert.equal(centerWithoutFlag.status, "suppressed");
+    if (centerWithoutFlag.status === "suppressed") {
+      assert.equal(centerWithoutFlag.reason, "p2_paused");
+    }
+    const foreignFlag = await sendTransactionalEmail({
+      to: "foreign@example.com",
+      from: "HomeCheff <no-reply@homecheff.eu>",
+      subject: "Iedereen",
+      html: "<p>broadcast</p>",
+      eventType: "admin_message",
+      priority: EMAIL_PRIORITY.P2,
+      route: "admin/send-message",
       allowDuringP2Pause: true,
     });
-    assert.equal(broadcastPaused.status, "suppressed");
-    if (broadcastPaused.status === "suppressed") {
-      assert.equal(broadcastPaused.reason, "p2_paused");
+    assert.equal(foreignFlag.status, "suppressed");
+    if (foreignFlag.status === "suppressed") {
+      assert.equal(foreignFlag.reason, "p2_paused");
     }
     assert.deepEqual(offered, []);
-    ok("ordinary P2 mail and the broadcast stay paused");
+    ok("ordinary P2 mail stays paused, and the flag does nothing on another route");
 
     const accepted = await sendTransactionalEmail({
       to: "selected@example.com",
@@ -361,6 +377,26 @@ async function main() {
     assert.match(partialForm.message, /Gedeeltelijk gelukt: 1 van 2/);
     assert.match(partialForm.message, /1 geweigerd/);
     ok("a mix of acceptance and rejection is partial success");
+
+    const center = await sendTransactionalEmail({
+      to: "center@example.com",
+      from: "HomeCheff <no-reply@homecheff.eu>",
+      subject: "testende",
+      html: "<p>testmail</p>",
+      eventType: "admin_broadcast",
+      priority: EMAIL_PRIORITY.P2,
+      route: "admin/notifications/send",
+      allowDuringP2Pause: true,
+      idempotencyKey: "admin-notice:pause-exception:center",
+    });
+    assert.equal(center.status, "sent");
+    assert.deepEqual(offered, [
+      "selected@example.com",
+      "refuse@example.com",
+      "second@example.com",
+      "center@example.com",
+    ]);
+    ok("a confirmed message-center send reaches the same provider path");
   } finally {
     __setTransactionalEmailTransportForTests(null);
     __resetTransactionalEmailIdempotencyForTests();

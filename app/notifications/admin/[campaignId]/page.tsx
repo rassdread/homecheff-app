@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { adminNoticePath, isAdminNoticeCampaignId } from '@/lib/admin/admin-notice';
+import { adminGreetingLine, messageStartsWithGreeting } from '@/lib/email/admin-bulk-message-content';
 import { uiCopy, type UiLanguage } from '@/lib/admin/notification-copy';
 import { ECOSYSTEM_LOCALE_COOKIE } from '@/lib/ecosystem-locale';
 
@@ -36,6 +37,10 @@ export default async function AdminNoticePage({
     redirect(`/login?callbackUrl=${encodeURIComponent(path)}`);
   }
 
+  const viewer = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true },
+  });
   const notice = await prisma.notification.findFirst({
     where: {
       userId,
@@ -63,6 +68,9 @@ export default async function AdminNoticePage({
   const actionLabel = textFrom(payload, 'actionLabel');
   const actionRoute = textFrom(payload, 'actionRoute');
   const actionSafe = actionRoute.startsWith('/') && !actionRoute.startsWith('//');
+  const greeting = message && !messageStartsWithGreeting(message)
+    ? adminGreetingLine(viewer?.name, lang)
+    : '';
 
   return (
     <main className="mx-auto min-h-[60vh] max-w-2xl px-4 py-8">
@@ -73,8 +81,11 @@ export default async function AdminNoticePage({
       </p>
       <article className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+        {greeting ? (
+          <p className="mt-4 text-base leading-relaxed text-gray-800">{greeting}</p>
+        ) : null}
         {message ? (
-          <p className="mt-4 whitespace-pre-wrap text-base leading-relaxed text-gray-800">{message}</p>
+          <p className={`${greeting ? 'mt-3' : 'mt-4'} whitespace-pre-wrap text-base leading-relaxed text-gray-800`}>{message}</p>
         ) : (
           <p className="mt-4 text-sm text-gray-600">
             {uiCopy(lang, 'admin.notificationCenter.ui.noticeMissing')}
