@@ -3,7 +3,7 @@ import { uiCopy, uiLanguageFromRequest, type UiLanguage } from '@/lib/admin/noti
 import { createHash } from 'crypto';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { adminNoticePath, resolveAdminNoticeButton } from '@/lib/admin/admin-notice';
+import { adminNoticePath, noticeEmailAction, resolveAdminNoticeButton } from '@/lib/admin/admin-notice';
 import { sendAdminBroadcastFcmByUser } from '@/lib/admin/admin-broadcast-fcm';
 import { evaluateAdminEmailBlast } from '@/lib/email/admin-blast-guard';
 import { sendTransactionalEmail } from '@/lib/email/idempotent-send';
@@ -446,11 +446,11 @@ export async function POST(req: NextRequest) {
         ...contentLines,
       ];
       if (!blastGate.ok) lines.push(blastGate.error);
-      if (sendEmail && (process.env.EMAIL_PAUSE_P2 === '1' || process.env.EMAIL_PAUSE_P2 === 'true')) {
-        lines.push(say(lang, 'emailPaused'));
-      }
+      const emailPausedNow = sendEmail && (process.env.EMAIL_PAUSE_P2 === '1' || process.env.EMAIL_PAUSE_P2 === 'true');
+      if (emailPausedNow) lines.push(say(lang, 'emailPaused'));
       return NextResponse.json({
         dryRun: true,
+        emailOffer: !sendEmail ? 'off' : emailPausedNow ? 'paused' : emailUsers.length === 0 ? 'no_address' : 'ready',
         previewToken: blastGate.ok || blastGate.code !== 'HARD_LIMIT' ? previewToken : null,
         summary,
         unavailable: UNAVAILABLE_AUDIENCE_FACTS,
@@ -627,7 +627,7 @@ export async function POST(req: NextRequest) {
               const letter = renderAdminBulkMessage({
                 recipientName: user.name || '',
                 message,
-                action: noticeAction ? { label: noticeAction.label, url: noticeAction.url } : null,
+                action: noticeEmailAction(campaignId, lang),
               });
               const result = await sendTransactionalEmail({
                 from: getTransactionalFrom(),
@@ -686,8 +686,8 @@ export async function POST(req: NextRequest) {
         inAppRequested: plans.some((plan) => plan.inApp),
       }, lang);
       if (emailsPaused > 0) {
-        report.lines.push(say(lang, 'emailPaused'));
-        report.message = report.lines.join(' ');
+        report.lines.unshift(say(lang, 'emailPaused'));
+        report.message = report.lines.join('\n');
       }
 
       console.info(

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Send, Users, Mail, Bell, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { AdminEmailPreview } from './AdminEmailPreview';
-import { resolveAdminNoticeButton } from '@/lib/admin/admin-notice';
+import { adminNoticePath, resolveAdminNoticeButton } from '@/lib/admin/admin-notice';
 import { NotificationHistory } from './NotificationHistory';
 import { chosenRecipients, sendBlockReason } from '@/lib/admin/notification-compose-state';
 import { uiCopy } from '@/lib/admin/notification-copy';
@@ -67,6 +67,7 @@ type PreviewPayload = {
   requiresConfirm: boolean;
   lines: string[];
   error?: string;
+  emailOffer?: 'off' | 'paused' | 'no_address' | 'ready';
 };
 
 type ScreenNotice = {
@@ -543,6 +544,9 @@ export default function NotificationCenter() {
         requiresConfirm: Boolean(data.requiresConfirm),
         lines: parsed.lines,
         error: typeof data.error === 'string' ? data.error : undefined,
+        emailOffer: data.emailOffer === 'paused' || data.emailOffer === 'no_address' || data.emailOffer === 'ready' || data.emailOffer === 'off'
+          ? data.emailOffer
+          : undefined,
       });
       setNotice(null);
     } catch {
@@ -1490,6 +1494,17 @@ export default function NotificationCenter() {
             </div>
           </div>
 
+          {sendEmail && preview?.emailOffer === 'paused' && (
+            <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-950" role="status">
+              <p className="font-medium">{copy('emailPaused')}</p>
+            </div>
+          )}
+          {sendEmail && preview?.emailOffer === 'no_address' && (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950" role="status">
+              <p className="font-medium">{copy('noEmail')}</p>
+            </div>
+          )}
+
           {sendEmail && (
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
               <p className="font-medium">{copy('emailCapacityTitle')}</p>
@@ -1613,10 +1628,11 @@ export default function NotificationCenter() {
         </div>
       )}
           {sendEmail && message.trim() && (
-            <AdminEmailPreview subject={subject} message={message} action={(() => {
-              const resolved = resolveAdminNoticeButton(buttonLabel, linkPreset);
-              return resolved.ok && resolved.action ? { label: resolved.action.label, url: resolved.action.url } : null;
-            })()} />
+            <AdminEmailPreview
+              subject={subject}
+              message={message}
+              action={{ label: copy('openNotice'), url: `https://homecheff.eu${adminNoticePath(campaignKey())}` }}
+            />
           )}
         </div>
       )}

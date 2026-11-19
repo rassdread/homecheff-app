@@ -5,6 +5,7 @@ import { describe, it } from 'node:test';
 import {
   adminNoticePath,
   isAdminNoticeCampaignId,
+  noticeEmailAction,
   resolveAdminNoticeButton,
 } from '@/lib/admin/admin-notice';
 
@@ -25,6 +26,11 @@ describe('admin notice destination', () => {
     }
     assert.equal(resolveAdminNoticeButton('Weg', 'https://stripe.com/setup').ok, false);
     assert.equal(resolveAdminNoticeButton('Lijst', '/notifications').ok, false);
+    const email = noticeEmailAction('campaign-1', 'nl');
+    assert.equal(email?.label, 'Open bericht');
+    assert.equal(email?.url, 'https://homecheff.eu/notifications/admin/campaign-1');
+    assert.equal(noticeEmailAction('campaign-1', 'en')?.label, 'Open message');
+    assert.equal(noticeEmailAction('../admin', 'nl'), null);
   });
 
   it('keeps the compose order and opens the app session with a document post', () => {

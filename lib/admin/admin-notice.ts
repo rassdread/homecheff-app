@@ -1,5 +1,6 @@
 import { parseInternalPathFromUnknownInput } from '@/lib/native/safeRoute';
 import { resolveAdminEmailAction } from '@/lib/email/admin-bulk-message-content';
+import { uiCopy, type UiLanguage } from '@/lib/admin/notification-copy';
 
 const CAMPAIGN_ID = /^[0-9a-zA-Z_-]{8,80}$/;
 
@@ -40,4 +41,13 @@ export function resolveAdminNoticeButton(label: unknown, route: unknown): AdminN
     ok: true,
     action: { label: resolved.action.label, path, url: resolved.action.url },
   };
+}
+
+/** The email button opens this recipient's own message, not the in-app action page. */
+export function noticeEmailAction(campaignId: string, lang: UiLanguage = 'nl') {
+  if (!isAdminNoticeCampaignId(campaignId)) return null;
+  const label = uiCopy(lang, 'admin.notificationCenter.ui.openNotice');
+  const resolved = resolveAdminEmailAction(label, `https://homecheff.eu${adminNoticePath(campaignId)}`);
+  if (!resolved.ok || !resolved.action) return null;
+  return resolved.action;
 }

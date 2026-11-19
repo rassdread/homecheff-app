@@ -123,7 +123,8 @@ assert.match(centerUi, /value="\/sell\/new"/);
 ok("the notification destination becomes a HomeCheff button");
 const noticeRoute = readFileSync(resolve(process.cwd(), "app/api/admin/notifications/send/route.ts"), "utf8");
 assert.match(noticeRoute, /resolveAdminNoticeButton/);
-assert.match(noticeRoute, /adminNoticePath\(campaignId\)/);
+assert.match(noticeRoute, /noticeEmailAction\(campaignId, lang\)/);
+assert.doesNotMatch(noticeRoute, /url: noticeAction\.url/);
 
 const route = readFileSync(
   resolve(process.cwd(), "app/api/admin/send-bulk-message/route.ts"),
