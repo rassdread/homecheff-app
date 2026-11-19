@@ -241,37 +241,66 @@ function SocialSuccessInner() {
         if (doneRef.current) return;
         const authRef = searchParamsRef.current?.get('authRef') || '';
         const safeRef = /^[a-f0-9]{8}$/.test(authRef) ? authRef : '';
-        let sawSessionCookie: boolean | null = null;
+        let reason = '';
         try {
           const probe = await fetch(
             `/api/auth/native/session-state${safeRef ? `?authRef=${safeRef}` : ''}`,
             { cache: 'no-store', credentials: 'include' },
           );
           if (probe.ok) {
-            const body = (await probe.json()) as { sawSessionCookie?: boolean };
-            sawSessionCookie = body.sawSessionCookie === true;
+            const body = (await probe.json()) as { reason?: string };
+            reason = typeof body.reason === 'string' ? body.reason : '';
           }
         } catch {
-          sawSessionCookie = null;
+          reason = '';
         }
+        if (reason === 'recognized') {
+          await finishRef.current();
+          return;
+        }
+        const say = tOrRef.current;
         const detail =
-          sawSessionCookie === false
-            ? tOrRef.current(
+          reason === 'missing'
+            ? say(
                 'surfaceLang.nativeSessionNotStored',
                 'Google succeeded, but the app did not keep the session. Try again.',
                 'Google is gelukt, maar de app heeft de sessie niet bewaard. Probeer opnieuw.',
               )
-            : sawSessionCookie === true
-              ? tOrRef.current(
-                  'surfaceLang.nativeSessionNotRecognized',
-                  'The session arrived, but it was not recognized. Try again.',
-                  'De sessie is ontvangen, maar niet herkend. Probeer opnieuw.',
+            : reason === 'empty'
+              ? say(
+                  'surfaceLang.nativeSessionEmpty',
+                  'The session cookie arrived empty. Try again.',
+                  'Het sessiecookie kwam leeg aan. Probeer opnieuw.',
                 )
-              : tOrRef.current(
-                  'surfaceLang.nativeSessionMissing',
-                  'No active session after Google. Try again.',
-                  'Geen actieve sessie na Google. Probeer opnieuw.',
-                );
+              : reason === 'undecodable'
+                ? say(
+                    'surfaceLang.nativeSessionUnreadable',
+                    'The server could not read the session. Try again.',
+                    'De server kon de sessie niet lezen. Probeer opnieuw.',
+                  )
+                : reason === 'revoked'
+                  ? say(
+                      'surfaceLang.nativeSessionRevoked',
+                      'This sign-in was revoked. Try again.',
+                      'Deze aanmelding is ingetrokken. Probeer opnieuw.',
+                    )
+                  : reason === 'deleted'
+                    ? say(
+                        'surfaceLang.nativeSessionDeleted',
+                        'This account is not available.',
+                        'Dit account is niet beschikbaar.',
+                      )
+                    : reason === 'no-email'
+                      ? say(
+                          'surfaceLang.nativeSessionNoUser',
+                          'The session did not contain a user. Try again.',
+                          'De sessie bevatte geen gebruiker. Probeer opnieuw.',
+                        )
+                      : say(
+                          'surfaceLang.nativeSessionMissing',
+                          'No active session after Google. Try again.',
+                          'Geen actieve sessie na Google. Probeer opnieuw.',
+                        );
         failRef.current(safeRef ? `${detail} Kenmerk ${safeRef}.` : detail);
       })();
     }, MAX_WAIT_MS);

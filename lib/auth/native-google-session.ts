@@ -4,6 +4,7 @@
  *
  * Phase 2: native audiences are independent from the web NextAuth OAuth client.
  */
+import { randomUUID } from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { encode } from 'next-auth/jwt';
 import type { UserRole } from '@prisma/client';
@@ -126,6 +127,7 @@ export async function createSessionFromNativeGoogleIdToken(
       sub: sync.userId,
       role: sync.role as UserRole,
       id: sync.userId,
+      sid: randomUUID(),
       isSocialLogin: true,
       socialProvider: 'google',
     };
