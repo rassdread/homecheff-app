@@ -359,7 +359,8 @@ export default function NotificationCenter() {
         setAudience(draft.audience);
       }
       if (draft.matchMode === 'all' || draft.matchMode === 'any') setMatchMode(draft.matchMode);
-      if (typeof draft.stripe === 'string') setStripe(draft.stripe as StripeAudienceFilter | '');
+      if (draft.stripe === 'ready' || draft.stripe === 'not_ready') setStripe(draft.stripe);
+      else if (draft.stripe === 'none' || draft.stripe === 'incomplete' || draft.stripe === 'review') setStripe('not_ready');
       if (typeof draft.verificationKind === 'string') setVerificationKind(draft.verificationKind as VerificationKind | '');
       if (typeof draft.verificationStatus === 'string') setVerificationStatus(draft.verificationStatus as VerificationStatus | '');
       if (typeof draft.agreementOpen === 'boolean') setAgreementOpen(draft.agreementOpen);
@@ -845,12 +846,10 @@ export default function NotificationCenter() {
                   className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
                   <option value="">{copy('noStripeFilter')}</option>
-                  <option value="none">{stripeChoiceLabel('none', language === 'en' ? 'en' : 'nl')}</option>
-                  <option value="incomplete">{stripeChoiceLabel('incomplete', language === 'en' ? 'en' : 'nl')}</option>
                   <option value="ready">{stripeChoiceLabel('ready', language === 'en' ? 'en' : 'nl')}</option>
                   <option value="not_ready">{stripeChoiceLabel('not_ready', language === 'en' ? 'en' : 'nl')}</option>
-                  <option value="review">{stripeChoiceLabel('review', language === 'en' ? 'en' : 'nl')}</option>
                 </select>
+                <span className="mt-1 block text-xs text-gray-600">{copy('stripeFilterHelp')}</span>
               </label>
               <label className="block text-sm">
                 <span className="font-medium text-gray-700">{copy('emailVerification')}</span>
@@ -1105,10 +1104,9 @@ export default function NotificationCenter() {
                   <button
                     type="button"
                     onClick={() => {
-                      const bulk = directory.filter((recipient) => !recipient.requiresExplicitCheck).map((recipient) => recipient.id);
-                      const kept = explicitReviewIds.filter((id) => directory.some((recipient) => recipient.id === id && recipient.requiresExplicitCheck));
-                      setExplicitReviewIds(kept);
-                      changeChecked([...new Set([...kept, ...bulk])]);
+                      const reviewIds = directory.filter((recipient) => recipient.requiresExplicitCheck).map((recipient) => recipient.id);
+                      setExplicitReviewIds(reviewIds);
+                      changeChecked(directory.map((recipient) => recipient.id));
                     }}
                     disabled={directory.length === 0}
                     className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-800 disabled:opacity-50"
@@ -1118,10 +1116,14 @@ export default function NotificationCenter() {
                   {query && (
                     <button
                       type="button"
-                      onClick={() => changeChecked([...new Set([
-                        ...selectedIds,
-                        ...searchHits.filter((recipient) => !recipient.requiresExplicitCheck).map((recipient) => recipient.id),
-                      ])])}
+                      onClick={() => {
+                        const reviewIds = searchHits.filter((recipient) => recipient.requiresExplicitCheck).map((recipient) => recipient.id);
+                        setExplicitReviewIds((current) => [...new Set([...current, ...reviewIds])]);
+                        changeChecked([...new Set([
+                          ...selectedIds,
+                          ...searchHits.map((recipient) => recipient.id),
+                        ])]);
+                      }}
                       disabled={searchHits.length === 0}
                       className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-800 disabled:opacity-50"
                     >
@@ -1178,7 +1180,7 @@ export default function NotificationCenter() {
                         <p className="font-medium text-gray-900">{recipient.name}</p>
                         <p className="text-sm text-gray-800">{recipient.roles.join(' · ') || copy('noRole')}</p>
                         <p className="text-sm text-gray-600">{recipient.email || copy('noEmail')}</p>
-                        {stripe ? <p className="text-sm text-gray-900">{copy('stripeLine', { status: stripeName(recipient.stripeStatus) || recipient.connectLabel })}</p> : null}
+                        {stripe && (recipient.connectLabel || recipient.stripeStatus) ? <p className="text-sm text-gray-900">{copy('stripeLine', { status: recipient.connectLabel || stripeName(recipient.stripeStatus) })}</p> : null}
                         <p className="text-sm text-gray-700">
                           {recipient.email ? copy('emailPresent') : copy('emailDrops')}
                           {' '}
@@ -1586,7 +1588,7 @@ export default function NotificationCenter() {
                 <p className="font-medium text-gray-900">{recipient.name}</p>
                 <p className="text-gray-800">{recipient.roles.join(' · ') || copy('noRole')}</p>
                 <p className="text-gray-600">{recipient.email || copy('noEmail')}</p>
-                {recipient.stripeStatus ? <p className="text-gray-900">{copy('stripeLine', { status: stripeName(recipient.stripeStatus) || recipient.connectLabel })}</p> : null}
+                {recipient.stripeStatus ? <p className="text-gray-900">{copy('stripeLine', { status: recipient.connectLabel || stripeName(recipient.stripeStatus) })}</p> : null}
                 {recipient.requiresExplicitCheck ? (
                   <p className="text-amber-900">{copy('explicitChecked')}</p>
                 ) : null}

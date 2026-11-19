@@ -35,8 +35,9 @@ describe('message center copy follows the selected language', () => {
   });
 
   it('keeps the Dutch labels when no language is passed and translates the same selection in English', () => {
-    assert.equal(stripeChoiceLabel('none'), 'Stripe niet gekoppeld');
-    assert.equal(stripeChoiceLabel('none', 'en'), 'Stripe not connected');
+    assert.equal(stripeChoiceLabel('ready'), 'Stripe volledig gereed');
+    assert.equal(stripeChoiceLabel('ready', 'en'), 'Stripe fully ready');
+    assert.equal(stripeChoiceLabel('not_ready', 'en'), 'Stripe not fully ready');
     const dutch = describeSelection(emptySelection('applicable')).join(' ');
     const english = describeSelection(emptySelection('applicable'), 'en').join(' ');
     assert.match(dutch, /selecteert niemand/);

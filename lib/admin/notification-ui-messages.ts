@@ -20,12 +20,13 @@ export const messageCenterUi = {
     "matchAnyHelp": "OF: een ontvanger moet aan minstens één gekozen voorwaarde voldoen.",
     "stripeLabel": "Stripe",
     "stripeShared": "Zelfde account voor verkoop en bezorging.",
+    "stripeFilterHelp": "Volledig gereed is alleen een koppeling die de centrale Stripe-controle als volledig bruikbaar bevestigt. Alle andere accounts vallen onder niet volledig gereed.",
     "noStripeFilter": "Geen Stripe-filter",
     "stripeNone": "Stripe niet gekoppeld",
     "stripeIncomplete": "Stripe nog niet afgerond",
-    "stripeReady": "Stripe afgerond",
+    "stripeReady": "Stripe volledig gereed",
     "stripeReview": "Stripe-koppeling controleren",
-    "stripeNotReady": "Stripe nog niet gereed",
+    "stripeNotReady": "Stripe niet volledig gereed",
     "emailVerification": "E-mailverificatie",
     "noEmailFilter": "Geen e-mailfilter",
     "emailVerified": "E-mail geverifieerd",
@@ -70,8 +71,8 @@ export const messageCenterUi = {
     "searchName": "Zoek op naam of e-mailadres",
     "selectSearch": "Selecteer zoekresultaten",
     "clearSelection": "Wis selectie",
-    "selectAllHelp": "Selecteer alle resultaten vinkt de filterresultaten aan, ook op andere pagina’s, behalve accounts met Stripe-koppeling controleren. Die vink je apart aan. Wis selectie haalt elk vinkje weg. Zoeken of bladeren bewaart de vinkjes.",
-    "selectSearchHelp": "Selecteer alle resultaten vinkt de filterresultaten aan, behalve accounts met Stripe-koppeling controleren. Die vink je apart aan. Selecteer zoekresultaten doet hetzelfde voor deze zoekopdracht. Wis selectie haalt elk vinkje weg.",
+    "selectAllHelp": "Selecteer alle resultaten vinkt de filterresultaten aan, ook op andere pagina’s, inclusief accounts met Stripe-koppeling controleren. Wis selectie haalt elk vinkje weg. Zoeken of bladeren bewaart de vinkjes.",
+    "selectSearchHelp": "Selecteer alle resultaten vinkt de filterresultaten aan, inclusief accounts met Stripe-koppeling controleren. Selecteer zoekresultaten doet hetzelfde voor deze zoekopdracht. Wis selectie haalt elk vinkje weg.",
     "noRole": "Geen rol",
     "emailPresent": "E-mailadres aanwezig.",
     "emailDrops": "Geen e-mailadres, e-mail valt af.",
@@ -97,7 +98,7 @@ export const messageCenterUi = {
     "page": "Pagina {page} van {total}",
     "selectPerson": "Selecteer {name}",
     "stripeLine": "Stripe: {status}",
-    "explicitCheck": "Apart aanvinken. Selecteer alle resultaten slaat dit account over.",
+    "explicitCheck": "Stripe-koppeling controleren. Selecteer alle resultaten neemt dit account mee.",
     "inAppPush": "In-appmelding en push",
     "stepChannels": "Kanalen",
     "stepTitles": "Titel en onderwerp",
@@ -142,7 +143,7 @@ export const messageCenterUi = {
     "proofNone": "Niemand uit de doelgroep gaat mee.",
     "proofUnchecked": "Niet aangevinkte filterresultaten gaan niet mee.",
     "alreadySent": "Dit bericht al verstuurd. {label}",
-    "explicitChecked": "Apart aangevinkt. Selecteer alle resultaten neemt dit account niet mee.",
+    "explicitChecked": "Stripe-koppeling controleren. Dit account gaat mee in Selecteer alle resultaten.",
     "usersCard": "Gebruikers",
     "usersCardHelp": "Zelfde Stripe-status als in Gebruikersbeheer",
     "emailCard": "E-mail",
@@ -284,7 +285,7 @@ export const messageCenterUi = {
     "chooseAudience": "Kies eerst een doelgroep. Een lege selectie kan niet worden verstuurd.",
     "chooseRole": "Kies Alle toepasselijke rollen, Alle gebruikers, kopers, verkopers of bezorgpartners.",
     "chooseMatch": "Kies of ontvangers aan alle filters of aan minstens één filter moeten voldoen.",
-    "unknownStripe": "Onbekende Stripe-status. Kies nog niet gereed, geen actuele koppeling, Connect onvolledig, controleren of gereed.",
+    "unknownStripe": "Onbekende Stripe-status. Kies geen Stripe-filter, Stripe volledig gereed of Stripe niet volledig gereed.",
     "badVerification": "De verificatiefilter is ongeldig.",
     "unknownVerification": "Onbekende verificatie. Kies e-mail, bezorgerprofiel of verkoopreview.",
     "unknownVerificationStatus": "Onbekende verificatiestatus.",
@@ -295,7 +296,7 @@ export const messageCenterUi = {
     "unknownStep": "Onbekende openstaande stap. Alleen vastgelegde bezorgactivatie-stappen zijn kiesbaar.",
     "tooManyExclusions": "Er zijn te veel uitsluitingen.",
     "factInactive": "Accountstatus inactief bestaat niet. Geblokkeerd is suspendedAt. Bezorger geblokkeerd is DeliveryProfile.isBlocked. Hoe lang iemand offline is, is geen accountstatus.",
-    "factStripePending": "Stripe-verificatie in behandeling staat niet in HomeCheff. Connect onvolledig betekent alleen: er is een stripeConnectAccountId en stripeConnectOnboardingCompleted is false.",
+    "factStripePending": "Stripe volledig gereed gebruikt de centrale Stripe-controle. Die bevestigt een bruikbare koppeling alleen met de opgeslagen uitbetalingsstatus en, bij een particulier account, actieve transfers. Een gekoppeld account of stripeConnectOnboardingCompleted alleen is geen volledige gereedheid. Stripe niet volledig gereed is de rest: niet gekoppeld, Connect onvolledig, nog niet gereed en Stripe-koppeling controleren. Die technische statussen blijven in de ontvangersdetails zichtbaar. Stripe-verificatie in behandeling staat niet in HomeCheff.",
     "factEmail": "HomeCheff-e-mailverificatie is emailVerified. Daar is geen status in behandeling.",
     "factCourier": "Bezorgerverificatie is DeliveryProfile.isVerified. Daar is geen status in behandeling. Een ontbrekend bezorgprofiel telt niet als niet-geverifieerd.",
     "factTerms": "termsAccepted, privacyPolicyAccepted, taxResponsibilityAccepted en messageGuidelinesAccepted hebben geen versie en zijn niet selecteerbaar.",
@@ -332,7 +333,7 @@ export const messageCenterUi = {
     "describeMatchAll": "Filters: een ontvanger moet aan alle gekozen filters voldoen. Een gekozen rol geldt daarbij.",
     "describeMatchAny": "Filters: een ontvanger moet aan minstens één gekozen filter voldoen. Een gekozen rol geldt daarbij.",
     "describeStripe": "Stripe: {label}.",
-    "describeReviewSkip": "Accounts met Stripe-koppeling controleren blijven zichtbaar en gaan niet mee in Selecteer alle resultaten. Die vink je apart aan.",
+    "describeReviewSkip": "Accounts met Stripe-koppeling controleren vallen onder Stripe niet volledig gereed. Selecteer alle resultaten neemt ze mee. De technische status blijft in de details staan.",
     "describeVerification": "Verificatie: {label}.",
     "describeAgreement": "Openstaande acceptatie: {label}. Alleen een andere opgeslagen versie of geen acceptatie telt als open. Acceptatie zonder versie blijft apart en telt niet mee. Bestaande acceptaties van deze overeenkomst blijven geldig.",
     "describeAccount": "Accountstatus: {label}.",
@@ -341,10 +342,10 @@ export const messageCenterUi = {
     "describeAge": "Registratiedatum wordt getoond als accountleeftijd en niet als laatste activiteit.",
     "describeStaff": "Beheerders met een passend profiel kunnen in kopers, verkopers, bezorgpartners en toepasselijke filters staan. Alle gebruikers blijft zonder beheerders. Test- en systeemaccounts blijven uitgesloten.",
     "countLine": "{label}: {count}.",
-    "countReview": "{label}: {count}. Die blijven buiten Selecteer alle resultaten.",
-    "countUnique": "Uniek totaal: {unique}. {ready} blijft buiten dit resultaat.",
+    "countReview": "{label}: {count}. Die gaan mee in Selecteer alle resultaten.",
+    "countUnique": "Uniek totaal: {unique}. Stripe volledig gereed valt buiten dit filter.",
     "countOther": "{count} persoon/personen staat door een ander filter in deze lijst.",
-    "explicitReviewError": "Een account met Stripe-koppeling controleren moet apart aangevinkt worden. Selecteer alle resultaten neemt die accounts niet mee. Er is niets verstuurd.",
+    "explicitReviewError": "Een account met Stripe-koppeling controleren staat in de selectie, maar de bevestiging ontbreekt. Vernieuw het voorbeeld. Er is niets verstuurd.",
     "checkOne": "Vink minstens één ontvanger aan. Er is niets verstuurd.",
     "checkOutside": "Een aangevinkte gebruiker valt niet meer onder de filters. Vernieuw de lijst. Er is niets verstuurd.",
     "originBothPreview": "In de doelgroep en handmatig toegevoegd",
@@ -368,24 +369,20 @@ export const messageCenterUi = {
     "blastIdempotency": "Idempotency-Key header is verplicht voor grote e-mailbroadcasts (voorkomt dubbele submit).",
     "presets": {
       "delivery_stripe_none": {
-        "label": "Bezorgers: Stripe niet gekoppeld",
-        "description": "Nog geen Stripe-account. Verkoop en bezorging delen hetzelfde account."
-      },
-      "delivery_stripe_incomplete": {
-        "label": "Bezorgers: Stripe nog niet afgerond",
-        "description": "Stripe is gestart, de uitbetaling is nog niet afgerond."
+        "label": "Bezorgers: Stripe niet volledig gereed",
+        "description": "Niet gekoppeld, onvolledig, nog niet gereed of een koppeling om te controleren."
       },
       "delivery_stripe_ready": {
-        "label": "Bezorgers: Stripe afgerond",
-        "description": "Het gedeelde Stripe-account is gereed voor uitbetalingen."
+        "label": "Bezorgers: Stripe volledig gereed",
+        "description": "De centrale Stripe-controle bevestigt dat de koppeling volledig bruikbaar is."
       },
       "delivery_agreement_open": {
         "label": "Bezorgers: overeenkomst nog open",
         "description": "De getoonde bezorgovereenkomst is nog niet geaccepteerd."
       },
       "sellers_without_stripe": {
-        "label": "Verkopers: Stripe niet gekoppeld",
-        "description": "Verkopers zonder Stripe-account op hun profiel."
+        "label": "Verkopers: Stripe niet volledig gereed",
+        "description": "Verkopers van wie de Stripe-koppeling niet als volledig bruikbaar is bevestigd."
       },
       "buyers_inactive_60": {
         "label": "Kopers die 60 dagen niet actief zijn",
@@ -414,12 +411,13 @@ export const messageCenterUi = {
     "matchAnyHelp": "OR: a recipient must match at least one selected condition.",
     "stripeLabel": "Stripe",
     "stripeShared": "The same account is used for sales and delivery.",
+    "stripeFilterHelp": "Fully ready means only a connection the central Stripe check confirms is fully usable. Every other account is not fully ready.",
     "noStripeFilter": "No Stripe filter",
     "stripeNone": "Stripe not connected",
     "stripeIncomplete": "Stripe not finished",
-    "stripeReady": "Stripe finished",
+    "stripeReady": "Stripe fully ready",
     "stripeReview": "Review Stripe link",
-    "stripeNotReady": "Stripe not ready yet",
+    "stripeNotReady": "Stripe not fully ready",
     "emailVerification": "Email verification",
     "noEmailFilter": "No email filter",
     "emailVerified": "Email verified",
@@ -464,8 +462,8 @@ export const messageCenterUi = {
     "searchName": "Search by name or email",
     "selectSearch": "Select search results",
     "clearSelection": "Clear selection",
-    "selectAllHelp": "Select all results checks the filter results, including other pages, except accounts with a Stripe link to review. Check those separately. Clear selection removes every check. Searching or paging keeps the checks.",
-    "selectSearchHelp": "Select all results checks the filter results, except accounts with a Stripe link to review. Check those separately. Select search results does the same for this search. Clear selection removes every check.",
+    "selectAllHelp": "Select all results checks the filter results, including other pages and accounts with a Stripe link to review. Clear selection removes every check. Searching or paging keeps the checks.",
+    "selectSearchHelp": "Select all results checks the filter results, including accounts with a Stripe link to review. Select search results does the same for this search. Clear selection removes every check.",
     "noRole": "No role",
     "emailPresent": "Email address present.",
     "emailDrops": "No email address, so email is left out.",
@@ -491,7 +489,7 @@ export const messageCenterUi = {
     "page": "Page {page} of {total}",
     "selectPerson": "Select {name}",
     "stripeLine": "Stripe: {status}",
-    "explicitCheck": "Check separately. Select all results skips this account.",
+    "explicitCheck": "Review Stripe link. Select all results includes this account.",
     "inAppPush": "In-app notification and push",
     "stepChannels": "Channels",
     "stepTitles": "Title and subject",
@@ -536,7 +534,7 @@ export const messageCenterUi = {
     "proofNone": "Nobody from the audience is included.",
     "proofUnchecked": "Unchecked filter results are not included.",
     "alreadySent": "This message was already sent. {label}",
-    "explicitChecked": "Checked separately. Select all results does not include this account.",
+    "explicitChecked": "Review Stripe link. This account is included in Select all results.",
     "usersCard": "Users",
     "usersCardHelp": "Same Stripe status as in user management",
     "emailCard": "Email",
@@ -678,7 +676,7 @@ export const messageCenterUi = {
     "chooseAudience": "Choose an audience first. An empty selection cannot be sent.",
     "chooseRole": "Choose all applicable roles, all users, buyers, sellers or couriers.",
     "chooseMatch": "Choose whether recipients must match every filter or at least one filter.",
-    "unknownStripe": "Unknown Stripe status. Choose not ready yet, no current link, Connect incomplete, review or ready.",
+    "unknownStripe": "Unknown Stripe status. Choose no Stripe filter, Stripe fully ready or Stripe not fully ready.",
     "badVerification": "The verification filter is invalid.",
     "unknownVerification": "Unknown verification. Choose email, courier profile or sales review.",
     "unknownVerificationStatus": "Unknown verification status.",
@@ -689,7 +687,7 @@ export const messageCenterUi = {
     "unknownStep": "Unknown open step. Only recorded courier activation steps can be chosen.",
     "tooManyExclusions": "There are too many exclusions.",
     "factInactive": "There is no inactive account status. Blocked is suspendedAt. Courier blocked is DeliveryProfile.isBlocked. How long someone is offline is not an account status.",
-    "factStripePending": "Stripe verification pending is not stored in HomeCheff. Connect incomplete only means there is a stripeConnectAccountId and stripeConnectOnboardingCompleted is false.",
+    "factStripePending": "Stripe fully ready uses the central Stripe check. That confirms a usable connection only from the stored payout status and, for a private account, active transfers. A linked account or stripeConnectOnboardingCompleted alone is not full readiness. Stripe not fully ready is everyone else: not connected, Connect incomplete, not ready yet, and a Stripe link to review. Those technical statuses stay visible in the recipient details. Stripe verification pending is not stored in HomeCheff.",
     "factEmail": "HomeCheff email verification is emailVerified. It has no pending status.",
     "factCourier": "Courier verification is DeliveryProfile.isVerified. It has no pending status. A missing courier profile does not count as unverified.",
     "factTerms": "termsAccepted, privacyPolicyAccepted, taxResponsibilityAccepted and messageGuidelinesAccepted have no version and cannot be selected.",
@@ -726,7 +724,7 @@ export const messageCenterUi = {
     "describeMatchAll": "Filters: a recipient must match every selected filter. A selected role still applies.",
     "describeMatchAny": "Filters: a recipient must match at least one selected filter. A selected role still applies.",
     "describeStripe": "Stripe: {label}.",
-    "describeReviewSkip": "Accounts with a Stripe link to review stay visible and are not included in Select all results. Check those separately.",
+    "describeReviewSkip": "Accounts with a Stripe link to review belong to Stripe not fully ready. Select all results includes them. The technical status stays in the details.",
     "describeVerification": "Verification: {label}.",
     "describeAgreement": "Open acceptance: {label}. Only another stored version or no acceptance counts as open. Acceptance without a version stays separate and is not included. Existing acceptances of this agreement remain valid.",
     "describeAccount": "Account status: {label}.",
@@ -735,10 +733,10 @@ export const messageCenterUi = {
     "describeAge": "The registration date is shown as the account age, not as last activity.",
     "describeStaff": "Admins with a matching profile can appear in buyers, sellers, couriers and applicable filters. All users stays without admins. Test and system accounts stay excluded.",
     "countLine": "{label}: {count}.",
-    "countReview": "{label}: {count}. They stay outside Select all results.",
-    "countUnique": "Unique total: {unique}. {ready} stays outside this result.",
+    "countReview": "{label}: {count}. They are included in Select all results.",
+    "countUnique": "Unique total: {unique}. Stripe fully ready stays outside this filter.",
     "countOther": "{count} person/people are in this list because of another filter.",
-    "explicitReviewError": "An account with a Stripe link to review must be checked separately. Select all results does not include those accounts. Nothing was sent.",
+    "explicitReviewError": "An account with a Stripe link to review is in the selection, but the confirmation is missing. Refresh the preview. Nothing was sent.",
     "checkOne": "Check at least one recipient. Nothing was sent.",
     "checkOutside": "A checked user no longer matches the filters. Refresh the list. Nothing was sent.",
     "originBothPreview": "In the audience and added manually",
@@ -762,24 +760,20 @@ export const messageCenterUi = {
     "blastIdempotency": "An Idempotency-Key header is required for large email broadcasts (prevents a double submit).",
     "presets": {
       "delivery_stripe_none": {
-        "label": "Couriers: Stripe not connected",
-        "description": "No Stripe account yet. Sales and delivery share the same account."
-      },
-      "delivery_stripe_incomplete": {
-        "label": "Couriers: Stripe not finished",
-        "description": "Stripe was started, but payout setup is not finished."
+        "label": "Couriers: Stripe not fully ready",
+        "description": "Not connected, incomplete, not ready yet, or a link to review."
       },
       "delivery_stripe_ready": {
-        "label": "Couriers: Stripe finished",
-        "description": "The shared Stripe account is ready for payouts."
+        "label": "Couriers: Stripe fully ready",
+        "description": "The central Stripe check confirms that the connection is fully usable."
       },
       "delivery_agreement_open": {
         "label": "Couriers: agreement still open",
         "description": "The shown courier agreement has not been accepted yet."
       },
       "sellers_without_stripe": {
-        "label": "Sellers: Stripe not connected",
-        "description": "Sellers without a Stripe account on their profile."
+        "label": "Sellers: Stripe not fully ready",
+        "description": "Sellers whose Stripe connection is not confirmed as fully usable."
       },
       "buyers_inactive_60": {
         "label": "Buyers inactive for 60 days",

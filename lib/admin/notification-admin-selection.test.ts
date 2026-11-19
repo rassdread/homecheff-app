@@ -92,7 +92,7 @@ describe('admins inside the selected audience', () => {
   });
 
   it('shows a superadmin with a matching delivery profile and keeps all-users and test accounts unchanged', () => {
-    assert.equal(matchesAudience(courierAdmin, selection({ audience: 'delivery', stripe: 'incomplete' })), true);
+    assert.equal(matchesAudience(courierAdmin, selection({ audience: 'delivery', stripe: 'not_ready' })), true);
     assert.deepEqual(audienceRoleLabels(courierAdmin), ['Superadmin', 'Bezorger']);
     assert.equal(matchesAudience(user({ id: 'plain-admin', role: 'ADMIN' }), selection({ audience: 'delivery' })), false);
     assert.equal(matchesAudience(courierAdmin, selection({ audience: 'all' })), false);
@@ -104,7 +104,7 @@ describe('admins inside the selected audience', () => {
       matchesAudience(courierAdmin, selection({ audience: 'applicable', verification: { kind: 'email', status: 'verified' } })),
       false,
     );
-    assert.equal(matchesAudience(courierAdmin, selection({ audience: 'applicable', stripe: 'incomplete' })), true);
+    assert.equal(matchesAudience(courierAdmin, selection({ audience: 'applicable', stripe: 'not_ready' })), true);
     assert.equal(
       matchesAudience(
         user({ id: 'reserved-admin', role: 'SUPERADMIN', email: 'ops@homecheff.invalid', delivery: deliveryOpen }),

@@ -110,6 +110,7 @@ const userSelect = {
   sellerRoles: true,
   stripeConnectAccountId: true,
   stripeConnectOnboardingCompleted: true,
+  stripeConnectTrack: true,
   lat: true,
   lng: true,
   place: true,
@@ -143,6 +144,8 @@ const userSelect = {
       companyDisplayName: true,
       deliveryAgreementAcceptedAt: true,
       deliveryAgreementDocumentId: true,
+      stripeTransfersStatus: true,
+      stripePayoutsEnabled: true,
     },
   },
   pushTokens: {
@@ -211,6 +214,9 @@ export function toAudienceCandidate(row: UserRow): AudienceCandidate {
     sellerRoles: row.sellerRoles ?? [],
     stripeConnectAccountId: row.stripeConnectAccountId,
     stripeConnectOnboardingCompleted: Boolean(row.stripeConnectOnboardingCompleted),
+    stripeConnectTrack: row.stripeConnectTrack,
+    stripePayoutsEnabled: profile?.stripePayoutsEnabled ?? null,
+    stripeTransfersStatus: profile?.stripeTransfersStatus ?? null,
     hasSellerProfile: Boolean(row.SellerProfile),
     commerceReviewState: row.SellerProfile?.commerceReviewState ?? null,
     delivery: profile

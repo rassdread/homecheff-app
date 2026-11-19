@@ -2055,12 +2055,13 @@
         "matchAnyHelp": "OF: een ontvanger moet aan minstens één gekozen voorwaarde voldoen.",
         "stripeLabel": "Stripe",
         "stripeShared": "Zelfde account voor verkoop en bezorging.",
+        "stripeFilterHelp": "Volledig gereed is alleen een koppeling die de centrale Stripe-controle als volledig bruikbaar bevestigt. Alle andere accounts vallen onder niet volledig gereed.",
         "noStripeFilter": "Geen Stripe-filter",
         "stripeNone": "Stripe niet gekoppeld",
         "stripeIncomplete": "Stripe nog niet afgerond",
-        "stripeReady": "Stripe afgerond",
+        "stripeReady": "Stripe volledig gereed",
         "stripeReview": "Stripe-koppeling controleren",
-        "stripeNotReady": "Stripe nog niet gereed",
+        "stripeNotReady": "Stripe niet volledig gereed",
         "emailVerification": "E-mailverificatie",
         "noEmailFilter": "Geen e-mailfilter",
         "emailVerified": "E-mail geverifieerd",
@@ -2105,8 +2106,8 @@
         "searchName": "Zoek op naam of e-mailadres",
         "selectSearch": "Selecteer zoekresultaten",
         "clearSelection": "Wis selectie",
-        "selectAllHelp": "Selecteer alle resultaten vinkt de filterresultaten aan, ook op andere pagina’s, behalve accounts met Stripe-koppeling controleren. Die vink je apart aan. Wis selectie haalt elk vinkje weg. Zoeken of bladeren bewaart de vinkjes.",
-        "selectSearchHelp": "Selecteer alle resultaten vinkt de filterresultaten aan, behalve accounts met Stripe-koppeling controleren. Die vink je apart aan. Selecteer zoekresultaten doet hetzelfde voor deze zoekopdracht. Wis selectie haalt elk vinkje weg.",
+        "selectAllHelp": "Selecteer alle resultaten vinkt de filterresultaten aan, ook op andere pagina’s, inclusief accounts met Stripe-koppeling controleren. Wis selectie haalt elk vinkje weg. Zoeken of bladeren bewaart de vinkjes.",
+        "selectSearchHelp": "Selecteer alle resultaten vinkt de filterresultaten aan, inclusief accounts met Stripe-koppeling controleren. Selecteer zoekresultaten doet hetzelfde voor deze zoekopdracht. Wis selectie haalt elk vinkje weg.",
         "noRole": "Geen rol",
         "emailPresent": "E-mailadres aanwezig.",
         "emailDrops": "Geen e-mailadres, e-mail valt af.",
@@ -2132,7 +2133,7 @@
         "page": "Pagina {page} van {total}",
         "selectPerson": "Selecteer {name}",
         "stripeLine": "Stripe: {status}",
-        "explicitCheck": "Apart aanvinken. Selecteer alle resultaten slaat dit account over.",
+        "explicitCheck": "Stripe-koppeling controleren. Selecteer alle resultaten neemt dit account mee.",
         "inAppPush": "In-appmelding en push",
         "stepChannels": "Kanalen",
         "stepTitles": "Titel en onderwerp",
@@ -2176,7 +2177,7 @@
         "proofNone": "Niemand uit de doelgroep gaat mee.",
         "proofUnchecked": "Niet aangevinkte filterresultaten gaan niet mee.",
         "alreadySent": "Dit bericht al verstuurd. {label}",
-        "explicitChecked": "Apart aangevinkt. Selecteer alle resultaten neemt dit account niet mee.",
+        "explicitChecked": "Stripe-koppeling controleren. Dit account gaat mee in Selecteer alle resultaten.",
         "usersCard": "Gebruikers",
         "usersCardHelp": "Zelfde Stripe-status als in Gebruikersbeheer",
         "emailCard": "E-mail",
@@ -2318,7 +2319,7 @@
         "chooseAudience": "Kies eerst een doelgroep. Een lege selectie kan niet worden verstuurd.",
         "chooseRole": "Kies Alle toepasselijke rollen, Alle gebruikers, kopers, verkopers of bezorgpartners.",
         "chooseMatch": "Kies of ontvangers aan alle filters of aan minstens één filter moeten voldoen.",
-        "unknownStripe": "Onbekende Stripe-status. Kies nog niet gereed, geen actuele koppeling, Connect onvolledig, controleren of gereed.",
+        "unknownStripe": "Onbekende Stripe-status. Kies geen Stripe-filter, Stripe volledig gereed of Stripe niet volledig gereed.",
         "badVerification": "De verificatiefilter is ongeldig.",
         "unknownVerification": "Onbekende verificatie. Kies e-mail, bezorgerprofiel of verkoopreview.",
         "unknownVerificationStatus": "Onbekende verificatiestatus.",
@@ -2329,7 +2330,7 @@
         "unknownStep": "Onbekende openstaande stap. Alleen vastgelegde bezorgactivatie-stappen zijn kiesbaar.",
         "tooManyExclusions": "Er zijn te veel uitsluitingen.",
         "factInactive": "Accountstatus inactief bestaat niet. Geblokkeerd is suspendedAt. Bezorger geblokkeerd is DeliveryProfile.isBlocked. Hoe lang iemand offline is, is geen accountstatus.",
-        "factStripePending": "Stripe-verificatie in behandeling staat niet in HomeCheff. Connect onvolledig betekent alleen: er is een stripeConnectAccountId en stripeConnectOnboardingCompleted is false.",
+        "factStripePending": "Stripe volledig gereed gebruikt de centrale Stripe-controle. Die bevestigt een bruikbare koppeling alleen met de opgeslagen uitbetalingsstatus en, bij een particulier account, actieve transfers. Een gekoppeld account of stripeConnectOnboardingCompleted alleen is geen volledige gereedheid. Stripe niet volledig gereed is de rest: niet gekoppeld, Connect onvolledig, nog niet gereed en Stripe-koppeling controleren. Die technische statussen blijven in de ontvangersdetails zichtbaar. Stripe-verificatie in behandeling staat niet in HomeCheff.",
         "factEmail": "HomeCheff-e-mailverificatie is emailVerified. Daar is geen status in behandeling.",
         "factCourier": "Bezorgerverificatie is DeliveryProfile.isVerified. Daar is geen status in behandeling. Een ontbrekend bezorgprofiel telt niet als niet-geverifieerd.",
         "factTerms": "termsAccepted, privacyPolicyAccepted, taxResponsibilityAccepted en messageGuidelinesAccepted hebben geen versie en zijn niet selecteerbaar.",
@@ -2366,7 +2367,7 @@
         "describeMatchAll": "Filters: een ontvanger moet aan alle gekozen filters voldoen. Een gekozen rol geldt daarbij.",
         "describeMatchAny": "Filters: een ontvanger moet aan minstens één gekozen filter voldoen. Een gekozen rol geldt daarbij.",
         "describeStripe": "Stripe: {label}.",
-        "describeReviewSkip": "Accounts met Stripe-koppeling controleren blijven zichtbaar en gaan niet mee in Selecteer alle resultaten. Die vink je apart aan.",
+        "describeReviewSkip": "Accounts met Stripe-koppeling controleren vallen onder Stripe niet volledig gereed. Selecteer alle resultaten neemt ze mee. De technische status blijft in de details staan.",
         "describeVerification": "Verificatie: {label}.",
         "describeAgreement": "Openstaande acceptatie: {label}. Alleen een andere opgeslagen versie of geen acceptatie telt als open. Acceptatie zonder versie blijft apart en telt niet mee. Bestaande acceptaties van deze overeenkomst blijven geldig.",
         "describeAccount": "Accountstatus: {label}.",
@@ -2375,10 +2376,10 @@
         "describeAge": "Registratiedatum wordt getoond als accountleeftijd en niet als laatste activiteit.",
         "describeStaff": "Beheerders met een passend profiel kunnen in kopers, verkopers, bezorgpartners en toepasselijke filters staan. Alle gebruikers blijft zonder beheerders. Test- en systeemaccounts blijven uitgesloten.",
         "countLine": "{label}: {count}.",
-        "countReview": "{label}: {count}. Die blijven buiten Selecteer alle resultaten.",
-        "countUnique": "Uniek totaal: {unique}. {ready} blijft buiten dit resultaat.",
+        "countReview": "{label}: {count}. Die gaan mee in Selecteer alle resultaten.",
+        "countUnique": "Uniek totaal: {unique}. Stripe volledig gereed valt buiten dit filter.",
         "countOther": "{count} persoon/personen staat door een ander filter in deze lijst.",
-        "explicitReviewError": "Een account met Stripe-koppeling controleren moet apart aangevinkt worden. Selecteer alle resultaten neemt die accounts niet mee. Er is niets verstuurd.",
+        "explicitReviewError": "Een account met Stripe-koppeling controleren staat in de selectie, maar de bevestiging ontbreekt. Vernieuw het voorbeeld. Er is niets verstuurd.",
         "checkOne": "Vink minstens één ontvanger aan. Er is niets verstuurd.",
         "checkOutside": "Een aangevinkte gebruiker valt niet meer onder de filters. Vernieuw de lijst. Er is niets verstuurd.",
         "originBothPreview": "In de doelgroep en handmatig toegevoegd",
@@ -2402,24 +2403,20 @@
         "blastIdempotency": "Idempotency-Key header is verplicht voor grote e-mailbroadcasts (voorkomt dubbele submit).",
         "presets": {
           "delivery_stripe_none": {
-            "label": "Bezorgers: Stripe niet gekoppeld",
-            "description": "Nog geen Stripe-account. Verkoop en bezorging delen hetzelfde account."
-          },
-          "delivery_stripe_incomplete": {
-            "label": "Bezorgers: Stripe nog niet afgerond",
-            "description": "Stripe is gestart, de uitbetaling is nog niet afgerond."
+            "label": "Bezorgers: Stripe niet volledig gereed",
+            "description": "Niet gekoppeld, onvolledig, nog niet gereed of een koppeling om te controleren."
           },
           "delivery_stripe_ready": {
-            "label": "Bezorgers: Stripe afgerond",
-            "description": "Het gedeelde Stripe-account is gereed voor uitbetalingen."
+            "label": "Bezorgers: Stripe volledig gereed",
+            "description": "De centrale Stripe-controle bevestigt dat de koppeling volledig bruikbaar is."
           },
           "delivery_agreement_open": {
             "label": "Bezorgers: overeenkomst nog open",
             "description": "De getoonde bezorgovereenkomst is nog niet geaccepteerd."
           },
           "sellers_without_stripe": {
-            "label": "Verkopers: Stripe niet gekoppeld",
-            "description": "Verkopers zonder Stripe-account op hun profiel."
+            "label": "Verkopers: Stripe niet volledig gereed",
+            "description": "Verkopers van wie de Stripe-koppeling niet als volledig bruikbaar is bevestigd."
           },
           "buyers_inactive_60": {
             "label": "Kopers die 60 dagen niet actief zijn",

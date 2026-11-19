@@ -1121,12 +1121,13 @@
         "matchAnyHelp": "OR: a recipient must match at least one selected condition.",
         "stripeLabel": "Stripe",
         "stripeShared": "The same account is used for sales and delivery.",
+        "stripeFilterHelp": "Fully ready means only a connection the central Stripe check confirms is fully usable. Every other account is not fully ready.",
         "noStripeFilter": "No Stripe filter",
         "stripeNone": "Stripe not connected",
         "stripeIncomplete": "Stripe not finished",
-        "stripeReady": "Stripe finished",
+        "stripeReady": "Stripe fully ready",
         "stripeReview": "Review Stripe link",
-        "stripeNotReady": "Stripe not ready yet",
+        "stripeNotReady": "Stripe not fully ready",
         "emailVerification": "Email verification",
         "noEmailFilter": "No email filter",
         "emailVerified": "Email verified",
@@ -1171,8 +1172,8 @@
         "searchName": "Search by name or email",
         "selectSearch": "Select search results",
         "clearSelection": "Clear selection",
-        "selectAllHelp": "Select all results checks the filter results, including other pages, except accounts with a Stripe link to review. Check those separately. Clear selection removes every check. Searching or paging keeps the checks.",
-        "selectSearchHelp": "Select all results checks the filter results, except accounts with a Stripe link to review. Check those separately. Select search results does the same for this search. Clear selection removes every check.",
+        "selectAllHelp": "Select all results checks the filter results, including other pages and accounts with a Stripe link to review. Clear selection removes every check. Searching or paging keeps the checks.",
+        "selectSearchHelp": "Select all results checks the filter results, including accounts with a Stripe link to review. Select search results does the same for this search. Clear selection removes every check.",
         "noRole": "No role",
         "emailPresent": "Email address present.",
         "emailDrops": "No email address, so email is left out.",
@@ -1198,7 +1199,7 @@
         "page": "Page {page} of {total}",
         "selectPerson": "Select {name}",
         "stripeLine": "Stripe: {status}",
-        "explicitCheck": "Check separately. Select all results skips this account.",
+        "explicitCheck": "Review Stripe link. Select all results includes this account.",
         "inAppPush": "In-app notification and push",
         "stepChannels": "Channels",
         "stepTitles": "Title and subject",
@@ -1242,7 +1243,7 @@
         "proofNone": "Nobody from the audience is included.",
         "proofUnchecked": "Unchecked filter results are not included.",
         "alreadySent": "This message was already sent. {label}",
-        "explicitChecked": "Checked separately. Select all results does not include this account.",
+        "explicitChecked": "Review Stripe link. This account is included in Select all results.",
         "usersCard": "Users",
         "usersCardHelp": "Same Stripe status as in user management",
         "emailCard": "Email",
@@ -1384,7 +1385,7 @@
         "chooseAudience": "Choose an audience first. An empty selection cannot be sent.",
         "chooseRole": "Choose all applicable roles, all users, buyers, sellers or couriers.",
         "chooseMatch": "Choose whether recipients must match every filter or at least one filter.",
-        "unknownStripe": "Unknown Stripe status. Choose not ready yet, no current link, Connect incomplete, review or ready.",
+        "unknownStripe": "Unknown Stripe status. Choose no Stripe filter, Stripe fully ready or Stripe not fully ready.",
         "badVerification": "The verification filter is invalid.",
         "unknownVerification": "Unknown verification. Choose email, courier profile or sales review.",
         "unknownVerificationStatus": "Unknown verification status.",
@@ -1395,7 +1396,7 @@
         "unknownStep": "Unknown open step. Only recorded courier activation steps can be chosen.",
         "tooManyExclusions": "There are too many exclusions.",
         "factInactive": "There is no inactive account status. Blocked is suspendedAt. Courier blocked is DeliveryProfile.isBlocked. How long someone is offline is not an account status.",
-        "factStripePending": "Stripe verification pending is not stored in HomeCheff. Connect incomplete only means there is a stripeConnectAccountId and stripeConnectOnboardingCompleted is false.",
+        "factStripePending": "Stripe fully ready uses the central Stripe check. That confirms a usable connection only from the stored payout status and, for a private account, active transfers. A linked account or stripeConnectOnboardingCompleted alone is not full readiness. Stripe not fully ready is everyone else: not connected, Connect incomplete, not ready yet, and a Stripe link to review. Those technical statuses stay visible in the recipient details. Stripe verification pending is not stored in HomeCheff.",
         "factEmail": "HomeCheff email verification is emailVerified. It has no pending status.",
         "factCourier": "Courier verification is DeliveryProfile.isVerified. It has no pending status. A missing courier profile does not count as unverified.",
         "factTerms": "termsAccepted, privacyPolicyAccepted, taxResponsibilityAccepted and messageGuidelinesAccepted have no version and cannot be selected.",
@@ -1432,7 +1433,7 @@
         "describeMatchAll": "Filters: a recipient must match every selected filter. A selected role still applies.",
         "describeMatchAny": "Filters: a recipient must match at least one selected filter. A selected role still applies.",
         "describeStripe": "Stripe: {label}.",
-        "describeReviewSkip": "Accounts with a Stripe link to review stay visible and are not included in Select all results. Check those separately.",
+        "describeReviewSkip": "Accounts with a Stripe link to review belong to Stripe not fully ready. Select all results includes them. The technical status stays in the details.",
         "describeVerification": "Verification: {label}.",
         "describeAgreement": "Open acceptance: {label}. Only another stored version or no acceptance counts as open. Acceptance without a version stays separate and is not included. Existing acceptances of this agreement remain valid.",
         "describeAccount": "Account status: {label}.",
@@ -1441,10 +1442,10 @@
         "describeAge": "The registration date is shown as the account age, not as last activity.",
         "describeStaff": "Admins with a matching profile can appear in buyers, sellers, couriers and applicable filters. All users stays without admins. Test and system accounts stay excluded.",
         "countLine": "{label}: {count}.",
-        "countReview": "{label}: {count}. They stay outside Select all results.",
-        "countUnique": "Unique total: {unique}. {ready} stays outside this result.",
+        "countReview": "{label}: {count}. They are included in Select all results.",
+        "countUnique": "Unique total: {unique}. Stripe fully ready stays outside this filter.",
         "countOther": "{count} person/people are in this list because of another filter.",
-        "explicitReviewError": "An account with a Stripe link to review must be checked separately. Select all results does not include those accounts. Nothing was sent.",
+        "explicitReviewError": "An account with a Stripe link to review is in the selection, but the confirmation is missing. Refresh the preview. Nothing was sent.",
         "checkOne": "Check at least one recipient. Nothing was sent.",
         "checkOutside": "A checked user no longer matches the filters. Refresh the list. Nothing was sent.",
         "originBothPreview": "In the audience and added manually",
@@ -1468,24 +1469,20 @@
         "blastIdempotency": "An Idempotency-Key header is required for large email broadcasts (prevents a double submit).",
         "presets": {
           "delivery_stripe_none": {
-            "label": "Couriers: Stripe not connected",
-            "description": "No Stripe account yet. Sales and delivery share the same account."
-          },
-          "delivery_stripe_incomplete": {
-            "label": "Couriers: Stripe not finished",
-            "description": "Stripe was started, but payout setup is not finished."
+            "label": "Couriers: Stripe not fully ready",
+            "description": "Not connected, incomplete, not ready yet, or a link to review."
           },
           "delivery_stripe_ready": {
-            "label": "Couriers: Stripe finished",
-            "description": "The shared Stripe account is ready for payouts."
+            "label": "Couriers: Stripe fully ready",
+            "description": "The central Stripe check confirms that the connection is fully usable."
           },
           "delivery_agreement_open": {
             "label": "Couriers: agreement still open",
             "description": "The shown courier agreement has not been accepted yet."
           },
           "sellers_without_stripe": {
-            "label": "Sellers: Stripe not connected",
-            "description": "Sellers without a Stripe account on their profile."
+            "label": "Sellers: Stripe not fully ready",
+            "description": "Sellers whose Stripe connection is not confirmed as fully usable."
           },
           "buyers_inactive_60": {
             "label": "Buyers inactive for 60 days",
