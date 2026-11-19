@@ -1,4 +1,5 @@
 import { sanitizePostAuthRelativeUrl } from '@/lib/auth/post-auth-redirect';
+import { NEXTAUTH_SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie-name';
 
 /**
  * A browser cannot forge Origin. The installed wrapper may post from
@@ -80,4 +81,52 @@ export function nativeDocumentRedirectTarget(returnTo: string, requestUrl: strin
   }
   const safe = sanitizePostAuthRelativeUrl(`${parsed.pathname}${parsed.search}`);
   return new URL(safe || '/', request).toString();
+}
+
+function documentHostAllowed(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  if (host === 'localhost' || host === '127.0.0.1') return true;
+  return (
+    host === 'homecheff.eu' ||
+    host.endsWith('.homecheff.eu') ||
+    host === 'homecheff.nl' ||
+    host.endsWith('.homecheff.nl')
+  );
+}
+
+/**
+ * Android WebView stores a session cookie on a document response and drops the
+ * same Set-Cookie when it only arrives on a 303. The page then navigates.
+ */
+export function nativeSessionDocument(
+  setCookie: string,
+  target: string,
+  authRef: string,
+): { body: string; setCookie: string } | null {
+  if (!setCookie.startsWith(`${NEXTAUTH_SESSION_COOKIE_NAME}=`)) return null;
+  if (!/^[a-f0-9]{8}$/.test(authRef)) return null;
+  let url: URL;
+  try {
+    url = new URL(target);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+  if (!documentHostAllowed(url.hostname)) return null;
+  const landing = url.toString();
+  const href = landing.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  const body = `<!doctype html><html><head><meta charset="utf-8"><meta name="referrer" content="same-origin"></head><body><p><a href="${href}">Doorgaan</a></p><script>location.replace(${JSON.stringify(landing)})</script></body></html>`;
+  return { body, setCookie };
+}
+
+/** True when the follow-up request carried the session cookie name. Never reads the value. */
+export function sawNativeSessionCookie(cookieHeader: string | null): boolean {
+  if (!cookieHeader) return false;
+  return cookieHeader.split(';').some((part) => {
+    const name = part.split('=', 1)[0]?.trim();
+    return (
+      name === NEXTAUTH_SESSION_COOKIE_NAME ||
+      Boolean(name?.startsWith(`${NEXTAUTH_SESSION_COOKIE_NAME}.`))
+    );
+  });
 }

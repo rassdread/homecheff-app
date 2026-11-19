@@ -202,6 +202,10 @@ function SocialSuccessInner() {
   finishRef.current = finishWithSession;
   const failRef = useRef(fail);
   failRef.current = fail;
+  const searchParamsRef = useRef(searchParams);
+  searchParamsRef.current = searchParams;
+  const tOrRef = useRef(tOr);
+  tOrRef.current = tOr;
 
   useEffect(() => {
     if (errorHint) {
@@ -232,12 +236,43 @@ function SocialSuccessInner() {
         const ok = await tryDetectSessionRef.current();
         if (ok) {
           await finishRef.current();
-        } else if (!doneRef.current) {
-          failRef.current(
-            'Geen actieve sessie na Google. Open de app opnieuw en log in via de knop in de app ' +
-              '(niet alleen in een externe browser). Of probeer opnieuw.',
-          );
+          return;
         }
+        if (doneRef.current) return;
+        const authRef = searchParamsRef.current?.get('authRef') || '';
+        const safeRef = /^[a-f0-9]{8}$/.test(authRef) ? authRef : '';
+        let sawSessionCookie: boolean | null = null;
+        try {
+          const probe = await fetch(
+            `/api/auth/native/session-state${safeRef ? `?authRef=${safeRef}` : ''}`,
+            { cache: 'no-store', credentials: 'include' },
+          );
+          if (probe.ok) {
+            const body = (await probe.json()) as { sawSessionCookie?: boolean };
+            sawSessionCookie = body.sawSessionCookie === true;
+          }
+        } catch {
+          sawSessionCookie = null;
+        }
+        const detail =
+          sawSessionCookie === false
+            ? tOrRef.current(
+                'surfaceLang.nativeSessionNotStored',
+                'Google succeeded, but the app did not keep the session. Try again.',
+                'Google is gelukt, maar de app heeft de sessie niet bewaard. Probeer opnieuw.',
+              )
+            : sawSessionCookie === true
+              ? tOrRef.current(
+                  'surfaceLang.nativeSessionNotRecognized',
+                  'The session arrived, but it was not recognized. Try again.',
+                  'De sessie is ontvangen, maar niet herkend. Probeer opnieuw.',
+                )
+              : tOrRef.current(
+                  'surfaceLang.nativeSessionMissing',
+                  'No active session after Google. Try again.',
+                  'Geen actieve sessie na Google. Probeer opnieuw.',
+                );
+        failRef.current(safeRef ? `${detail} Kenmerk ${safeRef}.` : detail);
       })();
     }, MAX_WAIT_MS);
 

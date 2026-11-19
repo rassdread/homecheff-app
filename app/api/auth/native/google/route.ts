@@ -1,8 +1,10 @@
+import { randomBytes } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getCorsHeaders } from '@/lib/apiCors';
 import { createSessionFromNativeGoogleIdToken } from '@/lib/auth/native-google-session';
 import {
   nativeDocumentRedirectTarget,
+  nativeSessionDocument,
   nativeSessionPostAllowed,
 } from '@/lib/auth/native-session-post';
 
@@ -87,9 +89,23 @@ export async function POST(req: NextRequest) {
   console.info(LOG_PREFIX, { verifySuccess: true, sessionCookieSet: true });
   const redirectTarget = nativeDocumentRedirectTarget(returnTo, req.url);
   if (redirectTarget) {
-    const redirect = NextResponse.redirect(redirectTarget, 303);
-    redirect.headers.append('Set-Cookie', result.setCookie);
-    return redirect;
+    const authRef = randomBytes(4).toString('hex');
+    const landing = new URL(redirectTarget);
+    landing.searchParams.set('authRef', authRef);
+    const doc = nativeSessionDocument(result.setCookie, landing.toString(), authRef);
+    if (doc) {
+      console.info(LOG_PREFIX, { step: 'document_ready', authRef });
+      const documentResponse = new NextResponse(doc.body, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+          'Referrer-Policy': 'same-origin',
+        },
+      });
+      documentResponse.headers.append('Set-Cookie', doc.setCookie);
+      return documentResponse;
+    }
   }
   headers.append('Set-Cookie', result.setCookie);
   return new NextResponse(
