@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, it } from 'node:test';
-import { deriveConnectAccountStatusFromDb } from '@/lib/stripe/connect-account-status';
+import { deriveConnectAccountStatusFromDb, isHomecheffPaymentReady } from '@/lib/stripe/connect-account-status';
 import { DELIVERY_AGREEMENT_DOCUMENT_ID, deliveryAgreementAcceptanceData } from '@/lib/delivery/delivery-agreement';
 import {
   DELIVERY_AGREEMENT_VERSION as AGREEMENT_SNAPSHOT_VERSION,
@@ -17,6 +17,7 @@ import {
   selectionFilterChips,
   selectionPlainSummary,
   stripeAudienceFullyReady,
+  stripePayoutExplicitlyRejected,
   stripeChoiceLabel,
   stripeRowLabel,
   agreementState,
@@ -171,8 +172,9 @@ describe('targeted audiences', () => {
     assert.equal(matchesAudience(courierOnlyNone, notReady), true);
     assert.equal(matchesAudience(sellerNoAccount, sellersOpen), true);
     assert.equal(matchesAudience(sellerCourier, sellersOpen), true);
-    assert.equal(matchesAudience(sellerReady, sellersOpen), false);
-    assert.equal(matchesAudience(sellerReady, selection({ audience: 'sellers', stripe: 'ready' })), true);
+    assert.equal(matchesAudience(sellerReady, sellersOpen), true);
+    assert.equal(matchesAudience(sellerReady, selection({ audience: 'sellers', stripe: 'ready' })), false);
+    assert.equal(stripeRowLabel(sellerReady), 'Uitbetalingscontrole niet opgeslagen');
     assert.equal(matchesAudience(courierOnlyNone, sellersOpen), false);
   });
 
@@ -330,11 +332,12 @@ describe('targeted audiences', () => {
     });
     assert.equal(payoutConnectStatus(ready), 'ready');
     assert.equal(stripeConnectionFullyUsable(ready), false);
-    assert.equal(stripeAudienceFullyReady(ready), true);
-    assert.equal(matchesAudience(ready, selection({ audience: 'sellers', stripe: 'not_ready' })), false);
-    assert.equal(matchesAudience(ready, selection({ audience: 'sellers', stripe: 'ready' })), true);
-    assert.equal(matchesAudience(ready, selection({ audience: 'delivery', stripe: 'ready' })), true);
-    assert.equal(matchesAudience(ready, selection({ audience: 'delivery', stripe: 'not_ready' })), false);
+    assert.equal(stripeAudienceFullyReady(ready), false);
+    assert.equal(stripeRowLabel(ready), 'Uitbetalingscontrole niet opgeslagen');
+    assert.equal(matchesAudience(ready, selection({ audience: 'sellers', stripe: 'not_ready' })), true);
+    assert.equal(matchesAudience(ready, selection({ audience: 'sellers', stripe: 'ready' })), false);
+    assert.equal(matchesAudience(ready, selection({ audience: 'delivery', stripe: 'ready' })), false);
+    assert.equal(matchesAudience(ready, selection({ audience: 'delivery', stripe: 'not_ready' })), true);
 
     const empty = user({ id: 'empty-link', role: 'SELLER', hasSellerProfile: true });
     assert.equal(stripeLinkNeedsReview({ stripeConnectAccountId: null }), false);
@@ -381,7 +384,7 @@ describe('targeted audiences', () => {
     assert.equal(affiliateOnly.stripeConnectAccountId, null);
 
     const sellers = [ready, empty].filter((item) => matchesAudience(item, selection({ audience: 'sellers', stripe: 'not_ready' })));
-    assert.deepEqual(sellers.map((item) => item.id), ['empty-link']);
+    assert.deepEqual(sellers.map((item) => item.id), ['current-ready', 'empty-link']);
   });
 
   it('finds incomplete sellers and couriers once when no role is chosen', () => {
@@ -427,8 +430,8 @@ describe('targeted audiences', () => {
     });
     const openSelection = selection({ audience: 'applicable', stripe: 'not_ready' });
     const matched = [dual, seller, courier, buyer, readySeller, usable].filter((item) => matchesAudience(item, openSelection));
-    assert.deepEqual(matched.map((item) => item.id), ['dual', 'seller', 'courier']);
-    assert.equal(matchesAudience(readySeller, selection({ audience: 'applicable', stripe: 'ready' })), true);
+    assert.deepEqual(matched.map((item) => item.id), ['dual', 'seller', 'courier', 'ready-seller']);
+    assert.equal(matchesAudience(readySeller, selection({ audience: 'applicable', stripe: 'ready' })), false);
     assert.equal(new Set(matched.map((item) => item.id)).size, matched.length);
     assert.equal(matchesAudience(usable, selection({ audience: 'applicable', stripe: 'ready' })), true);
     assert.deepEqual(
@@ -499,16 +502,20 @@ describe('Stripe nog niet gereed voor uitbetalingen', () => {
     const readySelection = selection({ audience: 'delivery', stripe: 'ready' });
     const readyMatched = everyone.filter((item) => matchesAudience(item, readySelection));
     const matched = everyone.filter((item) => matchesAudience(item, combined));
-    assert.deepEqual(readyMatched.map((item) => item.id), ['stripe-ready', 'stripe-usable', 'stripe-business']);
-    assert.deepEqual(matched.map((item) => item.id), ['stripe-none', 'stripe-incomplete', 'stripe-review']);
+    assert.deepEqual(readyMatched.map((item) => item.id), ['stripe-usable']);
+    assert.deepEqual(matched.map((item) => item.id), ['stripe-none', 'stripe-incomplete', 'stripe-review', 'stripe-ready', 'stripe-business']);
     assert.equal(readyMatched.length + matched.length, everyone.length);
+    assert.equal(stripeRowLabel(usable), 'Stripe volledig gereed');
+    assert.equal(stripeRowLabel(ready), 'Uitbetalingscontrole niet opgeslagen');
+    assert.equal(stripeRowLabel(business), 'Uitbetalingscontrole niet opgeslagen');
     assert.deepEqual(inclusionReasons(none, combined), ['Geen actuele Stripe-koppeling in HomeCheff']);
     assert.deepEqual(inclusionReasons(incomplete, combined), ['Connect onvolledig']);
     assert.deepEqual(inclusionReasons(review, combined), ['Stripe-koppeling controleren']);
-    assert.deepEqual(inclusionReasons(ready, readySelection), ['Gereed voor uitbetalingen']);
+    assert.deepEqual(inclusionReasons(ready, combined), ['Uitbetalingscontrole niet opgeslagen']);
+    assert.deepEqual(inclusionReasons(usable, readySelection), ['Stripe volledig gereed']);
     const counts = countStripeStatuses(matched);
-    assert.deepEqual(counts, { none: 1, incomplete: 1, review: 1, ready: 0, unique: 3 });
-    assert.match(stripeCountLines(counts, 'not_ready').join(' '), /Uniek totaal: 3/);
+    assert.deepEqual(counts, { none: 1, incomplete: 1, review: 1, ready: 2, unique: 5 });
+    assert.match(stripeCountLines(counts, 'not_ready').join(' '), /Uniek totaal: 5/);
     assert.match(stripeCountLines(counts, 'not_ready').join(' '), /Stripe-koppeling controleren: 1/);
     assert.equal(parseAudienceSelection({ audience: 'delivery', stripe: 'not_ready' }).ok, true);
     assert.equal(parseAudienceSelection({ audience: 'delivery', stripe: 'none' }).ok, false);
@@ -537,10 +544,43 @@ describe('Stripe nog niet gereed voor uitbetalingen', () => {
       stripeConnectOnboardingCompleted: payoutReadyCourier.stripeConnectOnboardingCompleted,
     }).paymentReady, true);
     assert.equal(stripeConnectionFullyUsable(payoutReadyCourier), false);
-    assert.equal(stripeAudienceFullyReady(payoutReadyCourier), true);
-    assert.equal(stripeRowLabel(payoutReadyCourier), 'Gereed voor uitbetalingen');
-    assert.equal(matchesAudience(payoutReadyCourier, deliveryNotReady), false);
-    assert.equal(matchesAudience(payoutReadyCourier, selection({ audience: 'delivery', match: 'all', stripe: 'ready' })), true);
+    assert.equal(stripeAudienceFullyReady(payoutReadyCourier), false);
+    assert.equal(stripePayoutExplicitlyRejected(payoutReadyCourier), false);
+    assert.equal(stripeRowLabel(payoutReadyCourier), 'Uitbetalingscontrole niet opgeslagen');
+    assert.equal(matchesAudience(payoutReadyCourier, deliveryNotReady), true);
+    assert.equal(matchesAudience(payoutReadyCourier, selection({ audience: 'delivery', match: 'all', stripe: 'ready' })), false);
+    const rejectedPayout = user({
+      id: 'payout-rejected',
+      role: 'DELIVERY',
+      delivery: deliveryOpen,
+      stripeConnectAccountId: 'acct_rejected',
+      stripeConnectOnboardingCompleted: true,
+      stripeConnectTrack: 'PARTICULAR',
+      stripePayoutsEnabled: false,
+      stripeTransfersStatus: 'inactive',
+    });
+    const centralReady = user({
+      id: 'central-ready',
+      role: 'DELIVERY',
+      delivery: deliveryOpen,
+      stripeConnectAccountId: 'acct_central',
+      stripeConnectOnboardingCompleted: false,
+      stripeConnectTrack: 'PARTICULAR',
+      stripePayoutsEnabled: true,
+      stripeTransfersStatus: 'active',
+    });
+    assert.equal(isHomecheffPaymentReady({
+      chargesEnabled: null,
+      payoutsEnabled: false,
+      transfersCapability: 'inactive',
+      connectTrack: 'PARTICULAR',
+    }), false);
+    assert.equal(stripePayoutExplicitlyRejected(rejectedPayout), true);
+    assert.equal(stripeRowLabel(rejectedPayout), 'Opgeslagen uitbetaling is niet gereed');
+    assert.equal(matchesAudience(rejectedPayout, deliveryNotReady), true);
+    assert.equal(stripeConnectionFullyUsable(centralReady), true);
+    assert.equal(stripeRowLabel(centralReady), 'Stripe volledig gereed');
+    assert.equal(matchesAudience(centralReady, deliveryNotReady), false);
     assert.equal(matchesAudience(noStripe, deliveryNotReady), true);
     assert.equal(stripeRowLabel(noStripe), 'Geen actuele Stripe-koppeling in HomeCheff');
     assert.equal(matchesAudience(connectIncomplete, deliveryNotReady), true);
@@ -552,9 +592,9 @@ describe('Stripe nog niet gereed voor uitbetalingen', () => {
       stripeConnectAccountId: 'acct_buyer_ready',
       stripeConnectOnboardingCompleted: true,
     }), deliveryNotReady), false);
-    const listed = [noStripe, connectIncomplete, payoutReadyCourier].filter((item) => matchesAudience(item, deliveryNotReady));
-    assert.deepEqual(listed.map((item) => item.id), ['courier-no-stripe', 'courier-incomplete']);
-    const rejected = checkedRecipients(listed, ['payout-ready-courier', 'courier-no-stripe']);
+    const listed = [noStripe, connectIncomplete, payoutReadyCourier, centralReady].filter((item) => matchesAudience(item, deliveryNotReady));
+    assert.deepEqual(listed.map((item) => item.id), ['courier-no-stripe', 'courier-incomplete', 'payout-ready-courier']);
+    const rejected = checkedRecipients(listed, ['central-ready', 'courier-no-stripe']);
     assert.equal(rejected.ok, false);
     if (!rejected.ok) assert.equal(rejected.code, 'outside');
     const acceptedIds = checkedRecipients(listed, listed.map((item) => item.id));
@@ -567,7 +607,7 @@ describe('Stripe nog niet gereed voor uitbetalingen', () => {
   it('counts a person with two roles once and still applies the other filters', () => {
     const open = selection({ audience: 'applicable', stripe: 'not_ready' });
     const matched = people.filter((item) => matchesAudience(item, open));
-    assert.deepEqual(matched.map((item) => item.id), ['stripe-none', 'stripe-incomplete', 'stripe-review']);
+    assert.deepEqual(matched.map((item) => item.id), ['stripe-none', 'stripe-incomplete', 'stripe-review', 'stripe-ready']);
     assert.equal(new Set(matched.map((item) => item.id)).size, matched.length);
     const suspended = user({
       id: 'suspended-open',

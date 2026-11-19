@@ -1,10 +1,9 @@
 /**
  * Admin broadcast audience.
  *
- * “Gereed voor uitbetalingen” is the stored onboarding status. The capability
- * check is isHomecheffPaymentReady on stored payout and transfer flags.
- * The message filter treats either one as fully ready, so the row and the
- * filter cannot disagree. A role still limits the audience.
+ * Fully ready is only isHomecheffPaymentReady on stored payout and transfer flags.
+ * A completed onboarding flag does not override a missing or negative result.
+ * Missing stored payout data stays not ready, and is labeled apart from an explicit rejection.
  * Seller sales and delivery payouts use the same User.stripeConnectAccountId.
  * Live Stripe "pending verification" is not stored and is not inferred.
  *
@@ -197,23 +196,33 @@ export function stripeConnectionFullyUsable(user: StripeUsabilityInput): boolean
   });
 }
 
+/** Same gate as stripeConnectionFullyUsable. Onboarding is not a second yes. */
+export function stripeAudienceFullyReady(user: StripeUsabilityInput): boolean {
+  return stripeConnectionFullyUsable(user);
+}
+
 /**
- * Fully ready when the stored row already says ready for payouts, or when the
- * central capability check confirms payouts. The two results stay one partition.
+ * A stored false payout flag, or a stored transfer status other than active, is an explicit no.
+ * Null and blank fields are missing, not a rejection.
  */
-export function stripeAudienceFullyReady(user: StripeUsabilityInput & {
-  stripeConnectOnboardingCompleted?: boolean | null;
-  stripeLinkReview?: boolean | null;
-}): boolean {
-  return stripeConnectionFullyUsable(user) || payoutConnectStatus(user) === 'ready';
+export function stripePayoutExplicitlyRejected(user: StripeUsabilityInput): boolean {
+  if (user.stripePayoutsEnabled === false) return true;
+  const transfers = typeof user.stripeTransfersStatus === 'string' ? user.stripeTransfersStatus.trim() : '';
+  return transfers.length > 0 && transfers !== 'active';
 }
 
 export function stripeRowLabel(user: StripeUsabilityInput & {
   stripeConnectOnboardingCompleted?: boolean | null;
   stripeLinkReview?: boolean | null;
 }, lang: UiLanguage = 'nl'): string {
-  if (stripeAudienceFullyReady(user)) return payoutConnectStatusLabel('ready', lang);
-  return payoutConnectStatusLabel(payoutConnectStatus(user), lang);
+  if (stripeAudienceFullyReady(user)) return stripeChoiceLabel('ready', lang);
+  if (stripePayoutExplicitlyRejected(user)) {
+    return uiCopy(lang, 'admin.notificationCenter.ui.payoutRejected');
+  }
+  const accountId = user.stripeConnectAccountId?.trim() || '';
+  if (!accountId) return payoutConnectStatusLabel(payoutConnectStatus(user), lang);
+  if (!user.stripeConnectOnboardingCompleted) return payoutConnectStatusLabel('incomplete', lang);
+  return uiCopy(lang, 'admin.notificationCenter.ui.payoutUnknown');
 }
 
 export function stripeFilterMatches(user: StripeUsabilityInput & {
@@ -577,7 +586,7 @@ export const AUDIENCE_PRESETS: AudiencePreset[] = [
   {
     id: 'delivery_stripe_none',
     label: 'Bezorgers: Stripe niet volledig gereed',
-    description: 'Geen koppeling, Connect onvolledig of een koppeling om te controleren. Gereed voor uitbetalingen valt erbuiten.',
+    description: 'Geen koppeling, Connect onvolledig, ontbrekende uitbetalingsgegevens of een afgewezen controle. De centrale uitbetalingscontrole valt erbuiten.',
     available: true,
     reason: null,
     selection: { ...emptySelection('delivery'), stripe: 'not_ready' },
@@ -585,7 +594,7 @@ export const AUDIENCE_PRESETS: AudiencePreset[] = [
   {
     id: 'delivery_stripe_ready',
     label: 'Bezorgers: Stripe volledig gereed',
-    description: 'Status Gereed voor uitbetalingen, of de centrale uitbetalingscontrole bevestigt de koppeling.',
+    description: 'De centrale uitbetalingscontrole bevestigt uitbetalingen en, bij een particulier account, actieve transfers.',
     available: true,
     reason: null,
     selection: { ...emptySelection('delivery'), stripe: 'ready' },
@@ -601,7 +610,7 @@ export const AUDIENCE_PRESETS: AudiencePreset[] = [
   {
     id: 'sellers_without_stripe',
     label: 'Verkopers: Stripe niet volledig gereed',
-    description: 'Verkopers zonder de status Gereed voor uitbetalingen en zonder bevestigde uitbetalingscontrole.',
+    description: 'Verkopers van wie de centrale uitbetalingscontrole de koppeling niet bevestigt.',
     available: true,
     reason: null,
     selection: { ...emptySelection('sellers'), stripe: 'not_ready' },
@@ -619,7 +628,7 @@ export const AUDIENCE_PRESETS: AudiencePreset[] = [
 export const UNAVAILABLE_AUDIENCE_FACTS: string[] = [
   ACTIVITY_UNAVAILABLE_MESSAGE,
   'Accountstatus inactief bestaat niet. Geblokkeerd is suspendedAt. Bezorger geblokkeerd is DeliveryProfile.isBlocked. Hoe lang iemand offline is, is geen accountstatus.',
-  'Stripe volledig gereed is de opgeslagen status Gereed voor uitbetalingen, of een account dat de centrale uitbetalingscontrole bevestigt met uitbetalingen en, bij een particulier account, actieve transfers. Stripe niet volledig gereed is de rest binnen de gekozen rol: niet gekoppeld, Connect onvolledig en Stripe-koppeling controleren. Een account dat na een filterwijziging buiten de lijst valt, gaat niet meer mee. Stripe-verificatie in behandeling staat niet in HomeCheff.',
+  'Stripe volledig gereed is alleen isHomecheffPaymentReady op opgeslagen uitbetalingen en, bij een particulier account, actieve transfers. Een afgeronde onboarding overrulet een ontbrekende of afgewezen controle niet. Ontbrekende uitbetalingsgegevens blijven niet volledig gereed en staan apart van een expliciet afgewezen controle. Stripe-verificatie in behandeling staat niet in HomeCheff.',
   'HomeCheff-e-mailverificatie is emailVerified. Daar is geen status in behandeling.',
   'Bezorgerverificatie is DeliveryProfile.isVerified. Daar is geen status in behandeling. Een ontbrekend bezorgprofiel telt niet als niet-geverifieerd.',
   'termsAccepted, privacyPolicyAccepted, taxResponsibilityAccepted en messageGuidelinesAccepted hebben geen versie en zijn niet selecteerbaar.',
