@@ -168,6 +168,8 @@ const ROOT_FILE_SEGMENTS = new Set([
   'notification.mp3',
   'opengraph-image',
   'twitter-image',
+  'sw.js',
+  'firebase-messaging-sw.js',
 ]);
 
 /** Root /brand/* and single-segment public static files (PNG/ICO/audio/etc.). */

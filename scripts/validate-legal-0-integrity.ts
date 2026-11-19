@@ -117,6 +117,9 @@ assert.equal(isKnownHomecheffRootPath('/og-brand.png'), true);
 assert.equal(isKnownHomecheffRootPath('/avatar-placeholder.png'), true);
 assert.equal(isKnownHomecheffRootPath('/brand/homecheff-logo-primary.png'), true);
 assert.equal(isKnownHomecheffRootPath('/icon-192.png'), true);
+assert.equal(isKnownHomecheffRootPath('/sw.js'), true);
+assert.equal(isKnownHomecheffRootPath('/firebase-messaging-sw.js'), true);
+assert.equal(isKnownHomecheffRootPath('/other-worker.js'), false);
 assert.equal(isKnownHomecheffRootPath('/this-slug-does-not-exist-legal0-xyz.png'), true);
 assert.equal(isKnownHomecheffRootPath('/unknown-dir/file.png'), false);
 
