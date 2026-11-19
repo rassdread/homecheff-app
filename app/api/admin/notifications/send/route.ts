@@ -3,7 +3,7 @@ import { uiCopy, uiLanguageFromRequest, type UiLanguage } from '@/lib/admin/noti
 import { createHash } from 'crypto';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { adminNoticePath, messageEmailAction, noticeEmailAction, resolveAdminNoticeButton } from '@/lib/admin/admin-notice';
+import { adminNoticePath, messageEmailAction, noticeEmailAction, resolveAdminNoticeButtons } from '@/lib/admin/admin-notice';
 import { createOfficialAdminCopies, officialDeliveryIds } from '@/lib/communication/official-admin-message';
 import { sendAdminBroadcastFcmByUser } from '@/lib/admin/admin-broadcast-fcm';
 import { evaluateAdminEmailBlast } from '@/lib/email/admin-blast-guard';
@@ -363,12 +363,18 @@ export async function POST(req: NextRequest) {
       idempotencyKey: campaignId,
       lang,
     });
-    const noticeButton = resolveAdminNoticeButton(record.buttonLabel, routeRaw);
-    if (!noticeButton.ok) {
-      const error = say(lang, noticeButton.errorKey);
+    const noticeButtons = resolveAdminNoticeButtons(
+      record.buttonLabel,
+      routeRaw,
+      record.buttonLabelSecondary,
+      record.routeSecondary,
+    );
+    if (!noticeButtons.ok) {
+      const error = say(lang, noticeButtons.errorKey);
       return NextResponse.json({ error, message: error, lines: [error] }, { status: 400 });
     }
-    const noticeAction = noticeButton.action;
+    const noticeAction = noticeButtons.primary;
+    const noticeActionSecondary = noticeButtons.secondary;
     const openPath = adminNoticePath(campaignId);
     const requestedChannels: DeliveryChannel[] = [
       ...(plans.some((plan) => plan.inApp) ? (['inApp'] as DeliveryChannel[]) : []),
@@ -396,6 +402,8 @@ export async function POST(req: NextRequest) {
       title: pushTitle,
       route: noticeAction?.path || '',
       actionLabel: noticeAction?.label || '',
+      secondaryRoute: noticeActionSecondary?.path || '',
+      secondaryActionLabel: noticeActionSecondary?.label || '',
       sendNotification,
       sendEmail,
       confirmRepeat,
@@ -550,6 +558,7 @@ export async function POST(req: NextRequest) {
               subject,
               message,
               action: noticeAction ? { label: noticeAction.label, url: noticeAction.url } : null,
+              secondaryAction: noticeActionSecondary ? { label: noticeActionSecondary.label, url: noticeActionSecondary.url } : null,
               broadcastId: campaignId,
             },
             undefined,

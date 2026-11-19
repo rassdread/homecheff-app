@@ -51,7 +51,8 @@ import {
   loadProposalDraft,
   type ProposalBuyerDraft,
 } from '@/lib/proposals/proposal-draft-storage';
-import type { OfficialConversationView } from '@/lib/communication/official-admin-message';
+import { officialActionList, type OfficialConversationView } from '@/lib/communication/official-admin-message';
+import { officialActionHref, rememberOfficialAction } from '@/lib/communication/official-action-return';
 import { canonicalLogoPath } from '@/lib/brand/canonical-logo';
 
 export interface ChatBoxProps {
@@ -155,7 +156,7 @@ export default function ChatBox({
   /** REST online-status run id: overschrijf geen state van een vorige effect-run. */
   const statusPollRunIdRef = useRef(0);
   const nativeMounted = useIsNativeAppMounted();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const peerId = official ? '' : (otherParticipant?.id ?? '').trim();
 
@@ -1346,14 +1347,23 @@ export default function ChatBox({
                     </div>
                   );
                 })}
-                {official.action ? (
-                  <a
-                    href={official.action.url}
-                    data-hc-official-action=""
-                    className="mt-4 inline-flex min-h-[44px] items-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white"
-                  >
-                    {official.action.label}
-                  </a>
+                {officialActionList(official).length > 0 ? (
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                    {officialActionList(official).map((action) => {
+                      const href = officialActionHref(action);
+                      return (
+                        <a
+                          key={`${action.label}:${href}`}
+                          href={href}
+                          data-hc-official-action=""
+                          onClick={() => rememberOfficialAction(href, status !== 'unauthenticated')}
+                          className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-center text-sm font-semibold text-white sm:w-auto"
+                        >
+                          {action.label}
+                        </a>
+                      );
+                    })}
+                  </div>
                 ) : null}
               </article>
             ) : null}

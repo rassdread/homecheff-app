@@ -9,10 +9,12 @@ import {
 import {
   buildOfficialAdminCopy,
   createOfficialAdminCopies,
+  officialActionList,
   officialCopiesArePrivate,
   officialDeliveryIds,
   readOfficialConversation,
 } from "./official-admin-message";
+import { officialActionHref, pendingIntentForOfficialDestination } from "./official-action-return";
 
 const action = {
   label: "Naar mijn bezorgomgeving",
@@ -88,6 +90,34 @@ describe("official admin inbox copies", () => {
       "Onderwerp"
     );
     assert.equal(view?.action?.label, action.label);
+    assert.equal(view?.secondaryAction, null);
+    const pair = buildOfficialAdminCopy({
+      recipientId: "user-a",
+      adminUserId: "admin-1",
+      subject: "Onderwerp",
+      message: "Eén bericht met twee knoppen.",
+      action: { label: "Plaats jouw aanbod", url: "https://homecheff.eu/sell/new/" },
+      secondaryAction: { label: "Verdien mee als affiliate", url: "https://homecheff.eu/affiliate/" },
+      broadcastId: "broadcast-2",
+      conversationId: "conv-official-2",
+      participantId: "part-2",
+      messageId: "msg-2",
+    });
+    const both = readOfficialConversation(pair.metadata);
+    assert.deepEqual(officialActionList(both || { action: null }).map((item) => item.label), [
+      "Plaats jouw aanbod",
+      "Verdien mee als affiliate",
+    ]);
+    assert.equal(officialActionHref(pair.metadata.action!), "/sell/new/");
+    assert.equal(officialActionHref(pair.metadata.secondaryAction!), "/affiliate/");
+    assert.equal(pendingIntentForOfficialDestination("/sell/new/")?.returnPath, "/sell/new/");
+    assert.equal(pendingIntentForOfficialDestination("/affiliate/")?.type, "join_affiliate");
+    assert.equal(pendingIntentForOfficialDestination("/affiliate/")?.returnPath, "/affiliate/");
+    assert.notEqual(
+      pendingIntentForOfficialDestination("/sell/new/")?.returnPath,
+      pendingIntentForOfficialDestination("/affiliate/")?.returnPath,
+    );
+    assert.equal(pair.pushRoute, "/messages/conv-official-2/");
     assert.equal(readOfficialConversation({ official: false }) , null);
 
     const chat = readFileSync(resolve(process.cwd(), "components/chat/ChatBox.tsx"), "utf8");
@@ -110,7 +140,9 @@ describe("official admin inbox copies", () => {
     assert.match(thread, /official=\{conversation\.official \?\? null\}/);
     assert.match(inbox, /official=\{selectedConversation\.official \?\? null\}/);
     assert.match(push, /router\.replace\(path\)/);
-    assert.match(chat, /href=\{official\.action\.url\}/);
+    assert.match(chat, /officialActionHref\(action\)/);
+    assert.match(chat, /rememberOfficialAction\(href, status !== 'unauthenticated'\)/);
+    assert.match(chat, /w-full[\s\S]*sm:w-auto/);
     assert.match(chat, /official \? null : <ConversationContextHeader/);
     assert.match(chat, /!official && messages\.length === 0/);
     assert.match(chat, /official \? official\.senderLabel : getDisplayName\(otherParticipant\)/);

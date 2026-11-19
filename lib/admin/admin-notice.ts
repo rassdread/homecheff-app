@@ -43,6 +43,20 @@ export function resolveAdminNoticeButton(label: unknown, route: unknown): AdminN
   };
 }
 
+/** Each button is complete or empty. One filled button does not require the other. */
+export function resolveAdminNoticeButtons(
+  firstLabel: unknown,
+  firstRoute: unknown,
+  secondLabel: unknown,
+  secondRoute: unknown,
+): { ok: true; primary: AdminNoticeAction | null; secondary: AdminNoticeAction | null } | { ok: false; errorKey: 'buttonNeedBoth' | 'buttonUnsafe' } {
+  const first = resolveAdminNoticeButton(firstLabel, firstRoute);
+  if (!first.ok) return first;
+  const second = resolveAdminNoticeButton(secondLabel, secondRoute);
+  if (!second.ok) return second;
+  return { ok: true, primary: first.action, secondary: second.action };
+}
+
 /** The email button opens this recipient's HomeCheff message under Berichten. */
 export function messageEmailAction(conversationPath: string, lang: UiLanguage = 'nl') {
   const label = uiCopy(lang, 'admin.notificationCenter.ui.openNotice');

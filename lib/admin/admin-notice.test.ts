@@ -7,7 +7,9 @@ import {
   isAdminNoticeCampaignId,
   noticeEmailAction,
   resolveAdminNoticeButton,
+  resolveAdminNoticeButtons,
 } from '@/lib/admin/admin-notice';
+import { previewCanonicalPayload, emptySelection } from '@/lib/admin/notification-audience';
 
 describe('admin notice destination', () => {
   it('opens the message itself and only accepts a complete internal button', () => {
@@ -31,6 +33,37 @@ describe('admin notice destination', () => {
     assert.equal(email?.url, 'https://homecheff.eu/notifications/admin/campaign-1');
     assert.equal(noticeEmailAction('campaign-1', 'en')?.label, 'Open message');
     assert.equal(noticeEmailAction('../admin', 'nl'), null);
+    const affiliate = resolveAdminNoticeButton('Verdien mee als affiliate', '/affiliate');
+    assert.equal(affiliate.ok, true);
+    if (affiliate.ok) assert.equal(affiliate.action?.path, '/affiliate/');
+    const none = resolveAdminNoticeButtons('', '', '', '');
+    assert.equal(none.ok && none.primary === null && none.secondary === null, true);
+    const one = resolveAdminNoticeButtons('Plaats jouw aanbod', '/sell/new', '', '');
+    assert.equal(one.ok && one.primary?.path === '/sell/new/' && one.secondary === null, true);
+    const two = resolveAdminNoticeButtons('Plaats jouw aanbod', '/sell/new', 'Verdien mee als affiliate', '/affiliate');
+    assert.equal(two.ok && two.secondary?.path === '/affiliate/', true);
+    assert.equal(resolveAdminNoticeButtons('Plaats jouw aanbod', '/sell/new', 'Alleen tekst', '').ok, false);
+    assert.equal(resolveAdminNoticeButtons('Weg', 'https://evil.example', '', '').ok, false);
+    const token = {
+      selection: emptySelection('sellers'),
+      message: 'Eén bericht',
+      subject: 'Onderwerp',
+      title: 'Onderwerp',
+      route: '/sell/new/',
+      actionLabel: 'Plaats jouw aanbod',
+      sendNotification: true,
+      sendEmail: true,
+      confirmRepeat: false,
+      recipientIds: ['seller'],
+    };
+    assert.notEqual(
+      previewCanonicalPayload(token),
+      previewCanonicalPayload({ ...token, secondaryRoute: '/affiliate/', secondaryActionLabel: 'Verdien mee als affiliate' }),
+    );
+    assert.notEqual(
+      previewCanonicalPayload({ ...token, secondaryRoute: '/affiliate/', secondaryActionLabel: 'Verdien mee als affiliate' }),
+      previewCanonicalPayload({ ...token, secondaryRoute: '/profile/', secondaryActionLabel: 'Verdien mee als affiliate' }),
+    );
   });
 
   it('keeps the compose order and opens the app session with a document post', () => {
@@ -38,12 +71,13 @@ describe('admin notice destination', () => {
     const recipients = center.indexOf("copy('stepRecipients')");
     const admin = center.indexOf("copy('addAdmin')");
     const channels = center.indexOf("copy('stepChannels')");
-    const titles = center.indexOf("copy('stepTitles')");
     const message = center.indexOf("copy('stepMessage')");
+    const subject = center.indexOf('id="notice-subject"');
     const action = center.indexOf("copy('stepAction')");
+    const second = center.indexOf("copy('buttonSecond')");
     const preview = center.indexOf("copy('stepPreview')");
     assert.deepEqual(
-      [recipients, admin, channels, titles, message, action, preview].every((n, i, all) => n > 0 && (i === 0 || n > all[i - 1])),
+      [recipients, admin, channels, message, subject, action, second, preview].every((n, i, all) => n > 0 && (i === 0 || n > all[i - 1])),
       true,
     );
     const button = readFileSync(resolve(process.cwd(), 'components/auth/NativeGoogleSignInButton.tsx'), 'utf8');

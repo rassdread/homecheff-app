@@ -250,6 +250,7 @@ export type NormalizedConversationListItem = {
     subject: string;
     repliesDisabled: boolean;
     action: { label: string; url: string } | null;
+    secondaryAction?: { label: string; url: string } | null;
   } | null;
 };
 

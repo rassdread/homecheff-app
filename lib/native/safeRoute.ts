@@ -87,6 +87,7 @@ function matchesAllowed(normalized: string): boolean {
     return true;
   if (normalized === "/settings/app") return true;
   if (normalized === "/sell/new" || normalized.startsWith("/sell/new/")) return true;
+  if (normalized === "/affiliate" || normalized.startsWith("/affiliate/")) return true;
   if (normalized === "/settings" || normalized.startsWith("/settings/")) return true;
   if (normalized === "/app") return true;
   return false;

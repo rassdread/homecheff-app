@@ -17,6 +17,7 @@ export type OfficialConversationView = {
   subject: string;
   repliesDisabled: boolean;
   action: OfficialAdminAction | null;
+  secondaryAction?: OfficialAdminAction | null;
 };
 
 export type OfficialAdminCopy = {
@@ -35,6 +36,7 @@ export type OfficialAdminCopy = {
     subject: string;
     repliesDisabled: true;
     action: OfficialAdminAction | null;
+    secondaryAction: OfficialAdminAction | null;
     broadcastId: string;
   };
   pushRoute: string;
@@ -89,21 +91,30 @@ export function readOfficialConversation(raw: unknown): OfficialConversationView
   if ((!storedCopy && !parsedView) || record.repliesDisabled !== true) return null;
   const subject = typeof record.subject === "string" ? record.subject.trim() : "";
   if (!subject) return null;
-  const actionRaw = record.action;
-  let action: OfficialAdminAction | null = null;
-  if (actionRaw && typeof actionRaw === "object") {
-    const candidate = actionRaw as Record<string, unknown>;
-    const label = typeof candidate.label === "string" ? candidate.label.trim() : "";
-    const url = typeof candidate.url === "string" ? candidate.url.trim() : "";
-    if (label && isHomeCheffHttpsUrl(url)) action = { label, url };
-  }
   return {
     senderLabel: TEAM_HOMECHEFF_LABEL,
     badge: OFFICIAL_MESSAGE_BADGE,
     subject,
     repliesDisabled: true,
-    action,
+    action: readStoredAction(record.action),
+    secondaryAction: readStoredAction(record.secondaryAction),
   };
+}
+
+function readStoredAction(raw: unknown): OfficialAdminAction | null {
+  if (!raw || typeof raw !== "object") return null;
+  const candidate = raw as Record<string, unknown>;
+  const label = typeof candidate.label === "string" ? candidate.label.trim() : "";
+  const url = typeof candidate.url === "string" ? candidate.url.trim() : "";
+  if (!label || !isHomeCheffHttpsUrl(url)) return null;
+  return { label, url };
+}
+
+export function officialActionList(view: {
+  action: OfficialAdminAction | null;
+  secondaryAction?: OfficialAdminAction | null;
+}): OfficialAdminAction[] {
+  return [view.action, view.secondaryAction ?? null].flatMap((action) => (action ? [action] : []));
 }
 
 export function isHomeCheffHttpsUrl(value: string): boolean {
@@ -127,6 +138,7 @@ export function buildOfficialAdminCopy(input: {
   subject: string;
   message: string;
   action: OfficialAdminAction | null;
+  secondaryAction?: OfficialAdminAction | null;
   broadcastId: string;
   conversationId: string;
   participantId: string;
@@ -134,12 +146,14 @@ export function buildOfficialAdminCopy(input: {
 }): OfficialAdminCopy {
   const subject = input.subject.trim() || "Bericht van Team HomeCheff";
   const text = input.message.trim();
-  const action =
-    input.action &&
-    input.action.label.trim() &&
-    isHomeCheffHttpsUrl(input.action.url.trim())
-      ? { label: input.action.label.trim(), url: input.action.url.trim() }
+  const stored = (value: OfficialAdminAction | null | undefined): OfficialAdminAction | null =>
+    value && value.label.trim() && isHomeCheffHttpsUrl(value.url.trim())
+      ? { label: value.label.trim(), url: value.url.trim() }
       : null;
+  const primary = stored(input.action);
+  const extra = stored(input.secondaryAction);
+  const action = primary ?? extra;
+  const secondaryAction = primary && extra ? extra : null;
   return {
     recipientId: input.recipientId,
     conversationId: input.conversationId,
@@ -156,6 +170,7 @@ export function buildOfficialAdminCopy(input: {
       subject,
       repliesDisabled: true,
       action,
+      secondaryAction,
       broadcastId: input.broadcastId,
     },
     pushRoute: officialMessageRoute(input.conversationId),
@@ -186,6 +201,7 @@ export async function createOfficialAdminCopies(
     subject: string;
     message: string;
     action: OfficialAdminAction | null;
+    secondaryAction?: OfficialAdminAction | null;
     broadcastId: string;
   },
   write: CopyWriter = writeOfficialAdminCopy,
@@ -204,6 +220,7 @@ export async function createOfficialAdminCopies(
       subject: input.subject,
       message: input.message,
       action: input.action,
+      secondaryAction: input.secondaryAction,
       broadcastId: input.broadcastId,
       conversationId,
       participantId: ids(),

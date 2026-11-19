@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Send, Users, Mail, Bell, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { AdminEmailPreview } from './AdminEmailPreview';
-import { resolveAdminNoticeButton } from '@/lib/admin/admin-notice';
+import { resolveAdminNoticeButtons } from '@/lib/admin/admin-notice';
+import { OfficialLetterPreview } from './OfficialLetterPreview';
 import { NotificationHistory } from './NotificationHistory';
 import { chosenRecipients, sendBlockReason } from '@/lib/admin/notification-compose-state';
 import { uiCopy } from '@/lib/admin/notification-copy';
@@ -139,6 +140,8 @@ export default function NotificationCenter() {
   const [message, setMessage] = useState('');
   const [linkPreset, setLinkPreset] = useState('');
   const [buttonLabel, setButtonLabel] = useState('');
+  const [linkPresetSecondary, setLinkPresetSecondary] = useState('');
+  const [buttonLabelSecondary, setButtonLabelSecondary] = useState('');
   const [subject, setSubject] = useState('');
   const [audience, setAudience] = useState<AudienceId>('applicable');
   const [matchMode, setMatchMode] = useState<'all' | 'any'>('all');
@@ -360,6 +363,8 @@ export default function NotificationCenter() {
       if (typeof draft.subject === 'string') setSubject(draft.subject);
       if (typeof draft.linkPreset === 'string') setLinkPreset(draft.linkPreset);
       if (typeof draft.buttonLabel === 'string') setButtonLabel(draft.buttonLabel);
+      if (typeof draft.linkPresetSecondary === 'string') setLinkPresetSecondary(draft.linkPresetSecondary);
+      if (typeof draft.buttonLabelSecondary === 'string') setButtonLabelSecondary(draft.buttonLabelSecondary);
       if (draft.audience === 'applicable' || draft.audience === 'all' || draft.audience === 'buyers' || draft.audience === 'sellers' || draft.audience === 'delivery') {
         setAudience(draft.audience);
       }
@@ -406,6 +411,8 @@ export default function NotificationCenter() {
       subject,
       linkPreset,
       buttonLabel,
+      linkPresetSecondary,
+      buttonLabelSecondary,
       audience,
       matchMode,
       stripe,
@@ -430,6 +437,8 @@ export default function NotificationCenter() {
     subject,
     linkPreset,
     buttonLabel,
+    linkPresetSecondary,
+    buttonLabelSecondary,
     audience,
     matchMode,
     stripe,
@@ -463,7 +472,7 @@ export default function NotificationCenter() {
   };
 
   const campaignKey = () => {
-    const hash = `${message.trim()}\n${subject.trim()}\n${linkPreset}\n${buttonLabel.trim()}`;
+    const hash = `${message.trim()}\n${subject.trim()}\n${linkPreset}\n${buttonLabel.trim()}\n${linkPresetSecondary}\n${buttonLabelSecondary.trim()}`;
     if (!contentKeyRef.current || contentKeyRef.current.hash !== hash) {
       contentKeyRef.current = {
         hash,
@@ -480,6 +489,8 @@ export default function NotificationCenter() {
       subject: subject.trim(),
       route: linkPreset,
       buttonLabel: buttonLabel.trim(),
+      routeSecondary: linkPresetSecondary,
+      buttonLabelSecondary: buttonLabelSecondary.trim(),
       selection: current,
       includeUserIds: selectedIds,
       explicitReviewUserIds: explicitReviewIds.filter((id) => selectedIds.includes(id)),
@@ -509,9 +520,9 @@ export default function NotificationCenter() {
       setNotice({ tone: 'error', lines: [copy('fillMessage')] });
       return;
     }
-    const noticeButton = resolveAdminNoticeButton(buttonLabel, linkPreset);
-    if (!noticeButton.ok) {
-      setNotice({ tone: 'error', lines: [copy(noticeButton.errorKey)] });
+    const noticeButtons = resolveAdminNoticeButtons(buttonLabel, linkPreset, buttonLabelSecondary, linkPresetSecondary);
+    if (!noticeButtons.ok) {
+      setNotice({ tone: 'error', lines: [copy(noticeButtons.errorKey)] });
       return;
     }
     if (!sendNotification && !sendEmail) {
@@ -1485,11 +1496,53 @@ export default function NotificationCenter() {
                 <option value="/delivery/dashboard">{copy('routeStripe')}</option>
                 <option value="/delivery/settings">{copy('routeDeliverySettings')}</option>
                 <option value="/sell/new">{copy('routeSell')}</option>
+                <option value="/affiliate">{copy('routeAffiliate')}</option>
                 <option value="/app">{t('admin.notificationCenter.routeBetaApp')}</option>
                 <option value="/mijn-hcp">{t('admin.notificationCenter.routeMijnHcp')}</option>
                 <option value="/profile">{t('admin.notificationCenter.routeProfile')}</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">{copy('buttonHelp')}</p>
+            </div>
+            <h4 className="pt-2 text-sm font-semibold text-gray-900">{copy('buttonSecond')}</h4>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="notice-button-label-secondary">
+                {copy('buttonLabelSecond')}
+              </label>
+              <input
+                id="notice-button-label-secondary"
+                type="text"
+                value={buttonLabelSecondary}
+                onChange={(event) => {
+                  setButtonLabelSecondary(event.target.value);
+                  invalidatePreview();
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder={copy('buttonLabelPlaceholder')}
+                maxLength={80}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="notice-button-route-secondary">
+                {copy('buttonDestinationSecond')}
+              </label>
+              <select
+                id="notice-button-route-secondary"
+                value={linkPresetSecondary}
+                onChange={(event) => {
+                  setLinkPresetSecondary(event.target.value);
+                  invalidatePreview();
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="">{copy('buttonNone')}</option>
+                <option value="/delivery/dashboard">{copy('routeStripe')}</option>
+                <option value="/delivery/settings">{copy('routeDeliverySettings')}</option>
+                <option value="/sell/new">{copy('routeSell')}</option>
+                <option value="/affiliate">{copy('routeAffiliate')}</option>
+                <option value="/app">{t('admin.notificationCenter.routeBetaApp')}</option>
+                <option value="/mijn-hcp">{t('admin.notificationCenter.routeMijnHcp')}</option>
+                <option value="/profile">{t('admin.notificationCenter.routeProfile')}</option>
+              </select>
             </div>
           </div>
 
@@ -1583,8 +1636,8 @@ export default function NotificationCenter() {
         </form>
       </div>
 
-      {(preview || (sendEmail && message.trim())) && (
-        <div className={`grid items-start gap-4 ${preview && sendEmail && message.trim() ? 'xl:grid-cols-[minmax(0,1fr)_420px]' : ''}`}>
+      {(preview || message.trim()) && (
+        <div className={`grid items-start gap-4 ${preview && message.trim() ? 'xl:grid-cols-[minmax(0,1fr)_420px]' : ''}`}>
       {preview && (
         <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4" role="status">
           <h3 className="text-lg font-medium text-gray-900">{copy('definitiveSelection')}</h3>
@@ -1631,6 +1684,20 @@ export default function NotificationCenter() {
           </ul>
         </div>
       )}
+          {message.trim() && (
+            <OfficialLetterPreview
+              subject={subject}
+              message={message}
+              lang={language === 'en' ? 'en' : 'nl'}
+              actions={(() => {
+                const resolved = resolveAdminNoticeButtons(buttonLabel, linkPreset, buttonLabelSecondary, linkPresetSecondary);
+                if (!resolved.ok) return [];
+                return [resolved.primary, resolved.secondary].flatMap((action) => (
+                  action ? [{ label: action.label, url: action.url }] : []
+                ));
+              })()}
+            />
+          )}
           {sendEmail && message.trim() && (
             <AdminEmailPreview
               subject={subject}
