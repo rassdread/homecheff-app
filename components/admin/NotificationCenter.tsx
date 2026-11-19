@@ -203,6 +203,7 @@ export default function NotificationCenter() {
       const dropped = selectedIdsRef.current.length;
       if (dropped > 0) {
         setSelectionDropped({ count: dropped, reason: 'unfiltered' });
+        clearPreview();
       }
       setDirectory((current) => (current.length === 0 ? current : []));
       setListError(null);
@@ -250,14 +251,13 @@ export default function NotificationCenter() {
         const recipients = readRecipients(data.recipients);
         const ids = new Set(recipients.map((recipient) => recipient.id));
         setDirectory(recipients);
-        setSelectedIds((current) => {
-          const next = current.filter((id) => ids.has(id));
-          const dropped = current.length - next.length;
-          if (dropped > 0) {
-            setSelectionDropped({ count: dropped, reason: 'outside' });
-          }
-          return next;
-        });
+        const kept = selectedIdsRef.current.filter((id) => ids.has(id));
+        const dropped = selectedIdsRef.current.length - kept.length;
+        if (dropped > 0) {
+          setSelectionDropped({ count: dropped, reason: 'outside' });
+          clearPreview();
+        }
+        setSelectedIds(kept);
         setExplicitReviewIds((current) => current.filter((id) => (
           ids.has(id) && recipients.some((recipient) => recipient.id === id && recipient.requiresExplicitCheck)
         )));

@@ -25,7 +25,7 @@ import {
   matchesAudience,
   selectionCanList,
   payoutConnectStatus,
-  payoutConnectStatusLabel,
+  stripeRowLabel,
   parseAudienceSelection,
   previewCanonicalPayload,
   requiresExplicitStripeCheck,
@@ -111,7 +111,7 @@ function recipientView(user: AudienceCandidate, selection: AudienceSelection, la
     name: user.name || user.username || say(lang, 'userFallback'),
     email: user.email,
     roles: audienceRoleLabels(user, lang),
-    connectLabel: payoutConnectStatusLabel(payoutConnectStatus(user), lang),
+    connectLabel: stripeRowLabel(user, lang),
     stripeStatus: payoutConnectStatus(user),
     requiresExplicitCheck: requiresExplicitStripeCheck(user),
     agreementLabel: agreementStateLabel(agreementState(user), lang),
@@ -289,8 +289,8 @@ export async function POST(req: NextRequest) {
             })),
         })),
         message: matched.length === 0 ? empty : listed,
-        lines: [matched.length === 0 ? empty : listed, ...stripeCountLines(countStripeStatuses(matched), selection.stripe, lang)],
-        stripeCountLines: stripeCountLines(countStripeStatuses(matched), selection.stripe, lang),
+        lines: [matched.length === 0 ? empty : listed, ...stripeCountLines(countStripeStatuses(matched), selection.stripe, lang, selection.match)],
+        stripeCountLines: stripeCountLines(countStripeStatuses(matched), selection.stripe, lang, selection.match),
         stripeCounts: countStripeStatuses(matched),
       });
     }

@@ -1,12 +1,10 @@
 /**
  * Admin broadcast audience.
  *
- * The message filter uses isHomecheffPaymentReady on stored capability flags.
- * A Connect account id or stripeConnectOnboardingCompleted is not full readiness.
- * Particular readiness is payouts enabled and transfers active.
- * Business readiness also needs charges enabled. That flag is not stored here,
- * so a business account without it stays in “niet volledig gereed”.
- * Recipient details still show the technical cache: no id, incomplete, review, or onboarding completed.
+ * “Gereed voor uitbetalingen” is the stored onboarding status. The capability
+ * check is isHomecheffPaymentReady on stored payout and transfer flags.
+ * The message filter treats either one as fully ready, so the row and the
+ * filter cannot disagree. A role still limits the audience.
  * Seller sales and delivery payouts use the same User.stripeConnectAccountId.
  * Live Stripe "pending verification" is not stored and is not inferred.
  *
@@ -199,9 +197,31 @@ export function stripeConnectionFullyUsable(user: StripeUsabilityInput): boolean
   });
 }
 
-export function stripeFilterMatches(user: StripeUsabilityInput, filter: StripeAudienceFilter): boolean {
-  const usable = stripeConnectionFullyUsable(user);
-  return filter === 'ready' ? usable : !usable;
+/**
+ * Fully ready when the stored row already says ready for payouts, or when the
+ * central capability check confirms payouts. The two results stay one partition.
+ */
+export function stripeAudienceFullyReady(user: StripeUsabilityInput & {
+  stripeConnectOnboardingCompleted?: boolean | null;
+  stripeLinkReview?: boolean | null;
+}): boolean {
+  return stripeConnectionFullyUsable(user) || payoutConnectStatus(user) === 'ready';
+}
+
+export function stripeRowLabel(user: StripeUsabilityInput & {
+  stripeConnectOnboardingCompleted?: boolean | null;
+  stripeLinkReview?: boolean | null;
+}, lang: UiLanguage = 'nl'): string {
+  if (stripeAudienceFullyReady(user)) return payoutConnectStatusLabel('ready', lang);
+  return payoutConnectStatusLabel(payoutConnectStatus(user), lang);
+}
+
+export function stripeFilterMatches(user: StripeUsabilityInput & {
+  stripeConnectOnboardingCompleted?: boolean | null;
+  stripeLinkReview?: boolean | null;
+}, filter: StripeAudienceFilter): boolean {
+  const ready = stripeAudienceFullyReady(user);
+  return filter === 'ready' ? ready : !ready;
 }
 
 /**
@@ -245,14 +265,19 @@ export function countStripeStatuses(
   return counts;
 }
 
-export function stripeCountLines(counts: StripeStatusCounts, filter: StripeAudienceFilter | null, lang: UiLanguage = 'nl'): string[] {
+export function stripeCountLines(
+  counts: StripeStatusCounts,
+  filter: StripeAudienceFilter | null,
+  lang: UiLanguage = 'nl',
+  match: 'all' | 'any' = 'all',
+): string[] {
   if (filter !== 'not_ready') return [];
   const lines = [
     uiCopy(lang, 'admin.notificationCenter.ui.countLine', { label: payoutConnectStatusLabel('none', lang), count: counts.none }),
     uiCopy(lang, 'admin.notificationCenter.ui.countLine', { label: payoutConnectStatusLabel('incomplete', lang), count: counts.incomplete }),
     uiCopy(lang, 'admin.notificationCenter.ui.countLine', { label: payoutConnectStatusLabel('review', lang), count: counts.review }),
     uiCopy(lang, 'admin.notificationCenter.ui.countLine', { label: payoutConnectStatusLabel('ready', lang), count: counts.ready }),
-    uiCopy(lang, 'admin.notificationCenter.ui.countUnique', { unique: counts.unique }),
+    uiCopy(lang, match === 'any' ? 'admin.notificationCenter.ui.countUniqueOr' : 'admin.notificationCenter.ui.countUnique', { unique: counts.unique }),
   ];
   const classified = counts.none + counts.incomplete + counts.review + counts.ready;
   if (counts.unique !== classified) {
@@ -459,7 +484,7 @@ function audienceMembershipLabel(audience: AudienceId, lang: UiLanguage): string
 export function inclusionReasons(user: AudienceCandidate, selection: AudienceSelection, lang: UiLanguage = 'nl'): string[] {
   const reasons: string[] = [];
   if (selection.stripe && stripeFilterMatches(user, selection.stripe)) {
-    reasons.push(payoutConnectStatusLabel(payoutConnectStatus(user), lang));
+    reasons.push(stripeRowLabel(user, lang));
   }
   if (selection.push === 'registered' && user.pushReachable) {
     reasons.push(uiCopy(lang, 'admin.notificationCenter.ui.pushRegistered'));
@@ -552,7 +577,7 @@ export const AUDIENCE_PRESETS: AudiencePreset[] = [
   {
     id: 'delivery_stripe_none',
     label: 'Bezorgers: Stripe niet volledig gereed',
-    description: 'Niet gekoppeld, onvolledig, nog niet gereed of een koppeling om te controleren.',
+    description: 'Geen koppeling, Connect onvolledig of een koppeling om te controleren. Gereed voor uitbetalingen valt erbuiten.',
     available: true,
     reason: null,
     selection: { ...emptySelection('delivery'), stripe: 'not_ready' },
@@ -560,7 +585,7 @@ export const AUDIENCE_PRESETS: AudiencePreset[] = [
   {
     id: 'delivery_stripe_ready',
     label: 'Bezorgers: Stripe volledig gereed',
-    description: 'De centrale Stripe-controle bevestigt dat de koppeling volledig bruikbaar is.',
+    description: 'Status Gereed voor uitbetalingen, of de centrale uitbetalingscontrole bevestigt de koppeling.',
     available: true,
     reason: null,
     selection: { ...emptySelection('delivery'), stripe: 'ready' },
@@ -576,7 +601,7 @@ export const AUDIENCE_PRESETS: AudiencePreset[] = [
   {
     id: 'sellers_without_stripe',
     label: 'Verkopers: Stripe niet volledig gereed',
-    description: 'Verkopers van wie de Stripe-koppeling niet als volledig bruikbaar is bevestigd.',
+    description: 'Verkopers zonder de status Gereed voor uitbetalingen en zonder bevestigde uitbetalingscontrole.',
     available: true,
     reason: null,
     selection: { ...emptySelection('sellers'), stripe: 'not_ready' },
@@ -594,7 +619,7 @@ export const AUDIENCE_PRESETS: AudiencePreset[] = [
 export const UNAVAILABLE_AUDIENCE_FACTS: string[] = [
   ACTIVITY_UNAVAILABLE_MESSAGE,
   'Accountstatus inactief bestaat niet. Geblokkeerd is suspendedAt. Bezorger geblokkeerd is DeliveryProfile.isBlocked. Hoe lang iemand offline is, is geen accountstatus.',
-  'Stripe volledig gereed gebruikt de centrale Stripe-controle. Die bevestigt een bruikbare koppeling alleen met de opgeslagen uitbetalingsstatus en, bij een particulier account, actieve transfers. Een gekoppeld account of stripeConnectOnboardingCompleted alleen is geen volledige gereedheid. Stripe niet volledig gereed is de rest: niet gekoppeld, Connect onvolledig, nog niet gereed en Stripe-koppeling controleren. Die technische statussen blijven in de ontvangersdetails zichtbaar. Stripe-verificatie in behandeling staat niet in HomeCheff.',
+  'Stripe volledig gereed is de opgeslagen status Gereed voor uitbetalingen, of een account dat de centrale uitbetalingscontrole bevestigt met uitbetalingen en, bij een particulier account, actieve transfers. Stripe niet volledig gereed is de rest binnen de gekozen rol: niet gekoppeld, Connect onvolledig en Stripe-koppeling controleren. Een account dat na een filterwijziging buiten de lijst valt, gaat niet meer mee. Stripe-verificatie in behandeling staat niet in HomeCheff.',
   'HomeCheff-e-mailverificatie is emailVerified. Daar is geen status in behandeling.',
   'Bezorgerverificatie is DeliveryProfile.isVerified. Daar is geen status in behandeling. Een ontbrekend bezorgprofiel telt niet als niet-geverifieerd.',
   'termsAccepted, privacyPolicyAccepted, taxResponsibilityAccepted en messageGuidelinesAccepted hebben geen versie en zijn niet selecteerbaar.',
@@ -845,10 +870,14 @@ export function selectionPlainSummary(selection: AudienceSelection, lang: UiLang
     lang,
     selection.match === 'any' ? 'admin.notificationCenter.ui.joinerOr' : 'admin.notificationCenter.ui.joinerAnd',
   );
-  return uiCopy(lang, 'admin.notificationCenter.ui.summaryWhoFilters', {
+  const summary = uiCopy(lang, 'admin.notificationCenter.ui.summaryWhoFilters', {
     who,
     filters: chips.map((chip) => chip.label).join(joiner),
   });
+  if (selection.match === 'any' && chips.length > 1) {
+    return `${summary} ${uiCopy(lang, 'admin.notificationCenter.ui.summaryOrWidens')}`;
+  }
+  return summary;
 }
 
 export function describeSelection(selection: AudienceSelection, lang: UiLanguage = 'nl'): string[] {
