@@ -60,6 +60,8 @@ import {
   emailLedgerStatus,
   formatBroadcastResult,
   ledgerAfterEmail,
+  offerInWaves,
+  shouldRetryProviderRejection,
   ledgerAfterInApp,
   ledgerAfterPush,
   ledgerMeta,
@@ -74,8 +76,9 @@ import {
 export const dynamic = 'force-dynamic';
 
 const MAX_RECIPIENTS = 5000;
-const EMAIL_BATCH_SIZE = 25;
-const EMAIL_BATCH_PAUSE_MS = 600;
+const EMAIL_WAVE_SIZE = 2;
+const EMAIL_WAVE_PAUSE_MS = 400;
+const EMAIL_RATE_RETRY_MS = 1000;
 
 function campaignKeyFrom(req: NextRequest, body: { idempotencyKey?: unknown } | null): string {
   const header = req.headers.get('idempotency-key')?.trim() || '';
@@ -639,57 +642,69 @@ export async function POST(req: NextRequest) {
         const pending = emailPending;
         emailsSkipped = emailUsers.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'skip_done').length;
         emailsUnconfirmed = emailUsers.filter((user) => planEmail(ledgers.get(user.id) ?? null) === 'skip_unconfirmed').length;
-        for (let i = 0; i < pending.length; i += EMAIL_BATCH_SIZE) {
-          const batch = pending.slice(i, i + EMAIL_BATCH_SIZE);
-          await Promise.all(
-            batch.map(async (user) => {
-              const attempt = emailAttemptNumber(ledgers.get(user.id) ?? null);
-              const messagePath = routeByUserId[user.id];
-              const letter = renderAdminBulkMessage({
-                recipientName: user.name || '',
-                message,
-                action: (messagePath ? messageEmailAction(messagePath, lang) : null) || noticeEmailAction(campaignId, lang),
-                lang,
-              });
-              const result = await sendTransactionalEmail({
-                from: getTransactionalFrom(),
-                to: [user.email!],
-                subject,
-                html: letter.html,
-                text: letter.text,
-                eventType: 'admin_broadcast',
-                priority: EMAIL_PRIORITY.P2,
-                route: 'admin/notifications/send',
-                allowDuringP2Pause: true,
-                idempotencyKey: `admin-broadcast:${campaignId}:${user.id}:email:${attempt}`,
-                businessEventId: campaignId,
-              });
-              const status = emailLedgerStatus(result);
-              if (status === 'accepted') emailsAccepted += 1;
-              else if (status === 'unconfirmed') emailsUnconfirmed += 1;
-              else if (status === 'suppressed') {
-                emailsSuppressed += 1;
-                if (result.status === 'suppressed' && result.reason === 'p2_paused') emailsPaused += 1;
-              } else emailsFailed += 1;
-              const next = stampChannels(ledgerAfterEmail(ledgers.get(user.id) ?? null, status), planById.get(user.id));
-              ledgers.set(user.id, next);
-              await saveLedger(campaignId, user.id, next);
-              await recordPriorDelivery(prisma, {
-                userId: user.id,
-                channel: 'email',
-                status: status === 'accepted' ? 'accepted' : status === 'unconfirmed' ? 'unconfirmed' : 'failed',
-                at: sentAt,
-                campaignId,
-                title: pushTitle,
-                subject,
-                message,
-              });
-            }),
-          );
-          if (i + EMAIL_BATCH_SIZE < pending.length) {
-            await new Promise((resolve) => setTimeout(resolve, EMAIL_BATCH_PAUSE_MS));
+        await offerInWaves(pending, EMAIL_WAVE_SIZE, EMAIL_WAVE_PAUSE_MS, async (user) => {
+          const attempt = emailAttemptNumber(ledgers.get(user.id) ?? null);
+          const messagePath = routeByUserId[user.id];
+          const letter = renderAdminBulkMessage({
+            recipientName: user.name || '',
+            message,
+            action: (messagePath ? messageEmailAction(messagePath, lang) : null) || noticeEmailAction(campaignId, lang),
+            lang,
+          });
+          const sendOnce = () => sendTransactionalEmail({
+            from: getTransactionalFrom(),
+            to: [user.email!],
+            subject,
+            html: letter.html,
+            text: letter.text,
+            eventType: 'admin_broadcast',
+            priority: EMAIL_PRIORITY.P2,
+            route: 'admin/notifications/send',
+            allowDuringP2Pause: true,
+            idempotencyKey: `admin-broadcast:${campaignId}:${user.id}:email:${attempt}`,
+            businessEventId: campaignId,
+          });
+          let result = await sendOnce();
+          if (shouldRetryProviderRejection(result)) {
+            await new Promise((resolve) => setTimeout(resolve, EMAIL_RATE_RETRY_MS));
+            result = await sendOnce();
           }
-        }
+          const status = emailLedgerStatus(result);
+          if (status === 'accepted') emailsAccepted += 1;
+          else if (status === 'unconfirmed') emailsUnconfirmed += 1;
+          else if (status === 'suppressed') {
+            emailsSuppressed += 1;
+            if (result.status === 'suppressed' && result.reason === 'p2_paused') emailsPaused += 1;
+          } else emailsFailed += 1;
+          const recorded = result.status === 'sent'
+            ? { at: sentAt, code: null, reason: null, providerId: result.messageId }
+            : result.status === 'suppressed'
+              ? { at: sentAt, code: result.reason, reason: null, providerId: null }
+              : { at: sentAt, code: result.errorCode, reason: result.errorMessage, providerId: null };
+          const next = stampChannels(ledgerAfterEmail(ledgers.get(user.id) ?? null, status, recorded), planById.get(user.id));
+          ledgers.set(user.id, next);
+          await saveLedger(campaignId, user.id, next);
+          const priorStatus = status === 'accepted'
+            ? 'accepted'
+            : status === 'unconfirmed'
+              ? 'unconfirmed'
+              : status === 'suppressed'
+                ? 'suppressed'
+                : 'failed';
+          await recordPriorDelivery(prisma, {
+            userId: user.id,
+            channel: 'email',
+            status: priorStatus,
+            at: sentAt,
+            campaignId,
+            title: pushTitle,
+            subject,
+            message,
+            code: recorded.code,
+            reason: recorded.reason,
+            providerId: recorded.providerId,
+          });
+        });
       }
 
       const report = formatBroadcastResult({

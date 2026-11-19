@@ -11,6 +11,14 @@ import { uiCopy, type UiLanguage } from '@/lib/admin/notification-copy';
 export type LedgerEmail = 'accepted' | 'failed' | 'suppressed' | 'unconfirmed' | null;
 export type LedgerPush = 'offered' | 'failed' | 'no_token' | null;
 
+export type StoredEmailAttempt = {
+  at: string;
+  status: Exclude<LedgerEmail, null>;
+  code: string | null;
+  reason: string | null;
+  providerId: string | null;
+};
+
 export type RecipientLedger = {
   inApp: boolean;
   email: LedgerEmail;
@@ -18,6 +26,7 @@ export type RecipientLedger = {
   push: LedgerPush;
   pushAttempt: number;
   channels?: { email: boolean; push: boolean; inApp: boolean };
+  emailAttempts?: StoredEmailAttempt[];
 };
 
 export type ChannelPlan = 'send' | 'skip_done' | 'skip_unconfirmed';
@@ -67,14 +76,44 @@ export function pushAttemptNumber(ledger: RecipientLedger | null): number {
 export function ledgerAfterEmail(
   ledger: RecipientLedger | null,
   status: 'accepted' | 'failed' | 'suppressed' | 'unconfirmed',
+  detail?: { at: string; code?: string | null; reason?: string | null; providerId?: string | null },
 ): RecipientLedger {
   const current = ledger ?? emptyLedger();
   const attempt = emailAttemptNumber(current);
+  const recorded: StoredEmailAttempt | null = detail
+    ? {
+        at: detail.at,
+        status,
+        code: detail.code ?? null,
+        reason: detail.reason ?? null,
+        providerId: detail.providerId ?? null,
+      }
+    : null;
   return {
     ...current,
     email: status,
     emailAttempt: status === 'failed' || status === 'suppressed' ? attempt + 1 : attempt,
+    emailAttempts: recorded ? [...(current.emailAttempts ?? []), recorded].slice(-8) : current.emailAttempts,
   };
+}
+
+export function shouldRetryProviderRejection(result: { status: string; errorCode?: string | null }): boolean {
+  return result.status === 'failed' && result.errorCode === 'rate_limit_exceeded';
+}
+
+/** Offer a batch in small waves so one burst cannot exhaust the provider limit. */
+export async function offerInWaves<T>(
+  items: readonly T[],
+  concurrency: number,
+  gapMs: number,
+  worker: (item: T) => Promise<void>,
+  wait: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+): Promise<void> {
+  const width = Math.max(1, concurrency);
+  for (let index = 0; index < items.length; index += width) {
+    await Promise.all(items.slice(index, index + width).map((item) => worker(item)));
+    if (index + width < items.length && gapMs > 0) await wait(gapMs);
+  }
 }
 
 export function ledgerAfterPush(
@@ -123,7 +162,25 @@ export function parseRecipientLedger(meta: unknown): RecipientLedger | null {
     emailAttempt: emailAttempt >= 1 ? emailAttempt : 1,
     push: push === 'offered' || push === 'failed' || push === 'no_token' ? push : null,
     pushAttempt: pushAttempt >= 1 ? pushAttempt : 1,
+    emailAttempts: storedEmailAttempts(record.emailAttempts),
   };
+}
+
+export function storedEmailAttempts(value: unknown): StoredEmailAttempt[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return [];
+    const row = item as Record<string, unknown>;
+    const status = row.status;
+    if (status !== 'accepted' && status !== 'failed' && status !== 'suppressed' && status !== 'unconfirmed') return [];
+    return [{
+      at: typeof row.at === 'string' ? row.at : '',
+      status,
+      code: typeof row.code === 'string' ? row.code : null,
+      reason: typeof row.reason === 'string' ? row.reason : null,
+      providerId: typeof row.providerId === 'string' ? row.providerId : null,
+    }];
+  });
 }
 
 export function ledgerMeta(ledger: RecipientLedger): Prisma.InputJsonValue {
@@ -135,6 +192,7 @@ export function ledgerMeta(ledger: RecipientLedger): Prisma.InputJsonValue {
     push: ledger.push,
     pushAttempt: ledger.pushAttempt,
     ...(ledger.channels ? { channels: ledger.channels } : {}),
+    ...(ledger.emailAttempts && ledger.emailAttempts.length > 0 ? { emailAttempts: ledger.emailAttempts } : {}),
   };
 }
 

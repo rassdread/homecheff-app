@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { Resend } from "resend";
 import { getTransactionalFrom, validateFromHeader, getRawFromEnv } from "@/lib/email-from";
-import { logEmailSendFailure, summarizeEmailError } from "@/lib/email-log";
+import { logEmailSendFailure, readProviderFailure, safeProviderId, summarizeEmailError } from "@/lib/email-log";
 import { logEmailDeliveryDiag } from "@/lib/email-delivery-diagnostics";
 import { maskSenderPreview } from "@/lib/email-delivery-status";
 import {
@@ -51,6 +51,7 @@ export type TransactionalEmailResult =
       status: "failed";
       messageId: null;
       suppressed: false;
+      errorCode: string | null;
       errorMessage: string;
     };
 
@@ -171,6 +172,7 @@ export async function sendTransactionalEmail(
       status: "failed",
       messageId: null,
       suppressed: false,
+      errorCode: "invalid_from",
       errorMessage: "invalid_from",
     };
   }
@@ -233,26 +235,31 @@ export async function sendTransactionalEmail(
     );
 
     if (error) {
+      const failure = readProviderFailure(error);
+      if (idempotencyKey && failure.code === "rate_limit_exceeded") {
+        recentKeys.delete(idempotencyKey);
+      }
+      const category = failure.code === "rate_limit_exceeded" ? "email_provider_rate_limit" : "email_provider_unknown";
       logEmailSendFailure(input.eventType, error, {
         recipientEmail: recipients[0],
       });
-      logEmailDeliveryDiag("email_provider_unknown", {
+      logEmailDeliveryDiag(category, {
         ...baseDiag,
-        reason: summarizeEmailError(error, 80),
+        reason: failure.code || summarizeEmailError(error, 80),
       });
       // If local key was set and provider rejected as duplicate, keep key
       return {
         status: "failed",
         messageId: null,
         suppressed: false,
-        errorMessage: summarizeEmailError(error, 120),
+        errorCode: failure.code,
+        errorMessage: failure.reason || summarizeEmailError(error, 120),
       };
     }
 
-    const messageId =
-      data && typeof data === "object" && "id" in data && typeof (data as { id: unknown }).id === "string"
-        ? String((data as { id: string }).id)
-        : null;
+    const messageId = safeProviderId(
+      data && typeof data === "object" && "id" in data ? (data as { id: unknown }).id : null
+    );
 
     logEmailDeliveryDiag("email_send_success", {
       ...baseDiag,
@@ -267,11 +274,13 @@ export async function sendTransactionalEmail(
       reason: summarizeEmailError(e, 80),
     });
     if (idempotencyKey) recentKeys.delete(idempotencyKey);
+    const failure = readProviderFailure(e);
     return {
       status: "failed",
       messageId: null,
       suppressed: false,
-      errorMessage: summarizeEmailError(e, 120),
+      errorCode: failure.code || "transport",
+      errorMessage: failure.reason || summarizeEmailError(e, 120),
     };
   }
 }
@@ -288,7 +297,7 @@ export type TransactionalEmailTransport = (input: {
   html: string;
 }) => Promise<{
   data: { id: string } | null;
-  error: { message: string } | null;
+  error: { message: string; name?: string; statusCode?: number } | null;
 }>;
 
 /** Test-only stand-in for Resend. Production leaves this unset and calls Resend. */

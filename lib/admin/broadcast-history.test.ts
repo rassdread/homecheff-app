@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { offerInWaves, shouldRetryProviderRejection } from './broadcast-delivery-plan';
+import { readProviderFailure, safeProviderId } from '../email-log';
 import {
   HISTORY_INCOMPLETE_NOTE,
   channelOutcomeLabel,
@@ -7,6 +9,7 @@ import {
   contentFingerprint,
   countDecisions,
   describeChannelOutcomes,
+  emailAttemptDetail,
   filterHistorySends,
   historyDay,
   planContentDeliveries,
@@ -218,5 +221,46 @@ describe('send history overview', () => {
     });
     assert.equal(bySubject[0]?.id, 'newer-send');
     assert.equal(bySubject[0]?.focus, null);
+  });
+
+  it('shows a stored provider failure and marks an old failure as unrecorded', () => {
+    const oldFailure = describeChannelOutcomes(['email'], { email: 'failed' });
+    assert.equal(oldFailure[0]?.detail, 'De reden van deze poging is niet geregistreerd.');
+    const stored = describeChannelOutcomes(['email'], { email: 'failed' }, 'nl', {
+      email: emailAttemptDetail({
+        code: 'rate_limit_exceeded',
+        reason: 'Too many requests',
+        providerId: null,
+      }),
+    });
+    assert.match(stored[0]?.detail || '', /rate_limit_exceeded/);
+    assert.match(stored[0]?.detail || '', /Too many requests/);
+    assert.equal(stored[0]?.received, false);
+  });
+
+  it('keeps a provider address and secret out of the stored reason and paces the offer', async () => {
+    const failure = readProviderFailure({
+      name: 'validation_error',
+      statusCode: 422,
+      message: 'Invalid `to` person@example.com key re_secretvalue',
+    });
+    assert.equal(failure.code, 'validation_error');
+    assert.match(failure.reason || '', /\[email\]/);
+    assert.match(failure.reason || '', /\[secret\]/);
+    assert.equal(failure.reason?.includes('person@example.com'), false);
+    assert.equal(safeProviderId('re_secretvalue'), null);
+    assert.equal(safeProviderId('4b7c1d2e-9a30-4f1b-8c2d-1234567890ab'), '4b7c1d2e-9a30-4f1b-8c2d-1234567890ab');
+    assert.equal(shouldRetryProviderRejection({ status: 'failed', errorCode: 'rate_limit_exceeded' }), true);
+    assert.equal(shouldRetryProviderRejection({ status: 'failed', errorCode: 'validation_error' }), false);
+    assert.equal(shouldRetryProviderRejection({ status: 'sent' }), false);
+    let active = 0;
+    let peak = 0;
+    await offerInWaves([1, 2, 3], 2, 0, async () => {
+      active += 1;
+      peak = Math.max(peak, active);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      active -= 1;
+    });
+    assert.equal(peak, 2);
   });
 });

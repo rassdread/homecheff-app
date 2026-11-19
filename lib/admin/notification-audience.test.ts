@@ -48,6 +48,8 @@ import {
   emailLedgerStatus,
   formatBroadcastResult,
   ledgerAfterEmail,
+  ledgerMeta,
+  parseRecipientLedger,
   ledgerAfterPush,
   planEmail,
   planInApp,
@@ -892,7 +894,15 @@ describe('repeat and partial send', () => {
     assert.equal(emailLedgerStatus({ status: 'sent' }), 'accepted');
     assert.equal(emailLedgerStatus({ status: 'failed' }), 'failed');
     assert.equal(emailLedgerStatus({ status: 'suppressed', reason: 'local_idempotent_replay' }), 'unconfirmed');
-    const failed = ledgerAfterEmail(null, 'failed');
+    const failed = ledgerAfterEmail(null, 'failed', {
+      at: '2026-11-19T16:02:28.653Z',
+      code: 'validation_error',
+      reason: 'Invalid to [email]',
+      providerId: null,
+    });
+    assert.equal(failed.emailAttempts?.[0]?.code, 'validation_error');
+    assert.equal(failed.emailAttempts?.[0]?.reason, 'Invalid to [email]');
+    assert.equal(parseRecipientLedger(ledgerMeta(failed))?.emailAttempts?.[0]?.code, 'validation_error');
     assert.equal(planEmail(failed), 'send');
     assert.equal(emailAttemptNumber(failed), 2);
     const unconfirmed = ledgerAfterEmail(null, 'unconfirmed');

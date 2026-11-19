@@ -4,7 +4,7 @@ import { uiCopy, type UiLanguage } from '@/lib/admin/notification-copy';
 export type DeliveryChannel = 'inApp' | 'push' | 'email';
 
 /** Created in HomeCheff, or accepted by the push or mail service. Not device or inbox delivery. */
-export type DeliveryRecordStatus = 'created' | 'accepted' | 'failed' | 'unconfirmed';
+export type DeliveryRecordStatus = 'created' | 'accepted' | 'failed' | 'unconfirmed' | 'suppressed';
 
 export type PriorDelivery = {
   userId: string;
@@ -12,6 +12,9 @@ export type PriorDelivery = {
   status: DeliveryRecordStatus;
   at: string;
   campaignId: string;
+  code?: string | null;
+  reason?: string | null;
+  providerId?: string | null;
 };
 
 export type ContentDeliveryDecision = {
@@ -182,12 +185,14 @@ export type HistoryChannelStatus = {
   code: HistoryOutcome;
   status: string;
   received: boolean;
+  detail: string | null;
 };
 
 export function describeChannelOutcomes(
   channels: DeliveryChannel[],
   state: Partial<Record<DeliveryChannel, HistoryOutcome>>,
   lang: UiLanguage = 'nl',
+  details: Partial<Record<DeliveryChannel, string | null>> = {},
 ): HistoryChannelStatus[] {
   return channels.map((channel) => {
     const outcome = state[channel] ?? 'missing';
@@ -197,8 +202,21 @@ export function describeChannelOutcomes(
       code: outcome,
       status: channelOutcomeLabel(channel, outcome, lang),
       received: outcomeWasReceived(outcome),
+      detail: details[channel] || (outcome === 'failed' ? uiCopy(lang, 'admin.notificationCenter.ui.attemptUnrecorded') : null),
     };
   });
+}
+
+export function emailAttemptDetail(
+  attempt: { code?: string | null; reason?: string | null; providerId?: string | null } | null,
+  lang: UiLanguage = 'nl',
+): string | null {
+  if (!attempt) return null;
+  const parts: string[] = [];
+  if (attempt.code) parts.push(uiCopy(lang, 'admin.notificationCenter.ui.attemptCode', { code: attempt.code }));
+  if (attempt.reason) parts.push(attempt.reason);
+  if (attempt.providerId) parts.push(uiCopy(lang, 'admin.notificationCenter.ui.attemptProvider', { id: attempt.providerId }));
+  return parts.length > 0 ? parts.join(' ') : null;
 }
 
 export function channelsFromMessageType(messageType: string | null): DeliveryChannel[] {

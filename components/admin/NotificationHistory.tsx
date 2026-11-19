@@ -10,6 +10,7 @@ type ChannelStatus = {
   code?: string;
   status: string;
   received: boolean;
+  detail?: string | null;
 };
 
 type HistorySummary = {
@@ -226,6 +227,7 @@ export function NotificationHistory() {
                 {recipient.channels.map((channel) => (
                   <p key={channel.channel} className={statusClass(channel)}>
                     {channelText(channel)}: {statusText(channel)}
+                    {channel.detail ? <span className="block text-xs">{channel.detail}</span> : null}
                   </p>
                 ))}
                 {recipient.note ? <p className="text-gray-700">{recipient.note}</p> : null}
@@ -252,7 +254,7 @@ export function NotificationHistory() {
                     {send.focus.name}
                     {send.focus.email ? ` · ${send.focus.email}` : ''}
                     {' · '}
-                    {send.focus.channels.map((channel) => `${channelText(channel)}: ${statusText(channel)}`).join(' · ')}
+                    {send.focus.channels.map((channel) => `${channelText(channel)}: ${statusText(channel)}${channel.detail ? ` (${channel.detail})` : ''}`).join(' · ')}
                   </span>
                 ) : null}
                 {send.note ? <span className="mt-0.5 block text-xs text-amber-900">{send.note}</span> : null}

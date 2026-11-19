@@ -1,6 +1,7 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { audienceLabel, type AudienceId } from '@/lib/admin/notification-audience';
 import { uiCopy, uiKnown, type UiLanguage } from '@/lib/admin/notification-copy';
+import { storedEmailAttempts } from '@/lib/admin/broadcast-delivery-plan';
 import {
   campaignRecordId,
   channelDisplayName,
@@ -8,6 +9,7 @@ import {
   channelsFromMessageType,
   contentFingerprint,
   describeChannelOutcomes,
+  emailAttemptDetail,
   filterHistorySends,
   priorFromStoredNotice,
   readStoredBroadcastNotice,
@@ -41,12 +43,21 @@ function parsePrior(meta: unknown, id: string): PriorDelivery | null {
   const record = asRecord(meta);
   if (!record || record.kind !== PRIOR_KIND || !isDeliveryChannel(record.channel)) return null;
   const status = record.status;
-  if (status !== 'created' && status !== 'accepted' && status !== 'failed' && status !== 'unconfirmed') return null;
+  if (status !== 'created' && status !== 'accepted' && status !== 'failed' && status !== 'unconfirmed' && status !== 'suppressed') return null;
   const userId = typeof record.userId === 'string' ? record.userId : '';
   const at = typeof record.at === 'string' ? record.at : '';
   const campaignId = typeof record.campaignId === 'string' ? record.campaignId : '';
   if (!userId || !at) return null;
-  return { userId, channel: record.channel, status, at, campaignId: campaignId || id };
+  return {
+    userId,
+    channel: record.channel,
+    status,
+    at,
+    campaignId: campaignId || id,
+    code: typeof record.code === 'string' ? record.code : null,
+    reason: typeof record.reason === 'string' ? record.reason : null,
+    providerId: typeof record.providerId === 'string' ? record.providerId : null,
+  };
 }
 
 export async function findPriorDeliveries(
@@ -133,6 +144,9 @@ export async function recordPriorDelivery(
     title: string;
     subject: string;
     message: string;
+    code?: string | null;
+    reason?: string | null;
+    providerId?: string | null;
   },
 ): Promise<void> {
   const id = priorDeliveryId(
@@ -142,8 +156,9 @@ export async function recordPriorDelivery(
   );
   const existing = await db.auditLog.findUnique({ where: { id }, select: { meta: true } });
   const current = parsePrior(existing?.meta, id);
-  const status = current && (current.status === 'created' || current.status === 'accepted') ? current.status : input.status;
-  const at = current && (current.status === 'created' || current.status === 'accepted') ? current.at : input.at;
+  const keep = current && (current.status === 'created' || current.status === 'accepted');
+  const status = keep ? current.status : input.status;
+  const at = keep ? current.at : input.at;
   const meta: Prisma.InputJsonValue = {
     kind: PRIOR_KIND,
     userId: input.userId,
@@ -151,6 +166,9 @@ export async function recordPriorDelivery(
     status,
     at,
     campaignId: input.campaignId,
+    code: keep ? current.code ?? null : input.code ?? null,
+    reason: keep ? current.reason ?? null : input.reason ?? null,
+    providerId: keep ? current.providerId ?? null : input.providerId ?? null,
   };
   await db.auditLog.upsert({
     where: { id },
@@ -317,11 +335,16 @@ function buildSend(input: {
     }
     if (intended.includes('email')) state.email = emailOutcome(ledger?.email) ?? 'missing';
     if (intended.includes('push')) state.push = pushOutcome(ledger?.push) ?? 'missing';
+    const emailAttempts = storedEmailAttempts(ledger?.emailAttempts);
+    const latestEmail = [...emailAttempts].reverse().find((attempt) => attempt.status === ledger?.email) ?? emailAttempts.at(-1) ?? null;
+    const emailDetail = state.email === 'failed' || state.email === 'accepted' || state.email === 'suppressed' || state.email === 'unconfirmed'
+      ? emailAttemptDetail(latestEmail, input.lang)
+      : null;
     return {
       id: userId,
       name: user?.name || user?.username || uiCopy(input.lang, 'admin.notificationCenter.ui.userFallback'),
       email: user?.email || null,
-      channels: describeChannelOutcomes(intended, state, input.lang),
+      channels: describeChannelOutcomes(intended, state, input.lang, { email: emailDetail }),
       note: pushAlsoCreatesInApp(intended) ? uiCopy(input.lang, 'admin.notificationCenter.ui.pushAlsoInApp') : null,
     };
   }).sort((left, right) => left.name.localeCompare(right.name, 'nl'));
