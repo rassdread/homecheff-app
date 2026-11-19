@@ -443,6 +443,7 @@ export async function POST(req: NextRequest) {
           ? [`${manualAdmins.length} beheerder(s) handmatig toegevoegd. Kanalen worden samengevoegd als dezelfde persoon ook is aangevinkt.`]
           : []),
         ...contentLines,
+        ...stripeCountLines(countStripeStatuses(chosen), selection.stripe, lang, selection.match),
       ];
       if (!blastGate.ok) lines.push(blastGate.error);
       return NextResponse.json({

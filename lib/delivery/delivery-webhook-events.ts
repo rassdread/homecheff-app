@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { classifyCourierStripeIdentity, type CourierStripeAccount } from '@/lib/delivery/courier-identity';
+import { retrievedConnectCapabilityFields } from '@/lib/stripe/retrieved-connect-capability';
 import { recoverCourierTransfer, type CourierRecoveryClient } from '@/lib/delivery/courier-transfer-recovery';
 import { reconcileDeliveryRefundBooks } from '@/lib/delivery/delivery-refund-books';
 
@@ -285,18 +286,33 @@ export async function syncCourierConnectAccount(db: Db, account: AccountLike) {
   });
   if (users.length !== 1) return { updated: false as const, reason: 'OWNERSHIP' as const };
   const user = users[0];
+  const retrieved = retrievedConnectCapabilityFields(account);
+  const updateMany = (db.user as unknown as { updateMany?: (args: {
+    where: { id: string; stripeConnectAccountId: string };
+    data: Record<string, unknown>;
+  }) => Promise<unknown> }).updateMany;
+  if (updateMany) {
+    await updateMany({
+      where: { id: user.id, stripeConnectAccountId: account.id },
+      data: { ...retrieved, stripeCapabilityCheckedAt: new Date() },
+    });
+  }
   const profile = await db.deliveryProfile.findUnique({ where: { userId: user.id }, select: { id: true } });
   if (!profile) return { updated: false as const };
   const identity = classifyCourierStripeIdentity(account);
+  const checkedAt = new Date();
   await db.deliveryProfile.update({
     where: { id: profile.id },
     data: {
-      stripeTransfersStatus: account.capabilities?.transfers === 'active' ? 'active' : 'inactive',
-      stripePayoutsEnabled: account.payouts_enabled === true,
-      stripeTransfersCheckedAt: new Date(),
+      ...(retrieved.stripeTransfersStatus
+        ? { stripeTransfersStatus: retrieved.stripeTransfersStatus, stripeTransfersCheckedAt: checkedAt }
+        : {}),
+      ...(typeof retrieved.stripePayoutsEnabled === 'boolean'
+        ? { stripePayoutsEnabled: retrieved.stripePayoutsEnabled, stripeTransfersCheckedAt: checkedAt }
+        : {}),
       stripeIdentityState: identity.state,
       stripeIdentityReason: identity.reason,
-      stripeIdentityCheckedAt: new Date(),
+      stripeIdentityCheckedAt: checkedAt,
     },
   });
   return { updated: true as const, identity: identity.state };

@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
 import { resolveConnectWebhookTarget } from '@/lib/stripe/connect-migration';
 import { parseConnectTrack } from '@/lib/stripe/connect-tracks';
+import { retrievedConnectCapabilityFields } from '@/lib/stripe/retrieved-connect-capability';
 
 export async function POST(req: NextRequest) {
   try {
@@ -56,6 +57,24 @@ export async function POST(req: NextRequest) {
   }
 }
 
+async function mirrorRetrievedDeliveryCapabilities(
+  userId: string,
+  fields: ReturnType<typeof retrievedConnectCapabilityFields>,
+) {
+  const data: {
+    stripePayoutsEnabled?: boolean;
+    stripeTransfersStatus?: string;
+    stripeTransfersCheckedAt?: Date;
+  } = {};
+  if (typeof fields.stripePayoutsEnabled === 'boolean') data.stripePayoutsEnabled = fields.stripePayoutsEnabled;
+  if (fields.stripeTransfersStatus) {
+    data.stripeTransfersStatus = fields.stripeTransfersStatus;
+    data.stripeTransfersCheckedAt = new Date();
+  }
+  if (Object.keys(data).length === 0) return;
+  await prisma.deliveryProfile.updateMany({ where: { userId }, data });
+}
+
 async function applyCurrentAccountReadiness(params: {
   userId: string;
   stripeConnectTrack: string | null;
@@ -82,12 +101,16 @@ async function applyCurrentAccountReadiness(params: {
     dashboardType: params.account.controller?.stripe_dashboard?.type ?? null,
   });
 
+  const retrieved = retrievedConnectCapabilityFields(params.account);
   await prisma.user.update({
     where: { id: params.userId },
     data: {
       stripeConnectOnboardingCompleted: isCompleted,
+      ...retrieved,
+      stripeCapabilityCheckedAt: new Date(),
     },
   });
+  await mirrorRetrievedDeliveryCapabilities(params.userId, retrieved);
 
   if (isCompleted) {
     await import('@/lib/analytics/record-acquisition-event.server')
@@ -230,6 +253,10 @@ async function handleAccountDeauthorized(deauth: any) {
         stripeConnectOnboardingCompleted: false,
         stripeConnectAccountId: null,
         stripeConnectTrack: null,
+        stripeChargesEnabled: null,
+        stripePayoutsEnabled: null,
+        stripeTransfersStatus: null,
+        stripeCapabilityCheckedAt: null,
       },
     });
     if (cleared.count === 0) return;

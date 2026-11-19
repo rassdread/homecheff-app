@@ -65,23 +65,53 @@ export async function loadConnectAccountStatusForUser(params: {
       connectTrack: track,
     });
 
+    const { retrievedConnectCapabilityFields } = await import(
+      '@/lib/stripe/retrieved-connect-capability'
+    );
+    const retrieved = retrievedConnectCapabilityFields(account);
+    const onboardingChanged =
+      snapshot.onboardingCompleted !== Boolean(params.stripeConnectOnboardingCompleted);
+    const updated = await prisma.user.updateMany({
+      where: {
+        id: params.userId,
+        stripeConnectAccountId: accountId,
+      },
+      data: {
+        ...(onboardingChanged
+          ? { stripeConnectOnboardingCompleted: snapshot.onboardingCompleted }
+          : {}),
+        ...retrieved,
+        stripeCapabilityCheckedAt: new Date(),
+      },
+    });
     if (
-      snapshot.onboardingCompleted !==
-      Boolean(params.stripeConnectOnboardingCompleted)
+      updated.count > 0 &&
+      onboardingChanged &&
+      snapshot.paymentReady &&
+      snapshot.onboardingCompleted
     ) {
-      const updated = await prisma.user.updateMany({
-        where: {
-          id: params.userId,
-          stripeConnectAccountId: accountId,
-        },
-        data: { stripeConnectOnboardingCompleted: snapshot.onboardingCompleted },
+      const { resumePendingListingCampaign } = await import('@/lib/hc/qualify-first-listing');
+      void resumePendingListingCampaign(params.userId).catch((e) =>
+        console.warn('[hc-campaign] resume after stripe', e),
+      );
+    }
+    const deliveryData: {
+      stripePayoutsEnabled?: boolean;
+      stripeTransfersStatus?: string;
+      stripeTransfersCheckedAt?: Date;
+    } = {};
+    if (typeof retrieved.stripePayoutsEnabled === 'boolean') {
+      deliveryData.stripePayoutsEnabled = retrieved.stripePayoutsEnabled;
+    }
+    if (retrieved.stripeTransfersStatus) {
+      deliveryData.stripeTransfersStatus = retrieved.stripeTransfersStatus;
+      deliveryData.stripeTransfersCheckedAt = new Date();
+    }
+    if (Object.keys(deliveryData).length > 0) {
+      await prisma.deliveryProfile.updateMany({
+        where: { userId: params.userId },
+        data: deliveryData,
       });
-      if (updated.count > 0 && snapshot.paymentReady && snapshot.onboardingCompleted) {
-        const { resumePendingListingCampaign } = await import('@/lib/hc/qualify-first-listing');
-        void resumePendingListingCampaign(params.userId).catch((e) =>
-          console.warn('[hc-campaign] resume after stripe', e),
-        );
-      }
     }
 
     // Keep legacy Affiliate mirror in sync (one Connect account per user).

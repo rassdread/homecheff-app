@@ -41,6 +41,13 @@ model User {
   stripeConnectOnboardingCompleted       Boolean                   @default(false)
   /// PARTICULAR = dashboard=none individual (no KvK via Stripe); BUSINESS = Express KYB
   stripeConnectTrack                     String?
+  /// Last retrieved charges_enabled. Null means Stripe was not checked, not a rejection.
+  stripeChargesEnabled                   Boolean?
+  /// Last retrieved payouts_enabled. Null means Stripe was not checked, not a rejection.
+  stripePayoutsEnabled                   Boolean?
+  /// Last retrieved capabilities.transfers. Null means Stripe was not checked.
+  stripeTransfersStatus                  String?
+  stripeCapabilityCheckedAt              DateTime?
   taxResponsibilityAccepted              Boolean                   @default(false)
   taxResponsibilityAcceptedAt            DateTime?
   termsAccepted                          Boolean                   @default(false)

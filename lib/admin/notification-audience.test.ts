@@ -18,6 +18,7 @@ import {
   selectionPlainSummary,
   stripeAudienceFullyReady,
   stripePayoutExplicitlyRejected,
+  stripeCapabilityCheckMissing,
   stripeChoiceLabel,
   stripeRowLabel,
   agreementState,
@@ -174,7 +175,7 @@ describe('targeted audiences', () => {
     assert.equal(matchesAudience(sellerCourier, sellersOpen), true);
     assert.equal(matchesAudience(sellerReady, sellersOpen), true);
     assert.equal(matchesAudience(sellerReady, selection({ audience: 'sellers', stripe: 'ready' })), false);
-    assert.equal(stripeRowLabel(sellerReady), 'Uitbetalingscontrole niet opgeslagen');
+    assert.equal(stripeRowLabel(sellerReady), 'Controle ontbreekt');
     assert.equal(matchesAudience(courierOnlyNone, sellersOpen), false);
   });
 
@@ -333,7 +334,7 @@ describe('targeted audiences', () => {
     assert.equal(payoutConnectStatus(ready), 'ready');
     assert.equal(stripeConnectionFullyUsable(ready), false);
     assert.equal(stripeAudienceFullyReady(ready), false);
-    assert.equal(stripeRowLabel(ready), 'Uitbetalingscontrole niet opgeslagen');
+    assert.equal(stripeRowLabel(ready), 'Controle ontbreekt');
     assert.equal(matchesAudience(ready, selection({ audience: 'sellers', stripe: 'not_ready' })), true);
     assert.equal(matchesAudience(ready, selection({ audience: 'sellers', stripe: 'ready' })), false);
     assert.equal(matchesAudience(ready, selection({ audience: 'delivery', stripe: 'ready' })), false);
@@ -506,16 +507,17 @@ describe('Stripe nog niet gereed voor uitbetalingen', () => {
     assert.deepEqual(matched.map((item) => item.id), ['stripe-none', 'stripe-incomplete', 'stripe-review', 'stripe-ready', 'stripe-business']);
     assert.equal(readyMatched.length + matched.length, everyone.length);
     assert.equal(stripeRowLabel(usable), 'Stripe volledig gereed');
-    assert.equal(stripeRowLabel(ready), 'Uitbetalingscontrole niet opgeslagen');
-    assert.equal(stripeRowLabel(business), 'Uitbetalingscontrole niet opgeslagen');
+    assert.equal(stripeRowLabel(ready), 'Controle ontbreekt');
+    assert.equal(stripeRowLabel(business), 'Controle ontbreekt');
     assert.deepEqual(inclusionReasons(none, combined), ['Geen actuele Stripe-koppeling in HomeCheff']);
-    assert.deepEqual(inclusionReasons(incomplete, combined), ['Connect onvolledig']);
+    assert.deepEqual(inclusionReasons(incomplete, combined), ['Controle ontbreekt']);
     assert.deepEqual(inclusionReasons(review, combined), ['Stripe-koppeling controleren']);
-    assert.deepEqual(inclusionReasons(ready, combined), ['Uitbetalingscontrole niet opgeslagen']);
+    assert.deepEqual(inclusionReasons(ready, combined), ['Controle ontbreekt']);
     assert.deepEqual(inclusionReasons(usable, readySelection), ['Stripe volledig gereed']);
     const counts = countStripeStatuses(matched);
-    assert.deepEqual(counts, { none: 1, incomplete: 1, review: 1, ready: 2, unique: 5 });
+    assert.deepEqual(counts, { none: 1, incomplete: 1, review: 1, ready: 2, unique: 5, unchecked: 3 });
     assert.match(stripeCountLines(counts, 'not_ready').join(' '), /Uniek totaal: 5/);
+    assert.match(stripeCountLines(counts, 'not_ready').join(' '), /Controle ontbreekt: 3/);
     assert.match(stripeCountLines(counts, 'not_ready').join(' '), /Stripe-koppeling controleren: 1/);
     assert.equal(parseAudienceSelection({ audience: 'delivery', stripe: 'not_ready' }).ok, true);
     assert.equal(parseAudienceSelection({ audience: 'delivery', stripe: 'none' }).ok, false);
@@ -546,7 +548,8 @@ describe('Stripe nog niet gereed voor uitbetalingen', () => {
     assert.equal(stripeConnectionFullyUsable(payoutReadyCourier), false);
     assert.equal(stripeAudienceFullyReady(payoutReadyCourier), false);
     assert.equal(stripePayoutExplicitlyRejected(payoutReadyCourier), false);
-    assert.equal(stripeRowLabel(payoutReadyCourier), 'Uitbetalingscontrole niet opgeslagen');
+    assert.equal(stripeRowLabel(payoutReadyCourier), 'Controle ontbreekt');
+    assert.equal(stripeCapabilityCheckMissing(payoutReadyCourier), true);
     assert.equal(matchesAudience(payoutReadyCourier, deliveryNotReady), true);
     assert.equal(matchesAudience(payoutReadyCourier, selection({ audience: 'delivery', match: 'all', stripe: 'ready' })), false);
     const rejectedPayout = user({
@@ -578,13 +581,69 @@ describe('Stripe nog niet gereed voor uitbetalingen', () => {
     assert.equal(stripePayoutExplicitlyRejected(rejectedPayout), true);
     assert.equal(stripeRowLabel(rejectedPayout), 'Opgeslagen uitbetaling is niet gereed');
     assert.equal(matchesAudience(rejectedPayout, deliveryNotReady), true);
+    const particularChargesOff = user({
+      id: 'particular-charges-off',
+      role: 'DELIVERY',
+      delivery: deliveryOpen,
+      stripeConnectAccountId: 'acct_particular_charges_off',
+      stripeConnectTrack: 'PARTICULAR',
+      stripeChargesEnabled: false,
+      stripePayoutsEnabled: true,
+      stripeTransfersStatus: 'active',
+    });
+    const expressReady = user({
+      id: 'express-ready',
+      role: 'DELIVERY',
+      delivery: deliveryOpen,
+      stripeConnectAccountId: 'acct_express_ready',
+      stripeConnectTrack: null,
+      stripeChargesEnabled: true,
+      stripePayoutsEnabled: true,
+      stripeTransfersStatus: 'active',
+      stripeConnectOnboardingCompleted: true,
+    });
+    const businessChargesOff = user({
+      id: 'business-charges-off',
+      role: 'SELLER',
+      hasSellerProfile: true,
+      stripeConnectAccountId: 'acct_business_charges_off',
+      stripeConnectTrack: 'BUSINESS',
+      stripeChargesEnabled: false,
+      stripePayoutsEnabled: true,
+      stripeTransfersStatus: 'active',
+      stripeConnectOnboardingCompleted: true,
+    });
+    const businessUnchecked = user({
+      id: 'business-unchecked',
+      role: 'SELLER',
+      hasSellerProfile: true,
+      stripeConnectAccountId: 'acct_business_unchecked',
+      stripeConnectTrack: 'BUSINESS',
+      stripeChargesEnabled: null,
+      stripePayoutsEnabled: true,
+      stripeTransfersStatus: 'active',
+      stripeConnectOnboardingCompleted: true,
+    });
+    assert.equal(stripeConnectionFullyUsable(particularChargesOff), true);
+    assert.equal(stripeRowLabel(particularChargesOff), 'Stripe volledig gereed');
+    assert.equal(matchesAudience(particularChargesOff, deliveryNotReady), false);
+    assert.equal(stripeConnectionFullyUsable(expressReady), true);
+    assert.equal(stripeRowLabel(expressReady), 'Stripe volledig gereed');
+    assert.equal(matchesAudience(expressReady, deliveryNotReady), false);
+    assert.equal(stripePayoutExplicitlyRejected(businessChargesOff), true);
+    assert.equal(stripeRowLabel(businessChargesOff), 'Opgeslagen uitbetaling is niet gereed');
+    assert.equal(matchesAudience(businessChargesOff, selection({ audience: 'sellers', stripe: 'not_ready' })), true);
+    assert.equal(stripeCapabilityCheckMissing(businessUnchecked), true);
+    assert.equal(stripeRowLabel(businessUnchecked), 'Controle ontbreekt');
+    assert.equal(matchesAudience(businessUnchecked, selection({ audience: 'sellers', stripe: 'not_ready' })), true);
+    assert.equal(matchesAudience(businessUnchecked, selection({ audience: 'sellers', stripe: 'ready' })), false);
     assert.equal(stripeConnectionFullyUsable(centralReady), true);
     assert.equal(stripeRowLabel(centralReady), 'Stripe volledig gereed');
     assert.equal(matchesAudience(centralReady, deliveryNotReady), false);
     assert.equal(matchesAudience(noStripe, deliveryNotReady), true);
     assert.equal(stripeRowLabel(noStripe), 'Geen actuele Stripe-koppeling in HomeCheff');
     assert.equal(matchesAudience(connectIncomplete, deliveryNotReady), true);
-    assert.equal(stripeRowLabel(connectIncomplete), 'Connect onvolledig');
+    assert.equal(stripeRowLabel(connectIncomplete), 'Controle ontbreekt');
     assert.equal(matchesAudience(user({
       id: 'buyer-with-ready-cache',
       role: 'BUYER',

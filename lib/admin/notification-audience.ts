@@ -73,10 +73,13 @@ export type AudienceCandidate = {
   stripeConnectAccountId: string | null;
   stripeConnectOnboardingCompleted: boolean;
   stripeConnectTrack?: string | null;
-  /** Last stored DeliveryProfile payouts_enabled. Null means it was not recorded. */
+  /** Last retrieved charges_enabled. Null means the check did not record it. */
+  stripeChargesEnabled?: boolean | null;
+  /** Last retrieved payouts_enabled. Null means the check did not record it. */
   stripePayoutsEnabled?: boolean | null;
-  /** Last stored DeliveryProfile transfers status. `active` is capabilities.transfers. */
+  /** Last retrieved capabilities.transfers. Null means the check did not record it. */
   stripeTransfersStatus?: string | null;
+  stripeCapabilityCheckedAt?: Date | string | null;
   /** Empty current field plus another stored Connect trace. Not a payout account. */
   stripeLinkReview?: boolean;
   hasSellerProfile: boolean;
@@ -173,8 +176,10 @@ export function stripeChoiceLabel(status: StripeAudienceFilter | PayoutConnectSt
 export type StripeUsabilityInput = {
   stripeConnectAccountId?: string | null;
   stripeConnectTrack?: string | null;
+  stripeChargesEnabled?: boolean | null;
   stripePayoutsEnabled?: boolean | null;
   stripeTransfersStatus?: string | null;
+  stripeCapabilityCheckedAt?: Date | string | null;
 };
 
 /**
@@ -189,7 +194,7 @@ export function stripeConnectionFullyUsable(user: StripeUsabilityInput): boolean
     ? user.stripeConnectTrack
     : null;
   return isHomecheffPaymentReady({
-    chargesEnabled: null,
+    chargesEnabled: user.stripeChargesEnabled ?? null,
     payoutsEnabled: user.stripePayoutsEnabled ?? null,
     transfersCapability: user.stripeTransfersStatus ?? null,
     connectTrack: track,
@@ -208,7 +213,15 @@ export function stripeAudienceFullyReady(user: StripeUsabilityInput): boolean {
 export function stripePayoutExplicitlyRejected(user: StripeUsabilityInput): boolean {
   if (user.stripePayoutsEnabled === false) return true;
   const transfers = typeof user.stripeTransfersStatus === 'string' ? user.stripeTransfersStatus.trim() : '';
-  return transfers.length > 0 && transfers !== 'active';
+  if (transfers.length > 0 && transfers !== 'active') return true;
+  return user.stripeChargesEnabled === false && user.stripeConnectTrack !== 'PARTICULAR';
+}
+
+/** A linked account with no stored yes and no stored no. This is not proof that onboarding is open. */
+export function stripeCapabilityCheckMissing(user: StripeUsabilityInput): boolean {
+  if ((user.stripeConnectAccountId || '').trim().length === 0) return false;
+  if (stripeConnectionFullyUsable(user)) return false;
+  return !stripePayoutExplicitlyRejected(user);
 }
 
 export function stripeRowLabel(user: StripeUsabilityInput & {
@@ -216,13 +229,12 @@ export function stripeRowLabel(user: StripeUsabilityInput & {
   stripeLinkReview?: boolean | null;
 }, lang: UiLanguage = 'nl'): string {
   if (stripeAudienceFullyReady(user)) return stripeChoiceLabel('ready', lang);
+  const accountId = user.stripeConnectAccountId?.trim() || '';
+  if (!accountId) return payoutConnectStatusLabel(payoutConnectStatus(user), lang);
   if (stripePayoutExplicitlyRejected(user)) {
     return uiCopy(lang, 'admin.notificationCenter.ui.payoutRejected');
   }
-  const accountId = user.stripeConnectAccountId?.trim() || '';
-  if (!accountId) return payoutConnectStatusLabel(payoutConnectStatus(user), lang);
-  if (!user.stripeConnectOnboardingCompleted) return payoutConnectStatusLabel('incomplete', lang);
-  return uiCopy(lang, 'admin.notificationCenter.ui.payoutUnknown');
+  return uiCopy(lang, 'admin.notificationCenter.ui.payoutUnchecked');
 }
 
 export function stripeFilterMatches(user: StripeUsabilityInput & {
@@ -260,17 +272,20 @@ export type StripeStatusCounts = {
   review: number;
   ready: number;
   unique: number;
+  unchecked: number;
 };
 
 export function countStripeStatuses(
-  users: ReadonlyArray<{
-    stripeConnectAccountId?: string | null;
+  users: ReadonlyArray<StripeUsabilityInput & {
     stripeConnectOnboardingCompleted?: boolean | null;
     stripeLinkReview?: boolean | null;
   }>,
 ): StripeStatusCounts {
-  const counts: StripeStatusCounts = { none: 0, incomplete: 0, review: 0, ready: 0, unique: users.length };
-  for (const user of users) counts[payoutConnectStatus(user)] += 1;
+  const counts: StripeStatusCounts = { none: 0, incomplete: 0, review: 0, ready: 0, unique: users.length, unchecked: 0 };
+  for (const user of users) {
+    counts[payoutConnectStatus(user)] += 1;
+    if (stripeCapabilityCheckMissing(user)) counts.unchecked += 1;
+  }
   return counts;
 }
 
@@ -287,6 +302,7 @@ export function stripeCountLines(
     uiCopy(lang, 'admin.notificationCenter.ui.countLine', { label: payoutConnectStatusLabel('review', lang), count: counts.review }),
     uiCopy(lang, 'admin.notificationCenter.ui.countLine', { label: payoutConnectStatusLabel('ready', lang), count: counts.ready }),
     uiCopy(lang, match === 'any' ? 'admin.notificationCenter.ui.countUniqueOr' : 'admin.notificationCenter.ui.countUnique', { unique: counts.unique }),
+    uiCopy(lang, 'admin.notificationCenter.ui.countUnchecked', { count: counts.unchecked ?? 0 }),
   ];
   const classified = counts.none + counts.incomplete + counts.review + counts.ready;
   if (counts.unique !== classified) {
@@ -586,7 +602,7 @@ export const AUDIENCE_PRESETS: AudiencePreset[] = [
   {
     id: 'delivery_stripe_none',
     label: 'Bezorgers: Stripe niet volledig gereed',
-    description: 'Geen koppeling, Connect onvolledig, ontbrekende uitbetalingsgegevens of een afgewezen controle. De centrale uitbetalingscontrole valt erbuiten.',
+    description: 'Geen koppeling, een ontbrekende controle of een afgewezen controle. Controle ontbreekt bewijst niet dat onboarding openstaat. De centrale uitbetalingscontrole valt erbuiten.',
     available: true,
     reason: null,
     selection: { ...emptySelection('delivery'), stripe: 'not_ready' },
@@ -628,7 +644,7 @@ export const AUDIENCE_PRESETS: AudiencePreset[] = [
 export const UNAVAILABLE_AUDIENCE_FACTS: string[] = [
   ACTIVITY_UNAVAILABLE_MESSAGE,
   'Accountstatus inactief bestaat niet. Geblokkeerd is suspendedAt. Bezorger geblokkeerd is DeliveryProfile.isBlocked. Hoe lang iemand offline is, is geen accountstatus.',
-  'Stripe volledig gereed is alleen isHomecheffPaymentReady op opgeslagen uitbetalingen en, bij een particulier account, actieve transfers. Een afgeronde onboarding overrulet een ontbrekende of afgewezen controle niet. Ontbrekende uitbetalingsgegevens blijven niet volledig gereed en staan apart van een expliciet afgewezen controle. Stripe-verificatie in behandeling staat niet in HomeCheff.',
+  'Stripe volledig gereed is alleen isHomecheffPaymentReady op opgeslagen charges, uitbetalingen en, bij een particulier account, actieve transfers. Een afgeronde onboarding overrulet een ontbrekende of afgewezen controle niet. Controle ontbreekt blijft in niet volledig gereed en bewijst niet dat onboarding openstaat. Stripe-verificatie in behandeling staat niet in HomeCheff.',
   'HomeCheff-e-mailverificatie is emailVerified. Daar is geen status in behandeling.',
   'Bezorgerverificatie is DeliveryProfile.isVerified. Daar is geen status in behandeling. Een ontbrekend bezorgprofiel telt niet als niet-geverifieerd.',
   'termsAccepted, privacyPolicyAccepted, taxResponsibilityAccepted en messageGuidelinesAccepted hebben geen versie en zijn niet selecteerbaar.',
