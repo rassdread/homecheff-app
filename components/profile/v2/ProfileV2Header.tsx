@@ -17,6 +17,7 @@ import SafeImage from '@/components/ui/SafeImage';
 import BusinessBadge from '@/components/ui/BusinessBadge';
 import BusinessPlanBadge from '@/components/business/BusinessPlanBadge';
 import { resolveBusinessPlanId } from '@/lib/business/visibility-profile';
+import { intlLocale } from '@/lib/utils';
 import FollowButton from '@/components/follow/FollowButton';
 import { formatFansCountLabel } from '@/lib/follow/format-fans-count';
 import UserBadgeChips from '@/components/gamification/UserBadgeChips';
@@ -103,7 +104,7 @@ function formatMemberSince(createdAt: string | Date, locale: string): string | n
   try {
     const d = createdAt instanceof Date ? createdAt : new Date(createdAt);
     if (Number.isNaN(d.getTime())) return null;
-    return d.toLocaleDateString(locale === 'en' ? 'en-NL' : 'nl-NL', {
+    return d.toLocaleDateString(intlLocale(locale), {
       month: 'long',
       year: 'numeric',
     });

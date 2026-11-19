@@ -28,6 +28,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import Image from 'next/image';
 import { useTranslation } from '@/hooks/useTranslation';
+import { intlLocale } from '@/lib/utils';
 import { compressImage } from '@/lib/imageOptimization';
 
 interface Review {
@@ -81,7 +82,7 @@ interface DeliveryProfileProps {
 }
 
 export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'photos'>('overview');
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -570,7 +571,7 @@ export default function DeliveryProfile({ deliveryProfile }: DeliveryProfileProp
                                     {renderStars(review.rating)}
                                   </div>
                                   <span className="text-sm text-gray-500">
-                                    {new Date(review.createdAt).toLocaleDateString('nl-NL')}
+                                    {new Date(review.createdAt).toLocaleDateString(intlLocale(language))}
                                   </span>
                                 </div>
                               </div>

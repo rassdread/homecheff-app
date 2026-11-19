@@ -8,6 +8,7 @@ import CommunityDeliveryPanel from './CommunityDeliveryPanel';
 import DeliveryAgreementModal from './DeliveryAgreementModal';
 import GoOnlineDurationSheet, { type GoOnlineNotice } from './GoOnlineDurationSheet';
 import { useTranslation } from '@/hooks/useTranslation';
+import { intlLocale } from '@/lib/utils';
 import { describeActiveOrigin } from '@/lib/delivery/delivery-position';
 import {
   buildDeliveryActivationChecklist,
@@ -103,7 +104,7 @@ interface DeliveryOrder {
 }
 
 export default function DeliveryDashboard() {
-  const { t, language, isReady, isLoading: translationsLoading } = useTranslation();
+  const { t, tOr, language, isReady, isLoading: translationsLoading } = useTranslation();
   const [isOnline, setIsOnline] = useState(false);
   const [isTemporarilyOnline, setIsTemporarilyOnline] = useState(false);
   const [availability, setAvailability] = useState<{
@@ -712,13 +713,13 @@ export default function DeliveryDashboard() {
   const formatTime = (minutes: number, measured = true) => {
     if (!measured || !Number.isFinite(minutes) || minutes <= 0) {
       return t('delivery.onlineTimeUnavailable', {
-        defaultValue: 'Nog niet gemeten',
+        defaultValue: language === 'en' ? 'Not measured yet' : 'Nog niet gemeten',
       });
     }
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    const h = t('delivery.hoursUnit', { defaultValue: 'u' });
-    const m = t('delivery.minutesUnit', { defaultValue: 'm' });
+    const h = tOr('delivery.hoursUnit', 'h', 'u');
+    const m = tOr('delivery.minutesUnit', 'm', 'm');
     return hours > 0 ? `${hours}${h} ${mins}${m}` : `${mins}${m}`;
   };
 
@@ -1219,14 +1220,14 @@ export default function DeliveryDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {!isSeller && agreementCurrentAccepted === false && (
             <div className="lg:col-span-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-gray-800">
-              <p className="font-semibold">Huidige bezorgerovereenkomst nog niet geaccepteerd</p>
-              <p className="mt-1">Lees de tekst en bevestig hem expliciet. Een eerdere acceptatie blijft bewaard en geldt niet voor deze versie. Bestaande opdrachten blijven beschikbaar.</p>
+              <p className="font-semibold">{t('delivery.agreementBannerTitle')}</p>
+              <p className="mt-1">{t('delivery.agreementBannerBody')}</p>
               <button
                 type="button"
                 className="mt-3 min-h-[44px] rounded-lg border border-gray-300 bg-white px-4 py-2 font-semibold text-gray-900"
                 onClick={() => setShowAgreement(true)}
               >
-                Lees de overeenkomst
+                {t('delivery.agreementRead')}
               </button>
               <button
                 type="button"
@@ -1246,7 +1247,7 @@ export default function DeliveryDashboard() {
                   }
                 }}
               >
-                Ik accepteer de bezorgerovereenkomst
+                {t('delivery.agreementAccept')}
               </button>
               <DeliveryAgreementModal open={showAgreement} onClose={() => setShowAgreement(false)} />
             </div>
@@ -1257,7 +1258,7 @@ export default function DeliveryDashboard() {
               <div className="rounded-xl border-2 border-violet-200 bg-violet-50 p-4 sm:p-5">
                 <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3">
                   {t('delivery.pendingBookingRequests', {
-                    defaultValue: 'Openstaande boekingsaanvragen',
+                    defaultValue: language === 'en' ? 'Pending booking requests' : 'Openstaande boekingsaanvragen',
                   })}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1329,7 +1330,7 @@ export default function DeliveryDashboard() {
                                   message:
                                     err.error ||
                                     t('delivery.couldNotAcceptOrder', {
-                                      defaultValue: 'Kon aanvraag niet accepteren',
+                                      defaultValue: language === 'en' ? 'Could not accept the request' : 'Kon aanvraag niet accepteren',
                                     }),
                                 });
                                 return;
@@ -1340,13 +1341,13 @@ export default function DeliveryDashboard() {
                               setFeedback({
                                 type: 'error',
                                 message: t('delivery.couldNotAcceptOrder', {
-                                  defaultValue: 'Kon aanvraag niet accepteren',
+                                  defaultValue: language === 'en' ? 'Could not accept the request' : 'Kon aanvraag niet accepteren',
                                 }),
                               });
                             }
                           }}
                         >
-                          {t('delivery.acceptOrder', { defaultValue: 'Accepteren' })}
+                          {tOr('delivery.acceptOrder', 'Accept', 'Accepteren')}
                         </button>
                         <button
                           type="button"
@@ -1363,46 +1364,49 @@ export default function DeliveryDashboard() {
                             }
                           }}
                         >
-                          {t('common.cancel', { defaultValue: 'Afwijzen' })}
+                          {tOr('delivery.rejectRequest', 'Decline', 'Afwijzen')}
                         </button>
                       </div>
                       {scheduleReview?.bookingId === booking.id ? (
                         <div className="mt-3 space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-gray-800 scroll-mb-[calc(7rem+env(safe-area-inset-bottom,0px)+var(--keyboard-inset,0px))]">
                           <p>{scheduleReview.message}</p>
                           <p>
-                            Reistijd:{' '}
+                            {tOr('delivery.travelTime', 'Travel time', 'Reistijd')}:{' '}
                             {scheduleReview.driveMinutes == null
-                              ? 'niet bekend'
-                              : `${scheduleReview.driveMinutes} min (${scheduleReview.driveIsEstimate ? 'schatting' : 'route'})`}
+                              ? tOr('delivery.driveUnknown', 'unknown', 'niet bekend')
+                              : `${scheduleReview.driveMinutes} min (${scheduleReview.driveIsEstimate ? tOr('delivery.driveEstimate', 'estimate', 'schatting') : tOr('delivery.driveRoute', 'route', 'route')})`}
                           </p>
                           {scheduleReview.neighbors.length > 0 ? (
                             <ul className="space-y-1">
-                              {scheduleReview.neighbors.map((neighbor) => (
+                              {scheduleReview.neighbors.map((neighbor) => {
+                                const when = (value: string) => new Date(value).toLocaleString(intlLocale(language));
+                                return (
                                 <li key={neighbor.id}>
-                                  Andere opdracht
-                                  {neighbor.start ? ` vanaf ${new Date(neighbor.start).toLocaleString('nl-NL')}` : ', starttijd niet vastgelegd'}
+                                  {tOr('delivery.otherJob', 'Another job', 'Andere opdracht')}
+                                  {neighbor.start ? ` ${t('delivery.jobFrom', { time: when(neighbor.start), defaultValue: language === 'en' ? 'from {time}' : 'vanaf {time}' })}` : `, ${tOr('delivery.startMissing', 'start time not recorded', 'starttijd niet vastgelegd')}`}
                                   {neighbor.endKnown && neighbor.end
-                                    ? `, tot ${new Date(neighbor.end).toLocaleString('nl-NL')}`
-                                    : ', eindtijd niet vastgelegd'}
+                                    ? `, ${t('delivery.jobUntil', { time: when(neighbor.end), defaultValue: language === 'en' ? 'until {time}' : 'tot {time}' })}`
+                                    : `, ${tOr('delivery.endMissing', 'end time not recorded', 'eindtijd niet vastgelegd')}`}
                                 </li>
-                              ))}
+                                );
+                              })}
                             </ul>
                           ) : null}
                           <label className="block">
-                            Laden (minuten)
+                            {tOr('delivery.loadMinutes', 'Loading (minutes)', 'Laden (minuten)')}
                             <input inputMode="numeric" value={loadMinutesInput} onChange={(event) => setLoadMinutesInput(event.target.value)} className="mt-1 w-full min-h-[44px] rounded border border-gray-300 px-2" />
                           </label>
                           <label className="block">
-                            Lossen (minuten)
+                            {tOr('delivery.unloadMinutes', 'Unloading (minutes)', 'Lossen (minuten)')}
                             <input inputMode="numeric" value={unloadMinutesInput} onChange={(event) => setUnloadMinutesInput(event.target.value)} className="mt-1 w-full min-h-[44px] rounded border border-gray-300 px-2" />
                           </label>
                           <label className="flex min-h-[44px] items-center gap-2">
                             <input type="checkbox" checked={acceptEstimate} onChange={(event) => setAcceptEstimate(event.target.checked)} />
-                            Ik accepteer een geschatte reistijd
+                            {tOr('delivery.acceptEstimate', 'I accept an estimated travel time', 'Ik accepteer een geschatte reistijd')}
                           </label>
                           <label className="flex min-h-[44px] items-center gap-2">
                             <input type="checkbox" checked={ackUnknown} onChange={(event) => setAckUnknown(event.target.checked)} />
-                            Ik beoordeel een onbekende aansluiting zelf
+                            {tOr('delivery.ackUnknown', 'I will judge an unknown connection myself', 'Ik beoordeel een onbekende aansluiting zelf')}
                           </label>
                         </div>
                       ) : null}
@@ -1421,12 +1425,12 @@ export default function DeliveryDashboard() {
                   <div>
                     <h3 className="text-base sm:text-lg font-bold text-gray-900">
                       {t('delivery.scheduledJobs', {
-                        defaultValue: 'Geplande bezorgingen',
+                        defaultValue: language === 'en' ? 'Scheduled deliveries' : 'Geplande bezorgingen',
                       })}
                     </h3>
                     <p className="text-xs sm:text-sm text-gray-600">
                       {t('delivery.scheduledJobsHint', {
-                        defaultValue: 'Toekomstige opdrachten met datum en tijdvak.',
+                        defaultValue: language === 'en' ? 'Upcoming jobs with date and time window.' : 'Toekomstige opdrachten met datum en tijdvak.',
                       })}
                     </p>
                   </div>
@@ -1437,7 +1441,7 @@ export default function DeliveryDashboard() {
                 {upcomingJobs.length === 0 ? (
                   <p className="text-sm text-gray-600">
                     {t('delivery.scheduledJobsEmpty', {
-                      defaultValue: 'Je hebt geen geplande bezorgingen.',
+                      defaultValue: language === 'en' ? 'You have no scheduled deliveries.' : 'Je hebt geen geplande bezorgingen.',
                     })}
                   </p>
                 ) : (
@@ -1475,7 +1479,7 @@ export default function DeliveryDashboard() {
                             <p className="mt-1 text-xs text-gray-600 flex items-start gap-1">
                               <MapPin className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
                               <span>
-                                {t('delivery.pickupAt', { defaultValue: 'Ophalen' })}:{' '}
+                                {tOr('delivery.pickupAt', 'Pickup', 'Ophalen')}:{' '}
                                 {job.pickupAddress}
                               </span>
                             </p>
@@ -1484,7 +1488,7 @@ export default function DeliveryDashboard() {
                             <p className="mt-1 text-xs text-gray-600 flex items-start gap-1">
                               <Package className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
                               <span>
-                                {t('delivery.deliverAt', { defaultValue: 'Bezorgen' })}:{' '}
+                                {tOr('delivery.deliverAt', 'Deliver', 'Bezorgen')}:{' '}
                                 {job.deliveryAddress}
                               </span>
                             </p>
@@ -1495,7 +1499,7 @@ export default function DeliveryDashboard() {
                               href={job.href}
                               className="mt-3 inline-flex min-h-[44px] w-full items-center justify-center rounded-lg bg-indigo-600 px-3 text-sm font-semibold text-white hover:bg-indigo-700"
                             >
-                              {t('delivery.openJob', { defaultValue: 'Open opdracht' })}
+                              {tOr('delivery.openJob', 'Open job', 'Open opdracht')}
                             </Link>
                           ) : null}
                         </div>

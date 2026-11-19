@@ -874,7 +874,7 @@ function LoginForm() {
               ) : null}
               {!googleAuthEnabled && googleAuthChecked && (
                 <p className="text-xs text-center text-gray-500">
-                  Google login is tijdelijk niet beschikbaar door ontbrekende configuratie.
+                  {t('login.googleUnavailable')}
                 </p>
               )}
             </div>

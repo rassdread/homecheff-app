@@ -5,6 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function intlLocale(language: string | null | undefined): 'nl-NL' | 'en-GB' {
+  return language === 'en' ? 'en-GB' : 'nl-NL';
+}
+
 export function formatPrice(cents: number): string {
   return new Intl.NumberFormat('nl-NL', {
     style: 'currency',

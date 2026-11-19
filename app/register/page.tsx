@@ -505,7 +505,7 @@ function RegisterPageContent() {
       ...prev,
       usernameValidation: {
         isValid: null,
-        message: "Controleren...",
+        message: t('register.validation.checking', { defaultValue: language === 'en' ? 'Checking...' : 'Controleren...' }),
         isChecking: true,
       }
     }));
@@ -573,7 +573,7 @@ function RegisterPageContent() {
       ...prev,
       emailValidation: {
         isValid: null,
-        message: "Controleren...",
+        message: t('register.validation.checking', { defaultValue: language === 'en' ? 'Checking...' : 'Controleren...' }),
         isChecking: true,
       }
     }));
@@ -759,7 +759,7 @@ function RegisterPageContent() {
     }
 
     if (state.usernameValidation.isChecking || state.emailValidation.isChecking) {
-      fail(t('common.loading') || 'Even geduld, we controleren je gegevens.');
+      fail(tOr('common.loading', 'Loading...', 'Laden...'));
       return;
     }
 
@@ -1046,7 +1046,7 @@ function RegisterPageContent() {
         if (loginResult?.error) {
           console.error("Auto sign-in failed:", loginResult.error);
           // Redirect naar login pagina met succesmelding en instructies
-          router.push(`/login?message=${encodeURIComponent(t('register.paymentSuccess') || 'Account aangemaakt! Log in met je email en wachtwoord.')}&email=${encodeURIComponent(state.email)}`);
+          router.push(`/login?message=${encodeURIComponent(tOr('register.paymentSuccess', 'Payment successful! Log in to continue.', 'Betaling succesvol! Log in om verder te gaan.'))}&email=${encodeURIComponent(state.email)}`);
           return;
         }
         
@@ -1103,7 +1103,7 @@ function RegisterPageContent() {
 
           // For other browsers, redirect to login with message
           console.warn('⚠️ [REGISTER] No session found after all retries, redirecting to login');
-          router.push(`/login?message=${encodeURIComponent(t('register.paymentSuccess') || 'Account aangemaakt! Log in met je email en wachtwoord.')}&email=${encodeURIComponent(state.email)}`);
+          router.push(`/login?message=${encodeURIComponent(tOr('register.paymentSuccess', 'Payment successful! Log in to continue.', 'Betaling succesvol! Log in om verder te gaan.'))}&email=${encodeURIComponent(state.email)}`);
           return;
         }
 
@@ -1164,7 +1164,7 @@ function RegisterPageContent() {
         
         console.error("Auto sign-in failed:", error);
         // Redirect naar login pagina met succesmelding
-        router.push(`/login?message=${encodeURIComponent(t('register.paymentSuccess') || 'Account aangemaakt! Log in met je email en wachtwoord.')}&email=${encodeURIComponent(state.email)}`);
+        router.push(`/login?message=${encodeURIComponent(tOr('register.paymentSuccess', 'Payment successful! Log in to continue.', 'Betaling succesvol! Log in om verder te gaan.'))}&email=${encodeURIComponent(state.email)}`);
       }
       
     } catch (error) {
@@ -1321,7 +1321,7 @@ function RegisterPageContent() {
                     ) : null}
                     {!googleAuthEnabled && googleAuthChecked && (
                       <p className="text-xs text-center text-gray-500">
-                        Google login is tijdelijk niet beschikbaar door ontbrekende configuratie.
+                        {t('login.googleUnavailable')}
                       </p>
                     )}
                   </div>

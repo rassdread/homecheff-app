@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Package, Clock, CheckCircle, Truck, MapPin, MessageCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { intlLocale } from '@/lib/utils';
 import OrderLifecycleTimeline from '@/components/orders/OrderLifecycleTimeline';
 import OrderStatusChip from '@/components/orders/OrderStatusChip';
 
@@ -19,7 +20,7 @@ interface OrderStatus {
 }
 
 export default function OrderTracking({ orderId }: OrderTrackingProps) {
-  const { t } = useTranslation();
+  const { t, tOr, language } = useTranslation();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -133,8 +134,8 @@ export default function OrderTracking({ orderId }: OrderTrackingProps) {
     return (
       <div className="bg-white rounded-xl shadow-lg p-6 text-center">
         <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Bestelling niet gevonden</h3>
-        <p className="text-gray-600">De bestelling kon niet worden geladen.</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{tOr('order.notFound', 'Order not found', 'Bestelling niet gevonden')}</h3>
+        <p className="text-gray-600">{tOr('order.notFoundBody', 'The order could not be loaded.', 'De bestelling kon niet worden geladen.')}</p>
       </div>
     );
   }
@@ -147,8 +148,8 @@ export default function OrderTracking({ orderId }: OrderTrackingProps) {
       <div className="bg-gradient-to-r from-primary-brand to-primary-700 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-white">Bestelling #{order.orderNumber}</h2>
-            <p className="text-primary-100 text-sm">Geplaatst op {new Date(order.createdAt).toLocaleDateString('nl-NL')}</p>
+            <h2 className="text-xl font-bold text-white">{t('order.numberTitle', { number: order.orderNumber, defaultValue: language === 'en' ? 'Order #{number}' : 'Bestelling #{number}' })}</h2>
+            <p className="text-primary-100 text-sm">{t('order.placedOn', { date: new Date(order.createdAt).toLocaleDateString(intlLocale(language)), defaultValue: language === 'en' ? 'Placed on {date}' : 'Geplaatst op {date}' })}</p>
           </div>
           <div className="text-right">
             <p className="text-white font-semibold">€{(order.totalAmount / 100).toFixed(2)}</p>
@@ -198,7 +199,7 @@ export default function OrderTracking({ orderId }: OrderTrackingProps) {
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="w-4 h-4 text-gray-500" />
                     <span className="text-gray-700">
-                      {new Date(deliveryInfo.date).toLocaleDateString('nl-NL')}
+                      {new Date(deliveryInfo.date).toLocaleDateString(intlLocale(language))}
                     </span>
                   </div>
                 )}
@@ -209,7 +210,7 @@ export default function OrderTracking({ orderId }: OrderTrackingProps) {
 
         {/* Order Items */}
         <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Bestelde producten</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{tOr('order.itemsHeading', 'Ordered products', 'Bestelde producten')}</h3>
           
           <div className="space-y-4">
             {order.items?.map((item: any) => (
