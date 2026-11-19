@@ -23,7 +23,7 @@ interface OrderNotification {
 type FilterType = 'all' | 'active' | 'completed' | 'cancelled';
 
 export default function OrdersTab() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [notifications, setNotifications] = useState<OrderNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>('all');
@@ -192,11 +192,11 @@ export default function OrdersTab() {
                           )}
                           <p className="text-xs text-gray-500 whitespace-nowrap">
                             {isToday
-                              ? notificationDate.toLocaleTimeString('nl-NL', {
+                              ? notificationDate.toLocaleTimeString(language === 'en' ? 'en-GB' : 'nl-NL', {
                                   hour: '2-digit',
                                   minute: '2-digit'
                                 })
-                              : notificationDate.toLocaleDateString('nl-NL', {
+                              : notificationDate.toLocaleDateString(language === 'en' ? 'en-GB' : 'nl-NL', {
                                   day: 'numeric',
                                   month: 'short',
                                   hour: '2-digit',

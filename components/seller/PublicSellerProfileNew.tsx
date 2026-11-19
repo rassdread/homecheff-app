@@ -209,7 +209,7 @@ export default function PublicSellerProfile({
   isOwner = false,
   publicContactChannels = [],
 }: PublicSellerProfileProps) {
-  const { t } = useTranslation();
+  const { t, tOr, language } = useTranslation();
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'workspace' | 'reviews' | 'recipes' | 'orders' | 'follows' | 'dishes-chef' | 'dishes-garden' | 'dishes-designer' | 'dishes'>('overview');
   const [workspaceContent, setWorkspaceContent] = useState<WorkspaceContent[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -531,9 +531,12 @@ export default function PublicSellerProfile({
                 <div className="flex items-center gap-3 mb-4">
                   <Calendar className="w-5 h-5 text-gray-400" />
                   <span className="text-gray-700">
-                    Lid sinds {new Date(sellerProfile.createdAt).toLocaleDateString('nl-NL', { 
-                      month: 'long', 
-                      year: 'numeric' 
+                    {t('profileV2.header.memberSince', {
+                      date: new Date(sellerProfile.createdAt).toLocaleDateString(language === 'en' ? 'en-GB' : 'nl-NL', {
+                        month: 'long',
+                        year: 'numeric',
+                      }),
+                      defaultValue: language === 'en' ? 'Member since {date}' : 'Lid sinds {date}',
                     })}
                   </span>
                 </div>
@@ -541,7 +544,7 @@ export default function PublicSellerProfile({
                 {/* Verification Status */}
                 <div className="flex items-center gap-3 mb-4">
                   <Shield className="w-5 h-5 text-blue-500" />
-                  <span className="text-blue-600 font-medium">Geverifieerd Verkoper</span>
+                  <span className="text-blue-600 font-medium">{tOr('publicProfile.verifiedSeller', 'Verified seller', 'Geverifieerd verkoper')}</span>
                 </div>
 
                 {/* Interests */}
@@ -848,7 +851,7 @@ export default function PublicSellerProfile({
                                     </div>
                                   </div>
                                   <span className="text-xs text-gray-400">
-                                    {new Date(content.createdAt).toLocaleDateString('nl-NL')}
+                                    {new Date(content.createdAt).toLocaleDateString(language === 'en' ? 'en-GB' : 'nl-NL')}
                                   </span>
                                 </div>
                               </div>
@@ -976,7 +979,7 @@ export default function PublicSellerProfile({
                                   </div>
                                 </div>
                                 <span className="text-xs text-gray-400">
-                                  {new Date(content.createdAt).toLocaleDateString('nl-NL')}
+                                  {new Date(content.createdAt).toLocaleDateString(language === 'en' ? 'en-GB' : 'nl-NL')}
                                 </span>
                               </div>
                             </div>
