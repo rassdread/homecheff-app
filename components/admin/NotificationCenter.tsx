@@ -21,6 +21,7 @@ import {
   type AudienceSelection,
   type PendingStepId,
   type SelectionFilterChip,
+  type PushAudienceFilter,
   type StripeAudienceFilter,
   type VerificationKind,
   type VerificationStatus,
@@ -142,6 +143,7 @@ export default function NotificationCenter() {
   const [audience, setAudience] = useState<AudienceId>('applicable');
   const [matchMode, setMatchMode] = useState<'all' | 'any'>('all');
   const [stripe, setStripe] = useState<StripeAudienceFilter | ''>('');
+  const [pushFilter, setPushFilter] = useState<PushAudienceFilter | ''>('');
   const [verificationKind, setVerificationKind] = useState<VerificationKind | ''>('');
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus | ''>('');
   const [agreementOpen, setAgreementOpen] = useState(false);
@@ -181,6 +183,7 @@ export default function NotificationCenter() {
       audience,
       match: matchMode,
       stripe: stripe || null,
+      push: pushFilter || null,
       verification:
         verificationKind && verificationStatus
           ? { kind: verificationKind, status: verificationStatus }
@@ -217,6 +220,7 @@ export default function NotificationCenter() {
         audience,
         match: matchMode,
         stripe: stripe || null,
+        push: pushFilter || null,
         verification:
           verificationKind && verificationStatus
             ? { kind: verificationKind, status: verificationStatus }
@@ -281,6 +285,7 @@ export default function NotificationCenter() {
     audience,
     matchMode,
     stripe,
+    pushFilter,
     verificationKind,
     verificationStatus,
     agreementOpen,
@@ -361,6 +366,7 @@ export default function NotificationCenter() {
       if (draft.matchMode === 'all' || draft.matchMode === 'any') setMatchMode(draft.matchMode);
       if (draft.stripe === 'ready' || draft.stripe === 'not_ready') setStripe(draft.stripe);
       else if (draft.stripe === 'none' || draft.stripe === 'incomplete' || draft.stripe === 'review') setStripe('not_ready');
+      if (draft.push === 'registered' || draft.push === 'unregistered') setPushFilter(draft.push);
       if (typeof draft.verificationKind === 'string') setVerificationKind(draft.verificationKind as VerificationKind | '');
       if (typeof draft.verificationStatus === 'string') setVerificationStatus(draft.verificationStatus as VerificationStatus | '');
       if (typeof draft.agreementOpen === 'boolean') setAgreementOpen(draft.agreementOpen);
@@ -403,6 +409,7 @@ export default function NotificationCenter() {
       audience,
       matchMode,
       stripe,
+      push: pushFilter,
       verificationKind,
       verificationStatus,
       agreementOpen,
@@ -426,6 +433,7 @@ export default function NotificationCenter() {
     audience,
     matchMode,
     stripe,
+    pushFilter,
     verificationKind,
     verificationStatus,
     agreementOpen,
@@ -619,6 +627,7 @@ export default function NotificationCenter() {
     setAudience(next.audience);
     setMatchMode(next.match);
     setStripe(next.stripe || '');
+    setPushFilter(next.push || '');
     setVerificationKind(next.verification?.kind || '');
     setVerificationStatus(next.verification?.status || '');
     setAgreementOpen(Boolean(next.agreementVersion));
@@ -630,6 +639,7 @@ export default function NotificationCenter() {
 
   const removeChip = (id: SelectionFilterChip['id']) => {
     if (id === 'stripe') setStripe('');
+    if (id === 'push') setPushFilter('');
     if (id === 'verification') {
       setVerificationKind('');
       setVerificationStatus('');
@@ -642,6 +652,7 @@ export default function NotificationCenter() {
 
   const clearFilters = () => {
     setStripe('');
+    setPushFilter('');
     setVerificationKind('');
     setVerificationStatus('');
     setAgreementOpen(false);
@@ -850,6 +861,22 @@ export default function NotificationCenter() {
                   <option value="not_ready">{stripeChoiceLabel('not_ready', language === 'en' ? 'en' : 'nl')}</option>
                 </select>
                 <span className="mt-1 block text-xs text-gray-600">{copy('stripeFilterHelp')}</span>
+              </label>
+              <label className="block text-sm">
+                <span className="font-medium text-gray-700">{copy('pushLabel')}</span>
+                <select
+                  value={pushFilter}
+                  onChange={(event) => {
+                    setPushFilter(event.target.value as PushAudienceFilter | '');
+                    invalidatePreview();
+                  }}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">{copy('noPushFilter')}</option>
+                  <option value="registered">{copy('pushRegistered')}</option>
+                  <option value="unregistered">{copy('pushUnregistered')}</option>
+                </select>
+                <span className="mt-1 block text-xs text-gray-600">{copy('pushFilterHelp')}</span>
               </label>
               <label className="block text-sm">
                 <span className="font-medium text-gray-700">{copy('emailVerification')}</span>

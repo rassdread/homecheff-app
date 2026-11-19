@@ -33,6 +33,9 @@ export type PayoutConnectStatus = 'none' | 'incomplete' | 'ready' | 'review';
 /** The only Stripe choices in the message center. Technical statuses stay out of this list. */
 export type StripeAudienceFilter = 'ready' | 'not_ready';
 
+/** Stored app or browser registration. This is not proof of delivery or current device permission. */
+export type PushAudienceFilter = 'registered' | 'unregistered';
+
 export type VerificationKind = 'email' | 'courier' | 'commerce_review';
 
 export type VerificationStatus = 'verified' | 'unverified' | 'pending';
@@ -50,6 +53,7 @@ export type AudienceSelection = {
   audience: AudienceId;
   match: 'all' | 'any';
   stripe: StripeAudienceFilter | null;
+  push: PushAudienceFilter | null;
   verification: { kind: VerificationKind; status: VerificationStatus } | null;
   agreementVersion: string | null;
   accountStatus: AccountStatusFilter | null;
@@ -96,6 +100,7 @@ export type AgreementState = 'open' | 'accepted' | 'unknown_version' | 'not_appl
 
 const AUDIENCES = new Set<AudienceId>(['applicable', 'all', 'buyers', 'sellers', 'delivery']);
 const STRIPE = new Set<StripeAudienceFilter>(['ready', 'not_ready']);
+const PUSH = new Set<PushAudienceFilter>(['registered', 'unregistered']);
 const VERIFICATION_KINDS = new Set<VerificationKind>(['email', 'courier', 'commerce_review']);
 const VERIFICATION_STATUS = new Set<VerificationStatus>(['verified', 'unverified', 'pending']);
 const ACCOUNT_STATUS = new Set<AccountStatusFilter>(['active', 'blocked', 'courier_blocked']);
@@ -383,6 +388,10 @@ function selectedFilters(selection: AudienceSelection): Array<(user: AudienceCan
       return stripeFilterMatches(user, expected);
     });
   }
+  if (selection.push) {
+    const wantRegistered = selection.push === 'registered';
+    filters.push((user) => user.pushReachable === wantRegistered);
+  }
   if (selection.verification) {
     const verification = selection.verification;
     filters.push((user) => verificationMatches(user, verification));
@@ -408,6 +417,7 @@ function selectedFilters(selection: AudienceSelection): Array<(user: AudienceCan
 export function selectionHasStatusFilter(selection: AudienceSelection): boolean {
   return Boolean(
     selection.stripe
+      || selection.push
       || selection.verification
       || selection.agreementVersion
       || selection.accountStatus
@@ -450,6 +460,11 @@ export function inclusionReasons(user: AudienceCandidate, selection: AudienceSel
   const reasons: string[] = [];
   if (selection.stripe && stripeFilterMatches(user, selection.stripe)) {
     reasons.push(payoutConnectStatusLabel(payoutConnectStatus(user), lang));
+  }
+  if (selection.push === 'registered' && user.pushReachable) {
+    reasons.push(uiCopy(lang, 'admin.notificationCenter.ui.pushRegistered'));
+  } else if (selection.push === 'unregistered' && !user.pushReachable) {
+    reasons.push(uiCopy(lang, 'admin.notificationCenter.ui.pushUnregistered'));
   }
   if (selection.verification && verificationMatches(user, selection.verification)) {
     reasons.push(verificationFilterLabel(selection.verification, lang));
@@ -515,6 +530,7 @@ export function emptySelection(audience: AudienceId): AudienceSelection {
     audience,
     match: 'all',
     stripe: null,
+    push: null,
     verification: null,
     agreementVersion: null,
     accountStatus: null,
@@ -619,6 +635,13 @@ export function parseAudienceSelection(
     }
     stripe = value.stripe as StripeAudienceFilter;
   }
+  let push: PushAudienceFilter | null = null;
+  if (value.push != null) {
+    if (typeof value.push !== 'string' || !PUSH.has(value.push as PushAudienceFilter)) {
+      return { ok: false, error: error('unknownPush') };
+    }
+    push = value.push as PushAudienceFilter;
+  }
   let verification: AudienceSelection['verification'] = null;
   if (value.verification != null) {
     if (!isRecord(value.verification)) {
@@ -679,6 +702,7 @@ export function parseAudienceSelection(
       audience: audience as AudienceId,
       match,
       stripe,
+      push,
       verification,
       agreementVersion,
       accountStatus,
@@ -750,12 +774,20 @@ export function pendingStepLabel(step: PendingStepId, lang: UiLanguage = 'nl'): 
   return uiCopy(lang, keys[step]);
 }
 
-export type SelectionFilterChip = { id: 'stripe' | 'verification' | 'agreement' | 'account' | 'pending'; label: string };
+export type SelectionFilterChip = { id: 'stripe' | 'push' | 'verification' | 'agreement' | 'account' | 'pending'; label: string };
 
 export function selectionFilterChips(selection: AudienceSelection, lang: UiLanguage = 'nl'): SelectionFilterChip[] {
   const text = (key: string) => uiCopy(lang, `admin.notificationCenter.ui.${key}`);
   const chips: SelectionFilterChip[] = [];
   if (selection.stripe) chips.push({ id: 'stripe', label: stripeChoiceLabel(selection.stripe, lang) });
+  if (selection.push) {
+    chips.push({
+      id: 'push',
+      label: uiCopy(lang, selection.push === 'registered'
+        ? 'admin.notificationCenter.ui.pushRegistered'
+        : 'admin.notificationCenter.ui.pushUnregistered'),
+    });
+  }
   if (selection.verification) {
     const filter = selection.verification;
     const label = filter.kind === 'email'
@@ -833,6 +865,13 @@ export function describeSelection(selection: AudienceSelection, lang: UiLanguage
       label: stripeFilterLabel(selection.stripe, selection.audience, lang),
     }));
   }
+  if (selection.push) {
+    lines.push(uiCopy(lang, 'admin.notificationCenter.ui.describePush', {
+      label: uiCopy(lang, selection.push === 'registered'
+        ? 'admin.notificationCenter.ui.pushRegistered'
+        : 'admin.notificationCenter.ui.pushUnregistered'),
+    }));
+  }
   if (selection.stripe === 'not_ready') {
     lines.push(uiCopy(lang, 'admin.notificationCenter.ui.describeReviewSkip'));
   }
@@ -869,6 +908,7 @@ export function canonicalSelection(selection: AudienceSelection): AudienceSelect
     audience: selection.audience,
     match: selection.match,
     stripe: selection.stripe,
+    push: selection.push,
     verification: selection.verification
       ? { kind: selection.verification.kind, status: selection.verification.status }
       : null,

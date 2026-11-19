@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { getFirebaseMessaging } from '@/lib/firebase/admin';
 import {
-  isValidFcmTokenShape,
+  isUsableRegisteredPushToken,
   maskPushTokenForLogs,
 } from '@/lib/pushTokenValidation';
 import { canonicalLogoUrl } from '@/lib/brand/canonical-logo';
@@ -70,7 +70,7 @@ export async function sendAdminBroadcastFcm(opts: {
       isActive: true,
       type: 'FCM',
     },
-    select: { token: true },
+    select: { token: true, platform: true },
   });
 
   const seen = new Set<string>();
@@ -88,8 +88,8 @@ export async function sendAdminBroadcastFcm(opts: {
   for (const row of rows) {
     const token = row.token;
     if (!token || seen.has(token)) continue;
+    if (!isUsableRegisteredPushToken({ token, isActive: true, type: 'FCM', platform: row.platform })) continue;
     seen.add(token);
-    if (!isValidFcmTokenShape(token)) continue;
 
     const notification = { title, body };
     const androidNotification = {
@@ -187,13 +187,13 @@ export async function sendAdminBroadcastFcmByUser(opts: {
 
   const rows = await prisma.pushToken.findMany({
     where: { userId: { in: requested }, isActive: true, type: 'FCM' },
-    select: { userId: true, token: true },
+    select: { userId: true, token: true, platform: true },
   });
   const seen = new Set<string>();
   const work: Array<{ userId: string; token: string }> = [];
   for (const row of rows) {
     const token = row.token?.trim();
-    if (!token || seen.has(token) || !isValidFcmTokenShape(token)) continue;
+    if (!token || seen.has(token) || !isUsableRegisteredPushToken({ token, isActive: true, type: 'FCM', platform: row.platform })) continue;
     seen.add(token);
     const bucket = perUser.get(row.userId);
     if (!bucket) continue;

@@ -1,7 +1,7 @@
 import type { Prisma, PrismaClient, UserRole } from '@prisma/client';
 import { getDeliveryProfileCompletionFromRow } from '@/lib/delivery/delivery-profile-completion';
 import type { CanonicalDeliveryProfileRow } from '@/lib/delivery/delivery-profile-canonical';
-import { isValidFcmTokenShape } from '@/lib/pushTokenValidation';
+import { hasUsablePushRegistration } from '@/lib/pushTokenValidation';
 import {
   auditMetaHasConnectAccount,
   type AudienceCandidate,
@@ -59,6 +59,7 @@ export function audienceWhere(audience: AudienceId, selection?: AudienceSelectio
     selection?.verification?.kind === 'email'
     || selection?.accountStatus === 'active'
     || selection?.accountStatus === 'blocked'
+    || selection?.push
   ) {
     return eligible;
   }
@@ -150,8 +151,7 @@ const userSelect = {
   },
   pushTokens: {
     where: { isActive: true, type: 'FCM' },
-    select: { token: true },
-    take: 5,
+    select: { token: true, isActive: true, type: true, platform: true },
   },
 } satisfies Prisma.UserSelect;
 
@@ -229,7 +229,7 @@ export function toAudienceCandidate(row: UserRow): AudienceCandidate {
           activationMissing: activationMissingForRow(row),
         }
       : null,
-    pushReachable: (row.pushTokens ?? []).some((token) => isValidFcmTokenShape(token.token)),
+    pushReachable: hasUsablePushRegistration(row.pushTokens ?? []),
   };
 }
 

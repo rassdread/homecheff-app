@@ -70,6 +70,7 @@ function selection(partial: Partial<AudienceSelection> & Pick<AudienceSelection,
   return {
     match: 'all',
     stripe: null,
+    push: null,
     verification: null,
     agreementVersion: null,
     accountStatus: null,

@@ -51,6 +51,9 @@ import {
   releaseBroadcastFlight,
 } from '@/lib/admin/broadcast-delivery-plan';
 import { visibleBulkFeedbackLines } from '@/lib/email/admin-bulk-delivery';
+import { adminChannelLines } from '@/lib/admin/notification-admin-selection';
+import { audienceWhere, staffAudienceWhere } from '@/lib/admin/load-notification-audience';
+import { hasUsablePushRegistration, isUsableRegisteredPushToken } from '@/lib/pushTokenValidation';
 
 function user(partial: Partial<AudienceCandidate> & Pick<AudienceCandidate, 'id'>): AudienceCandidate {
   return {
@@ -87,6 +90,7 @@ function selection(partial: Partial<AudienceSelection> & Pick<AudienceSelection,
   return {
     match: 'all',
     stripe: null,
+    push: null,
     verification: null,
     agreementVersion: null,
     accountStatus: null,
@@ -782,5 +786,124 @@ describe('repeat and partial send', () => {
     const lines = visibleBulkFeedbackLines({ message: '   ', lines: ['', ' '] });
     assert.equal(lines.length, 1);
     assert.match(lines[0], /leesbare uitslag/);
+  });
+});
+
+const appToken = 'a'.repeat(40);
+const webToken = 'w'.repeat(40);
+
+describe('push registration filter', () => {
+  it('counts one usable app or web registration and ignores revoked or invalid rows', () => {
+    assert.equal(isUsableRegisteredPushToken({ token: appToken, isActive: true, type: 'FCM', platform: 'android' }), true);
+    assert.equal(isUsableRegisteredPushToken({ token: webToken, isActive: true, type: 'FCM', platform: 'web' }), true);
+    assert.equal(hasUsablePushRegistration([
+      { token: appToken, isActive: true, type: 'FCM', platform: 'android' },
+      { token: webToken, isActive: true, type: 'FCM', platform: 'web' },
+    ]), true);
+    assert.equal(hasUsablePushRegistration([]), false);
+    assert.equal(isUsableRegisteredPushToken({ token: appToken, isActive: false, type: 'FCM', platform: 'android' }), false);
+    assert.equal(isUsableRegisteredPushToken({ token: 'short', isActive: true, type: 'FCM', platform: 'ios' }), false);
+    assert.equal(isUsableRegisteredPushToken({ token: appToken, isActive: true, type: 'WEB_PUSH', platform: 'web' }), false);
+    assert.equal(isUsableRegisteredPushToken({ token: appToken, isActive: true, type: 'FCM', platform: 'desktop' }), false);
+    assert.equal(isUsableRegisteredPushToken({ token: appToken, isActive: true, type: 'FCM', platform: '' }), true);
+  });
+
+  it('uses the same person for the list, the count and both match modes', () => {
+    const withApp = user({ id: 'app', pushReachable: true, role: 'BUYER', buyerRoles: ['explorer'] });
+    const withWeb = user({ id: 'web', pushReachable: true, role: 'BUYER', buyerRoles: ['explorer'] });
+    const withBoth = user({ id: 'both', pushReachable: true, role: 'BUYER', buyerRoles: ['explorer'] });
+    const without = user({ id: 'none', pushReachable: false, role: 'BUYER', buyerRoles: ['explorer'] });
+    const people = [withApp, withWeb, withBoth, without];
+    const registered = selection({ audience: 'buyers', push: 'registered' });
+    const unregistered = selection({ audience: 'buyers', push: 'unregistered' });
+    assert.deepEqual(people.filter((person) => matchesAudience(person, registered)).map((person) => person.id), ['app', 'web', 'both']);
+    assert.deepEqual(people.filter((person) => matchesAudience(person, unregistered)).map((person) => person.id), ['none']);
+    assert.equal(people.filter((person) => matchesAudience(person, registered)).length, 3);
+    assert.equal(matchesAudience(user({ id: 'staff', role: 'ADMIN', pushReachable: true }), selection({ audience: 'all', push: 'registered' })), false);
+  });
+
+  it('combines with Stripe and keeps email and the inbox available', () => {
+    const notReady = user({
+      id: 'seller-open',
+      role: 'SELLER',
+      hasSellerProfile: true,
+      sellerRoles: ['chef'],
+      pushReachable: false,
+      email: 'seller-open@homecheff-validation.test',
+    });
+    const readyWithPush = user({
+      id: 'seller-ready-push',
+      role: 'SELLER',
+      hasSellerProfile: true,
+      sellerRoles: ['chef'],
+      stripeConnectAccountId: 'acct_ready',
+      stripeConnectOnboardingCompleted: true,
+      stripePayoutsEnabled: true,
+      stripeTransfersStatus: 'active',
+      stripeConnectTrack: 'PARTICULAR',
+      pushReachable: true,
+    });
+    const buyerWithPush = user({ id: 'buyer-push', role: 'BUYER', buyerRoles: ['explorer'], pushReachable: true });
+    const andFilter = selection({ audience: 'applicable', match: 'all', stripe: 'not_ready', push: 'unregistered' });
+    const orFilter = selection({ audience: 'applicable', match: 'any', stripe: 'not_ready', push: 'registered' });
+    assert.equal(matchesAudience(notReady, andFilter), true);
+    assert.equal(matchesAudience(readyWithPush, andFilter), false);
+    assert.equal(matchesAudience(buyerWithPush, andFilter), false);
+    assert.equal(matchesAudience(notReady, orFilter), true);
+    assert.equal(matchesAudience(readyWithPush, orFilter), true);
+    assert.equal(matchesAudience(buyerWithPush, orFilter), true);
+    assert.equal(selectionCanList(selection({ audience: 'applicable', push: 'registered' })), true);
+    const emailLines = adminChannelLines({
+      plan: { email: true, push: true, inApp: true },
+      pushReachable: false,
+      hasEmail: true,
+    });
+    assert.equal(emailLines.some((line) => line.startsWith('E-mail:')), true);
+    assert.equal(emailLines.some((line) => line.startsWith('In-appmelding:')), true);
+    assert.equal(stripeFilterMatches(readyWithPush, 'ready'), true);
+  });
+
+  it('changes the preview token and loads buyers without pulling in staff', () => {
+    const base = previewCanonicalPayload({
+      selection: selection({ audience: 'buyers' }),
+      message: 'Bericht',
+      subject: 'Onderwerp',
+      title: 'Onderwerp',
+      route: '/notifications',
+      sendNotification: true,
+      sendEmail: true,
+      confirmRepeat: false,
+      recipientIds: ['buyer'],
+    });
+    const changed = previewCanonicalPayload({
+      selection: selection({ audience: 'buyers', push: 'registered' }),
+      message: 'Bericht',
+      subject: 'Onderwerp',
+      title: 'Onderwerp',
+      route: '/notifications',
+      sendNotification: true,
+      sendEmail: true,
+      confirmRepeat: false,
+      recipientIds: ['buyer'],
+    });
+    assert.notEqual(base, changed);
+    const parsed = parseAudienceSelection({ audience: 'buyers', push: 'registered' });
+    assert.equal(parsed.ok, true);
+    if (parsed.ok) {
+      assert.equal(parsed.selection.push, 'registered');
+      assert.equal(selectionFilterChips(parsed.selection)[0]?.id, 'push');
+    }
+    assert.equal(parseAudienceSelection({ audience: 'buyers', push: 'installed' }).ok, false);
+    const where = JSON.stringify(audienceWhere('applicable', selection({ audience: 'applicable', push: 'registered' })));
+    assert.equal(where.includes('"in":[]'), false);
+    assert.equal(staffAudienceWhere('applicable', selection({ audience: 'applicable', push: 'unregistered' })), null);
+    const summary = describeSelection(selection({ audience: 'buyers', push: 'unregistered' })).join(' ');
+    assert.match(summary, /Zonder pushregistratie/);
+    assert.match(summary, /E-mail/);
+    const center = readFileSync(resolve(process.cwd(), 'components/admin/NotificationCenter.tsx'), 'utf8');
+    const sender = readFileSync(resolve(process.cwd(), 'lib/admin/admin-broadcast-fcm.ts'), 'utf8');
+    assert.match(center, /push: pushFilter \|\| null/);
+    assert.match(center, /id === 'push'/);
+    assert.match(sender, /isUsableRegisteredPushToken/);
   });
 });
