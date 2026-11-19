@@ -1,15 +1,11 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { signIn, getSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { useAndroidBridgePresent } from '@/lib/native/useAndroidBridgePresent';
 import { useNativeAndroid } from '@/lib/native/useNativeAndroid';
 import { shouldUseNativeGoogleLogin } from '@/lib/native/subscribeNativeShell';
-import {
-  applySessionMode,
-  setRememberPreference,
-} from '@/lib/session-mode';
+import { setRememberPreference } from '@/lib/session-mode';
 import { trackLogin, trackRegistration } from '@/components/GoogleAnalytics';
 import { trackMetaCompleteRegistration } from '@/lib/meta/browser';
 import { logGoogleLoginDiag } from '@/lib/auth/google-login-diagnostics';
@@ -26,6 +22,7 @@ import {
   invalidateGoogleSocialLoginInit,
 } from '@/lib/native/prewarm-google-social-login';
 import { openSystemBrowserGoogleOAuth } from '@/lib/native/open-system-browser-google-oauth';
+import { dropCachedAuthSession } from '@/lib/native/drop-cached-auth-session';
 import {
   googleNativeConfigBlockedUserMessage,
   googleNativeConfigBlockedDevHint,
@@ -111,7 +108,6 @@ export function NativeGoogleSignInButton({
   analyticsContext,
   returnPath,
 }: NativeGoogleSignInButtonProps) {
-  const router = useRouter();
   const androidBridge = useAndroidBridgePresent();
   const nativeAndroid = useNativeAndroid();
   const preferNative = shouldUseNativeGoogleLogin({
@@ -121,31 +117,6 @@ export function NativeGoogleSignInButton({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const socialSuccessUrl = buildSocialSuccessCallbackUrl(returnPath);
-
-  const waitForNativeSession = useCallback(async (): Promise<boolean> => {
-    for (let attempt = 0; attempt < 10; attempt++) {
-      await new Promise((r) => setTimeout(r, 200));
-      try {
-        const session = await getSession();
-        if (session?.user?.email) return true;
-      } catch {
-        /* ignore */
-      }
-      try {
-        const res = await fetch(resolveNativeAuthApiUrl('/api/auth/session'), {
-          credentials: 'include',
-          cache: 'no-store',
-        });
-        if (res.ok) {
-          const data = (await res.json()) as { user?: { email?: string | null } };
-          if (data?.user?.email) return true;
-        }
-      } catch {
-        /* ignore */
-      }
-    }
-    return false;
-  }, []);
 
   const runWebGoogleLogin = useCallback(async (): Promise<boolean> => {
     logGoogleLoginDiag('google_login_web_start', { preferNative });
@@ -321,7 +292,7 @@ export function NativeGoogleSignInButton({
       return false;
     }
 
-    logGoogleLoginDiag('google_login_native_success');
+    logGoogleLoginDiag('google_login_native_success', { analyticsContext });
 
     if (analyticsContext === 'login') {
       try {
@@ -345,36 +316,35 @@ export function NativeGoogleSignInButton({
       }
     }
 
-    await applySessionMode(rememberMe);
-    const sessionReady = await waitForNativeSession();
-    if (!sessionReady) {
-      logGoogleLoginDiag('google_login_native_failed', { reason: 'session_not_visible' });
-      setError(
-        'Inloggen gelukt, maar sessie start traag. Tik nogmaals op Google of ververs het scherm.',
-      );
-      return false;
-    }
-
+    await dropCachedAuthSession();
     try {
       sessionStorage.setItem('hc_npush_gate', '1');
     } catch {
       /* ignore */
     }
-    try {
-      router.refresh();
-    } catch {
-      /* ignore */
-    }
-    router.replace(socialSuccessUrl);
+    // A document POST stores the session cookie in the Android WebView.
+    // A fetch response often does not, which left the app on the login screen.
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = resolveNativeAuthApiUrl('/api/auth/native/google');
+    const tokenInput = document.createElement('input');
+    tokenInput.type = 'hidden';
+    tokenInput.name = 'idToken';
+    tokenInput.value = idToken;
+    const returnInput = document.createElement('input');
+    returnInput.type = 'hidden';
+    returnInput.name = 'returnTo';
+    returnInput.value = socialSuccessUrl;
+    form.append(tokenInput, returnInput);
+    document.body.append(form);
+    form.submit();
     return true;
   }, [
     analyticsContext,
     androidBridge,
     nativeAndroid,
     rememberMe,
-    router,
     socialSuccessUrl,
-    waitForNativeSession,
     returnPath,
   ]);
 

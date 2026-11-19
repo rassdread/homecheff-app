@@ -81,6 +81,7 @@ export async function sendAdminBroadcastFcm(opts: {
   const data: Record<string, string> = {
     type: 'announcement',
     route: routeParsed,
+    actionUrl: routeParsed,
     broadcastId: opts.broadcastId,
   };
 
@@ -218,6 +219,7 @@ export async function sendAdminBroadcastFcmByUser(opts: {
   const data: Record<string, string> = {
     type: 'announcement',
     route: routeParsed,
+    actionUrl: routeParsed,
     broadcastId: opts.broadcastId,
   };
   const webIcon = canonicalLogoUrl('notification');

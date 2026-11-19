@@ -17,6 +17,7 @@ export type NotificationFeedItem = {
   title: string;
   message: string;
   link?: string;
+  actionLabel?: string;
   isRead: boolean;
   createdAt: string;
 };
@@ -124,6 +125,11 @@ export default function NotificationFeedItems({
                 >
                   {n.message}
                 </p>
+                {n.link?.includes('/notifications/admin/') ? (
+                  <span className="mt-2 inline-flex rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">
+                    {n.actionLabel || tOr('admin.notificationCenter.ui.openNotice', 'Open message', 'Open bericht')}
+                  </span>
+                ) : null}
               </div>
             </button>
           </li>

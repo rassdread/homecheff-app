@@ -1,0 +1,43 @@
+import { parseInternalPathFromUnknownInput } from '@/lib/native/safeRoute';
+import { resolveAdminEmailAction } from '@/lib/email/admin-bulk-message-content';
+
+const CAMPAIGN_ID = /^[0-9a-zA-Z_-]{8,80}$/;
+
+/** Shared page for one admin broadcast. Each recipient only sees their own row. */
+export function adminNoticePath(campaignId: string): string {
+  return `/notifications/admin/${encodeURIComponent(campaignId)}`;
+}
+
+export function isAdminNoticeCampaignId(value: string): boolean {
+  return CAMPAIGN_ID.test(value);
+}
+
+export type AdminNoticeAction = {
+  label: string;
+  path: string;
+  url: string;
+};
+
+export type AdminNoticeButton =
+  | { ok: true; action: AdminNoticeAction | null }
+  | { ok: false; errorKey: 'buttonNeedBoth' | 'buttonUnsafe' };
+
+/**
+ * A button needs both a label and a safe internal HomeCheff path.
+ * Both empty means the notification opens the message itself.
+ */
+export function resolveAdminNoticeButton(label: unknown, route: unknown): AdminNoticeButton {
+  const text = typeof label === 'string' ? label.trim() : '';
+  const raw = typeof route === 'string' ? route.trim() : '';
+  if (!text && !raw) return { ok: true, action: null };
+  if (!text || !raw) return { ok: false, errorKey: 'buttonNeedBoth' };
+  const path = parseInternalPathFromUnknownInput(raw);
+  const bare = path ? path.replace(/\/+$/, '') || '/' : '';
+  if (!path || bare === '/notifications') return { ok: false, errorKey: 'buttonUnsafe' };
+  const resolved = resolveAdminEmailAction(text, `https://homecheff.eu${path}`);
+  if (!resolved.ok || !resolved.action) return { ok: false, errorKey: 'buttonUnsafe' };
+  return {
+    ok: true,
+    action: { label: resolved.action.label, path, url: resolved.action.url },
+  };
+}

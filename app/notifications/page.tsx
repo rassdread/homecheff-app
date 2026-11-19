@@ -19,6 +19,7 @@ function mapApiToFeed(raw: unknown[]): NotificationFeedItem[] {
     title: n.title || 'Melding',
     message: n.message || '',
     link: n.link || n.targetRoute,
+    actionLabel: typeof n.actionLabel === 'string' ? n.actionLabel : undefined,
     isRead: !!n.isRead,
     createdAt: n.createdAt,
   }));

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Send, Users, Mail, Bell, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { AdminEmailPreview } from './AdminEmailPreview';
-import { adminEmailActionForRoute } from '@/lib/email/admin-bulk-message-content';
+import { resolveAdminNoticeButton } from '@/lib/admin/admin-notice';
 import { NotificationHistory } from './NotificationHistory';
 import { chosenRecipients, sendBlockReason } from '@/lib/admin/notification-compose-state';
 import { uiCopy } from '@/lib/admin/notification-copy';
@@ -136,7 +136,8 @@ export default function NotificationCenter() {
   const [draftReady, setDraftReady] = useState(false);
   const [message, setMessage] = useState('');
   const [pushTitle, setPushTitle] = useState('');
-  const [linkPreset, setLinkPreset] = useState('/notifications');
+  const [linkPreset, setLinkPreset] = useState('');
+  const [buttonLabel, setButtonLabel] = useState('');
   const [subject, setSubject] = useState('');
   const [audience, setAudience] = useState<AudienceId>('applicable');
   const [matchMode, setMatchMode] = useState<'all' | 'any'>('all');
@@ -354,6 +355,7 @@ export default function NotificationCenter() {
       if (typeof draft.pushTitle === 'string') setPushTitle(draft.pushTitle);
       if (typeof draft.subject === 'string') setSubject(draft.subject);
       if (typeof draft.linkPreset === 'string') setLinkPreset(draft.linkPreset);
+      if (typeof draft.buttonLabel === 'string') setButtonLabel(draft.buttonLabel);
       if (draft.audience === 'applicable' || draft.audience === 'all' || draft.audience === 'buyers' || draft.audience === 'sellers' || draft.audience === 'delivery') {
         setAudience(draft.audience);
       }
@@ -398,6 +400,7 @@ export default function NotificationCenter() {
       pushTitle,
       subject,
       linkPreset,
+      buttonLabel,
       audience,
       matchMode,
       stripe,
@@ -421,6 +424,7 @@ export default function NotificationCenter() {
     pushTitle,
     subject,
     linkPreset,
+    buttonLabel,
     audience,
     matchMode,
     stripe,
@@ -453,7 +457,7 @@ export default function NotificationCenter() {
   };
 
   const campaignKey = () => {
-    const hash = `${message.trim()}\n${subject.trim()}\n${pushTitle.trim()}\n${linkPreset}`;
+    const hash = `${message.trim()}\n${subject.trim()}\n${pushTitle.trim()}\n${linkPreset}\n${buttonLabel.trim()}`;
     if (!contentKeyRef.current || contentKeyRef.current.hash !== hash) {
       contentKeyRef.current = {
         hash,
@@ -470,6 +474,7 @@ export default function NotificationCenter() {
       subject: subject.trim(),
       title: pushTitle.trim() || undefined,
       route: linkPreset,
+      buttonLabel: buttonLabel.trim(),
       selection: current,
       includeUserIds: selectedIds,
       explicitReviewUserIds: explicitReviewIds.filter((id) => selectedIds.includes(id)),
@@ -497,6 +502,11 @@ export default function NotificationCenter() {
     }
     if (!message.trim()) {
       setNotice({ tone: 'error', lines: [copy('fillMessage')] });
+      return;
+    }
+    const noticeButton = resolveAdminNoticeButton(buttonLabel, linkPreset);
+    if (!noticeButton.ok) {
+      setNotice({ tone: 'error', lines: [copy(noticeButton.errorKey)] });
       return;
     }
     if (!sendNotification && !sendEmail) {
@@ -1214,59 +1224,6 @@ export default function NotificationCenter() {
             )}
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-base font-semibold text-gray-900">{copy('stepMessage')}</h3>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('admin.notificationCenter.message')}
-              </label>
-              <textarea
-                value={message}
-                onChange={(event) => {
-                  setMessage(event.target.value);
-                  invalidatePreview();
-                }}
-                rows={4}
-                aria-invalid={fieldInvalid('message')}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${fieldInvalid('message') ? 'border-red-600' : 'border-gray-300'}`}
-                placeholder={t('common.typeMessageHere')}
-                maxLength={500}
-              />
-              <div className="mt-1 text-sm text-gray-500">{message.length}/500 {t('common.characters')}</div>
-            </div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('admin.notificationCenter.deliveryMethod')}
-            </label>
-            <div className="space-y-3">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={sendNotification}
-                  onChange={(event) => {
-                    setSendNotification(event.target.checked);
-                    invalidatePreview();
-                  }}
-                  className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                />
-                <Bell className="w-4 h-4 ml-2 mr-2 text-gray-600" />
-                <span className="text-sm text-gray-700">{copy('inAppPush')}</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={sendEmail}
-                  onChange={(event) => {
-                    setSendEmail(event.target.checked);
-                    invalidatePreview();
-                  }}
-                  className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                />
-                <Mail className="w-4 h-4 ml-2 mr-2 text-gray-600" />
-                <span className="text-sm text-gray-700">{t('admin.notificationCenter.sendEmail')}</span>
-              </label>
-            </div>
-          </div>
-
           {(sendEmail || sendNotification) && (
             <div className="rounded-lg border border-gray-200 p-4 space-y-3">
               <div>
@@ -1392,6 +1349,147 @@ export default function NotificationCenter() {
             </div>
           )}
 
+          <div className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-900">{copy('stepChannels')}</h3>
+            <div className="space-y-3">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={sendNotification}
+                  onChange={(event) => {
+                    setSendNotification(event.target.checked);
+                    invalidatePreview();
+                  }}
+                  className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                />
+                <Bell className="w-4 h-4 ml-2 mr-2 text-gray-600" />
+                <span className="text-sm text-gray-700">{copy('inAppPush')}</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={sendEmail}
+                  onChange={(event) => {
+                    setSendEmail(event.target.checked);
+                    invalidatePreview();
+                  }}
+                  className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                />
+                <Mail className="w-4 h-4 ml-2 mr-2 text-gray-600" />
+                <span className="text-sm text-gray-700">{t('admin.notificationCenter.sendEmail')}</span>
+              </label>
+            </div>
+          </div>
+
+          {(sendNotification || sendEmail) && (
+            <div className="space-y-4">
+              <h3 className="text-base font-semibold text-gray-900">{copy('stepTitles')}</h3>
+              {sendNotification && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('admin.notificationCenter.pushTitle')}
+                  </label>
+                  <input
+                    type="text"
+                    value={pushTitle}
+                    onChange={(event) => {
+                      setPushTitle(event.target.value);
+                      invalidatePreview();
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    placeholder={t('admin.notificationCenter.pushTitlePlaceholder')}
+                    maxLength={120}
+                  />
+                </div>
+              )}
+              {sendEmail && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('admin.notificationCenter.emailSubject')} *
+                  </label>
+                  <input
+                    type="text"
+                    value={subject}
+                    onChange={(event) => {
+                      setSubject(event.target.value);
+                      invalidatePreview();
+                    }}
+                    aria-invalid={fieldInvalid('subject')}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${fieldInvalid('subject') ? 'border-red-600' : 'border-gray-300'}`}
+                    placeholder={t('admin.notificationCenter.emailSubjectPlaceholder')}
+                    maxLength={100}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <h3 className="text-base font-semibold text-gray-900">{copy('stepMessage')}</h3>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('admin.notificationCenter.message')}
+              </label>
+              <textarea
+                value={message}
+                onChange={(event) => {
+                  setMessage(event.target.value);
+                  invalidatePreview();
+                }}
+                rows={4}
+                aria-invalid={fieldInvalid('message')}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${fieldInvalid('message') ? 'border-red-600' : 'border-gray-300'}`}
+                placeholder={t('common.typeMessageHere')}
+                maxLength={500}
+              />
+              <div className="mt-1 text-sm text-gray-500">{message.length}/500 {t('common.characters')}</div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-900">{copy('stepAction')}</h3>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="notice-button-label">
+                {copy('buttonLabel')}
+              </label>
+              <input
+                id="notice-button-label"
+                type="text"
+                value={buttonLabel}
+                onChange={(event) => {
+                  setButtonLabel(event.target.value);
+                  invalidatePreview();
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder={copy('buttonLabelPlaceholder')}
+                maxLength={80}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="notice-button-route">
+                {copy('buttonDestination')}
+              </label>
+              <select
+                id="notice-button-route"
+                value={linkPreset}
+                onChange={(event) => {
+                  setLinkPreset(event.target.value);
+                  invalidatePreview();
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="">{copy('buttonNone')}</option>
+                <option value="/delivery/dashboard">{copy('routeStripe')}</option>
+                <option value="/delivery/settings">{copy('routeDeliverySettings')}</option>
+                <option value="/sell/new">{copy('routeSell')}</option>
+                <option value="/app">{t('admin.notificationCenter.routeBetaApp')}</option>
+                <option value="/mijn-hcp">{t('admin.notificationCenter.routeMijnHcp')}</option>
+                <option value="/profile">{t('admin.notificationCenter.routeProfile')}</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">{copy('buttonHelp')}</p>
+            </div>
+          </div>
+
           {sendEmail && (
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
               <p className="font-medium">{copy('emailCapacityTitle')}</p>
@@ -1408,69 +1506,6 @@ export default function NotificationCenter() {
                   <span>{copy('emailConfirm')}</span>
                 </label>
               )}
-            </div>
-          )}
-
-          {sendNotification && (
-            <div className="space-y-4">
-              <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('admin.notificationCenter.pushTitle')}
-                  </label>
-                  <input
-                    type="text"
-                    value={pushTitle}
-                    onChange={(event) => {
-                      setPushTitle(event.target.value);
-                      invalidatePreview();
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder={t('admin.notificationCenter.pushTitlePlaceholder')}
-                    maxLength={120}
-                  />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('admin.notificationCenter.linkPreset')}
-                </label>
-                <select
-                  value={linkPreset}
-                  onChange={(event) => {
-                    setLinkPreset(event.target.value);
-                    invalidatePreview();
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                >
-                  <option value="/notifications">{t('admin.notificationCenter.routeInbox')}</option>
-                  <option value="/delivery/dashboard">{copy('routeStripe')}</option>
-                  <option value="/delivery/settings">{copy('routeDeliverySettings')}</option>
-                  <option value="/sell/new">{copy('routeSell')}</option>
-                  <option value="/app">{t('admin.notificationCenter.routeBetaApp')}</option>
-                  <option value="/mijn-hcp">{t('admin.notificationCenter.routeMijnHcp')}</option>
-                  <option value="/profile">{t('admin.notificationCenter.routeProfile')}</option>
-                </select>
-                <p className="mt-1 text-xs text-gray-500">{t('admin.notificationCenter.linkHelp')}</p>
-              </div>
-            </div>
-          )}
-
-          {sendEmail && (
-            <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('admin.notificationCenter.emailSubject')} *
-                  </label>
-                  <input
-                    type="text"
-                    value={subject}
-                    onChange={(event) => {
-                      setSubject(event.target.value);
-                      invalidatePreview();
-                    }}
-                    aria-invalid={fieldInvalid('subject')}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${fieldInvalid('subject') ? 'border-red-600' : 'border-gray-300'}`}
-                    placeholder={t('admin.notificationCenter.emailSubjectPlaceholder')}
-                    maxLength={100}
-                  />
             </div>
           )}
 
@@ -1578,7 +1613,10 @@ export default function NotificationCenter() {
         </div>
       )}
           {sendEmail && message.trim() && (
-            <AdminEmailPreview subject={subject} message={message} action={adminEmailActionForRoute(linkPreset)} />
+            <AdminEmailPreview subject={subject} message={message} action={(() => {
+              const resolved = resolveAdminNoticeButton(buttonLabel, linkPreset);
+              return resolved.ok && resolved.action ? { label: resolved.action.label, url: resolved.action.url } : null;
+            })()} />
           )}
         </div>
       )}

@@ -865,6 +865,7 @@ export function previewCanonicalPayload(input: {
   subject: string;
   title: string;
   route: string;
+  actionLabel?: string;
   sendNotification: boolean;
   sendEmail: boolean;
   confirmRepeat: boolean;
@@ -878,6 +879,7 @@ export function previewCanonicalPayload(input: {
     subject: input.subject,
     title: input.title,
     route: input.route,
+    actionLabel: (input.actionLabel ?? '').trim(),
     sendNotification: input.sendNotification,
     sendEmail: input.sendEmail,
     confirmRepeat: input.confirmRepeat,

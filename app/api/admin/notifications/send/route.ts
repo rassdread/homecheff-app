@@ -3,13 +3,13 @@ import { uiCopy, uiLanguageFromRequest, type UiLanguage } from '@/lib/admin/noti
 import { createHash } from 'crypto';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { sanitizeAdminBroadcastRoute } from '@/lib/admin/sanitize-admin-broadcast-route';
+import { adminNoticePath, resolveAdminNoticeButton } from '@/lib/admin/admin-notice';
 import { sendAdminBroadcastFcmByUser } from '@/lib/admin/admin-broadcast-fcm';
 import { evaluateAdminEmailBlast } from '@/lib/email/admin-blast-guard';
 import { sendTransactionalEmail } from '@/lib/email/idempotent-send';
 import { EMAIL_PRIORITY } from '@/lib/email/priority';
 import { getTransactionalFrom } from '@/lib/email-from';
-import { adminEmailActionForRoute, renderAdminBulkMessage } from '@/lib/email/admin-bulk-message-content';
+import { renderAdminBulkMessage } from '@/lib/email/admin-bulk-message-content';
 import {
   UNAVAILABLE_AUDIENCE_FACTS,
   agreementState,
@@ -360,7 +360,13 @@ export async function POST(req: NextRequest) {
       idempotencyKey: campaignId,
       lang,
     });
-    const safeRoute = sanitizeAdminBroadcastRoute(routeRaw);
+    const noticeButton = resolveAdminNoticeButton(record.buttonLabel, routeRaw);
+    if (!noticeButton.ok) {
+      const error = say(lang, noticeButton.errorKey);
+      return NextResponse.json({ error, message: error, lines: [error] }, { status: 400 });
+    }
+    const noticeAction = noticeButton.action;
+    const openPath = adminNoticePath(campaignId);
     const pushTitle = titleRaw.length > 0 ? titleRaw.slice(0, 120) : 'HomeCheff';
     const requestedChannels: DeliveryChannel[] = [
       ...(plans.some((plan) => plan.inApp) ? (['inApp'] as DeliveryChannel[]) : []),
@@ -386,7 +392,8 @@ export async function POST(req: NextRequest) {
       message,
       subject,
       title: pushTitle,
-      route: safeRoute,
+      route: noticeAction?.path || '',
+      actionLabel: noticeAction?.label || '',
       sendNotification,
       sendEmail,
       confirmRepeat,
@@ -439,6 +446,9 @@ export async function POST(req: NextRequest) {
         ...contentLines,
       ];
       if (!blastGate.ok) lines.push(blastGate.error);
+      if (sendEmail && (process.env.EMAIL_PAUSE_P2 === '1' || process.env.EMAIL_PAUSE_P2 === 'true')) {
+        lines.push(say(lang, 'emailPaused'));
+      }
       return NextResponse.json({
         dryRun: true,
         previewToken: blastGate.ok || blastGate.code !== 'HARD_LIMIT' ? previewToken : null,
@@ -512,9 +522,11 @@ export async function POST(req: NextRequest) {
         message,
         from: 'Admin',
         timestamp: new Date().toISOString(),
-        link: safeRoute,
+        link: openPath,
+        actionLabel: noticeAction?.label || '',
+        actionRoute: noticeAction?.path || '',
         broadcastId: campaignId,
-        data: { type: 'ADMIN_ANNOUNCEMENT', route: safeRoute },
+        data: { type: 'ADMIN_ANNOUNCEMENT', route: openPath, actionUrl: openPath },
       };
 
       let notificationsCreated = 0;
@@ -568,7 +580,7 @@ export async function POST(req: NextRequest) {
             userIds: pending.map((user) => user.id),
             title: pushTitle,
             body: message.slice(0, 500),
-            route: safeRoute,
+            route: openPath,
             broadcastId: campaignId,
           });
           pushOffered = push.success;
@@ -598,6 +610,7 @@ export async function POST(req: NextRequest) {
       let emailsAccepted = 0;
       let emailsFailed = 0;
       let emailsSuppressed = 0;
+      let emailsPaused = 0;
       let emailsUnconfirmed = 0;
       let emailsSkipped = 0;
       if (plans.some((plan) => plan.email)) {
@@ -614,7 +627,7 @@ export async function POST(req: NextRequest) {
               const letter = renderAdminBulkMessage({
                 recipientName: user.name || '',
                 message,
-                action: adminEmailActionForRoute(safeRoute),
+                action: noticeAction ? { label: noticeAction.label, url: noticeAction.url } : null,
               });
               const result = await sendTransactionalEmail({
                 from: getTransactionalFrom(),
@@ -631,8 +644,10 @@ export async function POST(req: NextRequest) {
               const status = emailLedgerStatus(result);
               if (status === 'accepted') emailsAccepted += 1;
               else if (status === 'unconfirmed') emailsUnconfirmed += 1;
-              else if (status === 'suppressed') emailsSuppressed += 1;
-              else emailsFailed += 1;
+              else if (status === 'suppressed') {
+                emailsSuppressed += 1;
+                if (result.status === 'suppressed' && result.reason === 'p2_paused') emailsPaused += 1;
+              } else emailsFailed += 1;
               const next = stampChannels(ledgerAfterEmail(ledgers.get(user.id) ?? null, status), planById.get(user.id));
               ledgers.set(user.id, next);
               await saveLedger(campaignId, user.id, next);
@@ -670,6 +685,10 @@ export async function POST(req: NextRequest) {
         pushRequested: plans.some((plan) => plan.push),
         inAppRequested: plans.some((plan) => plan.inApp),
       }, lang);
+      if (emailsPaused > 0) {
+        report.lines.push(say(lang, 'emailPaused'));
+        report.message = report.lines.join(' ');
+      }
 
       console.info(
         '[admin_email_blast]',

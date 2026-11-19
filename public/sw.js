@@ -65,6 +65,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Sessie nooit uit de cache. Een oude lege /api/auth/session hield de app uitgelogd
+  // nadat Google-login het cookie al had gezet.
+  if (url.pathname.startsWith('/api/auth/')) {
+    return;
+  }
+
   // Skip non-GET requests
   if (request.method !== 'GET') {
     return;

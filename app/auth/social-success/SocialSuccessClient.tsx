@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { applySessionMode, readRememberPreference } from '@/lib/session-mode';
 import { isIOS, isSafariIOS } from '@/lib/browser-utils';
+import { isNativeAndroid } from '@/lib/native/capacitor';
 import {
   fetchOnboardingFlags,
   onboardingFlagsFromSessionUser,
@@ -24,10 +25,11 @@ const POLL_MS = 400;
 type Phase = 'checking' | 'redirecting' | 'error';
 
 import { resolveNativeAuthApiUrl } from '@/lib/native/google-sign-in-config';
+import { dropCachedAuthSession } from '@/lib/native/drop-cached-auth-session';
 
 async function fetchSessionViaApi(): Promise<{ user?: { email?: string | null } } | null> {
   try {
-    const res = await fetch(resolveNativeAuthApiUrl('/api/auth/session'), {
+    const res = await fetch(resolveNativeAuthApiUrl(`/api/auth/session?native=${Date.now()}`), {
       cache: 'no-store',
       credentials: 'include',
     });
@@ -155,7 +157,7 @@ function SocialSuccessInner() {
     const delay = isSafariOnIOS ? 400 : isIOSDevice ? 300 : 100;
     await new Promise((r) => setTimeout(r, delay));
 
-    if (isIOSDevice || isSafariOnIOS) {
+    if (isIOSDevice || isSafariOnIOS || isNativeAndroid()) {
       navigateHard(target);
       return;
     }
@@ -178,6 +180,7 @@ function SocialSuccessInner() {
   );
 
   const tryDetectSession = useCallback(async (): Promise<boolean> => {
+    await dropCachedAuthSession();
     let s = await getSession();
     if (s?.user?.email) return true;
     const api = await fetchSessionViaApi();

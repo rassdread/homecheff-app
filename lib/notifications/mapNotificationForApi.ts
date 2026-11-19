@@ -120,6 +120,14 @@ export function mapNotificationRow(
         (typeof payload.message === 'string' && payload.message) ||
         'Nieuwe notificatie',
       link: resolvedLink,
+      actionLabel:
+        typeof payload.actionLabel === 'string' && payload.actionLabel.trim()
+          ? payload.actionLabel.trim()
+          : undefined,
+      actionRoute:
+        typeof payload.actionRoute === 'string' && payload.actionRoute.trim()
+          ? payload.actionRoute.trim()
+          : undefined,
       ...meta,
       isRead: !!notification.readAt,
       createdAt: notification.createdAt.toISOString(),

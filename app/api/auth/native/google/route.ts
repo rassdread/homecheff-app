@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCorsHeaders } from '@/lib/apiCors';
 import { createSessionFromNativeGoogleIdToken } from '@/lib/auth/native-google-session';
+import {
+  nativeDocumentRedirectTarget,
+  nativeSessionPostAllowed,
+} from '@/lib/auth/native-session-post';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -18,9 +22,25 @@ export async function POST(req: NextRequest) {
 
   console.info(LOG_PREFIX, { requestReceived: true });
 
-  let body: unknown;
+  let idToken = '';
+  let returnTo = '';
+  const contentType = req.headers.get('content-type') || '';
   try {
-    body = await req.json();
+    if (contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')) {
+      const form = await req.formData();
+      idToken = String(form.get('idToken') || '').trim();
+      returnTo = String(form.get('returnTo') || '').trim();
+    } else {
+      const body = await req.json();
+      idToken =
+        typeof (body as { idToken?: unknown })?.idToken === 'string'
+          ? (body as { idToken: string }).idToken.trim()
+          : '';
+      returnTo =
+        typeof (body as { returnTo?: unknown })?.returnTo === 'string'
+          ? (body as { returnTo: string }).returnTo.trim()
+          : '';
+    }
   } catch {
     console.info(LOG_PREFIX, { verifyFailed: true, reason: 'invalid_json_body' });
     return new NextResponse(JSON.stringify({ ok: false, code: 'invalid_json' }), {
@@ -28,13 +48,21 @@ export async function POST(req: NextRequest) {
       headers,
     });
   }
-
-  const idToken =
-    typeof (body as { idToken?: unknown })?.idToken === 'string'
-      ? (body as { idToken: string }).idToken.trim()
-      : '';
   const hasIdToken = Boolean(idToken);
   console.info(LOG_PREFIX, { hasIdToken });
+  if (
+    !nativeSessionPostAllowed({
+      requestUrl: req.url,
+      origin: req.headers.get('origin'),
+      fetchSite: req.headers.get('sec-fetch-site'),
+    })
+  ) {
+    console.info(LOG_PREFIX, { verifyFailed: true, reason: 'cross_site' });
+    return new NextResponse(JSON.stringify({ ok: false, code: 'cross_site' }), {
+      status: 403,
+      headers,
+    });
+  }
   if (!idToken) {
     console.info(LOG_PREFIX, { verifyFailed: true, reason: 'missing_id_token' });
     return new NextResponse(JSON.stringify({ ok: false, code: 'missing_id_token' }), {
@@ -57,6 +85,12 @@ export async function POST(req: NextRequest) {
   }
 
   console.info(LOG_PREFIX, { verifySuccess: true, sessionCookieSet: true });
+  const redirectTarget = nativeDocumentRedirectTarget(returnTo, req.url);
+  if (redirectTarget) {
+    const redirect = NextResponse.redirect(redirectTarget, 303);
+    redirect.headers.append('Set-Cookie', result.setCookie);
+    return redirect;
+  }
   headers.append('Set-Cookie', result.setCookie);
   return new NextResponse(
     JSON.stringify({
