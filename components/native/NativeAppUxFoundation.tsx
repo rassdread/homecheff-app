@@ -8,6 +8,10 @@ import { isNativeApp } from "@/lib/native/capacitor";
 import { writeNativeShellLastPath } from "@/lib/native/appShellStorage";
 import { isSafeRestorablePath } from "@/lib/native/safeRoute";
 import {
+  pathFromAppLink,
+  pathFromColdStartAppLink,
+} from "@/lib/native/appLink";
+import {
   consumePendingNativeRoute,
   pathFromPushNotificationData,
   storePendingNativeRoute,
@@ -239,6 +243,62 @@ function NativePushDeepLinkListener() {
   return null;
 }
 
+function NativeAppLinkListener() {
+  const router = useRouter();
+  const nativeMounted = useIsNativeAppMounted();
+  const cleanupRef = useRef<(() => Promise<void>) | null>(null);
+
+  useEffect(() => {
+    if (!nativeMounted) return;
+    let cancelled = false;
+
+    const openPath = (path: string) => {
+      storePendingNativeRoute(path);
+      try {
+        router.replace(path);
+      } catch {
+        window.location.assign(path);
+      }
+    };
+
+    void (async () => {
+      if (!isNativeApp()) return;
+      try {
+        const { App } = await import("@capacitor/app");
+        const launch = await App.getLaunchUrl();
+        if (!cancelled) {
+          const cold = pathFromColdStartAppLink(launch?.url);
+          if (cold) openPath(cold);
+        }
+        const handle = await App.addListener("appUrlOpen", (event) => {
+          const path = pathFromAppLink(event.url);
+          if (path) openPath(path);
+        });
+        if (cancelled) {
+          await handle.remove();
+          return;
+        }
+        cleanupRef.current = async () => {
+          try {
+            await handle.remove();
+          } catch {
+            /* ignore */
+          }
+        };
+      } catch {
+        /* plugin niet beschikbaar buiten de native schil */
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      void cleanupRef.current?.();
+    };
+  }, [nativeMounted, router]);
+
+  return null;
+}
+
 function NativeGoogleSignInPrewarm() {
   const nativeMounted = useIsNativeAppMounted();
 
@@ -261,6 +321,7 @@ export default function NativeAppUxFoundation() {
       <NativeWarmTabPrefetch />
       <NativePendingRouteApplier />
       <NativePushDeepLinkListener />
+      <NativeAppLinkListener />
       <NativeOfflineOverlay />
     </>
   );
