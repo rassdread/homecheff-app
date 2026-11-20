@@ -205,13 +205,22 @@ export default function FeedMobileToolbar({
         </button>
       </div>
 
-      <div className="min-w-0">
-        <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--hc-text-secondary)]">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-1.5">
+        <p className="col-start-1 row-start-1 self-center text-[11px] font-semibold uppercase tracking-wide text-[var(--hc-text-secondary)]">
           {t('feed.verticalAxisLabel')}
         </p>
-        <div className="flex min-w-0 items-center gap-2">
+        <button
+          type="button"
+          data-marketplace-delivery="entry"
+          aria-pressed={deliveryRequestOpen}
+          className="col-start-2 row-start-1 row-span-2 inline-flex h-11 shrink-0 items-center justify-center self-start rounded-lg bg-[var(--hc-green)] px-2.5 text-xs font-semibold leading-none text-white hover:bg-[var(--hc-green-deep)] touch-manipulation whitespace-nowrap"
+          onClick={() => onOpenDeliveryRequest?.()}
+        >
+          {t('feed.requestCourier')}
+        </button>
+        <div className="col-start-1 row-start-2 flex min-w-0 items-center gap-1.5">
           <div
-            className="hc-chip-scroller flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:thin]"
+            className="hc-chip-scroller flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-contain [scrollbar-width:thin]"
             data-hc-chip-scroller="category"
           >
             {DISCOVERY_CATEGORY_CHIP_OPTIONS.map(({ slug, labelKey }) => (
@@ -247,15 +256,6 @@ export default function FeedMobileToolbar({
               {t(labelKey)}
             </button>
           ))}
-          <button
-            type="button"
-            data-marketplace-delivery="entry"
-            aria-pressed={deliveryRequestOpen}
-            className={viewChipClass(deliveryRequestOpen)}
-            onClick={() => onOpenDeliveryRequest?.()}
-          >
-            {t('marketplace.canonical.view.delivery')}
-          </button>
         </div>
       </div>
     </div>

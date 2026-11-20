@@ -6726,20 +6726,31 @@ export default function GeoFeed({
 
   const viewModeChipsEl = (
     <>
-      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--hc-text-secondary)]">
-        {t("feed.verticalAxisLabel")}
-      </p>
-      <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
-        {CATEGORY_CHIP_OPTIONS.map(({ slug, labelKey }) => (
-          <button
-            key={slug}
-            type="button"
-            className={categoryChipBtn(appliedCategory === slug)}
-            onClick={() => selectVerticalChip(slug)}
-          >
-            {t(labelKey)}
-          </button>
-        ))}
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2">
+        <p className="col-start-1 row-start-1 self-center text-[11px] font-semibold uppercase tracking-wide text-[var(--hc-text-secondary)]">
+          {t("feed.verticalAxisLabel")}
+        </p>
+        <button
+          type="button"
+          data-marketplace-delivery="entry"
+          aria-pressed={deliveryRequestOpen}
+          className="col-start-2 row-start-1 row-span-2 inline-flex h-11 shrink-0 items-center justify-center self-start rounded-lg bg-[var(--hc-green)] px-2.5 text-xs font-semibold leading-none text-white hover:bg-[var(--hc-green-deep)] touch-manipulation whitespace-nowrap"
+          onClick={openDeliveryRequest}
+        >
+          {t("feed.requestCourier")}
+        </button>
+        <div className="col-start-1 row-start-2 flex min-w-0 flex-nowrap gap-2 overflow-x-auto sm:flex-wrap sm:overflow-visible">
+          {CATEGORY_CHIP_OPTIONS.map(({ slug, labelKey }) => (
+            <button
+              key={slug}
+              type="button"
+              className={categoryChipBtn(appliedCategory === slug)}
+              onClick={() => selectVerticalChip(slug)}
+            >
+              {t(labelKey)}
+            </button>
+          ))}
+        </div>
       </div>
       <p className="mb-1.5 mt-2 text-[11px] font-medium uppercase tracking-wide text-[var(--hc-text-secondary)]">
         {t("feed.viewModeLabel")}
@@ -6755,15 +6766,6 @@ export default function GeoFeed({
             {t(labelKey)}
           </button>
         ))}
-        <button
-          type="button"
-          data-marketplace-delivery="entry"
-          aria-pressed={deliveryRequestOpen}
-          className={viewChipBtn(deliveryRequestOpen)}
-          onClick={openDeliveryRequest}
-        >
-          {t("marketplace.canonical.view.delivery")}
-        </button>
       </div>
     </>
   );

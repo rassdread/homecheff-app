@@ -22,18 +22,24 @@ function between(source: string, start: string, end: string) {
 }
 
 describe('marketplace delivery discovery', () => {
-  it('places Bezorging beside the existing view chips, not in the main nav', () => {
+  it('places the courier request beside the category heading, not in the view chips', () => {
     const chips = between(geo, 'const viewModeChipsEl', 'const filterPanelBodyEl');
-    const viewLoop = chips.indexOf('DISCOVERY_VIEW_CHIP_OPTIONS.map');
+    const categoryLabel = chips.indexOf('feed.verticalAxisLabel');
     const entry = chips.indexOf('data-marketplace-delivery="entry"');
-    assert.ok(viewLoop >= 0 && entry > viewLoop);
-    assert.match(chips, /t\("marketplace\.canonical\.view\.delivery"\)/);
-    assert.match(toolbar, /data-marketplace-delivery="entry"/);
-    assert.match(toolbar, /DISCOVERY_VIEW_CHIP_OPTIONS\.map/);
+    const viewLoop = chips.indexOf('DISCOVERY_VIEW_CHIP_OPTIONS.map');
+    assert.ok(categoryLabel >= 0 && entry > categoryLabel && viewLoop > entry);
+    assert.equal(chips.slice(viewLoop).includes('data-marketplace-delivery="entry"'), false);
+    assert.match(chips, /t\("feed\.requestCourier"\)/);
+    const toolbarCategory = between(toolbar, 'feed.verticalAxisLabel', 'data-hc-chip-scroller="view"');
+    assert.match(toolbarCategory, /data-marketplace-delivery="entry"/);
+    assert.match(toolbarCategory, /feed\.requestCourier/);
+    assert.equal(
+      toolbar.slice(toolbar.indexOf('data-hc-chip-scroller="view"')).includes('data-marketplace-delivery="entry"'),
+      false,
+    );
     assert.equal(nav.includes('data-marketplace-delivery'), false);
-    assert.equal(nav.includes('marketplace.canonical.view.delivery'), false);
-    assert.match(nl, /"delivery": "Bezorging"/);
-    assert.match(en, /"delivery": "Delivery"/);
+    assert.match(nl, /"requestCourier": "Bezorger aanvragen"/);
+    assert.match(en, /"requestCourier": "Request a courier"/);
   });
 
   it('places one delivery tile after the first offer and hides it while the form is open', () => {
