@@ -67,6 +67,15 @@
       "artifacts": [
         "aab"
       ]
+    },
+    {
+      "versionName": "1.0.20",
+      "versionCode": 26,
+      "at": "2026-11-20T09:05:00.000Z",
+      "changelog": "Open HomeCheff message links in the Android app",
+      "artifacts": [
+        "aab"
+      ]
     }
   ]
 }

@@ -1,19 +1,20 @@
 /**
  * Digital Asset Links voor eu.homecheff.mobile.
  *
- * Het enige certificaat dat in deze repo te controleren is, is de V2-ondertekening
- * van public/downloads/homecheff-beta.apk (versionName 1.0.15, versionCode 20).
- * Dat is de rechtstreekse APK-sleutel (CN=HomeCheff, OU=Engineering, O=Arrias Beheer BV).
- * Die APK bewijst niet welke versie op een telefoon staat.
+ * Rechtstreekse APK en uploadsleutel zijn hetzelfde certificaat:
+ * android/homecheff-release-key.jks, alias homecheff, gecontroleerd tegen
+ * public/downloads/homecheff-beta.apk 1.0.15 en config/android-release.json.
  *
- * Play App Signing gebruikt een ander certificaat. Dat SHA-256 staat niet in de
- * repo en wordt hier niet ingevuld. Zonder dat certificaat verifieert Android
- * geen via Play geïnstalleerde app.
+ * Play App Signing is een ander certificaat. SHA-256 komt uit Play Console,
+ * App-ondertekening, en de bijbehorende SHA-1 staat in Firebase.
  */
 export const ANDROID_APP_LINK_PACKAGE = "eu.homecheff.mobile";
 
 export const DIRECT_APK_SHA256_HEX =
   "9e992c2909f16f0a049d800abe7ea450990f72a797440af086c0779b15e9f28b";
+
+export const PLAY_APP_SIGNING_SHA256_HEX =
+  "4a195670e4a7e925f34bd601a5d094cae29392013b444a22756acc1a5f3fa9f2";
 
 export function sha256Fingerprint(hex: string): string {
   const clean = hex.replace(/[^0-9a-f]/gi, "").toUpperCase();
@@ -37,7 +38,10 @@ export function androidAssetLinksStatement(): Array<{
       target: {
         namespace: "android_app",
         package_name: ANDROID_APP_LINK_PACKAGE,
-        sha256_cert_fingerprints: [sha256Fingerprint(DIRECT_APK_SHA256_HEX)],
+        sha256_cert_fingerprints: [
+          sha256Fingerprint(DIRECT_APK_SHA256_HEX),
+          sha256Fingerprint(PLAY_APP_SIGNING_SHA256_HEX),
+        ],
       },
     },
   ];
